@@ -87,9 +87,17 @@ p {
   justify-content: space-between;
   padding: 22px var(--gutter);
   color: var(--chalk);
-  mix-blend-mode: difference;
   pointer-events: none;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease, background-color 0.35s ease, padding 0.35s ease;
+}
+/* once the page has moved, the header brings its own ground so the logo never sits on text */
+.top.is-solid {
+  background: rgb(40 48 47 / 0.88);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  backdrop-filter: blur(12px) saturate(1.2);
+  padding-top: 14px;
+  padding-bottom: 14px;
+  box-shadow: 0 1px 0 rgb(243 244 241 / 0.06);
 }
 .top.is-hidden {
   transform: translateY(-110%);

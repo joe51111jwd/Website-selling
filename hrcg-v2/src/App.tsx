@@ -223,6 +223,7 @@ export function App() {
   const [introDone, setIntroDone] = useState(false);
   const [ctaHidden, setCtaHidden] = useState(false);
   const [headHidden, setHeadHidden] = useState(false);
+  const [headSolid, setHeadSolid] = useState(false);
   useEffect(() => {
     // the header steps out of the way while you read down, and comes back when you scroll up
     let last = window.scrollY;
@@ -230,6 +231,7 @@ export function App() {
       const y = window.scrollY;
       if (Math.abs(y - last) < 6) return;
       setHeadHidden(y > last && y > 160);
+      setHeadSolid(y > 40);
       last = y;
     };
     window.addEventListener('scroll', on, { passive: true });
@@ -269,7 +271,7 @@ export function App() {
 
   return (
     <>
-      <header className={`top ${headHidden ? 'is-hidden' : ''}`}>
+      <header className={`top ${headHidden ? 'is-hidden' : ''} ${headSolid ? 'is-solid' : ''}`}>
         <a className="brand" href="#top" aria-label="HRCG, Humanoid Robot Construction Games, back to top">
           <Mark />
           <span>HRCG</span>
@@ -322,7 +324,7 @@ export function App() {
               <p>If your company, lab or university team is building a humanoid, tell us which tasks suit it and what you&rsquo;d need.</p>
             </Reveal>
             <Reveal className="who-card" delay={0.08}>
-              <h3>Construction companies</h3>
+              <h3>Sponsors</h3>
               <p>You could supply materials, tools or fixtures for one of the tasks, or lend us someone who knows the trade.</p>
             </Reveal>
           </div>

@@ -31,7 +31,7 @@ const SUPPLIES = ["Products", "Equipment", "Funding", "Venue"] as const;
 type Supply = (typeof SUPPLIES)[number];
 const MODES = ["team", "company"] as const;
 type Mode = (typeof MODES)[number];
-const MODE_LABEL: Record<Mode, string> = { team: "Robot team", company: "Construction company" };
+const MODE_LABEL: Record<Mode, string> = { team: "Robot team", company: "Sponsor" };
 type Status = "idle" | "tearing" | "torn";
 
 /** Below this width the stub stacks under the permit (keep in step with permit.css). */
