@@ -46,7 +46,7 @@ class VisorTrack:
             x0, y0 = sx0 + mx, sy0 + my; x1, y1 = x0 + w, y0 + h; self.box = [x0, y0, x1, y1]
             self.tpl = 0.85 * self.tpl + 0.15 * g[y0:y1, x0:x1]
         m = np.zeros((H, W), np.float32)
-        cv2.ellipse(m, ((x0 + x1) / 2, (y0 + y1) / 2), (w * 0.62, h * 0.62), 0, 0, 360, 1.0, -1)
+        cv2.ellipse(m, (int((x0 + x1) / 2), int((y0 + y1) / 2)), (int(w * 0.62), int(h * 0.62)), 0, 0, 360, 1.0, -1)
         m = cv2.GaussianBlur(m, (0, 0), 10)[..., None]
         dark = np.minimum(f * 0.35, 0.16)
         return f * (1 - m) + dark * m, self.box
