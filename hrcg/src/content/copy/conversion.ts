@@ -62,9 +62,14 @@ export const T7 = {
   letter: 'Download T7 (US Letter PDF)',
   a4: 'Download T7 (A4 PDF)',
   svg: 'Download T7 (SVG)',
-  /** Proof label; `{measured}` = the smallest detected width from t7-proof.json (shown only when measured). */
+  /**
+   * Proof label (brief 3.10): before + `{measured}` + after, where `{measured}` is the exact
+   * `smallestLabel` string from t7-proof.json (e.g. "26 PX WIDE"), else `{px}` + proofUnit. The row
+   * is shown only when the pipeline has really measured it.
+   */
   proofBefore: 'DETECTED IN OUR TESTS ON DIGITAL RENDERS, NOT PRINTS: FLAT · WARPED + BLURRED · ',
-  proofAfter: ' PX WIDE. DETECTOR: OPEN-SOURCE APRILTAG LIBRARY.',
+  proofUnit: ' PX WIDE',
+  proofAfter: '. DETECTOR: OPEN-SOURCE APRILTAG LIBRARY.',
   alt: 'Control target T7: a square panel of dark and light bricks in stack bond, two bricks to each cell, that forms AprilTag tag36h11, ID 7.',
   proofAlt:
     'Our digital test renders of the target, flat, warped and blurred, and small, each outlined where the detector found the tag.',

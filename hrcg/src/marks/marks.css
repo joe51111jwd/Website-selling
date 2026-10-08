@@ -24,7 +24,8 @@
   fill: currentColor;
   stroke: none;
 }
-.mk-paper {
+.mk-paper,
+.mk-face {
   fill: var(--bg);
 }
 .mk-id {

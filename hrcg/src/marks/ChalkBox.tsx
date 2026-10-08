@@ -27,8 +27,8 @@ export function ChalkBox({ size = 20, side = 'left', title, className, style }: 
         {/* reel and axle */}
         <circle className="mk-reel" cx="13" cy="12" r="5" />
         <circle className="mk-fill" cx="13" cy="12" r="1.4" />
-        {/* the line paying out through the notch */}
-        <path className="mk-reel" d="M13 7H8.5L3.5 12H0" />
+        {/* the line paying out off the reel, through the notch */}
+        <path className="mk-reel" d="M8 12H0" />
         {/* crank */}
         <path className="mk-reel" d="M20.5 16.5H23" />
       </g>

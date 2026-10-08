@@ -6,6 +6,7 @@
 #   - an approximation of the brief §5.6 grade (blacks clamp to #0B0B0A, -10% saturation outside blue/orange)
 #   - a box-masked yellow -> graphite shift on the tape measure in c34 and b44 (livery, red-team #11)
 # It does NOT crush crowds (D4) or fix visors: these copies are for drafts only.
+# usage: prep-interim.sh [all|new]   (new = only the gated new takes n09r, n01b)
 # FINAL renders use A5's mezzanines in film/public/clips/ (see src/clips.ts).
 set -euo pipefail
 S=/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad
@@ -39,6 +40,7 @@ bay() { # name src [box]
   fi
   echo "$name done"
 }
+if [[ "${1:-all}" == "all" ]]; then
 crop169 c30 "$SRC/c30-brick.mp4"
 crop169 c31 "$SRC/c31-drywall.mp4"
 crop169 c32 "$SRC/c32-bolt.mp4"
@@ -50,3 +52,7 @@ bay b41 "$SRC/b41-drywall.mp4"
 bay b42 "$SRC/b42-bolt.mp4"
 bay b43 "$SRC/b43-pipe.mp4"
 bay b44 "$SRC/b44-layout.mp4" 1020 360 240 220
+fi
+# gated new takes (A5 QA PASS in media/NEW_SHOTS.md): N09 retake = PERSPECTIVE 01-A, N01b = the 9:16 snap
+crop169 n09r "$S/media/new/N09r.mp4"
+ffmpeg -v error -y -i "$S/media/new/N01b.mp4" -vf "$GRADE" "${ENC[@]}" "$OUT/n01b.mp4"; echo "n01b done"

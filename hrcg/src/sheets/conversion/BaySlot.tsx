@@ -33,11 +33,11 @@ function useSvgId(prefix: string): string {
 export function PaintFilter({ id, rough = 1 }: { id: string; rough?: number }) {
   return (
     <filter id={id} x="-4%" y="-30%" width="108%" height="160%" colorInterpolationFilters="sRGB">
-      <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves={2} seed={7} result="grain" />
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves={2} seed={7} result="grain" />
       <feColorMatrix
         in="grain"
         type="matrix"
-        values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3.2 2.35"
+        values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -5 3.9"
         result="speckle"
       />
       <feComposite in="SourceGraphic" in2="speckle" operator="in" result="painted" />
@@ -101,7 +101,7 @@ export function BayPlate({ platform, ready, crop = FULL, className, sizes, loadi
             >
               {text}
             </text>
-            <text className="bay-number" x={BAY_NO.x} y={BAY_NO.y} fontSize={132} textAnchor="start">
+            <text className="bay-number" x={BAY_NO.x} y={BAY_NO.y} fontSize={190} textAnchor="start">
               {TEAMS.bayNumber}
             </text>
           </g>

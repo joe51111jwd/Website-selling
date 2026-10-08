@@ -15,20 +15,17 @@ import { Chip, SendBlock } from './FormParts';
 // ------------------------------------------------------------------------------------- StandIn
 
 export function StandIn({ platform, ready }: { platform: string; ready: ReadonlySet<number> }) {
+  // Four grid items, so both words sit on one baseline whatever the view titles wrap to.
   return (
     <div className="diptych">
-      <div className="diptych-col">
-        <ViewTitle id="a300-detail07" className="diptych-view">
-          <Picture id="ref21-portrait" className="diptych-picture" sizes="(min-width: 768px) 50vw, 100vw" />
-        </ViewTitle>
-        <p className="diptych-word t-diptych">{TEAMS.diptychLeft}</p>
-      </div>
-      <div className="diptych-col">
-        <ViewTitle id="a300-empty-bay" className="diptych-view">
-          <BayPlate platform={platform} ready={ready} sizes="(min-width: 768px) 50vw, 100vw" />
-        </ViewTitle>
-        <p className="diptych-word t-diptych">{TEAMS.diptychRight}</p>
-      </div>
+      <ViewTitle id="a300-detail07" className="diptych-view diptych-view--left">
+        <Picture id="ref21-portrait" className="diptych-picture" sizes="(min-width: 768px) 40vw, 100vw" />
+      </ViewTitle>
+      <ViewTitle id="a300-empty-bay" className="diptych-view diptych-view--right">
+        <BayPlate platform={platform} ready={ready} sizes="(min-width: 768px) 40vw, 100vw" />
+      </ViewTitle>
+      <p className="diptych-word diptych-word--left t-diptych">{TEAMS.diptychLeft}</p>
+      <p className="diptych-word diptych-word--right t-diptych">{TEAMS.diptychRight}</p>
     </div>
   );
 }
@@ -149,27 +146,36 @@ export function RfiForm({
 
 interface Proof {
   mock?: boolean;
+  pass?: boolean;
   smallestDetectedPx?: number | null;
+  smallestLabel?: string | null;
 }
 
-/** The measured proof width, only when the pipeline has really measured it (never a placeholder). */
-function useProofWidth(): number | null {
-  const [px, setPx] = useState<number | null>(null);
+/** "26 PX WIDE": the measured proof width, only when the pipeline has really measured it. */
+export function proofMeasure(p: Proof | null | undefined): string | null {
+  if (!p || p.mock || p.pass === false) return null;
+  const label = typeof p.smallestLabel === 'string' ? p.smallestLabel.trim() : '';
+  if (/^\d{1,4} PX WIDE$/.test(label)) return label;
+  const v = p.smallestDetectedPx;
+  if (typeof v === 'number' && Number.isFinite(v) && v > 0) return `${Math.round(v)}${T7.proofUnit}`;
+  return null;
+}
+
+function useProofMeasure(): string | null {
+  const [m, setM] = useState<string | null>(null);
   useEffect(() => {
     if (!media['t7-proof-json']) return;
     let alive = true;
     loadJson<Proof>('t7-proof-json')
       .then((p) => {
-        if (!alive || !p || p.mock) return;
-        const v = p.smallestDetectedPx;
-        if (typeof v === 'number' && Number.isFinite(v) && v > 0) setPx(Math.round(v));
+        if (alive) setM(proofMeasure(p));
       })
       .catch(() => {});
     return () => {
       alive = false;
     };
   }, []);
-  return px;
+  return m;
 }
 
 function src(id: string): string | null {
@@ -177,7 +183,7 @@ function src(id: string): string | null {
 }
 
 export function ControlTarget() {
-  const proofPx = useProofWidth();
+  const measured = useProofMeasure();
   const t7 = src('t7-brick');
   const proof = media['t7-proof'];
   const downloads: Array<[string, string]> = [
@@ -223,7 +229,7 @@ export function ControlTarget() {
           );
         })}
       </ul>
-      {proofPx !== null && proof?.sources?.length ? (
+      {measured !== null && proof?.sources?.length ? (
         <figure className="t7-proof">
           <img
             className="t7-proof-img"
@@ -235,9 +241,7 @@ export function ControlTarget() {
             decoding="async"
           />
           <figcaption className="t7-proof-label t-label">
-            {T7.proofBefore}
-            <span className="num">{proofPx}</span>
-            {T7.proofAfter}
+            <LabelText text={`${T7.proofBefore}${measured}${T7.proofAfter}`} />
           </figcaption>
         </figure>
       ) : null}

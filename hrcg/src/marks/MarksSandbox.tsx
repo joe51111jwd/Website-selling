@@ -28,7 +28,7 @@ function Row({ name, use, children }: { name: string; use: string; children: Rea
 }
 
 const CSS = `
-.mks { padding: 48px 72px 160px; display: grid; gap: 0; }
+.mks { padding: 48px 72px 160px; display: grid; gap: 0; overflow-x: clip; }
 .mks-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--rule); padding-bottom: 8px; margin-bottom: 8px; }
 .mks-row { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--line); }
 .mks-use { font: 400 13px/18px var(--font-text); color: var(--fg-2); margin-top: 6px; max-width: 36ch; }
@@ -68,7 +68,7 @@ export default function MarksSandbox() {
         <ControlX size={28} seed={3} />
         <ControlX size={44} seed={9} title="Control point" />
         <ControlX size={28} seed={5} stamp stamped={drawn} delay={120} />
-        <span className="mks-paper">
+        <span className="mks-paper" data-ground="gypsum">
           <ControlX size={28} seed={4} />
         </span>
       </Row>
@@ -142,7 +142,7 @@ export default function MarksSandbox() {
         <ChalkBox size={20} />
         <ChalkBox size={32} side="right" />
         <ChalkBox size={44} title="Chalk box" />
-        <span className="mks-paper">
+        <span className="mks-paper" data-ground="gypsum">
           <ChalkBox size={28} />
         </span>
       </Row>

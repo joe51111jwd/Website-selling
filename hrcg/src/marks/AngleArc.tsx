@@ -16,6 +16,8 @@ export interface AngleArcProps {
   radius?: number;
   /** Value label, e.g. 'ABOUT 29°' */
   label?: string;
+  /** Where the value sits: 'end' (beyond the `to` bearing, clear of both lines; default) or 'mid' (outside the arc's middle) */
+  labelAt?: 'end' | 'mid';
   /** SVG half-size; match NorthArrow's (length + 70) to share an origin */
   extent?: number;
   drawn?: boolean;
@@ -35,12 +37,14 @@ function arrowHead(cx: number, cy: number, radius: number, deg: number, dir: 1 |
   return `M${r2(tip[0])} ${r2(tip[1])}L${r2(n1[0])} ${r2(n1[1])}L${r2(n2[0])} ${r2(n2[1])}Z`;
 }
 
-export function AngleArc({ from = 0, to, radius = 90, label, extent, drawn = true, delay = 0, duration = 700, title, className, style }: AngleArcProps) {
+export function AngleArc({ from = 0, to, radius = 90, label, labelAt = 'end', extent, drawn = true, delay = 0, duration = 700, title, className, style }: AngleArcProps) {
   const half = extent ?? radius + 70;
   const size = half * 2;
   const c = half;
-  const mid = (from + to) / 2;
-  const lab = bearing(c, c, radius + 14, mid);
+  const dir = to >= from ? 1 : -1;
+  const labDeg = labelAt === 'mid' ? (from + to) / 2 : to + dir * ((10 / radius) * 180) / Math.PI;
+  const lab = bearing(c, c, labelAt === 'mid' ? radius + 14 : radius, labDeg);
+  const anchor = labelAt === 'mid' ? 'start' : Math.sin((labDeg * Math.PI) / 180) * dir >= 0 ? 'start' : 'end';
   const a11y = title ? { role: 'img', 'aria-label': title } : { 'aria-hidden': true as const };
   return (
     <svg
@@ -57,7 +61,7 @@ export function AngleArc({ from = 0, to, radius = 90, label, extent, drawn = tru
       <path className="mk-fill" d={arrowHead(c, c, radius, from, -1)} data-ink="" />
       <path className="mk-fill" d={arrowHead(c, c, radius, to, 1)} data-ink="" />
       {label ? (
-        <text className="mk-label" x={r2(lab[0])} y={r2(lab[1])} textAnchor="start" dominantBaseline="auto" data-ink="">
+        <text className="mk-label" x={r2(lab[0])} y={r2(lab[1])} textAnchor={anchor} dominantBaseline="middle" data-ink="">
           {label}
         </text>
       ) : null}
