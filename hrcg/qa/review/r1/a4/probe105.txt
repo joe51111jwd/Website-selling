@@ -1,0 +1,6 @@
+F-042 s=0 {"mark":[228,458.6],"x0":[228,458.6],"now":"0"} dx 0.0 dy 0.0
+F-042 s=1 {"mark":[403.5,458.6],"x1":[403.5,458.6],"now":"10"} dx 0.0 dy 0.0
+F-087 {"focusVisible":true,"outline":"solid 2px rgb(111, 152, 232)","offset":"4px"}
+F-044 [{"label":"5 / A-105 detail: concept film of robot fingers pinching a chalk line and letting it snap","text":"5 / A-105"}]
+F-084 vertical swipe on handle: scrollY 8286 -> 8539 value 0 -> 3
+F-084 horizontal drag on handle: scrollY 8539 -> 8539 value 3 -> 0

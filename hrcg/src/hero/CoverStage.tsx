@@ -247,7 +247,10 @@ export function CoverStage() {
         </section>
 
         {/* ---------------------------------------------------------------- A-100 */}
-        <div className="cv-a100" data-print="auto" data-bubbles="auto">
+        {/* the A-100 load group (A1's F-002 API): held from first paint, released by the controller at
+            P 0.25 (F-006). On the wrapper, so the row is held even while the prerendered Bays are still in
+            their static mode (hydration); MOTION OFF / reduced motion ignore holds. */}
+        <div className="cv-a100" data-print="auto" data-bubbles="auto" data-vm-group="a100">
           {Bays ? (
             <Bays mode={mode} arenaRef={arenaRef} />
           ) : (
