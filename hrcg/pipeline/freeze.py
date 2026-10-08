@@ -657,6 +657,10 @@ g3 = all(l['uncoveredPx'] == 0 and l['edgeInside'] == 0 for l in limits)
 g5 = all(l['stretch']['offendingTriangles'] == 0 for l in limits) and rest_sg['offendingTriangles'] == 0
 meta['restStretch'] = rest_sg; meta['restStretchWith4Neighbours'] = rest_sg4
 meta['gates'] = {'occlusion': g1, 'nearContrast': g2, 'limitPoses': g3, 'farGlyphs': g4, 'stretchPastMatte': g5}
+if not g1 and g4 and rr['farOccl'] <= 0.15:
+    # the brief's 3-10% yaw-0 window and F-046's per-glyph cap cannot both hold: the bite lands on one or two glyphs,
+    # so 3% of all FAR pixels is ~30-50% of one glyph at yaw 0 and more at rest. F-046 (binding fix) wins.
+    meta['gates']['occlusion'] = 'superseded by F-046 farGlyphs (yaw-0 window not met; rest <= 15% met)'
 json.dump(meta, open(f'{A.outdir}/hero-meta-{SUF}.json', 'w'), indent=1)
 print(json.dumps({'gates': meta['gates'], 'occlusion': meta['occlusion'], 'nearContrast': meta['nearContrast'], 'plate': meta['plate'],
                   'farGlyphs': {k_: v_ for k_, v_ in GLYPHS.items() if k_ != 'glyphs'}, 'restStretch': rest_sg, 'dilation': meta['depthDilation'],

@@ -11,7 +11,7 @@
  "a": 0.1861,
  "b": 1.6,
  "f": 1.2,
- "pivotZ": 2.2365,
+ "pivotZ": 2.1858,
  "nearD": 0.9953,
  "farD": 0.0039,
  "yaw": {
@@ -34,7 +34,33 @@
  "limitPoseRule": "mesh with A2s 12% overscan ring (edge-clamped); FAIL if the ring outer edge enters the frame box or any pixel is uncovered (no mesh, no plate)",
  "stretchDiscard": {
   "threshold": 0.06,
-  "rampDeg": 0.5
+  "rampDeg": 0.5,
+  "note": "pre-F-004 per-pixel test; superseded by edgeAlpha"
+ },
+ "edgeAlpha": {
+  "aEdge": "max(|z_i - z_n|) / z_i over the 8 grid neighbours (gate); see requests/A5-fix-2",
+  "alpha": "1 - smoothstep(0.04, 0.08, aEdge * k)",
+  "discardBelow": 0.01,
+  "k": "clamp((|yaw| + |pitch|) / 0.5 deg, 0, 1)",
+  "foreground": "hero-matte alpha (07 drawn from the matte at every yaw)"
+ },
+ "depthDilation": {
+  "note": "F-008: inverse depth grey-dilated (nearer wins) before meshing; matte = undilated core (d > farPlaneD) + dil px",
+  "radiusPx": 19,
+  "cellPx": 7.47,
+  "mattePx": 3.0,
+  "matteFeatherSigmaPx": 1.6,
+  "matteCutY": 0.45,
+  "farPlaneD": 0.12406,
+  "matteCellsWithEdge": 45,
+  "matteCellsWithEdgeOnSilhouette": 32,
+  "snap": {
+   "minJumpD": 0.05,
+   "reachPx": 31,
+   "pxSnappedToFar": 15298,
+   "reliefSigmaPx": 37.3,
+   "note": "hard depth step around the upper-body core (above the matte cut); 07 above the cut is a smooth relief"
+  }
  },
  "typeLayers": [
   {
@@ -43,14 +69,14 @@
    "z": 2.6,
    "anchor": "left-baseline",
    "x": 0.08,
-   "baseline": 0.21,
-   "fontPx": 143.4,
-   "fontPxFrac": 0.075,
+   "baseline": 0.186,
+   "fontPx": 133.84,
+   "fontPxFrac": 0.07,
    "box": [
     0.08,
-    0.14933,
-    0.68223,
-    0.21052
+    0.12899,
+    0.64413,
+    0.18652
    ]
   },
   {
@@ -59,14 +85,14 @@
    "z": 2.6,
    "anchor": "left-baseline",
    "x": 0.08,
-   "baseline": 0.2745,
-   "fontPx": 143.4,
-   "fontPxFrac": 0.075,
+   "baseline": 0.2462,
+   "fontPx": 133.84,
+   "fontPxFrac": 0.07,
    "box": [
     0.08,
-    0.21383,
-    0.60602,
-    0.27502
+    0.18919,
+    0.57349,
+    0.24672
    ]
   },
   {
@@ -75,14 +101,14 @@
    "z": 1.05,
    "anchor": "right-baseline",
    "x": 0.865,
-   "baseline": 0.7105,
-   "fontPx": 143.4,
-   "fontPxFrac": 0.075,
+   "baseline": 0.7148,
+   "fontPx": 133.84,
+   "fontPxFrac": 0.07,
    "box": [
-    0.39939,
-    0.64983,
+    0.42913,
+    0.65779,
     0.865,
-    0.71102
+    0.71532
    ]
   },
   {
@@ -92,11 +118,11 @@
    "anchor": "right-baseline",
    "x": 0.865,
    "baseline": 0.775,
-   "fontPx": 143.4,
-   "fontPxFrac": 0.075,
+   "fontPx": 133.84,
+   "fontPxFrac": 0.07,
    "box": [
-    0.52392,
-    0.71485,
+    0.5453,
+    0.71799,
     0.865,
     0.77552
    ]
@@ -105,7 +131,7 @@
  "typeLayerShift": {
   "far": [
    0.0,
-   0.05
+   0.03
   ],
   "near": [
    0.0,
@@ -113,19 +139,157 @@
   ]
  },
  "occlusion": {
-  "yaw0": 0.0667,
-  "rest": 0.0691,
-  "cssMatte": 0.0666,
+  "yaw0": 0.0425,
+  "rest": 0.0424,
+  "cssMatte": 0.0248,
+  "restMatte": 0.0351,
   "window": [
    0.03,
    0.1
   ],
   "restMax": 0.15
  },
+ "farGlyphs": {
+  "maxPerGlyph": 0.422,
+  "maxPerGlyphDepthTest": 0.504,
+  "occluder": "matte (07 foreground layer; requests/A5-fix-2)",
+  "farLeftSweep": [],
+  "limit": 0.4,
+  "headBox": [
+   0.445,
+   0.228,
+   0.619,
+   0.306
+  ],
+  "headBitePx": 2295,
+  "shoulderOnly": false,
+  "pass": true,
+  "passesOnlyWith": "FAR occlusion off on phones (F-022 fallback, brief \u00a72.5)",
+  "bitten": [
+   "HUMANOID[5]=O",
+   "HUMANOID[6]=I",
+   "HUMANOID[7]=D"
+  ],
+  "phoneFallback": true,
+  "glyphs": [
+   {
+    "glyph": "WHAT CAN A[0]=W",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "WHAT CAN A[1]=H",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "WHAT CAN A[2]=A",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "WHAT CAN A[3]=T",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "WHAT CAN A[5]=C",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "WHAT CAN A[6]=A",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "WHAT CAN A[7]=N",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "WHAT CAN A[9]=A",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "HUMANOID[0]=H",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "HUMANOID[1]=U",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "HUMANOID[2]=M",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "HUMANOID[3]=A",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "HUMANOID[4]=N",
+    "yaw0Depth@9:16 frame": 0.0,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.0,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "HUMANOID[5]=O",
+    "yaw0Depth@9:16 frame": 0.004,
+    "yaw0Matte@9:16 frame": 0.0,
+    "restDepth": 0.015,
+    "restMatte": 0.0
+   },
+   {
+    "glyph": "HUMANOID[6]=I",
+    "yaw0Depth@9:16 frame": 0.377,
+    "yaw0Matte@9:16 frame": 0.094,
+    "restDepth": 0.403,
+    "restMatte": 0.306
+   },
+   {
+    "glyph": "HUMANOID[7]=D",
+    "yaw0Depth@9:16 frame": 0.504,
+    "yaw0Matte@9:16 frame": 0.354,
+    "restDepth": 0.479,
+    "restMatte": 0.422
+   }
+  ]
+ },
  "nearContrast": {
-  "p10": 3.5,
-  "median": 4.195,
-  "passFrac": 0.9947,
+  "p10": 3.609,
+  "median": 4.268,
+  "passFrac": 1.0,
   "gate": ">=3:1 on >=90%"
  },
  "nearDarken": {
@@ -144,7 +308,7 @@
    "a": 0.1861,
    "b": 1.6,
    "edgePointsInside": 0,
-   "pivotZ": 2.236
+   "pivotZ": 2.186
   }
  ],
  "limitPoses": [
@@ -153,7 +317,24 @@
    "pitch": -3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.077,
+   "farOccl": 0.0381,
+   "farOcclMatte": 0.0293,
+   "glyphOcclMax": 0.5092,
+   "stretch": {
+    "yaw": -6,
+    "pitch": -3,
+    "aEdgeNeighbours": 8,
+    "stepTrianglesInBand": 373,
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 0.0,
+    "maxVisibleStretchPxInsideMatte": 0.0,
+    "trianglesInsideMatteOver2px": 0,
+    "maxVisibleStretchPxAnywhereOutsideMatte": 5.04
+   },
+   "stretchWith4Neighbours": {
+    "offendingTriangles": 50,
+    "maxVisibleStretchPxBand": 5.13
+   },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y-6-p-3.png"
   },
   {
@@ -161,7 +342,24 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0744,
+   "farOccl": 0.0335,
+   "farOcclMatte": 0.025,
+   "glyphOcclMax": 0.4613,
+   "stretch": {
+    "yaw": -6,
+    "pitch": 0,
+    "aEdgeNeighbours": 8,
+    "stepTrianglesInBand": 373,
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 0.0,
+    "maxVisibleStretchPxInsideMatte": 0.0,
+    "trianglesInsideMatteOver2px": 0,
+    "maxVisibleStretchPxAnywhereOutsideMatte": 4.88
+   },
+   "stretchWith4Neighbours": {
+    "offendingTriangles": 50,
+    "maxVisibleStretchPxBand": 4.1
+   },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y-6-p+0.png"
   },
   {
@@ -169,7 +367,24 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0721,
+   "farOccl": 0.0297,
+   "farOcclMatte": 0.0215,
+   "glyphOcclMax": 0.4132,
+   "stretch": {
+    "yaw": -6,
+    "pitch": 3,
+    "aEdgeNeighbours": 8,
+    "stepTrianglesInBand": 373,
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 0.0,
+    "maxVisibleStretchPxInsideMatte": 0.0,
+    "trianglesInsideMatteOver2px": 0,
+    "maxVisibleStretchPxAnywhereOutsideMatte": 5.02
+   },
+   "stretchWith4Neighbours": {
+    "offendingTriangles": 50,
+    "maxVisibleStretchPxBand": 4.4
+   },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y-6-p+3.png"
   },
   {
@@ -177,7 +392,24 @@
    "pitch": -3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0714,
+   "farOccl": 0.0415,
+   "farOcclMatte": 0.034,
+   "glyphOcclMax": 0.5115,
+   "stretch": {
+    "yaw": 0,
+    "pitch": -3,
+    "aEdgeNeighbours": 8,
+    "stepTrianglesInBand": 373,
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 0.0,
+    "maxVisibleStretchPxInsideMatte": 0.0,
+    "trianglesInsideMatteOver2px": 0,
+    "maxVisibleStretchPxAnywhereOutsideMatte": 2.25
+   },
+   "stretchWith4Neighbours": {
+    "offendingTriangles": 4,
+    "maxVisibleStretchPxBand": 2.57
+   },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+0-p-3.png"
   },
   {
@@ -185,7 +417,24 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0708,
+   "farOccl": 0.0469,
+   "farOcclMatte": 0.0292,
+   "glyphOcclMax": 0.5381,
+   "stretch": {
+    "yaw": 0,
+    "pitch": 0,
+    "aEdgeNeighbours": 8,
+    "stepTrianglesInBand": 373,
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 0.0,
+    "maxVisibleStretchPxInsideMatte": 0.0,
+    "trianglesInsideMatteOver2px": 0,
+    "maxVisibleStretchPxAnywhereOutsideMatte": 1.64
+   },
+   "stretchWith4Neighbours": {
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 0.34
+   },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+0-p+0.png"
   },
   {
@@ -193,7 +442,24 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0683,
+   "farOccl": 0.0333,
+   "farOcclMatte": 0.0248,
+   "glyphOcclMax": 0.4175,
+   "stretch": {
+    "yaw": 0,
+    "pitch": 3,
+    "aEdgeNeighbours": 8,
+    "stepTrianglesInBand": 373,
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 0.01,
+    "maxVisibleStretchPxInsideMatte": 0.0,
+    "trianglesInsideMatteOver2px": 0,
+    "maxVisibleStretchPxAnywhereOutsideMatte": 3.31
+   },
+   "stretchWith4Neighbours": {
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 1.65
+   },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+0-p+3.png"
   },
   {
@@ -201,7 +467,24 @@
    "pitch": -3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0695,
+   "farOccl": 0.0433,
+   "farOcclMatte": 0.036,
+   "glyphOcclMax": 0.4893,
+   "stretch": {
+    "yaw": 6,
+    "pitch": -3,
+    "aEdgeNeighbours": 8,
+    "stepTrianglesInBand": 373,
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 0.02,
+    "maxVisibleStretchPxInsideMatte": 0.0,
+    "trianglesInsideMatteOver2px": 0,
+    "maxVisibleStretchPxAnywhereOutsideMatte": 3.82
+   },
+   "stretchWith4Neighbours": {
+    "offendingTriangles": 52,
+    "maxVisibleStretchPxBand": 4.83
+   },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+6-p-3.png"
   },
   {
@@ -209,7 +492,24 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0675,
+   "farOccl": 0.038,
+   "farOcclMatte": 0.0309,
+   "glyphOcclMax": 0.4365,
+   "stretch": {
+    "yaw": 6,
+    "pitch": 0,
+    "aEdgeNeighbours": 8,
+    "stepTrianglesInBand": 373,
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 0.04,
+    "maxVisibleStretchPxInsideMatte": 0.0,
+    "trianglesInsideMatteOver2px": 0,
+    "maxVisibleStretchPxAnywhereOutsideMatte": 4.81
+   },
+   "stretchWith4Neighbours": {
+    "offendingTriangles": 52,
+    "maxVisibleStretchPxBand": 4.35
+   },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+6-p+0.png"
   },
   {
@@ -217,7 +517,24 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0662,
+   "farOccl": 0.0327,
+   "farOcclMatte": 0.0262,
+   "glyphOcclMax": 0.3814,
+   "stretch": {
+    "yaw": 6,
+    "pitch": 3,
+    "aEdgeNeighbours": 8,
+    "stepTrianglesInBand": 373,
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 0.07,
+    "maxVisibleStretchPxInsideMatte": 0.0,
+    "trianglesInsideMatteOver2px": 0,
+    "maxVisibleStretchPxAnywhereOutsideMatte": 5.9
+   },
+   "stretchWith4Neighbours": {
+    "offendingTriangles": 54,
+    "maxVisibleStretchPxBand": 4.97
+   },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+6-p+3.png"
   }
  ],
@@ -240,16 +557,40 @@
   },
   "plate": {
    "q": 70,
-   "bytes": 2535
+   "bytes": 2484
   },
   "matte": {
    "q": 82,
-   "bytes": 28040
+   "bytes": 29032
   }
+ },
+ "restStretch": {
+  "yaw": 6,
+  "pitch": -2.5,
+  "aEdgeNeighbours": 8,
+  "stepTrianglesInBand": 373,
+  "offendingTriangles": 0,
+  "maxVisibleStretchPxBand": 0.02,
+  "maxVisibleStretchPxInsideMatte": 0.0,
+  "trianglesInsideMatteOver2px": 0,
+  "maxVisibleStretchPxAnywhereOutsideMatte": 3.97
+ },
+ "restStretchWith4Neighbours": {
+  "yaw": 6,
+  "pitch": -2.5,
+  "aEdgeNeighbours": 4,
+  "stepTrianglesInBand": 373,
+  "offendingTriangles": 52,
+  "maxVisibleStretchPxBand": 4.69,
+  "maxVisibleStretchPxInsideMatte": 0.0,
+  "trianglesInsideMatteOver2px": 0,
+  "maxVisibleStretchPxAnywhereOutsideMatte": 4.69
  },
  "gates": {
   "occlusion": true,
   "nearContrast": true,
-  "limitPoses": true
+  "limitPoses": true,
+  "farGlyphs": true,
+  "stretchPastMatte": true
  }
 }

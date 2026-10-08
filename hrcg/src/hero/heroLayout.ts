@@ -74,6 +74,12 @@ export const STRING = {
   /** residual buzz after impact: two cycles in 160 ms at 20 % amplitude */
   buzzMs: 160,
   buzzAmp: 0.2,
+  /** idle twang while armed (H-2): a light SNAP flick of the taut line, px at the apex */
+  twangPx: 3.5,
+  twangPxPhone: 3,
+  /** first twang this long after the pay-out ends, then every period */
+  twangFirst: 0.35,
+  twangPeriod: 2.2,
 } as const;
 
 export const TIMING = {

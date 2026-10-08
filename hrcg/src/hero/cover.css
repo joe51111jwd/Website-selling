@@ -395,6 +395,9 @@
   display: block;
   opacity: calc(var(--a0-o) * var(--h1-dom));
 }
+.cv-near .cv-line {
+  opacity: calc(var(--a0-o) * var(--h1-dom-near, 1));
+}
 .cv-pen {
   display: block;
   /* pencil state before the snap: chalk at 50 % + a 1 px pencil stroke (brief 2.1) */
@@ -488,6 +491,29 @@
   text-transform: none;
   letter-spacing: 0.02em;
 }
+/* the first-seconds instruction, at 15 px (14 px on phones) so it reads beside the line (director H-2) */
+.cv .cv-hint--pull {
+  font-size: 15px;
+  line-height: 18px;
+  gap: 2px;
+  text-shadow:
+    0 0 6px rgba(11, 11, 10, 0.9),
+    0 0 2px rgba(11, 11, 10, 0.9);
+}
+.cv .cv-hint--pull .cv-hint-2 {
+  font-size: 14px;
+  line-height: 17px;
+}
+@media (max-width: 767px) {
+  .cv .cv-hint--pull {
+    font-size: 14px;
+    line-height: 17px;
+  }
+  .cv .cv-hint--pull .cv-hint-2 {
+    font-size: 13px;
+    line-height: 16px;
+  }
+}
 .cv-hint .when-touch,
 .cv[data-touch] .cv-hint .when-key {
   display: none;
@@ -495,9 +521,12 @@
 .cv[data-touch] .cv-hint .when-touch {
   display: inline;
 }
-.cv[data-pulling] .cv-hint--pull {
-  opacity: 0;
+/* while the string is pulled its V may cross the hint: the hint steps back (F-071) */
+.cv-hint--pull {
   transition: opacity var(--dur-hover) linear;
+}
+.cv[data-pull] .cv-hint--pull {
+  opacity: calc(var(--a0-o) * 0.25);
 }
 .cv[data-hint='pull'] .cv-hint--pull,
 .cv[data-hint='frozen'] .cv-hint--frozen,
@@ -654,16 +683,17 @@
 }
 .cv-string-line {
   stroke: var(--chalk-blue);
-  stroke-width: 2.25;
+  /* 3 px: the line reads at first glance (director H-2) */
+  stroke-width: 3;
 }
 .cv-string-core {
   stroke: var(--powder);
-  stroke-width: 0.75;
+  stroke-width: 1;
   opacity: 0.55;
 }
 .cv-string-shadow {
   stroke: rgba(0, 0, 0, 0.6);
-  stroke-width: 2.4;
+  stroke-width: 3.2;
 }
 .cv-puff {
   position: absolute;
@@ -863,6 +893,13 @@
   }
   .no-js .cv-sub {
     bottom: 3%;
+  }
+  /* on phones the sub stands just under the line, so the pulled V crosses it: it steps back too (F-071) */
+  .cv-sub {
+    transition: opacity var(--dur-hover) linear;
+  }
+  .cv[data-pull] .cv-sub {
+    opacity: calc(var(--a0-o) * 0.25);
   }
 }
 

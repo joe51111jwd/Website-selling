@@ -23,18 +23,21 @@ export const A100 = {
 export const A101 = {
   h2: 'BRICKLAYING',
   bondWords: ['STRAIGHT COURSES', 'CONSISTENT JOINTS', 'STABLE FINISH'],
+  /** ViewMarker names itself "01-A A-101: go to perspective, …" (its visible text first, F-035) */
   viewMarker: {
     view: '01-A',
     sheet: 'A-101',
-    label: 'Go to perspective 01-A / A-101, concept film of bricklaying',
+    label: 'go to perspective, concept film of bricklaying',
   },
-  detailLabel: 'Open detail 1 / A-101, concept film of a robot hand pressing a brick into mortar',
+  /** DetailBubble names itself "1 A-101 detail: concept film of …" (its visible text first, F-035) */
+  detailLabel: 'concept film of a robot hand pressing a brick into mortar',
   /** printed beside the bubble (brief 3.4 layout: "◯1 DETAIL 1 / A-101") */
   bubbleWord: 'DETAIL',
   alt: {
     plan: 'AI-generated concept film, seen from above: robot 07 spreads mortar and lays a course of brick between two line posts.',
+    /** F-081: what the shot shows (matches the manifest alt, F-090) */
     perspective:
-      'AI-generated concept film: robot 07 lays a brick on a mortar bed along a stringline, with lights hanging in the dark behind.',
+      'AI-generated concept film: robot 07 spreads mortar with a trowel and steadies a course of brick between two line posts, against a dark background.',
     detail: 'AI-generated concept film, close up: a robot hand presses a brick into a mortar bed beside a stringline.',
   },
 } as const;

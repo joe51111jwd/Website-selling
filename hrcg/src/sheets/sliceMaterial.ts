@@ -28,6 +28,7 @@ import {
   LinearFilter,
   NoColorSpace,
   Color,
+  Vector2,
 } from 'three';
 
 export interface SliceSources {

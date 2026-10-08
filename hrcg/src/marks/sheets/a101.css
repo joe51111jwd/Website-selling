@@ -1,4 +1,6 @@
-/* A-101 · BRICKLAYING (brief 3.4). Owner: A3. */
+/* A-101 · BRICKLAYING (brief 3.4). Owner: A3.
+   The text column comes first in the DOM (Tab: DETAIL 1 before 01-A, F-036); the grid puts the plan
+   left on the spine. The plan column shrinks below 1440 px so the bond lands above the strip (F-038). */
 
 .a101-head {
   display: flex;
@@ -7,13 +9,21 @@
   margin-bottom: var(--s-5);
 }
 .a101-grid {
+  --plan-w: min(44vw, calc(100svh - 240px));
   display: grid;
-  grid-template-columns: min(44vw, calc(100svh - 240px)) minmax(0, 1fr);
+  grid-template-columns: var(--plan-w) minmax(0, 1fr);
   column-gap: var(--s-9);
   align-items: start;
 }
+@media (max-width: 1439px) {
+  .a101-grid {
+    --plan-w: min(40vw, calc(100svh - 240px));
+  }
+}
 .a101-plan {
   position: relative;
+  grid-column: 1;
+  grid-row: 1;
 }
 .a101-plan .view-frame {
   border-color: var(--hairline);
@@ -26,6 +36,8 @@
   z-index: 4;
 }
 .a101-side {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -43,20 +55,31 @@
   color: var(--fg);
   margin-top: -0.06em;
 }
-.a101-h2 {
+/* BRICKLAYING is the client's fixed name: one line, never hyphenated (F-038). From 768 px it is sized
+   to its column (4.53 em with kerning, plus 2% air); phones keep the token size, which fits. */
+.a101-h2-box {
   margin-top: var(--s-4);
-  hyphens: manual;
-  -webkit-hyphens: manual;
-  overflow-wrap: normal;
+  container-type: inline-size;
+}
+.a101-h2 {
+  white-space: nowrap;
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+@media (min-width: 768px) {
+  .a101-h2 {
+    font-size: min(21.6cqi, 18vh);
+  }
 }
 .a101-spec {
   margin-top: var(--s-5);
   max-width: 30ch;
 }
 
-/* bond words: two courses of running bond (2 / ½ · 1 · ½), even 6 px joints */
+/* bond words: two courses of running bond (2 / ½ · 1 · ½) laid as masonry (F-080): solid slab bricks
+   on 2 px slab-black joints, no outlines; the half-bats are solid too */
 .a101-bond {
-  --joint: 6px;
+  --joint: 2px;
   margin-top: var(--s-7);
   display: grid;
   row-gap: var(--joint);
@@ -76,13 +99,10 @@
   justify-content: center;
   height: 58px;
   padding: 0 var(--s-4);
-  border: 1px solid var(--hairline-strong);
+  background: var(--slab);
   color: var(--fg);
   white-space: nowrap;
   text-align: center;
-}
-.a101-brick--half {
-  border-color: var(--hairline);
 }
 
 /* the detail opens over the plan, out of the bubble */
@@ -129,19 +149,24 @@
     grid-template-columns: 1fr;
     row-gap: var(--s-6);
   }
+  .a101-plan,
+  .a101-side {
+    grid-column: 1;
+  }
+  .a101-plan {
+    grid-row: 1;
+  }
+  .a101-side {
+    grid-row: 2;
+  }
+  /* the detail opens in flow under the bubble's row (DetailBubble phoneFlow, F-036) */
+  .a101-side-top {
+    flex-wrap: wrap;
+  }
   /* phones: the marker sits on the plan's bottom-right corner (dark slab outside the bay), over its caption rule */
   .a101-marker {
     right: 2px;
     bottom: 34px;
-  }
-  .a101-detail-panel {
-    right: auto;
-    left: 0;
-    top: 56px;
-    width: calc(100vw - 2 * var(--margin));
-  }
-  .a101-bond {
-    --joint: 4px;
   }
   .a101-brick {
     height: 48px;

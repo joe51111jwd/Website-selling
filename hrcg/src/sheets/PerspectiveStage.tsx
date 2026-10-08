@@ -400,8 +400,9 @@ export function PerspectiveStage({
       if (!geo) return;
       const p = clamp01((window.scrollY - geo.startY) / geo.pin);
       const e = clamp01(p / 0.4);
-      // the perspective's film claims a decoder only once it is about to enter
-      const wantPlay = window.scrollY > geo.startY - geo.vh * 0.25;
+      // the perspective's film claims a decoder only once it is about to enter (the iris shows it only
+      // from its dissolve, so the composition's own films keep both decoders through the landing hold)
+      const wantPlay = window.scrollY > geo.startY - geo.vh * (preset === 'iris' ? 0.05 : 0.25);
       if (videoKey && wantPlay !== playing) {
         playing = wantPlay;
         if (wantPlay) videoManager.request(videoKey);

@@ -485,8 +485,8 @@ html[data-sheet='A-000'] .sheet-header {
 /* F-063: the status cell fits its sheet number at 360 and 320 px */
 @media (max-width: 380px) {
   .phone-status {
-    letter-spacing: 0.02em;
-    padding: 0 10px;
+    letter-spacing: 0;
+    padding: 0 8px 0 10px;
   }
   .phone-cta.cell-button {
     padding: 0 10px;
@@ -855,16 +855,31 @@ html[data-sheet='A-000'] .sheet-header {
   min-height: 44px;
   display: flex;
   align-items: center;
+  gap: var(--s-2);
   color: var(--chalk);
+  list-style: none;
+}
+.set-transcript summary::-webkit-details-marker {
+  display: none;
+}
+/* disclosure triangle (drawn, so no glyph depends on the font subset) */
+.set-transcript summary::before {
+  content: '';
+  width: 7px;
+  height: 8px;
+  background: currentColor;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  transition: transform var(--dur-hover) linear;
+}
+.set-transcript[open] summary::before {
+  transform: rotate(90deg);
 }
 .set-transcript summary:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 .set-transcript-body {
-  max-height: 40svh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  /* no scroll region of its own (axe scrollable-region-focusable): the panel scrolls */
   font-size: 16px;
   line-height: 24px;
   color: var(--chalk);

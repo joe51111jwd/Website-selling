@@ -137,26 +137,46 @@
 .mk-hit .mk-ink {
   transition: fill var(--dur-hover) linear, stroke var(--dur-hover) linear;
 }
-.mk-hit:hover .mk-face,
+/* hover only where a pointer hovers (F-082): a tap must not leave the orange fill behind; :active gives
+   touch its feedback while the finger is down */
 .mk-hit:focus-visible .mk-face,
+.mk-hit:active .mk-face,
 .mk-hit[aria-expanded='true'] .mk-face {
   fill: var(--marking-orange);
 }
-.mk-hit:hover .mk-ink.mk-fill,
-.mk-hit:hover .mk-id,
 .mk-hit:focus-visible .mk-ink.mk-fill,
 .mk-hit:focus-visible .mk-id,
+.mk-hit:active .mk-ink.mk-fill,
+.mk-hit:active .mk-id,
 .mk-hit[aria-expanded='true'] .mk-id {
   fill: var(--slab-black);
 }
-.mk-hit:hover .mk-ink.mk-line,
 .mk-hit:focus-visible .mk-ink.mk-line,
+.mk-hit:active .mk-ink.mk-line,
 .mk-hit[aria-expanded='true'] .mk-ink.mk-line {
   stroke: var(--slab-black);
 }
-.mk-hit:hover .mk-pointer,
-.mk-hit:focus-visible .mk-pointer {
+.mk-hit:focus-visible .mk-pointer,
+.mk-hit:active .mk-pointer {
   fill: var(--marking-orange);
+}
+@media (hover: hover) and (pointer: fine) {
+  .mk-hit:hover .mk-face {
+    fill: var(--marking-orange);
+  }
+  .mk-hit:hover .mk-ink.mk-fill,
+  .mk-hit:hover .mk-id {
+    fill: var(--slab-black);
+  }
+  .mk-hit:hover .mk-ink.mk-line {
+    stroke: var(--slab-black);
+  }
+  .mk-hit:hover .mk-pointer {
+    fill: var(--marking-orange);
+  }
+  .mk-hit:hover .mk-stencil {
+    fill: var(--slab-black);
+  }
 }
 /* focus ring drawn as a circle around the symbol: 2 px, focus colour, 3 px off the edge */
 .mk-ring {
@@ -225,6 +245,37 @@
 .rm .mk-detail-panel .view-title {
   transition: none;
 }
+/* phones, opt-in (DetailBubble phoneFlow, F-036): the detail opens in flow under its bubble's row,
+   full width, instead of covering the sheet; the circle still grows out of the bubble */
+@keyframes mk-iris-open {
+  from {
+    clip-path: circle(var(--r0) at var(--cx) var(--cy));
+  }
+}
+@media (max-width: 767px) {
+  .js .mk-detail[data-phone-flow] {
+    display: contents;
+  }
+  .js .mk-detail[data-phone-flow] > .mk-detail-panel {
+    position: static;
+    order: 9;
+    flex: 0 0 100%;
+    width: 100%;
+    margin-top: var(--s-4);
+    transition: none;
+  }
+  .js .mk-detail[data-phone-flow] > .mk-detail-panel:not([data-open]) {
+    display: none;
+  }
+  .js .mk-detail[data-phone-flow] > .mk-detail-panel[data-open] .view-frame {
+    transition: none;
+    animation: mk-iris-open 700ms var(--ease-settle) both;
+  }
+  .js.rm .mk-detail[data-phone-flow] > .mk-detail-panel[data-open] .view-frame {
+    animation: none;
+  }
+}
+
 /* no JS: the detail is simply printed under its bubble */
 .no-js .mk-detail-panel {
   position: static;
@@ -300,6 +351,26 @@
 .mk-aa .mk-label {
   font-size: 11px;
 }
+/* north arrows: chalk, 1.5 px, on a 6 px slab-black halo so they never merge into a grid (F-079) */
+.mk-na {
+  color: var(--chalk);
+}
+.mk-na .mk-na-shaft {
+  stroke-width: 1.5;
+}
+.mk-na .mk-na-halo {
+  fill: none;
+  stroke: var(--slab-black);
+  stroke-width: 7.5;
+  stroke-linecap: round;
+}
+.mk-na .mk-fill,
+.mk-na .mk-label {
+  paint-order: stroke;
+  stroke: var(--slab-black);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+}
 
 /* ------------------------------------------------------------------ chalk box */
 .mk-cb .mk-reel {
@@ -307,7 +378,7 @@
   stroke: currentColor;
   stroke-width: 1.25;
 }
-.mk-hit:hover .mk-stencil,
-.mk-hit:focus-visible .mk-stencil {
+.mk-hit:focus-visible .mk-stencil,
+.mk-hit:active .mk-stencil {
   fill: var(--slab-black);
 }

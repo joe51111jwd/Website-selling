@@ -8,13 +8,17 @@
 
 .a103 {
   --fs: min(clamp(44px, 12vw, 216px), 18vh);
-  --D: min(36vw, 60svh, 600px);
   /* ASSEMBLY's ink ends at 3.66 em in Big Shoulders 800 / opsz 72; the circle keeps --gap (em,
      unitless) clear of it, so no glyph ever sits under the circle (DIR-1) */
   --gap: 0.1;
   --cl: calc((3.66 + var(--gap)) * var(--fs));
-  /* PLAN 03 thumbnail */
-  --tw: min(10vw, 168px);
+  /* PLAN 03 thumbnail column, right of the circle */
+  --tw: min(9vw, 168px);
+  /* the circle takes what the row leaves: H2 | circle | 24 px | PLAN 03 column (100cqi = the column) */
+  --D: min(100cqi - var(--cl) - 24px - var(--tw), 60svh, 600px);
+}
+.a103-inner {
+  container-type: inline-size;
 }
 .a103-head {
   margin-bottom: var(--s-5);
@@ -73,7 +77,7 @@
 .a103-circle-view .view-title {
   margin-top: var(--s-3);
 }
-/* leader from the circle's shoulder (45°) to the detail reference */
+/* leader from the circle's shoulder (60° up from the right) to the detail reference */
 .a103-callout {
   position: absolute;
   inset: 0;
@@ -81,8 +85,8 @@
 }
 .a103-leader {
   position: absolute;
-  left: calc(var(--D) / 2 + var(--D) / 2 * 0.7071);
-  top: calc(var(--D) / 2 - var(--D) / 2 * 0.7071 - 30px);
+  left: calc(var(--D) / 2 + var(--D) / 2 * 0.5);
+  top: calc(var(--D) / 2 - var(--D) / 2 * 0.866 - 30px);
   width: 30px;
   height: 30px;
   overflow: visible;
@@ -90,8 +94,9 @@
 }
 .a103-ref {
   position: absolute;
-  left: calc(var(--D) / 2 + var(--D) / 2 * 0.7071 + 26px);
-  top: calc(var(--D) / 2 - var(--D) / 2 * 0.7071 - 30px - 54px);
+  left: calc(var(--D) / 2 + var(--D) / 2 * 0.5 + 26px);
+  top: calc(var(--D) / 2 - var(--D) / 2 * 0.866 - 30px - 54px);
+  width: max-content;
 }
 
 /* spec + beats, under the H2 and left of the circle */
@@ -130,7 +135,7 @@
 
 @media (max-width: 1279px) {
   .a103 {
-    --D: min(34vw, 56svh);
+    --fs: min(11vw, 18vh);
   }
 }
 /* tablets and phones: no pin; the composition stacks (03, H2, circle, text, PLAN 03), then 03-A */

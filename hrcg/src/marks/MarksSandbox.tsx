@@ -74,7 +74,7 @@ export default function MarksSandbox() {
       </Row>
 
       <Row name="ViewMarker" use="Link to a view on this sheet; scrolls, then focuses the view title.">
-        <ViewMarker view="01-A" sheet="A-101" target="mks-view" focusId="mks-view-title" label="Go to perspective 01-A, concept film of bricklaying" />
+        <ViewMarker view="01-A" sheet="A-101" target="mks-view" focusId="mks-view-title" label="go to perspective, concept film of bricklaying" />
         <ViewMarker view="03-A" sheet="A-103" target="mks-view" label="Go to the sample view" angle={90} />
         <span className="mks-paper" data-ground="gypsum">
           <ViewMarker view="02-A" sheet="A-102" target="mks-view" label="Go to the sample view" angle={180} />
@@ -85,7 +85,7 @@ export default function MarksSandbox() {
         <DetailBubble
           n={1}
           sheet="A-101"
-          label="Open detail 1, concept film of a robot hand pressing a brick into mortar"
+          label="concept film of a robot hand pressing a brick into mortar"
           panelStyle={{ left: 64, top: -120, width: 'min(36vw, 420px)' }}
           onOpenChange={(open) => (open ? videoManager.userPlay('det-v0') : videoManager.pause('det-v0'))}
         >

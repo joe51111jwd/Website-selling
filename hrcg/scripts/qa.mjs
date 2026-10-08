@@ -37,7 +37,8 @@
 //            hydration (incl. runtime-fetched copy) and on the prerendered HTML.
 //   fixes    regression gates for qa/review/FIXLIST-1.md (F-053): one check per item, keyed by its
 //            F-id (H-id for director decisions); visual-only items are listed as skips with their
-//            retake. --dev <url> names the dev server for the prod-vs-dev landing diff (F-013).
+//            retake. --dev <url> names the dev server for the prod-vs-dev landing diff (F-013);
+//            --gates F-015,F-024 runs only the gates whose id starts with one of those prefixes.
 //   build    (always, with a build) the production checks of F-052: no jsxDEV / dev runtime, no
 //            sandbox chunks, exactly one stylesheet.
 //
@@ -1319,10 +1320,16 @@ function qaHelpers() {
       bottom: bars.length ? Math.min(...bars.map((r) => r.top)) : innerHeight - border,
     };
   };
+  // where an INDEX row / CTA lands (mirrors landingTop() in src/system/lenis.ts, F-015): the sheet's
+  // data-land (vh from its top), else its top at scroll-padding-top minus its own scroll-margin-top
   const landY = (id) => {
     const e = document.getElementById(id);
+    const top = e.getBoundingClientRect().top + scrollY;
+    const land = e.getAttribute('data-land');
+    if (land !== null && land !== '' && Number.isFinite(Number(land))) return Math.max(0, Math.round(top + (Number(land) * innerHeight) / 100));
     const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
-    return Math.max(0, Math.round(e.getBoundingClientRect().top + scrollY - pad));
+    const margin = parseFloat(getComputedStyle(e).scrollMarginTop) || 0;
+    return Math.max(0, Math.round(top - pad - margin));
   };
   const go = (id, vh = 0) => {
     const y = (id === 'top' ? 0 : landY(id)) + Math.round((vh * innerHeight) / 100);
@@ -1357,18 +1364,26 @@ function qaHelpers() {
     return /A-\d{3}/.exec(v)?.[0] ?? null;
   };
   const overlap = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
-  /** Decode two PNG data URLs and count pixels whose RGB differ by more than `thr` (sum of channels). */
-  const pixelDiff = async (a, b, thr = 60) => {
+  /** Decode two PNG data URLs and count pixels whose RGB differ by more than `thr` (sum of channels);
+   *  with `ring` > 0, only pixels within `ring` px of the image's edges count (a focus frame). */
+  const pixelDiff = async (a, b, thr = 60, ring = 0) => {
     const load = async (u) => {
       const img = await createImageBitmap(await (await fetch(u)).blob());
       const c = new OffscreenCanvas(img.width, img.height);
       const g = c.getContext('2d');
       g.drawImage(img, 0, 0);
-      return g.getImageData(0, 0, img.width, img.height).data;
+      return [g.getImageData(0, 0, img.width, img.height).data, img.width, img.height];
     };
-    const [p, q] = await Promise.all([load(a), load(b)]);
+    const [[p, W, H], [q]] = await Promise.all([load(a), load(b)]);
     let n = 0;
-    for (let i = 0; i < Math.min(p.length, q.length); i += 4) if (Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]) > thr) n++;
+    for (let i = 0; i < Math.min(p.length, q.length); i += 4) {
+      if (ring > 0) {
+        const x = (i / 4) % W;
+        const y = Math.floor(i / 4 / W);
+        if (x >= ring && x < W - ring && y >= ring && y < H - ring) continue;
+      }
+      if (Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]) > thr) n++;
+    }
     return n;
   };
   /** WCAG contrast of text over its real background: glyph pixels (with text) against the same pixels with the fill removed (shadow kept). */
@@ -1445,14 +1460,18 @@ async function settle(page, ms = 900) {
 
 async function runFixes(pw, browser, base, mods, axePath, buildDir) {
   const { s, check } = suite('fixes');
+  // --gates F-024,F-015 runs only the gates whose id starts with one of these (for a fixer's own items)
+  const only = arg('gates') ? String(arg('gates')).split(',').filter(Boolean) : null;
+  const picked = (id) => !only || only.some((g) => id.startsWith(g));
   const step = async (id, fn) => {
+    if (!picked(id)) return;
     try {
       await fn();
     } catch (e) {
       check(id, `${id}: the gate ran`, false, String(e?.stack ?? e).slice(0, 700));
     }
   };
-  const manual = (id, what, retake) => check(id, `${what} (visual: judge ${retake})`, null, `manual retake: ${retake}`);
+  const manual = (id, what, retake) => picked(id) && check(id, `${what} (visual: judge ${retake})`, null, `manual retake: ${retake}`);
 
   // ------------------------------------------------------------------ static (files and build)
   await step('F-013', async () => {
@@ -1530,8 +1549,9 @@ async function runFixes(pw, browser, base, mods, axePath, buildDir) {
         check(`F-002-bytes-${label}`, `first view (0-9 s, no scroll, AV1 path) moves <= 1.1 MB on ${label}`, total <= budget, `${(total / 1024 / 1024).toFixed(2)} MB; largest: ${top.join(' · ')}`);
         const posters = reqs.filter((r) => /\.poster\.jpg/.test(r.url) && !/\/hero[-/]/.test(r.url)).map((r) => r.url.split('/').pop());
         check(`F-002-posters-${label}`, `no *.poster.jpg outside A-000 is requested before scroll (${label})`, posters.length === 0, posters.slice(0, 12));
-        const early = reqs.filter((r) => /arena-0104|plan-b44/.test(r.url)).map((r) => `${r.url.split('/').pop()} ${Math.round(r.bytes / 1024)} kB`);
-        check(`F-002-a100-${label}`, `no arena-0104 or plan-b44 bytes arrive before scroll (${label}; F-002, F-006, F-037)`, early.length === 0, early);
+        // the A-100 films (the evidence: arena-0104 and plan-b44 AV1 downloaded in full); their stills count in the total
+        const early = reqs.filter((r) => /(arena-0104|plan-b44)[^/]*\.(mp4|webm)/.test(r.url)).map((r) => `${r.url.split('/').pop()} ${Math.round(r.bytes / 1024)} kB`);
+        check(`F-002-a100-${label}`, `no arena-0104 or plan-b44 film bytes arrive before scroll (${label}; F-002, F-006, F-037)`, early.length === 0, early);
         const snaps = reqs.filter((r) => /hero-snap-169/.test(r.url) && (!r.range || /bytes=0-/.test(r.range)));
         if (label === 'desktop') check('F-006-snap', 'the hero snap film is requested once (no second full fetch)', snaps.length <= 1, snaps.map((r) => `${r.url.split('/').pop()} ${r.range} ${Math.round(r.bytes / 1024)} kB`));
         if (label === 'desktop') check('F-065-cls', 'first-view CLS is 0 on desktop (fonts preloaded)', cls <= 0.0001, cls.toFixed(6));
@@ -1561,7 +1581,8 @@ async function runFixes(pw, browser, base, mods, axePath, buildDir) {
   });
 
   // ------------------------------------------------------------------ desktop 1440x900, fresh page
-  const D = await newPage(browser, desktopOpts(), base, { wait: 6000 });
+  const needD = !only || only.some((g) => /^(F-0(01|15|16|19|20|23|24|33|34|38|39|40|41|55|56|59|60|61|62|64|66|67|68|81|83|92|93|95|96|97|98)|F-053-axe|H-)/.test(g));
+  const D = needD ? await newPage(browser, desktopOpts(), base, { wait: 6000 }) : { page: null, ctx: { close: async () => {} } };
   const p = D.page;
   const at = async (id, vh = 0, ms = 900) => {
     await p.evaluate(([id, vh]) => window.__qa.go(id, vh), [id, vh]);
@@ -2026,6 +2047,8 @@ async function runFixes(pw, browser, base, mods, axePath, buildDir) {
       const r = await p.evaluate(() => {
         const a = document.activeElement;
         if (!a || a === document.body) return { ok: false, el: 'body' };
+        // A-000: the H1 is the whole cover; landing means the cover is at the top
+        if (a.closest('#a-000, [data-stage="cover"]') && a.tagName === 'H1') return { ok: scrollY < 8, el: 'H1', y: scrollY };
         const b = window.__qa.band();
         const inBand = window.__qa.inside(a.getBoundingClientRect(), b);
         const h = window.__qa.hits(a);
@@ -2082,11 +2105,16 @@ async function runFixes(pw, browser, base, mods, axePath, buildDir) {
         const a = document.activeElement;
         if (!a || a === document.body) return null;
         document.querySelectorAll('video').forEach((v) => v.pause());
+        // the ring a focus indicator must paint: the element's box + 8 px, clipped to the unobscured band
+        // (an outline drawn off-screen or under the chrome does not count, F-024)
         const r = a.getBoundingClientRect();
-        const x = Math.max(0, r.left - 8);
-        const y = Math.max(0, r.top - 8);
-        const w = Math.min(innerWidth, r.right + 8) - x;
-        const h = Math.min(innerHeight, r.bottom + 8) - y;
+        const inChrome = !!a.closest('.sheet-header, .title-strip, .phone-bar');
+        const b = inChrome ? { top: 0, bottom: innerHeight } : window.__qa.band();
+        const border = inChrome ? 0 : parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--border')) || 0;
+        const x = Math.max(border, r.left - 8);
+        const y = Math.max(b.top, r.top - 8);
+        const w = Math.min(innerWidth - border, r.right + 8) - x;
+        const h = Math.min(b.bottom, r.bottom + 8) - y;
         if (w < 4 || h < 4) return null;
         return { x, y, width: w, height: h, el: window.__qa.name(a) };
       });
@@ -2100,11 +2128,11 @@ async function runFixes(pw, browser, base, mods, axePath, buildDir) {
       await settle(p, 120);
       const off = (await p.screenshot({ clip })).toString('base64');
       await p.evaluate(() => window.__qaFocus?.focus({ preventScroll: true }));
-      const diff = await p.evaluate(([a, b]) => window.__qa.pixelDiff(`data:image/png;base64,${a}`, `data:image/png;base64,${b}`), [on, off]);
+      const diff = await p.evaluate(([a, b]) => window.__qa.pixelDiff(`data:image/png;base64,${a}`, `data:image/png;base64,${b}`, 60, 12), [on, off]);
       checked++;
       if (diff < 12) bad.push(`${el} (${diff} px changed)`);
     }
-    check('F-024-focus', 'visible focus: every Tab stop (first 70) changes at least 12 pixels around itself when focused (incl. the 3D view)', checked > 20 && bad.length === 0, { checked, invisible: bad.slice(0, 15) });
+    check('F-024-focus', 'visible focus: every Tab stop (first 70) paints at least 12 changed pixels in a 12 px ring round its box, inside the unobscured band (incl. the 3D view)', checked > 20 && bad.length === 0, { checked, invisible: bad.slice(0, 15) });
   });
   for (const [state, id, vh] of [['hero-rest', 'top', 0], ['a-105', 'a-105', 30], ['a-300', 'a-300', 0]]) {
     await step(`F-053-axe-${state}`, async () => {
@@ -2228,7 +2256,8 @@ async function runFixes(pw, browser, base, mods, axePath, buildDir) {
   });
 
   // ------------------------------------------------------------------ phone 390x844
-  const P = await newPage(browser, phoneOpts(), base, { wait: 5000 });
+  const needP = !only || only.some((g) => /^(F-0(15|18|19|21|53|54|56|57|60|61|84|85|99)|F-053-axe)/.test(g));
+  const P = needP ? await newPage(browser, phoneOpts(), base, { wait: 5000 }) : { page: null, ctx: { close: async () => {} } };
   const q = P.page;
   const pat = async (id, vh = 0, ms = 900) => {
     await q.evaluate(([id, vh]) => window.__qa.go(id, vh), [id, vh]);
@@ -2413,6 +2442,7 @@ async function runFixes(pw, browser, base, mods, axePath, buildDir) {
       const r = await q.evaluate(() => {
         const a = document.activeElement;
         if (!a || a === document.body) return { ok: false, el: 'body' };
+        if (a.closest('#a-000, [data-stage="cover"]') && a.tagName === 'H1') return { ok: scrollY < 8, el: 'H1', y: scrollY };
         const h = window.__qa.hits(a);
         return { ok: window.__qa.inside(a.getBoundingClientRect(), window.__qa.band()) && h.ok, el: window.__qa.name(a), rect: window.__qa.rect(a), hit: h.hit };
       });

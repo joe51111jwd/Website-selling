@@ -1,6 +1,8 @@
 // Usage: <NorthArrow angle={29} length={120} label="THE 1811 GRID" drawn /> points north at a bearing (A-200 only: TRUE NORTH and THE 1811 GRID).
-// Owner: A3. Brief 5.5 / 3.9. A drafting north arrow: a 1.25 px shaft from the base and a half
+// Owner: A3. Brief 5.5 / 3.9. A drafting north arrow: a 1.5 px chalk shaft from the base and a half
 // arrowhead (one side filled) at the tip, with an upright label beyond the tip. Draws on (DRAW).
+// Every part carries a 6 px slab-black halo (an underlay under the shaft, paint-order: stroke on the
+// head, the base dot and the label), so it reads over a street grid instead of merging with it (F-079).
 // The base sits at the SVG's centre so two arrows can share one origin (stack them absolutely).
 
 import type { CSSProperties } from 'react';
@@ -45,7 +47,8 @@ export function NorthArrow({ angle = 0, length = 120, label, drawn = true, delay
       style={{ ...style, ['--draw-delay' as string]: `${delay}ms`, ['--draw-ms' as string]: `${duration}ms` } as CSSProperties}
       {...a11y}
     >
-      <path className="mk-line" d={`M${c} ${c}L${r2(tip[0])} ${r2(tip[1])}`} pathLength={1} data-draw="" />
+      <path className="mk-na-halo" d={`M${c} ${c}L${r2(tip[0])} ${r2(tip[1])}`} pathLength={1} data-draw="" />
+      <path className="mk-line mk-na-shaft" d={`M${c} ${c}L${r2(tip[0])} ${r2(tip[1])}`} pathLength={1} data-draw="" />
       <path
         className="mk-fill"
         d={`M${r2(tip[0])} ${r2(tip[1])}L${r2(side[0])} ${r2(side[1])}L${r2(back[0])} ${r2(back[1])}Z`}

@@ -68,12 +68,15 @@ function outlineNumbers() {
 }
 
 /**
- * Revision cloud around the same footprint, offset outward by `m`. Each scallop is a cubic whose
- * controls lift off the chord along the outward normal (k × chord), meeting its neighbours in
- * inward cusps, as a drafter's revision cloud does. Scallop widths come out equal (≈ 197 / 215 units).
+ * Revision cloud on the same footprint, its cusps on a rectangle offset by `mx` / `my` (negative = inset).
+ * Each scallop is a cubic whose controls lift off the chord along the outward normal (k × chord), meeting
+ * its neighbours in inward cusps, as a drafter's revision cloud does.
+ * FIXLIST-1 F-043: the row now runs the full content width (A-100's geometry), so the cloud is set INSIDE
+ * the footprint and its lobes reach only a few units past it: about 6 units at the ends and 27 along the
+ * long sides (≈ 4 / 18 px at a 1296 px row, ≈ 1 / 5 px at a 358 px phone row), never across the border.
  */
-function cloudNumbers(m = 40, k = 0.42) {
-  const p = rectPoints(-m, -m, ROW.w + m, ROW.h + m);
+function cloudNumbers(mx = -40, my = -30, k = 0.42) {
+  const p = rectPoints(-mx, -my, ROW.w + mx, ROW.h + my);
   const out = [p[0][0], p[0][1]];
   for (let i = 0; i < 24; i++) {
     const [ax, ay] = p[i];

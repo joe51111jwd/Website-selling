@@ -18,7 +18,7 @@ import { onLayout, onScroll } from '../system/scroll';
 import { videoManager } from '../system/VideoManager';
 import { lenisScrollTo } from '../system/lenis';
 import { sheetStore } from '../system/sheetStore';
-import { drawEase, segment, settleEase } from '../system/easing';
+import { drawEase, segment, settleEase, snap as snapFlick } from '../system/easing';
 import { media, isMockManifest, loadDepthGrid, loadJson, freezeStillFor } from '../media/manifest';
 import { HERO } from '../content/copy/hero';
 import { ChalkString, IMPACT_T, buzzFactor, pathOf, releaseFactor, type Vec } from './ChalkString';
@@ -463,6 +463,7 @@ class CoverController {
       r.style.setProperty('--ink', '1');
       r.style.setProperty('--a0-o', '1');
       r.style.setProperty('--h1-dom', '1');
+      r.style.setProperty('--h1-dom-near', '1');
       this.clearInline();
       this.stringHidden();
       this.dust?.clear();
@@ -552,6 +553,7 @@ class CoverController {
     }
     // the 3D VIEW's focus ring: the visible part of the frame, between the header and the strip (F-024)
     this.writeVisInset(heroR, vtSpan);
+    this.clipMatte();
     this.registerPlan();
     if (this.mode !== 'static') {
       this.readP();
@@ -612,6 +614,43 @@ class CoverController {
     set('--play-h', h(q(r, '.cv-play'), 'inline-flex'));
     set('--row-h', Math.max(pull, frozen, h(q(r, '.cv-reset'), 'inline-flex')));
     return span;
+  }
+
+  /**
+   * The near-matte only ever has to cover FAR (the bite): clip it to FAR's line boxes + 20 px, so during
+   * the DOM -> GL hand-over it can't lie over the GL NEAR planes and darken them (F-026).
+   */
+  private clipMatte() {
+    const m = this.matte.getBoundingClientRect();
+    if (m.width < 1) {
+      // display: none until the freeze: measure through the type box instead (same frame box)
+      const box = (this.matte.parentElement as HTMLElement).getBoundingClientRect();
+      if (box.width < 1) return;
+      this.applyMatteClip(box);
+      return;
+    }
+    this.applyMatteClip(m);
+  }
+
+  private applyMatteClip(box: DOMRect) {
+    let t = Infinity;
+    let l = Infinity;
+    let rr = -Infinity;
+    let b = -Infinity;
+    for (const el of this.lines.slice(0, 2)) {
+      const g = el.getBoundingClientRect();
+      t = Math.min(t, g.top);
+      l = Math.min(l, g.left);
+      rr = Math.max(rr, g.right);
+      b = Math.max(b, g.bottom);
+    }
+    if (!Number.isFinite(t)) return;
+    const pad = 20;
+    const it = Math.max(0, t - pad - box.top);
+    const il = Math.max(0, l - pad - box.left);
+    const ir = Math.max(0, box.right - (rr + pad));
+    const ib = Math.max(0, box.bottom - (b + pad));
+    this.matte.style.clipPath = `inset(${it.toFixed(0)}px ${ir.toFixed(0)}px ${ib.toFixed(0)}px ${il.toFixed(0)}px)`;
   }
 
   private writeVisInset(heroR: DOMRect, vtSpan: DOMRect | null) {
@@ -782,7 +821,9 @@ class CoverController {
         if (this.destroyed || this.mode !== 'live' || this.tl.rest || this.tl.S !== null) return;
         const t = nowS();
         this.tl.payStart = t;
-        this.tl.autoSnapAt = Math.max(TIMING.autoSnapAt, t + TIMING.payout + TIMING.autoSnapAfterPayout);
+        // the ghost pull starts early enough that the RELEASE lands at max(3.0 s, pay-out end + 1.2 s) (F-074)
+        const release = Math.max(TIMING.autoSnapAt, t + TIMING.payout + TIMING.autoSnapAfterPayout);
+        this.tl.autoSnapAt = release - (TIMING.ghostPull + TIMING.ghostHold);
         this.timers.push(window.setTimeout(() => this.kick(), Math.max(0, (this.tl.autoSnapAt - nowS()) * 1000) + 5));
         this.kick();
       });
@@ -1714,7 +1755,7 @@ class CoverController {
       return 'armed';
     }
     if (tl.frozenAt === null || now < tl.frozenAt) return tl.filmT0 !== null && now >= tl.filmT0 ? 'film' : 'snapped';
-    if (tl.glAt !== null && tl.swing && tl.swingStart !== null && now < tl.swingStart + TIMING.swing) return 'swinging';
+    if (this.glShown && tl.glAt !== null && tl.swing && tl.swingStart !== null) return 'swinging';
     if (now < tl.frozenAt + TIMING.crossfade) return 'frozen';
     return 'rest';
   }
@@ -1768,6 +1809,17 @@ class CoverController {
     let busy = false;
     const st = this.phase(now);
     if (heroMachine.get().state !== st) heroMachine.force(st);
+
+    // GL has handed back to the DOM still (plan cut): one WebGL context at a time, disposed (brief 8.4,
+    // H9). First, so everything below already sees the released cut (F-027 held it until now).
+    if (this.glOutAt !== null && this.scene && now >= this.glOutAt + TIMING.crossfade) {
+      this.disposeGl();
+      heroMachine.setGl(false);
+      delete r.dataset.look;
+      this.glHost.tabIndex = -1;
+      this.glOutAt = null;
+      this.applyP();
+    }
 
     // impact at the first zero-crossing
     if (tl.S !== null && !tl.impactDone && tl.impactAt !== null && now >= tl.impactAt && !tl.rest) this.impact(tl.impactAt);
@@ -1857,29 +1909,19 @@ class CoverController {
     }
     this.matte.style.display = matteO > 0 ? 'block' : 'none';
     this.matte.style.opacity = matteO.toFixed(3);
-    // the DOM H1 stays in the accessibility tree throughout
+    // the DOM H1 stays in the accessibility tree throughout. FAR crossfades to its planes (the bite
+    // appears there); NEAR hands over at once when the canvas is fully in: at yaw 0 the plane is the same
+    // orange in the same place, and a fade would let the matte darken ACT on the way (F-026)
     r.style.setProperty('--h1-dom', (1 - glOwnsType).toFixed(3));
-    if (glOut >= 1 && this.scene) {
-      // after the plan cut: one WebGL context at a time, disposed (brief 8.4, H9)
-      this.disposeGl();
-      heroMachine.setGl(false);
-      delete r.dataset.look;
-      this.glHost.tabIndex = -1;
-      this.glOutAt = null;
-      this.applyP(); // the cut was held at its start until now (F-027)
-    }
+    r.style.setProperty('--h1-dom-near', this.glShown && glOut === 0 && glIn >= 1 ? '0' : '1');
 
     // ---- camera
     if (this.scene && this.glShown) {
-      if (tl.swing && tl.swingStart !== null && !tl.rest) {
-        const s = now - tl.swingStart;
+      const swinging = tl.swing && tl.swingStart !== null && !tl.rest;
+      if (swinging) {
+        const s = now - tl.swingStart!;
         this.rig.base = this.rig.swingTarget(s, 1 - settleEase(segment(this.P, 0, BEATS.camBack[1])));
-        if (s < TIMING.swing + 0.6) busy = true;
-        else {
-          tl.swing = false;
-          tl.rest = true;
-          r.dataset.inked = '';
-        }
+        busy = true;
       }
       // the plan cut: the user offsets ease out with the camera, and past P 0.10 the rig hurries home
       // (lambda 14) so GL can hand over to the DOM still at yaw 0 (F-027)
@@ -1887,6 +1929,17 @@ class CoverController {
       const homeward = this.P >= BEATS.camBack[1];
       const moving = this.rig.step(dt, homeward ? 14 : POSE.lambda);
       busy = busy || moving;
+      if (swinging) {
+        // rest when the camera has reached the pose (|delta| < 0.05 deg), not on a fixed clock (F-074)
+        const s = now - tl.swingStart!;
+        const tgt = this.rig.target();
+        const settled = Math.abs(this.rig.pose.yaw - tgt.yaw) < 0.05 && Math.abs(this.rig.pose.pitch - tgt.pitch) < 0.05;
+        if ((s >= TIMING.swing * 0.9 && settled) || s >= TIMING.swing + 1) {
+          tl.swing = false;
+          tl.rest = true;
+          r.dataset.inked = '';
+        }
+      }
       const p = this.rig.pose;
       this.scene.setPose(p.yaw, p.pitch, p.dolly);
       // the GL type planes leave with the DOM H1 (--a0-o), so no type rides a turning camera
@@ -1911,6 +1964,9 @@ class CoverController {
             : 'frozen'
           : 'none';
     r.dataset.hint = hint;
+    // any pull (pointer, tap, key, ghost, capture script): the hint steps back under the bowed string (F-071)
+    if (tl.S === null && tl.pullKind !== 'none' && !tl.rest) r.dataset.pull = '';
+    else delete r.dataset.pull;
     r.dataset.reset = st === 'rest' || (frozen && !this.glShown) ? 'on' : 'off';
     if (this.P < BEATS.planCut[0]) this.setVt(this.heroVt());
     if (st === 'paying-out' || st === 'pulling' || (tl.pullKind !== 'none' && tl.S === null)) busy = true;
@@ -1926,9 +1982,12 @@ class CoverController {
   private shadowPath(pts: Float32Array): string {
     const n = this.string.n;
     const out = new Float32Array(n * 2);
+    // only the deviation ACROSS the line lifts the string off the slab: during the pay-out the nodes
+    // run along it (their along-line distance from the rest node is not height), so no wedge (F-070)
+    const { perp } = this.string.axes;
     for (let i = 0; i < n; i++) {
       const rest = this.string.restAt(i);
-      const dev = Math.hypot(pts[i * 2] - rest.x, pts[i * 2 + 1] - rest.y);
+      const dev = Math.abs((pts[i * 2] - rest.x) * perp.x + (pts[i * 2 + 1] - rest.y) * perp.y);
       const s = Math.min(STRING.shadowMax, dev * STRING.shadowK);
       out[i * 2] = pts[i * 2] + SHADOW_DIR.x * s;
       out[i * 2 + 1] = pts[i * 2 + 1] + SHADOW_DIR.y * s + 1;
@@ -1969,6 +2028,21 @@ class CoverController {
       }
       // pay-out from the chalk box to the left control point, with a sag that pulls taut
       const u = drawEase(segment(now, tl.payStart, tl.payStart + TIMING.payout));
+      if (u >= 1) {
+        // armed and idle: now and then the taut line gives a small twang, to say it can be plucked (H-2)
+        const twang = this.twangAt(now - (tl.payStart + TIMING.payout));
+        if (twang !== 0) {
+          const amt = (this.isPhone() ? STRING.twangPxPhone : STRING.twangPx) / this.string.cap;
+          const off = S.pluckShape(Math.round((n - 1) * 0.6), amt);
+          this.drawString(S.shape(off, twang, new Float32Array(n * 2)));
+        } else this.drawString(S.shape(new Float32Array(n * 2), 0, new Float32Array(n * 2)));
+        return true;
+      }
+      if (u <= 0.02) {
+        // nothing has left the box yet: no dot, no stray shadow tick (F-070)
+        this.stringHidden();
+        return true;
+      }
       const [L, R] = S.ends;
       const pts = new Float32Array(n * 2);
       const { perp } = S.axes;
@@ -2004,6 +2078,15 @@ class CoverController {
     }
     this.drawString(S.shape(tl.offsets, f, new Float32Array(n * 2)), o);
     return true;
+  }
+
+  /** Idle twang factor at tau seconds after the pay-out (a light flick: SNAP from rest, every period). */
+  private twangAt(tau: number): number {
+    const t = tau - STRING.twangFirst;
+    if (t < 0) return 0;
+    const k = t % STRING.twangPeriod;
+    if (k > 0.5) return 0;
+    return snapFlick(k);
   }
 
   /** Frame-time monitor: median > 22 ms over 1 s drops DPR to 1.25; still slow -> the near-matte still. */

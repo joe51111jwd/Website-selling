@@ -745,11 +745,14 @@
 
 /* A-301 and A-900 are one paper set: the break is a 1 px rule on paper with the A-900 tag under it,
    and each paper sheet starts flush at its top (F-092; the slab margin between them is F-067). */
+/* the rule is the sheet's top edge; the tag sits as far under it as A-301's does under its own top
+   (48 + 32 px), so an INDEX / CTA landing (paper sheets land with their top under the header rail,
+   A1's lenis landingTop) shows the tag clear of the header */
 .conv--a900 {
   padding-top: 0;
 }
 .conv--a900 > .conv-head {
-  padding-top: var(--s-5);
+  padding-top: calc(var(--s-7) + var(--s-6));
   border-top: 1px solid var(--line);
 }
 .a900-body .conv-h2 {

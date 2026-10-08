@@ -1,8 +1,11 @@
 // A-101 · BRICKLAYING: plan stacked over perspective, on the spine (brief 3.4). Owner: A3.
-// PLAN 01 (b40, 1:1, 44vw) on the spine; the view marker 01-A / A-101 points down the sheet; the
-// detail bubble opens DETAIL 1 (v0) in a circle; H2, spec and the three bond words laid as two courses
-// of running bond (closed with half-bats, like the favicon's wall). Then the slide: PERSPECTIVE 01-A
-// slides out from under the plan and grows to the site's one letterboxed 2.39:1 hold (PerspectiveStage).
+// PLAN 01 (b40, 1:1) on the spine; the view marker 01-A / A-101 points down the sheet; the detail
+// bubble opens DETAIL 1 (v0) in a circle; H2 (one line, the client's word unbroken: F-038), spec and
+// the three bond words laid as two courses of running bond: solid bricks on 2 px joints, closed with
+// half-bats, like the favicon's wall (F-080). Then the slide: PERSPECTIVE 01-A slides out from under
+// the plan's caption and grows to the site's one letterboxed 2.39:1 hold (PerspectiveStage).
+// DOM order: the text column (with the detail bubble) comes before the plan (with the view marker), so
+// Tab reaches DETAIL 1 before 01-A (F-036); the grid places the plan left.
 // Decoders (manifest A-101): el-c30, plan-b40, det-v0; at most two play.
 
 import { useRef, type CSSProperties } from 'react';
@@ -24,11 +27,6 @@ const CH = challengeBySheet('A-101')!;
 const PERSP_ANCHOR = 'a101-persp';
 const PERSP_TITLE = 'a101-persp-title';
 
-/** H2 with a soft hyphen so it breaks as BRICK- / LAYING where it must (text stays BRICKLAYING). */
-function softHyphen(word: string): string {
-  return word === 'BRICKLAYING' ? 'BRICK­LAYING' : word;
-}
-
 export function A101Brick() {
   const rootRef = useRef<HTMLDivElement>(null);
   const planRef = useRef<HTMLDivElement>(null);
@@ -43,23 +41,6 @@ export function A101Brick() {
       </div>
 
       <div className="a101-grid">
-        <div className="a101-plan">
-          <ViewTitle id="a101-plan" className="a101-plan-view">
-            <div ref={planRef}>
-              <LoopVideo id="plan-b40" label={A101.alt.plan} />
-            </div>
-          </ViewTitle>
-          <ViewMarker
-            className="a101-marker"
-            view={A101.viewMarker.view}
-            sheet={A101.viewMarker.sheet}
-            target={PERSP_ANCHOR}
-            focusId={PERSP_TITLE}
-            label={A101.viewMarker.label}
-            angle={180}
-          />
-        </div>
-
         <div className="a101-side">
           <div className="a101-side-top">
             <DetailBubble
@@ -67,6 +48,7 @@ export function A101Brick() {
               n={1}
               sheet="A-101"
               label={A101.detailLabel}
+              phoneFlow
               panelClassName="a101-detail-panel"
               onOpenChange={(open) => {
                 if (open && motion) videoManager.userPlay('det-v0');
@@ -85,9 +67,9 @@ export function A101Brick() {
             </span>
           </div>
 
-          <h2 className="t-h2-challenge a101-h2 print-in">
-            {softHyphen(A101.h2)}
-          </h2>
+          <div className="a101-h2-box">
+            <h2 className="t-h2-challenge a101-h2 print-in">{A101.h2}</h2>
+          </div>
           <p className="t-spec a101-spec print-in">{CH.spec}</p>
 
           {/* the bond words, laid as two courses of running bond: 2 / ½ · 1 · ½ */}
@@ -108,6 +90,22 @@ export function A101Brick() {
               <span className="a101-brick a101-brick--half print-in" aria-hidden="true" style={{ ['--d' as string]: '240ms' } as CSSProperties} />
             </div>
           </div>
+        </div>
+        <div className="a101-plan">
+          <ViewTitle id="a101-plan" className="a101-plan-view">
+            <div ref={planRef}>
+              <LoopVideo id="plan-b40" label={A101.alt.plan} />
+            </div>
+          </ViewTitle>
+          <ViewMarker
+            className="a101-marker"
+            view={A101.viewMarker.view}
+            sheet={A101.viewMarker.sheet}
+            target={PERSP_ANCHOR}
+            focusId={PERSP_TITLE}
+            label={A101.viewMarker.label}
+            angle={180}
+          />
         </div>
       </div>
     </div>
