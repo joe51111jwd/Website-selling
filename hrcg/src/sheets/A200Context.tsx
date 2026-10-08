@@ -306,7 +306,7 @@ export default function A200Context() {
 
             {/* the HOLD tag on its own: static layouts, and the phone's settled tag at the foot */}
             <div className="a200-hold" ref={holdRef}>
-              <HoldCloud width={312} height={58} tag={A200.hold.head} title={A200.hold.cloudAlt}>
+              <HoldCloud width={296} height={56} tag={A200.hold.head} title={A200.hold.cloudAlt}>
                 <span className="a200-hold-body">{A200.hold.tail}</span>
               </HoldCloud>
             </div>

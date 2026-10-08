@@ -356,7 +356,7 @@
     grid-column: 1;
   }
   .a200-hold {
-    padding: var(--s-4) 0 0 var(--s-6);
+    padding: var(--s-4) 0 0 var(--s-5);
   }
   .a200-text {
     padding: var(--s-7) 0 0;
