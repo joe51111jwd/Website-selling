@@ -6,7 +6,7 @@ const EXPO = [0.16, 1, 0.3, 1] as const;
 type Phase = 'dark' | 'play' | 'lit' | 'end';
 
 /** When the line snaps in each take (seconds); the words light up on the snap. */
-const SNAP_AT = { '169': 2.62, '916': 2.3 } as const;
+const SNAP_AT = { '169': 0.35, '916': 0.35 } as const;
 
 /**
  * The opening: the whole take plays and loops seamlessly (its tail crossfades into its head). 07 holds
@@ -150,23 +150,20 @@ export function Hero({ onReady }: { onReady: () => void }) {
             muted
             playsInline
             preload="auto"
-            poster={`/media/hero-full-${o}.first.jpg`}
+            poster={`/media/hero-slam-${o}.first.jpg`}
             aria-label="Concept film: robot 07 picks up a chalk line, pulls it taut, drives its hand into the slab, and blue chalk dust rolls out across the floor."
           >
-            <source src={`/media/hero-full-${o}.av1.mp4`} type='video/mp4; codecs="av01.0.08M.08"' />
-            <source src={`/media/hero-full-${o}.h264.mp4`} type="video/mp4" />
+            <source src={`/media/hero-slam-${o}.av1.mp4`} type='video/mp4; codecs="av01.0.08M.08"' />
+            <source src={`/media/hero-slam-${o}.h264.mp4`} type="video/mp4" />
           </video>
           {/* the words live in the scene: stencilled on the back wall, marking-painted on the slab */}
           <h1 id="hx-h" className={`hx-wall ${lit ? 'is-lit' : ''}`}>
-            <span className="sr-only">We want to see a robot lay brick</span>
+            <span className="sr-only">Put it to work.</span>
             <span aria-hidden="true">
-              We want to see
-              <br />a robot
+              Put it
+              <br />to work.
             </span>
           </h1>
-          <div className={`hx-floor ${lit ? 'is-lit' : ''}`} aria-hidden="true">
-            <span className="hx-paint">Lay brick</span>
-          </div>
         </motion.div>
       </div>
 
@@ -177,7 +174,7 @@ export function Hero({ onReady }: { onReady: () => void }) {
           animate={lit ? { opacity: 1, y: 0 } : undefined}
           transition={{ duration: 0.9, ease: EXPO, delay: 0.7 }}
         >
-          That&rsquo;s one of five tasks at the first Humanoid Robot Construction Games, which we&rsquo;re planning for New York City in&nbsp;2027.
+          Five construction tasks at the first Humanoid Robot Construction Games, which we&rsquo;re planning for New York City in&nbsp;2027.
         </motion.p>
       </motion.div>
     </section>
