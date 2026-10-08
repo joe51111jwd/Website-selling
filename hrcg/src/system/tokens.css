@@ -82,6 +82,14 @@
     --chrome-bottom: calc(var(--strip-h) + var(--safe-bottom));
   }
 }
+/* F-017: a phone turned sideways (844x390) gets the phone chrome: 12 px border, phone bar */
+@media (max-height: 500px) and (pointer: coarse) {
+  :root {
+    --border: 12px;
+    --margin: max(16px, env(safe-area-inset-left));
+    --chrome-bottom: calc(var(--strip-h) + var(--safe-bottom));
+  }
+}
 
 /* ---------------------------------------------------------------- 5.2 type roles */
 
@@ -133,7 +141,8 @@
   font-family: var(--font-display);
   font-weight: 800;
   font-variation-settings: 'opsz' 72;
-  font-size: clamp(44px, 12vw, 216px);
+  /* F-016: capped by the viewport height too, so a landed H2 never runs under the chrome */
+  font-size: min(clamp(44px, 12vw, 216px), 18vh);
   line-height: 0.86;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -142,9 +151,14 @@
   font-family: var(--font-display);
   font-weight: 800;
   font-variation-settings: 'opsz' 72;
-  font-size: clamp(48px, 8vw, 152px);
+  font-size: min(clamp(48px, 8vw, 152px), 12vh);
   line-height: 0.88;
   letter-spacing: 0;
+}
+/* F-016: sentence case has descenders and ascenders that fuse at .88 (the j of "jobs" met the d of
+   "builder"); caps keep .88 */
+.t-h2-statement:not(.t-upper) {
+  line-height: 0.96;
 }
 .t-upper {
   text-transform: uppercase;

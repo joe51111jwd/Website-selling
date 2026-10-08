@@ -1,11 +1,17 @@
 // A-104 · PIPE ASSEMBLY (brief 3.7). Owner: A4.
 //
 // The site's only oblique, three-dimensional page. PLAN 04 (b43) lies on a static plane at true
-// isometric (rotateX 54.7356°, rotateZ −45°), 24 px over its own floor shadow, with the task drawing
-// traced from the footage sitting in registration on it. The copy runs along an iso pipe route that
-// leaves the traced drawing: one beat at each fitting (TO THE DRAWING · CORRECT GEOMETRY · SECURE
-// JOINTS). PERSPECTIVE 04-A (c33, bottom-anchored 2.39:1 crop) plays in place as a framed strip below.
-// Motion: none of its own. The route, its beats and the trace print in (opacity) when the sheet arrives.
+// isometric (rotateX 54.7356°, rotateZ −45°), 24 px over its own floor shadow. The copy runs along an iso
+// pipe route that leaves the taped task drawing: one beat at each fitting (TO THE DRAWING · CORRECT
+// GEOMETRY · SECURE JOINTS), and the route ends capped at the last one. PERSPECTIVE 04-A (c33,
+// bottom-anchored 2.39:1 crop) plays in place as a framed strip below.
+// Motion: none of its own. The route, its beats and the copy print in (opacity) when the sheet arrives.
+//
+// Composition (FIXLIST-1 F-039): the landing frame is the whole sheet's argument. The H2 sits under the tag
+// on the spine, the spec in the top right beside it, the plane below the H2 and the route running out from
+// the drawing to the right, each fitting lower than the last, capped inside the content edge.
+// F-040 (H-12 rejected): the traced task drawing is NOT rendered over b43 (the copper on the floor does not
+// match the taped drawing), and neither is its view title.
 //
 // One projection serves CSS and SVG: CSS 3D without `perspective` is orthographic, so a point (u, v)
 // of the plane (0..1, the registered plan frame) at height z lands on screen at
@@ -30,7 +36,7 @@ const RZ = Math.sqrt(2 / 3);
 type P3 = readonly [number, number, number];
 
 interface Geometry {
-  /** stage units (the SVG viewBox); the stage keeps this aspect ratio */
+  /** stage units (the SVG viewBox); the plot keeps this aspect ratio */
   w: number;
   h: number;
   /** plane centre and side, stage units */
@@ -39,66 +45,55 @@ interface Geometry {
   s: number;
   /** lift of the plane over its shadow, stage units (24 px at the design width) */
   lift: number;
-  /** pipe route: (u, v) in plane units, z in stage units */
+  /** pipe route: (u, v) in plane units, z in stage units. The last point is the capped end. */
   route: readonly P3[];
-  /** tee branch from the last fitting */
-  branch: readonly P3[];
   /** route corners drawn as plain bends in the pipe (no fitting, no beat) */
   bends?: readonly number[];
   /** indexes into route of the three fittings, and where each beat sits relative to it */
   fittings: readonly { at: number; dx: number; dy: number; align: 'left' | 'right' }[];
 }
 
-// Desktop: plane top-left, H2 under it, the route out to the right.
+// Desktop (1296 × 690 at the design width): the H2 and spec overlay the top band; the plane sits below the
+// H2 at left; from the drawing the route runs up and out over the plane's edge (TO THE DRAWING), down
+// the long run (CORRECT GEOMETRY) and drops to its capped end (SECURE JOINTS), each fitting lower than the
+// last so the beats read in route order. The rightmost beat ends about x 1265 (content edge 1296).
 const DESK: Geometry = {
   w: 1296,
-  h: 900,
-  cx: 395,
-  cy: 270,
-  s: 500,
+  h: 690,
+  cx: 368,
+  cy: 382,
+  s: 520,
   lift: 24,
-  // down the plane's lower-right edge, a drop, a long run down and right, then up and away to the page
-  // edge: each fitting sits lower than the last, so the beats read in route order from the top
   route: [
     [0.74, 0.84, 24],
-    [0.74, 1.32, 24],
-    [0.74, 1.32, -130],
-    [0.74, 1.95, -130],
-    [1.62, 1.95, -130],
-  ],
-  branch: [
-    [0.74, 1.95, -130],
-    [0.74, 1.95, -214],
+    [1.3, 0.84, 24],
+    [1.3, 1.5, 24],
+    [1.3, 1.5, -190],
   ],
   fittings: [
-    { at: 1, dx: 20, dy: -6, align: 'left' },
-    { at: 2, dx: 20, dy: -22, align: 'left' },
-    { at: 3, dx: 22, dy: 22, align: 'left' },
+    { at: 1, dx: 22, dy: -2, align: 'left' },
+    { at: 2, dx: 22, dy: -2, align: 'left' },
+    { at: 3, dx: 22, dy: 0, align: 'left' },
   ],
 };
 
-// Phone: plane full width on top; the route drops from the drawing, jogs back across the column and
-// drops again, so every beat has the whole width to its right.
+// Phone: the H2 and spec sit in flow above; the plane full width on top; the route bends off the drawing,
+// drops, jogs back across the column and drops to its capped end, so every beat has the width to its left.
 const PHONE: Geometry = {
   w: 358,
-  h: 690,
+  h: 480,
   cx: 179,
-  cy: 150,
+  cy: 118,
   s: 240,
   lift: 12,
   route: [
     [0.74, 0.84, 12],
     [0.74, 1.24, 12],
-    [0.74, 1.24, -175],
-    [0.3, 1.24, -175],
-    [0.3, 1.24, -330],
-    [0.05, 1.24, -330],
+    [0.74, 1.24, -150],
+    [0.3, 1.24, -150],
+    [0.3, 1.24, -300],
   ],
-  branch: [
-    [0.3, 1.24, -330],
-    [0.3, 1.24, -430],
-  ],
-  // the first corner is a plain bend in the copper (no fitting): the beats start below the captions
+  // the first corner is a plain bend in the copper (no fitting): the beats start below the caption
   bends: [1],
   fittings: [
     { at: 2, dx: -18, dy: 0, align: 'right' },
@@ -188,26 +183,36 @@ function routePath(g: Geometry, r = 14): string {
   return d;
 }
 
+/** End cap: a short bar across the pipe at the route's last point, perpendicular to the incoming run. */
+function endCap(g: Geometry): string {
+  const pts = g.route.map((p) => project(g, p));
+  const end = pts[pts.length - 1]!;
+  const prev = pts[pts.length - 2]!;
+  const len = Math.hypot(end[0] - prev[0], end[1] - prev[1]) || 1;
+  const ux = (end[0] - prev[0]) / len;
+  const uy = (end[1] - prev[1]) / len;
+  const t = 7;
+  const x = end[0] + ux * 3;
+  const y = end[1] + uy * 3;
+  return `M${(x - uy * t).toFixed(1)} ${(y + ux * t).toFixed(1)}L${(x + uy * t).toFixed(1)} ${(y - ux * t).toFixed(1)}`;
+}
+
 function Route({ g, variant }: { g: Geometry; variant: 'desk' | 'phone' }) {
   const pts = g.route.map((p) => project(g, p));
   const start = pts[0]!;
-  const end = pts[pts.length - 1]!;
-  const branch = g.branch.length ? poly(g, g.branch) : '';
-  const bEnd = g.branch.length ? project(g, g.branch[g.branch.length - 1]!) : null;
   return (
     <div className={`a104-route a104-route--${variant}`}>
       <svg className="a104-route-svg" viewBox={`0 0 ${g.w} ${g.h}`} aria-hidden="true" focusable="false">
         <path className="a104-pipe" d={routePath(g)} />
-        {branch ? <path className="a104-pipe" d={branch} /> : null}
         <path className="a104-joint" d={joints(g)} />
-        {/* the route starts on the traced drawing: an open end */}
+        {/* the route starts on the taped drawing: an open end */}
         <circle className="a104-end" cx={start[0]} cy={start[1]} r={4} />
-        {bEnd ? <path className="a104-cap" d={`M${bEnd[0] - 6} ${bEnd[1]}H${bEnd[0] + 6}`} /> : null}
         {g.fittings.map((f) => {
           const [x, y] = pts[f.at]!;
           return <circle key={f.at} className="a104-fitting" cx={x} cy={y} r={4.5} />;
         })}
-        <path className="a104-cap" d={`M${end[0] - 5} ${end[1] + 3}L${end[0] + 5} ${end[1] - 3}`} />
+        {/* and ends capped at the last fitting (SECURE JOINTS) */}
+        <path className="a104-cap" d={endCap(g)} />
       </svg>
       <ol className="a104-beats">
         {g.fittings.map((f, i) => {
@@ -230,18 +235,14 @@ function Route({ g, variant }: { g: Geometry; variant: 'desk' | 'phone' }) {
 
 export default function A104Pipe() {
   const rootRef = useRef<HTMLDivElement>(null);
-  // PLAN 04's ▶ PLAY sits flat beside the plane (LoopVideo's own button would be laid at isometric)
+  // PLAN 04's ▶ PLAY sits flat under the plane's caption (LoopVideo's own button would be laid at isometric)
   const onPlanState = useCallback((st: VideoState) => {
     rootRef.current?.setAttribute('data-plan', st);
   }, []);
-  // the route, its beats, the trace and the copy print in when the sheet arrives (opacity only)
+  // the route, its beats and the copy print in when the sheet arrives (opacity only)
   usePrinted(rootRef, '0px 0px -25% 0px');
 
-  const trace = media['trace-t43']?.sources?.[0]?.src;
   const stageVars = { ...planeVars(DESK, 'd'), ...planeVars(PHONE, 'm') } as CSSProperties;
-  const traceStyle = trace
-    ? ({ WebkitMaskImage: `url("${trace}")`, maskImage: `url("${trace}")` } as CSSProperties)
-    : undefined;
 
   return (
     <div className="a104" ref={rootRef}>
@@ -250,50 +251,54 @@ export default function A104Pipe() {
       </div>
 
       <div className="a104-stage" style={stageVars}>
-        {/* the floor: the plane's soft shadow and its dashed footprint, behind the plane */}
-        <div className="a104-shadow" aria-hidden="true" />
-        <svg className="a104-floor a104-floor--desk" viewBox={`0 0 ${DESK.w} ${DESK.h}`} aria-hidden="true" focusable="false">
-          <path d={diamond(DESK, 0)} />
-        </svg>
-        <svg className="a104-floor a104-floor--phone" viewBox={`0 0 ${PHONE.w} ${PHONE.h}`} aria-hidden="true" focusable="false">
-          <path d={diamond(PHONE, 0)} />
-        </svg>
-
-        {/* PLAN 04 on the iso plane, the traced task drawing in registration on it */}
-        <ViewTitle id="a104-plan" className="a104-plan" frame={false} captionClassName="a104-plan-title">
-          <div className="a104-plane">
-            <LoopVideo id="plan-b43" className="a104-video" onState={onPlanState} />
-            {traceStyle ? <div className="a104-trace print-in" style={traceStyle} aria-hidden="true" /> : null}
-          </div>
-        </ViewTitle>
-        <ViewTitle id="a104-trace" captionClassName="a104-trace-title print-in" />
-        <button
-          type="button"
-          className="cell-button a104-play js-only"
-          aria-label={`${MEDIA_STATES.playLabelPrefix}${media['plan-b43']?.alt ?? ''}`}
-          onClick={() => videoManager.userPlay('plan-b43')}
-        >
-          {MEDIA_STATES.play}
-        </button>
-
-        {/* the plane's hairline frame, drawn crisp in the overlay */}
-        <svg className="a104-frame a104-frame--desk" viewBox={`0 0 ${DESK.w} ${DESK.h}`} aria-hidden="true" focusable="false">
-          <path d={diamond(DESK, DESK.lift)} />
-        </svg>
-        <svg className="a104-frame a104-frame--phone" viewBox={`0 0 ${PHONE.w} ${PHONE.h}`} aria-hidden="true" focusable="false">
-          <path d={diamond(PHONE, PHONE.lift)} />
-        </svg>
-
-        <Route g={DESK} variant="desk" />
-        <Route g={PHONE} variant="phone" />
-
         <h2 className="t-h2-challenge a104-h2 print-in">{A104.h2}</h2>
-      </div>
-
-      <div className="a104-foot">
         <p className="t-spec a104-spec print-in" style={{ ['--d' as string]: '120ms' } as CSSProperties}>
           {A104.spec}
         </p>
+
+        <div className="a104-plot">
+          {/* the floor: the plane's soft shadow and its dashed footprint, behind the plane */}
+          <div className="a104-shadow" aria-hidden="true" />
+          <svg className="a104-floor a104-floor--desk" viewBox={`0 0 ${DESK.w} ${DESK.h}`} aria-hidden="true" focusable="false">
+            <path d={diamond(DESK, 0)} />
+          </svg>
+          <svg className="a104-floor a104-floor--phone" viewBox={`0 0 ${PHONE.w} ${PHONE.h}`} aria-hidden="true" focusable="false">
+            <path d={diamond(PHONE, 0)} />
+          </svg>
+
+          {/* PLAN 04 on the iso plane; one caption stack under its footprint, then the flat ▶ PLAY (F-083) */}
+          <div className="a104-planwrap">
+            <ViewTitle id="a104-plan" className="a104-plan" frame={false} captionClassName="a104-plan-title">
+              <div className="a104-planbox">
+                <div className="a104-plane">
+                  <LoopVideo id="plan-b43" className="a104-video" onState={onPlanState} />
+                </div>
+              </div>
+            </ViewTitle>
+            <button
+              type="button"
+              className="cell-button a104-play js-only"
+              aria-label={`${MEDIA_STATES.playLabelPrefix}${media['plan-b43']?.alt ?? ''}`}
+              onClick={() => videoManager.userPlay('plan-b43')}
+            >
+              {MEDIA_STATES.play}
+            </button>
+          </div>
+
+          {/* the plane's hairline frame, drawn crisp in the overlay */}
+          <svg className="a104-frame a104-frame--desk" viewBox={`0 0 ${DESK.w} ${DESK.h}`} aria-hidden="true" focusable="false">
+            <path d={diamond(DESK, DESK.lift)} />
+          </svg>
+          <svg className="a104-frame a104-frame--phone" viewBox={`0 0 ${PHONE.w} ${PHONE.h}`} aria-hidden="true" focusable="false">
+            <path d={diamond(PHONE, PHONE.lift)} />
+          </svg>
+
+          <Route g={DESK} variant="desk" />
+          <Route g={PHONE} variant="phone" />
+        </div>
+      </div>
+
+      <div className="a104-foot">
         <ViewTitle id="a104-perspective" className="a104-persp">
           <LoopVideo id="el-c33" className="feather" />
         </ViewTitle>

@@ -1,7 +1,7 @@
 /* PerspectiveStage: slide and iris (brief 3.4, 3.6, 6). Owner: A3.
    Flow (default, no JS, reduced motion, phones): composition, then the view, in normal flow.
    Pin (JS, motion, >= 768): sticky layer; JS sets heights, offsets and per-frame transform /
-   opacity / clip-path only. */
+   opacity / clip-path only. The view is above the composition and the spine (F-078). */
 
 .pstage,
 .pstage-track,
@@ -18,6 +18,7 @@
 }
 .pstage-view {
   position: relative;
+  z-index: 2;
   margin-top: var(--s-9);
 }
 .pstage--content .pstage-view {
@@ -64,6 +65,8 @@
     position: absolute;
     z-index: 3;
     margin: 0;
+    /* its box spans the hold rect from the start: only the visible frame takes clicks (F-034) */
+    pointer-events: none;
   }
   .pstage[data-mode='pin'] .pstage-view:not([data-ready]) {
     visibility: hidden;
@@ -75,6 +78,8 @@
   }
   .pstage[data-mode='pin'] .pstage-view .view-title {
     opacity: 0;
+    transform-origin: 0 0;
+    will-change: transform, clip-path, opacity;
   }
   .pstage-anchor--hold {
     position: absolute;

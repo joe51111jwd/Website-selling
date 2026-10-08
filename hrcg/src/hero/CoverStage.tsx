@@ -23,6 +23,7 @@ import { SheetPlaceholder } from '../system/Placeholder';
 import { ControlX } from '../marks/ControlX';
 import { ChalkBox } from '../marks/ChalkBox';
 import { media, type MediaEntry } from '../media/manifest';
+import { CLEAR_POSTER } from '../system/clearPoster';
 import { PORTRAIT_QUERY } from './heroLayout';
 import { createCoverController, type ArenaHandle } from './controller';
 
@@ -39,12 +40,9 @@ function pickBays(): ComponentType<BaysProps> | null {
 
 const PORTRAIT = PORTRAIT_QUERY;
 
-/**
- * The hero film's poster is the frame-84 still <picture> directly under it (it switches 16:9 / 9:16
- * by media query, which a poster attribute cannot). A transparent poster keeps the no-JS video box
- * from painting grey over it; the film's own pixels cover the still once it plays.
- */
-const CLEAR_POSTER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+// The hero film's poster is the frame-84 still <picture> directly under it (it switches 16:9 / 9:16
+// by media query, which a poster attribute cannot). CLEAR_POSTER (A1's transparent 1x1) keeps the no-JS
+// video box from painting grey over it; the film's own pixels cover the still once it plays.
 
 function srcOf(e: MediaEntry | undefined, re: RegExp): string | undefined {
   return e?.sources?.find((s) => re.test(s.type) || re.test(s.src))?.src;
@@ -169,11 +167,14 @@ export function CoverStage() {
 
           <ViewTitle id="hero-still" className="cv-box cv-media" frame={false} captionClassName="cv-vt cv-vt--still">
             <div className="cv-media-in">
+              {/* the LCP element on the reduced-motion and no-JS paths: eager and high priority (F-069) */}
               <FramePicture
                 land={`hero-still-169-${codec}`}
                 port={`hero-still-916-${codec}`}
                 className="cv-still"
                 alt={media['hero-still-169-av1']?.alt ?? ''}
+                eager
+                high
               />
               <video
                 className="cv-film"
@@ -210,7 +211,7 @@ export function CoverStage() {
                 {line(l2, 2)} {line(l3, 3)}
               </span>
             </h1>
-            <FramePicture land="hero-matte-169" port="hero-matte-916" className="cv-matte" alt="" />
+            <FramePicture land="hero-matte-169" port="hero-matte-916" className="cv-matte" alt="" eager />
             <p className="cv-sub">{HERO.sub}</p>
 
             <ControlX className="cv-x cv-x--l" size={18} seed={11} />
@@ -240,6 +241,8 @@ export function CoverStage() {
               {HERO.play}
             </button>
           </div>
+          {/* the puff: over 07's matte, under the NEAR lines, so BUILD? stays clean orange (F-072) */}
+          <canvas className="cv-puff" aria-hidden="true" />
         </section>
 
         {/* ---------------------------------------------------------------- A-100 */}
@@ -264,7 +267,19 @@ export function CoverStage() {
             <Picture id="plan-b44-260" loading="lazy" />
           </div>
           <div className="cv-deps" aria-hidden="true" />
-          <video className="cv-slot5" muted playsInline preload="none" aria-hidden="true" tabIndex={-1}>
+          {/* JS only (the plan cut); for no-JS it is display: none but still carries a poster and controls
+              (QA nojs-video). The controller removes the controls and keeps the plan still (b44 at
+              2.60 s) up until this has its frame, so it never shows as a black box (F-030). */}
+          <video
+            className="cv-slot5 js-only"
+            muted
+            playsInline
+            controls
+            preload="none"
+            poster={CLEAR_POSTER}
+            aria-hidden="true"
+            tabIndex={-1}
+          >
             {slotSources.map((s) => (
               <source key={s.src} src={s.src} type={s.type} media={s.media} />
             ))}
@@ -277,7 +292,6 @@ export function CoverStage() {
             <path className="cv-string-line" d="" />
             <path className="cv-string-core" d="" />
           </svg>
-          <canvas className="cv-puff" />
         </div>
       </div>
       <div className="cv-spacer" />

@@ -416,25 +416,33 @@
 
 /* =================================================================== A-104 PIPE ASSEMBLY */
 
+/* Sheet-level overrides use two classes (.a104 .x), so they win over the base rules (.view-title,
+   .cell-button, .t-h2-challenge) in any stylesheet order (FIXLIST-1 §0, F-013, F-083). */
 .a104 {
   width: min(100% - 2 * var(--margin), var(--content-max));
   margin-inline: auto;
 }
 .a104-head {
   padding-top: var(--s-2);
-  margin-bottom: var(--s-6);
+  margin-bottom: var(--s-4);
 }
+/* the landing frame (F-039): tag + stage fit between the header rail and the strip. The stage scales
+   with the content width; on short, wide screens it is capped so its foot never sits under the strip. */
 .a104-stage {
   position: relative;
   container-type: inline-size;
-  aspect-ratio: var(--ar-d);
+  max-width: calc((100svh - var(--border) - var(--header-h) - var(--s-4) - 39px - var(--chrome-bottom) - 8px) * 1296 / 690);
   --pl: var(--pl-d);
   --pt: var(--pt-d);
   --pw: var(--pw-d);
   --lift: var(--lift-d);
   --side: var(--s-d);
 }
-.a104-stage > svg,
+.a104-plot {
+  position: relative;
+  aspect-ratio: var(--ar-d);
+}
+.a104-plot > svg,
 .a104-route,
 .a104-route-svg {
   position: absolute;
@@ -450,12 +458,46 @@
   display: none;
 }
 
+/* H2 on the spine under the tag; the spec in the top right beside it (desktop: over the plot's top band) */
+.a104 .a104-h2 {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  margin: 0;
+  color: var(--chalk);
+  font-size: 12cqw;
+  white-space: nowrap;
+}
+.a104 .a104-spec {
+  position: absolute;
+  z-index: 1;
+  left: 67.9cqw;
+  width: 32.1cqw;
+  top: 0.9cqw;
+  margin: 0;
+  color: var(--chalk);
+}
+
 /* the plane: one square, laid at true isometric. CSS 3D without perspective = orthographic */
-.a104-plan {
+.a104-planwrap {
   position: absolute;
   left: var(--pl);
   top: var(--pt);
   width: var(--pw);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+}
+.a104 .a104-plan {
+  width: 100%;
+  margin: 0;
+}
+/* the square's layout box ends 14 px under the diamond's lowest point, so the caption flows there */
+.a104-planbox {
+  position: relative;
+  height: calc(var(--side) * 0.9082 + 14px);
 }
 .a104-plane,
 .a104-shadow {
@@ -463,7 +505,10 @@
   transform-origin: 50% 50%;
 }
 .a104-plane {
-  position: relative;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
   transform: rotateX(54.7356deg) rotateZ(-45deg) translateZ(var(--lift));
   -webkit-mask-image:
     linear-gradient(to right, transparent, #000 4%, #000 96%, transparent),
@@ -479,32 +524,22 @@
   inset: 0;
   height: 100%;
 }
-/* LoopVideo's own ▶ would be laid at isometric on the plane: hide it, use the flat one beside the plane */
+/* LoopVideo's own ▶ would be laid at isometric on the plane: hide it, use the flat one under the caption */
 .a104-plane .loopvideo-play {
   display: none !important;
 }
-.a104-play {
-  position: absolute;
-  /* on the caption line, in the empty margin left of the captions */
-  left: 0;
-  top: calc(var(--pt) + var(--side) * 0.9082 + 2px);
+.a104 .a104-plan-title {
+  width: 100%;
+  margin: 0;
+}
+.a104 .a104-play {
   display: none;
-  background: rgba(11, 11, 10, 0.86);
+  min-height: 44px;
+  background: var(--slab-black);
 }
 .a104[data-plan='blocked'] .a104-play,
 .rm .a104:not([data-plan='playing']):not([data-plan='error']) .a104-play {
   display: inline-flex;
-}
-/* the traced task drawing: the D6 SVG recoloured chalk-blue through a mask (lines only) */
-.a104-trace {
-  position: absolute;
-  inset: 0;
-  background: var(--chalk-blue);
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  pointer-events: none;
 }
 /* the one allowed physical shadow on this sheet: the plane's own, 24 px below it on the floor */
 .a104-shadow {
@@ -531,18 +566,6 @@
   vector-effect: non-scaling-stroke;
 }
 
-/* captions: under the plane's footprint (the lowest point of the drawing), centred on it */
-.a104-plan-title {
-  margin-top: calc(14px - 0.0918 * var(--side));
-}
-.a104-trace-title {
-  position: absolute;
-  left: var(--pl);
-  width: var(--pw);
-  top: calc(var(--pt) + var(--side) * 0.9082 + 14px + 30px);
-  margin: 0;
-}
-
 /* the pipe route */
 .a104-pipe {
   fill: none;
@@ -558,6 +581,9 @@
   stroke-width: 1.25;
   vector-effect: non-scaling-stroke;
 }
+.a104-cap {
+  stroke-width: 2;
+}
 .a104-fitting {
   fill: var(--chalk);
 }
@@ -568,24 +594,20 @@
   vector-effect: non-scaling-stroke;
 }
 .a104-route-svg,
-.a104-trace,
 .a104-floor,
 .a104-frame {
   opacity: 0;
   transition: opacity var(--dur-print) linear;
 }
 .a104[data-printed] .a104-route-svg,
-.a104[data-printed] .a104-trace,
 .a104[data-printed] .a104-frame,
 .a104[data-printed] .a104-floor {
   opacity: 1;
 }
 .no-js .a104-route-svg,
-.no-js .a104-trace,
 .no-js .a104-frame,
 .no-js .a104-floor,
 .rm .a104-route-svg,
-.rm .a104-trace,
 .rm .a104-frame,
 .rm .a104-floor {
   opacity: 1;
@@ -609,39 +631,23 @@
   transform: translateY(-50%);
 }
 
-.a104-h2 {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  margin: 0;
-  color: var(--chalk);
-  max-width: 6ch;
-}
-
+/* PERSPECTIVE 04-A: the framed 2.39:1 strip straight under the landing frame */
 .a104-foot {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: var(--gutter);
-  margin-top: var(--s-7);
-  align-items: end;
-}
-.a104-spec {
-  grid-column: 1 / span 3;
-  color: var(--chalk);
-  padding-bottom: calc(15px + var(--s-3));
-}
-.a104-persp {
-  grid-column: 5 / -1;
+  margin-top: var(--s-6);
 }
 
 @media (max-width: 767px) {
   .a104-stage {
-    aspect-ratio: var(--ar-m);
+    max-width: none;
     --pl: var(--pl-m);
     --pt: var(--pt-m);
     --pw: var(--pw-m);
     --lift: var(--lift-m);
     --side: var(--s-m);
+  }
+  .a104-plot {
+    aspect-ratio: var(--ar-m);
+    margin-top: var(--s-5);
   }
   .a104-floor--desk,
   .a104-frame--desk,
@@ -656,19 +662,20 @@
   .a104-beat--right {
     text-align: right;
   }
-  .a104-play {
-    top: calc(var(--pt) + var(--side) * 0.9082 + 80px);
+  /* phone: H2 and spec in flow above the plot */
+  .a104 .a104-h2 {
+    position: relative;
+    font-size: 13.4cqw;
+  }
+  .a104 .a104-spec {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: auto;
+    margin-top: var(--s-4);
   }
   .a104-foot {
-    display: block;
     margin-top: var(--s-6);
-  }
-  .a104-spec {
-    padding-bottom: 0;
-    margin-bottom: var(--s-6);
-  }
-  .a104-h2 {
-    max-width: none;
   }
 }
 

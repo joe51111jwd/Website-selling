@@ -30,9 +30,15 @@ export function SheetIndex() {
   return (
     <Dialog id="index" className="index-dialog" labelledBy="index-dialog-title">
       <div className="index-panel">
-        <p id="index-dialog-title" className="index-title t-label">
-          <LabelText text={INDEX.title} />
-        </p>
+        {/* F-018: title + CLOSE in one head row (sticky on phones), CLOSE first in focus order */}
+        <div className="index-head">
+          <button type="button" className="cell-button index-close-top" onClick={() => overlays.close()}>
+            {INDEX.closeTop}
+          </button>
+          <p id="index-dialog-title" className="index-title t-label">
+            <LabelText text={INDEX.title} />
+          </p>
+        </div>
         <ol className="index-rows">
           {SHEETS.map((s) => (
             <li key={s.id}>

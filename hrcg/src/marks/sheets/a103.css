@@ -1,12 +1,19 @@
-/* A-103 · BOLTED ASSEMBLY (brief 3.6). Owner: A3.
-   --fs: the challenge H2 size; --D: the detail circle; --cl: the circle's left edge, set so ASSEMBLY
-   (3.75 em) tucks its last 0.2 em behind the circle. Everything fits the band between the chrome when
-   the iris pins (the circle is centred in it). */
+/* A-103 · BOLTED ASSEMBLY (brief 3.6, DIR-1). Owner: A3.
+   --fs: the challenge H2 size (width- and height-capped like every challenge H2, F-016); --D: the
+   detail circle; --cl: the circle's left edge, set so only the tip of ASSEMBLY's Y (--bite) tucks
+   behind the circle's rim (DIR-1: a bite, at most part of one letter; every word stays whole).
+   PLAN 03 sits at the circle's foot, right, at least 24 px clear of it (F-077); the 03 stencil and
+   PLAN 03 sit fully inside the content column. Everything fits the band between the chrome when the
+   iris pins (the circle is centred in it). [data-pst-fade] wrappers print out before the iris opens. */
 
 .a103 {
-  --fs: clamp(44px, 12vw, 216px);
+  --fs: min(clamp(44px, 12vw, 216px), 18vh);
   --D: min(36vw, 60svh, 600px);
-  --cl: calc(3.55 * var(--fs));
+  /* ASSEMBLY's advance is 3.72 em in Big Shoulders 800 / opsz 72; --bite in em (unitless) */
+  --bite: 0.1;
+  --cl: calc((3.72 - var(--bite)) * var(--fs));
+  /* PLAN 03 thumbnail */
+  --tw: min(10vw, 168px);
 }
 .a103-head {
   margin-bottom: var(--s-5);
@@ -14,6 +21,11 @@
 .a103-comp {
   position: relative;
   height: calc(var(--D) + 40px);
+}
+.a103-fade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 .a103-num {
   position: absolute;
@@ -24,7 +36,6 @@
 }
 .a103-h2 {
   position: absolute;
-  z-index: 1;
   left: 0;
   top: calc(var(--D) / 2 - 1.5 * 0.86 * var(--fs));
   font-size: var(--fs);
@@ -62,6 +73,11 @@
   margin-top: var(--s-3);
 }
 /* leader from the circle's shoulder (45°) to the detail reference */
+.a103-callout {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
 .a103-leader {
   position: absolute;
   left: calc(var(--D) / 2 + var(--D) / 2 * 0.7071);
@@ -80,7 +96,6 @@
 /* spec + beats, under the H2 and left of the circle */
 .a103-text {
   position: absolute;
-  z-index: 1;
   left: 0;
   top: calc(var(--D) / 2 + 0.5 * 0.86 * var(--fs) + var(--s-6));
   width: calc(var(--cl) - var(--s-7));
@@ -95,13 +110,13 @@
   color: var(--fg-2);
 }
 
-/* PLAN 03 at the circle's foot, right */
+/* PLAN 03 at the circle's foot, right, inside the column; its frame's top-left corner is kept
+   24 px outside the circle (F-077): the thumbnail's bottom sits on the circle's foot line */
 .a103-plan {
   position: absolute;
   right: 0;
-  /* its caption ends above the circle's caption, clear of the DETAIL 3 title */
-  top: calc(var(--D) - min(12vw, 220px) - 64px);
-  width: min(12vw, 220px);
+  bottom: 40px;
+  width: var(--tw);
 }
 .a103-plan .view-title {
   font-size: 11px;
@@ -117,7 +132,7 @@
     --D: min(34vw, 56svh);
   }
 }
-/* tablets and phones: no pin; the composition stacks (H2, circle, text, PLAN 03), then 03-A */
+/* tablets and phones: no pin; the composition stacks (03, H2, circle, text, PLAN 03), then 03-A */
 @media (max-width: 1023px) {
   .a103 {
     --D: min(100%, 64svh);
@@ -127,6 +142,9 @@
     display: flex;
     flex-direction: column;
   }
+  .a103-fade {
+    display: contents;
+  }
   .a103-num {
     position: static;
     align-self: flex-end;
@@ -135,6 +153,7 @@
   }
   .a103-h2 {
     position: static;
+    order: 0;
     white-space: normal;
   }
   .a103-h2-line {
@@ -142,6 +161,7 @@
   }
   .a103-detail {
     position: relative;
+    order: 1;
     left: auto;
     right: auto;
     width: 100%;
@@ -155,18 +175,19 @@
     width: var(--D);
     margin-inline: auto;
   }
-  .a103-leader,
-  .a103-ref {
+  .a103-callout {
     display: none;
   }
   .a103-text {
     position: static;
+    order: 2;
     width: auto;
     margin-top: var(--s-6);
   }
   .a103-plan {
     display: block;
     position: static;
+    order: 3;
     width: min(60%, 320px);
     margin-top: var(--s-7);
   }

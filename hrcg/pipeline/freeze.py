@@ -7,7 +7,7 @@
 # Gates (binding): FAR bite 3-10% at yaw 0 and <=15% at rest; NEAR >=3:1 on >=90% of glyph pixels;
 # no exposed frame edge in the nine limit-pose renders. The FAR block may move +-0.03, NEAR +-0.05.
 # FIXLIST-1:
-#   F-008  nearer wins: the inverse depth is grey-dilated by one mesh cell + 2x DIL px before meshing, so every
+#   F-008  nearer wins: the inverse depth is grey-dilated by a mesh-cell diagonal + 2x DIL + 2 px before meshing, so every
 #          depth jump (and the stretched cell across it) lies OUTSIDE the near object; the near-matte is the
 #          undilated core + DIL px (feathered; 9:16 feathered wider), i.e. wholly inside the uniformly-near mesh.
 #          Limit-pose gate: no visible cell (A2's per-vertex edge alpha 1 - smoothstep(.04,.08,aEdge*k), or the
@@ -70,15 +70,15 @@ if PH and A.a is None:
     D_FAR_T = float(0.85 * np.percentile(rob, 30))
     a = 1 / Z_FAR_T - D_FAR_T * b
 
-# F-008: nearer wins. (1) Grey-dilate (max filter) the inverse depth by one cell + 2 x DIL px: every vertex within
+# F-008: nearer wins. (1) Grey-dilate (max filter) the inverse depth by a cell diagonal + 2 x DIL + 2 px: every vertex within
 # that distance of a near object takes the near object's depth, so the matte (07's undilated core + DIL px) lies in
 # cells whose vertices are all near. (2) Around 07's core, where the depth really jumps (d_max - d_min > SNAP_DD
 # within reach), snap the soft depth ramp to a hard step: the dilated near side keeps d_max, the rest takes the
 # local far value (min filter). The single cell across the step then carries background texels only and A2's
 # per-vertex edge alpha drops it whole, instead of a soft ramp of visible cells that smear background texels.
 # Statistics (FAR plane, pivot, near/far percentiles) keep using the undilated d_raw.
-DIL_R = int(math.ceil(CELL + 2 * A.dil))
-SNAP_DD, SNAP_REACH = 0.05, DIL_R + 12
+DIL_R = int(math.ceil(CELL * math.sqrt(2) + 2 * A.dil + 2))   # a cell's diagonal + the matte's growth and feather tail
+SNAP_DD, SNAP_REACH = float(os.environ.get("FREEZE_SNAP_DD", "0.05")), DIL_R + 12
 def ell(r): return cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))
 d_max = cv2.dilate(d_raw, ell(DIL_R)); d_min = cv2.erode(d_raw, ell(SNAP_REACH))
 core0 = (d_raw > D_FAR_T).astype(np.uint8)
@@ -323,9 +323,15 @@ def stretch_gate(yaw, pitch, dolly, pivot, k=1.0, nbs=None):
     dist = cv2.distanceTransform((MATTE < 0.5).astype(np.uint8), cv2.DIST_L2, 5)[cy][:, cx]
     band = (dist <= 3 * CELL) & (cy[:, None] <= MATTE_CUT - 3 * CELL)
     vis = np.concatenate([vis1, vis2]); inm = np.concatenate([in1, in2]); bnd = np.concatenate([band, band])
+    # a STREAK is a visible triangle that spans a depth step (z range >= EDGE_LO, A2's own continuity threshold);
+    # smoothly sloped triangles (07's relief, the floor) deform with the view and are geometry, not streaks
+    zr1 = np.max([zg[c00], zg[c10], zg[c01]], 0) / np.min([zg[c00], zg[c10], zg[c01]], 0) - 1
+    zr2 = np.max([zg[c01], zg[c10], zg[c11]], 0) / np.min([zg[c01], zg[c10], zg[c11]], 0) - 1
+    step = np.concatenate([zr1, zr2]) >= EDGE_LO
+    vis = np.where(step, vis, 0.0)
     off = bnd & ~inm & (vis > 2.0)
     cen = np.concatenate([(S0[c00] + S0[c10] + S0[c01]) / 3, (S0[c01] + S0[c10] + S0[c11]) / 3])
-    out = {'yaw': yaw, 'pitch': pitch, 'aEdgeNeighbours': nbs or EDGE_NB, 'offendingTriangles': int(off.sum()),
+    out = {'yaw': yaw, 'pitch': pitch, 'aEdgeNeighbours': nbs or EDGE_NB, 'stepTrianglesInBand': int((bnd & step).sum()), 'offendingTriangles': int(off.sum()),
            'maxVisibleStretchPxBand': round(float(vis[bnd & ~inm].max()) if (bnd & ~inm).any() else 0.0, 2),
            'maxVisibleStretchPxInsideMatte': round(float(vis[inm].max()) if inm.any() else 0.0, 2),
            'trianglesInsideMatteOver2px': int((inm & (vis > 2.0)).sum()),
@@ -569,6 +575,8 @@ for yw in yaws:
 ryaw, rpitch = (6, -2.5) if PH else (8, -2.5)
 rr = render(ryaw, rpitch, 0.04, pivotZ, plate_rgb, plate_z, plate_scale, farlab, nearm)
 rest_sg = stretch_gate(ryaw, rpitch, 0.04, pivotZ)[0]
+if os.environ.get('FREEZE_DEBUG'):
+    np.savez_compressed(f'{A.qadir}/debug-{SUF}.npz', grid=grid, d=d, d_raw=d_raw, zone=zone, nearside=nearside, matte=MATTE, a=a, b=b, pivot=pivotZ)
 rest_sg4 = stretch_gate(ryaw, rpitch, 0.04, pivotZ, nbs=4)[0]
 cv2.imwrite(f'{A.qadir}/rest-{SUF}.png', cv2.cvtColor(np.clip(rr['img'], 0, 255).astype(np.uint8), cv2.COLOR_RGB2BGR))
 # F-046 gate: every FAR glyph <= 40% occluded (depth bite and matte bite, yaw 0 and rest; 16:9 also at the 1280x800

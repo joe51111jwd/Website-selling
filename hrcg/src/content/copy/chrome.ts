@@ -52,6 +52,8 @@ export const INDEX = {
   watchTheSet:
     '▶ WATCH THE SET (0:30) · CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE',
   close: 'CLOSE (ESC)',
+  /** F-018: the CLOSE cell at the top right of the INDEX panel, where INDEX sits in the header */
+  closeTop: 'CLOSE',
   inPageLabel: 'Drawing index',
 } as const;
 

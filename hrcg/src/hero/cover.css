@@ -8,6 +8,9 @@
 /* ------------------------------------------------------------------ stage geometry */
 .cv {
   position: relative;
+  /* label heights the layout reserves room for: the controller measures them (inline on .cv); these
+     are the first-paint values (desktop 1440; the phone values are set below) */
+  --vt-h: 21px;
   --cv-vh: var(--sheet-vh, 320);
   --cv-spacer: calc((var(--cv-vh) - 100) * 1vh);
   --a0-o: 1;
@@ -183,8 +186,6 @@
   --spine-r: var(--spine-l);
   /* chrome edges in hero px */
   --hb: calc(var(--border) + var(--header-h));
-  /* measured by the controller (heights of the view title, sub, hints, status); first-paint defaults */
-  --vt-h: 21px;
   position: absolute;
   left: 50%;
   top: var(--ftop);
@@ -198,6 +199,7 @@
   --far-top: 0.13297; /* cap-top 0.135 (D1 shift -0.005) */
   --near-right: 0.115; /* right edge 0.885: clears the chalk box and the 0.92 control point */
   --near-top: 0.53551; /* last baseline 0.755, on the chalk line */
+  --far-cap: 0.135; /* FAR's cap-top (frame fraction), for the fits below */
   --line-x0: 0.52;
   --line-x1: 0.92;
   --line-y: 0.76;
@@ -210,6 +212,7 @@
     --t-size: 0.075;
     --far-left: 0.08;
     --far-top: 0.14884; /* cap-top 0.15: D2 moved FAR down 0.05 into the bite window (hero-meta-916 typeLayerShift) */
+    --far-cap: 0.15;
     --near-right: 0.135; /* right edge 0.865, clear of the chalk-box handle */
     --near-top: 0.64934; /* last baseline 0.775 */
     --line-x0: 0.47;
@@ -664,9 +667,12 @@
 }
 .cv-puff {
   position: absolute;
+  /* in the hero's stacking context: over the near-matte (z 2, earlier), under NEAR (z 3) */
+  z-index: 2;
   inset: 0;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 .cv-deps {
   position: absolute;
@@ -769,61 +775,141 @@
 }
 
 /* ------------------------------------------------------------------ phone (9:16 frame) */
+/* F-003. The type is frame-registered, but the chrome is fixed in px and phones leave many heights
+   (390x664 Safari with toolbars, 375x667, 320x568). So:
+   - every label under BUILD? is anchored to the viewport bottom, in one column on the 16 px margin:
+     the sub, then one hint row (PULL THE LINE / DRAG TO LOOK / PLAY), then the view title;
+   - the status line sits between the header and FAR;
+   - and the frame FITS: it is the largest registered frame whose FAR cap clears the status line and
+     whose line clears the sub (above that height it is the usual min(cover, contain x 1.10) frame).
+   All in CSS, so the prerendered first paint is already right; the controller only measures the real
+   label heights into the --*-h variables (the defaults below are the 390 px values). */
 @media (max-aspect-ratio: 4/5) {
+  .cv {
+    --vt-h: 34px;
+    --status-h: 12px;
+    --sub-h: 44px;
+    --pull-h: 33px;
+    --frozen-h: 15px;
+    --play-h: 44px;
+  }
+  .cv-box {
+    --spine-l: calc((var(--fw) - 100cqw) / 2 + var(--margin));
+    --spine-r: var(--spine-l);
+    /* under BUILD?: the sub, then the tallest hint row the states need, then (at rest) the view title */
+    --reserve: max(var(--pull-h), var(--play-h), calc(var(--vt-h) + 10px + var(--frozen-h)));
+    --sub-top-v: calc(100cqh - var(--chrome-bottom) - 12px - var(--reserve) - 10px - var(--sub-h));
+    --far-min-v: calc(var(--hb) + 8px + var(--status-h) + 10px);
+    --fh-fit: calc((var(--sub-top-v) - 16px - var(--far-min-v)) / (var(--line-y) - var(--far-cap)));
+    --fw: min(
+      max(100cqw, 100cqh * var(--ar-w) / var(--ar-h)),
+      1.1 * min(100cqw, 100cqh * var(--ar-w) / var(--ar-h)),
+      var(--fh-fit) * var(--ar-w) / var(--ar-h)
+    );
+    --ftop: clamp(
+      var(--far-min-v) - var(--far-cap) * var(--fh),
+      (100cqh - var(--fh)) / 2,
+      var(--sub-top-v) - 16px - var(--line-y) * var(--fh)
+    );
+  }
+  .cv-status {
+    left: var(--spine-l);
+    /* centred between the header and FAR's cap line, never under the header */
+    top: calc(
+      max(var(--hb) + 8px, (var(--hb) + var(--ftop) + var(--far-cap) * var(--fh) - var(--status-h)) / 2) - var(--ftop)
+    );
+    translate: none;
+    font-size: 12px;
+  }
   .cv-sub {
-    left: 8%;
-    top: 81%;
-    max-width: 84%;
+    left: var(--spine-l);
+    right: var(--spine-r);
+    bottom: calc(var(--to-vb) + var(--chrome-bottom) + 12px + var(--reserve) + 10px);
+    max-width: none;
     font-size: 17px;
     line-height: 22px;
   }
-  /* the left of the line is free (NEAR is right-aligned): the hints, the reset and the play button
-     stand there, bottom on the line, never wider than the space left of BUILD? */
-  .cv-hint {
-    left: 8%;
-    top: auto;
-    bottom: calc((1 - var(--line-y)) * 100% + 12px);
-    max-width: 38%;
+  /* the hint row, 10 px under the sub: the pull hint while armed, DRAG TO LOOK at rest, PLAY (reduced motion) */
+  .cv-hint,
+  .cv-restrow .cv-hint,
+  .cv-play {
+    position: absolute;
+    left: var(--spine-l);
+    right: auto;
+    top: calc(100cqh - var(--ftop) - var(--chrome-bottom) - 12px - var(--reserve));
+    bottom: auto;
+    max-width: calc(100cqw - 2 * var(--margin));
+    translate: none;
   }
-  /* at rest: the reset button stands where the line was (left of BUILD?), the hint goes under the sub */
   .cv-restrow {
     display: contents;
   }
-  .cv-restrow .cv-hint {
-    position: absolute;
-    left: 8%;
-    right: 8%;
-    top: calc(81% + 54px);
-    max-width: none;
-  }
+  /* at rest the reset button stands where the line was, left of BUILD? */
   .cv-reset {
     position: absolute;
-    left: 8%;
+    left: var(--spine-l);
     bottom: calc((1 - var(--line-y)) * 100% - 4px);
     translate: none;
   }
   .cv-play {
-    left: 8%;
-    top: auto;
-    bottom: calc((1 - var(--line-y)) * 100% - 4px);
-    max-width: 38%;
-    translate: none;
     white-space: normal;
     text-align: left;
     justify-content: flex-start;
     padding: 7px 10px;
   }
   .cv-vt {
-    left: 8%;
-    right: 8%;
+    left: var(--spine-l);
+    right: var(--spine-r);
   }
-  .cv-status {
-    left: 8%;
-    top: 6.6%;
-    font-size: 12px;
+  .no-js .cv-sub {
+    bottom: 3%;
   }
 }
 
+/* a phone turned sideways (pairs with A1's F-017 phone chrome): the 16:9 frame, fitted the same way.
+   The status line sits under the header, the sub (left) and the hint row (right, at x 0.58) stand on
+   one line above the view title, and the frame is the largest one whose FAR cap clears the status and
+   whose line clears that row. */
+@media (max-height: 500px) and (pointer: coarse) and (min-aspect-ratio: 1/1) {
+  .cv {
+    --status-h: 12px;
+    --row-h: 44px;
+  }
+  .cv-box {
+    --row-top-v: calc(100cqh - var(--chrome-bottom) - 12px - var(--vt-h) - 10px - var(--row-h));
+    --far-min-v: calc(var(--hb) + 8px + var(--status-h) + 8px);
+    --far-cap: 0.135;
+    --fh-fit: calc((var(--row-top-v) - 16px - var(--far-min-v)) / (var(--line-y) - var(--far-cap)));
+    --fw: min(
+      max(100cqw, 100cqh * var(--ar-w) / var(--ar-h)),
+      1.1 * min(100cqw, 100cqh * var(--ar-w) / var(--ar-h)),
+      var(--fh-fit) * var(--ar-w) / var(--ar-h)
+    );
+    --ftop: clamp(
+      var(--far-min-v) - var(--far-cap) * var(--fh),
+      (100cqh - var(--fh)) / 2,
+      var(--row-top-v) - 16px - var(--line-y) * var(--fh)
+    );
+  }
+  .cv-status {
+    left: var(--spine-l);
+    top: calc(var(--hb) + 8px - var(--ftop));
+    translate: none;
+    font-size: 12px;
+  }
+  .cv-sub {
+    bottom: calc(var(--to-vb) + var(--chrome-bottom) + 12px + var(--vt-h) + 10px);
+    font-size: 17px;
+    line-height: 22px;
+  }
+  .cv-hint,
+  .cv-restrow,
+  .cv-play {
+    top: auto;
+    bottom: calc(var(--to-vb) + var(--chrome-bottom) + 12px + var(--vt-h) + 10px);
+    translate: none;
+  }
+}
 
 /* ?capture: no promoted layers, so frames rasterise identically run to run */
 .capture .cv-plan-sq {

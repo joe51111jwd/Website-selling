@@ -12,7 +12,7 @@
   /* the band outside the border is the slab, not the sheet: content never shows in it */
   box-shadow: 0 0 0 var(--border) var(--slab-black);
 }
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 500px) and (pointer: coarse) {
   .sheet-border {
     bottom: calc(var(--strip-h) + var(--safe-bottom));
     border-bottom: 0;
@@ -122,7 +122,7 @@ html[data-sheet='A-000'] .sheet-header {
   border-color: var(--marking-orange);
   color: var(--slab-black);
 }
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 500px) and (pointer: coarse) {
   .sheet-header {
     padding: 0 var(--s-2) 0 calc(var(--margin) - var(--border) + 4px);
   }
@@ -369,10 +369,11 @@ html[data-sheet='A-000'] .sheet-header {
 }
 
 /* ------------------------------------------------------------------- phone bar */
+/* Phone chrome below 768 px wide, and on short touch screens (a phone turned sideways, F-017). */
 .phone-bar {
   display: none;
 }
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 500px) and (pointer: coarse) {
   .title-strip {
     display: none;
   }
@@ -464,8 +465,21 @@ html[data-sheet='A-000'] .sheet-header {
   margin: var(--border);
   min-height: calc(100% - 2 * var(--border));
 }
+.index-head {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-4);
+}
 .index-title {
   color: var(--pencil);
+  margin: 0;
+}
+.index-close-top.cell-button {
+  flex: 0 0 auto;
+  min-width: 88px;
+  min-height: 44px;
 }
 .index-rows {
   display: grid;
@@ -530,14 +544,20 @@ html[data-sheet='A-000'] .sheet-header {
 .index-row:focus-visible .index-sub {
   color: var(--slab-black);
 }
-.index-row[aria-current='location'] .index-num::before {
+/* F-062: every row keeps a 12 px marker gutter, so all sheet numbers share one x; only the current
+   sheet's marker is visible */
+.index-num::before {
   content: '';
   display: inline-block;
   width: 7px;
   height: 7px;
-  margin-right: 8px;
+  margin-right: 5px;
   background: var(--marking-orange);
   vertical-align: 1px;
+  visibility: hidden;
+}
+.index-row[aria-current='location'] .index-num::before {
+  visibility: visible;
 }
 .index-foot {
   display: flex;
@@ -548,7 +568,7 @@ html[data-sheet='A-000'] .sheet-header {
 .index-foot .cell-button {
   text-align: left;
 }
-@media (max-width: 767px) {
+@media (max-width: 767px), (max-height: 500px) and (pointer: coarse) {
   .index-row {
     grid-template-columns: 52px minmax(0, 1fr);
   }
@@ -556,8 +576,26 @@ html[data-sheet='A-000'] .sheet-header {
     grid-column: 2;
   }
   .index-panel {
-    padding: var(--s-5) var(--s-4);
+    padding: 0 var(--s-4) var(--s-5);
     gap: var(--s-5);
+  }
+  /* F-018: the head row stays in view while the rows scroll; CLOSE sits where INDEX sits */
+  .index-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    min-height: var(--header-h);
+    margin-right: calc(var(--s-2) - var(--s-4));
+    background: var(--slab-black);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .index-title {
+    font-size: 10px;
+    line-height: 12px;
+  }
+  /* the head's CLOSE replaces the bottom one on phones */
+  .index-close {
+    display: none;
   }
 }
 
@@ -618,6 +656,24 @@ html[data-sheet='A-000'] .sheet-header {
 }
 .ts-cell dd {
   margin: 0;
+}
+/* F-019: the whole MOTION row of the title sheet is the toggle's target (≥44 px) */
+.ts-cell:has(.motion-toggle) {
+  position: relative;
+  min-height: 44px;
+  cursor: pointer;
+}
+.ts-cell .motion-toggle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.ts-cell:has(.motion-toggle:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.ts-cell .motion-toggle:focus-visible {
+  outline: 0;
 }
 .title-sheet-ctas {
   display: grid;

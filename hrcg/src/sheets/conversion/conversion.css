@@ -745,6 +745,9 @@
 
 /* A-301 and A-900 are one paper set: the break is a 1 px rule on paper with the A-900 tag under it,
    and each paper sheet starts flush at its top (F-092; the slab margin between them is F-067). */
+.conv--a900 {
+  padding-top: 0;
+}
 .conv--a900 > .conv-head {
   padding-top: var(--s-5);
   border-top: 1px solid var(--line);

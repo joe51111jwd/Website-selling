@@ -340,9 +340,11 @@ class CoverController {
     this.track100 = q(r, '#a-100')!;
     this.trackCover = q(r, '.cv-track--cover')!;
 
-    // the no-JS film keeps its native controls; with JS the controller owns it
-    this.film.controls = false;
-    this.film.removeAttribute('controls');
+    // the no-JS films keep their native controls; with JS the controller owns them
+    for (const v of [this.film, this.slot5]) {
+      v.controls = false;
+      v.removeAttribute('controls');
+    }
 
     try {
       this.touch = window.matchMedia('(pointer: coarse)').matches;
@@ -501,6 +503,7 @@ class CoverController {
   // ----------------------------------------------------------------- layout
   private layout() {
     if (this.destroyed) return;
+    const vtSpan = this.measureLabels();
     const heroR = this.hero.getBoundingClientRect();
     this.heroW = heroR.width;
     this.heroH = heroR.height;
@@ -541,18 +544,89 @@ class CoverController {
     if (this.scene) this.scene.resize(this.frameRect.width, this.frameRect.height, this.dpr);
     this.layoutDeposits();
     this.placeholderRow();
-    // the plan caption takes over the hero caption's exact span (frame x 0.09 -> 0.92)
-    const pinW = this.pin.getBoundingClientRect().width || window.innerWidth;
-    const fl = this.frameRect.left - heroR.left;
-    const vx0 = this.orient === '916' ? 0.08 : 0.09;
-    this.root.style.setProperty('--cv-vt-l', `${Math.max(0, fl + vx0 * this.frameRect.width).toFixed(1)}px`);
-    this.root.style.setProperty('--cv-vt-r', `${Math.max(0, pinW - (fl + 0.92 * this.frameRect.width)).toFixed(1)}px`);
+    // the plan caption takes over the hero caption's exact span (the spine, F-028)
+    const pinR = this.pin.getBoundingClientRect();
+    if (vtSpan && vtSpan.width > 0) {
+      this.root.style.setProperty('--cv-vt-l', `${Math.max(0, vtSpan.left - pinR.left).toFixed(1)}px`);
+      this.root.style.setProperty('--cv-vt-r', `${Math.max(0, pinR.right - vtSpan.right).toFixed(1)}px`);
+    }
+    // the 3D VIEW's focus ring: the visible part of the frame, between the header and the strip (F-024)
+    this.writeVisInset(heroR, vtSpan);
     this.registerPlan();
     if (this.mode !== 'static') {
       this.readP();
       this.applyP();
       this.render(this.mode === 'capture' ? this.captureT : nowS());
     }
+  }
+
+  /**
+   * Measure the labels the frame layout reserves room for (cover.css F-003 / F-028): the tallest hero
+   * view title, the sub, the hint rows, the status line. Hidden ones are measured shown-but-invisible
+   * for the one synchronous reflow; nothing paints in between. Returns a hero view title's span.
+   */
+  private measureLabels(): DOMRect | null {
+    const r = this.root;
+    const h = (el: Element | null, show = 'flex'): number => {
+      if (!(el instanceof HTMLElement)) return 0;
+      if (getComputedStyle(el).display !== 'none') return el.getBoundingClientRect().height;
+      const d = el.style.display;
+      const v = el.style.visibility;
+      el.style.visibility = 'hidden';
+      el.style.display = show;
+      const out = el.getBoundingClientRect().height;
+      el.style.display = d;
+      el.style.visibility = v;
+      return out;
+    };
+    const vts = Array.from(this.mediaBox.querySelectorAll<HTMLElement>('.cv-vt'));
+    let span: DOMRect | null = null;
+    let vtH = 0;
+    for (const el of vts) {
+      const hidden = getComputedStyle(el).display === 'none';
+      const d = el.style.display;
+      const v = el.style.visibility;
+      if (hidden) {
+        el.style.visibility = 'hidden';
+        el.style.display = 'flex';
+      }
+      const rect = el.getBoundingClientRect();
+      vtH = Math.max(vtH, rect.height);
+      if (!span) span = rect;
+      if (hidden) {
+        el.style.display = d;
+        el.style.visibility = v;
+      }
+    }
+    const px = (n: number) => `${Math.ceil(n)}px`;
+    const set = (k: string, n: number) => {
+      if (n > 0) r.style.setProperty(k, px(n));
+    };
+    set('--vt-h', vtH);
+    set('--status-h', h(q(r, '.cv-status')));
+    set('--sub-h', h(q(r, '.cv-sub')));
+    const pull = h(q(r, '.cv-hint--pull'));
+    set('--pull-h', pull);
+    const frozen = Math.max(h(q(r, '.cv-hint--frozen-gl')), h(q(r, '.cv-hint--frozen')));
+    set('--frozen-h', frozen);
+    set('--play-h', h(q(r, '.cv-play'), 'inline-flex'));
+    set('--row-h', Math.max(pull, frozen, h(q(r, '.cv-reset'), 'inline-flex')));
+    return span;
+  }
+
+  private writeVisInset(heroR: DOMRect, vtSpan: DOMRect | null) {
+    const fr = this.frameRect;
+    const cs = getComputedStyle(this.root);
+    const num = (k: string) => parseFloat(cs.getPropertyValue(k)) || 0;
+    const border = num('--border');
+    const top = heroR.top + border + num('--header-h');
+    // the view titles stand 12 px above the strip / phone bar (cover.css), so they give its top edge
+    const bottom = vtSpan && vtSpan.height > 0 ? vtSpan.bottom + 12 : heroR.top + this.heroH - num('--strip-h') - border;
+    const t = Math.max(0, top - fr.top);
+    const b = Math.max(0, fr.bottom - bottom);
+    const l = Math.max(0, heroR.left + border - fr.left);
+    const rr = Math.max(0, fr.right - (heroR.right - border));
+    this.root.style.setProperty('--vis-inset', `${t.toFixed(0)}px ${rr.toFixed(0)}px ${b.toFixed(0)}px ${l.toFixed(0)}px`);
   }
 
   private setStringEnds() {
@@ -866,7 +940,8 @@ class CoverController {
       if (this.P < BEATS.printAt) lenisScrollTo(this.track100, { immediate: true, focus: false });
     }, undefined, L);
     this.on(this.hero, 'focusin', () => {
-      if (this.P > 0.25) lenisScrollTo(this.track000, { immediate: true, focus: false });
+      // the hero's labels and buttons are fading from P 0 (gone by 0.10): back to the top first
+      if (this.P > BEATS.h1Out[1] * 0.5) lenisScrollTo(this.track000, { immediate: true, focus: false });
     }, undefined, L);
     // the slot-05 film
     this.on(this.slot5, 'ended', () => {
@@ -1961,12 +2036,7 @@ class CoverController {
 
   private setupCapture() {
     const r = this.root;
-    this.film.preload = 'auto';
-    try {
-      this.film.load();
-    } catch {
-      /* ignore */
-    }
+    this.warmFilm();
     this.installInkMask();
     r.dataset.vt = 'none';
     this.modeOffs.push(
@@ -2069,6 +2139,7 @@ class CoverController {
       const p = this.scaledRest(k);
       this.rig.snapTo(p);
       this.scene.setPose(p.yaw, p.pitch, p.dolly);
+      this.scene.setTypeOpacity(1 - segment(this.P, BEATS.h1Out[0], BEATS.h1Out[1]));
       this.scene.render();
     }
     this.render(10, 0);
