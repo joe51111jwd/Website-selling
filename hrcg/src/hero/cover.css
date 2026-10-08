@@ -895,6 +895,13 @@
     justify-content: flex-start;
     padding: 7px 10px;
   }
+  /* 320-359 px: the frame fits small, so ACTUALLY reaches down to x ~143; a tighter reset keeps clear */
+  @media (max-width: 359px) {
+    .cv-reset {
+      padding: 0 8px;
+      gap: 6px;
+    }
+  }
   .cv-vt {
     left: var(--spine-l);
     right: var(--spine-r);

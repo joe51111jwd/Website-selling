@@ -10,11 +10,10 @@
   column-gap: var(--gutter);
   align-items: stretch;
 }
-/* perspective at the board's head, PLAN 02 at its foot: the views span the hung board. The perspective
-   takes the six columns up to the panel (DIR-1 #2): the board 07 presses runs out of the film's right
-   edge one gutter from the gypsum panel, so the film reads as the panel being hung */
+/* perspective at the board's head, PLAN 02 at its foot: the views span the hung board. Five columns,
+   so the perspective's caption (its AI disclosure) is on screen at the landing (rule 22) */
 .a102-views {
-  grid-column: 1 / span 6;
+  grid-column: 1 / span 5;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -22,6 +21,13 @@
 }
 .a102-persp .view-frame {
   border-color: var(--hairline);
+}
+/* the 4:5 film is never taller than the band left under the sheet tag at the landing, so its caption
+   (the AI disclosure) sits above the strip: (100svh - tag and chrome 245 px) at 4:5 */
+@media (min-width: 768px) {
+  .a102-persp {
+    width: min(100%, calc((100svh - 245px) * 0.8));
+  }
 }
 .a102-plan {
   width: 220px;
