@@ -23,7 +23,7 @@ export const SLOT = { x: 296, y: 566, w: 468, h: 118 } as const;
 const SLOT_PAD = 26;
 const READY_Y = 748;
 /** The bay number slot: legend word BAY over a stencilled "—", in the plan's top-left room. */
-const BAY_NO = { x: 206, y: 318, label: 30, size: 150 } as const;
+const BAY_NO = { x: 206, y: 300, label: 30, size: 112 } as const;
 /** The em dash's centre line (Big Shoulders Stencil: about 0.3 em above the baseline) */
 const BAY_DASH_MID = BAY_NO.y - BAY_NO.size * 0.3;
 
@@ -107,11 +107,11 @@ export function BayPlate({ platform, ready, crop = FULL, className, sizes, loadi
               {text}
             </text>
           </g>
-          <text className="bay-number-label" x={BAY_NO.x} y={BAY_NO.y - BAY_NO.size * 0.62} fontSize={BAY_NO.label}>
+          <text className="bay-number-label" x={BAY_NO.x} y={BAY_NO.y - BAY_NO.size * 0.72} fontSize={BAY_NO.label}>
             {TEAMS.bayLabel}
           </text>
           {/* the dash at a stencil numeral's stroke weight: the em dash is a hairline in this face, so
-              it is drawn 2.6x taller about its own centre line, then painted through the mask */}
+              it is drawn 1.5x taller about its own centre line, then painted through the mask */}
           <g filter={`url(#${paint})`}>
             <text
               className="bay-number"
@@ -119,7 +119,7 @@ export function BayPlate({ platform, ready, crop = FULL, className, sizes, loadi
               y={BAY_NO.y}
               fontSize={BAY_NO.size}
               textAnchor="start"
-              transform={`translate(0 ${BAY_DASH_MID}) scale(1 2.6) translate(0 ${-BAY_DASH_MID})`}
+              transform={`translate(0 ${BAY_DASH_MID}) scale(1 1.5) translate(0 ${-BAY_DASH_MID})`}
             >
               {TEAMS.bayNumber}
             </text>

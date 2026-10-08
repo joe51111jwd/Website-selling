@@ -52,23 +52,6 @@ d_raw = np.clip(cv2.ximgproc.guidedFilter(guide, dup, 8, 1e-3), 0, 1)  # guided-
 
 COLS, ROWS = (145, 257) if PH else (257, 145)
 CELL = max((W - 1) / (COLS - 1), (H - 1) / (ROWS - 1))            # mesh cell size in frame px (~7.5)
-# F-008: nearer wins. Grey-dilate (max filter) the inverse depth by one cell + 2 x DIL px: every vertex within
-# that distance of a near object takes the near object's depth, so the cell that spans a depth jump carries
-# background texels only and sits outside the matte (core + DIL px). Statistics (FAR plane, pivot, near/far
-# percentiles) keep using the undilated d_raw.
-DIL_R = int(math.ceil(CELL + 2 * A.dil))
-d = cv2.dilate(d_raw, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * DIL_R + 1, 2 * DIL_R + 1)))
-gx = (np.arange(COLS) / (COLS - 1) * (W - 1)).astype(np.float32)
-gy = (np.arange(ROWS) / (ROWS - 1) * (H - 1)).astype(np.float32)
-mx, my = np.meshgrid(gx, gy)
-grid = cv2.remap(d, mx, my, cv2.INTER_LINEAR)
-def up(g):
-    """vertex grid -> frame pixels, exactly as the GL mesh interpolates (vertex i sits at x = i/(COLS-1)*(W-1))"""
-    ux, uy = np.meshgrid(np.arange(W, dtype=np.float32) * (COLS - 1) / (W - 1), np.arange(H, dtype=np.float32) * (ROWS - 1) / (H - 1))
-    return cv2.remap(g.astype(np.float32), ux, uy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
-# the GL mesh interpolates linearly between vertices: the depth the viewer sees is the grid, upsampled
-dmesh = up(grid)
-
 # ---------- camera model (brief §4.1) ----------
 f = 1.2
 a = A.a if A.a is not None else 0.15
@@ -86,6 +69,42 @@ if PH and A.a is None:
     rob = upr[upr > thr / 255.]
     D_FAR_T = float(0.85 * np.percentile(rob, 30))
     a = 1 / Z_FAR_T - D_FAR_T * b
+
+# F-008: nearer wins. (1) Grey-dilate (max filter) the inverse depth by one cell + 2 x DIL px: every vertex within
+# that distance of a near object takes the near object's depth, so the matte (07's undilated core + DIL px) lies in
+# cells whose vertices are all near. (2) Around 07's core, where the depth really jumps (d_max - d_min > SNAP_DD
+# within reach), snap the soft depth ramp to a hard step: the dilated near side keeps d_max, the rest takes the
+# local far value (min filter). The single cell across the step then carries background texels only and A2's
+# per-vertex edge alpha drops it whole, instead of a soft ramp of visible cells that smear background texels.
+# Statistics (FAR plane, pivot, near/far percentiles) keep using the undilated d_raw.
+DIL_R = int(math.ceil(CELL + 2 * A.dil))
+SNAP_DD, SNAP_REACH = 0.05, DIL_R + 12
+def ell(r): return cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))
+d_max = cv2.dilate(d_raw, ell(DIL_R)); d_min = cv2.erode(d_raw, ell(SNAP_REACH))
+core0 = (d_raw > D_FAR_T).astype(np.uint8)
+CUT_FRAC = 0.45 if PH else 0.62                   # the matte (and so the snap) covers 07's upper body only;
+zone = (cv2.dilate(core0, ell(SNAP_REACH)) > 0) & ((cv2.dilate(d_raw, ell(SNAP_REACH)) - d_min) > SNAP_DD)
+zone[int(H * CUT_FRAC) + SNAP_REACH:] = False      # below it the dust and floor keep their soft depth (no tears)
+near0 = ((d_raw > (cv2.dilate(d_raw, ell(SNAP_REACH)) + d_min) / 2) | (core0 > 0)).astype(np.uint8)
+nearside = cv2.dilate(near0, ell(DIL_R)) > 0
+# inside 07's upper body (above the cut), a smooth relief: normalized-convolution blur of the near side, so 07's
+# internal steps (arm over torso, head over shoulder) become gentle slopes instead of single stretched cells
+top = np.zeros((H, W), bool); top[:int(H * CUT_FRAC) + SNAP_REACH] = True
+M = (nearside & top).astype(np.float32); SMOOTH_SIG = 3.0 * CELL
+d_relief = cv2.GaussianBlur(d_max * M, (0, 0), SMOOTH_SIG) / np.maximum(cv2.GaussianBlur(M, (0, 0), SMOOTH_SIG), 1e-4)
+d = np.where(zone & ~nearside, d_min, np.where(M > 0, d_relief, d_max)).astype(np.float32)
+SNAP_PX = int((zone & ~nearside).sum())
+gx = (np.arange(COLS) / (COLS - 1) * (W - 1)).astype(np.float32)
+gy = (np.arange(ROWS) / (ROWS - 1) * (H - 1)).astype(np.float32)
+mx, my = np.meshgrid(gx, gy)
+grid = cv2.remap(d, mx, my, cv2.INTER_LINEAR)
+def up(g):
+    """vertex grid -> frame pixels, exactly as the GL mesh interpolates (vertex i sits at x = i/(COLS-1)*(W-1))"""
+    ux, uy = np.meshgrid(np.arange(W, dtype=np.float32) * (COLS - 1) / (W - 1), np.arange(H, dtype=np.float32) * (ROWS - 1) / (H - 1))
+    return cv2.remap(g.astype(np.float32), ux, uy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+# the GL mesh interpolates linearly between vertices: the depth the viewer sees is the grid, upsampled
+dmesh = up(grid)
+
 
 # robot region: what is nearer than the FAR plane in the upper part of the frame
 font_px = (0.070 if PH else 0.131) * H          # F-022: the 9:16 H1 is 0.070 of the frame height (was 0.075)
@@ -257,43 +276,63 @@ def render(yaw, pitch, dolly, pivot, plate_img, plate_z, plate_scale, farlab=Non
     return res
 
 def stretch_gate(yaw, pitch, dolly, pivot, k=1.0):
-    """F-008 gate, per mesh cell (analytic, full frame px): how far each cell's projection stretches past where a
-    rigid copy at its nearer vertex's depth would sit. Offending = visible (A2 edge alpha or the matte >= 0.1),
-    not fully inside the matte, within 3 cells of the matte, above the matte's cut, and stretched > 2 px."""
+    """F-008 gate, per mesh TRIANGLE as A2 indexes them (a-c-b, b-c-d), in full frame px: how far the visible part
+    of each triangle stretches past where a rigid copy at its nearer vertex's depth would sit. Visible = where the
+    interpolated per-vertex edge alpha is >= 0.1, or the matte is >= 0.1 (07's layer). Offending = visible stretch
+    > 2 px in a triangle that is not wholly inside the matte, within 3 cells of the matte, above the matte cut."""
     zg = zof(grid)
     U = ((gx + .5) / W * 2 - 1)[None, :].repeat(ROWS, 0); V = (((gy + .5) / H * 2 - 1) * ASP)[:, None].repeat(COLS, 1)
+    PX = gx[None, :].repeat(ROWS, 0); PY = gy[:, None].repeat(COLS, 1)
     def proj(Uq, Vq, Zq):
         Pp = np.stack([(Uq * Zq / f).ravel(), (Vq * Zq / f).ravel(), Zq.ravel()], 1)
         X, Y, Z = xform(Pp, yaw, pitch, dolly, pivot)
         return np.stack([(X / Z * f + 1) / 2 * W, (Y / Z * f / ASP + 1) / 2 * H], 1).reshape(Uq.shape + (2,))
     S0 = proj(U, V, zg)
-    def excess(sa, sb):   # vertex slices a, b (same shape): stretch of the edge a-b past its rigid copy
-        za, zb_ = zg[sa], zg[sb]; near_a = za <= zb_
-        zn = np.where(near_a, za, zb_)
-        Ua, Va, Ub, Vb = U[sa], V[sa], U[sb], V[sb]
-        pa_r = proj(Ua, Va, zn); pb_r = proj(Ub, Vb, zn)
-        L = np.linalg.norm(S0[sa] - S0[sb], axis=-1); Lr = np.linalg.norm(pa_r - pb_r, axis=-1)
-        return L - Lr
+    ev = vertex_edge() * k
+    E_VIS = EDGE_LO + 0.804 * (EDGE_HI - EDGE_LO)      # 1 - smoothstep(...) = 0.1 here
+    ts = np.linspace(0, 1, 9, dtype=np.float32)
+    def mfrac(sa, sb):   # fraction of the edge a->b (from either end) on which the matte is >= 0.1
+        xs = PX[sa][..., None] + (PX[sb] - PX[sa])[..., None] * ts; ys = PY[sa][..., None] + (PY[sb] - PY[sa])[..., None] * ts
+        x0 = np.clip(np.floor(xs).astype(np.int32), 0, W - 2); y0 = np.clip(np.floor(ys).astype(np.int32), 0, H - 2)
+        fx_, fy_ = np.clip(xs - x0, 0, 1), np.clip(ys - y0, 0, 1)
+        mv = (MATTE[y0, x0] * (1 - fx_) * (1 - fy_) + MATTE[y0, x0 + 1] * fx_ * (1 - fy_) +
+              MATTE[y0 + 1, x0] * (1 - fx_) * fy_ + MATTE[y0 + 1, x0 + 1] * fx_ * fy_)
+        return (mv >= 0.1).mean(-1), (mv >= 0.5).all(-1)
+    def edge(sa, sb):
+        za, zb_ = zg[sa], zg[sb]
+        zn = np.minimum(za, zb_)
+        L = np.linalg.norm(S0[sa] - S0[sb], axis=-1); Lr = np.linalg.norm(proj(U[sa], V[sa], zn) - proj(U[sb], V[sb], zn), axis=-1)
+        ex = L - Lr
+        ea, eb = ev[sa], ev[sb]; lo, hi = np.minimum(ea, eb), np.maximum(ea, eb)
+        fr = np.where(hi <= E_VIS, 1.0, np.where(lo >= E_VIS, 0.0, (E_VIS - lo) / np.maximum(hi - lo, 1e-9)))
+        mf, inm = mfrac(sa, sb)
+        return ex, ex * np.maximum(fr, mf), inm
     c00, c01 = (slice(0, -1), slice(0, -1)), (slice(0, -1), slice(1, None))
     c10, c11 = (slice(1, None), slice(0, -1)), (slice(1, None), slice(1, None))
-    ex = np.max([excess(c00, c01), excess(c10, c11), excess(c00, c10), excess(c01, c11), excess(c01, c10)], 0)
-    va = 1 - smoothstep(EDGE_LO, EDGE_HI, vertex_edge() * k)
-    cell_a = np.max([va[c00], va[c01], va[c10], va[c11]], 0)
-    cs = int(math.ceil(CELL)) + 1; ker = np.ones((cs, cs), np.uint8)
+    e_ac, v_ac, i_ac = edge(c00, c10); e_ab, v_ab, i_ab = edge(c00, c01); e_cb, v_cb, i_cb = edge(c10, c01)
+    e_bd, v_bd, i_bd = edge(c01, c11); e_cd, v_cd, i_cd = edge(c10, c11)
+    vis1 = np.max([v_ac, v_ab, v_cb], 0); vis2 = np.max([v_cb, v_bd, v_cd], 0)
+    in1 = i_ac & i_ab & i_cb; in2 = i_cb & i_bd & i_cd
     cx = ((np.arange(COLS - 1) + .5) / (COLS - 1) * (W - 1)).astype(int); cy = ((np.arange(ROWS - 1) + .5) / (ROWS - 1) * (H - 1)).astype(int)
-    mmax = cv2.dilate(MATTE, ker)[cy][:, cx]; mmin = cv2.erode(MATTE, ker)[cy][:, cx]
     dist = cv2.distanceTransform((MATTE < 0.5).astype(np.uint8), cv2.DIST_L2, 5)[cy][:, cx]
-    vis = np.maximum(cell_a, mmax) >= 0.1
-    band = (dist <= 3 * CELL) & (mmin < 0.5) & (cy[:, None] <= MATTE_CUT - 3 * CELL)
-    off = vis & band & (ex > 2.0)
-    inm = vis & (mmin >= 0.5)
-    cen = (S0[c00] + S0[c01] + S0[c10] + S0[c11]) / 4
-    out = {'yaw': yaw, 'pitch': pitch, 'offendingCells': int(off.sum()),
-           'maxExcessPxBand': round(float(ex[vis & band].max()) if (vis & band).any() else 0.0, 2),
-           'maxExcessPxInsideMatte': round(float(ex[inm].max()) if inm.any() else 0.0, 2),
-           'cellsInsideMatteOver2px': int((inm & (ex > 2.0)).sum()),
-           'maxExcessPxVisibleAnywhere': round(float(ex[vis & (mmin < 0.5)].max()), 2)}
-    return out, off, cen[off], ex[off]
+    band = (dist <= 3 * CELL) & (cy[:, None] <= MATTE_CUT - 3 * CELL)
+    vis = np.concatenate([vis1, vis2]); inm = np.concatenate([in1, in2]); bnd = np.concatenate([band, band])
+    off = bnd & ~inm & (vis > 2.0)
+    cen = np.concatenate([(S0[c00] + S0[c10] + S0[c01]) / 3, (S0[c01] + S0[c10] + S0[c11]) / 3])
+    out = {'yaw': yaw, 'pitch': pitch, 'offendingTriangles': int(off.sum()),
+           'maxVisibleStretchPxBand': round(float(vis[bnd & ~inm].max()) if (bnd & ~inm).any() else 0.0, 2),
+           'maxVisibleStretchPxInsideMatte': round(float(vis[inm].max()) if inm.any() else 0.0, 2),
+           'trianglesInsideMatteOver2px': int((inm & (vis > 2.0)).sum()),
+           'maxVisibleStretchPxAnywhereOutsideMatte': round(float(vis[~inm].max()), 2)}
+    if os.environ.get('FREEZE_DEBUG'):   # source-space map of the offending triangles (QA)
+        src_c = np.concatenate([np.stack([(PX[c00] + PX[c10] + PX[c01]) / 3, (PY[c00] + PY[c10] + PY[c01]) / 3], -1),
+                                np.stack([(PX[c01] + PX[c10] + PX[c11]) / 3, (PY[c01] + PY[c10] + PY[c11]) / 3], -1)])
+        dbg = (bgr // 2).copy()
+        cnt_, _ = cv2.findContours((MATTE >= 0.5).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); cv2.drawContours(dbg, cnt_, -1, (0, 255, 0), 1)
+        for (qx, qy), qv in zip(src_c[off], vis[off]):
+            cv2.circle(dbg, (int(qx), int(qy)), 2, (255, 0, 255) if qv > 5 else (0, 200, 255), -1)
+        cv2.imwrite(f'{A.qadir}/stretch-src-{SUF}-y{yaw:+g}-p{pitch:+g}.jpg', dbg, [cv2.IMWRITE_JPEG_QUALITY, 85])
+    return out, off, cen[off], vis[off]
 
 OS = 0.12   # A2's mesh carries a 12% overscan ring (edge-clamped depth and UV); its OUTER edge is the frame edge
 def ring_border(n=60):
@@ -435,7 +474,7 @@ Image.fromarray(cv2.cvtColor(plate, cv2.COLOR_BGR2RGB)).save(f'{A.outdir}/hero-p
 # near-matte (F-008): 07's undilated depth core (nearer than the FAR plane) grown by DIL px, feathered (9:16 wider,
 # it is shown at ~0.36x), top part of the frame with a soft cut. It lies wholly inside the uniformly-near mesh, so
 # A2 can draw it as 07's foreground layer with a clean edge at every yaw, and the DOM (CSS) bite uses it as before.
-MATTE_CUT = int(H * (0.62 if not PH else 0.45))
+MATTE_CUT = int(H * CUT_FRAC)
 mcore = (d_raw > D_FAR_T).astype(np.uint8)
 di = int(round(A.dil))
 alpha = cv2.dilate(mcore, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * di + 1, 2 * di + 1))).astype(np.float32)
@@ -514,7 +553,7 @@ for yw in yaws:
             if 0 <= p[0] < rw and 0 <= p[1] < rh: cv2.circle(img, (int(p[0]), int(p[1])), 1, (255, 0, 0) if True else 0, -1)
         for (qx, qy), qe in zip(offp, offx):   # F-008: offending cells (visible streak > 2 px past the matte)
             cv2.circle(img, (int(qx * RS), int(qy * RS)), max(2, int(qe * RS / 2)), (255, 0, 255), 1)
-        cv2.putText(img, f'yaw {yw:+d} pitch {pt:+d}  uncovered {uncovered}  edge-in {int(inside.sum())}  streak>2px cells {sg["offendingCells"]} (max {sg["maxExcessPxBand"]} px)', (10, rh - 12), cv2.FONT_HERSHEY_PLAIN, 1.1, (236, 232, 225), 1)
+        cv2.putText(img, f'yaw {yw:+d} pitch {pt:+d}  uncovered {uncovered}  edge-in {int(inside.sum())}  streak>2px tris {sg["offendingTriangles"]} (max {sg["maxVisibleStretchPxBand"]} px)', (10, rh - 12), cv2.FONT_HERSHEY_PLAIN, 1.1, (236, 232, 225), 1)
         fn = f'{A.qadir}/limit-{SUF}-y{yw:+d}-p{pt:+d}.png'
         cv2.imwrite(fn, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
         limits.append({'yaw': yw, 'pitch': pt, 'uncoveredPx': uncovered, 'edgeInside': int(inside.sum()), 'farOccl': round(r['farOccl'], 4),
@@ -566,7 +605,8 @@ meta = {'frame': A.frame, 'w': W, 'h': H, 'mock': False,
         'depthDilation': {'note': 'F-008: inverse depth grey-dilated (nearer wins) before meshing; matte = undilated core (d > farPlaneD) + dil px',
                           'radiusPx': DIL_R, 'cellPx': round(CELL, 2), 'mattePx': A.dil, 'matteFeatherSigmaPx': 1.6 if PH else 1.2,
                           'matteCutY': round(MATTE_CUT / H, 3), 'farPlaneD': round(D_FAR_T, 5),
-                          'matteCellsWithEdge': matte_edge_cells, 'matteCellsWithEdgeOnSilhouette': matte_edge_cells_boundary},
+                          'matteCellsWithEdge': matte_edge_cells, 'matteCellsWithEdgeOnSilhouette': matte_edge_cells_boundary,
+                          'snap': {'minJumpD': SNAP_DD, 'reachPx': SNAP_REACH, 'pxSnappedToFar': SNAP_PX, 'reliefSigmaPx': round(SMOOTH_SIG, 1), 'note': 'hard depth step around the upper-body core (above the matte cut); 07 above the cut is a smooth relief'}},
         'typeLayers': lines_meta(far, Z_FAR_T, 'FAR') + lines_meta(near, Z_NEAR_T, 'NEAR'),
         'typeLayerShift': {'far': [report['far']['dx'], report['far']['dy']], 'near': [report['near']['dx'], report['near']['dy']]},
         'occlusion': {'yaw0': round(occ0, 4), 'rest': round(rr['farOccl'], 4), 'cssMatte': round(cssocc, 4), 'restMatte': round(rr['farOcclMatte'], 4),
@@ -580,11 +620,11 @@ g1 = 0.03 <= occ0 <= 0.10 and rr['farOccl'] <= 0.15
 g4 = GLYPHS['pass']
 g2 = nfrac >= 0.90
 g3 = all(l['uncoveredPx'] == 0 and l['edgeInside'] == 0 for l in limits)
-g5 = all(l['stretch']['offendingCells'] == 0 for l in limits) and rest_sg['offendingCells'] == 0
+g5 = all(l['stretch']['offendingTriangles'] == 0 for l in limits) and rest_sg['offendingTriangles'] == 0
 meta['restStretch'] = rest_sg
 meta['gates'] = {'occlusion': g1, 'nearContrast': g2, 'limitPoses': g3, 'farGlyphs': g4, 'stretchPastMatte': g5}
 json.dump(meta, open(f'{A.outdir}/hero-meta-{SUF}.json', 'w'), indent=1)
 print(json.dumps({'gates': meta['gates'], 'occlusion': meta['occlusion'], 'nearContrast': meta['nearContrast'], 'plate': meta['plate'],
                   'farGlyphs': {k_: v_ for k_, v_ in GLYPHS.items() if k_ != 'glyphs'}, 'restStretch': rest_sg, 'dilation': meta['depthDilation'],
-                  'stretch': [(l['yaw'], l['pitch'], l['stretch']['offendingCells'], l['stretch']['maxExcessPxBand'], l['stretch']['maxExcessPxInsideMatte']) for l in limits],
+                  'stretch': [(l['yaw'], l['pitch'], l['stretch']['offendingTriangles'], l['stretch']['maxVisibleStretchPxBand'], l['stretch']['maxVisibleStretchPxInsideMatte']) for l in limits],
                   'shift': meta['typeLayerShift'], 'limits': [(l['yaw'], l['pitch'], l['uncoveredPx'], l['edgeInside'], l['farOccl']) for l in limits]}, indent=1))

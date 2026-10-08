@@ -7,8 +7,9 @@
 // Accepted exports per file: default, or a named export equal to the file name
 // (e.g. export function A101Brick()). Components take no props.
 //
-// Shell JS budget (FIXLIST F-014): the sheets below the fold (A-105 with its section slice, A-200,
-// A-300, A-301, A-900) are React.lazy chunks, each behind its own <Suspense>. The prerender waits for
+// Shell JS budget (FIXLIST F-014, ≤110 kB gz): every sheet after the cover stage (A-101 … A-900; the
+// cover stage is 320vh, so none of them is in the first view) is a React.lazy chunk, each behind its
+// own <Suspense>. The prerender waits for
 // them, so their HTML is in index.html; on the client React keeps that server HTML in place until each
 // chunk has loaded, then hydrates it. CSS stays one file (vite.config.ts cssCodeSplit: false, F-013).
 
@@ -31,14 +32,14 @@ const eagerModules = import.meta.glob<Mod>(
   [
     './hero/CoverStage.tsx',
     './sheets/A100Bays.tsx',
-    './sheets/A101Brick.tsx',
-    './sheets/A102Drywall.tsx',
-    './sheets/A103Bolt.tsx',
-    './sheets/A104Pipe.tsx',
   ],
   { eager: true },
 );
 const lazyModules = import.meta.glob<Mod>([
+  './sheets/A101Brick.tsx',
+  './sheets/A102Drywall.tsx',
+  './sheets/A103Bolt.tsx',
+  './sheets/A104Pipe.tsx',
   './sheets/A105Layout.tsx',
   './sheets/A200Context.tsx',
   './sheets/A300Teams.tsx',

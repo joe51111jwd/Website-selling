@@ -1,7 +1,7 @@
 // The 3D VIEW camera rig (brief 4.1, 6). Owner: A2. Pure math, no three.
 // A hand-rolled damp, x += (target - x) * (1 - e^(-lambda*dt)) with lambda = 4, on yaw, pitch and dolly,
 // toward targets that are themselves SETTLE-eased (auto swing to the rest pose over 2.2 s).
-// Pointer look +-3 deg, drag -6..+10 deg yaw and +-3 deg pitch, arrow keys +-2 deg.
+// Pointer look +-3 deg, drag -6..+10 deg yaw (phone -1..+6) and +-3 deg pitch, arrow keys +-2 deg.
 
 import { damp, settleEase } from '../system/easing';
 import { POSE, TIMING } from './heroLayout';
@@ -32,6 +32,8 @@ export class OrbitRig {
   look = { x: 0, y: 0 };
   /** user drag / key offsets, degrees */
   user = { yaw: 0, pitch: 0 };
+  /** weight of the user offsets and the pointer look (the plan cut eases it 1 -> 0 with the camera, F-027) */
+  userK = 1;
   limits: PoseLimits;
 
   constructor(limits: PoseLimits) {
@@ -46,18 +48,19 @@ export class OrbitRig {
 
   target(): Pose {
     const L = this.limits;
-    const yaw = clamp(this.base.yaw + this.user.yaw + this.look.x * POSE.lookDeg, L.yawMin, L.yawMax);
-    const pitch = clamp(this.base.pitch + this.user.pitch + this.look.y * POSE.lookDeg, L.pitchMin, L.pitchMax);
+    const k = this.userK;
+    const yaw = clamp(this.base.yaw + (this.user.yaw + this.look.x * POSE.lookDeg) * k, L.yawMin, L.yawMax);
+    const pitch = clamp(this.base.pitch + (this.user.pitch + this.look.y * POSE.lookDeg) * k, L.pitchMin, L.pitchMax);
     return { yaw, pitch, dolly: this.base.dolly };
   }
 
-  /** Advance the damped pose by dt seconds. Returns true while still moving. */
-  step(dt: number): boolean {
+  /** Advance the damped pose by dt seconds (lambda 4; the plan cut's return home uses 14). Returns true while still moving. */
+  step(dt: number, lambda: number = POSE.lambda): boolean {
     const t = this.target();
     const p = this.pose;
-    p.yaw = damp(p.yaw, t.yaw, POSE.lambda, dt);
-    p.pitch = damp(p.pitch, t.pitch, POSE.lambda, dt);
-    p.dolly = damp(p.dolly, t.dolly, POSE.lambda, dt);
+    p.yaw = damp(p.yaw, t.yaw, lambda, dt);
+    p.pitch = damp(p.pitch, t.pitch, lambda, dt);
+    p.dolly = damp(p.dolly, t.dolly, lambda, dt);
     return Math.abs(p.yaw - t.yaw) > 0.005 || Math.abs(p.pitch - t.pitch) > 0.005 || Math.abs(p.dolly - t.dolly) > 0.0001;
   }
 
@@ -81,9 +84,9 @@ export class OrbitRig {
     return p;
   }
 
-  /** Drag by pixels (yaw from x, pitch from y). */
-  drag(dxPx: number, dyPx: number, widthPx: number) {
-    const k = 22 / Math.max(320, widthPx); // a full-width drag is ~22 degrees
+  /** Drag by pixels (yaw from x, pitch from y). A full-width drag is `degPerWidth` degrees (22; 10 on the 9:16 phone take, F-029). */
+  drag(dxPx: number, dyPx: number, widthPx: number, degPerWidth = 22) {
+    const k = degPerWidth / Math.max(320, widthPx);
     const L = this.limits;
     this.user.yaw = clamp(this.user.yaw + dxPx * k, L.yawMin - this.base.yaw, L.yawMax - this.base.yaw);
     this.user.pitch = clamp(this.user.pitch - dyPx * k, L.pitchMin - this.base.pitch, L.pitchMax - this.base.pitch);

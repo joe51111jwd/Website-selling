@@ -66,6 +66,8 @@ export interface FreezeSceneOptions {
 export interface FreezeScene {
   canvas: HTMLCanvasElement;
   setPose(yawDeg: number, pitchDeg: number, dolly: number): void;
+  /** opacity of the four type planes (they leave with the DOM H1 on the plan cut) */
+  setTypeOpacity(o: number): void;
   render(): void;
   resize(cssW: number, cssH: number, dpr?: number): void;
   setDpr(dpr: number): void;
@@ -245,6 +247,14 @@ export async function createFreezeScene(o: FreezeSceneOptions): Promise<FreezeSc
       );
       camera.lookAt(pivot);
       (mat.uniforms.uK as { value: number }).value = stretchK(yawDeg, pitchDeg);
+    },
+    setTypeOpacity(o) {
+      const v = Math.max(0, Math.min(1, o));
+      for (const p of planes) {
+        const m = p.mesh.material as MeshBasicMaterial;
+        if (m.opacity !== v) m.opacity = v;
+        p.mesh.visible = v > 0.001;
+      }
     },
     render() {
       if (lost) return;

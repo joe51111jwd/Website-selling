@@ -10,6 +10,8 @@
 // - Error: state 'error' -> poster stays, FILM UNAVAILABLE · POSTER SHOWN.
 // - Pauses: off-screen, on visibilitychange, with MOTION OFF (poster shown).
 // - Never gates paint or interaction.
+// - Posters (F-002): a LoopVideo's poster <picture> enters layout (so lazy-loads) only once its video
+//   is within the 150% margin (data-vm-near on the LoopVideo root; base.css).
 // - Groups (FIXLIST F-002): a video inside a `[data-vm-group="<name>"]` element (or registered with
 //   `group`) is HELD from page start: preload="none", never load()ed, never autoplayed, until
 //   `videoManager.release(name)`. `hold(name)` holds it again. While held, base.css also keeps the
@@ -117,6 +119,15 @@ function isHeld(r: Reg): boolean {
   return !r.userPlay && groupHeld(r.group);
 }
 
+/**
+ * Posters lazy-load at the manager's own margin (F-002): base.css keeps a LoopVideo's poster <picture>
+ * out of layout until its video first comes within the 150% margin, then this attribute lets it in
+ * (the browser's own lazy threshold is up to ~5000 px in some contexts; this one is 1.5 viewports).
+ */
+function markNear(r: Reg) {
+  if (r.wrapper && !r.wrapper.hasAttribute('data-vm-near')) r.wrapper.setAttribute('data-vm-near', '');
+}
+
 /** Mirror a group's state onto its DOM, for the base.css poster hold. */
 function markGroup(group: string, released: boolean) {
   if (!isBrowser) return;
@@ -219,7 +230,10 @@ function bind() {
         const r = byEl.get(e.target);
         if (!r) continue;
         r.near = e.isIntersecting;
-        if (r.near) load(r);
+        if (r.near) {
+          markNear(r);
+          load(r);
+        }
       }
       schedule();
     },
@@ -395,6 +409,7 @@ export const videoManager = {
     };
     regs.set(id, r);
     byEl.set(el, r);
+    if (!nearIO) markNear(r); // no IntersectionObserver: never hide a poster
     nearIO?.observe(el);
     visIO?.observe(el);
     farIO?.observe(el);

@@ -66,7 +66,10 @@ poster hold is CSS that applies from first paint:
   // static / no-GL / capture paths that never run applyP(): release where the static A-100 shows
   ```
   If A2 mounts the slot-05 `LoopVideo id="plan-b44"` itself, render it inside the group element or pass `group="a100"`
-  (it is released immediately if the group already was).
+  (it is released immediately if the group already was). **Note:** today's `.cv-slot5` is a plain `<video>` that the
+  controller `load()`s itself (`controller.ts` ~L1582/1611/2109), so groups don't cover it: gate those `load()` calls on
+  the same release point (`P >= 0.25`, or `!videoManager.isHeld('a100')`). In the R-PROD first-view probe (11:50) it
+  still downloads `plan-b44.av1.mp4` (416 kB desktop / 249 kB phone) before any scroll.
 
 **Also in F-002 (no action needed from owners):**
 - `CLEAR_POSTER` (transparent 1×1 GIF) is exported from `src/system/clearPoster.ts` and the `src/system` barrel.
@@ -77,6 +80,10 @@ poster hold is CSS that applies from first paint:
   breakpoint later calls `videoManager.reload(key)`.
 - The poster `<picture>` now also shows in state `ready` (loaded, not yet played), because the `<video>`'s own poster
   is transparent.
+- **Posters lazy-load at the VideoManager's margin, not the browser's**: with JS (and motion on), a LoopVideo's poster
+  `<picture>` is `display: none` until its video first comes within the 150% margin (`data-vm-near` on the LoopVideo
+  root). Headless Chromium's own lazy threshold loaded A-101's posters (~175 kB) in the first view. Under no-JS and
+  MOTION OFF posters behave as before (native `loading="lazy"`).
 - THE SET lightbox has no poster, no captions track and no source bytes until it first opens.
 
 ---
@@ -89,7 +96,10 @@ poster hold is CSS that applies from first paint:
    - target is a `[data-sheet]` element **with `data-land="N"`** → `scrollY = sheetTop + N·innerHeight/100`
      (exactly; N may be negative or fractional);
    - otherwise → the target's top at `scroll-padding-top` (now `border + header + 16` = 88 px desktop, 76 px phone, F-001),
-     minus the target's own `scroll-margin-top`;
+     minus the target's own `scroll-margin-top`. **Paper sheets** (`[data-sheet][data-ground="gypsum"]`: A-301, A-900)
+     carry `scroll-margin-top: −(header-h + 16px)`, so they land with the paper running up under the header (sheet top
+     at the border, y = 24 / 12): the header rail then takes the gypsum ground and no slab band shows above the paper
+     (F-001). A6: lay out the A-301 / A-900 tops for that landing (the tag sits ~86 px under the sheet top today, fine);
 2. scrolls there (Lenis 1.2 s SETTLE with motion; an immediate jump without);
 3. two frames after the scroll completes (your stage has applied the new scroll), **if the sheet has no `data-land`**,
    checks the H2 against the unobscured band (`scroll-padding-top` … `innerHeight − scroll-padding-bottom`); if it is

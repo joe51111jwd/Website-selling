@@ -28,12 +28,17 @@ import { heroMachine, type HeroState } from './heroMachine';
 import { BEATS, CAPTURE, FRAME, POSE, PORTRAIT_QUERY, STRING, TIMING, type Orientation } from './heroLayout';
 import {
   FRESH_FALLBACK,
+  apply,
+  compose,
+  coverFit,
+  cssAffine,
   cssMatrix,
+  lineFlip,
   mix as mixSim,
   onBox,
   placeholderBay,
   registerLine,
-  relative,
+  relativeAffine,
   type Similarity,
 } from './PlanCut';
 import type { FreezeScene, FreezeMeta } from './FreezeScene';
@@ -173,6 +178,30 @@ function whenLoaded(v: HTMLVideoElement, ms = 8000): Promise<void> {
   });
 }
 
+/** Resolves true once the video has a decoded frame at its current time (after any seek), false after `ms`. */
+function frameReady(v: HTMLVideoElement, ms = 4000): Promise<boolean> {
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = (ok: boolean) => {
+      if (done) return;
+      done = true;
+      v.removeEventListener('seeked', check);
+      v.removeEventListener('loadeddata', check);
+      v.removeEventListener('canplay', check);
+      window.clearTimeout(timer);
+      resolve(ok);
+    };
+    const check = () => {
+      if (!v.seeking && v.readyState >= 2) finish(true);
+    };
+    const timer = window.setTimeout(() => finish(false), ms);
+    v.addEventListener('seeked', check);
+    v.addEventListener('loadeddata', check);
+    v.addEventListener('canplay', check);
+    check();
+  });
+}
+
 function imageUrls(id: string): string[] {
   const e = media[id];
   if (!e?.sources) return [];
@@ -252,11 +281,19 @@ class CoverController {
   private coverTop = 0;
   private spacer = 1;
   private M0: Similarity | null = null;
+  /** portrait: the deposit's base line and b44's line under M0 (the FLIP's two ends) */
+  private depFlip: [Vec, Vec, Vec, Vec] | null = null;
+  /** the plan still's current opacity (the deposit hands over to b44's own line as it passes 0.6) */
+  private planO = 0;
   private fresh: [[number, number], [number, number]] = FRESH_FALLBACK;
   private landed = false;
   private releaseSlot: (() => void) | null = null;
   private releaseFilm: (() => void) | null = null;
   private scrolledSinceSnap = false;
+  private a100Released = false;
+  /** the landed slot-05 film has a frame at 2.60 s, so it may replace the plan still (F-030) */
+  private slotShown = false;
+  private slotWait = 0;
 
   // loop
   private raf = 0;
@@ -510,7 +547,7 @@ class CoverController {
     const vx0 = this.orient === '916' ? 0.08 : 0.09;
     this.root.style.setProperty('--cv-vt-l', `${Math.max(0, fl + vx0 * this.frameRect.width).toFixed(1)}px`);
     this.root.style.setProperty('--cv-vt-r', `${Math.max(0, pinW - (fl + 0.92 * this.frameRect.width)).toFixed(1)}px`);
-    this.M0 = registerLine(this.fresh[0], this.fresh[1], this.baseL, this.baseR);
+    this.registerPlan();
     if (this.mode !== 'static') {
       this.readP();
       this.applyP();
@@ -530,6 +567,24 @@ class CoverController {
       { x: this.baseL.x + nx * off, y: this.baseL.y + ny * off },
       { x: this.baseR.x + nx * off, y: this.baseR.y + ny * off },
     );
+  }
+
+  /**
+   * Where the plan still starts (F-005). Landscape: b44's fresh line registered exactly on the visitor's
+   * deposit. Portrait (9:16): the deposit is only ~0.45 of a narrow frame, so registering on it leaves a
+   * small square low on the screen; instead the still cover-fits the stage around its line, and the
+   * deposit FLIPs onto b44's line (depositIn).
+   */
+  private registerPlan() {
+    const [fa, fb] = this.fresh;
+    if (this.orient === '916') {
+      const M0 = coverFit(this.heroW, this.heroH, (fa[0] + fb[0]) / 2, (fa[1] + fb[1]) / 2);
+      this.M0 = M0;
+      this.depFlip = [{ ...this.baseL }, { ...this.baseR }, apply(M0, fa[0], fa[1]), apply(M0, fb[0], fb[1])];
+    } else {
+      this.M0 = registerLine(fa, fb, this.baseL, this.baseR);
+      this.depFlip = null;
+    }
   }
 
   private placeholderRow() {
@@ -577,7 +632,7 @@ class CoverController {
         const a = j.fresh.a;
         const b = j.fresh.b;
         this.fresh = a[0] <= b[0] ? [a, b] : [b, a];
-        this.M0 = registerLine(this.fresh[0], this.fresh[1], this.baseL, this.baseR);
+        this.registerPlan();
         if (this.mode !== 'static') this.applyP();
       })
       .catch(() => {});
@@ -636,12 +691,7 @@ class CoverController {
   // ----------------------------------------------------------------- live
   private setupLive(runtime: boolean) {
     const r = this.root;
-    this.film.preload = 'auto';
-    try {
-      if (this.film.readyState === 0) this.film.load();
-    } catch {
-      /* ignore */
-    }
+    this.warmFilm();
     this.installInkMask();
     this.wireLive();
 
@@ -672,6 +722,29 @@ class CoverController {
     this.readP();
     this.applyP();
     this.kick();
+  }
+
+  /**
+   * Start fetching the snap film exactly once (F-006). Raising `preload` from "none" already resumes
+   * the deferred load in Chromium; load() on a film that is already loading would restart the request
+   * (the second full 181 kB fetch). Call load() only when nothing is in flight.
+   */
+  private warmFilm() {
+    const v = this.film;
+    if (v.preload !== 'auto') v.preload = 'auto';
+    if (v.readyState > 0 || v.networkState === HTMLMediaElement.NETWORK_LOADING) return;
+    try {
+      v.load();
+    } catch {
+      /* ignore */
+    }
+  }
+
+  /** Release the A-100 load group (posters + videos) once, in time for the row (F-006, A1's F-002 API). */
+  private releaseA100() {
+    if (this.a100Released) return;
+    this.a100Released = true;
+    videoManager.release('a100');
   }
 
   private readyGate(): Promise<void> {
@@ -874,7 +947,7 @@ class CoverController {
         const dx = p.x - ptr.x0;
         const dy = p.y - ptr.y0;
         if (e.pointerType === 'touch' && Math.abs(dy) > Math.abs(dx)) return;
-        this.rig.drag(dx, e.pointerType === 'touch' ? 0 : dy, this.frameRect.width);
+        this.rig.drag(dx, e.pointerType === 'touch' ? 0 : dy, this.frameRect.width, this.orient === '916' ? 10 : 22);
         ptr.x0 = p.x;
         ptr.y0 = p.y;
       }
@@ -1240,7 +1313,8 @@ class CoverController {
         const base = portrait ? POSE.phone : POSE.desktop;
         this.rig.limits = {
           yaw: portrait ? base.yaw : (yaw?.auto ?? base.yaw),
-          yawMin: yaw?.min ?? base.yawMin,
+          // phones keep their own, narrower drag range (F-029): the meta's -6 pushes the H1 out of the frame
+          yawMin: portrait ? base.yawMin : (yaw?.min ?? base.yawMin),
           yawMax: portrait ? base.yawMax : (yaw?.max ?? base.yawMax),
           pitch: pitch?.auto ?? base.pitch,
           pitchMin: pitch?.min ?? base.pitchMin,
@@ -1361,51 +1435,86 @@ class CoverController {
     }
   }
 
+  /**
+   * P as the plan cut sees it. While the 3D VIEW is still up (a fast scroll from the rest pose), the cut
+   * holds at its start until the camera is home and GL has handed over to the DOM still (F-027); a jump
+   * past the cut (INDEX, deep link) never waits.
+   */
+  private cutP(): number {
+    const P = this.P;
+    if (this.glShown && this.scene && P < BEATS.planCut[1]) return Math.min(P, BEATS.planCut[0]);
+    return P;
+  }
+
   private applyP() {
     if (this.mode === 'static') return;
     const P = this.P;
+    const C = this.cutP();
     const r = this.root;
     const a100 = this.a100;
     r.style.setProperty('--a0-o', (1 - segment(P, BEATS.h1Out[0], BEATS.h1Out[1])).toFixed(3));
-    a100.style.setProperty('--a100-o', segment(P, 0.34, 0.4).toFixed(3));
-    a100.style.setProperty('--arena-in', segment(P, BEATS.arenaIn[0], BEATS.arenaIn[1]).toFixed(3));
-    a100.dataset.bubbles = P >= BEATS.bubblesAt ? 'in' : 'out';
-    a100.dataset.print = P >= BEATS.printAt ? 'in' : 'out';
-    a100.dataset.live = P >= BEATS.printAt ? 'on' : 'off';
-    // hero media crossfade into the plan
-    const cut = segment(P, BEATS.planCut[0], BEATS.planCut[1]);
-    // the plan fades in over the perspective; the perspective leaves in the second half
-    this.hero.style.opacity = P >= BEATS.planCut[1] ? '0' : (1 - segment(cut, 0.25, 0.75)).toFixed(3);
-    this.hero.style.visibility = P >= BEATS.planCut[1] ? 'hidden' : '';
-    // plan still: registered on the deposit, then FLIP into bay 05
+    a100.style.setProperty('--a100-o', segment(C, BEATS.a100In[0], BEATS.a100In[1]).toFixed(3));
+    a100.style.setProperty('--arena-in', segment(C, BEATS.arenaIn[0], BEATS.arenaIn[1]).toFixed(3));
+    a100.dataset.bubbles = C >= BEATS.bubblesAt ? 'in' : 'out';
+    a100.dataset.print = C >= BEATS.printAt ? 'in' : 'out';
+    a100.dataset.live = C >= BEATS.printAt ? 'on' : 'off';
+    if (P >= BEATS.releaseA100At) this.releaseA100();
+    // the hero media leave under the plan (P 0.10-0.25); the H1 stays in the accessibility tree (F-023)
+    const heroO = 1 - segment(C, BEATS.heroOut[0], BEATS.heroOut[1]);
+    this.hero.style.opacity = heroO.toFixed(3);
+    if (heroO <= 0) r.dataset.heroGone = '';
+    else delete r.dataset.heroGone;
+    // the plan still and, under it, a full-frame slab: no hero band beside the registered square (F-005)
+    const planO = drawEase(segment(C, BEATS.planIn[0], BEATS.planIn[1]));
+    this.planO = planO;
+    r.style.setProperty('--plan-o', (planO * (1 - segment(C, BEATS.backdropOut[0], BEATS.backdropOut[1]))).toFixed(3));
+    r.style.setProperty('--cv-bgy', `${(-window.scrollY).toFixed(0)}px`);
     const M0 = this.M0;
     // fetch PLAN 05 once the hero has settled or the plan is near (never on the first view)
     if (this.planSq.style.display !== 'block' && (P > 0.01 || this.tl.rest)) this.planSq.style.display = 'block';
-    if (M0 && P > BEATS.planCut[0] * 0.5) {
-      const e = drawEase(segment(P, BEATS.pullOut[0], BEATS.pullOut[1]));
+    if (M0 && C >= BEATS.planCut[0] * 0.5) {
+      // pull-out: SETTLE-eased, so the square clears the row and the H2 early and docks slowly
+      const e = settleEase(segment(C, BEATS.pullOut[0], BEATS.pullOut[1]));
       const M1 = onBox(this.bayRect());
       const m = e > 0 ? mixSim(M0, M1, e) : M0;
       this.planSq.style.transform = cssMatrix(m);
       this.planSq.style.setProperty('--fe', `${(6 * (1 - e * e)).toFixed(2)}%`);
-      this.deps.style.transform = relative(m, M0);
-      this.planSq.style.opacity = this.landed ? '0' : settleEase(cut).toFixed(3);
-      this.planSq.classList.toggle('is-feathered', true);
+      // the deposits ride with the plan; in portrait they first FLIP onto b44's line (P 0.10-0.22)
+      let D = relativeAffine(m, M0);
+      if (this.depFlip) {
+        const [L0, R0, L1, R1] = this.depFlip;
+        const u = drawEase(segment(C, BEATS.depositIn[0], BEATS.depositIn[1]));
+        D = compose(D, lineFlip(L0, R0, L1, R1, u));
+      }
+      this.deps.style.transform = cssAffine(D);
+      this.planSq.style.opacity = this.landed && this.slotShown ? '0' : planO.toFixed(3);
     } else {
       this.planSq.style.opacity = '0';
       this.deps.style.transform = '';
     }
     // landing (P >= 0.75): the slot swaps to b44 from 2.60 s
-    if (P >= BEATS.land) this.land();
+    if (C >= BEATS.land) this.land();
     else this.unland();
-    // view titles
-    if (P >= BEATS.land) this.setVt('none');
-    else if (P >= BEATS.planCut[0]) this.setVt('plan');
+    // view titles: one at a time. PLAN 05 ticks in with the cut; the A-100 row's own title takes over
+    // as the row arrives (it covers bay 05 too)
+    if (C >= BEATS.a100In[0]) this.setVt('none');
+    else if (C >= BEATS.planCut[0]) this.setVt('plan');
     else this.setVt(this.heroVt());
-    // the 3D VIEW eases back to yaw 0 over P 0..0.10, then hands over to the DOM still
+    // the 3D VIEW eases back to yaw 0 over P 0..0.10, then hands over to the DOM still once the
+    // camera is home (F-027)
     if (this.glShown) {
       const k = 1 - settleEase(segment(P, BEATS.camBack[0], BEATS.camBack[1]));
       if (this.tl.rest || !this.tl.swing) this.rig.base = { ...this.scaledRest(k) };
-      if (P >= BEATS.camBack[1] && this.glOutAt === null) this.glOutAt = this.mode === 'capture' ? this.captureT : nowS();
+      const home = Math.abs(this.rig.pose.yaw) < 0.15 && Math.abs(this.rig.pose.pitch) < 0.15;
+      const jump = P >= BEATS.planCut[1];
+      if (P >= BEATS.camBack[1] && this.glOutAt === null && (home || jump || this.mode === 'capture')) {
+        if (jump && !home) {
+          // a jump past the cut: no camera move to wait for
+          this.rig.snapTo({ yaw: 0, pitch: 0, dolly: 0 });
+          this.rig.clearUser();
+        }
+        this.glOutAt = this.mode === 'capture' ? this.captureT : nowS();
+      }
     } else if (
       this.scene === null &&
       this.mode === 'live' &&
@@ -1442,16 +1551,20 @@ class CoverController {
     v.style.height = `${bay.height}px`;
     if (this.landed) return;
     this.landed = true;
-    this.planSq.style.opacity = '0';
-    v.style.opacity = '1';
-    if (this.mode === 'capture') return;
+    this.slotShown = false;
+    if (this.mode === 'capture') return; // seekPlan() shows the slot once it has seeked
+    const token = ++this.slotWait;
     const go = () => {
-      if (!this.landed) return;
+      if (!this.landed || token !== this.slotWait) return;
       try {
-        if (v.currentTime < 2.6 || v.ended) v.currentTime = 2.6;
+        if (v.currentTime < 2.59 || v.ended) v.currentTime = 2.6;
       } catch {
         /* ignore */
       }
+      // the plan still (b44 at 2.60 s) stays up until the slot has that frame: never a black box (F-030)
+      void frameReady(v).then((ok) => {
+        if (ok && this.landed && token === this.slotWait) this.showSlot();
+      });
       if (!prefsStore.get().motion) return;
       this.releaseSlot?.();
       this.releaseSlot = videoManager.reserve('a100-slot5');
@@ -1464,18 +1577,27 @@ class CoverController {
     else {
       v.preload = 'auto';
       v.addEventListener('loadedmetadata', go, { once: true });
-      try {
-        v.load();
-      } catch {
-        /* ignore */
+      if (v.networkState !== HTMLMediaElement.NETWORK_LOADING) {
+        try {
+          v.load();
+        } catch {
+          /* ignore */
+        }
       }
     }
   }
 
+  /** Swap the plan still for the landed slot-05 film (it has its 2.60 s frame). */
+  private showSlot() {
+    this.slotShown = true;
+    this.slot5.style.opacity = '1';
+    this.planSq.style.opacity = '0';
+  }
+
   private unland() {
     const v = this.slot5;
-    if (this.P >= BEATS.pullOut[0] && v.readyState === 0 && this.mode !== 'static') {
-      // warm it up before landing
+    if (this.P >= BEATS.pullOut[0] && v.readyState === 0 && v.networkState !== HTMLMediaElement.NETWORK_LOADING && this.mode !== 'static') {
+      // warm it up before landing, parked on the landing frame
       v.preload = 'auto';
       const seek = () => {
         try {
@@ -1493,6 +1615,8 @@ class CoverController {
     }
     if (!this.landed) return;
     this.landed = false;
+    this.slotShown = false;
+    this.slotWait++;
     v.pause();
     v.style.opacity = '0';
     this.releaseSlot?.();
@@ -1579,7 +1703,9 @@ class CoverController {
     // ---- control points and chalk box: stamp with the pay-out, leave with the deposit
     const pay = tl.payStart === null ? 0 : segment(now, tl.payStart, tl.payStart + TIMING.payout);
     let markO = 0;
-    if (!tl.rest && tl.payStart !== null) markO = tl.S === null ? 1 : 1 - segment(now, tl.S + 0.3, tl.S + TIMING.dustOut);
+    if (!tl.rest && tl.payStart !== null) {
+      markO = tl.S === null ? 1 : 1 - segment(now, tl.S + TIMING.depositFrom, tl.S + TIMING.depositOut);
+    }
     // each control point stamps (1.35 -> 1, SETTLE 300 ms): the right one as the line leaves the box,
     // the left one as the line arrives
     const ps = tl.payStart ?? 0;
@@ -1592,13 +1718,17 @@ class CoverController {
     this.chalkbox.style.opacity = (markO * Math.min(1, pay * 8)).toFixed(3);
     if (tl.payStart !== null && now < ps + TIMING.payout + 0.3) busy = true;
 
-    // ---- deposits: on the slab while armed; fade out by S + 0.8 (the filmed line is perpendicular)
+    // ---- deposits: on the slab while armed; gone by S + 0.5, before the film's own line (which runs
+    //      toward the lens, at right angles to ours) is up (F-073). They return for the plan cut and
+    //      hand over to b44's own line as the plan still passes 0.6 opacity (F-005 step 8).
     let depO = 0;
-    if (!tl.rest && (tl.S === null || now < tl.S + TIMING.dustOut)) {
-      depO = tl.S === null ? 1 : 1 - segment(now, tl.S + 0.3, tl.S + TIMING.dustOut);
+    if (!tl.rest && (tl.S === null || now < tl.S + TIMING.depositOut)) {
+      depO = tl.S === null ? 1 : 1 - segment(now, tl.S + TIMING.depositFrom, tl.S + TIMING.depositOut);
     }
-    const P = this.P;
-    const planDep = segment(P, 0.1, 0.22) * (1 - segment(P, BEATS.depositOut[0], BEATS.depositOut[1]));
+    const C = this.cutP();
+    const planDep =
+      segment(C, BEATS.depositIn[0], BEATS.depositIn[0] + 0.03) *
+      (1 - segment(this.planO, BEATS.depositHandover[0], BEATS.depositHandover[1]));
     const dO = Math.max(depO, planDep);
     for (const d of this.deposits) {
       const born = tl.S !== null && d.bornAt >= tl.S - 0.001 ? segment(now, d.bornAt, d.bornAt + 0.03) : 1;
@@ -1661,6 +1791,7 @@ class CoverController {
       delete r.dataset.look;
       this.glHost.tabIndex = -1;
       this.glOutAt = null;
+      this.applyP(); // the cut was held at its start until now (F-027)
     }
 
     // ---- camera
@@ -1675,11 +1806,21 @@ class CoverController {
           r.dataset.inked = '';
         }
       }
-      const moving = this.rig.step(dt);
+      // the plan cut: the user offsets ease out with the camera, and past P 0.10 the rig hurries home
+      // (lambda 14) so GL can hand over to the DOM still at yaw 0 (F-027)
+      this.rig.userK = 1 - settleEase(segment(this.P, BEATS.camBack[0], BEATS.camBack[1]));
+      const homeward = this.P >= BEATS.camBack[1];
+      const moving = this.rig.step(dt, homeward ? 14 : POSE.lambda);
       busy = busy || moving;
       const p = this.rig.pose;
       this.scene.setPose(p.yaw, p.pitch, p.dolly);
+      // the GL type planes leave with the DOM H1 (--a0-o), so no type rides a turning camera
+      this.scene.setTypeOpacity(1 - segment(this.P, BEATS.h1Out[0], BEATS.h1Out[1]));
       this.scene.render();
+      if (homeward && this.glOutAt === null) {
+        busy = true;
+        this.applyP(); // hands over once home
+      }
       if (moving) this.monitor(dt);
     }
 
@@ -1972,6 +2113,7 @@ class CoverController {
       }
       await whenLoaded(v);
       await seekVideo(v, 2.6 + Math.max(0, t - 3 * BEATS.land));
+      if (v.readyState >= 2) this.showSlot();
     }
   }
 }

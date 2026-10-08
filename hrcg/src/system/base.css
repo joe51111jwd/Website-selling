@@ -455,6 +455,12 @@ main:focus {
 .no-js .loopvideo video {
   z-index: 1;
 }
+/* F-002: with JS, a LoopVideo poster waits for the VideoManager's 150% margin (data-vm-near) instead of
+   the browser's lazy threshold (up to ~5000 px), so posters two sheets away cost nothing on first view.
+   Never under no-JS or MOTION OFF (posters are the content there). */
+.js:not(.rm) .loopvideo[data-video-key]:not([data-vm-near]) .loopvideo-poster {
+  display: none;
+}
 /* Held load groups (VideoManager.hold / release, F-002): until release, a group's lazy posters and
    Pictures stay out of layout, so the browser does not fetch them. Never under no-JS or MOTION OFF. */
 .js:not(.rm) [data-vm-group]:not([data-vm-released]) :is(.loopvideo-poster, picture.picture),
