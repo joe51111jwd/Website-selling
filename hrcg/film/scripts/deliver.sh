@@ -17,9 +17,20 @@ MB=1000000
 
 npx remotion bundle src/index.ts --out-dir=build --log=error
 
+# F-102: the deploy's own address, resolved like the site's resolveSiteUrl (SITE_URL, URL, Vercel); never invented.
+SITE=$(node -e '
+const n=(u)=>{const t=(u||"").trim().replace(/\/+$/,"");return /^https?:\/\/[^/\s]+/i.test(t)?t:"";};
+const e=process.env;
+if(e.SITE_URL&&e.SITE_URL.trim())console.log(n(e.SITE_URL));
+else if(e.URL&&e.URL.trim())console.log(n(e.URL));
+else if(e.VERCEL_PROJECT_PRODUCTION_URL&&e.VERCEL_PROJECT_PRODUCTION_URL.trim())console.log(n("https://"+e.VERCEL_PROJECT_PRODUCTION_URL.trim().replace(/^https?:\/\//,"")));
+else console.log("");')
+PROPS=()
+if [[ -n "$SITE" ]]; then PROPS=(--props="{\"siteUrl\":\"$SITE\"}"); echo "end card: $SITE"; else echo "end card: SITE_URL unresolved -> DATE · VENUE: HOLD"; fi
+
 # masters
 for f in 169 916 11; do
-  npx remotion render build "TheSet$f" "$OUT/the-set-$f-master$TAG.mp4" --codec=h264 --crf=16 --x264-preset=medium \
+  npx remotion render build "TheSet$f" "$OUT/the-set-$f-master$TAG.mp4" "${PROPS[@]}" --codec=h264 --crf=16 --x264-preset=medium \
     --audio-bitrate=320k --concurrency=2 --log=error
   ffmpeg -v error -y -i "$OUT/the-set-$f-master$TAG.mp4" -map 0:v -c:v copy -movflags +faststart "$OUT/the-set-$f-silent$TAG.mp4"
   echo "master $f done"
@@ -52,7 +63,7 @@ done
 
 # posters: the frozen frame with the inked H1, at the end of the push (frame before the plan cut)
 poster() { # poster <fmt> <frame>
-  npx remotion still build "TheSet$1" "$OUT/the-set-$1-poster$TAG.png" --frame="$2" --log=error
+  npx remotion still build "TheSet$1" "$OUT/the-set-$1-poster$TAG.png" "${PROPS[@]}" --frame="$2" --log=error
   ffmpeg -v error -y -i "$OUT/the-set-$1-poster$TAG.png" -q:v 3 -update 1 "$DL/the-set-$1-poster$TAG.jpg"
   ffmpeg -v error -y -i "$OUT/the-set-$1-poster$TAG.png" -c:v libaom-av1 -still-picture 1 -crf 30 -cpu-used 6 -pix_fmt yuv420p -update 1 "$DL/the-set-$1-poster$TAG.avif"
 }

@@ -1,8 +1,8 @@
 // One challenge sheet, 3.0 s: PLAN (0.8 s, the bay loop under its view title) → hard cut →
 // PERSPECTIVE (2.2 s) with the roll-call verb as the super.
 import React from 'react';
-import { AbsoluteFill, Sequence, useVideoConfig } from 'remotion';
-import { Clip } from '../components/Clip';
+import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig } from 'remotion';
+import { Clip, PlayHold } from '../components/Clip';
 import { Framed } from '../components/Framed';
 import { Ground } from '../components/Ground';
 import { Lbl } from '../components/Lbl';
@@ -11,6 +11,8 @@ import { C, display, stencil } from '../theme';
 import { SHEETS, TL, type Format } from '../timeline';
 import { CHROME } from '../layout';
 import { PERSP, PERSP_TITLES, PLAN_L } from './sheetLayout';
+import { B40_HOLD, SRC_FPS, STILLS } from '../clips';
+import { SETTLE, prog } from '../lib/ease';
 
 export const Super: React.FC<{ lines: string[]; x: number; baselines: number[]; anchor: 'start' | 'end'; size: number }> = ({
   lines,
@@ -40,6 +42,7 @@ export const Super: React.FC<{ lines: string[]; x: number; baselines: number[]; 
 
 export const Sheet: React.FC<{ format: Format; index: number }> = ({ format, index }) => {
   const { fps, width } = useVideoConfig();
+  const frame = useCurrentFrame();
   const tl = TL[format].sheets;
   const sh = SHEETS[index];
   const planF = Math.round(tl.plan * fps);
@@ -47,13 +50,21 @@ export const Sheet: React.FC<{ format: Format; index: number }> = ({ format, ind
   const Q = PERSP[format][index];
   const lbl = CHROME[format].lbl;
   const right = (x: number) => x - width; // for right-anchored supers
+  // optional slow push-in over the perspective beat (a pure function of the frame)
+  const pk = Q.push ? SETTLE(prog((frame - planF) / fps, 0, tl.each - tl.plan)) : 0;
+  const pScale = Q.push ? 1 + (Q.push.to - 1) * pk : 1;
 
   return (
     <AbsoluteFill style={{ backgroundColor: C.slabBlack }}>
       <Sequence name={`PLAN ${sh.n}`} durationInFrames={planF} premountFor={fps}>
           <Ground pool={[30, 50]} exposure={0.1} />
           <Framed rect={P.dest}>
-            <Clip id={sh.plan} dest={[0, 0, P.dest[2], P.dest[3]]} trimBefore={0} />
+            {sh.plan === 'b40' ? (
+              // PLAN 01 plays to its hold frame and stays there (F-050), as the site's plan-b40 does
+              <PlayHold id="b40" dest={[0, 0, P.dest[2], P.dest[3]]} holdAt={B40_HOLD} still={STILLS.b40hold} srcFps={SRC_FPS} />
+            ) : (
+              <Clip id={sh.plan} dest={[0, 0, P.dest[2], P.dest[3]]} trimBefore={0} />
+            )}
           </Framed>
           <ViewTitle x={P.vt[0]} y={P.vt[1]} w={P.vt[2]} size={lbl} text={`PLAN ${sh.n} · CONCEPT FILM · AI-GENERATED`} />
           <div style={{ position: 'absolute', left: P.tag[0], top: P.tag[1] }}>
@@ -88,7 +99,16 @@ export const Sheet: React.FC<{ format: Format; index: number }> = ({ format, ind
       <Sequence name={PERSP_TITLES[index]} from={planF} premountFor={fps}>
           {Q.framed ? <Ground pool={[50, 50]} exposure={0.1} /> : null}
           <Framed rect={Q.dest} frame={Q.framed} feather={Q.framed}>
-            <Clip id={Q.clip} crop={Q.crop} dest={[0, 0, Q.dest[2], Q.dest[3]]} trimBefore={Math.round(Q.inAt * fps)} />
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                scale: String(pScale),
+                transformOrigin: Q.push ? `${Q.push.origin[0] * 100}% ${Q.push.origin[1] * 100}%` : undefined,
+              }}
+            >
+              <Clip id={Q.clip} crop={Q.crop} dest={[0, 0, Q.dest[2], Q.dest[3]]} trimBefore={Math.round(Q.inAt * fps)} />
+            </div>
           </Framed>
           <ViewTitle x={Q.vt[0]} y={Q.vt[1]} w={Q.vt[2]} size={lbl} wrap={Q.vt[2] < 700} text={`${PERSP_TITLES[index]} · CONCEPT FILM · AI-GENERATED`} />
           <Super

@@ -1,5 +1,7 @@
 // End card on slab black: the COURSE mark lays its five bricks in ONE course (0.4 s), then the type.
-// No host name (SITE_URL is not resolved for the film), never an email address.
+// F-102: the second cell says where to get in touch only when the deploy's own address (SITE_URL) resolves at
+// render time (scripts/deliver.sh passes it as the siteUrl prop); otherwise it prints DATE · VENUE: HOLD.
+// Never an email address, never an invented host.
 import React from 'react';
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from 'remotion';
 import { CourseMark } from '../components/Marks';
@@ -53,11 +55,20 @@ const END: Record<Format, EndL> = {
   },
 };
 
-export const EndCard: React.FC<{ format: Format }> = ({ format }) => {
+export const EndCard: React.FC<{ format: Format; siteUrl?: string | null }> = ({ format, siteUrl = null }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
   const L = END[format];
+  const ctaStyle: React.CSSProperties = {
+    fontFamily: F.archivo,
+    fontWeight: 600,
+    fontVariationSettings: "'wdth' 100",
+    fontSize: L.cta,
+    letterSpacing: '0.04em',
+    color: C.chalk,
+    whiteSpace: 'nowrap',
+  };
   // each brick prints in over 2 frames with a short settle down onto the course
   let laid = 0;
   BRICK_TIMES.forEach((bt) => {
@@ -126,19 +137,14 @@ export const EndCard: React.FC<{ format: Format }> = ({ format }) => {
             )}
             {cell(
               1,
-              <span
-                style={{
-                  fontFamily: F.archivo,
-                  fontWeight: 600,
-                  fontVariationSettings: "'wdth' 100",
-                  fontSize: L.cta,
-                  letterSpacing: '0.04em',
-                  color: C.chalk,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                TEAMS AND SPONSORS: GET IN TOUCH.
-              </span>,
+              siteUrl ? (
+                <span style={{ display: 'flex', flexDirection: 'column', gap: L.cta * 0.25 }}>
+                  <span style={ctaStyle}>TEAMS AND SPONSORS: GET IN TOUCH.</span>
+                  <span style={{ ...ctaStyle, textTransform: 'none', letterSpacing: '0.02em' }}>{siteUrl.replace(/^https?:\/\//, '')}</span>
+                </span>
+              ) : (
+                <span style={status(L.status)}>DATE · VENUE: HOLD</span>
+              ),
               0.95,
             )}
           </>

@@ -20,7 +20,7 @@ export const RemotionRoot: React.FC = () => {
           fps={30}
           width={1920}
           height={1080}
-          defaultProps={{ format: '169' as const, withAudio: true }}
+          defaultProps={{ format: '169' as const, withAudio: true, siteUrl: null as string | null }}
         />
         <Composition
           id="TheSet916"
@@ -29,7 +29,7 @@ export const RemotionRoot: React.FC = () => {
           fps={30}
           width={1080}
           height={1920}
-          defaultProps={{ format: '916' as const, withAudio: true }}
+          defaultProps={{ format: '916' as const, withAudio: true, siteUrl: null as string | null }}
         />
         <Composition
           id="TheSet11"
@@ -38,7 +38,7 @@ export const RemotionRoot: React.FC = () => {
           fps={30}
           width={1080}
           height={1080}
-          defaultProps={{ format: '11' as const, withAudio: true }}
+          defaultProps={{ format: '11' as const, withAudio: true, siteUrl: null as string | null }}
         />
       </Folder>
       <Folder name="R5-stills">
@@ -50,7 +50,7 @@ export const RemotionRoot: React.FC = () => {
         <Composition id="PlanCut169" component={PlanCut} durationInFrames={54} fps={30} width={1920} height={1080} defaultProps={{ format: '169' as const }} />
         <Composition id="Sheet169" component={Sheet} durationInFrames={90} fps={30} width={1920} height={1080} defaultProps={{ format: '169' as const, index: 0 }} />
         <Composition id="Context169" component={Context} durationInFrames={90} fps={30} width={1920} height={1080} defaultProps={{ format: '169' as const }} />
-        <Composition id="EndCard169" component={EndCard} durationInFrames={90} fps={30} width={1920} height={1080} defaultProps={{ format: '169' as const }} />
+        <Composition id="EndCard169" component={EndCard} durationInFrames={90} fps={30} width={1920} height={1080} defaultProps={{ format: '169' as const, siteUrl: null as string | null }} />
       </Folder>
     </>
   );

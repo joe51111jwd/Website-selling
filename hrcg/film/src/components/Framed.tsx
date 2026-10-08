@@ -12,8 +12,9 @@ export const Framed: React.FC<{
   frame?: boolean;
   frameOpacity?: number;
   opacity?: number;
+  mask?: string; // a custom CSS mask (e.g. a top feather), used instead of the 6 % edge feather
   children: React.ReactNode;
-}> = ({ rect, feather = false, frame = true, frameOpacity = 1, opacity = 1, children }) => (
+}> = ({ rect, feather = false, frame = true, frameOpacity = 1, opacity = 1, mask, children }) => (
   <>
     <div
       style={{
@@ -24,9 +25,11 @@ export const Framed: React.FC<{
         height: rect[3],
         overflow: 'hidden',
         opacity,
-        ...(feather
-          ? { maskImage: FEATHER, WebkitMaskImage: FEATHER, maskComposite: 'intersect', WebkitMaskComposite: 'source-in' }
-          : {}),
+        ...(mask
+          ? { maskImage: mask, WebkitMaskImage: mask }
+          : feather
+            ? { maskImage: FEATHER, WebkitMaskImage: FEATHER, maskComposite: 'intersect', WebkitMaskComposite: 'source-in' }
+            : {}),
       }}
     >
       {children}

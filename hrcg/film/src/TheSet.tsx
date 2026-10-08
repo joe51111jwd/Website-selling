@@ -1,4 +1,4 @@
-// THE SET · PASS A. The master timeline: cover → plan cut → five sheets → A-200 → end card,
+// THE SET · PASS B (footage cut; no site captures, see README). The master timeline: cover → plan cut → five sheets → A-200 → end card,
 // under the burned-in sheet border and labels. The same scenes lay themselves out natively per format.
 import React from 'react';
 import { Audio } from '@remotion/media';
@@ -13,9 +13,11 @@ import { Sheet } from './scenes/Sheet';
 import { C } from './theme';
 import { TL, sheetSchedule, type Format } from './timeline';
 
-export type TheSetProps = { format: Format; withAudio: boolean };
+// siteUrl: the deploy's own address when it resolves at render time (scripts/deliver.sh, the site's
+// resolveSiteUrl order); null → the end card prints DATE · VENUE: HOLD instead (F-102).
+export type TheSetProps = { format: Format; withAudio: boolean; siteUrl?: string | null };
 
-export const TheSet: React.FC<TheSetProps> = ({ format, withAudio }) => {
+export const TheSet: React.FC<TheSetProps> = ({ format, withAudio, siteUrl = null }) => {
   const { fps } = useVideoConfig();
   const f = TL[format];
   const len = (a: number, b: number) => Math.round((b - a) * fps);
@@ -50,10 +52,10 @@ export const TheSet: React.FC<TheSetProps> = ({ format, withAudio }) => {
           </Series.Sequence>
         ) : null}
         <Series.Sequence name="End card" durationInFrames={len(f.end.start, f.end.end)} premountFor={fps}>
-          <EndCard format={format} />
+          <EndCard format={format} siteUrl={siteUrl} />
         </Series.Sequence>
       </Series>
-      <Burnins chrome={CHROME[format]} schedule={sheetSchedule(f)} />
+      <Burnins format={format} chrome={CHROME[format]} schedule={sheetSchedule(f)} />
       {withAudio ? <Audio name="Foley mix" src={staticFile(`audio/the-set-${format}.wav`)} premountFor={fps} /> : null}
     </AbsoluteFill>
   );

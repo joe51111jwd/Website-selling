@@ -2,6 +2,8 @@
 // pencil outline, the outline morphs into an orange HOLD cloud and docks in the VENUE cell. Only then
 // does a separate history diagram draw: the grid module at about 29° east of true north.
 // The bays, the outline and the cloud never touch the grid (brief §3.9, rule 2).
+// Pass B (director note 3): the HOLD part is quicker, the grid is denser (a smaller module, firmer lines) and is
+// complete with its arrows and the H2 by 1.85 s, then holds, with a slow push, to the end of the 3.0 s beat.
 import React from 'react';
 import { AbsoluteFill, Img, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { Lbl } from '../components/Lbl';
@@ -24,21 +26,22 @@ type CtxL = {
 };
 
 const CTX: Record<'169' | '916', CtxL> = {
+  // grid below the top-right disclosure (16:9) / the two-line one (9:16); H2 and dock clear of the bottom one
   '169': {
-    grid: { cx: 1330, cy: 488, r: 404, ave: 92, st: 26 },
+    grid: { cx: 1330, cy: 540, r: 372, ave: 70, st: 20 },
     arrows: { ox: 420, oy: 600, len: 300, arc: 132 },
-    h2: { x: 96, size: 108, baselines: [790, 883, 976] },
-    vt: [926, 916, 808],
-    dock: [1544, 976, 280, 50],
+    h2: { x: 96, size: 108, baselines: [760, 853, 946] },
+    vt: [926, 926, 808],
+    dock: [1544, 978, 280, 50],
     tag: [96, 120],
   },
   '916': {
-    grid: { cx: 540, cy: 740, r: 452, ave: 92, st: 26 },
-    arrows: { ox: 250, oy: 1060, len: 300, arc: 120 },
+    grid: { cx: 540, cy: 790, r: 410, ave: 70, st: 20 },
+    arrows: { ox: 250, oy: 1090, len: 300, arc: 120 },
     h2: { x: 64, size: 124, baselines: [1420, 1527, 1634] },
-    vt: [64, 1220, 952],
-    dock: [736, 1740, 280, 56],
-    tag: [64, 150],
+    vt: [64, 1236, 952],
+    dock: [736, 1660, 280, 56],
+    tag: [64, 344],
   },
 };
 
@@ -54,13 +57,14 @@ export const Context: React.FC<{ format: Format }> = ({ format }) => {
   const R = ROW[format];
   const lbl = CHROME[format].lbl;
 
-  // beats
-  const posterOut = prog(t, 0.12, 0.45);
-  const morph = SETTLE(prog(t, 0.45, 0.95));
-  const lift = SETTLE(prog(t, 0.95, 1.4));
-  const gridP = DRAW(prog(t, 1.45, 2.35));
-  const arrowP = DRAW(prog(t, 1.6, 2.2));
-  const arcP = DRAW(prog(t, 2.0, 2.45));
+  // beats (seconds into the 3.0 s scene; scripts/captions.mjs mirrors them in CTX_T)
+  const posterOut = prog(t, 0.06, 0.3);
+  const morph = SETTLE(prog(t, 0.3, 0.62));
+  const lift = SETTLE(prog(t, 0.68, 1.02));
+  const gridP = DRAW(prog(t, 1.05, 1.75));
+  const arrowP = DRAW(prog(t, 1.2, 1.65));
+  const arcP = DRAW(prog(t, 1.5, 1.85));
+  const gridPush = 1 + 0.035 * SETTLE(prog(t, 1.05, 3.0)); // the slow push while the diagram holds
 
   // the row outline (and its cloud)
   const r0 = bayRect(R, 0);
@@ -109,7 +113,7 @@ export const Context: React.FC<{ format: Format }> = ({ format }) => {
     return `M${x},${y} L${l[0]},${l[1]} L${rr[0]},${rr[1]} Z`;
   };
 
-  const stills = [STILLS.b40f0, STILLS.b41f0, STILLS.b42f0, STILLS.b43f0, STILLS.b44last];
+  const stills = [STILLS.b40hold, STILLS.b41f0, STILLS.b42f0, STILLS.b43f0, STILLS.b44last];
 
   return (
     <AbsoluteFill style={{ backgroundColor: C.slabBlack }}>
@@ -167,12 +171,12 @@ export const Context: React.FC<{ format: Format }> = ({ format }) => {
         {/* the grid: a separate history diagram, drawn only after the cloud has docked */}
         {docked && maskR > 0 ? (
           <g mask="url(#gridMask)">
-            <g transform={`translate(${G.cx} ${G.cy}) rotate(${ANGLE})`}>
+            <g transform={`translate(${G.cx} ${G.cy}) scale(${gridPush}) rotate(${ANGLE})`}>
               {sts.map((y) => (
-                <line key={`s${y}`} x1={-ext} y1={y} x2={ext} y2={y} stroke={C.pencil} strokeWidth={1} opacity={0.62} />
+                <line key={`s${y}`} x1={-ext} y1={y} x2={ext} y2={y} stroke={C.pencil} strokeWidth={1} opacity={0.72} />
               ))}
               {aves.map((x) => (
-                <line key={`a${x}`} x1={x} y1={-ext} x2={x} y2={ext} stroke={C.pencil} strokeWidth={2} opacity={0.95} />
+                <line key={`a${x}`} x1={x} y1={-ext} x2={x} y2={ext} stroke={C.pencil} strokeWidth={2} opacity={1} />
               ))}
             </g>
           </g>
@@ -180,19 +184,19 @@ export const Context: React.FC<{ format: Format }> = ({ format }) => {
         {docked && arrowP > 0 ? (
           <g>
             <line x1={A.ox} y1={A.oy} x2={tipN[0]} y2={tipN[1]} stroke={C.chalk} strokeWidth={1.5} />
-            <path d={head(tipN[0], tipN[1], 0)} fill={C.chalk} opacity={prog(t, 2.1, 2.2)} />
+            <path d={head(tipN[0], tipN[1], 0)} fill={C.chalk} opacity={prog(t, 1.6, 1.7)} />
             <line x1={A.ox} y1={A.oy} x2={tipG[0]} y2={tipG[1]} stroke={C.chalk} strokeWidth={1.5} />
-            <path d={head(tipG[0], tipG[1], ANGLE)} fill={C.chalk} opacity={prog(t, 2.1, 2.2)} />
+            <path d={head(tipG[0], tipG[1], ANGLE)} fill={C.chalk} opacity={prog(t, 1.6, 1.7)} />
             {arcP > 0 ? <path d={arcPath} fill="none" stroke={C.chalkBlue} strokeWidth={1.5} /> : null}
           </g>
         ) : null}
       </svg>
 
       {/* labels */}
-      <div style={{ position: 'absolute', left: ox, top: oy + oh + 14, opacity: posterOut * (1 - prog(t, 0.45, 0.6)) }}>
+      <div style={{ position: 'absolute', left: ox, top: oy + oh + 14, opacity: 1 - prog(t, 0.3, 0.4) }}>
         <Lbl text="THE FIVE BAYS · ILLUSTRATIVE" size={lbl} color={C.chalk} />
       </div>
-      <div style={{ position: 'absolute', left: ox, top: oy + oh + 14, opacity: printIn(t, 0.72) * (1 - prog(t, 0.95, 1.15)) }}>
+      <div style={{ position: 'absolute', left: ox, top: oy + oh + 14, opacity: printIn(t, 0.4) * (1 - prog(t, 1.2, 1.35)) }}>
         <Lbl text="VENUE: HOLD — Venue to be announced on this site." size={lbl} color={C.chalk} />
       </div>
       {docked || lift > 0 ? (
@@ -209,14 +213,14 @@ export const Context: React.FC<{ format: Format }> = ({ format }) => {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: `0 18px`,
-            opacity: printIn(t, 0.95),
+            opacity: printIn(t, 0.68),
           }}
         >
           <Lbl text="DATE · VENUE" size={lbl * 0.8} color={C.pencil} />
           <Lbl text="HOLD" size={lbl} color={C.chalk} />
         </div>
       ) : null}
-      <div style={{ position: 'absolute', left: A.ox - 60, top: A.oy - A.len - 52, opacity: printIn(t, 2.1) }}>
+      <div style={{ position: 'absolute', left: A.ox - 60, top: A.oy - A.len - 52, opacity: printIn(t, 1.6) }}>
         <Lbl text="TRUE NORTH" size={lbl} />
       </div>
       <div
@@ -224,7 +228,7 @@ export const Context: React.FC<{ format: Format }> = ({ format }) => {
           position: 'absolute',
           left: A.ox + Math.sin(rad(ANGLE)) * A.len + 12,
           top: A.oy - Math.cos(rad(ANGLE)) * A.len - 20,
-          opacity: printIn(t, 2.1),
+          opacity: printIn(t, 1.6),
         }}
       >
         <Lbl text="THE 1811 GRID" size={lbl} />
@@ -234,13 +238,13 @@ export const Context: React.FC<{ format: Format }> = ({ format }) => {
           position: 'absolute',
           left: A.ox + Math.sin(rad(ANGLE)) * A.arc + 18,
           top: A.oy - Math.cos(rad(ANGLE)) * A.arc - lbl * 0.2,
-          opacity: printIn(t, 2.4),
+          opacity: printIn(t, 1.85),
         }}
       >
         <Lbl text="ABOUT 29°" size={lbl} color={C.chalk} />
       </div>
-      {t >= 0.45 ? (
-        <ViewTitle x={L.vt[0]} y={L.vt[1]} w={L.vt[2]} size={lbl} text="CONTEXT · THE 1811 GRID (HISTORY) · DRAWING · NOT A MAP" opacity={printIn(t, 1.45)} />
+      {t >= 0.3 ? (
+        <ViewTitle x={L.vt[0]} y={L.vt[1]} w={L.vt[2]} size={lbl} text="CONTEXT · THE 1811 GRID (HISTORY) · DRAWING · NOT A MAP" opacity={printIn(t, 1.05)} />
       ) : (
         <ViewTitle x={R.x0} y={R.viewTitleY} w={R.viewTitleW} size={lbl} text="PLAN VIEWS 01–05 · CONCEPT FILM STILL · AI-GENERATED" />
       )}
@@ -255,7 +259,7 @@ export const Context: React.FC<{ format: Format }> = ({ format }) => {
             top: L.h2.baselines[i] - L.h2.size * 0.986,
             ...display(L.h2.size, 800, C.chalk),
             lineHeight: `${L.h2.size * 1.2}px`,
-            opacity: printIn(t, 1.95),
+            opacity: printIn(t, 1.4),
           }}
         >
           {ln}

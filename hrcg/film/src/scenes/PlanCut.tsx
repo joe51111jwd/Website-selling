@@ -2,13 +2,13 @@
 // lying exactly on 07's freshly snapped line, then pulls out into bay 05 of one row of five.
 import React from 'react';
 import { AbsoluteFill, Img, Sequence, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
-import { Clip } from '../components/Clip';
+import { Clip, PlayHold } from '../components/Clip';
 import { Framed } from '../components/Framed';
 import { HeroType } from '../components/HeroType';
 import { Lbl } from '../components/Lbl';
 import { Bubble } from '../components/Marks';
 import { ViewTitle } from '../components/ViewTitle';
-import { B44_FRESH, BAY_PHASE, STILLS } from '../clips';
+import { B40_HOLD, B44_FRESH, BAY_PHASE, SRC_FPS, STILLS } from '../clips';
 import { SETTLE, mix, printIn, prog } from '../lib/ease';
 import { C } from '../theme';
 import type { Format } from '../timeline';
@@ -64,7 +64,7 @@ export const PlanCut: React.FC<{ format: Format }> = ({ format }) => {
   return (
     <AbsoluteFill style={{ backgroundColor: C.slabBlack }}>
       {/* the frozen perspective, under the plan */}
-      <Framed rect={L.dest} frame={L.window} feather={L.window} opacity={1 - planOpacity}>
+      <Framed rect={L.dest} frame={L.window} feather={L.window} mask={L.mask} opacity={1 - planOpacity}>
         <div style={{ position: 'absolute', inset: 0, scale: String(frameScale), transformOrigin: `${lp[0]}px ${lp[1]}px` }}>
           <Img
             src={staticFile(L.still)}
@@ -91,7 +91,12 @@ export const PlanCut: React.FC<{ format: Format }> = ({ format }) => {
         return (
           <Framed key={id} rect={r} frame opacity={prog(t, T.baysIn[0] + i * 0.04, T.baysIn[1])}>
             <Sequence name={`bay ${i + 1}`} from={Math.round(T.baysIn[0] * fps)} premountFor={fps}>
-              <Clip id={id} dest={[0, 0, r[2], r[3]]} trimBefore={Math.round(BAY_PHASE[i] * fps)} />
+              {id === 'b40' ? (
+                // PLAN 01 plays to its hold frame and stays there (F-050), as the site's bay does
+                <PlayHold id="b40" dest={[0, 0, r[2], r[3]]} holdAt={B40_HOLD} still={STILLS.b40hold} srcFps={SRC_FPS} />
+              ) : (
+                <Clip id={id} dest={[0, 0, r[2], r[3]]} trimBefore={Math.round(BAY_PHASE[i] * fps)} />
+              )}
             </Sequence>
           </Framed>
         );

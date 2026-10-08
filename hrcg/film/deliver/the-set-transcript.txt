@@ -1,9 +1,9 @@
 THE SET · concept film, 0:30 (also cut as 9:16 and as a 20-second 1:1)
-CONCEPT FILM · AI-GENERATED CONCEPT FOOTAGE. THIS HASN’T HAPPENED YET.
+CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE. THIS HASN’T HAPPENED YET.
 No music and no voice; the sound is synthesised foley.
 
 Burned in for the whole film: "HRCG-2027 · PLANNED · DRAWING SET" (top left), the sheet number (top right),
-"CONCEPT FILM · AI-GENERATED CONCEPT FOOTAGE" (bottom left).
+and "CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE" in large type twice, near the top and at the bottom left.
 
 A-000 · COVER
 On a dark concrete slab, under quiet room tone, a blue chalk line pays out from a chalk box between two
@@ -27,7 +27,8 @@ A-101 TO A-105 · THE FIVE CHALLENGES
 Five sheets, three seconds each. A pencil tick, then each bay's plan view from above with its sheet tag,
 stencil number and name; a dry knock and a hard cut to the perspective, with the roll-call verb:
 - 01 BRICKLAYING, then "LAY BRICK.": robot 07 lays a brick against a stringline.
-- 02 DRYWALL INSTALLATION, then "HANG DRYWALL.": hands press a sheet of drywall against a steel stud frame.
+- 02 DRYWALL INSTALLATION, then "HANG DRYWALL.": close on robot 07's hand and forearm pressing a sheet of
+  drywall flat, the 07 stencil on its chest.
 - 03 BOLTED ASSEMBLY, then "BOLT IT.": robot 07 drives a bolt with an impact wrench.
 - 04 PIPE ASSEMBLY, then "RUN THE PIPE.": hands join copper pipe at a fitting under a warm work light.
 - 05 LAYOUT AND MARKING, then "MARK IT OUT.": robot 07 crouches with a taut chalk line and lifts it.
@@ -37,14 +38,14 @@ A-200 · CONTEXT · THE 1811 GRID (HISTORY) · NOT A MAP  (16:9 and 9:16 only)
 Under a bed of pencil scratching, the row of five bays fades to its pencil outline ("THE FIVE BAYS ·
 ILLUSTRATIVE"), which turns into an orange revision cloud: "VENUE: HOLD — Venue to be announced on this
 site." The cloud lifts and docks in a ruled cell, "DATE · VENUE: HOLD". Only then does a separate history
-diagram draw: the grid of avenues and cross streets, set about 29 degrees east of true north, with two north
-arrows ("TRUE NORTH", "THE 1811 GRID") and an angle arc ("ABOUT 29°"). It is not a map and not the venue.
-"NEW YORK’S GRID STARTED AS A LAYOUT."
+diagram draw: a dense grid of avenues and cross streets, set about 29 degrees east of true north, with two
+north arrows ("TRUE NORTH", "THE 1811 GRID") and an angle arc ("ABOUT 29°"). It is not a map and not the
+venue. "NEW YORK’S GRID STARTED AS A LAYOUT." The finished diagram holds while the view pushes in slowly.
 
 END CARD
 On slab black, five soft clacks: the course mark lays five bricks in one course. Then:
 "HUMANOID ROBOT CONSTRUCTION GAMES"
-"PLANNED FOR NEW YORK CITY · 2027" | "TEAMS AND SPONSORS: GET IN TOUCH."
+"PLANNED FOR NEW YORK CITY · 2027" | "DATE · VENUE: HOLD"
 "THIS HASN’T HAPPENED YET."
 Silence.
 

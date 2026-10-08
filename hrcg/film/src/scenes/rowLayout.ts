@@ -49,7 +49,7 @@ export const ROW: Record<Format, RowLayout> = {
     listY: 700 + 952 / 5.4 + 150,
     listPitch: 54,
     viewTitleY: 700 + 952 / 5.4 + 40,
-    tagY: 150,
+    tagY: 344, // under the two-line F-058 disclosure in the top safe area
     numeral: 18,
   }),
   '11': row(952, 64, 330, {
@@ -60,7 +60,7 @@ export const ROW: Record<Format, RowLayout> = {
     listY: 330 + 952 / 5.4 + 130,
     listPitch: 44,
     viewTitleY: 330 + 952 / 5.4 + 34,
-    tagY: 110,
+    tagY: 168, // under the F-058 disclosure (top right, 104–146)
     numeral: 16,
   }),
 };

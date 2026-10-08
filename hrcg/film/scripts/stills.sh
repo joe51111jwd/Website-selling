@@ -18,6 +18,7 @@ grab "$C34" 84 $P/stills/c34-f84.png
 grab "${B/X/4}" 62 $P/stills/b44-260.png
 ffmpeg -v error -y -sseof -0.05 -i "${B/X/4}" -frames:v 1 -update 1 $P/stills/b44-last.png
 for i in 0 1 2 3; do ffmpeg -v error -y -i "${B/X/$i}" -frames:v 1 -q:v 2 -update 1 $P/stills/b4$i-f0.jpg; done
+grab "${B/X/0}" 10 $P/stills/b40-f10.png   # PLAN 01's hold frame (clips.ts B40_HOLD; F-050)
 $S/concept/wild-spike/venv/bin/python -I - "$P/stills/b44-260.png" src/measured.json "$SRC" <<'PY'
 import sys, json
 import numpy as np

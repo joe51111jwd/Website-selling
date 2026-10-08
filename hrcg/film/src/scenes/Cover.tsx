@@ -1,4 +1,4 @@
-// A-000 COVER, PASS A: the line pays out and snaps, a small matte puff, the H1 inks, c34 frames 60→84
+// A-000 COVER (pass B keeps the footage cut): the line pays out and snaps, a small matte puff, the H1 inks, c34 frames 60→84
 // rise through the dust, and time stops on frame 84 with a slow push (SETTLE).
 import React from 'react';
 import { AbsoluteFill, Img, Sequence, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
@@ -65,7 +65,7 @@ export const Cover: React.FC<CoverProps> = ({ format }) => {
       <Ground pool={L.pool} />
 
       {/* film, then the frozen frame 84, with the slow push */}
-      <Framed rect={L.dest} frame={L.window} feather={L.window} opacity={filmOpacity}>
+      <Framed rect={L.dest} frame={L.window} feather={L.window} mask={L.mask} opacity={filmOpacity}>
         <div
           style={{
             position: 'absolute',

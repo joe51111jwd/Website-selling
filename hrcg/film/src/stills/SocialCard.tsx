@@ -1,6 +1,7 @@
-// R5: og:image (1200×630) and X card (1600×900) from the frozen frame 84, the H1 laid out in frame space
-// (brief §2.2), and a title strip carrying the status and the disclosure at ≥ 28 px at 1200 wide.
-// PASS A: the 2D frame (no depth swing); PASS B swaps in a capture of the 3D VIEW at the rest pose.
+// R5: og:image (1200×630) and X card (1600×900) from the frozen frame 84 (re-extracted from A5's livery-shifted
+// c34 mezzanine, F-011), the H1 laid out in frame space exactly as the site's CoverStage sets it (pass B note 1:
+// two tight stacks at .86, FAR x 0.095 from cap-top 0.135, NEAR right edge 0.885, BUILD? on the line at 0.755),
+// and a title strip carrying the status and the disclosure at ≥ 28 px at 1200 wide. The 2D frame (no depth swing).
 import React from 'react';
 import { AbsoluteFill, Img, staticFile } from 'remotion';
 import { HeroType, type H1Line } from '../components/HeroType';
@@ -24,11 +25,12 @@ export const SocialCard: React.FC<SocialProps> = ({ kind }) => {
   const fy = (y: number) => top + y * fh;
   const size = 0.131 * fh;
   const cap = size * 0.8;
+  const step = size * 0.86;
   const lines: H1Line[] = [
-    { text: 'WHAT CAN A', x: fx(0.12), baseline: fy(0.14) + cap, anchor: 'start', ink: C.chalk, plane: 'far' },
-    { text: 'HUMANOID', x: fx(0.12), baseline: fy(0.37), anchor: 'start', ink: C.chalk, plane: 'far' },
-    { text: 'ACTUALLY', x: fx(0.92), baseline: fy(0.47) + cap, anchor: 'end', ink: C.orange, plane: 'near' },
-    { text: 'BUILD?', x: fx(0.92), baseline: fy(0.755), anchor: 'end', ink: C.orange, plane: 'near' },
+    { text: 'WHAT CAN A', x: fx(0.095), baseline: fy(0.135) + cap, anchor: 'start', ink: C.chalk, plane: 'far' },
+    { text: 'HUMANOID', x: fx(0.095), baseline: fy(0.135) + cap + step, anchor: 'start', ink: C.chalk, plane: 'far' },
+    { text: 'ACTUALLY', x: fx(0.885), baseline: fy(0.755) - step, anchor: 'end', ink: C.orange, plane: 'near' },
+    { text: 'BUILD?', x: fx(0.885), baseline: fy(0.755), anchor: 'end', ink: C.orange, plane: 'near' },
   ];
   const lbl = kind === 'og' ? 28 : 38;
   const pad = kind === 'og' ? 40 : 56;

@@ -12,7 +12,7 @@ export type ClipId = 'c30' | 'c31' | 'c32' | 'c33' | 'c34' | 'v0' | 'b40' | 'b41
 
 // A5 mezzanine file names (film/public/clips/README.md). c30 as delivered is not exported (it fails the
 // brickwork gate): with USE_N09 it is never used. Crops below are taken from the full 16:9 files and stay
-// inside the regions A5 marks safe (c31 4:5 at x 1059, c33 rows 272+, head out of frame).
+// inside the regions A5 marks safe (c31 only inside its 4:5 window below the head, c33 rows 272+).
 const MEZZ: Record<ClipId, string> = {
   c30: 'clips/c30-n09-169.mp4',
   c31: 'clips/c31-45.mp4', // A5: the 16:9 file shows 07's head; only the 4:5 crop file is used
@@ -32,7 +32,9 @@ const MEZZ: Record<ClipId, string> = {
 // Pre-cropped mezzanines: file px = (canonical 1920x1076 px − offset) · scale.
 type FileGeom = { offset: [number, number]; scale: number; size: [number, number] };
 const MEZZ_GEOM: Partial<Record<ClipId, FileGeom>> = {
-  c31: { offset: [1059, 0], scale: 1080 / 861, size: [1080, 1350] },
+  // F-009 / F-012 (requests/A5-fix-3.md): c31-45 is now the window x 845–1409, rows 371–1076 of the
+  // 1920x1076 mezzanine (564x705), scaled 1080/564 → 1080x1350: board face, forearm and hand, the 07 stencil.
+  c31: { offset: [845, 371], scale: 1080 / 564, size: [1080, 1350] },
   c33: { offset: [0, 272], scale: 1, size: [1920, 804] },
 };
 export const fileGeom = (id: ClipId): FileGeom =>
@@ -76,6 +78,7 @@ export const STILLS = {
   b44at260: 'stills/b44-260.png', // the plan-cut still (b44 at 2.60 s, frame 62)
   b44last: 'stills/b44-last.png',
   b40f0: 'stills/b40-f0.jpg',
+  b40hold: 'stills/b40-f10.png', // PLAN 01 holds here (F-050: from frame ~12 two bare mortar slabs sit in the course)
   b41f0: 'stills/b41-f0.jpg',
   b42f0: 'stills/b42-f0.jpg',
   b43f0: 'stills/b43-f0.jpg',
@@ -83,9 +86,11 @@ export const STILLS = {
 
 // Brief-prescribed crops, in source pixels [x, y, w, h].
 export const CROPS = {
-  // c31 only as 4:5 at x >= 0.50; taken at the right-most position (x 1059-1920) so the head and its
-  // ~3.0 s visor glint stay out of frame.
-  c31_45: [1059, 0, 861, 1076],
+  // c31 only inside A5's window below the head (x 845–1409, rows 371–1076; director-approved 13:25):
+  // the head and its ~3.0 s visor glint stay above it in every frame (C6).
+  c31_45: [845, 371, 564, 705],
+  // its top square (07 stencil, forearm, hand, board) for the square layouts
+  c31_sq: [845, 371, 564, 564],
   // c33 only as the bottom-anchored 2.39:1 crop (rows 271-1076).
   c33_239: [0, 273, 1920, 803],
   // c30 fallback band (only if N09 is missing): 2.39:1 from the top, keeps the trowel, the top course and
@@ -94,10 +99,15 @@ export const CROPS = {
   // N09 retake, as A5's el-c30 plate: 2.39:1 at y 40; phone 4:5 at x 330
   n09r_239: [0, 40, 1920, 804],
   n09r_45: [330, 0, 861, 1076],
+  // square crops for the 9:16 layouts (pass B): inside the same 4:5 windows
+  n09r_sq: [330, 150, 861, 861],
+  c34_sq: [588, 150, 861, 861],
 } as const;
 
 // b44's freshly snapped line in the 2.60 s still (1440² px), measured from the chalk-blue pixels by
 // scripts/stills.sh on the active source: the plan cut lays the visitor's deposit exactly on it.
 export const B44_FRESH = measured.b44Fresh;
+// PLAN 01 (b40) plays source frames 0 → B40_HOLD once and holds there, as the site's plan-b40 does (F-050)
+export const B40_HOLD = 10;
 // R2 phase offsets for bays 01–04 (seconds into each loop)
 export const BAY_PHASE = [0, 1.2, 2.5, 3.7] as const;

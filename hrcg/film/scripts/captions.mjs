@@ -26,7 +26,21 @@ const H1 = 'WHAT CAN A HUMANOID ACTUALLY BUILD?';
 const STATUS = 'PLANNED · NEW YORK CITY · 2027';
 const VT_FILM = 'PERSPECTIVE 05-A · LAYOUT AND MARKING · CONCEPT FILM · AI-GENERATED. THIS HASN’T HAPPENED YET.';
 const VT_STILL = 'PERSPECTIVE 05-A · LAYOUT AND MARKING · CONCEPT FILM STILL · AI-GENERATED. THIS HASN’T HAPPENED YET.';
-const BURN = ['HRCG-2027 · PLANNED · DRAWING SET', 'CONCEPT FILM · AI-GENERATED CONCEPT FOOTAGE'];
+const BURN = ['HRCG-2027 · PLANNED · DRAWING SET', 'CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE']; // = src/layout.ts BURN
+// A-200 beats (seconds into the scene) = src/scenes/Context.tsx
+const CTX_T = { hold: 0.4, dock: 1.05, h2: 1.4 };
+// end card, second cell (F-102): the deploy's own address when it resolves (same order as the site's
+// resolveSiteUrl: SITE_URL, URL, VERCEL_PROJECT_PRODUCTION_URL), else the venue HOLD
+const siteUrl = (() => {
+  const norm = (u) => { const t = (u || '').trim().replace(/\/+$/, ''); return /^https?:\/\/[^/\s]+/i.test(t) ? t : null; };
+  const e = process.env;
+  if (e.SITE_URL && e.SITE_URL.trim()) return norm(e.SITE_URL);
+  if (e.URL && e.URL.trim()) return norm(e.URL);
+  const v = e.VERCEL_PROJECT_PRODUCTION_URL;
+  if (v && v.trim()) return norm(`https://${v.trim().replace(/^https?:\/\//, '')}`);
+  return null;
+})();
+const END_CELL = siteUrl ? `TEAMS AND SPONSORS: GET IN TOUCH.\n${siteUrl.replace(/^https?:\/\//, '')}` : 'DATE · VENUE: HOLD';
 
 const ts = (t) => {
   const m = Math.floor(t / 60);
@@ -71,14 +85,14 @@ const build = (fmt) => {
   });
   if (f.context) {
     const a = f.context.start;
-    sup.push([a, a + 0.45, 'A-200 · CONTEXT · THE 1811 GRID (HISTORY) · NOT A MAP · NTS\nPLAN VIEWS 01–05 · CONCEPT FILM STILL · AI-GENERATED\nTHE FIVE BAYS · ILLUSTRATIVE']);
-    sup.push([a + 0.45, a + 1.15, 'VENUE: HOLD — Venue to be announced on this site.']);
-    sup.push([a + 1.15, a + 1.95, 'DATE · VENUE: HOLD\nCONTEXT · THE 1811 GRID (HISTORY) · DRAWING · NOT A MAP']);
-    sup.push([a + 1.95, f.context.end, 'NEW YORK’S GRID STARTED AS A LAYOUT.\nTRUE NORTH · THE 1811 GRID · ABOUT 29°']);
+    sup.push([a, a + CTX_T.hold, 'A-200 · CONTEXT · THE 1811 GRID (HISTORY) · NOT A MAP · NTS\nPLAN VIEWS 01–05 · CONCEPT FILM STILL · AI-GENERATED\nTHE FIVE BAYS · ILLUSTRATIVE']);
+    sup.push([a + CTX_T.hold, a + CTX_T.dock, 'VENUE: HOLD — Venue to be announced on this site.']);
+    sup.push([a + CTX_T.dock, a + CTX_T.h2, 'DATE · VENUE: HOLD\nCONTEXT · THE 1811 GRID (HISTORY) · DRAWING · NOT A MAP']);
+    sup.push([a + CTX_T.h2, f.context.end, 'NEW YORK’S GRID STARTED AS A LAYOUT.\nTRUE NORTH · THE 1811 GRID · ABOUT 29°']);
     snd.push([a, f.context.end, '[pencil scratching]']);
   }
   const e = f.end.start;
-  sup.push([e + 0.55, f.end.end, 'HUMANOID ROBOT CONSTRUCTION GAMES\nPLANNED FOR NEW YORK CITY · 2027\nTEAMS AND SPONSORS: GET IN TOUCH.\nTHIS HASN’T HAPPENED YET.']);
+  sup.push([e + 0.55, f.end.end, `HUMANOID ROBOT CONSTRUCTION GAMES\nPLANNED FOR NEW YORK CITY · 2027\n${END_CELL}\nTHIS HASN’T HAPPENED YET.`]);
   snd.push([e + 0.1, e + 0.55, '[five soft clacks of brick]']);
   snd.push([e + 0.55, f.end.end, '[silence]']);
 
@@ -86,7 +100,7 @@ const build = (fmt) => {
     ...sup.map(([a, b, tx]) => ({ a, b, tx, set: 'line:-1' })),
     ...snd.map(([a, b, tx]) => ({ a, b, tx, set: 'line:0' })),
   ].sort((p, q) => p.a - q.a || (p.set < q.set ? -1 : 1));
-  let vtt = `WEBVTT\n\nNOTE\nTHE SET (${fmt === '11' ? '1:1, 20 s cut' : fmt === '916' ? '9:16' : '16:9'}) · CONCEPT FILM · AI-GENERATED CONCEPT FOOTAGE.\nEvery on-screen super, plus [sound] cues (shown at the top). The two burn-ins\n"${BURN[0]}" and "${BURN[1]}" stay on screen for the whole film.\nNo music, no voice. All footage is AI-generated concept footage; nothing shown has happened yet.\n\n`;
+  let vtt = `WEBVTT\n\nNOTE\nTHE SET (${fmt === '11' ? '1:1, 20 s cut' : fmt === '916' ? '9:16' : '16:9'}) · CONCEPT FILM · AI-GENERATED CONCEPT FOOTAGE.\nEvery on-screen super, plus [sound] cues (shown at the top). The burn-ins\n"${BURN[0]}" and "${BURN[1]}" (twice: top and bottom) stay on screen for the whole film.\nNo music, no voice. All footage is AI-generated concept footage; nothing shown has happened yet.\n\n`;
   cues.forEach((q, i) => {
     vtt += `${i + 1}\n${ts(q.a)} --> ${ts(Math.min(q.b, f.duration))} ${q.set}\n${q.tx}\n\n`;
   });
@@ -100,11 +114,11 @@ for (const fmt of ['169', '916', '11']) {
 }
 
 const transcript = `THE SET · concept film, 0:30 (also cut as 9:16 and as a 20-second 1:1)
-CONCEPT FILM · AI-GENERATED CONCEPT FOOTAGE. THIS HASN’T HAPPENED YET.
+CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE. THIS HASN’T HAPPENED YET.
 No music and no voice; the sound is synthesised foley.
 
 Burned in for the whole film: "HRCG-2027 · PLANNED · DRAWING SET" (top left), the sheet number (top right),
-"CONCEPT FILM · AI-GENERATED CONCEPT FOOTAGE" (bottom left).
+and "CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE" in large type twice, near the top and at the bottom left.
 
 A-000 · COVER
 On a dark concrete slab, under quiet room tone, a blue chalk line pays out from a chalk box between two
@@ -128,7 +142,8 @@ A-101 TO A-105 · THE FIVE CHALLENGES
 Five sheets, three seconds each. A pencil tick, then each bay's plan view from above with its sheet tag,
 stencil number and name; a dry knock and a hard cut to the perspective, with the roll-call verb:
 - 01 BRICKLAYING, then "LAY BRICK.": robot 07 lays a brick against a stringline.
-- 02 DRYWALL INSTALLATION, then "HANG DRYWALL.": hands press a sheet of drywall against a steel stud frame.
+- 02 DRYWALL INSTALLATION, then "HANG DRYWALL.": close on robot 07's hand and forearm pressing a sheet of
+  drywall flat, the 07 stencil on its chest.
 - 03 BOLTED ASSEMBLY, then "BOLT IT.": robot 07 drives a bolt with an impact wrench.
 - 04 PIPE ASSEMBLY, then "RUN THE PIPE.": hands join copper pipe at a fitting under a warm work light.
 - 05 LAYOUT AND MARKING, then "MARK IT OUT.": robot 07 crouches with a taut chalk line and lifts it.
@@ -138,14 +153,14 @@ A-200 · CONTEXT · THE 1811 GRID (HISTORY) · NOT A MAP  (16:9 and 9:16 only)
 Under a bed of pencil scratching, the row of five bays fades to its pencil outline ("THE FIVE BAYS ·
 ILLUSTRATIVE"), which turns into an orange revision cloud: "VENUE: HOLD — Venue to be announced on this
 site." The cloud lifts and docks in a ruled cell, "DATE · VENUE: HOLD". Only then does a separate history
-diagram draw: the grid of avenues and cross streets, set about 29 degrees east of true north, with two north
-arrows ("TRUE NORTH", "THE 1811 GRID") and an angle arc ("ABOUT 29°"). It is not a map and not the venue.
-"NEW YORK’S GRID STARTED AS A LAYOUT."
+diagram draw: a dense grid of avenues and cross streets, set about 29 degrees east of true north, with two
+north arrows ("TRUE NORTH", "THE 1811 GRID") and an angle arc ("ABOUT 29°"). It is not a map and not the
+venue. "NEW YORK’S GRID STARTED AS A LAYOUT." The finished diagram holds while the view pushes in slowly.
 
 END CARD
 On slab black, five soft clacks: the course mark lays five bricks in one course. Then:
 "HUMANOID ROBOT CONSTRUCTION GAMES"
-"PLANNED FOR NEW YORK CITY · 2027" | "TEAMS AND SPONSORS: GET IN TOUCH."
+"PLANNED FOR NEW YORK CITY · 2027" | "${END_CELL.replace('\n', ' ')}"
 "THIS HASN’T HAPPENED YET."
 Silence.
 

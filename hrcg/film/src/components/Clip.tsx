@@ -2,7 +2,7 @@
 // Uses <Video> from @remotion/media (falls back to <OffthreadVideo> by itself if it cannot decode).
 import React from 'react';
 import { Video } from '@remotion/media';
-import { staticFile, useVideoConfig } from 'remotion';
+import { Img, Sequence, staticFile, useVideoConfig } from 'remotion';
 import { CLIP_SIZE, clipPath, fileGeom, type ClipId } from '../clips';
 
 export type Rect = readonly [number, number, number, number];
@@ -49,5 +49,30 @@ export const Clip: React.FC<{
         ...style,
       }}
     />
+  );
+};
+
+/**
+ * Plays a clip from its first frame up to source frame `holdAt` once, then holds that frame (a still
+ * extracted by scripts/stills.sh). For bays whose later frames must not be shown (b40, F-050).
+ */
+export const PlayHold: React.FC<{ id: ClipId; dest: Rect; holdAt: number; still: string; srcFps: number }> = ({
+  id,
+  dest,
+  holdAt,
+  still,
+  srcFps,
+}) => {
+  const { fps } = useVideoConfig();
+  const playF = Math.floor((holdAt / srcFps) * fps);
+  return (
+    <>
+      <Sequence name={`${id} 0→${holdAt}`} durationInFrames={playF} premountFor={fps}>
+        <Clip id={id} dest={dest} trimBefore={0} />
+      </Sequence>
+      <Sequence name={`${id} hold ${holdAt}`} from={playF} premountFor={fps}>
+        <Img src={staticFile(still)} style={{ position: 'absolute', left: dest[0], top: dest[1], width: dest[2], height: dest[3] }} />
+      </Sequence>
+    </>
   );
 };
