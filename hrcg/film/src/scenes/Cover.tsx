@@ -7,7 +7,6 @@ import { Clip } from '../components/Clip';
 import { Framed } from '../components/Framed';
 import { Ground } from '../components/Ground';
 import { HeroType } from '../components/HeroType';
-import { Lbl } from '../components/Lbl';
 import { Puff } from '../components/Puff';
 import { ViewTitle } from '../components/ViewTitle';
 import { SETTLE, mix, prog } from '../lib/ease';
@@ -161,5 +160,3 @@ export const Cover: React.FC<CoverProps> = ({ format }) => {
     </AbsoluteFill>
   );
 };
-
-export const CoverLabel: React.FC<{ size: number }> = ({ size }) => <Lbl text="A-000" size={size} />;

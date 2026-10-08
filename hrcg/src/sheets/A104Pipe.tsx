@@ -12,11 +12,13 @@
 //   centre + s·((u − ½)·(1/√2, −1/√6) + (v − ½)·(1/√2, 1/√6)) + z·(0, −√⅔)
 // which is exactly what rotateX(54.7356°) rotateZ(−45°) translateZ(z) does to the plane's own pixels.
 
-import { useRef, type CSSProperties } from 'react';
+import { useCallback, useRef, type CSSProperties } from 'react';
 import { usePrinted } from './a4/util';
 import { ViewTitle } from '../chrome/ViewTitle';
 import { SheetTag } from '../chrome/SheetTag';
 import { LoopVideo } from '../system/LoopVideo';
+import { videoManager, type VideoState } from '../system/VideoManager';
+import { MEDIA_STATES } from '../content/copy/chrome';
 import { media } from '../media/manifest';
 import { A104 } from '../content/copy/a104-a200';
 import './a4/a4.css';
@@ -227,6 +229,10 @@ function Route({ g, variant }: { g: Geometry; variant: 'desk' | 'phone' }) {
 
 export default function A104Pipe() {
   const rootRef = useRef<HTMLDivElement>(null);
+  // PLAN 04's ▶ PLAY sits flat beside the plane (LoopVideo's own button would be laid at isometric)
+  const onPlanState = useCallback((st: VideoState) => {
+    rootRef.current?.setAttribute('data-plan', st);
+  }, []);
   // the route, its beats, the trace and the copy print in when the sheet arrives (opacity only)
   usePrinted(rootRef, '0px 0px -25% 0px');
 
@@ -255,11 +261,19 @@ export default function A104Pipe() {
         {/* PLAN 04 on the iso plane, the traced task drawing in registration on it */}
         <ViewTitle id="a104-plan" className="a104-plan" frame={false} captionClassName="a104-plan-title">
           <div className="a104-plane">
-            <LoopVideo id="plan-b43" className="a104-video" />
+            <LoopVideo id="plan-b43" className="a104-video" onState={onPlanState} />
             {traceStyle ? <div className="a104-trace print-in" style={traceStyle} aria-hidden="true" /> : null}
           </div>
         </ViewTitle>
         <ViewTitle id="a104-trace" captionClassName="a104-trace-title print-in" />
+        <button
+          type="button"
+          className="cell-button a104-play js-only"
+          aria-label={`${MEDIA_STATES.playLabelPrefix}${media['plan-b43']?.alt ?? ''}`}
+          onClick={() => videoManager.userPlay('plan-b43')}
+        >
+          {MEDIA_STATES.play}
+        </button>
 
         {/* the plane's hairline frame, drawn crisp in the overlay */}
         <svg className="a104-frame a104-frame--desk" viewBox={`0 0 ${DESK.w} ${DESK.h}`} aria-hidden="true" focusable="false">

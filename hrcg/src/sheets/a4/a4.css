@@ -468,6 +468,22 @@
   inset: 0;
   height: 100%;
 }
+/* LoopVideo's own ▶ would be laid at isometric on the plane: hide it, use the flat one beside the plane */
+.a104-plane .loopvideo-play {
+  display: none !important;
+}
+.a104-play {
+  position: absolute;
+  /* on the caption line, in the empty margin left of the captions */
+  left: 0;
+  top: calc(var(--pt) + var(--side) * 0.9082 + 2px);
+  display: none;
+  background: rgba(11, 11, 10, 0.86);
+}
+.a104[data-plan='blocked'] .a104-play,
+.rm .a104:not([data-plan='playing']):not([data-plan='error']) .a104-play {
+  display: inline-flex;
+}
 /* the traced task drawing: the D6 SVG recoloured chalk-blue through a mask (lines only) */
 .a104-trace {
   position: absolute;
@@ -628,6 +644,9 @@
   }
   .a104-beat--right {
     text-align: right;
+  }
+  .a104-play {
+    top: calc(var(--pt) + var(--side) * 0.9082 + 80px);
   }
   .a104-foot {
     display: block;
