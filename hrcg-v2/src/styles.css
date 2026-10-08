@@ -186,17 +186,15 @@ h1 .l2 {
 .nowrap {
   white-space: nowrap;
 }
-@media (min-width: 1000px) {
-  /* headline left, the sub-line beside it on its last baseline */
-  .hero-head {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 24ch);
-    column-gap: clamp(32px, 4vw, 72px);
-    align-items: end;
-  }
+@media (min-width: 1100px) {
+  /* the sub-line sits beside the taped words on the headline's last line */
   .hero-head .sub {
-    margin: 0 0 0.6em;
-    max-width: 24ch;
+    position: absolute;
+    left: calc(var(--h1) * 5.6);
+    bottom: 0.1em;
+    margin: 0;
+    max-width: 32ch;
+    line-height: 1.45;
   }
 }
 
