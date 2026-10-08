@@ -1,1 +1,1 @@
-export { Permit, CONTACT_EMAIL } from './PermitFallback';
+export { Permit, CONTACT_EMAIL } from './Permit';

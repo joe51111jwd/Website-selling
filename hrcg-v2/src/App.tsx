@@ -180,6 +180,19 @@ function Mark() {
 
 export function App() {
   const [ctaHidden, setCtaHidden] = useState(false);
+  const [headHidden, setHeadHidden] = useState(false);
+  useEffect(() => {
+    // the header steps out of the way while you read down, and comes back when you scroll up
+    let last = window.scrollY;
+    const on = () => {
+      const y = window.scrollY;
+      if (Math.abs(y - last) < 6) return;
+      setHeadHidden(y > last && y > 160);
+      last = y;
+    };
+    window.addEventListener('scroll', on, { passive: true });
+    return () => window.removeEventListener('scroll', on);
+  }, []);
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduce) return;
@@ -214,7 +227,7 @@ export function App() {
 
   return (
     <>
-      <header className="top">
+      <header className={`top ${headHidden ? 'is-hidden' : ''}`}>
         <a className="brand" href="#top" aria-label="HRCG, Humanoid Robot Construction Games, back to top">
           <Mark />
           <span>HRCG</span>
@@ -243,7 +256,7 @@ export function App() {
               <Film id="arena-0104" ratio="1890 / 350" label="Concept film from above: work bays one to four, one robot working in each." />
               <Film id="plan-b44" ratio="1 / 1" label="Concept film from above: bay five, a robot marking out a plan on the floor." />
             </div>
-            <Film id="el-c30" ratio="4 / 5" label="Concept film: a robot lays a course of brick." className="only-narrow hero-crop" />
+            <Film id="plan-b40" ratio="1 / 1" label="Concept film from above: a robot lays a course of brick in bay one." className="only-narrow" />
           </motion.div>
         </section>
 
