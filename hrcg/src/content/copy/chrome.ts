@@ -7,7 +7,7 @@ export const HEADER = {
   name: 'HRCG',
   line1: 'HUMANOID ROBOT',
   line2: 'CONSTRUCTION GAMES',
-  homeLabel: 'Humanoid Robot Construction Games, back to the cover',
+  homeLabel: 'HRCG, Humanoid Robot Construction Games, back to the cover',
   index: 'INDEX',
   indexLabel: 'Open the drawing index',
 } as const;

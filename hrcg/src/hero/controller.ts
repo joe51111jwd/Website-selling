@@ -502,6 +502,12 @@ class CoverController {
     if (this.scene) this.scene.resize(this.frameRect.width, this.frameRect.height, this.dpr);
     this.layoutDeposits();
     this.placeholderRow();
+    // the plan caption takes over the hero caption's exact span (frame x 0.09 -> 0.92)
+    const pinW = this.pin.getBoundingClientRect().width || window.innerWidth;
+    const fl = this.frameRect.left - heroR.left;
+    const vx0 = this.orient === '916' ? 0.08 : 0.09;
+    this.root.style.setProperty('--cv-vt-l', `${Math.max(0, fl + vx0 * this.frameRect.width).toFixed(1)}px`);
+    this.root.style.setProperty('--cv-vt-r', `${Math.max(0, pinW - (fl + 0.92 * this.frameRect.width)).toFixed(1)}px`);
     this.M0 = registerLine(this.fresh[0], this.fresh[1], this.baseL, this.baseR);
     if (this.mode !== 'static') {
       this.readP();
@@ -1363,7 +1369,7 @@ class CoverController {
     // hero media crossfade into the plan
     const cut = segment(P, BEATS.planCut[0], BEATS.planCut[1]);
     // the plan fades in over the perspective; the perspective leaves in the second half
-    this.hero.style.opacity = P >= BEATS.planCut[1] ? '0' : (1 - segment(cut, 0.5, 1)).toFixed(3);
+    this.hero.style.opacity = P >= BEATS.planCut[1] ? '0' : (1 - segment(cut, 0.25, 0.75)).toFixed(3);
     this.hero.style.visibility = P >= BEATS.planCut[1] ? 'hidden' : '';
     // plan still: registered on the deposit, then FLIP into bay 05
     const M0 = this.M0;
@@ -1374,6 +1380,7 @@ class CoverController {
       const M1 = onBox(this.bayRect());
       const m = e > 0 ? mixSim(M0, M1, e) : M0;
       this.planSq.style.transform = cssMatrix(m);
+      this.planSq.style.setProperty('--fe', `${(6 * (1 - e * e)).toFixed(2)}%`);
       this.deps.style.transform = relative(m, M0);
       this.planSq.style.opacity = this.landed ? '0' : settleEase(cut).toFixed(3);
       this.planSq.classList.toggle('is-feathered', true);

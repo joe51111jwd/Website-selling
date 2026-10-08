@@ -586,6 +586,13 @@ export default function A105Layout() {
         <h2 className="t-h2-challenge a105-h2" data-a105-text="">
           {A105.h2}
         </h2>
+        <div className="a105-detail" data-a105-text="">
+          <DetailBubble n={5} sheet="A-105" label={A105.detail.open} onOpenChange={onDetail} panelClassName="a105-detail-panel">
+            <ViewTitle id="a105-detail">
+              <LoopVideo id="det-n04" autoPlay={false} />
+            </ViewTitle>
+          </DetailBubble>
+        </div>
         <div className="a105-col">
           <p className="t-spec a105-spec" data-a105-text="">
             {A105.spec}
@@ -597,13 +604,6 @@ export default function A105Layout() {
               </li>
             ))}
           </ul>
-          <div className="a105-detail" data-a105-text="">
-            <DetailBubble n={5} sheet="A-105" label={A105.detail.open} onOpenChange={onDetail} panelClassName="a105-detail-panel">
-              <ViewTitle id="a105-detail">
-                <LoopVideo id="det-n04" autoPlay={false} />
-              </ViewTitle>
-            </DetailBubble>
-          </div>
         </div>
         </div>
       </div>

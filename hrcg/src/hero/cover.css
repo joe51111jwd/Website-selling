@@ -281,9 +281,10 @@
   display: flex;
 }
 .cv-plan .cv-vt {
-  /* the plan's caption sits where the hero's sits (the view title "ticks", brief 3.3) */
-  left: max(var(--margin), 9%);
-  right: max(var(--margin), 8%);
+  /* the plan's caption sits exactly where the hero's sits (the view title "ticks", brief 3.3);
+     the controller measures the hero caption's span into --cv-vt-l / --cv-vt-r */
+  left: var(--cv-vt-l, max(var(--margin), 9%));
+  right: var(--cv-vt-r, max(var(--margin), 8%));
   bottom: calc(var(--chrome-bottom) + 12px);
 }
 .cv[data-vt='plan'] .cv-plan .cv-vt {
@@ -641,14 +642,16 @@
   width: 100%;
   height: 100%;
 }
+/* feathered while it is footage on the slab; the feather closes (--fe -> 0) as it lands in its bay */
 .cv-plan-sq.is-feathered {
+  --fe: 6%;
   -webkit-mask-image:
-    linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
-    linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+    linear-gradient(to right, transparent, #000 var(--fe), #000 calc(100% - var(--fe)), transparent),
+    linear-gradient(to bottom, transparent, #000 var(--fe), #000 calc(100% - var(--fe)), transparent);
   -webkit-mask-composite: source-in;
   mask-image:
-    linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
-    linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+    linear-gradient(to right, transparent, #000 var(--fe), #000 calc(100% - var(--fe)), transparent),
+    linear-gradient(to bottom, transparent, #000 var(--fe), #000 calc(100% - var(--fe)), transparent);
   mask-composite: intersect;
 }
 .cv-slot5 {
@@ -660,6 +663,21 @@
   object-fit: cover;
   opacity: 0;
   background: var(--slab-black);
+  /* the same resting hairline as A3's bay tiles, and their hover / focus states for bay 05 */
+  outline: 1px solid var(--hairline);
+  outline-offset: -1px;
+  transition:
+    outline-color var(--dur-hover) linear,
+    outline-width var(--dur-hover) linear,
+    outline-offset var(--dur-hover) linear;
+}
+.cv:has(.arena-bay:nth-child(5) .arena-link:hover) .cv-slot5 {
+  outline: 1.25px solid var(--chalk-blue);
+  outline-offset: -1.25px;
+}
+.cv:has(.arena-bay:nth-child(5) .arena-link:focus-visible) .cv-slot5 {
+  outline: 2px solid var(--chalk-blue);
+  outline-offset: 3px;
 }
 
 /* ------------------------------------------------------------------ A-100 placeholder (until A3's ArenaPlan) */
@@ -725,9 +743,4 @@
     font-size: 12px;
   }
 }
-@media (max-width: 767px) {
-  .cv-plan .cv-vt {
-    left: var(--margin);
-    right: var(--margin);
-  }
-}
+

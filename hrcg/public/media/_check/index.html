@@ -4,6 +4,7 @@
 <script type="module">
 const mod = await import('/src/media/manifest.ts');
 const { media, sheetVideoPriority, isMockManifest } = mod;
+const abs = (u) => new URL(u, location.origin + '/').href;   // manifest URLs are document-relative to the site root
 const res = { mock: isMockManifest, count: Object.keys(media).length, priority: sheetVideoPriority, videos: {}, images: {}, other: {} };
 const one = (fn, ms = 20000) => new Promise((r) => { const t = setTimeout(() => r({ ok: false, err: 'timeout' }), ms); fn((v) => { clearTimeout(t); r(v); }); });
 for (const [id, e] of Object.entries(media)) {
@@ -17,18 +18,18 @@ for (const [id, e] of Object.entries(media)) {
         v.onloadeddata = async () => { try { await v.play(); await new Promise(r => setTimeout(r, 300)); } catch (x) {}
           done({ ok: true, w: v.videoWidth, h: v.videoHeight, dur: +v.duration.toFixed(3), t: +v.currentTime.toFixed(2), can }); v.remove(); };
         v.onerror = () => done({ ok: false, err: String(v.error && v.error.code) });
-        v.src = s.src; document.body.appendChild(v);
+        v.src = abs(s.src); document.body.appendChild(v);
       });
     }
-    const p = await one((done) => { const i = new Image(); i.onload = () => done({ ok: true, w: i.naturalWidth, h: i.naturalHeight }); i.onerror = () => done({ ok: false }); i.src = e.poster; });
+    const p = await one((done) => { const i = new Image(); i.onload = () => done({ ok: true, w: i.naturalWidth, h: i.naturalHeight }); i.onerror = () => done({ ok: false }); i.src = abs(e.poster); });
     out.poster = p;
     res.videos[id] = out;
   } else if (e.kind === 'image' || e.kind === 'matte' || (e.kind === 'svg') || e.sources[0].type === 'image/png') {
     const r = {};
-    for (const s of e.sources) r[s.type] = await one((done) => { const i = new Image(); i.onload = () => done({ ok: true, w: i.naturalWidth, h: i.naturalHeight }); i.onerror = () => done({ ok: false }); i.src = s.src; });
+    for (const s of e.sources) r[s.type] = await one((done) => { const i = new Image(); i.onload = () => done({ ok: true, w: i.naturalWidth, h: i.naturalHeight }); i.onerror = () => done({ ok: false }); i.src = abs(s.src); });
     res.images[id] = r;
   } else {
-    const rr = await fetch(e.sources[0].src); res.other[id] = { ok: rr.ok, bytes: (await rr.arrayBuffer()).byteLength };
+    const rr = await fetch(abs(e.sources[0].src)); res.other[id] = { ok: rr.ok, bytes: (await rr.arrayBuffer()).byteLength };
   }
 }
 document.getElementById('out').textContent = JSON.stringify(res, null, 1);

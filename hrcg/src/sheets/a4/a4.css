@@ -891,6 +891,7 @@
 }
 .a105-col {
   grid-column: 2;
+  grid-row: 2;
   position: relative;
   padding-left: var(--s-4);
   max-width: 34rem;
@@ -912,12 +913,16 @@
   color: var(--chalk);
 }
 .a105-detail {
-  align-self: flex-start;
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: start;
+  padding-top: var(--s-6);
 }
+/* the detail opens into the empty column under the H2, never over the copy */
 .a105-detail-panel {
-  left: 56px;
-  bottom: 0;
-  width: min(36vw, 520px);
+  left: 0;
+  top: calc(100% + var(--s-4));
+  width: min(calc(var(--u2, 0.836) * var(--S) - var(--s-6)), 36vw);
 }
 
 /* live desktop: one pinned stage, the text follows it */
@@ -962,7 +967,14 @@
     padding-top: var(--s-7);
   }
   .a105-textin {
-    display: block;
+    display: flex;
+    flex-direction: column;
+  }
+  .a105-col {
+    order: 1;
+  }
+  .a105-detail {
+    order: 2;
   }
   .a105-h2 {
     max-width: none;
@@ -975,9 +987,14 @@
   .a105-cut {
     height: 96px;
   }
+  .a105-detail {
+    padding-top: var(--s-5);
+    margin-left: calc(var(--u1, 0.147) * 100cqw + var(--s-4));
+  }
   .a105-detail-panel {
-    left: 0;
-    bottom: 56px;
-    width: 86vw;
+    /* back to the content's left edge, full content width */
+    left: calc(-1 * (var(--u1, 0.147) * 100cqw + var(--s-4)));
+    top: calc(100% + var(--s-3));
+    width: 100cqw;
   }
 }

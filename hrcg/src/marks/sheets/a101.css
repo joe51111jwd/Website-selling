@@ -131,8 +131,8 @@
   }
   /* phones: the marker sits on the plan's bottom-right corner (dark slab outside the bay), over its caption rule */
   .a101-marker {
-    right: -6px;
-    bottom: 6px;
+    right: 2px;
+    bottom: 34px;
   }
   .a101-detail-panel {
     right: auto;
