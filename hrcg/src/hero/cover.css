@@ -175,7 +175,7 @@
     --ar-h: 1912;
     /* 9:16 (brief 2.5) */
     --t-size: 0.075;
-    --far-left: 0.08;
+    --far-left: 0.09; /* brief 0.08; 0.09 lines the H1 up with the header's mark on a 390 phone */
     --far-top: 0.09884; /* cap-top 0.10 */
     --near-right: 0.135; /* right edge 0.865, clear of the chalk-box handle */
     --near-top: 0.64934; /* last baseline 0.775 */
@@ -709,36 +709,50 @@
 /* ------------------------------------------------------------------ phone (9:16 frame) */
 @media (max-aspect-ratio: 4/5) {
   .cv-sub {
-    left: 8%;
+    left: 9%;
     top: 81%;
-    max-width: calc(84% - 4px);
+    max-width: 82%;
     font-size: 17px;
     line-height: 22px;
   }
+  /* the left of the line is free (NEAR is right-aligned): the hints, the reset and the play button
+     stand there, bottom on the line, never wider than the space left of BUILD? */
   .cv-hint {
-    left: 8%;
+    left: 9%;
     top: auto;
     bottom: calc((1 - var(--line-y)) * 100% + 12px);
-    max-width: 40%;
+    max-width: 38%;
   }
   .cv-restrow {
-    left: 8%;
-    right: 8%;
+    left: 9%;
     top: auto;
-    bottom: calc((1 - var(--line-y)) * 100% - 22px);
+    bottom: calc((1 - var(--line-y)) * 100% - 4px);
+    max-width: 38%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
     translate: none;
   }
+  .cv-restrow .cv-hint {
+    max-width: none;
+  }
   .cv-play {
-    left: 8%;
+    left: 9%;
     top: auto;
-    bottom: calc((1 - var(--line-y)) * 100% + 12px);
+    bottom: calc((1 - var(--line-y)) * 100% - 4px);
+    max-width: 38%;
+    translate: none;
+    white-space: normal;
+    text-align: left;
+    justify-content: flex-start;
+    padding: 7px 10px;
   }
   .cv-vt {
-    left: 8%;
+    left: 9%;
     right: 8%;
   }
   .cv-status {
-    left: 8%;
+    left: 9%;
     top: 6.6%;
     font-size: 12px;
   }

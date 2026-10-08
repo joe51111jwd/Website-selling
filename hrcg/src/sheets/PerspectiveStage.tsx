@@ -48,6 +48,8 @@ export interface PerspectiveStageProps {
   pinAt?: number;
   /** id for the view anchor (view markers target it: lands on the hold, or on the view in flow) */
   anchorId?: string;
+  /** Narrowest viewport (px) that pins; below it the stage is in flow (default 768) */
+  pinMinWidth?: number;
   /** Called with the entrance progress e (0..1) on every frame it changes (no React state) */
   onEntrance?: (e: number) => void;
   className?: string;
@@ -83,11 +85,12 @@ export function PerspectiveStage({
   pinVh = 70,
   pinAt = 0.56,
   anchorId,
+  pinMinWidth = 768,
   onEntrance,
   className,
 }: PerspectiveStageProps) {
   const { motion } = usePrefs();
-  const phone = useMedia('(max-width: 767px)');
+  const phone = useMedia(`(max-width: ${pinMinWidth - 1}px)`);
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
   const pin = hydrated && motion && !phone;
@@ -266,7 +269,12 @@ export function PerspectiveStage({
 
   const style = { ['--pin' as string]: pinVh } as CSSProperties;
   return (
-    <div className={`pstage pstage--${preset} pstage--${bleed} ${className ?? ''}`} data-mode={pin ? 'pin' : 'flow'} style={style}>
+    <div
+      className={`pstage pstage--${preset} pstage--${bleed} ${className ?? ''}`}
+      data-mode={pin ? 'pin' : 'flow'}
+      data-pin-min={pinMinWidth > 768 ? pinMinWidth : undefined}
+      style={style}
+    >
       <div ref={trackRef} className="pstage-track">
         <div ref={stickyRef} className="pstage-sticky">
           <div ref={compRef} className="pstage-comp">

@@ -116,22 +116,10 @@
     --D: min(34vw, 56svh);
   }
 }
+/* tablets and phones: no pin; the composition stacks (H2, circle, text, PLAN 03), then 03-A */
 @media (max-width: 1023px) {
   .a103 {
-    --D: min(46vw, 56svh);
-    --cl: calc(100% - var(--D));
-  }
-  .a103-detail {
-    left: auto;
-    right: 0;
-  }
-  .a103-plan {
-    display: none;
-  }
-}
-@media (max-width: 767px) {
-  .a103 {
-    --D: 100%;
+    --D: min(100%, 64svh);
   }
   .a103-comp {
     height: auto;
@@ -158,8 +146,13 @@
     width: 100%;
     margin-top: var(--s-5);
   }
+  .a103-circle-view .view-title {
+    max-width: var(--D);
+    margin-inline: auto;
+  }
   .a103-circle {
-    width: 100%;
+    width: var(--D);
+    margin-inline: auto;
   }
   .a103-leader,
   .a103-ref {
@@ -173,7 +166,12 @@
   .a103-plan {
     display: block;
     position: static;
-    width: 60%;
+    width: min(60%, 320px);
     margin-top: var(--s-7);
+  }
+}
+@media (max-width: 767px) {
+  .a103 {
+    --D: 100%;
   }
 }

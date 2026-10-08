@@ -34,6 +34,10 @@
 }
 
 @media (min-width: 768px) {
+  /* before hydration a stage that pins only from 1024 px stays in flow (no reserved pin height) */
+  .pstage[data-pin-min] .pstage-track {
+    height: auto;
+  }
   .pstage[data-mode='pin'] .pstage-track {
     height: calc(100svh + var(--pin) * 1vh);
   }

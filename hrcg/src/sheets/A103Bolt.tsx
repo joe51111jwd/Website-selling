@@ -87,6 +87,7 @@ export function A103Bolt() {
         bleed="content"
         aspect={16 / 9}
         anchorId="a103-persp"
+        pinMinWidth={1024}
         view={
           <ViewTitle id="a103-perspective" captionId="a103-persp-title" className="a103-persp">
             <LoopVideo id="el-c32" label={A103.alt.perspective} phoneId={null} />

@@ -505,7 +505,7 @@ class CoverController {
     // the plan caption takes over the hero caption's exact span (frame x 0.09 -> 0.92)
     const pinW = this.pin.getBoundingClientRect().width || window.innerWidth;
     const fl = this.frameRect.left - heroR.left;
-    const vx0 = this.orient === '916' ? 0.08 : 0.09;
+    const vx0 = 0.09;
     this.root.style.setProperty('--cv-vt-l', `${Math.max(0, fl + vx0 * this.frameRect.width).toFixed(1)}px`);
     this.root.style.setProperty('--cv-vt-r', `${Math.max(0, pinW - (fl + 0.92 * this.frameRect.width)).toFixed(1)}px`);
     this.M0 = registerLine(this.fresh[0], this.fresh[1], this.baseL, this.baseR);
