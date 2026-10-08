@@ -259,7 +259,10 @@ export function PerspectiveStage({
         // the emerged frame and its caption must clear the strip
         const hA = O.w / aspect;
         const capView = Math.min(pinAt * vh, vh - bottom - CAPTION_H - 16 - hA - SLIDE_GAP);
-        K = capBottom - capView;
+        // on tall viewports never hold the composition lower than where a landing puts it (no empty band
+        // above the sheet tag): it sticks at scroll-padding-top at the latest
+        const padTop = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || top;
+        K = Math.max(capBottom - capView, -padTop);
       } else {
         const band = top + (vh - top - bottom - CAPTION_H) / 2;
         K = O.y + O.h / 2 - band;

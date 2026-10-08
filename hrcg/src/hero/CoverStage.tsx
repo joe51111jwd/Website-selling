@@ -212,6 +212,9 @@ export function CoverStage() {
               </span>
             </h1>
             <FramePicture land="hero-matte-169" port="hero-matte-916" className="cv-matte" alt="" eager />
+            {/* the puff: in the type's stacking context, over 07's matte (z 2) and under the NEAR lines (z 3),
+                so BUILD? stays clean orange (F-072). It spans the whole hero, not just the frame. */}
+            <canvas className="cv-puff" aria-hidden="true" />
             <p className="cv-sub">{HERO.sub}</p>
 
             <ControlX className="cv-x cv-x--l" size={18} seed={11} />
@@ -241,8 +244,6 @@ export function CoverStage() {
               {HERO.play}
             </button>
           </div>
-          {/* the puff: over 07's matte, under the NEAR lines, so BUILD? stays clean orange (F-072) */}
-          <canvas className="cv-puff" aria-hidden="true" />
         </section>
 
         {/* ---------------------------------------------------------------- A-100 */}

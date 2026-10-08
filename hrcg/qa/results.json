@@ -1,13 +1,13 @@
 {
  "meta": {
-  "started": "2026-10-08T12:39:29.834Z",
+  "started": "2026-10-08T12:59:53.471Z",
   "root": "/home/user/Website-selling/hrcg",
-  "url": "http://127.0.0.1:37669/",
+  "url": "http://127.0.0.1:34089/",
   "build": "/tmp/hrcg-qa-build",
   "axe": "axe-core",
   "notes": [],
-  "finished": "2026-10-08T12:51:12.363Z",
-  "failures": 17
+  "finished": "2026-10-08T13:12:17.021Z",
+  "failures": 12
  },
  "suites": {
   "build": {
@@ -34,7 +34,7 @@
      "id": "prod-onecss",
      "title": "index.html links exactly one stylesheet (cascade order independent of JS chunking)",
      "status": "pass",
-     "detail": "{\"linked\":[\"./assets/style-SLLshISL.css\"],\"cssFiles\":[\"style-SLLshISL.css\"]}"
+     "detail": "{\"linked\":[\"./assets/style-CtZwWchw.css\"],\"cssFiles\":[\"style-CtZwWchw.css\"]}"
     }
    ],
    "console": [],
@@ -57,8 +57,8 @@
     {
      "id": "H2-per-sheet",
      "title": "one <h2> per sheet (A-000: the <h1>)",
-     "status": "fail",
-     "detail": "[{\"id\":\"A-900\",\"h2\":10,\"h1\":1,\"track\":false}]"
+     "status": "pass",
+     "detail": "[]"
     },
     {
      "id": "S2-labels",
@@ -82,7 +82,7 @@
      "id": "sheets",
      "title": "all eleven sheet anchors render",
      "status": "pass",
-     "detail": "A-900,A-000,A-100,A-101,A-102,A-103,A-104,A-105,A-200,A-300,A-301,A-900"
+     "detail": "A-000,A-100,A-101,A-102,A-103,A-104,A-105,A-200,A-300,A-301,A-900"
     },
     {
      "id": "mailto-teams-default",
@@ -449,8 +449,8 @@
     {
      "id": "P4-pins",
      "title": "only the hero and A-200 pin",
-     "status": "fail",
-     "detail": "[{\"sheet\":\"A-900\",\"cls\":\"cv-pin\"},{\"sheet\":\"A-200\",\"cls\":\"a200-pin\"}]"
+     "status": "pass",
+     "detail": "[{\"sheet\":\"cover\",\"cls\":\"cv-pin\"},{\"sheet\":\"A-200\",\"cls\":\"a200-pin\"}]"
     },
     {
      "id": "P6-mailto",
@@ -562,7 +562,7 @@
      "id": "gl0-complete",
      "title": "gl0: all sheets render",
      "status": "pass",
-     "detail": "12"
+     "detail": "11"
     },
     {
      "id": "disable-webgl-errors",
@@ -574,7 +574,7 @@
      "id": "disable-webgl-complete",
      "title": "disable-webgl: all sheets render",
      "status": "pass",
-     "detail": "12"
+     "detail": "11"
     }
    ],
    "console": [],
@@ -597,7 +597,7 @@
      "id": "F-014-entry",
      "title": "shell entry chunk <= 110 kB gzipped (brief 8.6)",
      "status": "pass",
-     "detail": "./assets/index-Oo2H_k9g.js: 323.2 kB raw, 101.3 kB gz"
+     "detail": "./assets/index-EOYjaLJB.js: 323.6 kB raw, 101.4 kB gz"
     },
     {
      "id": "F-045-slim",
@@ -627,7 +627,7 @@
      "id": "F-002-bytes-desktop",
      "title": "first view (0-9 s, no scroll, AV1 path) moves <= 1.1 MB on desktop",
      "status": "fail",
-     "detail": "2.79 MB; largest: 511 kB /assets/three.module-Bzd9lell.js · 416 kB /media/plans/plan-b44.av1.mp4 · 378 kB /media/arena/arena-0104.av1.mp4 · 323 kB /assets/index-Oo2H_k9g.js · 181 kB /media/hero/hero-snap-169.av1.mp4 · 145 kB /?heroperf=0"
+     "detail": "2.90 MB; largest: 511 kB /assets/three.module-Bzd9lell.js · 416 kB /media/plans/plan-b44.av1.mp4 · 378 kB /media/arena/arena-0104.av1.mp4 · 324 kB /assets/index-EOYjaLJB.js · 181 kB /media/hero/hero-snap-169.av1.mp4 · 145 kB /?heroperf=0"
     },
     {
      "id": "F-002-posters-desktop",
@@ -657,7 +657,7 @@
      "id": "F-002-bytes-phone",
      "title": "first view (0-9 s, no scroll, AV1 path) moves <= 1.1 MB on phone",
      "status": "fail",
-     "detail": "2.36 MB; largest: 511 kB /assets/three.module-Bzd9lell.js · 323 kB /assets/index-Oo2H_k9g.js · 249 kB /media/plans/plan-b44-m.av1.mp4 · 199 kB /media/arena/arena-0104-m.av1.mp4 · 145 kB /?heroperf=0 · 105 kB /assets/style-SLLshISL.css"
+     "detail": "2.37 MB; largest: 511 kB /assets/three.module-Bzd9lell.js · 324 kB /assets/index-EOYjaLJB.js · 249 kB /media/plans/plan-b44-m.av1.mp4 · 199 kB /media/arena/arena-0104-m.av1.mp4 · 145 kB /?heroperf=0 · 105 kB /assets/style-CtZwWchw.css"
     },
     {
      "id": "F-002-posters-phone",
@@ -669,7 +669,7 @@
      "id": "F-002-a100-phone",
      "title": "no arena-0104 or plan-b44 film bytes arrive before scroll (phone; F-002, F-006, F-037)",
      "status": "fail",
-     "detail": "[\"arena-0104-m.av1.mp4 199 kB\",\"plan-b44-m.av1.mp4 249 kB\"]"
+     "detail": "[\"plan-b44-m.av1.mp4 249 kB\",\"arena-0104-m.av1.mp4 199 kB\"]"
     },
     {
      "id": "F-069-lcp",
@@ -951,13 +951,13 @@
      "id": "F-003-overlap",
      "title": "phone hero, armed and at rest, at 390x844/390x664/375x667/360x780/320x568/844x390: status, H1 lines, sub, hint, RESET, view title, header and phone bar never intersect",
      "status": "fail",
-     "detail": "[\"390x844 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"390x844 rest: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"390x664 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"390x664 rest: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"375x667 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"375x667 rest: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"360x780 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"360x780 rest: reset x h1 (BUTTON.cv-reset|Reset the line / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"320x568 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"320x568 rest: reset x h1 (BUTTON.cv-reset|Reset the line / H1 line); reset x h1 (BUTTON.cv-reset|Reset the line / H1 line); reset x h1 (BUTTON.cv-reset|Reset the line / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"844x390 armed: status x h1 (P.cv-status|PLANNED · NEW YORK CITY · 2027 / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"844x390 rest: status x h1 (P.cv-status|PLANNED · NEW YORK CITY · 2027 / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\"]"
+     "detail": "[\"390x844 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"390x844 rest: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"390x664 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"390x664 rest: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"375x667 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"375x667 rest: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"360x780 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"360x780 rest: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"320x568 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"320x568 rest: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"844x390 armed: status x h1 (P.cv-status|PLANNED · NEW YORK CITY · 2027 / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"844x390 rest: status x h1 (P.cv-status|PLANNED · NEW YORK CITY · 2027 / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\"]"
     },
     {
      "id": "F-025-contrast",
      "title": "hero status line and sub over the footage: >= 90% of glyph pixels at >= 4.5:1 at t 1.6/3.9/9 s (desktop, phone)",
-     "status": "fail",
-     "detail": "[{\"at\":\"phone 1.6s .cv-sub\",\"glyphPx\":2676,\"pass\":0.8707025411061285}]"
+     "status": "pass",
+     "detail": "[\"desktop 1.6s .cv-status 100%\",\"desktop 1.6s .cv-sub 100%\",\"desktop 3.9s .cv-status 100%\",\"desktop 3.9s .cv-sub 100%\",\"desktop 9s .cv-status 100%\",\"desktop 9s .cv-sub 100%\",\"phone 1.6s .cv-status 100%\",\"phone 1.6s .cv-sub 91%\",\"phone 3.9s .cv-status 91%\",\"phone 3.9s .cv-sub 100%\",\"phone 9s .cv-status 91%\",\"phone 9s .cv-sub 100%\"]"
     },
     {
      "id": "F-061-390",
@@ -1047,13 +1047,13 @@
      "id": "F-085-order",
      "title": "phone A-105: the H2 comes before the plan, the section and the body paragraph",
      "status": "pass",
-     "detail": "{\"h2\":8216,\"body\":9756,\"views\":8911}"
+     "detail": "{\"h2\":8216,\"body\":9760,\"views\":8911}"
     },
     {
      "id": "F-084-swipe",
      "title": "phone: a vertical swipe that starts on the section-cut handle scrolls the page",
      "status": "pass",
-     "detail": "8648 -> 9028"
+     "detail": "8648 -> 9031"
     },
     {
      "id": "F-015-phone",
@@ -1304,14 +1304,14 @@
     {
      "id": "nojs-copy",
      "title": "the prerendered page carries all copy (cross-section of every copy file)",
-     "status": "fail",
-     "detail": "[\"TASK DRAWING TRACED FROM CONCEPT FOOTAGE · DRAWING\"]"
+     "status": "pass",
+     "detail": "[]"
     },
     {
      "id": "nojs-video",
      "title": "every video has a poster (attribute or .loopvideo-poster sibling) and controls",
-     "status": "fail",
-     "detail": "17 videos; 3 without"
+     "status": "pass",
+     "detail": "15 videos; 0 without"
     },
     {
      "id": "nojs-anchors",
@@ -1357,10 +1357,10 @@
     }
    ],
    "console": [
-    "requestfailed: http://127.0.0.1:37669/assets/manifest-Dn5h_gRN.js csp",
-    "requestfailed: http://127.0.0.1:37669/assets/prefs-C7-A4ANh.js csp",
-    "requestfailed: http://127.0.0.1:37669/assets/easing-B8f7TVmc.js csp",
-    "requestfailed: http://127.0.0.1:37669/assets/announce-CcKdU8F4.js csp"
+    "requestfailed: http://127.0.0.1:34089/assets/manifest-Dn5h_gRN.js csp",
+    "requestfailed: http://127.0.0.1:34089/assets/prefs-C7-A4ANh.js csp",
+    "requestfailed: http://127.0.0.1:34089/assets/easing-B8f7TVmc.js csp",
+    "requestfailed: http://127.0.0.1:34089/assets/announce-CcKdU8F4.js csp"
    ],
    "shots": [
     "shots/nojs-first-view.jpg",
