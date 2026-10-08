@@ -1,12 +1,12 @@
 {
  "meta": {
-  "started": "2026-10-08T09:06:40.442Z",
+  "started": "2026-10-08T09:16:00.428Z",
   "root": "/home/user/Website-selling/hrcg",
-  "url": "http://127.0.0.1:39269/",
-  "build": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/build-a6",
+  "url": "http://127.0.0.1:43239/",
+  "build": "/tmp/hrcg-qa-build",
   "axe": "axe-core",
   "notes": [],
-  "finished": "2026-10-08T09:09:53.630Z",
+  "finished": "2026-10-08T09:19:15.553Z",
   "failures": 2
  },
  "suites": {
@@ -14,7 +14,7 @@
    "checks": [
     {
      "id": "build",
-     "title": "existing prerendered build /tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/build-a6 (not rebuilt; pass --build only with a fresh build)",
+     "title": "vite build + prerender (incl. the prerender copy lint) succeeds",
      "status": "pass",
      "detail": ""
     }
@@ -142,7 +142,7 @@
      "id": "S4-focus",
      "title": "every focused element lies inside the unobscured viewport (Tab walk)",
      "status": "pass",
-     "detail": "{\"focused\":74,\"partlyHidden\":[],\"entirelyHidden\":[]}"
+     "detail": "{\"focused\":75,\"partlyHidden\":[],\"entirelyHidden\":[]}"
     },
     {
      "id": "a11y",
@@ -194,7 +194,7 @@
     "incomplete": [
      {
       "rule": "color-contrast",
-      "count": 385
+      "count": 386
      },
      {
       "rule": "video-caption",
@@ -396,7 +396,7 @@
      "id": "P2-swipe",
      "title": "a vertical touch swipe on the hero scrolls the page",
      "status": "pass",
-     "detail": "0 -> 469"
+     "detail": "0 -> 507"
     },
     {
      "id": "P-S3",
@@ -642,7 +642,58 @@
      "detail": "{\"empty\":[],\"placeholders\":[]}"
     }
    ],
-   "console": [],
+   "console": [
+    "requestfailed: http://127.0.0.1:43239/assets/jsx-dev-runtime-CBW7NE-z.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/sheets-BB-35nJY.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/store-D5ALOvq_.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/sheetStore-DkJoAI7x.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/LabelText-BjkybHrN.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/SheetTag-rXQA6l73.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/a100-a103-ajt5GUHy.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/geometry-DYqUGzyZ.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/ControlX-DUHvQ2nf.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/viewTitles-ByO-0SQD.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/manifest-hKb0D5dh.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/viewContext-d5GGCWKl.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/ViewTitle-fLEOc8ag.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/prefs-BTKXsEqW.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/VideoManager-DJouFq3U.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/chrome-SCw9f0wh.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/LoopVideo-DZGDW1wd.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/easing-DE_wmn8P.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/announce-CgCtypXO.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/preload-helper-BaNbYf_w.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/lenis-CWn3t8Jh.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/challenges-DOfTaYwU.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/useInView-B_O9TRKZ.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/GridBubble-BQmjFVSY.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/ArenaPlan-BSE6sWjs.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/A100Bays-aloQcFus.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/Picture-B15eOss6.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/tier-CBtdXGqb.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/scroll-xsJ1AQgb.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/ViewMarker-NWOH8QaH.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/DetailBubble-BBojLGNo.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/PerspectiveStage-u0kpPngY.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/a4-BU1QKmdh.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/useStageProgress-C96L7jUM.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/SectionCut-CnxrihLY.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/SectionSlice-DNUWaW52.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/HoldCloud-DAp49QW_.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/conversion-BrwLZKXt.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/BaySlot-CTi2ocEV.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/FormParts-DoiZdNOW.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/A300Parts-Bs43R20B.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/A301Parts-APzmoF8o.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/overlays-CE2oJt1H.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/Dialog-EVTxPYiW.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/nav-BDSgEjmR.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/SheetIndex-D0S9MN4Y.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/A900Parts-dxu8tjtd.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/CourseMark-kSnXgmsj.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/HoldMark-CrjEvSow.js csp",
+    "requestfailed: http://127.0.0.1:43239/assets/MotionToggle-CYArTTQz.js csp"
+   ],
    "shots": [
     "shots/nojs-first-view.jpg",
     "shots/nojs-a-000.jpg",

@@ -161,8 +161,8 @@
   margin: 0;
   /* frame-space layout, 16:9 (brief 2.2) */
   --t-size: 0.131;
-  --far-left: 0.12;
-  --far-top: 0.13797; /* cap-top 0.14 */
+  --far-left: 0.135; /* D1 shift +0.015 (hero-meta-169 typeLayerShift, A2-3) */
+  --far-top: 0.13297; /* cap-top 0.135 (D1 shift -0.005) */
   --near-right: 0.115; /* right edge 0.885: clears the chalk box and the 0.92 control point */
   --near-top: 0.53551; /* last baseline 0.755, on the chalk line */
   --line-x0: 0.52;

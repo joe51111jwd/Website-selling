@@ -41,7 +41,7 @@ export const H1_CAPTOP_IN_LINE = H1_BASELINE_IN_LINE - H1_FONT.cap; // 0.0155 em
  */
 export const TYPE_LAYOUT = {
   // NEAR's right edge sits just inside the line's chalk box (brief 2.2 lists 0.92 for both; the box needs the room)
-  '169': { size: 0.131, farLeft: 0.12, farCapTop: 0.14, nearRight: 0.885, nearBaseline: 0.755 },
+  '169': { size: 0.131, farLeft: 0.135, farCapTop: 0.135, nearRight: 0.885, nearBaseline: 0.755 }, // FAR shifted (+0.015, -0.005) by D1 into the bite window (hero-meta-169 typeLayerShift, A2-3)
   '916': { size: 0.075, farLeft: 0.08, farCapTop: 0.15, nearRight: 0.865, nearBaseline: 0.775 },
 } as const;
 

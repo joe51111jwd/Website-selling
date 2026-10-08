@@ -17,7 +17,7 @@ run c34  $M/clips/c34-layout.mp4  $MZ/c34.mp4  $C169 --livery box:0.11,0.64,0.26
 # perspectives: crowd crush (D4) + visor fixes
 run c30  $M/clips/c30-brick.mp4   $MZ/c30.mp4  $C169 --crush $D/c30.npy:0.08
 run c31  $M/clips/c31-drywall.mp4 $MZ/c31.mp4  $C169 --crush $D/c31.npy:0.08 --glint 0.36,0.08,0.68,0.42,28
-run c32  $M/clips/c32-bolt.mp4    $MZ/c32.mp4  $C169 --crush $D/c32.npy:0.08 --glint 0.38,0,0.66,0.3
+run c32  $M/clips/c32-bolt.mp4    $MZ/c32.mp4  $C169 --crush $D/c32.npy:0.08 --glint 0.38,0,0.66,0.3,14
 run c33  $M/clips/c33-pipe.mp4    $MZ/c33.mp4  $C169 --crush $D/c33.npy:0.08
 run n09r $N/N09r.mp4 $MZ/n09r.mp4 $C169 --crush $D/n09r.npy:0.08 --glint 0.34,0,0.54,0.26
 # plans (1440², graded; b44 + its poster frame get the tape livery shift)
