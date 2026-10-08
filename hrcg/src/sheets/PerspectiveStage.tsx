@@ -100,10 +100,10 @@ const SLIDE_FADE: [number, number] = [0.2, SLIDE_A];
 /** slide: gap between the origin caption and the emerged frame */
 const SLIDE_GAP = 24;
 /** iris beats (e): composition out, detail swells, dissolve + caption hand-over, open */
-const IRIS_FADE: [number, number] = [0, 0.25];
-const IRIS_SWELL: [number, number] = [0.25, 0.4];
-const IRIS_DISSOLVE: [number, number] = [0.4, 0.52];
-const IRIS_OPEN: [number, number] = [0.52, 1];
+const IRIS_FADE: [number, number] = [0, 0.3];
+const IRIS_SWELL: [number, number] = [0.3, 0.44];
+const IRIS_DISSOLVE: [number, number] = [0.44, 0.56];
+const IRIS_OPEN: [number, number] = [0.56, 1];
 /** iris: radius growth of the detail before it dissolves (F-032: 30%) */
 const IRIS_SWELL_K = 1.3;
 

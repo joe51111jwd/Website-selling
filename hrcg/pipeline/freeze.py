@@ -90,7 +90,7 @@ nearside = cv2.dilate(near0, ell(DIL_R)) > 0
 # inside 07's upper body (above the cut), a smooth relief: normalized-convolution blur of the near side, so 07's
 # internal steps (arm over torso, head over shoulder) become gentle slopes instead of single stretched cells
 top = np.zeros((H, W), bool); top[:int(H * CUT_FRAC) + SNAP_REACH] = True
-M = (nearside & top).astype(np.float32); SMOOTH_SIG = 3.0 * CELL
+M = (nearside & top).astype(np.float32); SMOOTH_SIG = float(os.environ.get("FREEZE_RELIEF_CELLS", "5")) * CELL
 d_relief = cv2.GaussianBlur(d_max * M, (0, 0), SMOOTH_SIG) / np.maximum(cv2.GaussianBlur(M, (0, 0), SMOOTH_SIG), 1e-4)
 d = np.where(zone & ~nearside, d_min, np.where(M > 0, d_relief, d_max)).astype(np.float32)
 SNAP_PX = int((zone & ~nearside).sum())
@@ -592,8 +592,20 @@ for tag, sc in SCALES.items():
         for gi in range(len(farnames)): gl[gi][f'{key}@{tag}'] = round(float(vals[gi]), 3)
 for gi in range(len(farnames)):
     gl[gi]['restDepth'] = round(float(rr['glyphOccl'][gi]), 3); gl[gi]['restMatte'] = round(float(rr['glyphOcclMatte'][gi]), 3)
-gmax = max(max(v for k_, v in g.items() if k_ != 'glyph') for g in gl)
-GLYPHS = {'maxPerGlyph': round(gmax, 3), 'limit': 0.40, 'headBox': [round(HEAD[0] / W, 3), round(HEAD[1] / H, 3), round(HEAD[2] / W, 3), round(HEAD[3] / H, 3)],
+gmax = max(max(v for k_, v in g.items() if k_ != 'glyph' and 'Depth' not in k_) for g in gl)      # 07's matte layer occludes FAR
+gmax_depth = max(max(v for k_, v in g.items() if k_ != 'glyph' and 'Depth' in k_) for g in gl)  # if A2 depth-tests FAR against the mesh
+# where the FAR block could sit (dx sweep inside the brief's +-0.03), matte bite per glyph at yaw 0 and at rest
+sweep = []
+for sdx in ((-0.03, -0.025, -0.02, -0.015, -0.01, 0.0) if not PH else ()):
+    fl_, _ = layout(sdx, fdy); lab_, _ = raster_glyphs(fl_)
+    n_ = int(lab_.max()); L_ = lab_[lab_ > 0]
+    y0m = 1 - np.bincount(L_, weights=~yaw0_matte[lab_ > 0], minlength=n_ + 1)[1:] / np.maximum(np.bincount(L_, minlength=n_ + 1)[1:], 1)
+    y0d = 1 - np.bincount(L_, weights=~yaw0_depth[lab_ > 0], minlength=n_ + 1)[1:] / np.maximum(np.bincount(L_, minlength=n_ + 1)[1:], 1)
+    rs_ = render(ryaw, rpitch, 0.04, pivotZ, plate_rgb, plate_z, plate_scale, lab_, None)
+    sweep.append({'farLeft': round(0.12 + sdx, 3), 'yaw0MatteMax': round(float(y0m.max()), 3), 'restMatteMax': round(float(rs_['glyphOcclMatte'].max()), 3),
+                  'yaw0DepthMax': round(float(y0d.max()), 3), 'restDepthMax': round(float(rs_['glyphOccl'].max()), 3),
+                  'totalMatteYaw0': round(float(yaw0_matte[lab_ > 0].mean()), 4)})
+GLYPHS = {'maxPerGlyph': round(gmax, 3), 'maxPerGlyphDepthTest': round(gmax_depth, 3), 'occluder': 'matte (07 foreground layer; requests/A5-fix-2)', 'farLeftSweep': sweep, 'limit': 0.40, 'headBox': [round(HEAD[0] / W, 3), round(HEAD[1] / H, 3), round(HEAD[2] / W, 3), round(HEAD[3] / H, 3)],
           'headBitePx': head_bite_px, 'shoulderOnly': head_bite_px == 0, 'pass': gmax <= 0.40 and head_bite_px == 0,
           'bitten': [g['glyph'] for g in gl if max(v for k_, v in g.items() if k_ != 'glyph') > 0.005],
           'phoneFallback': bool(PH and head_bite_px > 0), 'glyphs': gl}

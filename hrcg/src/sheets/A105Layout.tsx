@@ -1,17 +1,21 @@
 // A-105 · LAYOUT AND MARKING (brief 3.8, 4.2). Owner: A4.
 //
-// Plan + SECTION A–A on 07's own gridlines. The stage pins on desktop (p = stage progress):
+// Plan + SECTION A–A on 07's own lines. The stage pins on desktop (p = stage progress) as ONE composed
+// frame between the header rail and the strip (FIXLIST-1 F-041): the tag and a one-line H2 on the top
+// gridline, PLAN 05 and SECTION A–A below it sharing their top and bottom edges, the spec and beats on the
+// bottom gridline. The gridlines are continuous 1 px lines from border to border UNDER the media (they pass
+// behind the two views): the views' shared top and bottom edges, 07's fresh chalk line, the bottom gridline,
+// and 07's east wall line carried down to hold the spec. The body line follows after the pin.
 //   on entry   b44 plays once from 0 and holds its last frame (07 crouched at the bay's edge). Never loops.
 //   p 0–0.30   the traced vectors draw over the filmed chalk lines (chalk blue, 1.5 px, DRAW, in the order
-//              a crew snaps them); orange ✕ control points stamp in at the fresh line's ends; the extracted
-//              lines extend outward to the page edges and become the sheet's gridlines. SECTION A–A sits
-//              between them (its top and bottom edges on 07's wall lines); the H2 and spec are set on them.
+//              a crew snaps them); orange ✕ control points stamp in at the fresh line's ends; the lines
+//              extend outward from the plan to the page edges and become the sheet's gridlines.
 //   p 0.30–0.80 SECTION A–A: the cut marker sits on PLAN 05's fresh chalk line; dragging it (or ←/→)
 //              moves the depth plane through the section (left = near the camera, right = near the robot).
-//              Untouched, scroll sweeps it from near to far.
+//              Untouched, scroll sweeps it from near to far. The traces dim to 35% so 07 reads (F-086).
 // The link between plan and section is illustrative (different shots of the same task); the section's
 // view title says so. Reduced motion / MOTION OFF / no JS: no pin, no sweep, everything drawn; the slider
-// still works on input (no JS: the middle still).
+// still works on input (no JS: the middle still). Phone: no pin; tag, H2, spec and beats first (F-085).
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import { useStageProgress } from '../system/useStageProgress';
@@ -179,7 +183,7 @@ function deriveGrid(d: LinesData): Grid {
   return { segs: kept, xs, ys, fresh: { x0, x1, y: fy }, vt: Math.max(0.05, vt), vb: Math.min(0.95, vb), u1 };
 }
 
-// ------------------------------------------------------------------ gridline extensions (stage px)
+// ------------------------------------------------------------------ gridlines (pin px)
 interface Box {
   x: number;
   y: number;
@@ -188,54 +192,20 @@ interface Box {
 }
 interface Ext {
   d: string;
-  /** distance from the plan edge where this piece starts and ends (for the outward draw) */
+  /** distance from the plan's edge where this piece starts and ends (for the outward draw) */
   d0: number;
   d1: number;
 }
 
-/** Subtract boxes from [a, b] along one axis. */
-function gaps(a: number, b: number, blocks: Array<[number, number]>): Array<[number, number]> {
-  let parts: Array<[number, number]> = [[a, b]];
-  for (const [s, e] of blocks) {
-    const next: Array<[number, number]> = [];
-    for (const [p, q] of parts) {
-      if (e <= p || s >= q) next.push([p, q]);
-      else {
-        if (s > p) next.push([p, s]);
-        if (e < q) next.push([e, q]);
-      }
-    }
-    parts = next;
-  }
-  return parts.filter(([p, q]) => q - p > 6);
-}
-
-function extensions(g: Grid, plan: Box, W: number, edge: number, avoid: Box[], top: number, bottom: number): Ext[] {
-  const out: Ext[] = [];
-  const pad = 10;
-  for (const l of g.ys) {
-    const y = Math.round(plan.y + l.at * plan.h) + 0.5;
-    const xa = plan.x + l.from * plan.w;
-    const xb = plan.x + l.to * plan.w;
-    const blocks = avoid
-      // a line that runs along a frame's top or bottom edge is that frame's own registration: keep it
-      .filter((b) => y > b.y - pad && y < b.y + b.h + pad && !(Math.abs(y - (b.y + b.h)) < 3) && !(Math.abs(y - b.y) < 3))
-      .map((b) => [b.x - pad, b.x + b.w + pad] as [number, number]);
-    // from the traced line's own ends, out across the footage and on to the page edges
-    for (const [p, q] of gaps(edge, xa, blocks)) out.push({ d: `M${q} ${y}H${p}`, d0: xa - q, d1: xa - p });
-    for (const [p, q] of gaps(xb, W - edge, blocks)) out.push({ d: `M${p} ${y}H${q}`, d0: p - xb, d1: q - xb });
-  }
-  for (const l of g.xs) {
-    const x = Math.round(plan.x + l.at * plan.w) + 0.5;
-    const ya = plan.y + l.from * plan.h;
-    const yb = plan.y + l.to * plan.h;
-    const blocks = avoid
-      .filter((b) => x > b.x - pad && x < b.x + b.w + pad)
-      .map((b) => [b.y - pad, b.y + b.h + pad] as [number, number]);
-    for (const [p, q] of gaps(top, ya, blocks)) out.push({ d: `M${x} ${q}V${p}`, d0: ya - q, d1: ya - p });
-    for (const [p, q] of gaps(yb, bottom, blocks)) out.push({ d: `M${x} ${p}V${q}`, d0: p - yb, d1: q - yb });
-  }
-  return out;
+/** A horizontal gridline from border to border, drawn as two pieces that grow outward from the plan. */
+function hLine(y: number, plan: Box, W: number, edge: number): Ext[] {
+  const yy = Math.round(y) + 0.5;
+  const l = plan.x;
+  const r = plan.x + plan.w;
+  return [
+    { d: `M${l} ${yy}H${edge}`, d0: 0, d1: Math.max(1, l - edge) },
+    { d: `M${r} ${yy}H${W - edge}`, d0: 0, d1: Math.max(1, W - edge - r) },
+  ];
 }
 
 const valueText = (n: number) => (n <= 3 ? A105.slider.near : n <= 6 ? A105.slider.middle : A105.slider.far);
@@ -244,24 +214,29 @@ const valueText = (n: number) => (n <= 3 ? A105.slider.near : n <= 6 ? A105.slid
 type HeroMachineLike = { get(): { snappedByUser: boolean }; subscribe(l: () => void): () => void };
 const heroMods = import.meta.glob<{ heroMachine?: HeroMachineLike }>('../hero/heroMachine.ts', { eager: true });
 
+/** The ✕ control points sit this far beyond the fresh line's ends; the cut runs ✕ to ✕ (F-042). */
+const X_OUT = 10;
+
 export default function A105Layout() {
   const live = useLive();
   const phone = useMediaQuery('(max-width: 767px)');
   const [data, setData] = useState<LinesData>(FALLBACK);
   const grid = useMemo(() => deriveGrid(data), [data]);
   const [snapped, setSnapped] = useState(false);
-  const [geo, setGeo] = useState<{ W: number; H: number; ext: Ext[]; text: { W: number; H: number; lines: string[] } } | null>(null);
+  const [geo, setGeo] = useState<{ W: number; H: number; ext: Ext[] } | null>(null);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const planRef = useRef<HTMLDivElement>(null);
+  const footRef = useRef<HTMLDivElement>(null);
   const cutRef = useRef<HTMLDivElement>(null);
   const sliceRef = useRef<SectionSliceHandle>(null);
+  const tracesRef = useRef<SVGSVGElement>(null);
   const traceRefs = useRef<Array<SVGPathElement | null>>([]);
   const extRefs = useRef<Array<SVGPathElement | null>>([]);
-  const textRef = useRef<HTMLDivElement>(null);
   const xRef = useRef<HTMLDivElement>(null);
+  const afterRef = useRef<HTMLDivElement>(null);
   const s = useRef(0.5);
   const touched = useRef(false);
   const capture = useRef<number | null>(null);
@@ -269,9 +244,20 @@ export default function A105Layout() {
   // desktop: the pinned stage's progress. Phone (not pinned): the traces follow the stage passing through
   // the viewport and the sweep follows the section itself, so it happens while the section is on screen.
   usePrinted(pinRef, '0px 0px -10% 0px');
-  usePrinted(textRef);
+  usePrinted(afterRef);
   const p = useStageProgress(trackRef, phone ? { start: 'top bottom', end: 'bottom top' } : {});
   const pSec = useStageProgress(secRef, { start: 'top bottom', end: 'bottom top' });
+
+  // a jump (INDEX, CTA) lands with the pin engaged at p = 0: the composed frame, H2 on screen (F-041, F-015)
+  useEffect(() => {
+    const sec = rootRef.current?.closest<HTMLElement>('[data-sheet]');
+    if (!sec) return;
+    if (live && !phone) sec.dataset.land = '0';
+    else delete sec.dataset.land;
+    return () => {
+      delete sec.dataset.land;
+    };
+  }, [live, phone]);
 
   // the real lines (A5)
   useEffect(() => {
@@ -314,26 +300,58 @@ export default function A105Layout() {
     (clientX: number) => {
       const box = planRef.current?.getBoundingClientRect();
       if (!box) return;
-      const x0 = box.left + grid.fresh.x0 * box.width;
-      const x1 = box.left + grid.fresh.x1 * box.width;
+      const x0 = box.left + grid.fresh.x0 * box.width - X_OUT;
+      const x1 = box.left + grid.fresh.x1 * box.width + X_OUT;
       setS((clientX - x0) / (x1 - x0), 'user');
     },
     [grid, setS],
   );
 
-  const drag = useRef<number | null>(null);
+  // F-084: a mouse drags at once; touch and pen take the cut only after a horizontal intent (|dx| > |dy| over
+  // the first 6 px), so a vertical swipe that starts on the plan or the handle still scrolls the page.
+  const drag = useRef<{ id: number; x: number; y: number; active: boolean; mouse: boolean } | null>(null);
+  const take = (e: PointerEvent<HTMLDivElement>) => {
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* the pointer may already be gone */
+    }
+    cutRef.current?.focus({ preventScroll: true });
+  };
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
-    drag.current = e.pointerId;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    cutRef.current?.focus({ preventScroll: true });
-    fromPointer(e.clientX);
+    const mouse = e.pointerType === 'mouse';
+    drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, active: mouse, mouse };
+    if (mouse) {
+      take(e);
+      fromPointer(e.clientX);
+    }
   };
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
-    if (drag.current === e.pointerId) fromPointer(e.clientX);
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    if (!d.active) {
+      const dx = e.clientX - d.x;
+      const dy = e.clientY - d.y;
+      if (Math.hypot(dx, dy) < 6) return;
+      if (Math.abs(dx) <= Math.abs(dy)) {
+        drag.current = null; // a scroll: let the page have it
+        return;
+      }
+      d.active = true;
+      take(e);
+    }
+    fromPointer(e.clientX);
   };
   const onPointerUp = (e: PointerEvent<HTMLDivElement>) => {
-    if (drag.current === e.pointerId) drag.current = null;
+    const d = drag.current;
+    if (!d || d.id !== e.pointerId) return;
+    // a touch tap (no travel) places the cut where it landed
+    if (!d.active && !d.mouse) fromPointer(e.clientX);
+    drag.current = null;
+  };
+  const onPointerCancel = () => {
+    drag.current = null;
   };
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const step = 0.1;
@@ -350,42 +368,44 @@ export default function A105Layout() {
     setS(next, 'user');
   };
 
-  // ---- geometry of the gridline extensions (on resize only)
+  // ---- gridlines (on resize only). Desktop only: on a phone the plan is the full column, so lines out
+  // to the page edges would be 4 px stubs.
   const measure = useCallback(() => {
     const pin = pinRef.current;
     const plan = planRef.current;
-    const text = textRef.current;
+    const foot = footRef.current;
     if (!pin || !plan) return;
     const pr = pin.getBoundingClientRect();
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      setGeo({ W: pr.width, H: pr.height, ext: [] });
+      return;
+    }
     const rel = (el: Element | null): Box | null => {
       if (!el) return null;
       const r = el.getBoundingClientRect();
       return r.width ? { x: r.left - pr.left, y: r.top - pr.top, w: r.width, h: r.height } : null;
     };
-    const planBox = rel(plan)!;
-    const avoid = Array.from(pin.querySelectorAll('[data-a105-avoid], .a105-stage .view-frame, .a105-stage .view-title, .a105-tag'))
-      .map(rel)
-      .filter((b): b is Box => !!b);
+    const inner = rel(plan);
+    const frame = rel(plan.closest('.view-frame')) ?? inner;
+    if (!inner || !frame) return;
     const edge = Math.max(12, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--border')) || 24);
-    const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 48;
-    const ext = extensions(grid, planBox, pr.width, edge, avoid, edge + header, pr.height - 4);
-    // the text block: its verticals, set exactly on the plan's x positions, minus the text itself
-    let textGeo = { W: 0, H: 0, lines: [] as string[] };
-    if (text) {
-      const tr = text.getBoundingClientRect();
-      const blocks = Array.from(text.querySelectorAll('[data-a105-text]')).map((el) => el.getBoundingClientRect());
-      const lines: string[] = [];
-      for (const { at: u } of grid.xs) {
-        const xv = planBox.x + pr.left + u * planBox.w;
-        const x = Math.round(xv - tr.left) + 0.5;
-        const bl = blocks
-          .filter((b) => xv > b.left - 8 && xv < b.right + 8)
-          .map((b) => [b.top - tr.top - 16, b.bottom - tr.top + 16] as [number, number]);
-        for (const [a, b] of gaps(0, tr.height, bl)) lines.push(`M${x} ${a}V${b}`);
-      }
-      textGeo = { W: tr.width, H: tr.height, lines };
+    const W = pr.width;
+    const ext: Ext[] = [];
+    // the views' shared top and bottom edges, and 07's fresh chalk line, from border to border
+    ext.push(...hLine(frame.y, frame, W, edge));
+    ext.push(...hLine(inner.y + grid.fresh.y * inner.h, frame, W, edge));
+    ext.push(...hLine(frame.y + frame.h - 1, frame, W, edge));
+    // the bottom gridline the spec and beats sit on, and 07's east wall line carried down to it
+    const f = rel(foot);
+    if (f) {
+      const yb = f.y + f.h + 6;
+      ext.push(...hLine(yb, frame, W, edge));
+      const u2 = grid.xs.find((x) => x.at > grid.u1 + 0.2)?.at ?? 0.836;
+      const x = Math.round(inner.x + u2 * inner.w) + 0.5;
+      const y0 = frame.y + frame.h;
+      ext.push({ d: `M${x} ${y0}V${yb}`, d0: 0, d1: Math.max(1, yb - y0) });
     }
-    setGeo({ W: pr.width, H: pr.height, ext, text: textGeo });
+    setGeo({ W, H: pr.height, ext });
   }, [grid]);
 
   useEffect(() => {
@@ -412,6 +432,8 @@ export default function A105Layout() {
         const a = (i / n) * 0.2;
         el.style.strokeDashoffset = String(1 - k(a, a + 0.2 / n + 0.04));
       });
+      // F-086: once the section takes over, the traces step back so 07 isn't read as painted over
+      if (tracesRef.current) tracesRef.current.style.opacity = String(1 - 0.65 * segment(v, 0.3, 0.36));
       const K = k(0.15, 0.3);
       const dmax = Math.max(1, ...(geo?.ext.map((e) => e.d1) ?? [1]));
       extRefs.current.forEach((el, i) => {
@@ -436,15 +458,14 @@ export default function A105Layout() {
   );
 
   useEffect(() => {
-    const root = rootRef.current;
     if (!live) {
       traceRefs.current.forEach((el) => el?.style.removeProperty('stroke-dashoffset'));
       extRefs.current.forEach((el) => el?.style.removeProperty('stroke-dashoffset'));
+      tracesRef.current?.style.removeProperty('opacity');
       xRef.current?.setAttribute('data-stamped', '');
       if (!touched.current) setS(0.5, 'init');
       return;
     }
-    void root;
     apply(p.get());
     applySec(pSec.get());
     const offA = p.on('change', apply);
@@ -485,12 +506,12 @@ export default function A105Layout() {
 
   const n0 = 5;
   const cutStyle = {
-    left: `${grid.fresh.x0 * 100}%`,
-    width: `${(grid.fresh.x1 - grid.fresh.x0) * 100}%`,
+    left: `calc(${grid.fresh.x0 * 100}% - ${X_OUT}px)`,
+    width: `calc(${(grid.fresh.x1 - grid.fresh.x0) * 100}% + ${2 * X_OUT}px)`,
     top: `${grid.fresh.y * 100}%`,
     ['--s' as string]: '0.5',
   } as CSSProperties;
-  const u2 = grid.xs.find((x) => x.at > grid.u1 + 0.2)?.at ?? 0.85;
+  const u2 = grid.xs.find((x) => x.at > grid.u1 + 0.2)?.at ?? 0.836;
   const rootStyle = {
     ['--vt' as string]: String(grid.vt),
     ['--vb' as string]: String(grid.vb),
@@ -505,7 +526,7 @@ export default function A105Layout() {
     <div className="a105" ref={rootRef} data-live={live ? '' : undefined} style={rootStyle}>
       <div className="a105-track" ref={trackRef}>
         <div className="a105-pin" ref={pinRef}>
-          {geo ? (
+          {geo && geo.ext.length ? (
             <svg className="a105-grid" viewBox={`0 0 ${geo.W} ${geo.H}`} width={geo.W} height={geo.H} aria-hidden="true" focusable="false">
               {geo.ext.map((e, i) => (
                 <path
@@ -521,6 +542,21 @@ export default function A105Layout() {
           ) : null}
           <div className="a105-stage">
             <SheetTag id="A-105" className="a105-tag" />
+            <h2 className="t-h2-challenge a105-h2 print-in">{A105.h2}</h2>
+
+            {/* spec and beats: on the bottom gridline (desktop), right after the H2 (phone) */}
+            <div className="a105-foot" ref={footRef}>
+              <p className="t-spec a105-spec print-in" style={{ ['--d' as string]: '120ms' } as CSSProperties}>
+                {A105.spec}
+              </p>
+              <ul className="a105-beats print-in" style={{ ['--d' as string]: '240ms' } as CSSProperties}>
+                {A105.beats.map((b) => (
+                  <li key={b} className="t-beat">
+                    {b}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             <div className="a105-views">
               <div className="a105-planside">
@@ -531,10 +567,10 @@ export default function A105Layout() {
                     onPointerDown={onPointerDown}
                     onPointerMove={onPointerMove}
                     onPointerUp={onPointerUp}
-                    onPointerCancel={onPointerUp}
+                    onPointerCancel={onPointerCancel}
                   >
                     <LoopVideo id="plan-b44" instance="a105" />
-                    <svg className="a105-traces" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                    <svg ref={tracesRef} className="a105-traces" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true" focusable="false">
                       {grid.segs.map((sg, i) => (
                         <path
                           key={i}
@@ -577,51 +613,23 @@ export default function A105Layout() {
                 <div ref={secRef}>
                   <SectionSlice handle={sliceRef} initial={0.5} />
                 </div>
-                <p className="a105-hint t-label print-in" data-a105-avoid="">
-                  {A105.hint}
-                </p>
-                <p className="t-lead a105-line print-in" data-a105-avoid="" style={{ ['--d' as string]: '120ms' } as CSSProperties}>
-                  {snapped ? A105.lineSnapped : A105.line}
-                </p>
+                <p className="a105-hint t-label print-in">{A105.hint}</p>
               </div>
-
             </div>
           </div>
         </div>
       </div>
 
-      <div className="a105-text" ref={textRef}>
-        {geo && geo.text.W ? (
-          <svg className="a105-textgrid" viewBox={`0 0 ${geo.text.W} ${geo.text.H}`} aria-hidden="true" focusable="false">
-            {geo.text.lines.map((d, i) => (
-              <path key={i} d={d} />
-            ))}
-          </svg>
-        ) : null}
-        <div className="a105-textin">
-        <h2 className="t-h2-challenge a105-h2 print-in" data-a105-text="">
-          {A105.h2}
-        </h2>
-        <div className="a105-detail" data-a105-text="">
+      {/* after the pin: the body line, and DETAIL 5 (N04 pinch and snap) */}
+      <div className="a105-after" ref={afterRef}>
+        <div className="a105-detail">
           <DetailBubble n={5} sheet="A-105" label={A105.detail.label} onOpenChange={onDetail} panelClassName="a105-detail-panel">
             <ViewTitle id="a105-detail">
               <LoopVideo id="det-n04" autoPlay={false} />
             </ViewTitle>
           </DetailBubble>
         </div>
-        <div className="a105-col">
-          <p className="t-spec a105-spec print-in" data-a105-text="" style={{ ['--d' as string]: '120ms' } as CSSProperties}>
-            {A105.spec}
-          </p>
-          <ul className="a105-beats print-in" data-a105-text="" style={{ ['--d' as string]: '240ms' } as CSSProperties}>
-            {A105.beats.map((b) => (
-              <li key={b} className="t-beat">
-                {b}
-              </li>
-            ))}
-          </ul>
-        </div>
-        </div>
+        <p className="t-lead a105-line print-in">{snapped ? A105.lineSnapped : A105.line}</p>
       </div>
     </div>
   );

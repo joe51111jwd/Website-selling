@@ -1,7 +1,7 @@
 /* A-103 · BOLTED ASSEMBLY (brief 3.6, DIR-1). Owner: A3.
    --fs: the challenge H2 size (width- and height-capped like every challenge H2, F-016); --D: the
-   detail circle; --cl: the circle's left edge, set so only the tip of ASSEMBLY's Y (--bite) tucks
-   behind the circle's rim (DIR-1: a bite, at most part of one letter; every word stays whole).
+   detail circle; --cl: the circle's left edge, a hair (--gap) right of ASSEMBLY's Y, so the H2 and
+   the circle interlock but no glyph ever sits under the circle (DIR-1).
    PLAN 03 sits at the circle's foot, right, at least 24 px clear of it (F-077); the 03 stencil and
    PLAN 03 sit fully inside the content column. Everything fits the band between the chrome when the
    iris pins (the circle is centred in it). [data-pst-fade] wrappers print out before the iris opens. */
@@ -9,9 +9,10 @@
 .a103 {
   --fs: min(clamp(44px, 12vw, 216px), 18vh);
   --D: min(36vw, 60svh, 600px);
-  /* ASSEMBLY's advance is 3.72 em in Big Shoulders 800 / opsz 72; --bite in em (unitless) */
-  --bite: 0.1;
-  --cl: calc((3.72 - var(--bite)) * var(--fs));
+  /* ASSEMBLY's ink ends at 3.66 em in Big Shoulders 800 / opsz 72; the circle keeps --gap (em,
+     unitless) clear of it, so no glyph ever sits under the circle (DIR-1) */
+  --gap: 0.1;
+  --cl: calc((3.66 + var(--gap)) * var(--fs));
   /* PLAN 03 thumbnail */
   --tw: min(10vw, 168px);
 }

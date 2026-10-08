@@ -121,11 +121,18 @@ html[data-sheet='A-000'] .sheet-header {
   min-width: 88px;
   background: var(--rail-bg);
 }
-.sheet-header .header-index:hover,
-.sheet-header .header-index:focus-visible {
+.sheet-header .header-index:focus-visible,
+.sheet-header .header-index:active {
   background: var(--marking-orange);
   border-color: var(--marking-orange);
   color: var(--slab-black);
+}
+@media (hover: hover) and (pointer: fine) {
+  .sheet-header .header-index:hover {
+    background: var(--marking-orange);
+    border-color: var(--marking-orange);
+    color: var(--slab-black);
+  }
 }
 @media (max-width: 767px), (max-height: 500px) and (pointer: coarse) {
   .sheet-header {
@@ -229,22 +236,41 @@ html[data-sheet='A-000'] .sheet-header {
   letter-spacing: 0;
   text-transform: none;
 }
-.strip-cta:hover,
-.strip-cta:focus-visible {
+.strip-cta:focus-visible,
+.strip-cta:active {
   background: var(--marking-orange);
   color: var(--slab-black);
   outline-offset: -4px;
   outline-color: var(--slab-black);
 }
-.strip-cta:hover .strip-label,
+@media (hover: hover) and (pointer: fine) {
+  .strip-cta:hover {
+    background: var(--marking-orange);
+    color: var(--slab-black);
+    outline-offset: -4px;
+    outline-color: var(--slab-black);
+  }
+}
 .strip-cta:focus-visible .strip-label,
-.strip-cta:hover .strip-value,
-.strip-cta:focus-visible .strip-value {
+.strip-cta:focus-visible .strip-value,
+.strip-cta:active .strip-label,
+.strip-cta:active .strip-value {
   color: var(--slab-black);
 }
-.strip-mark:hover .course-mark,
-.strip-mark:focus-visible .course-mark {
+@media (hover: hover) and (pointer: fine) {
+  .strip-cta:hover .strip-label,
+  .strip-cta:hover .strip-value {
+    color: var(--slab-black);
+  }
+}
+.strip-mark:focus-visible .course-mark,
+.strip-mark:active .course-mark {
   color: var(--marking-orange);
+}
+@media (hover: hover) and (pointer: fine) {
+  .strip-mark:hover .course-mark {
+    color: var(--marking-orange);
+  }
 }
 .strip-mark:focus-visible {
   outline-offset: -4px;
@@ -281,15 +307,26 @@ html[data-sheet='A-000'] .sheet-header {
   position: absolute;
   inset: 0;
 }
-.strip-motion:hover,
-.strip-motion:focus-within {
+.strip-motion:has(.motion-toggle:focus-visible),
+.strip-motion:active {
   background: var(--marking-orange);
 }
-.strip-motion:hover .strip-label,
-.strip-motion:hover .strip-value,
-.strip-motion:focus-within .strip-label,
-.strip-motion:focus-within .strip-value {
+@media (hover: hover) and (pointer: fine) {
+  .strip-motion:hover {
+    background: var(--marking-orange);
+  }
+}
+.strip-motion:has(.motion-toggle:focus-visible) .strip-label,
+.strip-motion:has(.motion-toggle:focus-visible) .strip-value,
+.strip-motion:active .strip-label,
+.strip-motion:active .strip-value {
   color: var(--slab-black);
+}
+@media (hover: hover) and (pointer: fine) {
+  .strip-motion:hover .strip-label,
+  .strip-motion:hover .strip-value {
+    color: var(--slab-black);
+  }
 }
 .strip-motion .motion-toggle:focus-visible {
   outline: 2px solid var(--slab-black);
@@ -584,22 +621,41 @@ html[data-sheet='A-000'] .sheet-header {
 .index-sub {
   color: var(--pencil);
 }
-.index-row:hover,
-.index-row:focus-visible {
+.index-row:focus-visible,
+.index-row:active {
   background: var(--marking-orange);
   outline-offset: -4px;
   outline-color: var(--slab-black);
 }
-.index-row:hover .index-name,
-.index-row:focus-visible .index-name {
+@media (hover: hover) and (pointer: fine) {
+  .index-row:hover {
+    background: var(--marking-orange);
+    outline-offset: -4px;
+    outline-color: var(--slab-black);
+  }
+}
+.index-row:focus-visible .index-name,
+.index-row:active .index-name {
   color: var(--slab-black);
   -webkit-text-stroke-color: transparent;
 }
-.index-row:hover .index-num,
-.index-row:hover .index-sub,
+@media (hover: hover) and (pointer: fine) {
+  .index-row:hover .index-name {
+    color: var(--slab-black);
+    -webkit-text-stroke-color: transparent;
+  }
+}
 .index-row:focus-visible .index-num,
-.index-row:focus-visible .index-sub {
+.index-row:focus-visible .index-sub,
+.index-row:active .index-num,
+.index-row:active .index-sub {
   color: var(--slab-black);
+}
+@media (hover: hover) and (pointer: fine) {
+  .index-row:hover .index-num,
+  .index-row:hover .index-sub {
+    color: var(--slab-black);
+  }
 }
 /* F-062: every row keeps a 12 px marker gutter, so all sheet numbers share one x; only the current
    sheet's marker is visible */
@@ -747,9 +803,14 @@ html[data-sheet='A-000'] .sheet-header {
   letter-spacing: 0;
   text-transform: none;
 }
-.ts-cta:hover .strip-label,
-.ts-cta:focus-visible .strip-label {
+.ts-cta:focus-visible .strip-label,
+.ts-cta:active .strip-label {
   color: var(--slab-black);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ts-cta:hover .strip-label {
+    color: var(--slab-black);
+  }
 }
 .ts-close {
   justify-self: start;

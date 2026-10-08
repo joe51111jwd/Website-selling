@@ -347,11 +347,18 @@ main:focus {
     color var(--dur-hover) linear,
     border-color var(--dur-hover) linear;
 }
-.cell-button:hover,
-.cell-button:focus-visible {
+.cell-button:focus-visible,
+.cell-button:active {
   background: var(--marking-orange);
   border-color: var(--marking-orange);
   color: var(--slab-black);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cell-button:hover {
+    background: var(--marking-orange);
+    border-color: var(--marking-orange);
+    color: var(--slab-black);
+  }
 }
 
 /* ------------------------------------------------------------------- ViewTitle */
