@@ -6,13 +6,40 @@ const EXPO = [0.16, 1, 0.3, 1] as const;
 type Phase = 'dark' | 'play' | 'lit' | 'end';
 
 /** When the line snaps in each take (seconds); the words light up on the snap. */
-const SNAP_AT = { '169': 0.2, '916': 0.2 } as const;
+const SNAP_AT = { '169': 2.62, '916': 2.3 } as const;
 
 /**
  * The opening: the whole take plays and loops seamlessly (its tail crossfades into its head). 07 holds
  * the chalk line, pulls it, lets it go, and the dust settles. The headline lights
  * up on the snap. Moving the pointer looks around the scene while it plays.
  */
+/** Paint and wear for lettering, so type sits in the gritty world instead of floating over it. */
+export function PaintDefs() {
+  return (
+    <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true" focusable="false">
+      <defs>
+        {/* stencil spray on a wall: ragged edges, flecks of wear, a little bleed */}
+        <filter id="paint" x="-4%" y="-12%" width="108%" height="124%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="4" result="warp" />
+          <feDisplacementMap in="SourceGraphic" in2="warp" scale="4" xChannelSelector="R" yChannelSelector="G" result="rough" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" seed="11" result="grain" />
+          <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -11 7.4" result="wear" />
+          <feComposite in="rough" in2="wear" operator="in" result="worn" />
+          <feGaussianBlur in="worn" stdDeviation="0.4" />
+        </filter>
+        {/* lighter version for headings on paper */}
+        <filter id="paint-lite" x="-3%" y="-10%" width="106%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="7" result="warp" />
+          <feDisplacementMap in="SourceGraphic" in2="warp" scale="2.2" xChannelSelector="R" yChannelSelector="G" result="rough" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="3" result="grain" />
+          <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -14 9.9" result="wear" />
+          <feComposite in="rough" in2="wear" operator="in" />
+        </filter>
+      </defs>
+    </svg>
+  );
+}
+
 export function Hero({ onReady }: { onReady: () => void }) {
   const ref = useRef<HTMLElement>(null);
   const filmRef = useRef<HTMLVideoElement>(null);
@@ -70,7 +97,7 @@ export function Hero({ onReady }: { onReady: () => void }) {
         setPhase('lit');
         ready();
       }
-      if (!lit) raf = requestAnimationFrame(watch);
+      if (!lit && !v.ended) raf = requestAnimationFrame(watch);
     };
     const start = window.setTimeout(() => {
       setPhase('play');
@@ -121,40 +148,27 @@ export function Hero({ onReady }: { onReady: () => void }) {
             key={o}
             className="hx-film"
             muted
-            loop
             playsInline
             preload="auto"
-            poster={`/media/hero-press-${o}.poster.jpg`}
-            aria-label="Concept film: robot 07 drives its hand into the slab and blue chalk dust rolls out across the floor."
+            poster={`/media/hero-full-${o}.first.jpg`}
+            aria-label="Concept film: robot 07 picks up a chalk line, pulls it taut, drives its hand into the slab, and blue chalk dust rolls out across the floor."
           >
-            <source src={`/media/hero-press-${o}.av1.mp4`} type='video/mp4; codecs="av01.0.08M.08"' />
-            <source src={`/media/hero-press-${o}.h264.mp4`} type="video/mp4" />
+            <source src={`/media/hero-full-${o}.av1.mp4`} type='video/mp4; codecs="av01.0.08M.08"' />
+            <source src={`/media/hero-full-${o}.h264.mp4`} type="video/mp4" />
           </video>
+          {/* the words live in the scene: stencilled on the back wall, marking-painted on the slab */}
+          <h1 id="hx-h" className={`hx-wall ${lit ? 'is-lit' : ''}`}>
+            <span className="sr-only">We want to see a robot lay brick</span>
+            <span aria-hidden="true">
+              We want to see
+              <br />a robot
+            </span>
+          </h1>
+          <div className={`hx-floor ${lit ? 'is-lit' : ''}`} aria-hidden="true">
+            <span className="hx-paint">Lay brick</span>
+          </div>
         </motion.div>
       </div>
-
-      <motion.div className="hx-far-wrap" style={{ y: lift, opacity: fade }}>
-        <motion.h1 id="hx-h" className={`hx-far ${lit ? 'is-lit' : ''}`} style={{ x: farX, y: farY }}>
-          <span className="sr-only">We want to see a robot lay brick</span>
-          <span aria-hidden="true">
-            We want to see
-            <br />a robot
-          </span>
-        </motion.h1>
-      </motion.div>
-
-      <motion.div className="hx-near" style={{ y: lift, opacity: fade }} aria-hidden="true">
-        <motion.div style={{ x: nearX, y: nearY }}>
-          <motion.span
-            className={`hx-brick ${lit ? 'is-laid' : ''}`}
-            initial={{ opacity: 0, y: 30 }}
-            animate={lit ? { opacity: 1, y: 0 } : undefined}
-            transition={{ duration: 0.6, ease: EXPO, delay: 0.1 }}
-          >
-            <span className="hx-brick-word">Lay brick</span>
-          </motion.span>
-        </motion.div>
-      </motion.div>
 
       <motion.div className="hx-sub-wrap" style={{ opacity: fade }}>
         <motion.p

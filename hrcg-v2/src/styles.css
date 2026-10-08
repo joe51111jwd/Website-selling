@@ -27,7 +27,6 @@
   box-sizing: border-box;
 }
 html {
-  overflow-x: clip;
   -webkit-text-size-adjust: 100%;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -46,7 +45,8 @@ body {
   font-family: var(--body);
   font-size: 18px;
   line-height: 1.5;
-  overflow-x: hidden;
+  /* clip, not hidden: hidden would make body a scroll container and break the pinned (sticky) scenes */
+  overflow-x: clip;
 }
 img,
 video {
@@ -563,4 +563,14 @@ h2 {
 }
 .bays-band .bays {
   margin-top: 0;
+}
+
+/* type that belongs on site: worn paint on every big heading (filters defined in Hero's PaintDefs) */
+h2,
+.task h3,
+.task-num,
+.foot-big,
+.who-card h3,
+.tape {
+  filter: url(#paint-lite);
 }

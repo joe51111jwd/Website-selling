@@ -148,7 +148,8 @@
   max-width: var(--max);
   margin: 0 auto clamp(40px, 7vh, 72px);
 }
-.st-permit-head h2 {
+.st-permit-head h2,
+.who-s-h {
   font-family: var(--body);
   font-weight: 800;
   font-size: clamp(48px, 7vw, 120px);
@@ -234,3 +235,12 @@
 .is-still .sc.tone-chalk {
   background: var(--chalk);
 }
+
+/* worn paint on the big type, as on the main page */
+.tk-num,
+.tk-name,
+.st-permit-head h2,
+.who-s-h {
+  filter: url(#paint-lite);
+}
+

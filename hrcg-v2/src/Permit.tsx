@@ -347,6 +347,17 @@ export function Permit() {
 
   // the number re-draws once typing pauses, not on every keystroke
   const name = mode === "team" ? team : company;
+  // the stub won't tear until the permit has a name on it: it stretches, then snaps back with a note
+  const filled = name.trim().length > 0;
+  const [need, setNeed] = useState(false);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const needTimer = useRef(0);
+  const askToFill = () => {
+    setNeed(true);
+    window.clearTimeout(needTimer.current);
+    needTimer.current = window.setTimeout(() => setNeed(false), 2600);
+    nameRef.current?.focus({ preventScroll: true });
+  };
   const [seed, setSeed] = useState({ mode, name: "" });
   useEffect(() => {
     if (seed.mode !== mode) {
@@ -506,6 +517,11 @@ export function Permit() {
     if (statusRef.current !== "idle") return;
     const dx = Math.max(0, info.offset.x);
     const th = threshold();
+    if (!filled) {
+      // not filled in yet: the perforation holds, the stub just stretches
+      sx.set(th * 0.55 * Math.tanh(dx / (th * 0.9)));
+      return;
+    }
     // resistance before the perforation gives: the stub follows less and less, then tears mid-drag
     if (dx > th) {
       tear(info.velocity.x);
@@ -516,12 +532,18 @@ export function Permit() {
   const onPanEnd = (_: unknown, info: PanInfo) => {
     dragging.current = false;
     if (statusRef.current !== "idle") return;
+    if (!filled) {
+      animate(sx, 0, { type: "spring", stiffness: 700, damping: 14 });
+      if (info.offset.x > 24) askToFill();
+      return;
+    }
     if (info.velocity.x > 700 && info.offset.x > 40) tear(info.velocity.x);
     else animate(sx, 0, { type: "spring", stiffness: 520, damping: 32 });
   };
   const onStubKey = (e: KeyboardEvent) => {
     if (e.key !== "Enter" && e.key !== " ") return;
     e.preventDefault();
+    if (!filled) return askToFill();
     tear(0);
   };
   // a small give on hover says the stub moves
@@ -581,13 +603,15 @@ export function Permit() {
                 </label>
                 <input
                   id={id("name")}
-                  className="pm-input"
+                  className={need ? "pm-input pm-need" : "pm-input"}
                   type="text"
                   autoComplete="organization"
                   spellCheck={false}
                   maxLength={60}
                   placeholder={isTeam ? "Your team" : "Your company"}
+                  ref={nameRef}
                   value={name}
+                  aria-invalid={need || undefined}
                   onChange={(e) => edit(isTeam ? setTeam : setCompany)(e.target.value)}
                 />
               </div>
@@ -702,7 +726,9 @@ export function Permit() {
               onPanEnd={onPanEnd}
               style={{ x: sx, y: stacked ? sy : sag, rotate: rot, opacity: sop, touchAction: "pan-y" }}
             >
-              <span className="pm-grip">{coarse ? "Swipe to tear →" : "Tear to send →"}</span>
+              <span className={`pm-grip ${need ? "is-need" : ""}`} aria-live="polite">
+                {need ? (isTeam ? "Write your team name first" : "Write your company name first") : coarse ? "Swipe to tear →" : "Tear to send →"}
+              </span>
               <span className="pm-stub__bay">
                 <span className="pm-label">Bay</span>
                 <span className="pm-stub__num">

@@ -664,3 +664,23 @@
     transition: none;
   }
 }
+
+/* the stub holds until there's a name on the permit */
+.pm-need {
+  animation: pm-shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  border-bottom-color: var(--orange, #986d36) !important;
+  box-shadow: 0 2px 0 var(--orange, #986d36);
+}
+.pm-grip.is-need {
+  color: var(--orange, #986d36);
+  font-weight: 700;
+}
+@keyframes pm-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(3px); }
+  30%, 50%, 70% { transform: translateX(-5px); }
+  40%, 60% { transform: translateX(5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pm-need { animation: none; }
+}

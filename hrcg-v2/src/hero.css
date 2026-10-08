@@ -23,7 +23,6 @@
   position: absolute;
   inset: 0;
   will-change: transform;
-  transform-style: preserve-3d;
 }
 .hx-film {
   position: absolute;
@@ -134,3 +133,73 @@
   }
 }
 
+/* ---- words in the scene ---- */
+/* stencilled on the back wall: moves with the picture, lit by it */
+.hx-wall {
+  position: absolute;
+  z-index: 3;
+  left: calc(var(--gutter) + 6%);
+  top: calc(max(92px, 12vh) + 4%);
+  margin: 0;
+  font-family: var(--body);
+  font-weight: 900;
+  font-stretch: 125%;
+  text-transform: uppercase;
+  font-size: clamp(34px, 4.7vw, 86px);
+  line-height: 0.98;
+  letter-spacing: -0.012em;
+  color: rgb(226 221 210 / 0.22);
+  filter: url(#paint);
+  mix-blend-mode: screen;
+  transition: color 0.6s ease;
+}
+.hx-wall.is-lit {
+  color: rgb(226 221 210 / 0.9);
+}
+/* marking paint on the slab, laid flat in perspective */
+.hx-floor {
+  position: absolute;
+  z-index: 3;
+  right: 12%;
+  bottom: 17%;
+  width: 46%;
+  text-align: center;
+  transform: perspective(700px) rotateX(58deg) rotateZ(-4deg);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+}
+.hx-paint {
+  display: inline-block;
+  font-family: 'Alfa Slab One', 'Rockwell', Georgia, serif;
+  text-transform: uppercase;
+  font-size: clamp(64px, 8.6vw, 160px);
+  line-height: 0.9;
+  white-space: nowrap;
+  color: rgb(232 112 44 / 0);
+  text-shadow: 0 0 0.06em rgb(232 112 44 / 0);
+  filter: url(#paint);
+  mix-blend-mode: screen;
+  transition: color 0.5s ease 0.15s, text-shadow 0.5s ease 0.15s;
+}
+.hx-floor.is-lit .hx-paint {
+  color: rgb(232 112 44 / 0.86);
+  text-shadow: 0 0 0.05em rgb(232 112 44 / 0.45);
+}
+@media (max-width: 899px) {
+  .hx-wall {
+    top: calc(max(86px, 11vh) + 4%);
+    right: calc(var(--gutter) + 6%);
+    font-size: clamp(26px, 7.6vw, 40px);
+    text-wrap: balance;
+  }
+  .hx-floor {
+    left: 8%;
+    right: 8%;
+    width: auto;
+    bottom: 34%;
+    transform: perspective(500px) rotateX(55deg);
+  }
+  .hx-paint {
+    font-size: clamp(44px, 14vw, 80px);
+  }
+}

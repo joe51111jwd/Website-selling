@@ -179,7 +179,7 @@ function Film({ id, label }: { id: string; label: string }) {
 const STATEMENT = 'The idea is to have humanoid robots do trade work in front of people who build for a living.';
 
 function LitWord({ p, from, to, still, children }: { p: MotionValue<number>; from: number; to: number; still: boolean; children: string }) {
-  const opacity = useTransform(p, [from, to], [0.14, 1]);
+  const opacity = useTransform(p, [from, to], [0.32, 1]);
   return (
     <motion.span aria-hidden="true" style={still ? undefined : { opacity }}>
       {children}

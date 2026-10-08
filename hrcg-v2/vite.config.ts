@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
         story: fileURLToPath(new URL('./story.html', import.meta.url)),
+        classic: fileURLToPath(new URL('./classic.html', import.meta.url)),
       },
     },
   },
