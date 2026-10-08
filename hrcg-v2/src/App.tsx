@@ -10,40 +10,40 @@ const TASKS = [
   {
     num: '01',
     name: 'Bricklaying',
-    line: 'Build a wall segment with straight courses, consistent joints and a stable finish.',
-    judged: 'Judged on line, level and joints.',
+    line: 'Lay up a section of wall in straight courses with even joints, and make sure it’s solid.',
+    judged: '',
     film: 'el-c30',
     ratio: '1920 / 804',
   },
   {
     num: '02',
-    name: 'Drywall',
-    line: 'Position and fasten a panel on a prepared frame, aligned and cleanly finished.',
-    judged: 'Judged on alignment and finish.',
+    name: 'Drywall installation',
+    line: 'Hang a sheet of drywall square on the framing and fasten it off clean.',
+    judged: '',
     film: 'el-c31',
     ratio: '1080 / 1350',
   },
   {
     num: '03',
     name: 'Bolted assembly',
-    line: 'Align the components and complete a secure bolted connection.',
-    judged: 'Judged on fit and a secure joint.',
+    line: 'Get the holes lined up and bolt the connection tight.',
+    judged: '',
     film: 'el-c32',
     ratio: '1920 / 1076',
   },
   {
     num: '04',
     name: 'Pipe assembly',
-    line: 'Connect pipes and fittings to a task drawing, with correct geometry and secure joints.',
-    judged: 'Judged against the drawing.',
+    line: 'Make up a run of pipe and fittings to the drawing, without a loose joint anywhere.',
+    judged: '',
     film: 'el-c33',
     ratio: '1920 / 804',
   },
   {
     num: '05',
     name: 'Layout and marking',
-    line: 'Transfer a plan onto the floor with accurate positions and clear reference lines.',
-    judged: 'Judged on position and clarity.',
+    line: 'Lay out the plan on the floor with every mark where the drawing puts it, and reference lines clear enough to work from.',
+    judged: '',
     film: 'plan-b44',
     ratio: '1 / 1',
   },
@@ -279,7 +279,7 @@ export function App() {
           <span>HRCG</span>
         </a>
         <a className="top-link" href="#permit" onClick={go('permit')}>
-          Sponsors
+          Sign up
         </a>
       </header>
 
@@ -294,16 +294,16 @@ export function App() {
             <div className="hero-head">
               <h1>
                 <span className="l1">
-                  <Words text="Can a robot actually" delay={0.1} play={introDone} />
+                  <Words text="We want to see a robot" delay={0.1} play={introDone} />
                 </span>{' '}
                 <span className="l2">
-                  <Tape delay={0.62} play={introDone}>
-                    build?
+                  <Tape delay={0.7} play={introDone}>
+                    lay brick
                   </Tape>
                 </span>
               </h1>
               <motion.p className="sub" initial={{ opacity: 0, y: 14 }} animate={introDone ? { opacity: 1, y: 0 } : undefined} transition={{ duration: 1, ease: EXPO, delay: 0.85 }}>
-                Five real construction tasks. One site in New York City. <span className="nowrap">2027.</span>
+                That&rsquo;s one of five tasks at the first Games, which we&rsquo;re planning for New York City in&nbsp;2027.
               </motion.p>
             </div>
           </motion.div>
@@ -311,13 +311,13 @@ export function App() {
         </section>
 
         <section className="why">
-          <Statement text="Humanoid robots are getting very good at demos. This is the other test: real trade work, on a real slab, judged on what is left standing." />
+          <Statement text="The idea is to have humanoid robots do trade work in front of people who build for a living." />
         </section>
 
         <section className="tasks" aria-labelledby="tasks-h">
           <Reveal className="tasks-head">
             <h2 id="tasks-h">
-              Five tasks. <Chalk>Real jobs.</Chalk>
+              What we&rsquo;ll ask the <Chalk>robots</Chalk> to do
             </h2>
           </Reveal>
           <ol className="task-list">
@@ -327,7 +327,7 @@ export function App() {
                   <span className="task-num">{t.num}</span>
                   <h3>{t.name}</h3>
                   <p>{t.line}</p>
-                  <p className="judged">{t.judged}</p>
+                  {t.judged ? <p className="judged">{t.judged}</p> : null}
                 </Reveal>
                 <Reveal className="task-film" delay={0.1}>
                   <Film id={t.film} ratio={t.ratio} label={`Concept film: a robot doing ${t.name.toLowerCase()}.`} />
@@ -339,16 +339,16 @@ export function App() {
 
         <section className="who" aria-labelledby="who-h">
           <Reveal>
-            <h2 id="who-h">Who it&rsquo;s for</h2>
+            <h2 id="who-h">Who we&rsquo;d like to hear from</h2>
           </Reveal>
           <div className="who-grid">
             <Reveal className="who-card">
               <h3>Robot teams</h3>
-              <p>Bring your humanoid. Show the people who build, specify and buy what it can really do.</p>
+              <p>If your company, lab or university team is building a humanoid, tell us which tasks suit it and what you&rsquo;d need.</p>
             </Reveal>
             <Reveal className="who-card" delay={0.08}>
               <h3>Construction companies</h3>
-              <p>Sponsor a bay, supply the materials, and meet the teams making robots useful on site.</p>
+              <p>You could supply materials, tools or fixtures for one of the tasks, or lend us someone who knows the trade.</p>
             </Reveal>
           </div>
         </section>
@@ -356,9 +356,9 @@ export function App() {
         <section className="permit-section" id="permit" aria-labelledby="permit-h">
           <Reveal className="permit-head">
             <h2 id="permit-h">
-              Get on <Tape>site.</Tape>
+              Pull a <Tape>permit</Tape>
             </h2>
-            <p>Fill in the permit, tear off the stub, and your email opens ready to send.</p>
+            <p>Tear off the stub and your email opens with the message already written. Nothing&rsquo;s confirmed until we write back.</p>
           </Reveal>
           <Reveal delay={0.1}>
             <Permit />
@@ -367,13 +367,13 @@ export function App() {
       </main>
 
       <footer className="foot">
-        <p className="foot-big">New York City, 2027.</p>
-        <p className="foot-small">Date and venue to be announced.</p>
+        <p className="foot-big">We&rsquo;re aiming for New York in 2027</p>
+        <p className="foot-small">We&rsquo;ll post the date and venue here once they&rsquo;re settled.</p>
         <a className="foot-mail" href={`mailto:${CONTACT_EMAIL}`}>
           {CONTACT_EMAIL}
         </a>
         <p className="disclosure">
-          The robot and the films on this site are AI-generated concept visuals. No robot shown here has competed yet.
+          The robot and the footage are AI-generated, and the Games haven&rsquo;t happened yet.
         </p>
       </footer>
 
@@ -387,7 +387,7 @@ export function App() {
         style={{ pointerEvents: ctaHidden ? 'none' : 'auto' }}
         tabIndex={ctaHidden ? -1 : 0}
       >
-        Enter your robot <span aria-hidden="true">→</span>
+        Enter or sponsor <span aria-hidden="true">→</span>
       </motion.a>
     </>
   );
