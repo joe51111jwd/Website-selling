@@ -1270,3 +1270,23 @@ Put retakes in `qa/review/r1/` and keep each baseline's name, so that before and
 1. **Make the hero freeze clean and the first second populated.** F-004, F-008, F-022 and F-046 clean the freeze and the bite. F-074 fixes the snap timing. The first-paint changes are H-2.
 2. **Kill every chrome collision.** F-001 (header rail), F-059 (opaque strip), F-015 (landings), F-007 (A-103) and F-039 (A-104). The A-104 caption overprint the juror saw was a QA-build artefact (X-1); F-052 and F-013 make sure it can't ship.
 3. **Cut the dead air and land the ending.** F-043 (A-200 re-timing), F-041 (A-105 frame), F-039 (A-104), F-005 (A-100 prints at 0.55) and F-094 (end line). The bigger A-900 changes are H-6 and H-7.
+
+---
+
+## 8. Director decisions (binding; added after the review)
+
+| Held | Decision |
+|---|---|
+| H-1 | **Keep** the view titles exactly as they are (rule 22, brief §3.2). |
+| H-2 | **Approve, with a change.** (a) String and hint legibility (3 px string, idle micro-twang, 14–16 px hint): A2. (b) Instead of the juror's generic "ghost image": the hero ground gets a faint **pre-snap ghost of the same film** — c34 frame ~60 (07 crouched in the dark, holding the line), graded down to ~10–14% so the slab still reads as slab and the pencil H1 stays ≥3:1. A5 bakes it into `hero-ground-169/916` (same ids, same sizes, ≤60 kB AVIF) and re-checks the H1 contrast gate on the real pixels; A2 makes sure the film rises *out of* the ghost without a jump (the film's first frame matches the ghost position). (c) **Keep** auto-snap at 3.0 s (F-074 fixes today's 3.5 s). (d) **No** phone FAR move (conflicts with F-022). |
+| H-3 | **Reject.** Keep the sub "Five construction tasks, with results you can see." ("Done in public" implies an audience; rule 13). |
+| H-4 | **Partly approve.** Fix only the "Meet … Meet" repetition in A-301 keynote 3 without changing its meaning (A6). Keep the og/twitter description and A-900 note 4 ("Explore") as they are (rule 24). |
+| H-5 | **Approve** ("drew most of Manhattan as a grid", both bodies; A4; A6 notes it in the fact gate). |
+| H-6 | **Approve.** A-900 close: the end line at statement size with the two CTA cells beside/under it, and the email at `clamp(28px, 4vw, 56px)` (overrides §5.2's email size). A6. |
+| H-7 | **Approve.** General notes print open, like drawing notes: no accordion, two ruled columns at ≥1024 px, one column below. Keep the `<details>`-free markup accessible (headings + paragraphs). A6. |
+| H-8, H-9, H-10 | **Not now.** |
+| H-11 | Fallback only, if F-009's re-crop still doesn't read as hanging drywall (director decides on the retake). |
+| H-12 | **Reject** (no new credits); do F-040's interim fix. |
+| H-13 | Revisit after F-032, F-039 and F-085 land. |
+
+§5's brief overrides are **accepted** and logged in PRODUCTION_PLAN.md.
