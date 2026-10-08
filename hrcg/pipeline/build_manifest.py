@@ -59,7 +59,7 @@ ALT = {
     'b43': A + ', seen from above: robot 07 joins copper pipe and fittings beside a task drawing taped to the floor.',
     'b44': A + ', seen from above: robot 07 snaps a blue chalk line inside a marked-out bay and moves to the bay’s edge.',
     'c30': A + ': robot 07 spreads mortar with a trowel and steadies a course of brick between two line posts, against a dark background.',  # F-090 = F-081
-    'c31': A + ', close on robot 07’s hands pressing a sheet of drywall flat against a steel stud frame; dust hangs in the light.',
+    'c31': A + ', close on robot 07’s hand and forearm pressing a sheet of drywall flat, the 07 stencil on its chest.',  # F-009 window; director 13:25 (requests/A5-fix-4)
     'c32': A + ': robot 07 drives a bolt with an impact wrench and reaches into a tray of bolts.',
     'c33': A + ', close on robot 07’s hands joining copper pipe at an elbow under a warm work light.',
     'v0': A + ', close up: a robot hand presses a brick into a mortar bed beside a stringline.',
