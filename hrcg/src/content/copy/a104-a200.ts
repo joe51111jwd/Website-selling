@@ -29,10 +29,12 @@ export const A105 = {
   },
   sectionLabel:
     'Depth drawing of one frame from an AI-generated concept film: robot 07 crouches, holding a taut chalk line that runs toward the camera. In front of the section plane the frame is drawn as depth contour lines; behind it the film shows.',
-  /** Detail 5 bubble (N04 pinch and snap). */
+  /**
+   * Detail 5 bubble (N04 pinch and snap). FIXLIST-1 F-044 / F-035: DetailBubble (A3) prefixes the visible
+   * text, so the accessible name reads "5 A-105 detail: concept film of …" and starts with what is shown.
+   */
   detail: {
-    open: 'Open DETAIL 5 / A-105, concept film of robot fingers pinching a chalk line and letting it snap',
-    close: 'Close DETAIL 5 / A-105',
+    label: 'concept film of robot fingers pinching a chalk line and letting it snap',
   },
 } as const;
 
@@ -55,6 +57,8 @@ export const A105 = {
  *    100 ft, blocks between avenues 610–920 ft: Wikipedia + MCNY (making-the-plan/12).
  *  - "much of it still fields": 6sqft (upper Manhattan "a rural area … country estates, farms"),
  *    Scientific American ("meadows … barns, cider mills"); the phrase is in both bodies.
+ * FIXLIST-1 H-5 (director-approved): both bodies say "drew most of Manhattan as a grid" (it narrows the
+ * claim and adds no figure); A6 notes the wording in the fact gate.
  * Set FACT_GATE to 'fallback' to ship the fallback body instead (e.g. if A6's sign-off fails).
  */
 export const FACT_GATE: 'verified' | 'fallback' = 'verified';
@@ -62,9 +66,9 @@ export const FACT_GATE: 'verified' | 'fallback' = 'verified';
 export const A200 = {
   h2: 'New York’s grid started as a layout.',
   bodyVerified:
-    'In 1811, the Commissioners’ Plan drew Manhattan as a grid of twelve avenues and 155 cross streets, set about 29° east of true north. Survey crews led by John Randel Jr. then marked it out on the ground, much of it still fields, with 1,549 marble markers and 98 iron bolts where rock got in the way.',
+    'In 1811, the Commissioners’ Plan drew most of Manhattan as a grid of twelve avenues and 155 cross streets, set about 29° east of true north. Survey crews led by John Randel Jr. then marked it out on the ground, much of it still fields, with 1,549 marble markers and 98 iron bolts where rock got in the way.',
   bodyFallback:
-    'In 1811, the Commissioners’ Plan drew Manhattan as a grid of avenues and cross streets, set about 29° east of true north. Survey crews then marked it out on the ground, much of it still fields.',
+    'In 1811, the Commissioners’ Plan drew most of Manhattan as a grid of avenues and cross streets, set about 29° east of true north. Survey crews then marked it out on the ground, much of it still fields.',
   statement: 'The Games are planned for New York City in 2027. Date and venue will be announced on this site.',
   labels: {
     trueNorth: 'TRUE NORTH',

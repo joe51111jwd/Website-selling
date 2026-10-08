@@ -45,8 +45,8 @@
 }
 .cv-track--000 {
   top: 0;
-  /* covers the hero and the plan cut (P < 0.40) for the SHEET cell */
-  height: calc(var(--cv-spacer) * 0.4 + 50vh);
+  /* covers the hero and the plan cut (P < 0.30, FIXLIST F-005) for the SHEET cell */
+  height: calc(var(--cv-spacer) * 0.3 + 50vh);
 }
 .cv-track--100 {
   /* scrolling here lands on the stage's end state */
@@ -54,11 +54,19 @@
   height: 100vh;
 }
 .cv-track--cover {
-  top: calc(var(--cv-spacer) * 0.4 + 50vh);
+  top: calc(var(--cv-spacer) * 0.3 + 50vh);
   bottom: 0;
 }
 
 /* layers inside the pin */
+/* after the plan cut the hero is transparent (the controller's opacity); it no longer takes the pointer
+   and its media leave the render, but the H1 stays in the accessibility tree (F-023) */
+.cv[data-hero-gone] .cv-hero {
+  pointer-events: none;
+}
+.cv[data-hero-gone] .cv-hero :is(.cv-ground, .cv-media) {
+  visibility: hidden;
+}
 .cv-hero {
   position: absolute;
   z-index: 1;
@@ -92,6 +100,20 @@
   margin: 0;
   pointer-events: none;
   overflow: hidden;
+}
+/* a full-frame slab under the registered plan still: no hero band can show beside it (F-005). The same
+   textured slab as the page, kept in register with it while the stage is pinned (--cv-bgy = -scrollY). */
+.cv-plan::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgb(31 31 30);
+  background-image: image-set(url('/media/tex/tex-slab.avif') type('image/avif'), url('/media/tex/tex-slab.jpg') type('image/jpeg'));
+  background-size: 1024px 1024px;
+  background-repeat: repeat;
+  background-blend-mode: multiply;
+  background-position: 0 var(--cv-bgy, 0px);
+  opacity: var(--plan-o, 0);
 }
 .cv-fx {
   position: absolute;
@@ -152,12 +174,23 @@
     1.1 * min(100cqw, 100cqh * var(--ar-w) / var(--ar-h))
   );
   --fh: calc(var(--fw) * var(--ar-h) / var(--ar-w));
+  /* frame top in hero px (centred unless a fit below moves it), and the offset from the frame's bottom
+     edge down to the viewport's: `bottom: calc(var(--to-vb) + X)` sits X above the viewport bottom */
+  --ftop: calc((100cqh - var(--fh)) / 2);
+  --to-vb: calc(var(--ftop) + var(--fh) - 100cqh);
+  /* the page spine (72 px desktop, 16 px phone) in frame coordinates, left and right */
+  --spine-l: calc((var(--fw) - 100cqw) / 2 + var(--margin));
+  --spine-r: var(--spine-l);
+  /* chrome edges in hero px */
+  --hb: calc(var(--border) + var(--header-h));
+  /* measured by the controller (heights of the view title, sub, hints, status); first-paint defaults */
+  --vt-h: 21px;
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: var(--ftop);
   width: var(--fw);
   height: var(--fh);
-  translate: -50% -50%;
+  translate: -50% 0;
   margin: 0;
   /* frame-space layout, 16:9 (brief 2.2) */
   --t-size: 0.131;
@@ -189,8 +222,7 @@
   /* 40 px under the frame for its view title */
   --avail: calc(100cqh - var(--border) - var(--header-h) - var(--chrome-bottom) - 40px);
   --fw: min(100cqw - 2 * var(--border), var(--avail) * var(--ar-w) / var(--ar-h));
-  top: calc(var(--border) + var(--header-h) + (var(--avail) - var(--fh)) / 2);
-  translate: -50% 0;
+  --ftop: calc(var(--border) + var(--header-h) + (var(--avail) - var(--fh)) / 2);
 }
 
 /* ------------------------------------------------------------------ media */
@@ -244,8 +276,17 @@
   display: none;
 }
 .cv-gl:focus-visible {
+  outline: none;
+}
+/* the 3D VIEW's focus ring, drawn inside the visible part of the frame (between the header and the
+   strip, inside the side borders; the controller writes --vis-inset), never off-screen (F-024) */
+.cv-media:has(.cv-gl:focus-visible)::after {
+  content: '';
+  position: absolute;
+  inset: var(--vis-inset, 0);
   outline: 2px solid var(--chalk-blue);
-  outline-offset: -6px;
+  outline-offset: -2px;
+  pointer-events: none;
 }
 .rm .cv-still,
 .no-js .cv-still {
@@ -263,9 +304,10 @@
 /* ------------------------------------------------------------------ view titles */
 .cv-vt {
   position: absolute;
-  left: 9%;
-  right: 8%;
-  bottom: calc((var(--fh) - 100cqh) / 2 + var(--chrome-bottom) + 12px);
+  /* on the 72 px spine at every width (F-028) */
+  left: max(9%, var(--spine-l));
+  right: max(8%, var(--spine-r));
+  bottom: calc(var(--to-vb) + var(--chrome-bottom) + 12px);
   margin: 0;
   display: none;
 }
@@ -300,13 +342,17 @@
 }
 .cv-status {
   position: absolute;
-  left: 9%;
+  left: max(9%, var(--spine-l));
   top: 10.5%;
   translate: 0 -50%;
   margin: 0;
   color: rgba(236, 232, 225, 0.8);
   white-space: nowrap;
   opacity: var(--a0-o);
+  /* AA over the work light and the footage (F-025) */
+  text-shadow:
+    0 0 6px rgba(11, 11, 10, 0.9),
+    0 0 2px rgba(11, 11, 10, 0.9);
 }
 .cv-h1 {
   position: absolute;
@@ -406,8 +452,9 @@
 
 .cv-sub {
   position: absolute;
-  left: 9%;
-  top: 80%;
+  /* on the spine, bottom-anchored 24 px above the view title (F-028): it can never sit on it */
+  left: max(9%, var(--spine-l));
+  bottom: calc(var(--to-vb) + var(--chrome-bottom) + 12px + var(--vt-h) + 24px);
   max-width: 34ch;
   margin: 0;
   font-family: var(--font-text);
@@ -418,6 +465,9 @@
   color: var(--chalk);
   text-wrap: balance;
   opacity: var(--a0-o);
+  text-shadow:
+    0 0 6px rgba(11, 11, 10, 0.9),
+    0 0 2px rgba(11, 11, 10, 0.9);
 }
 .cv-hint {
   position: absolute;
@@ -681,9 +731,11 @@
     outline-width var(--dur-hover) linear,
     outline-offset var(--dur-hover) linear;
 }
-.cv:has(.arena-bay:nth-child(5) .arena-link:hover) .cv-slot5 {
-  outline: 1.25px solid var(--chalk-blue);
-  outline-offset: -1.25px;
+@media (hover: hover) and (pointer: fine) {
+  .cv:has(.arena-bay:nth-child(5) .arena-link:hover) .cv-slot5 {
+    outline: 1.25px solid var(--chalk-blue);
+    outline-offset: -1.25px;
+  }
 }
 .cv:has(.arena-bay:nth-child(5) .arena-link:focus-visible) .cv-slot5 {
   outline: 2px solid var(--chalk-blue);

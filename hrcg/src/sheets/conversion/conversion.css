@@ -676,12 +676,13 @@
 .conv--a301 .conv-h2.t-h2-statement {
   font-size: min(clamp(48px, 8vw, 152px), 10vh);
 }
-/* desktop: the material row above the H2 grows with the width (its top is about 269 px + 20vw below
-   the landing), so on short screens (1280x800) the three H2 lines also fit what is left above the
-   strip: (100vh - 80 px chrome - 16 px - 269 px - 20vw) / (3 lines x 0.88) */
+/* desktop: the material row above the H2 grows with the width (measured: the H2 starts about
+   290 px + 20vw below the landing), so on short screens (1280x800, 1366x768) the three H2 lines
+   also fit what is left above the strip: (100vh - 80 px chrome - 16 px - 290 px - 20vw) / (3 x 0.88),
+   never below the statement minimum */
 @media (min-width: 1024px) {
   .conv--a301 .conv-h2.t-h2-statement {
-    font-size: max(56px, min(clamp(48px, 8vw, 152px), 10vh, calc((100vh - 365px - 20vw) / 2.64)));
+    font-size: max(48px, min(clamp(48px, 8vw, 152px), 10vh, calc((100vh - 386px - 20vw) / 2.64)));
   }
 }
 .a301-main {

@@ -191,10 +191,16 @@ EDGE_LO, EDGE_HI = 0.04, 0.08
 MATTE = None                                          # full-res matte alpha 0..1 (set in the outputs section)
 def smoothstep(e0, e1, x):
     t = np.clip((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t)
-def vertex_edge():
-    """aEdge = max(|z_i - z_n|) / z_i over the four grid neighbours (edge-clamped), as A2 bakes it per vertex"""
+EDGE_NB = int(os.environ.get('FREEZE_EDGE_NB', '8'))
+def vertex_edge(nbs=None):
+    """aEdge = max(|z_i - z_n|) / z_i over the grid neighbours (edge-clamped), as A2 bakes it per vertex. F-004 says
+    four neighbours; with four, a vertex whose only far neighbour is DIAGONAL (a stair-step in the silhouette) keeps
+    a small aEdge and the triangle across that diagonal stays visible and stretched. A5 gates with eight (all the
+    vertices it shares a triangle with, plus the other diagonal) and asks A2 to bake it that way (requests/A5-fix-2)."""
+    nbs = nbs or EDGE_NB
     zg = zof(grid); pd = np.pad(zg, 1, mode='edge')
-    nb = (pd[1:-1, :-2], pd[1:-1, 2:], pd[:-2, 1:-1], pd[2:, 1:-1])
+    nb = [pd[1:-1, :-2], pd[1:-1, 2:], pd[:-2, 1:-1], pd[2:, 1:-1]]
+    if nbs == 8: nb += [pd[:-2, :-2], pd[:-2, 2:], pd[2:, :-2], pd[2:, 2:]]
     return np.max([np.abs(zg - n) for n in nb], 0) / zg
 def texel_alpha(k):
     a_ = 1 - smoothstep(EDGE_LO, EDGE_HI, up(vertex_edge()) * k)
@@ -275,7 +281,7 @@ def render(yaw, pitch, dolly, pivot, plate_img, plate_z, plate_scale, farlab=Non
     res['border'] = np.stack([px, py], 1)
     return res
 
-def stretch_gate(yaw, pitch, dolly, pivot, k=1.0):
+def stretch_gate(yaw, pitch, dolly, pivot, k=1.0, nbs=None):
     """F-008 gate, per mesh TRIANGLE as A2 indexes them (a-c-b, b-c-d), in full frame px: how far the visible part
     of each triangle stretches past where a rigid copy at its nearer vertex's depth would sit. Visible = where the
     interpolated per-vertex edge alpha is >= 0.1, or the matte is >= 0.1 (07's layer). Offending = visible stretch
@@ -288,7 +294,7 @@ def stretch_gate(yaw, pitch, dolly, pivot, k=1.0):
         X, Y, Z = xform(Pp, yaw, pitch, dolly, pivot)
         return np.stack([(X / Z * f + 1) / 2 * W, (Y / Z * f / ASP + 1) / 2 * H], 1).reshape(Uq.shape + (2,))
     S0 = proj(U, V, zg)
-    ev = vertex_edge() * k
+    ev = vertex_edge(nbs) * k
     E_VIS = EDGE_LO + 0.804 * (EDGE_HI - EDGE_LO)      # 1 - smoothstep(...) = 0.1 here
     ts = np.linspace(0, 1, 9, dtype=np.float32)
     def mfrac(sa, sb):   # fraction of the edge a->b (from either end) on which the matte is >= 0.1
@@ -319,12 +325,12 @@ def stretch_gate(yaw, pitch, dolly, pivot, k=1.0):
     vis = np.concatenate([vis1, vis2]); inm = np.concatenate([in1, in2]); bnd = np.concatenate([band, band])
     off = bnd & ~inm & (vis > 2.0)
     cen = np.concatenate([(S0[c00] + S0[c10] + S0[c01]) / 3, (S0[c01] + S0[c10] + S0[c11]) / 3])
-    out = {'yaw': yaw, 'pitch': pitch, 'offendingTriangles': int(off.sum()),
+    out = {'yaw': yaw, 'pitch': pitch, 'aEdgeNeighbours': nbs or EDGE_NB, 'offendingTriangles': int(off.sum()),
            'maxVisibleStretchPxBand': round(float(vis[bnd & ~inm].max()) if (bnd & ~inm).any() else 0.0, 2),
            'maxVisibleStretchPxInsideMatte': round(float(vis[inm].max()) if inm.any() else 0.0, 2),
            'trianglesInsideMatteOver2px': int((inm & (vis > 2.0)).sum()),
            'maxVisibleStretchPxAnywhereOutsideMatte': round(float(vis[~inm].max()), 2)}
-    if os.environ.get('FREEZE_DEBUG'):   # source-space map of the offending triangles (QA)
+    if os.environ.get('FREEZE_DEBUG') and not nbs:   # source-space map of the offending triangles (QA)
         src_c = np.concatenate([np.stack([(PX[c00] + PX[c10] + PX[c01]) / 3, (PY[c00] + PY[c10] + PY[c01]) / 3], -1),
                                 np.stack([(PX[c01] + PX[c10] + PX[c11]) / 3, (PY[c01] + PY[c10] + PY[c11]) / 3], -1)])
         dbg = (bgr // 2).copy()
@@ -543,6 +549,7 @@ for yw in yaws:
     for pt in pitches:
         r = render(yw, pt, 0.04, pivotZ, plate_rgb, plate_z, plate_scale, farlab, nearm)
         sg, offc, offp, offx = stretch_gate(yw, pt, 0.04, pivotZ)
+        sg4 = stretch_gate(yw, pt, 0.04, pivotZ, nbs=4)[0]
         bx = r['border']; x0i, x1i, y0i, y1i = inner * rw, (1 - inner) * rw, inner * rh, (1 - inner) * rh
         inside = (bx[:, 0] > 0) & (bx[:, 0] < rw) & (bx[:, 1] > 0) & (bx[:, 1] < rh)   # ring edge inside the frame box
         uncovered = int((r['cover'] == 0).sum())
@@ -558,10 +565,11 @@ for yw in yaws:
         cv2.imwrite(fn, cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
         limits.append({'yaw': yw, 'pitch': pt, 'uncoveredPx': uncovered, 'edgeInside': int(inside.sum()), 'farOccl': round(r['farOccl'], 4),
                        'farOcclMatte': round(r['farOcclMatte'], 4), 'glyphOcclMax': round(float(r['glyphOccl'].max()), 4),
-                       'stretch': sg, 'png': fn})
+                       'stretch': sg, 'stretchWith4Neighbours': {k_: sg4[k_] for k_ in ('offendingTriangles', 'maxVisibleStretchPxBand')}, 'png': fn})
 ryaw, rpitch = (6, -2.5) if PH else (8, -2.5)
 rr = render(ryaw, rpitch, 0.04, pivotZ, plate_rgb, plate_z, plate_scale, farlab, nearm)
 rest_sg = stretch_gate(ryaw, rpitch, 0.04, pivotZ)[0]
+rest_sg4 = stretch_gate(ryaw, rpitch, 0.04, pivotZ, nbs=4)[0]
 cv2.imwrite(f'{A.qadir}/rest-{SUF}.png', cv2.cvtColor(np.clip(rr['img'], 0, 255).astype(np.uint8), cv2.COLOR_RGB2BGR))
 # F-046 gate: every FAR glyph <= 40% occluded (depth bite and matte bite, yaw 0 and rest; 16:9 also at the 1280x800
 # and 1440x900 display sizes), and no bite in the head region. Phone: if the only possible bite is the head, the
@@ -600,7 +608,7 @@ meta = {'frame': A.frame, 'w': W, 'h': H, 'mock': False,
         'plate': {'z': round(plate_z, 4), 'scale': plate_scale, 'note': 'as A2 FreezeScene: quad at z = 1.06/a, size = scale x the frame-matched size at that depth; the smallest scale (>= 1.5) that leaves no uncovered pixel in any limit pose'},
         'limitPoseRule': 'mesh with A2s 12% overscan ring (edge-clamped); FAIL if the ring outer edge enters the frame box or any pixel is uncovered (no mesh, no plate)',
         'stretchDiscard': {'threshold': 0.06, 'rampDeg': 0.5, 'note': 'pre-F-004 per-pixel test; superseded by edgeAlpha'},
-        'edgeAlpha': {'aEdge': 'max(|z_i - z_n|) / z_i over the 4 grid neighbours', 'alpha': '1 - smoothstep(0.04, 0.08, aEdge * k)', 'discardBelow': 0.01,
+        'edgeAlpha': {'aEdge': f'max(|z_i - z_n|) / z_i over the {EDGE_NB} grid neighbours (gate); see requests/A5-fix-2', 'alpha': '1 - smoothstep(0.04, 0.08, aEdge * k)', 'discardBelow': 0.01,
                       'k': 'clamp((|yaw| + |pitch|) / 0.5 deg, 0, 1)', 'foreground': 'hero-matte alpha (07 drawn from the matte at every yaw)'},
         'depthDilation': {'note': 'F-008: inverse depth grey-dilated (nearer wins) before meshing; matte = undilated core (d > farPlaneD) + dil px',
                           'radiusPx': DIL_R, 'cellPx': round(CELL, 2), 'mattePx': A.dil, 'matteFeatherSigmaPx': 1.6 if PH else 1.2,
@@ -621,7 +629,7 @@ g4 = GLYPHS['pass']
 g2 = nfrac >= 0.90
 g3 = all(l['uncoveredPx'] == 0 and l['edgeInside'] == 0 for l in limits)
 g5 = all(l['stretch']['offendingTriangles'] == 0 for l in limits) and rest_sg['offendingTriangles'] == 0
-meta['restStretch'] = rest_sg
+meta['restStretch'] = rest_sg; meta['restStretchWith4Neighbours'] = rest_sg4
 meta['gates'] = {'occlusion': g1, 'nearContrast': g2, 'limitPoses': g3, 'farGlyphs': g4, 'stretchPastMatte': g5}
 json.dump(meta, open(f'{A.outdir}/hero-meta-{SUF}.json', 'w'), indent=1)
 print(json.dumps({'gates': meta['gates'], 'occlusion': meta['occlusion'], 'nearContrast': meta['nearContrast'], 'plate': meta['plate'],
