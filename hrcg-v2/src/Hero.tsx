@@ -6,7 +6,7 @@ const EXPO = [0.16, 1, 0.3, 1] as const;
 type Phase = 'dark' | 'play' | 'lit' | 'end';
 
 /** When the line snaps in each take (seconds); the words light up on the snap. */
-const SNAP_AT = { '169': 1.62, '916': 1.3 } as const;
+const SNAP_AT = { '169': 0.2, '916': 0.2 } as const;
 
 /**
  * The opening: the whole take plays and loops seamlessly (its tail crossfades into its head). 07 holds
@@ -124,11 +124,11 @@ export function Hero({ onReady }: { onReady: () => void }) {
             loop
             playsInline
             preload="auto"
-            poster={`/media/hero-loop-${o}.poster.jpg`}
-            aria-label="Concept film: robot 07 picks up a chalk line, pulls it taut and snaps it, and blue chalk dust rolls across the slab."
+            poster={`/media/hero-press-${o}.poster.jpg`}
+            aria-label="Concept film: robot 07 drives its hand into the slab and blue chalk dust rolls out across the floor."
           >
-            <source src={`/media/hero-loop-${o}.av1.mp4`} type='video/mp4; codecs="av01.0.08M.08"' />
-            <source src={`/media/hero-loop-${o}.h264.mp4`} type="video/mp4" />
+            <source src={`/media/hero-press-${o}.av1.mp4`} type='video/mp4; codecs="av01.0.08M.08"' />
+            <source src={`/media/hero-press-${o}.h264.mp4`} type="video/mp4" />
           </video>
         </motion.div>
       </div>

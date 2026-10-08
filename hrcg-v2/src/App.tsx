@@ -359,10 +359,10 @@ export function App() {
         onClick={go('permit')}
         className="pill"
         initial={{ opacity: 0, y: 20 }}
-        animate={introDone ? { opacity: ctaHidden ? 0 : 1, y: ctaHidden ? 20 : 0 } : undefined}
+        animate={introDone ? { opacity: ctaHidden || headHidden ? 0 : 1, y: ctaHidden || headHidden ? 20 : 0 } : undefined}
         transition={{ duration: 0.5, ease: EXPO, delay: ctaHidden ? 0 : 1.4 }}
-        style={{ pointerEvents: ctaHidden ? 'none' : 'auto' }}
-        tabIndex={ctaHidden ? -1 : 0}
+        style={{ pointerEvents: ctaHidden || headHidden ? 'none' : 'auto' }}
+        tabIndex={ctaHidden || headHidden ? -1 : 0}
       >
         Enter or sponsor <span aria-hidden="true">→</span>
       </motion.a>

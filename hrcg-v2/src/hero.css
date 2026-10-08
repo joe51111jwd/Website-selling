@@ -1,3 +1,9 @@
+@font-face {
+  font-family: 'Alfa Slab One';
+  src: url('/fonts/alfa-slab-one.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
 .hx {
   position: relative;
   height: 100svh;
@@ -77,28 +83,19 @@
 }
 .hx-brick {
   display: inline-block;
-  filter: drop-shadow(0 0.05em 0.16em rgb(0 0 0 / 0.55));
+  filter: drop-shadow(0 0 0.02em rgb(0 0 0 / 0.9)) drop-shadow(0 0.05em 0.16em rgb(0 0 0 / 0.6));
 }
 .hx-brick-word {
   display: inline-block;
-  font-family: var(--stencil);
-  font-weight: 900;
+  font-family: 'Alfa Slab One', 'Rockwell', 'Roboto Slab', Georgia, serif;
+  font-weight: 400;
   text-transform: uppercase;
-  font-size: clamp(76px, 13vw, 236px);
-  line-height: 0.86;
-  letter-spacing: 0.01em;
-  padding: 0.02em 0.02em 0.04em;
-  color: transparent;
-  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='40'%3E%3Crect width='60' height='40' fill='%23d8d0c2'/%3E%3Crect x='1.5' y='1.5' width='27' height='17' fill='%239b5a33'/%3E%3Crect x='31.5' y='1.5' width='27' height='17' fill='%23ad6a3e'/%3E%3Crect x='-13.5' y='21.5' width='27' height='17' fill='%238b4d2b'/%3E%3Crect x='16.5' y='21.5' width='27' height='17' fill='%23b5743f'/%3E%3Crect x='46.5' y='21.5' width='27' height='17' fill='%23a2603a'/%3E%3Cg fill='%23000' opacity='.12'%3E%3Ccircle cx='9' cy='8' r='.8'/%3E%3Ccircle cx='40' cy='12' r='.7'/%3E%3Ccircle cx='24' cy='30' r='.8'/%3E%3Ccircle cx='52' cy='27' r='.6'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: 0.36em 0.24em;
-  background-position: 0 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  clip-path: inset(100% 0 0 0);
-}
-.hx-brick.is-laid .hx-brick-word {
-  clip-path: inset(0 0 0 0);
-  transition: clip-path 0.9s steps(6, end) 0.12s;
+  font-size: clamp(64px, 10.4vw, 190px);
+  line-height: 0.9;
+  letter-spacing: 0.005em;
+  color: var(--bronze-lt);
+  white-space: nowrap;
+  transform: rotate(-2deg);
 }
 
 .hx-sub-wrap {
@@ -119,13 +116,14 @@
     right: var(--gutter);
   }
   .hx-far {
-    font-size: clamp(28px, 8.4vw, 44px);
+    font-size: clamp(26px, 7.6vw, 40px);
+    text-wrap: balance;
   }
   .hx-near {
     bottom: max(190px, 27vh);
   }
   .hx-brick-word {
-    font-size: clamp(64px, 21vw, 120px);
+    font-size: clamp(44px, 13.4vw, 72px);
   }
   .hx-sub-wrap {
     bottom: calc(96px + env(safe-area-inset-bottom));
@@ -135,8 +133,4 @@
     font-size: 16px;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .hx-brick-word {
-    clip-path: none;
-  }
-}
+

@@ -27,6 +27,7 @@
   box-sizing: border-box;
 }
 html {
+  overflow-x: clip;
   -webkit-text-size-adjust: 100%;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -92,7 +93,7 @@ p {
 }
 /* once the page has moved, the header brings its own ground so the logo never sits on text */
 .top.is-solid {
-  background: rgb(40 48 47 / 0.88);
+  background: #28302f;
   -webkit-backdrop-filter: blur(12px) saturate(1.2);
   backdrop-filter: blur(12px) saturate(1.2);
   padding-top: 14px;
