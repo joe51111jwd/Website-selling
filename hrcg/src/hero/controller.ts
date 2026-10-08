@@ -291,6 +291,7 @@ class CoverController {
   private releaseFilm: (() => void) | null = null;
   private scrolledSinceSnap = false;
   private a100Released = false;
+  private planTimer = 0;
   /** the landed slot-05 film has a frame at 2.60 s, so it may replace the plan still (F-030) */
   private slotShown = false;
   private slotWait = 0;
@@ -855,6 +856,11 @@ class CoverController {
     }
   }
 
+  /** Show (and so fetch) the PLAN 05 still that the plan cut registers on the deposit. */
+  private prefetchPlan() {
+    if (this.planSq.style.display !== 'block') this.planSq.style.display = 'block';
+  }
+
   /** Release the A-100 load group (posters + videos) once, in time for the row (F-006, A1's F-002 API). */
   private releaseA100() {
     if (this.a100Released) return;
@@ -959,6 +965,11 @@ class CoverController {
       e.preventDefault();
       this.kick();
     }, undefined, L);
+    // the first sign of a scroll fetches the plan still (it is needed by P 0.12)
+    const intent = () => this.prefetchPlan();
+    this.on(window, 'wheel', intent, { passive: true, once: true }, L);
+    this.on(window, 'touchmove', intent, { passive: true, once: true }, L);
+    this.on(window, 'keydown', intent, { once: true }, L);
     // film
     this.on(this.film, 'ended', () => this.onFilmEnded(), undefined, L);
     this.on(this.film, 'error', () => this.onFilmError(), undefined, L);
@@ -1586,8 +1597,9 @@ class CoverController {
     r.style.setProperty('--plan-o', (planO * (1 - segment(C, BEATS.backdropOut[0], BEATS.backdropOut[1]))).toFixed(3));
     r.style.setProperty('--cv-bgy', `${(-window.scrollY).toFixed(0)}px`);
     const M0 = this.M0;
-    // fetch PLAN 05 once the hero has settled or the plan is near (never on the first view)
-    if (this.planSq.style.display !== 'block' && (P > 0.01 || this.tl.rest)) this.planSq.style.display = 'block';
+    // fetch PLAN 05 (151 kB) on the first sign of a scroll, or a while after the hero rests: never inside
+    // the first view's byte budget (F-002 / F-006)
+    if (P > 0.003) this.prefetchPlan();
     if (M0 && C >= BEATS.planCut[0] * 0.5) {
       // pull-out: SETTLE-eased, so the square clears the row and the H2 early and docks slowly
       const e = settleEase(segment(C, BEATS.pullOut[0], BEATS.pullOut[1]));
@@ -1971,6 +1983,11 @@ class CoverController {
     if (tl.S === null && tl.pullKind !== 'none' && !tl.rest) r.dataset.pull = '';
     else delete r.dataset.pull;
     r.dataset.reset = st === 'rest' || (frozen && !this.glShown) ? 'on' : 'off';
+    if (st === 'rest' && this.mode === 'live' && !this.planTimer) {
+      // idle at rest: fetch the plan still a few seconds later (after the first view)
+      this.planTimer = window.setTimeout(() => this.prefetchPlan(), 3000);
+      this.timers.push(this.planTimer);
+    }
     if (this.cutP() < BEATS.planCut[0] || (this.planO < 0.5 && this.cutP() < BEATS.a100In[0])) this.setVt(this.heroVt());
     if (st === 'paying-out' || st === 'pulling' || (tl.pullKind !== 'none' && tl.S === null)) busy = true;
     return busy;

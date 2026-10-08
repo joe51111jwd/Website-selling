@@ -637,7 +637,7 @@ export default function A105Layout() {
             {/* the bottom gridline: DETAIL 5 on the spine, the beats hanging off 07's east wall line */}
             <div className="a105-foot" ref={footRef}>
               <div className="a105-detail">
-                <DetailBubble n={5} sheet="A-105" label={A105.detail.label} onOpenChange={onDetail} panelClassName="a105-detail-panel">
+                <DetailBubble n={5} sheet="A-105" label={A105.detail.label} onOpenChange={onDetail} panelClassName="a105-detail-panel" phoneFlow>
                   <ViewTitle id="a105-detail">
                     <LoopVideo id="det-n04" autoPlay={false} />
                   </ViewTitle>

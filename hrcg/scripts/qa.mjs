@@ -381,7 +381,8 @@ function pageFacts() {
   const h1 = [...document.querySelectorAll('h1')].length;
   // A sheet is its [data-sheet] element; the cover stage (A2) puts data-sheet on empty scroll-track
   // elements inside a [data-stage], so an empty track counts the H2 / H1 of its stage instead.
-  const sheets = [...document.querySelectorAll('[data-sheet]')].map((el) => {
+  // html carries data-sheet (the current sheet, F-001): it is not a sheet
+  const sheets = [...document.querySelectorAll('[data-sheet]:not(html)')].map((el) => {
     const id = el.getAttribute('data-sheet');
     const scope = el.textContent.trim().length === 0 ? el.closest('[data-stage]') ?? el : el;
     return { id, h2: scope.querySelectorAll('h2').length, h1: scope.querySelectorAll('h1').length, track: scope !== el };
@@ -640,7 +641,7 @@ async function focusWalk(page, { max = 500 } = {}) {
         bottom: bars.length ? Math.min(...bars.map((b) => b.top)) : innerHeight - borderPx,
         vh: innerHeight,
         inChrome,
-        sheet: a.closest('[data-sheet]')?.getAttribute('data-sheet') ?? null,
+        sheet: a.closest('[data-sheet]:not(html)')?.getAttribute('data-sheet') ?? null,
         tiny: r.width === 0 && r.height === 0,
       };
     });
@@ -670,7 +671,7 @@ function pins() {
     if (cs.position !== 'sticky' || cs.display === 'none') continue;
     const r = el.getBoundingClientRect();
     if (r.height < innerHeight * 0.8) continue;
-    out.push({ sheet: el.closest('[data-sheet]')?.getAttribute('data-sheet') ?? el.closest('[data-stage]')?.getAttribute('data-stage') ?? null, cls: String(el.className).slice(0, 60) });
+    out.push({ sheet: el.closest('[data-sheet]:not(html)')?.getAttribute('data-sheet') ?? el.closest('[data-stage]')?.getAttribute('data-stage') ?? null, cls: String(el.className).slice(0, 60) });
   }
   return out;
 }
@@ -731,7 +732,9 @@ function requiredCopy(mods) {
     config.CONTACT_EMAIL,
     ...sheets.SHEETS.filter((s) => s.tag).map((s) => s.tag),
     ...challenges.CHALLENGES.map((c) => c.spec),
-    ...Object.values(viewTitles.VIEW_TITLE_STRINGS).filter((v) => !/HASN’T HAPPENED/.test(v)),
+    // every view title the set renders (the A-104 task-drawing trace and its title are withdrawn until
+    // b43 matches the drawing: FIXLIST-1 F-040, H-12 rejected)
+    ...Object.values(viewTitles.VIEW_TITLE_STRINGS).filter((v) => !/HASN’T HAPPENED/.test(v) && !/^TASK DRAWING TRACED FROM CONCEPT FOOTAGE/.test(v)),
   ];
   return [...new Set(out)];
 }
@@ -1224,11 +1227,18 @@ async function runNoJs(browser, buildUrl, mods) {
       cls: document.documentElement.className,
       text: document.body.textContent.replace(/\s+/g, ' '),
       // a poster is either a real poster attribute or, since F-002 (posters no longer fetched eagerly), the
-      // visible <picture class="loopvideo-poster"> beside the video
-      videos: [...document.querySelectorAll('video')].map((v) => ({
-        poster: (!!v.getAttribute('poster') && !/^data:/.test(v.getAttribute('poster'))) || !!v.parentElement?.querySelector(':scope > .loopvideo-poster'),
-        controls: v.hasAttribute('controls'),
-      })),
+      // visible still beside the video: <picture class="loopvideo-poster">, or the frame's own still (the
+      // hero's .cv-still). Videos that no-JS never shows (display: none, inside a closed <dialog>) are out.
+      videos: [...document.querySelectorAll('video')]
+        .filter((v) => getComputedStyle(v).display !== 'none' && !v.closest('dialog'))
+        .map((v) => {
+          const frame = v.closest('figure, .view, .cv-media') ?? v.parentElement;
+          const still = [...(frame?.querySelectorAll('picture, img') ?? [])].some((i) => getComputedStyle(i).display !== 'none');
+          return {
+            poster: (!!v.getAttribute('poster') && !/^data:/.test(v.getAttribute('poster'))) || !!v.parentElement?.querySelector(':scope > .loopvideo-poster') || still,
+            controls: v.hasAttribute('controls'),
+          };
+        }),
       ctas: [...document.querySelectorAll('.title-strip a.strip-cta, .phone-bar a')].map((a) => a.getAttribute('href')),
       indexLink: document.querySelector('.sheet-header a[href="#index"]') !== null,
       indexTarget: document.getElementById('index')?.tagName ?? null,
@@ -1237,7 +1247,7 @@ async function runNoJs(browser, buildUrl, mods) {
       copyShown: [...document.querySelectorAll('.copy-button')].filter(vis).length,
       jsOnlyShown: [...document.querySelectorAll('.js-only')].filter(vis).length,
       printHidden: [...document.querySelectorAll('.print-in')].filter((e) => Number(getComputedStyle(e).opacity) < 0.1).length,
-      emptySheets: [...document.querySelectorAll('[data-sheet]')]
+      emptySheets: [...document.querySelectorAll('[data-sheet]:not(html)')]
         .filter((el) => (el.textContent.trim().length === 0 ? el.closest('[data-stage]') ?? el : el).textContent.trim().length < 20)
         .map((el) => el.id),
       placeholders: [...document.querySelectorAll('.sheet-placeholder')].map((el) => el.closest('[data-sheet]')?.id ?? '?'),
@@ -1988,7 +1998,7 @@ async function runFixes(pw, browser, base, mods, axePath, buildDir) {
         await settle(p, 1000);
         rows.push(await p.evaluate(([id, part]) => {
           const mid = innerHeight / 2;
-          const sheets = [...document.querySelectorAll('[data-sheet]')];
+          const sheets = [...document.querySelectorAll('[data-sheet]:not(html)')];
           let expect = null;
           for (const s of sheets) if (s.getBoundingClientRect().top <= mid) expect = s.getAttribute('data-sheet');
           return { at: `${id} end-${part}`, shown: window.__qa.sheetAt(), expect };

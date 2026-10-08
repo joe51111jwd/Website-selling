@@ -3,7 +3,12 @@
 # and web encode is derived from these files, never from the raw clips.
 # usage: python -I mezz.py <src> <out.mp4> [--crop x,y,w,h] [--trim a:b] [--livery box:x0,y0,x1,y1|bay]
 #        [--glint x0,y0,x1,y1] [--crush depth.npy:farD] [--crushtop y0,y1] [--nograde] [--dump n,n,..:dir]
-#        [--maskdump dir]
+#        [--maskdump dir] [--crushmode 2] [--studs x0]
+# --crushmode 2 (FIXLIST-1 F-009 / F-047): keep the near side (07, the board, the set) whole: its depth matte is
+#   eroded 3 px (the lit haze rim goes with the background) and feathered OUTWARD only (σ 1.5 px), the
+#   background is crushed fully to #0B0B0A in linear light, and the clip's own grain is re-added there.
+# --studs x0: (c31) everything behind the stud plane right of x0 (normalised): gap columns between studs (dark in
+#   the clip's temporal median) are crushed wherever a pixel is darker than the steel, warm, or a small light.
 # Boxes are normalised to the SOURCE frame. Ops run on the full source frame in this order:
 # livery -> glint -> grade -> crowd crush -> crop. --trim keeps frames a..b-1.
 import sys, os, argparse, subprocess, json
@@ -15,6 +20,7 @@ ap.add_argument('--crop'); ap.add_argument('--trim'); ap.add_argument('--livery'
 ap.add_argument('--crush'); ap.add_argument('--crushtop'); ap.add_argument('--nograde', action='store_true')
 ap.add_argument('--visor', help='x0,y0,x1,y1 source px: head box at the first kept frame; tracked, then darkened');
 ap.add_argument('--dump'); ap.add_argument('--maskdump'); ap.add_argument('--crf', default='14')
+ap.add_argument('--crushmode', type=int, default=1); ap.add_argument('--studs', type=float)
 a = ap.parse_args()
 
 SLAB = np.array([10, 11, 11], np.float32) / 255.0   # #0B0B0A in BGR
@@ -143,6 +149,27 @@ if a.dump:
     ns, ddir = a.dump.split(':', 1); dumps = set(int(v) for v in ns.split(',')); os.makedirs(ddir, exist_ok=True)
 if a.maskdump: os.makedirs(a.maskdump, exist_ok=True)
 
+def lin(c): return np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+def srgb(l): return np.where(l <= 0.0031308, l * 12.92, 1.055 * np.power(np.maximum(l, 1e-8), 1 / 2.4) - 0.055)
+GRAIN = None; GAPCOLS = None
+if a.crush and a.crushmode == 2:
+    # the clip's grain: high-pass std in its darkest flat areas (frame 0), re-added in the crushed background
+    ok, g0 = cap.read(); cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    g0 = g0.astype(np.float32) / 255.; gy0 = cv2.cvtColor(g0, cv2.COLOR_BGR2GRAY)
+    hp = gy0 - cv2.GaussianBlur(gy0, (0, 0), 1.5); flat = (cv2.GaussianBlur(gy0, (0, 0), 3) < 0.08)
+    GRAIN = float(np.clip(hp[flat].std() if flat.sum() > 1000 else 0.006, 0.002, 0.02))
+    if a.studs is not None:
+        fr_ = []; k_ = 0
+        while True:
+            ok, f_ = cap.read()
+            if not ok: break
+            if k_ % 8 == 0: fr_.append(cv2.cvtColor(f_, cv2.COLOR_BGR2GRAY))
+            k_ += 1
+        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        colmed = np.median(np.median(np.stack(fr_), 0)[int(0.1 * H0):int(0.9 * H0)], 0)   # per-column temporal median
+        GAPCOLS = (colmed < 35) & (np.arange(W0) >= int(a.studs * W0))
+        GAPCOLS = cv2.dilate(GAPCOLS.astype(np.uint8)[None], np.ones((1, 9), np.uint8))[0] > 0
+
 ff = subprocess.Popen(['ffmpeg', '-y', '-v', 'error', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s', f'{cw}x{ch}', '-r', str(fps), '-i', '-',
                        '-an', '-c:v', 'libx264', '-crf', a.crf, '-preset', 'medium', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', a.out],
                       stdin=subprocess.PIPE)
@@ -160,7 +187,29 @@ while True:
     if vt is not None:
         f, vb = vt(f); vboxes.append([int(v) for v in vb])
     if not a.nograde: f = grade(f)
-    if dep is not None:
+    if dep is not None and a.crushmode == 2:
+        k = i / dstep; k0 = min(int(k), len(dep) - 1); k1 = min(k0 + 1, len(dep) - 1); t = k - int(k)
+        d = cv2.resize(dep[k0] * (1 - t) + dep[k1] * t, (W0, H0), interpolation=cv2.INTER_LINEAR)
+        u = np.clip((d - farD) / 0.08, 0, 1); near = u * u * (3 - 2 * u)           # 1 = near side (07, board, set)
+        core = (near > 0.5).astype(np.uint8)
+        core = cv2.erode(core, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))  # 3 px: the haze rim is background
+        if GAPCOLS is not None:   # behind the stud plane: gaps between studs (darker than steel, warm, or small lights)
+            g8 = (cv2.cvtColor(f, cv2.COLOR_BGR2GRAY) * 255).astype(np.uint8); hsv_ = cv2.cvtColor(f, cv2.COLOR_BGR2HSV)
+            warm = ((hsv_[..., 0] <= 45) | (hsv_[..., 0] >= 330)) & (hsv_[..., 1] > 0.22) & (hsv_[..., 2] > 0.12)
+            bright = (g8 > 150).astype(np.uint8); nb, lb, sb, _ = cv2.connectedComponentsWithStats(bright, 8)
+            small = np.isin(lb, [j for j in range(1, nb) if sb[j, 4] < 600])
+            gap = ((g8 < 60) | warm | small) & GAPCOLS[None, :]
+            gap = cv2.morphologyEx(gap.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+            core[gap > 0] = 0
+        keep = np.maximum(cv2.GaussianBlur(core.astype(np.float32), (0, 0), 1.5), core.astype(np.float32))  # outward only
+        keep = keep if prev_m is None else 0.5 * keep + 0.5 * prev_m; prev_m = keep
+        stats['crushMean'] += float(1 - keep.mean())
+        rng = np.random.default_rng(i)
+        bg = SLAB[None, None, :] + rng.normal(0, GRAIN, (H0, W0, 1)).astype(np.float32)
+        kk = keep[..., None]
+        f = srgb(kk * lin(np.clip(f, 0, 1)) + (1 - kk) * lin(np.clip(bg, 0, 1))).astype(np.float32)
+        if a.maskdump and i % 24 == 0: cv2.imwrite(f'{a.maskdump}/keep-{i:03d}.png', (keep * 255).astype(np.uint8))
+    elif dep is not None:
         k = i / dstep; k0 = min(int(k), len(dep) - 1); k1 = min(k0 + 1, len(dep) - 1); t = k - int(k)
         d = dep[k0] * (1 - t) + dep[k1] * t
         u = np.clip((farD + 0.08 - d) / 0.08, 0, 1); m = u * u * (3 - 2 * u)
@@ -187,5 +236,6 @@ while True:
     i += 1
 ff.stdin.close(); ff.wait()
 if vboxes: stats['visorBoxes'] = vboxes[::12]
+if GRAIN is not None: stats['grain'] = round(GRAIN, 4); stats['crushMode'] = 2
 stats['crushMean'] = round(stats['crushMean'] / max(1, stats['frames']), 4)
 print(os.path.basename(a.out), json.dumps(stats))

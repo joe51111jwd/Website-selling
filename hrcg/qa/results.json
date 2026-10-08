@@ -1,22 +1,40 @@
 {
  "meta": {
-  "started": "2026-10-08T09:16:00.428Z",
+  "started": "2026-10-08T12:39:29.834Z",
   "root": "/home/user/Website-selling/hrcg",
-  "url": "http://127.0.0.1:43239/",
+  "url": "http://127.0.0.1:37669/",
   "build": "/tmp/hrcg-qa-build",
   "axe": "axe-core",
   "notes": [],
-  "finished": "2026-10-08T09:19:15.553Z",
-  "failures": 2
+  "finished": "2026-10-08T12:51:12.363Z",
+  "failures": 17
  },
  "suites": {
   "build": {
    "checks": [
     {
      "id": "build",
-     "title": "vite build + prerender (incl. the prerender copy lint) succeeds",
+     "title": "production vite build + prerender (incl. the prerender copy lint) succeeds",
      "status": "pass",
      "detail": ""
+    },
+    {
+     "id": "prod-runtime",
+     "title": "production React runtime: no asset contains jsxDEV or react-stack-bottom-frame",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "prod-sandboxes",
+     "title": "no dev-only chunks (sandboxes, MarksSandbox, chromeSandbox, jsx-dev-runtime)",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "prod-onecss",
+     "title": "index.html links exactly one stylesheet (cascade order independent of JS chunking)",
+     "status": "pass",
+     "detail": "{\"linked\":[\"./assets/style-SLLshISL.css\"],\"cssFiles\":[\"style-SLLshISL.css\"]}"
     }
    ],
    "console": [],
@@ -39,8 +57,8 @@
     {
      "id": "H2-per-sheet",
      "title": "one <h2> per sheet (A-000: the <h1>)",
-     "status": "pass",
-     "detail": "[]"
+     "status": "fail",
+     "detail": "[{\"id\":\"A-900\",\"h2\":10,\"h1\":1,\"track\":false}]"
     },
     {
      "id": "S2-labels",
@@ -64,7 +82,7 @@
      "id": "sheets",
      "title": "all eleven sheet anchors render",
      "status": "pass",
-     "detail": "A-000,A-100,A-101,A-102,A-103,A-104,A-105,A-200,A-300,A-301,A-900"
+     "detail": "A-900,A-000,A-100,A-101,A-102,A-103,A-104,A-105,A-200,A-300,A-301,A-900"
     },
     {
      "id": "mailto-teams-default",
@@ -128,9 +146,9 @@
     },
     {
      "id": "motion-off",
-     "title": "MOTION OFF pauses every video at once and adds .rm",
+     "title": "MOTION OFF pauses every video at once, adds .rm and reports aria-pressed=\"false\" (F-019)",
      "status": "pass",
-     "detail": "before 1 playing; after 0, rm true, aria-pressed null"
+     "detail": "before 1 playing; after 0, rm true, aria-pressed false"
     },
     {
      "id": "motion-anchor",
@@ -142,13 +160,13 @@
      "id": "S4-focus",
      "title": "every focused element lies inside the unobscured viewport (Tab walk)",
      "status": "pass",
-     "detail": "{\"focused\":75,\"partlyHidden\":[],\"entirelyHidden\":[]}"
+     "detail": "{\"focused\":70,\"partlyHidden\":[],\"entirelyHidden\":[]}"
     },
     {
      "id": "a11y",
      "title": "accessibility (axe-core): 0 violations",
-     "status": "fail",
-     "detail": "[{\"rule\":\"label-content-name-mismatch\",\"impact\":\"serious\",\"msg\":\"Elements must have their visible text as part of their accessible name\",\"nodes\":[\".mk-vm\",\"button[aria-controls=\\\"_R_4q535_\\\"]\",\"button[aria-controls=\\\"_R_1ab5_\\\"]\"],\"count\":3}]"
+     "status": "pass",
+     "detail": "[]"
     },
     {
      "id": "copy-denied",
@@ -178,27 +196,15 @@
    ],
    "a11y": {
     "engine": "axe-core",
-    "violations": [
-     {
-      "rule": "label-content-name-mismatch",
-      "impact": "serious",
-      "msg": "Elements must have their visible text as part of their accessible name",
-      "nodes": [
-       ".mk-vm",
-       "button[aria-controls=\"_R_4q535_\"]",
-       "button[aria-controls=\"_R_1ab5_\"]"
-      ],
-      "count": 3
-     }
-    ],
+    "violations": [],
     "incomplete": [
      {
       "rule": "color-contrast",
-      "count": 386
+      "count": 289
      },
      {
       "rule": "video-caption",
-      "count": 11
+      "count": 8
      }
     ]
    }
@@ -396,7 +402,7 @@
      "id": "P2-swipe",
      "title": "a vertical touch swipe on the hero scrolls the page",
      "status": "pass",
-     "detail": "0 -> 507"
+     "detail": "0 -> 335"
     },
     {
      "id": "P-S3",
@@ -443,8 +449,8 @@
     {
      "id": "P4-pins",
      "title": "only the hero and A-200 pin",
-     "status": "pass",
-     "detail": "[{\"sheet\":\"cover\",\"cls\":\"cv-pin\"},{\"sheet\":\"A-200\",\"cls\":\"a200-pin\"}]"
+     "status": "fail",
+     "detail": "[{\"sheet\":\"A-900\",\"cls\":\"cv-pin\"},{\"sheet\":\"A-200\",\"cls\":\"a200-pin\"}]"
     },
     {
      "id": "P6-mailto",
@@ -454,9 +460,9 @@
     },
     {
      "id": "P6-minislot",
-     "title": "the 64 px mini-slot stays visible above the field with the keyboard up, and updates",
+     "title": "keyboard up, field aligned to the top: the 64 px mini-slot stays visible and updates, and the field sits below it and clear of the phone bar (F-054)",
      "status": "pass",
-     "detail": "{\"mini\":[60,124],\"input\":[203,259],\"vh\":470,\"headerBottom\":60,\"text\":\"LAB BIPED MK TWO\",\"shown\":true}"
+     "detail": "{\"mini\":[60,124],\"input\":[156,212],\"bar\":null,\"vh\":470,\"headerBottom\":60,\"text\":\"LAB BIPED MK TWO\",\"shown\":true}"
     }
    ],
    "console": [],
@@ -542,7 +548,7 @@
     "shots/rm-a-301.jpg",
     "shots/rm-a-900.jpg"
    ],
-   "viewTitles": 26
+   "viewTitles": 25
   },
   "nogl": {
    "checks": [
@@ -556,7 +562,7 @@
      "id": "gl0-complete",
      "title": "gl0: all sheets render",
      "status": "pass",
-     "detail": "11"
+     "detail": "12"
     },
     {
      "id": "disable-webgl-errors",
@@ -568,7 +574,7 @@
      "id": "disable-webgl-complete",
      "title": "disable-webgl: all sheets render",
      "status": "pass",
-     "detail": "11"
+     "detail": "12"
     }
    ],
    "console": [],
@@ -578,6 +584,714 @@
     "shots/nogl-disable-webgl-first-view.jpg",
     "shots/nogl-disable-webgl-a-105.jpg"
    ]
+  },
+  "fixes": {
+   "checks": [
+    {
+     "id": "F-013-devcss",
+     "title": "development-mode build (NODE_ENV=development) links exactly one stylesheet, like production",
+     "status": "pass",
+     "detail": "1 stylesheet links"
+    },
+    {
+     "id": "F-014-entry",
+     "title": "shell entry chunk <= 110 kB gzipped (brief 8.6)",
+     "status": "pass",
+     "detail": "./assets/index-Oo2H_k9g.js: 323.2 kB raw, 101.3 kB gz"
+    },
+    {
+     "id": "F-045-slim",
+     "title": "runtime manifest carries no bytes/debug fields (they live in pipeline/out/manifest-qa.json)",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "F-051-line",
+     "title": "b44 lineEndpoints sit on the stripe core, about [[0.400, 0.528], [0.735, 0.528]]",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "F-090-alt",
+     "title": "manifest alt of el-c30 is the F-081 text",
+     "status": "pass",
+     "detail": "AI-generated concept film: robot 07 spreads mortar with a trowel and steadies a course of brick between two line posts, against a dark background."
+    },
+    {
+     "id": "F-091-case",
+     "title": "T7 PDFs print \"tag36h11\" in its true case",
+     "status": "fail",
+     "detail": "[\"public/kit/hrcg-t7-letter.pdf\",\"public/kit/hrcg-t7-a4.pdf\"]"
+    },
+    {
+     "id": "F-002-bytes-desktop",
+     "title": "first view (0-9 s, no scroll, AV1 path) moves <= 1.1 MB on desktop",
+     "status": "fail",
+     "detail": "2.79 MB; largest: 511 kB /assets/three.module-Bzd9lell.js · 416 kB /media/plans/plan-b44.av1.mp4 · 378 kB /media/arena/arena-0104.av1.mp4 · 323 kB /assets/index-Oo2H_k9g.js · 181 kB /media/hero/hero-snap-169.av1.mp4 · 145 kB /?heroperf=0"
+    },
+    {
+     "id": "F-002-posters-desktop",
+     "title": "no *.poster.jpg outside A-000 is requested before scroll (desktop)",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "F-002-a100-desktop",
+     "title": "no arena-0104 or plan-b44 film bytes arrive before scroll (desktop; F-002, F-006, F-037)",
+     "status": "fail",
+     "detail": "[\"arena-0104.av1.mp4 378 kB\",\"plan-b44.av1.mp4 416 kB\"]"
+    },
+    {
+     "id": "F-006-snap",
+     "title": "the hero snap film is requested once (no second full fetch)",
+     "status": "pass",
+     "detail": "[\"hero-snap-169.av1.mp4 bytes=0- 181 kB\"]"
+    },
+    {
+     "id": "F-065-cls",
+     "title": "first-view CLS is 0 on desktop (fonts preloaded)",
+     "status": "pass",
+     "detail": "0.000000"
+    },
+    {
+     "id": "F-002-bytes-phone",
+     "title": "first view (0-9 s, no scroll, AV1 path) moves <= 1.1 MB on phone",
+     "status": "fail",
+     "detail": "2.36 MB; largest: 511 kB /assets/three.module-Bzd9lell.js · 323 kB /assets/index-Oo2H_k9g.js · 249 kB /media/plans/plan-b44-m.av1.mp4 · 199 kB /media/arena/arena-0104-m.av1.mp4 · 145 kB /?heroperf=0 · 105 kB /assets/style-SLLshISL.css"
+    },
+    {
+     "id": "F-002-posters-phone",
+     "title": "no *.poster.jpg outside A-000 is requested before scroll (phone)",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "F-002-a100-phone",
+     "title": "no arena-0104 or plan-b44 film bytes arrive before scroll (phone; F-002, F-006, F-037)",
+     "status": "fail",
+     "detail": "[\"arena-0104-m.av1.mp4 199 kB\",\"plan-b44-m.av1.mp4 249 kB\"]"
+    },
+    {
+     "id": "F-069-lcp",
+     "title": "the LCP image is not lazy under reduced motion",
+     "status": "pass",
+     "detail": "{\"tag\":\"IMG\",\"loading\":\"eager\",\"src\":\"hero-matte-169.webp\"}"
+    },
+    {
+     "id": "F-053-axe-rm",
+     "title": "axe (reduced motion, hero): no page-has-heading-one, no label-content-name-mismatch",
+     "status": "pass",
+     "detail": "{\"fail\":[],\"incomplete\":{\"color-contrast\":358,\"video-caption\":13},\"other\":[]}"
+    },
+    {
+     "id": "F-001-hero",
+     "title": "over A-000 the header stays transparent (no rail over the film)",
+     "status": "pass",
+     "detail": "{\"sheet\":\"A-000\",\"alpha\":0}"
+    },
+    {
+     "id": "F-001-rail",
+     "title": "after A-000 the header is an opaque rail; the lockup and INDEX centres hit header elements (html[data-sheet] set)",
+     "status": "pass",
+     "detail": "a-102+50vh, a-102+90vh, a-104+50vh, a-200+120vh, a-301+0vh, a-301+120vh, a-900+0vh"
+    },
+    {
+     "id": "F-059-strip",
+     "title": "the title strip is opaque",
+     "status": "pass",
+     "detail": "alpha 1"
+    },
+    {
+     "id": "F-060-spine",
+     "title": "the spine runs clear of the sheet tags and H2s (left of their first glyph) and under the media (z-index 0)",
+     "status": "pass",
+     "detail": "{\"spine\":60,\"z\":\"0\",\"firstText\":72}"
+    },
+    {
+     "id": "F-061-1440",
+     "title": "no disclosure keyword (AI-GENERATED, NOT A VENUE PLAN, NOT SPONSOR PRODUCTS) breaks across lines (1440)",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "F-062-index",
+     "title": "INDEX: every sheet number shares one x, the current row included",
+     "status": "pass",
+     "detail": "[109,109,109,109,109,109,109,109,109,109,109]"
+    },
+    {
+     "id": "F-053-axe-index",
+     "title": "axe with INDEX open (desktop): no page-has-heading-one, no label-content-name-mismatch",
+     "status": "pass",
+     "detail": "{\"fail\":[],\"incomplete\":{},\"other\":[]}"
+    },
+    {
+     "id": "F-016-1440x900",
+     "title": "H2 tokens respect the chrome: statement <= 12vh, challenge <= 18vh, sentence case leading >= .96 (1440x900)",
+     "status": "fail",
+     "detail": "[\"New York’s grid started as a l: sentence-case leading 0.92 < .96\"]"
+    },
+    {
+     "id": "F-040-trace",
+     "title": "no blue task-drawing trace and no trace caption on A-104 until b43 matches it (H-12 rejected)",
+     "status": "pass",
+     "detail": "{\"text\":false,\"trace\":0}"
+    },
+    {
+     "id": "F-041-h2",
+     "title": "A-105: the H2 is on screen, between the chrome, through the whole pin (+0/30/60/100vh)",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "F-033-hold",
+     "title": "A-103 +60vh: the held film frame stays below the header until the pin releases",
+     "status": "pass",
+     "detail": "[{\"top\":80,\"min\":72}]"
+    },
+    {
+     "id": "F-039-route",
+     "title": "A-104: the route ends inside the content edge (never runs into INDEX)",
+     "status": "pass",
+     "detail": "[{\"vh\":0,\"right\":1101,\"edge\":1440},{\"vh\":50,\"right\":1101,\"edge\":1440}]"
+    },
+    {
+     "id": "F-083-captions",
+     "title": "view titles never overprint each other or a PLAY cell, on every sheet at 1920/1440/1280/1024 (A-104 caption stack, X-1)",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "F-038-h2",
+     "title": "A-101: BRICKLAYING has no soft hyphen and sets on one line at 1024/1280/1440/1920",
+     "status": "pass",
+     "detail": "[{\"w\":1024,\"shy\":false,\"lines\":1,\"fits\":true},{\"w\":1280,\"shy\":false,\"lines\":1,\"fits\":true},{\"w\":1440,\"shy\":false,\"lines\":1,\"fits\":true},{\"w\":1920,\"shy\":false,\"lines\":1,\"fits\":true}]"
+    },
+    {
+     "id": "F-016-1280x800",
+     "title": "H2 tokens respect the chrome: statement <= 12vh, challenge <= 18vh, sentence case leading >= .96 (1280x800)",
+     "status": "fail",
+     "detail": "[\"New York’s grid started as a l: sentence-case leading 0.92 < .96\"]"
+    },
+    {
+     "id": "F-055-diptych",
+     "title": "A-300: the diptych spans the content edge to edge (72/1368 at 1440, 72/1208 at 1280) and YOURS IS. starts on its panel",
+     "status": "pass",
+     "detail": "[{\"w\":1440,\"left\":72,\"right\":1368,\"content\":[72,1368],\"wordStart\":872,\"panelStart\":872},{\"w\":1280,\"left\":72,\"right\":1208,\"content\":[72,1208],\"wordStart\":812,\"panelStart\":812}]"
+    },
+    {
+     "id": "F-056-desktop",
+     "title": "A-301 landing: the whole H2 sits between the header and the strip (1440x900, 1280x800)",
+     "status": "pass",
+     "detail": "[{\"w\":1440,\"h2\":{\"l\":72,\"t\":510,\"r\":642,\"b\":748,\"w\":570,\"h\":238},\"band\":{\"top\":72,\"bottom\":820},\"ok\":true},{\"w\":1280,\"h2\":{\"l\":72,\"t\":478,\"r\":578,\"b\":689,\"w\":506,\"h\":211},\"band\":{\"top\":72,\"bottom\":720},\"ok\":true}]"
+    },
+    {
+     "id": "F-098-ready",
+     "title": "A-300 bay: READY FOR — until a box is ticked; no challenge number printed before that (rule 11)",
+     "status": "pass",
+     "detail": "{\"none\":[\"—\",\"—\",\"—\"],\"numbers\":0}"
+    },
+    {
+     "id": "F-096-bay",
+     "title": "A-300 bay number: the legend word BAY over a \"—\" painted through the stencil mask",
+     "status": "pass",
+     "detail": "{\"label\":[\"BAY\",\"BAY\"],\"painted\":[true,true]}"
+    },
+    {
+     "id": "F-097-proofs",
+     "title": "T7 proofs: three equal columns, each with its own label (FLAT · WARPED + BLURRED · measured width)",
+     "status": "pass",
+     "detail": "{\"n\":3,\"widths\":[343,343,343],\"labels\":[\"FLAT\",\"WARPED + BLURRED\",\"26 PX WIDE\"]}"
+    },
+    {
+     "id": "F-095-chips",
+     "title": "challenge chips laid in one row: every numeral on one line, whatever the names wrap to",
+     "status": "pass",
+     "detail": "[{\"row\":true,\"spread\":0},{\"row\":true,\"spread\":0}]"
+    },
+    {
+     "id": "F-067-paper",
+     "title": "A-301 runs straight into A-900 on one paper ground (no slab gap; F-067 + F-092)",
+     "status": "pass",
+     "detail": "{\"gap\":0,\"rule\":1}"
+    },
+    {
+     "id": "F-092-rule",
+     "title": "the A-301 → A-900 break is a 1 px rule on paper above the A-900 tag",
+     "status": "pass",
+     "detail": "{\"gap\":0,\"rule\":1}"
+    },
+    {
+     "id": "F-093-clouds",
+     "title": "title block HOLD clouds: >= 4 px clear of the cell rule and >= 10 px before the sentence",
+     "status": "pass",
+     "detail": "[{\"inset\":4.4,\"gap\":10.2,\"top\":32.7,\"bottom\":12.1},{\"inset\":4.4,\"gap\":10.2,\"top\":32.7,\"bottom\":12.1}]"
+    },
+    {
+     "id": "H-7-notes",
+     "title": "A-900 general notes print open: six headings + paragraphs, no <details>, two ruled columns at >= 1024 px",
+     "status": "pass",
+     "detail": "{\"details\":0,\"notes\":6,\"headings\":6,\"answers\":6,\"columns\":2,\"open\":true}"
+    },
+    {
+     "id": "H-6-close",
+     "title": "A-900 close: end line at statement size with the two CTA cells (#a-300, #a-301), on its own row directly above the title block, sharing its left edge (F-094)",
+     "status": "pass",
+     "detail": "{\"endPx\":108,\"statementPx\":108,\"ctas\":[\"#a-300\",\"#a-301\"],\"aboveBlock\":32,\"leftEdge\":0,\"emailPx\":56,\"emailWant\":56}"
+    },
+    {
+     "id": "H-6-email",
+     "title": "A-900 email at clamp(28px, 4vw, 56px)",
+     "status": "pass",
+     "detail": "{\"endPx\":108,\"statementPx\":108,\"ctas\":[\"#a-300\",\"#a-301\"],\"aboveBlock\":32,\"leftEdge\":0,\"emailPx\":56,\"emailWant\":56}"
+    },
+    {
+     "id": "H-4-keynote",
+     "title": "A-301 keynote 3 no longer repeats \"Meet … Meet\" and matches the copy file",
+     "status": "pass",
+     "detail": "{\"title\":\"MEET THE TALENT\",\"body\":\"Connect with the engineers making robots useful on site, through recruiting and technical conversations with developers and research teams.\"}"
+    },
+    {
+     "id": "H-5-wording",
+     "title": "A-200 body says \"drew most of Manhattan as a grid\" (fact gate, qa/TRUTH.md)",
+     "status": "pass",
+     "detail": "A-200 · CONTEXT · THE 1811 GRID (HISTORY) · NOT A MAP · NTSTHE FIVE BAYS · ILLUSTRATIVEPLAN VIEWS 01–05 · CONCEPT FILM STILL · AI-GENERATEDNTSVENUE: HOLDVenue t"
+    },
+    {
+     "id": "F-081-alt",
+     "title": "A-101 PERSPECTIVE 01-A alt describes the shot (trowel, mortar, line posts; no lights or stringline)",
+     "status": "fail",
+     "detail": "[\"1 / A-101 detail: concept film of a robot hand pressing a brick into mortar\",\"AI-generated concept film, close up: a robot hand presses a brick into a mortar bed beside a stringline.\",\"Play: AI-generated concept film, close up: a robot hand presses a brick into a mortar bed beside a stringline.\",\"AI-generated concept film, seen from above: robot 07 spreads mortar and lays a course of brick between two line posts.\"]"
+    },
+    {
+     "id": "F-023-h1",
+     "title": "the H1 stays in the accessibility tree after the plan cut (at A-105 and A-300)",
+     "status": "pass",
+     "detail": "[{\"at\":\"a-105\",\"hidden\":null},{\"at\":\"a-300\",\"hidden\":null}]"
+    },
+    {
+     "id": "F-066-footer",
+     "title": "one title block, rendered once as the page footer (one contentinfo landmark, one #index; F-066 + F-100)",
+     "status": "pass",
+     "detail": "{\"contentinfo\":1,\"footers\":1,\"index\":1,\"blocks\":1}"
+    },
+    {
+     "id": "F-068-hover",
+     "title": "every :hover rule sits inside @media (hover: hover) and (pointer: fine), so a tap leaves no hover state (F-068, F-075, F-082, F-089, F-101)",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "F-064-sheet",
+     "title": "the live sheet number is the last sheet whose top is above mid-viewport, also in the gaps between sheets and over the footer",
+     "status": "fail",
+     "detail": "[{\"at\":\"a-101 end-0.45\",\"shown\":\"A-300\",\"expect\":\"A-101\"},{\"at\":\"a-102 end-0.45\",\"shown\":\"A-101\",\"expect\":\"A-102\"},{\"at\":\"a-103 end-0.45\",\"shown\":\"A-102\",\"expect\":\"A-103\"},{\"at\":\"a-104 end-0.45\",\"shown\":\"A-103\",\"expect\":\"A-104\"},{\"at\":\"a-105 end-0.45\",\"shown\":\"A-104\",\"expect\":\"A-105\"},{\"at\":\"a-200 end-0.45\",\"shown\":\"A-105\",\"expect\":\"A-200\"},{\"at\":\"a-300 end-0.45\",\"shown\":\"A-200\",\"expect\":\"A-300\"},{\"at\":\"a-900 end-0.45\",\"shown\":\"A-301\",\"expect\":\"A-900\"}]"
+    },
+    {
+     "id": "F-019-desktop",
+     "title": "MOTION: button \"Motion\" with aria-pressed; the whole strip cell (>= 44 px) is its target",
+     "status": "pass",
+     "detail": "{\"name\":\"Motion\",\"pressed\":\"true\",\"cellH\":55,\"hit\":true}"
+    },
+    {
+     "id": "F-020-lightbox",
+     "title": "THE SET lightbox: a captions <track>, a transcript that opens, and the video named by THE_SET.videoLabel",
+     "status": "pass",
+     "detail": "{\"open\":true,\"track\":\"media/film/the-set-169.vtt\",\"label\":\"The Set, a 30-second concept film: the drawing set from the cover to the general notes, with AI-generated concept footage of robot 07, a concept design, on all five challenges.\",\"transcript\":3701}"
+    },
+    {
+     "id": "F-015-landing",
+     "title": "every INDEX row and both strip CTAs land with the focused heading inside the unobscured band, hitting itself (desktop; F-007, F-039, F-041)",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "F-034-selfhit",
+     "title": "every visible interactive element, once scrolled into view, is what elementFromPoint returns at its own centre",
+     "status": "pass",
+     "detail": "{\"checked\":66,\"failing\":[]}"
+    },
+    {
+     "id": "F-024-focus",
+     "title": "visible focus: every Tab stop (first 70) paints at least 12 changed pixels in a 12 px ring round its box, inside the unobscured band (incl. the 3D view)",
+     "status": "fail",
+     "detail": "{\"checked\":69,\"invisible\":[\"A.mk-hit|01-A / A-101: go to perspective, concept (2 px changed)\",\"DIV.a105-cut|Section cut A–A: move the cutting plane  (0 px changed)\"]}"
+    },
+    {
+     "id": "F-053-axe-hero-rest",
+     "title": "axe at hero-rest (desktop): no page-has-heading-one, no label-content-name-mismatch (F-023, F-031, F-035, F-044)",
+     "status": "pass",
+     "detail": "{\"fail\":[],\"incomplete\":{\"color-contrast\":296,\"video-caption\":12},\"other\":[]}"
+    },
+    {
+     "id": "F-053-axe-a-105",
+     "title": "axe at a-105 (desktop): no page-has-heading-one, no label-content-name-mismatch (F-023, F-031, F-035, F-044)",
+     "status": "pass",
+     "detail": "{\"fail\":[],\"incomplete\":{\"color-contrast\":281,\"video-caption\":8},\"other\":[]}"
+    },
+    {
+     "id": "F-053-axe-a-300",
+     "title": "axe at a-300 (desktop): no page-has-heading-one, no label-content-name-mismatch (F-023, F-031, F-035, F-044)",
+     "status": "pass",
+     "detail": "{\"fail\":[],\"incomplete\":{\"color-contrast\":286,\"video-caption\":8},\"other\":[]}"
+    },
+    {
+     "id": "F-028-sub",
+     "title": "hero at 1280x800 rest: >= 20 px between the sub and the view title, and the labels start on the spine",
+     "status": "pass",
+     "detail": "{\"gap\":24,\"lefts\":[72,72,753],\"margin\":72}"
+    },
+    {
+     "id": "F-017-landscape",
+     "title": "a phone turned sideways (844x390) gets the phone chrome: phone bar, no strip, no header lines, nothing clipped by the border",
+     "status": "pass",
+     "detail": "{\"bar\":true,\"strip\":\"none\",\"lines\":\"none\",\"statusTop\":68,\"border\":12}"
+    },
+    {
+     "id": "F-003-overlap",
+     "title": "phone hero, armed and at rest, at 390x844/390x664/375x667/360x780/320x568/844x390: status, H1 lines, sub, hint, RESET, view title, header and phone bar never intersect",
+     "status": "fail",
+     "detail": "[\"390x844 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"390x844 rest: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"390x664 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"390x664 rest: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"375x667 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"375x667 rest: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"360x780 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"360x780 rest: reset x h1 (BUTTON.cv-reset|Reset the line / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"320x568 armed: header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"320x568 rest: reset x h1 (BUTTON.cv-reset|Reset the line / H1 line); reset x h1 (BUTTON.cv-reset|Reset the line / H1 line); reset x h1 (BUTTON.cv-reset|Reset the line / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"844x390 armed: status x h1 (P.cv-status|PLANNED · NEW YORK CITY · 2027 / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\",\"844x390 rest: status x h1 (P.cv-status|PLANNED · NEW YORK CITY · 2027 / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line); header x h1 (HEADER.sheet-header|HRCG HUMANOID ROBOT CONSTRUCTION GAMESIN / H1 line)\"]"
+    },
+    {
+     "id": "F-025-contrast",
+     "title": "hero status line and sub over the footage: >= 90% of glyph pixels at >= 4.5:1 at t 1.6/3.9/9 s (desktop, phone)",
+     "status": "fail",
+     "detail": "[{\"at\":\"phone 1.6s .cv-sub\",\"glyphPx\":2676,\"pass\":0.8707025411061285}]"
+    },
+    {
+     "id": "F-061-390",
+     "title": "no disclosure keyword breaks across lines on the phone (390, hero after the snap)",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "F-060-phone",
+     "title": "no spine line on phones (no doubled left edge)",
+     "status": "pass",
+     "detail": "none"
+    },
+    {
+     "id": "F-018-close",
+     "title": "phone INDEX: a CLOSE control is in view at top right, >= 44 px, and is the first focusable",
+     "status": "pass",
+     "detail": "{\"close\":{\"l\":281,\"t\":15,\"r\":369,\"b\":59,\"w\":88,\"h\":44},\"inView\":true,\"right\":true,\"first\":true,\"size\":[88,44]}"
+    },
+    {
+     "id": "F-053-axe-phone-index",
+     "title": "axe with INDEX open (phone): no page-has-heading-one, no label-content-name-mismatch",
+     "status": "pass",
+     "detail": "{\"fail\":[],\"incomplete\":{},\"other\":[]}"
+    },
+    {
+     "id": "F-019-phone",
+     "title": "title sheet MOTION row: >= 44 px target over the whole cell, with aria-pressed",
+     "status": "pass",
+     "detail": "{\"h\":52,\"pressed\":\"true\",\"hit\":true}"
+    },
+    {
+     "id": "F-053-axe-phone-titlesheet",
+     "title": "axe with the title sheet open (phone): no page-has-heading-one, no label-content-name-mismatch",
+     "status": "pass",
+     "detail": "{\"fail\":[],\"incomplete\":{},\"other\":[]}"
+    },
+    {
+     "id": "F-053-axe-phone-hero-rest",
+     "title": "axe at hero-rest (phone): no page-has-heading-one, no label-content-name-mismatch",
+     "status": "pass",
+     "detail": "{\"fail\":[],\"incomplete\":{\"color-contrast\":121,\"video-caption\":12},\"other\":[]}"
+    },
+    {
+     "id": "F-053-axe-phone-a-105",
+     "title": "axe at a-105 (phone): no page-has-heading-one, no label-content-name-mismatch",
+     "status": "pass",
+     "detail": "{\"fail\":[],\"incomplete\":{\"color-contrast\":158,\"video-caption\":11},\"other\":[]}"
+    },
+    {
+     "id": "F-053-axe-phone-a-300",
+     "title": "axe at a-300 (phone): no page-has-heading-one, no label-content-name-mismatch",
+     "status": "pass",
+     "detail": "{\"fail\":[],\"incomplete\":{\"color-contrast\":165,\"video-caption\":11},\"other\":[]}"
+    },
+    {
+     "id": "F-056-phone",
+     "title": "phone: after \"Sponsors →\" the A-301 H2 is on screen",
+     "status": "pass",
+     "detail": "{\"h2\":{\"l\":16,\"t\":360,\"r\":320,\"b\":487,\"w\":304,\"h\":127},\"band\":{\"top\":60,\"bottom\":788},\"ok\":true}"
+    },
+    {
+     "id": "F-057-tap",
+     "title": "phone: one tap on MAT 02 makes it active, lights keynotes 1 and 2, and prints their titles inline",
+     "status": "pass",
+     "detail": "{\"active\":\"01000\",\"lit\":[\"keynote-1\",\"keynote-2\"],\"inline\":\"MAT 02 · BOARD AND FIXINGS[1]SUPPORT A CHALLENGE[2]SHOW WHAT YOU MAKE\"}"
+    },
+    {
+     "id": "F-054-keyboard",
+     "title": "phone, keyboard up (390x470), each field aligned to the top: it never sits under the mini-slot, the header or the phone bar",
+     "status": "pass",
+     "detail": "[{\"id\":\"rfi-team\",\"field\":[156,212],\"covered\":[],\"barShown\":false},{\"id\":\"rfi-platform\",\"field\":[156,212],\"covered\":[],\"barShown\":false},{\"id\":\"rfi-needs\",\"field\":[156,236],\"covered\":[],\"barShown\":false},{\"id\":\"rfi-ch-02\",\"field\":[155,203],\"covered\":[],\"barShown\":true},{\"id\":\"kit-company\",\"field\":[156,212],\"covered\":[],\"barShown\":false},{\"id\":\"kit-make\",\"field\":[156,212],\"covered\":[],\"barShown\":false}]"
+    },
+    {
+     "id": "F-021-bar",
+     "title": "phone: the phone bar steps aside while a text field has focus (keyboard up)",
+     "status": "pass",
+     "detail": "[\"rfi-team: bar hidden\",\"rfi-platform: bar hidden\",\"rfi-needs: bar hidden\",\"rfi-ch-02: bar shown\",\"kit-company: bar hidden\",\"kit-make: bar hidden\"]"
+    },
+    {
+     "id": "F-099-targets",
+     "title": "phone: footer index links and the email are >= 44 px targets; chip names >= 13 px",
+     "status": "pass",
+     "detail": "{\"links\":[45,45,45,45,45,45,45,45,45,45,45],\"email\":44,\"chipName\":13}"
+    },
+    {
+     "id": "F-085-order",
+     "title": "phone A-105: the H2 comes before the plan, the section and the body paragraph",
+     "status": "pass",
+     "detail": "{\"h2\":8216,\"body\":9756,\"views\":8911}"
+    },
+    {
+     "id": "F-084-swipe",
+     "title": "phone: a vertical swipe that starts on the section-cut handle scrolls the page",
+     "status": "pass",
+     "detail": "8648 -> 9028"
+    },
+    {
+     "id": "F-015-phone",
+     "title": "phone: every INDEX row and both phone-bar CTAs land with the focused heading on screen, hitting itself",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "F-063-status",
+     "title": "phone status cell shows the sheet number unclipped at 320 and 360",
+     "status": "fail",
+     "detail": "[{\"w\":320,\"text\":\"PLANNED · NYC · 2027 · A-000\",\"clipped\":[\"phone-status-first 47>1\"],\"sheet\":true},{\"w\":360,\"text\":\"PLANNED · NYC · 2027 · A-000\",\"clipped\":[],\"sheet\":true}]"
+    },
+    {
+     "id": "F-013-prodvsdev",
+     "title": "every sheet lands with the same view titles, H2 and visible buttons on the production build and the dev server (CSS order independent of chunking)",
+     "status": "pass",
+     "detail": "[]"
+    },
+    {
+     "id": "F-004",
+     "title": "rest pose: no streak or step more than 2 px past 07 (and the nine limit-pose PNGs) (visual: judge r1/hero-1440-t8.0s.jpg, juror/hero390-t12.jpg)",
+     "status": "skip",
+     "detail": "manual retake: r1/hero-1440-t8.0s.jpg, juror/hero390-t12.jpg"
+    },
+    {
+     "id": "F-005",
+     "title": "plan cut: no hero type or band beside the plan, one view title, H2 + list from P 0.55 (visual: judge r1/plan-1440-t*.jpg, r1/plan-390-t*.jpg, motion/glout-seq.png)",
+     "status": "skip",
+     "detail": "manual retake: r1/plan-1440-t*.jpg, r1/plan-390-t*.jpg, motion/glout-seq.png"
+    },
+    {
+     "id": "F-008",
+     "title": "freeze depth dilated (A5 limit-pose gate report) (visual: judge pipeline gate report)",
+     "status": "skip",
+     "detail": "manual retake: pipeline gate report"
+    },
+    {
+     "id": "F-009",
+     "title": "c31: no warm figure between the studs; hands and board readable (crowd sign-off in qa/TRUTH.md) (visual: judge r1/1440-a-102-land.jpg, truth/c31-t3.4-person.jpg)",
+     "status": "skip",
+     "detail": "manual retake: r1/1440-a-102-land.jpg, truth/c31-t3.4-person.jpg"
+    },
+    {
+     "id": "F-010",
+     "title": "og image and film: grey tape housing; qa_shipped.py liveryFrames = 0 (visual: judge truth/og-tape.jpg)",
+     "status": "skip",
+     "detail": "manual retake: truth/og-tape.jpg"
+    },
+    {
+     "id": "F-011",
+     "title": "og image / X card: no yellow-and-black tape measure (visual: judge truth/og-tape.jpg, truth/x-card-small.jpg)",
+     "status": "skip",
+     "detail": "manual retake: truth/og-tape.jpg, truth/x-card-small.jpg"
+    },
+    {
+     "id": "F-012",
+     "title": "THE SET: no warm figure at 0:13.2 / 0:14.0 / 0:14.6 (visual: judge film frames)",
+     "status": "skip",
+     "detail": "manual retake: film frames"
+    },
+    {
+     "id": "F-022",
+     "title": "FAR bite: every HUMANOID glyph >= 60% visible; the bite on the shoulder (visual: judge r1/hero-1440-t8.0s.jpg, juror/hero390-t12.jpg)",
+     "status": "skip",
+     "detail": "manual retake: r1/hero-1440-t8.0s.jpg, juror/hero390-t12.jpg"
+    },
+    {
+     "id": "F-026",
+     "title": "ACT and UALLY the same orange through the DOM-to-GL handover (visual: judge motion/zz-near.png)",
+     "status": "skip",
+     "detail": "manual retake: motion/zz-near.png"
+    },
+    {
+     "id": "F-027",
+     "title": "fast scroll from rest: no pop (visual: judge motion/glout-seq.png)",
+     "status": "skip",
+     "detail": "manual retake: motion/glout-seq.png"
+    },
+    {
+     "id": "F-029",
+     "title": "phone sideways drag keeps the H1 inside the border (visual: judge phone/p2-hero-lookdrag.jpg)",
+     "status": "skip",
+     "detail": "manual retake: phone/p2-hero-lookdrag.jpg"
+    },
+    {
+     "id": "F-030",
+     "title": "bay 05 lands without a black frame (no-JS part: nojs-video) (visual: judge motion/land-seq.png)",
+     "status": "skip",
+     "detail": "manual retake: motion/land-seq.png"
+    },
+    {
+     "id": "F-032",
+     "title": "perspective entrances: caption rule never covered, no fragments, even iris (visual: judge motion/a101-25-caption.png, a11y-perf/vm-a101-40vh.jpg, motion/a103-iris-grid.png)",
+     "status": "skip",
+     "detail": "manual retake: motion/a101-25-caption.png, a11y-perf/vm-a101-40vh.jpg, motion/a103-iris-grid.png"
+    },
+    {
+     "id": "F-036",
+     "title": "phone detail bubble opens in flow under the H2 and spec (visual: judge phone/p6-a101-bubble-open.jpg)",
+     "status": "skip",
+     "detail": "manual retake: phone/p6-a101-bubble-open.jpg"
+    },
+    {
+     "id": "F-037",
+     "title": "A-100 tiles show stills, slot 05 never empty (visual: judge plan-390-t1.2s.jpg, plan-390-t1.8s.jpg, plan-1440-t1.8s.jpg)",
+     "status": "skip",
+     "detail": "manual retake: plan-390-t1.2s.jpg, plan-390-t1.8s.jpg, plan-1440-t1.8s.jpg"
+    },
+    {
+     "id": "F-042",
+     "title": "A–A marker centred on the chalk line ✕ (probe105.cjs) (visual: judge stage-a-105-100vh-1440.jpg)",
+     "status": "skip",
+     "detail": "manual retake: stage-a-105-100vh-1440.jpg"
+    },
+    {
+     "id": "F-043",
+     "title": "A-200: readable text on every frame; HOLD tag readable over >= 15vh (visual: judge art/montage-a200-cloud-1440.jpg)",
+     "status": "skip",
+     "detail": "manual retake: art/montage-a200-cloud-1440.jpg"
+    },
+    {
+     "id": "F-046",
+     "title": "per-glyph occlusion gate (A5 freeze report) (visual: judge pipeline gate report)",
+     "status": "skip",
+     "detail": "manual retake: pipeline gate report"
+    },
+    {
+     "id": "F-047",
+     "title": "no light fringe round the helmet or pads (visual: judge art/crop-a101-persp-halo.png, stage-a-103-060vh-1440.jpg)",
+     "status": "skip",
+     "detail": "manual retake: art/crop-a101-persp-halo.png, stage-a-103-060vh-1440.jpg"
+    },
+    {
+     "id": "F-048",
+     "title": "tools graphite, no orange/red trade dress (visual: judge truth/b41-drill.jpg, truth/b42-tool.jpg)",
+     "status": "skip",
+     "detail": "manual retake: truth/b41-drill.jpg, truth/b42-tool.jpg"
+    },
+    {
+     "id": "F-049",
+     "title": "no glyph-like marks in det-n03 / b41 (visual: judge truth/n03-socket-text.jpg)",
+     "status": "skip",
+     "detail": "manual retake: truth/n03-socket-text.jpg"
+    },
+    {
+     "id": "F-050",
+     "title": "b40 course intact next to STRAIGHT COURSES (visual: judge stage-a-101-000vh-1440.jpg, truth/b40-wall-t4.5.jpg)",
+     "status": "skip",
+     "detail": "manual retake: stage-a-101-000vh-1440.jpg, truth/b40-wall-t4.5.jpg"
+    },
+    {
+     "id": "F-058",
+     "title": "THE SET disclosure readable at 390 wide, outside the bottom 20% (visual: judge truth/set916-at-390.jpg)",
+     "status": "skip",
+     "detail": "manual retake: truth/set916-at-390.jpg"
+    },
+    {
+     "id": "F-070",
+     "title": "no shadow wedge, no stray tick (visual: judge hero-1440-t0.0s.jpg, hero-1440-t0.8s.jpg)",
+     "status": "skip",
+     "detail": "manual retake: hero-1440-t0.0s.jpg, hero-1440-t0.8s.jpg"
+    },
+    {
+     "id": "F-071",
+     "title": "hint dimmed under the pulled V (visual: judge hero-1440-t2.4s.jpg)",
+     "status": "skip",
+     "detail": "manual retake: hero-1440-t2.4s.jpg"
+    },
+    {
+     "id": "F-072",
+     "title": "BUILD? clean orange (no puff haze) (visual: judge motion/zoom-32-build.png)",
+     "status": "skip",
+     "detail": "manual retake: motion/zoom-32-build.png"
+    },
+    {
+     "id": "F-073",
+     "title": "deposit gone by t 3.6 s (visual: judge hero-1440-t3.6s.jpg)",
+     "status": "skip",
+     "detail": "manual retake: hero-1440-t3.6s.jpg"
+    },
+    {
+     "id": "F-074",
+     "title": "snap releases at 3.0 ± 0.1 s; rest UI by 6.5 s (real-time run) (visual: judge $S/artrev/hero.cjs log)",
+     "status": "skip",
+     "detail": "manual retake: $S/artrev/hero.cjs log"
+    },
+    {
+     "id": "F-076",
+     "title": "A-103 hold frame left edge on the 72 px spine (visual: judge stage-a-103-060vh-1440.jpg)",
+     "status": "skip",
+     "detail": "manual retake: stage-a-103-060vh-1440.jpg"
+    },
+    {
+     "id": "F-077",
+     "title": "PLAN 03 thumbnail >= 24 px clear of the detail circle (visual: judge extra-stage-a-103-minus025vh-1440.jpg)",
+     "status": "skip",
+     "detail": "manual retake: extra-stage-a-103-minus025vh-1440.jpg"
+    },
+    {
+     "id": "F-078",
+     "title": "no spine line across the perspective films (visual: judge a11y-perf/vm-a101-40vh.jpg)",
+     "status": "skip",
+     "detail": "manual retake: a11y-perf/vm-a101-40vh.jpg"
+    },
+    {
+     "id": "F-079",
+     "title": "north arrows read against the grid (visual: judge art/1440-a-200-100vh.jpg)",
+     "status": "skip",
+     "detail": "manual retake: art/1440-a-200-100vh.jpg"
+    },
+    {
+     "id": "F-080",
+     "title": "A-101 bond drawn as masonry, no empty outlined cells (visual: judge stage-a-101-000vh-1440.jpg)",
+     "status": "skip",
+     "detail": "manual retake: stage-a-101-000vh-1440.jpg"
+    },
+    {
+     "id": "F-086",
+     "title": "07 not painted over by the A-105 traces (visual: judge stage-a-105-030vh-1440.jpg)",
+     "status": "skip",
+     "detail": "manual retake: stage-a-105-030vh-1440.jpg"
+    },
+    {
+     "id": "F-088",
+     "title": "A-200 grid knocked out under the arrows and the arc (visual: judge art/1440-a-200-100vh.jpg)",
+     "status": "skip",
+     "detail": "manual retake: art/1440-a-200-100vh.jpg"
+    },
+    {
+     "id": "F-102",
+     "title": "THE SET end card gives the site address or DATE · VENUE: HOLD (visual: judge truth/set-sheet4.jpg)",
+     "status": "skip",
+     "detail": "manual retake: truth/set-sheet4.jpg"
+    }
+   ],
+   "console": [],
+   "shots": []
   },
   "nojs": {
    "checks": [
@@ -590,14 +1304,14 @@
     {
      "id": "nojs-copy",
      "title": "the prerendered page carries all copy (cross-section of every copy file)",
-     "status": "pass",
-     "detail": "[]"
+     "status": "fail",
+     "detail": "[\"TASK DRAWING TRACED FROM CONCEPT FOOTAGE · DRAWING\"]"
     },
     {
      "id": "nojs-video",
-     "title": "every video has a poster and controls",
+     "title": "every video has a poster (attribute or .loopvideo-poster sibling) and controls",
      "status": "fail",
-     "detail": "17 videos; 1 without"
+     "detail": "17 videos; 3 without"
     },
     {
      "id": "nojs-anchors",
@@ -643,56 +1357,10 @@
     }
    ],
    "console": [
-    "requestfailed: http://127.0.0.1:43239/assets/jsx-dev-runtime-CBW7NE-z.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/sheets-BB-35nJY.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/store-D5ALOvq_.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/sheetStore-DkJoAI7x.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/LabelText-BjkybHrN.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/SheetTag-rXQA6l73.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/a100-a103-ajt5GUHy.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/geometry-DYqUGzyZ.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/ControlX-DUHvQ2nf.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/viewTitles-ByO-0SQD.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/manifest-hKb0D5dh.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/viewContext-d5GGCWKl.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/ViewTitle-fLEOc8ag.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/prefs-BTKXsEqW.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/VideoManager-DJouFq3U.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/chrome-SCw9f0wh.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/LoopVideo-DZGDW1wd.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/easing-DE_wmn8P.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/announce-CgCtypXO.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/preload-helper-BaNbYf_w.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/lenis-CWn3t8Jh.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/challenges-DOfTaYwU.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/useInView-B_O9TRKZ.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/GridBubble-BQmjFVSY.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/ArenaPlan-BSE6sWjs.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/A100Bays-aloQcFus.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/Picture-B15eOss6.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/tier-CBtdXGqb.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/scroll-xsJ1AQgb.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/ViewMarker-NWOH8QaH.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/DetailBubble-BBojLGNo.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/PerspectiveStage-u0kpPngY.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/a4-BU1QKmdh.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/useStageProgress-C96L7jUM.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/SectionCut-CnxrihLY.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/SectionSlice-DNUWaW52.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/HoldCloud-DAp49QW_.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/conversion-BrwLZKXt.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/BaySlot-CTi2ocEV.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/FormParts-DoiZdNOW.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/A300Parts-Bs43R20B.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/A301Parts-APzmoF8o.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/overlays-CE2oJt1H.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/Dialog-EVTxPYiW.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/nav-BDSgEjmR.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/SheetIndex-D0S9MN4Y.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/A900Parts-dxu8tjtd.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/CourseMark-kSnXgmsj.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/HoldMark-CrjEvSow.js csp",
-    "requestfailed: http://127.0.0.1:43239/assets/MotionToggle-CYArTTQz.js csp"
+    "requestfailed: http://127.0.0.1:37669/assets/manifest-Dn5h_gRN.js csp",
+    "requestfailed: http://127.0.0.1:37669/assets/prefs-C7-A4ANh.js csp",
+    "requestfailed: http://127.0.0.1:37669/assets/easing-B8f7TVmc.js csp",
+    "requestfailed: http://127.0.0.1:37669/assets/announce-CcKdU8F4.js csp"
    ],
    "shots": [
     "shots/nojs-first-view.jpg",

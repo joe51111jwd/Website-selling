@@ -60,8 +60,9 @@
   gap: var(--s-5);
   padding-bottom: calc(var(--s-6) + 15px);
 }
-/* own size: three lines that fit the five left columns down to 1024 px (FIXLIST-1 F-043, F-016) */
-.a200 .a200-h2 {
+/* own size: three lines that fit the five left columns down to 1024 px (FIXLIST-1 F-043, F-016); three
+   classes so it holds against the shared .t-h2-statement rules in any stylesheet order */
+.a200 .a200-text .a200-h2 {
   color: var(--chalk);
   max-width: 9.5ch;
   margin: 0;
@@ -1160,11 +1161,9 @@
   .a105-after {
     padding: var(--s-5) 0 0;
   }
-  .a105-detail-panel {
-    left: 0;
-    bottom: auto;
-    top: calc(100% + var(--s-3));
-    width: 100cqw;
+  /* the detail opens in flow under the bubble (DetailBubble phoneFlow, F-036) */
+  .a105-detail {
+    line-height: normal;
   }
 }
 
