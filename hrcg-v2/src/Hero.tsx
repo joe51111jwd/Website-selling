@@ -150,11 +150,11 @@ export function Hero({ onReady }: { onReady: () => void }) {
             muted
             playsInline
             preload="auto"
-            poster={`/media/hero-slam-${o}.first.jpg`}
+            poster={`/media/hero-windup-${o}.first.jpg`}
             aria-label="Concept film: robot 07 picks up a chalk line, pulls it taut, drives its hand into the slab, and blue chalk dust rolls out across the floor."
           >
-            <source src={`/media/hero-slam-${o}.av1.mp4`} type='video/mp4; codecs="av01.0.08M.08"' />
-            <source src={`/media/hero-slam-${o}.h264.mp4`} type="video/mp4" />
+            <source src={`/media/hero-windup-${o}.av1.mp4`} type='video/mp4; codecs="av01.0.08M.08"' />
+            <source src={`/media/hero-windup-${o}.h264.mp4`} type="video/mp4" />
           </video>
           {/* the words live in the scene: stencilled on the back wall, marking-painted on the slab */}
           <h1 id="hx-h" className={`hx-wall ${lit ? 'is-lit' : ''}`}>
