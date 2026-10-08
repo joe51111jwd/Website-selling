@@ -26,9 +26,9 @@ export const A101 = {
   viewMarker: {
     view: '01-A',
     sheet: 'A-101',
-    label: 'Go to perspective 01-A, concept film of bricklaying',
+    label: 'Go to perspective 01-A / A-101, concept film of bricklaying',
   },
-  detailLabel: 'Open detail 1, concept film of a robot hand pressing a brick into mortar',
+  detailLabel: 'Open detail 1 / A-101, concept film of a robot hand pressing a brick into mortar',
   /** printed beside the bubble (brief 3.4 layout: "◯1 DETAIL 1 / A-101") */
   bubbleWord: 'DETAIL',
   alt: {
@@ -56,6 +56,6 @@ export const A103 = {
   alt: {
     detail: 'AI-generated concept film, close up: a robot hand runs an impact wrench on a nut until it seats.',
     perspective: 'AI-generated concept film: robot 07 drives a bolt with an impact wrench and reaches into a tray of bolts.',
-    plan: 'AI-generated concept film, seen from above: robot 07 fastens a bolted splice plate.',
+    plan: 'AI-generated concept film, seen from above: robot 07 completes a bolted connection with an impact wrench.',
   },
 } as const;
