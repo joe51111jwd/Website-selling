@@ -1,7 +1,7 @@
 @import './fonts.css';
 
 :root {
-  --h1: clamp(64px, 8.6vw, 150px);
+  --h1: clamp(52px, 7vw, 120px);
   --ink: #0b0b0a;
   --ink-2: #161614;
   --chalk: #ece8e1;
@@ -136,20 +136,19 @@ p {
   margin: 0 auto;
 }
 .kicker {
-  font-family: var(--mono);
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--pencil);
-  margin-bottom: 28px;
+  font-family: var(--body);
+  font-size: 16px;
+  font-weight: 500;
+  color: rgb(236 232 225 / 0.62);
+  margin-bottom: 24px;
 }
 h1 {
-  font-family: var(--display);
+  font-family: var(--body);
   font-weight: 800;
+  font-stretch: 100%;
   font-size: var(--h1);
-  line-height: 0.9;
-  letter-spacing: -0.005em;
-  text-transform: uppercase;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
 }
 .w {
   display: inline-block;
@@ -160,7 +159,7 @@ h1 {
   position: relative;
   background: var(--orange);
   color: var(--ink);
-  padding: 0.02em 0.16em 0.04em;
+  padding: 0 0.14em 0.06em;
   margin-left: 0.04em;
   transform-origin: 30% 60%;
   box-shadow: 0 0.06em 0.18em rgb(0 0 0 / 0.25);
@@ -185,12 +184,15 @@ h1 .l2 {
   white-space: nowrap;
 }
 @media (min-width: 1000px) {
-  /* the sub-line sits beside BUILD?, on its baseline */
+  /* headline left, the sub-line beside it on its last baseline */
+  .hero-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 24ch);
+    column-gap: clamp(32px, 4vw, 72px);
+    align-items: end;
+  }
   .hero-head .sub {
-    position: absolute;
-    left: calc(var(--h1) * 3.55);
-    bottom: 0.35em;
-    margin: 0;
+    margin: 0 0 0.6em;
     max-width: 24ch;
   }
 }
@@ -234,10 +236,9 @@ h1 .l2 {
   position: absolute;
   left: 12px;
   top: 12px;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-family: var(--body);
+  font-size: 14px;
+  font-weight: 600;
   color: var(--chalk);
   background: rgb(11 11 10 / 0.72);
   padding: 6px 9px 5px;
@@ -281,8 +282,8 @@ h1 .l2 {
 }
 .statement {
   font-family: var(--body);
-  font-weight: 600;
-  font-stretch: 92%;
+  font-weight: 560;
+  font-stretch: 100%;
   font-size: clamp(32px, 4.6vw, 72px);
   line-height: 1.08;
   letter-spacing: -0.02em;
@@ -302,11 +303,11 @@ h1 .l2 {
   padding: 0 var(--gutter);
 }
 h2 {
-  font-family: var(--display);
+  font-family: var(--body);
   font-weight: 800;
-  font-size: clamp(52px, 7.5vw, 120px);
-  line-height: 0.92;
-  text-transform: uppercase;
+  font-size: clamp(40px, 5.2vw, 84px);
+  line-height: 1;
+  letter-spacing: -0.035em;
 }
 .chalk {
   position: relative;
@@ -352,12 +353,12 @@ h2 {
   margin-bottom: 18px;
 }
 .task h3 {
-  font-family: var(--display);
-  font-weight: 800;
-  font-size: clamp(40px, 4.6vw, 72px);
-  line-height: 0.95;
-  text-transform: uppercase;
-  margin-bottom: 20px;
+  font-family: var(--body);
+  font-weight: 750;
+  font-size: clamp(32px, 3.4vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  margin-bottom: 18px;
 }
 .task p {
   font-size: clamp(17px, 1.35vw, 20px);
@@ -431,11 +432,11 @@ h2 {
   padding: clamp(100px, 16vh, 180px) max(var(--gutter), calc((100vw - var(--max)) / 2 + var(--gutter))) 120px;
 }
 .foot-big {
-  font-family: var(--display);
+  font-family: var(--body);
   font-weight: 800;
-  text-transform: uppercase;
-  font-size: clamp(56px, 9vw, 150px);
-  line-height: 0.9;
+  font-size: clamp(44px, 6.4vw, 110px);
+  line-height: 1;
+  letter-spacing: -0.04em;
 }
 .foot-small {
   margin-top: 20px;
@@ -507,7 +508,7 @@ h2 {
     scroll-snap-align: start;
   }
   :root {
-    --h1: clamp(56px, 16vw, 84px);
+    --h1: clamp(44px, 12.6vw, 64px);
   }
   .sub {
     margin-top: 20px;

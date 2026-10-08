@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { motion, useInView, useScroll, useTransform, type MotionValue } from 'motion/react';
 import Lenis from 'lenis';
 import { Permit, CONTACT_EMAIL } from './permit-entry';
+import { Intro } from './Intro';
 
 const EXPO = [0.16, 1, 0.3, 1] as const;
 
@@ -226,7 +227,6 @@ export function App() {
   const copyFade = useTransform(heroP, [0, 0.7], [1, 0]);
   const [ctaHidden, setCtaHidden] = useState(false);
   const [headHidden, setHeadHidden] = useState(false);
-  useEffect(() => setIntroDone(true), []); // INTRO-PLACEHOLDER: replaced by <Intro onDone> when it lands
   useEffect(() => {
     // the header steps out of the way while you read down, and comes back when you scroll up
     let last = window.scrollY;
@@ -282,6 +282,8 @@ export function App() {
           Sponsors
         </a>
       </header>
+
+      <Intro onDone={() => setIntroDone(true)} />
 
       <main id="top">
         <section className="hero" ref={heroRef}>

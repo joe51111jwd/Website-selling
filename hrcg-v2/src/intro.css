@@ -1,0 +1,74 @@
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--ink, #0b0b0a);
+  display: grid;
+  place-items: center;
+  will-change: clip-path;
+}
+.intro-stage {
+  position: relative;
+  height: 80px;
+}
+.intro-line {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+.intro-line path {
+  fill: none;
+  stroke: var(--blue, #6f98e8);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.intro-course {
+  position: absolute;
+  left: 50%;
+  bottom: calc(50% + 2px);
+  transform-origin: 0 0;
+  translate: -50% 0;
+}
+.intro-course svg {
+  display: block;
+  fill: var(--chalk, #ece8e1);
+  overflow: visible;
+}
+.intro-dust {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 0;
+}
+.intro-dust span {
+  position: absolute;
+  top: -2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--blue, #6f98e8);
+  filter: blur(0.6px);
+}
+.intro-words {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% + 28px);
+  text-align: center;
+  font-family: var(--body, 'Archivo', system-ui, sans-serif);
+  font-size: 15px;
+  font-weight: 500;
+  color: rgb(236 232 225 / 0.8);
+  line-height: 1.5;
+}
+.intro-words p {
+  margin: 0;
+}
+.intro-words .dim {
+  color: rgb(236 232 225 / 0.55);
+}
+/* no double logo while the course is in the air */
+html.intro-on .top .mark {
+  visibility: hidden;
+}
