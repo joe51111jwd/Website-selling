@@ -371,7 +371,9 @@ def near_contrast(nearm, img_rgb):
 # F-022 / F-046: the FAR block is where A2's TYPE_LAYOUT puts it (16:9 farLeft 0.105, farCapTop 0.135;
 # 9:16 farLeft 0.08, farCapTop 0.13, size 0.070), so the per-glyph gate below checks the shipped layout.
 # The old window search still runs and is reported (searchBest) but only moves the block with --search.
-F022 = {'169': (-0.015, -0.005), '916': (0.0, 0.03)}[SUF]
+# 16:9: F-022 proposed farLeft 0.105; the per-glyph gate fails there at rest (D 47% behind 07's matte, 58% by depth
+# test), so A5 sets 0.095 (dx -0.025, the sweep below is in hero-meta farGlyphs.farLeftSweep) and tells A2 (A5-fix-2).
+F022 = {'169': (-0.025, -0.005), '916': (0.0, 0.03)}[SUF]
 best = None
 # desktop: the brief allows the FAR block +-0.03 in x or y. Phone: "A5 sets the bite window as on desktop";
 # 07 stands lower in the 9:16 take, so the FAR block may also come down to +0.06 (block bottom ~0.28).
