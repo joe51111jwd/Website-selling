@@ -54,6 +54,8 @@ export interface FreezeSceneOptions {
   /** [avif, jpg] candidates for the still that matches the playing codec */
   stillUrls: string[];
   plateUrls: string[];
+  /** from hero-meta: the plate quad's depth and its size relative to the frame-matched size there */
+  plate?: { z?: number; scale?: number };
   lines: TypeLine[];
   /** CSS px of the frame box on screen (canvas size) */
   cssW: number;
@@ -189,8 +191,8 @@ export async function createFreezeScene(o: FreezeSceneOptions): Promise<FreezeSc
 
   // background plate: frame 84, near region inpainted, blurred and darkened (A5), behind everything
   const plateTex = texture(plateImg);
-  const plateZ = (1 / meta.a) * 1.06;
-  const over = 1.5;
+  const plateZ = o.plate?.z ?? (1 / meta.a) * 1.06;
+  const over = o.plate?.scale ?? 1.5;
   const plateGeo = new PlaneGeometry(1, 1);
   const puv = plateGeo.getAttribute('uv') as BufferAttribute;
   for (let i = 0; i < puv.count; i++) {

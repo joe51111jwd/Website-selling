@@ -175,8 +175,8 @@
     --ar-h: 1912;
     /* 9:16 (brief 2.5) */
     --t-size: 0.075;
-    --far-left: 0.09; /* brief 0.08; 0.09 lines the H1 up with the header's mark on a 390 phone */
-    --far-top: 0.09884; /* cap-top 0.10 */
+    --far-left: 0.08;
+    --far-top: 0.14884; /* cap-top 0.15: D2 moved FAR down 0.05 into the bite window (hero-meta-916 typeLayerShift) */
     --near-right: 0.135; /* right edge 0.865, clear of the chalk-box handle */
     --near-top: 0.64934; /* last baseline 0.775 */
     --line-x0: 0.47;
@@ -709,22 +709,22 @@
 /* ------------------------------------------------------------------ phone (9:16 frame) */
 @media (max-aspect-ratio: 4/5) {
   .cv-sub {
-    left: 9%;
+    left: 8%;
     top: 81%;
-    max-width: 82%;
+    max-width: 84%;
     font-size: 17px;
     line-height: 22px;
   }
   /* the left of the line is free (NEAR is right-aligned): the hints, the reset and the play button
      stand there, bottom on the line, never wider than the space left of BUILD? */
   .cv-hint {
-    left: 9%;
+    left: 8%;
     top: auto;
     bottom: calc((1 - var(--line-y)) * 100% + 12px);
     max-width: 38%;
   }
   .cv-restrow {
-    left: 9%;
+    left: 8%;
     top: auto;
     bottom: calc((1 - var(--line-y)) * 100% - 4px);
     max-width: 38%;
@@ -737,7 +737,7 @@
     max-width: none;
   }
   .cv-play {
-    left: 9%;
+    left: 8%;
     top: auto;
     bottom: calc((1 - var(--line-y)) * 100% - 4px);
     max-width: 38%;
@@ -748,11 +748,11 @@
     padding: 7px 10px;
   }
   .cv-vt {
-    left: 9%;
+    left: 8%;
     right: 8%;
   }
   .cv-status {
-    left: 9%;
+    left: 8%;
     top: 6.6%;
     font-size: 12px;
   }
