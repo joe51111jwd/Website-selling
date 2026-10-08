@@ -1,7 +1,7 @@
 {
  "version": 1,
- "mock": true,
- "generated": "2026-10-08T07:07:15+00:00",
+ "mock": false,
+ "generated": "2026-10-08T08:22:12+00:00",
  "media": {
   "hero-snap-169": {
    "id": "hero-snap-169",
@@ -13,7 +13,7 @@
     },
     {
      "src": "media/hero/hero-snap-169.h264.mp4",
-     "type": "video/mp4; codecs=\"avc1.640028\""
+     "type": "video/mp4; codecs=\"avc1.640032\""
     }
    ],
    "poster": "media/hero/hero-snap-169.poster.avif",
@@ -37,12 +37,12 @@
    "freezeFrame": 84,
    "meta": "media/hero/hero-meta-169.json",
    "bytes": {
-    "media/hero/hero-snap-169.av1.mp4": 128500,
-    "media/hero/hero-snap-169.h264.mp4": 164392,
-    "media/hero/hero-snap-169.poster.avif": 29048,
-    "media/hero/hero-snap-169.poster.jpg": 121109,
-    "media/hero/hero-still-169-av1.avif": 33781,
-    "media/hero/hero-still-169-h264.avif": 34704
+    "media/hero/hero-snap-169.av1.mp4": 190235,
+    "media/hero/hero-snap-169.h264.mp4": 494627,
+    "media/hero/hero-snap-169.poster.avif": 30902,
+    "media/hero/hero-snap-169.poster.jpg": 109908,
+    "media/hero/hero-still-169-av1.avif": 44558,
+    "media/hero/hero-still-169-h264.avif": 59358
    }
   },
   "hero-snap-916": {
@@ -55,7 +55,7 @@
     },
     {
      "src": "media/hero/hero-snap-916.h264.mp4",
-     "type": "video/mp4; codecs=\"avc1.640028\""
+     "type": "video/mp4; codecs=\"avc1.640032\""
     }
    ],
    "poster": "media/hero/hero-snap-916.poster.avif",
@@ -76,14 +76,15 @@
     "av1": "media/hero/hero-still-916-av1.avif",
     "h264": "media/hero/hero-still-916-h264.avif"
    },
+   "freezeFrame": 100,
    "meta": "media/hero/hero-meta-916.json",
    "bytes": {
-    "media/hero/hero-snap-916.av1.mp4": 113227,
-    "media/hero/hero-snap-916.h264.mp4": 182417,
-    "media/hero/hero-snap-916.poster.avif": 24623,
-    "media/hero/hero-snap-916.poster.jpg": 107039,
-    "media/hero/hero-still-916-av1.avif": 28711,
-    "media/hero/hero-still-916-h264.avif": 30609
+    "media/hero/hero-snap-916.av1.mp4": 108486,
+    "media/hero/hero-snap-916.h264.mp4": 255678,
+    "media/hero/hero-snap-916.poster.avif": 27710,
+    "media/hero/hero-snap-916.poster.jpg": 95430,
+    "media/hero/hero-still-916-av1.avif": 41255,
+    "media/hero/hero-still-916-h264.avif": 47966
    }
   },
   "plan-b40": {
@@ -96,7 +97,7 @@
     },
     {
      "src": "media/plans/plan-b40.h264.mp4",
-     "type": "video/mp4; codecs=\"avc1.640020\""
+     "type": "video/mp4; codecs=\"avc1.640028\""
     }
    ],
    "poster": "media/plans/plan-b40.poster.avif",
@@ -113,16 +114,16 @@
    "dur": 5.042,
    "loop": null,
    "borderRect": [
-    0.08333,
-    0.08333,
-    0.91667,
-    0.91667
+    0.08507,
+    0.08438,
+    0.9184,
+    0.91771
    ],
    "bytes": {
-    "media/plans/plan-b40.av1.mp4": 364982,
-    "media/plans/plan-b40.h264.mp4": 230000,
-    "media/plans/plan-b40.poster.avif": 50452,
-    "media/plans/plan-b40.poster.jpg": 166294
+    "media/plans/plan-b40.av1.mp4": 418187,
+    "media/plans/plan-b40.h264.mp4": 787523,
+    "media/plans/plan-b40.poster.avif": 74219,
+    "media/plans/plan-b40.poster.jpg": 160442
    }
   },
   "plan-b40-m": {
@@ -152,16 +153,16 @@
    "dur": 5.042,
    "loop": null,
    "borderRect": [
-    0.08333,
-    0.08333,
-    0.91667,
-    0.91667
+    0.08507,
+    0.08438,
+    0.9184,
+    0.91771
    ],
    "bytes": {
-    "media/plans/plan-b40-m.av1.mp4": 222073,
-    "media/plans/plan-b40-m.h264.mp4": 121972,
-    "media/plans/plan-b40-m.poster.avif": 24255,
-    "media/plans/plan-b40-m.poster.jpg": 82326
+    "media/plans/plan-b40-m.av1.mp4": 251826,
+    "media/plans/plan-b40-m.h264.mp4": 449109,
+    "media/plans/plan-b40-m.poster.avif": 38479,
+    "media/plans/plan-b40-m.poster.jpg": 80213
    }
   },
   "plan-b41": {
@@ -174,7 +175,7 @@
     },
     {
      "src": "media/plans/plan-b41.h264.mp4",
-     "type": "video/mp4; codecs=\"avc1.640020\""
+     "type": "video/mp4; codecs=\"avc1.640028\""
     }
    ],
    "poster": "media/plans/plan-b41.poster.avif",
@@ -191,16 +192,16 @@
    "dur": 5.042,
    "loop": null,
    "borderRect": [
-    0.08333,
-    0.08333,
-    0.91667,
-    0.91667
+    0.08403,
+    0.08368,
+    0.9184,
+    0.91771
    ],
    "bytes": {
-    "media/plans/plan-b41.av1.mp4": 324613,
-    "media/plans/plan-b41.h264.mp4": 223595,
-    "media/plans/plan-b41.poster.avif": 39649,
-    "media/plans/plan-b41.poster.jpg": 140929
+    "media/plans/plan-b41.av1.mp4": 417322,
+    "media/plans/plan-b41.h264.mp4": 791673,
+    "media/plans/plan-b41.poster.avif": 55150,
+    "media/plans/plan-b41.poster.jpg": 139632
    }
   },
   "plan-b41-m": {
@@ -230,16 +231,16 @@
    "dur": 5.042,
    "loop": null,
    "borderRect": [
-    0.08333,
-    0.08333,
-    0.91667,
-    0.91667
+    0.08403,
+    0.08368,
+    0.9184,
+    0.91771
    ],
    "bytes": {
-    "media/plans/plan-b41-m.av1.mp4": 208801,
-    "media/plans/plan-b41-m.h264.mp4": 117609,
-    "media/plans/plan-b41-m.poster.avif": 19826,
-    "media/plans/plan-b41-m.poster.jpg": 70750
+    "media/plans/plan-b41-m.av1.mp4": 259650,
+    "media/plans/plan-b41-m.h264.mp4": 463143,
+    "media/plans/plan-b41-m.poster.avif": 30867,
+    "media/plans/plan-b41-m.poster.jpg": 70375
    }
   },
   "plan-b42": {
@@ -252,7 +253,7 @@
     },
     {
      "src": "media/plans/plan-b42.h264.mp4",
-     "type": "video/mp4; codecs=\"avc1.640020\""
+     "type": "video/mp4; codecs=\"avc1.640028\""
     }
    ],
    "poster": "media/plans/plan-b42.poster.avif",
@@ -269,16 +270,16 @@
    "dur": 5.042,
    "loop": null,
    "borderRect": [
-    0.08333,
-    0.08333,
-    0.91667,
-    0.91667
+    0.08403,
+    0.08507,
+    0.9184,
+    0.9184
    ],
    "bytes": {
-    "media/plans/plan-b42.av1.mp4": 347479,
-    "media/plans/plan-b42.h264.mp4": 214138,
-    "media/plans/plan-b42.poster.avif": 50874,
-    "media/plans/plan-b42.poster.jpg": 165918
+    "media/plans/plan-b42.av1.mp4": 443422,
+    "media/plans/plan-b42.h264.mp4": 849775,
+    "media/plans/plan-b42.poster.avif": 70370,
+    "media/plans/plan-b42.poster.jpg": 155725
    }
   },
   "plan-b42-m": {
@@ -308,16 +309,16 @@
    "dur": 5.042,
    "loop": null,
    "borderRect": [
-    0.08333,
-    0.08333,
-    0.91667,
-    0.91667
+    0.08403,
+    0.08507,
+    0.9184,
+    0.9184
    ],
    "bytes": {
-    "media/plans/plan-b42-m.av1.mp4": 215626,
-    "media/plans/plan-b42-m.h264.mp4": 109531,
-    "media/plans/plan-b42-m.poster.avif": 25439,
-    "media/plans/plan-b42-m.poster.jpg": 82879
+    "media/plans/plan-b42-m.av1.mp4": 263448,
+    "media/plans/plan-b42-m.h264.mp4": 412953,
+    "media/plans/plan-b42-m.poster.avif": 38085,
+    "media/plans/plan-b42-m.poster.jpg": 77963
    }
   },
   "plan-b43": {
@@ -330,7 +331,7 @@
     },
     {
      "src": "media/plans/plan-b43.h264.mp4",
-     "type": "video/mp4; codecs=\"avc1.640020\""
+     "type": "video/mp4; codecs=\"avc1.640028\""
     }
    ],
    "poster": "media/plans/plan-b43.poster.avif",
@@ -347,16 +348,16 @@
    "dur": 5.042,
    "loop": null,
    "borderRect": [
-    0.08333,
-    0.08333,
-    0.91667,
-    0.91667
+    0.08438,
+    0.08507,
+    0.91771,
+    0.9184
    ],
    "bytes": {
-    "media/plans/plan-b43.av1.mp4": 276529,
-    "media/plans/plan-b43.h264.mp4": 172403,
-    "media/plans/plan-b43.poster.avif": 40303,
-    "media/plans/plan-b43.poster.jpg": 142065
+    "media/plans/plan-b43.av1.mp4": 418242,
+    "media/plans/plan-b43.h264.mp4": 761523,
+    "media/plans/plan-b43.poster.avif": 57326,
+    "media/plans/plan-b43.poster.jpg": 141439
    }
   },
   "plan-b43-m": {
@@ -386,16 +387,16 @@
    "dur": 5.042,
    "loop": null,
    "borderRect": [
-    0.08333,
-    0.08333,
-    0.91667,
-    0.91667
+    0.08438,
+    0.08507,
+    0.91771,
+    0.9184
    ],
    "bytes": {
-    "media/plans/plan-b43-m.av1.mp4": 173559,
-    "media/plans/plan-b43-m.h264.mp4": 92935,
-    "media/plans/plan-b43-m.poster.avif": 19930,
-    "media/plans/plan-b43-m.poster.jpg": 71456
+    "media/plans/plan-b43-m.av1.mp4": 251598,
+    "media/plans/plan-b43-m.h264.mp4": 372606,
+    "media/plans/plan-b43-m.poster.avif": 31468,
+    "media/plans/plan-b43-m.poster.jpg": 71342
    }
   },
   "plan-b44": {
@@ -408,7 +409,7 @@
     },
     {
      "src": "media/plans/plan-b44.h264.mp4",
-     "type": "video/mp4; codecs=\"avc1.640020\""
+     "type": "video/mp4; codecs=\"avc1.640028\""
     }
    ],
    "poster": "media/plans/plan-b44.poster.avif",
@@ -425,16 +426,26 @@
    "dur": 5.042,
    "loop": null,
    "borderRect": [
-    0.08333,
-    0.08333,
-    0.91667,
-    0.91667
+    0.08403,
+    0.08368,
+    0.91806,
+    0.91771
+   ],
+   "lineEndpoints": [
+    [
+     0.38819,
+     0.52551
+    ],
+    [
+     0.75417,
+     0.52804
+    ]
    ],
    "bytes": {
-    "media/plans/plan-b44.av1.mp4": 384461,
-    "media/plans/plan-b44.h264.mp4": 250507,
-    "media/plans/plan-b44.poster.avif": 56863,
-    "media/plans/plan-b44.poster.jpg": 176999
+    "media/plans/plan-b44.av1.mp4": 425469,
+    "media/plans/plan-b44.h264.mp4": 808862,
+    "media/plans/plan-b44.poster.avif": 79317,
+    "media/plans/plan-b44.poster.jpg": 159531
    }
   },
   "plan-b44-m": {
@@ -464,16 +475,26 @@
    "dur": 5.042,
    "loop": null,
    "borderRect": [
-    0.08333,
-    0.08333,
-    0.91667,
-    0.91667
+    0.08403,
+    0.08368,
+    0.91806,
+    0.91771
+   ],
+   "lineEndpoints": [
+    [
+     0.38819,
+     0.52551
+    ],
+    [
+     0.75417,
+     0.52804
+    ]
    ],
    "bytes": {
-    "media/plans/plan-b44-m.av1.mp4": 234929,
-    "media/plans/plan-b44-m.h264.mp4": 128173,
-    "media/plans/plan-b44-m.poster.avif": 27385,
-    "media/plans/plan-b44-m.poster.jpg": 87334
+    "media/plans/plan-b44-m.av1.mp4": 254349,
+    "media/plans/plan-b44-m.h264.mp4": 459172,
+    "media/plans/plan-b44-m.poster.avif": 41011,
+    "media/plans/plan-b44-m.poster.jpg": 78363
    }
   },
   "arena-0104": {
@@ -503,10 +524,10 @@
    "dur": 5.042,
    "loop": null,
    "bytes": {
-    "media/arena/arena-0104.av1.mp4": 268303,
-    "media/arena/arena-0104.h264.mp4": 136328,
-    "media/arena/arena-0104.poster.avif": 23393,
-    "media/arena/arena-0104.poster.jpg": 87387
+    "media/arena/arena-0104.av1.mp4": 386640,
+    "media/arena/arena-0104.h264.mp4": 479214,
+    "media/arena/arena-0104.poster.avif": 36241,
+    "media/arena/arena-0104.poster.jpg": 87434
    }
   },
   "arena-0104-m": {
@@ -536,10 +557,10 @@
    "dur": 5.042,
    "loop": null,
    "bytes": {
-    "media/arena/arena-0104-m.av1.mp4": 115503,
-    "media/arena/arena-0104-m.h264.mp4": 60659,
-    "media/arena/arena-0104-m.poster.avif": 8940,
-    "media/arena/arena-0104-m.poster.jpg": 33274
+    "media/arena/arena-0104-m.av1.mp4": 203603,
+    "media/arena/arena-0104-m.h264.mp4": 200085,
+    "media/arena/arena-0104-m.poster.avif": 12598,
+    "media/arena/arena-0104-m.poster.jpg": 33186
    }
   },
   "el-c30": {
@@ -566,13 +587,16 @@
     "kind": "film",
     "id": "a101-perspective"
    },
-   "dur": 5.042,
-   "loop": null,
+   "dur": 4.542,
+   "loop": {
+    "in": 0.0,
+    "out": 5.0
+   },
    "bytes": {
-    "media/perspectives/el-c30.av1.mp4": 455400,
-    "media/perspectives/el-c30.h264.mp4": 453212,
-    "media/perspectives/el-c30.poster.avif": 36111,
-    "media/perspectives/el-c30.poster.jpg": 126820
+    "media/perspectives/el-c30.av1.mp4": 271290,
+    "media/perspectives/el-c30.h264.mp4": 406300,
+    "media/perspectives/el-c30.poster.avif": 30629,
+    "media/perspectives/el-c30.poster.jpg": 78602
    }
   },
   "el-c30-m": {
@@ -599,13 +623,16 @@
     "kind": "film",
     "id": "a101-perspective"
    },
-   "dur": 5.042,
-   "loop": null,
+   "dur": 4.542,
+   "loop": {
+    "in": 0.0,
+    "out": 5.0
+   },
    "bytes": {
-    "media/perspectives/el-c30-m.av1.mp4": 471993,
-    "media/perspectives/el-c30-m.h264.mp4": 500047,
-    "media/perspectives/el-c30-m.poster.avif": 34301,
-    "media/perspectives/el-c30-m.poster.jpg": 122730
+    "media/perspectives/el-c30-m.av1.mp4": 309079,
+    "media/perspectives/el-c30-m.h264.mp4": 495736,
+    "media/perspectives/el-c30-m.poster.avif": 36446,
+    "media/perspectives/el-c30-m.poster.jpg": 102633
    }
   },
   "el-c31": {
@@ -635,10 +662,10 @@
    "dur": 5.042,
    "loop": null,
    "bytes": {
-    "media/perspectives/el-c31.av1.mp4": 316825,
-    "media/perspectives/el-c31.h264.mp4": 402435,
-    "media/perspectives/el-c31.poster.avif": 28235,
-    "media/perspectives/el-c31.poster.jpg": 115227
+    "media/perspectives/el-c31.av1.mp4": 480349,
+    "media/perspectives/el-c31.h264.mp4": 953030,
+    "media/perspectives/el-c31.poster.avif": 32351,
+    "media/perspectives/el-c31.poster.jpg": 108187
    }
   },
   "el-c32": {
@@ -651,7 +678,7 @@
     },
     {
      "src": "media/perspectives/el-c32.h264.mp4",
-     "type": "video/mp4; codecs=\"avc1.640028\""
+     "type": "video/mp4; codecs=\"avc1.640032\""
     }
    ],
    "poster": "media/perspectives/el-c32.poster.avif",
@@ -668,10 +695,10 @@
    "dur": 5.042,
    "loop": null,
    "bytes": {
-    "media/perspectives/el-c32.av1.mp4": 583358,
-    "media/perspectives/el-c32.h264.mp4": 647861,
-    "media/perspectives/el-c32.poster.avif": 41865,
-    "media/perspectives/el-c32.poster.jpg": 150177
+    "media/perspectives/el-c32.av1.mp4": 497153,
+    "media/perspectives/el-c32.h264.mp4": 820828,
+    "media/perspectives/el-c32.poster.avif": 45372,
+    "media/perspectives/el-c32.poster.jpg": 119921
    }
   },
   "el-c33": {
@@ -701,10 +728,10 @@
    "dur": 5.042,
    "loop": null,
    "bytes": {
-    "media/perspectives/el-c33.av1.mp4": 432859,
-    "media/perspectives/el-c33.h264.mp4": 427079,
-    "media/perspectives/el-c33.poster.avif": 41826,
-    "media/perspectives/el-c33.poster.jpg": 150017
+    "media/perspectives/el-c33.av1.mp4": 467797,
+    "media/perspectives/el-c33.h264.mp4": 986000,
+    "media/perspectives/el-c33.poster.avif": 44534,
+    "media/perspectives/el-c33.poster.jpg": 120871
    }
   },
   "det-v0": {
@@ -717,7 +744,7 @@
     },
     {
      "src": "media/details/det-v0.h264.mp4",
-     "type": "video/mp4; codecs=\"avc1.640020\""
+     "type": "video/mp4; codecs=\"avc1.640028\""
     }
    ],
    "poster": "media/details/det-v0.poster.avif",
@@ -734,10 +761,10 @@
    "dur": 3.5,
    "loop": null,
    "bytes": {
-    "media/details/det-v0.av1.mp4": 480008,
-    "media/details/det-v0.h264.mp4": 397670,
-    "media/details/det-v0.poster.avif": 59340,
-    "media/details/det-v0.poster.jpg": 191226
+    "media/details/det-v0.av1.mp4": 390450,
+    "media/details/det-v0.h264.mp4": 546016,
+    "media/details/det-v0.poster.avif": 76331,
+    "media/details/det-v0.poster.jpg": 184030
    }
   },
   "det-n03": {
@@ -750,7 +777,7 @@
     },
     {
      "src": "media/details/det-n03.h264.mp4",
-     "type": "video/mp4; codecs=\"avc1.640020\""
+     "type": "video/mp4; codecs=\"avc1.640028\""
     }
    ],
    "poster": "media/details/det-n03.poster.avif",
@@ -767,10 +794,10 @@
    "dur": 5.042,
    "loop": null,
    "bytes": {
-    "media/details/det-n03.av1.mp4": 543053,
-    "media/details/det-n03.h264.mp4": 520177,
-    "media/details/det-n03.poster.avif": 39487,
-    "media/details/det-n03.poster.jpg": 127647
+    "media/details/det-n03.av1.mp4": 360429,
+    "media/details/det-n03.h264.mp4": 480288,
+    "media/details/det-n03.poster.avif": 53034,
+    "media/details/det-n03.poster.jpg": 128566
    }
   },
   "det-n04": {
@@ -783,7 +810,7 @@
     },
     {
      "src": "media/details/det-n04.h264.mp4",
-     "type": "video/mp4; codecs=\"avc1.640020\""
+     "type": "video/mp4; codecs=\"avc1.640028\""
     }
    ],
    "poster": "media/details/det-n04.poster.avif",
@@ -800,42 +827,10 @@
    "dur": 5.042,
    "loop": null,
    "bytes": {
-    "media/details/det-n04.av1.mp4": 291883,
-    "media/details/det-n04.h264.mp4": 309900,
-    "media/details/det-n04.poster.avif": 40074,
-    "media/details/det-n04.poster.jpg": 135067
-   }
-  },
-  "the-set-169": {
-   "id": "the-set-169",
-   "kind": "video",
-   "sources": [
-    {
-     "src": "media/film/the-set-169.av1.mp4",
-     "type": "video/mp4; codecs=\"av01.0.08M.08\""
-    },
-    {
-     "src": "media/film/the-set-169.h264.mp4",
-     "type": "video/mp4; codecs=\"avc1.640028\""
-    }
-   ],
-   "poster": "media/film/the-set-169.poster.avif",
-   "posterFallback": "media/film/the-set-169.poster.jpg",
-   "w": 1920,
-   "h": 1080,
-   "fps": 24,
-   "alt": "The Set, a 30-second concept film",
-   "viewTitle": {
-    "view": "THE SET",
-    "kind": "film"
-   },
-   "dur": 5.042,
-   "loop": null,
-   "bytes": {
-    "media/film/the-set-169.av1.mp4": 356124,
-    "media/film/the-set-169.h264.mp4": 423897,
-    "media/film/the-set-169.poster.avif": 27486,
-    "media/film/the-set-169.poster.jpg": 115765
+    "media/details/det-n04.av1.mp4": 311594,
+    "media/details/det-n04.h264.mp4": 578052,
+    "media/details/det-n04.poster.avif": 60683,
+    "media/details/det-n04.poster.jpg": 146832
    }
   },
   "hero-still-169-av1": {
@@ -861,8 +856,8 @@
     "hasntHappened": true
    },
    "bytes": {
-    "media/hero/hero-still-169-av1.avif": 33781,
-    "media/hero/hero-still-169-av1.jpg": 121109
+    "media/hero/hero-still-169-av1.avif": 44558,
+    "media/hero/hero-still-169-av1.jpg": 117877
    }
   },
   "hero-still-916-av1": {
@@ -888,8 +883,8 @@
     "hasntHappened": true
    },
    "bytes": {
-    "media/hero/hero-still-916-av1.avif": 28711,
-    "media/hero/hero-still-916-av1.jpg": 107039
+    "media/hero/hero-still-916-av1.avif": 41255,
+    "media/hero/hero-still-916-av1.jpg": 102696
    }
   },
   "hero-still-169-h264": {
@@ -915,8 +910,8 @@
     "hasntHappened": true
    },
    "bytes": {
-    "media/hero/hero-still-169-h264.avif": 34704,
-    "media/hero/hero-still-169-h264.jpg": 121109
+    "media/hero/hero-still-169-h264.avif": 59358,
+    "media/hero/hero-still-169-h264.jpg": 131961
    }
   },
   "hero-still-916-h264": {
@@ -942,8 +937,8 @@
     "hasntHappened": true
    },
    "bytes": {
-    "media/hero/hero-still-916-h264.avif": 30609,
-    "media/hero/hero-still-916-h264.jpg": 104667
+    "media/hero/hero-still-916-h264.avif": 47966,
+    "media/hero/hero-still-916-h264.jpg": 111938
    }
   },
   "hero-ground-169": {
@@ -967,8 +962,8 @@
     "kind": "still"
    },
    "bytes": {
-    "media/hero/hero-ground-169.avif": 67885,
-    "media/hero/hero-ground-169.jpg": 273906
+    "media/hero/hero-ground-169.avif": 44462,
+    "media/hero/hero-ground-169.jpg": 123720
    }
   },
   "hero-ground-916": {
@@ -992,8 +987,8 @@
     "kind": "still"
    },
    "bytes": {
-    "media/hero/hero-ground-916.avif": 67946,
-    "media/hero/hero-ground-916.jpg": 273084
+    "media/hero/hero-ground-916.avif": 44223,
+    "media/hero/hero-ground-916.jpg": 123072
    }
   },
   "hero-plate-169": {
@@ -1019,8 +1014,8 @@
     "oneFrame": true
    },
    "bytes": {
-    "media/hero/hero-plate-169.avif": 3405,
-    "media/hero/hero-plate-169.jpg": 17676
+    "media/hero/hero-plate-169.avif": 3543,
+    "media/hero/hero-plate-169.jpg": 15100
    }
   },
   "hero-plate-916": {
@@ -1046,8 +1041,8 @@
     "oneFrame": true
    },
    "bytes": {
-    "media/hero/hero-plate-916.avif": 3252,
-    "media/hero/hero-plate-916.jpg": 17623
+    "media/hero/hero-plate-916.avif": 2987,
+    "media/hero/hero-plate-916.jpg": 14169
    }
   },
   "tex-slab": {
@@ -1071,8 +1066,8 @@
     "kind": "still"
    },
    "bytes": {
-    "media/tex/tex-slab.avif": 106438,
-    "media/tex/tex-slab.jpg": 301013
+    "media/tex/tex-slab.avif": 103703,
+    "media/tex/tex-slab.jpg": 291962
    }
   },
   "plan-b44-260": {
@@ -1097,14 +1092,24 @@
     "id": "plan-cut"
    },
    "borderRect": [
-    0.08333,
-    0.08333,
-    0.91667,
-    0.91667
+    0.08403,
+    0.08368,
+    0.91806,
+    0.91771
+   ],
+   "lineEndpoints": [
+    [
+     0.38819,
+     0.52551
+    ],
+    [
+     0.75417,
+     0.52804
+    ]
    ],
    "bytes": {
-    "media/plans/plan-b44-260.avif": 108525,
-    "media/plans/plan-b44-260.jpg": 288947
+    "media/plans/plan-b44-260.avif": 151380,
+    "media/plans/plan-b44-260.jpg": 266573
    }
   },
   "arena-poster": {
@@ -1129,8 +1134,8 @@
     "id": "a200-poster"
    },
    "bytes": {
-    "media/arena/arena-poster.avif": 28750,
-    "media/arena/arena-poster.jpg": 87387
+    "media/arena/arena-poster.avif": 58891,
+    "media/arena/arena-poster.jpg": 125641
    }
   },
   "sec-c34-color": {
@@ -1155,9 +1160,10 @@
     "suffix": "ILLUSTRATIVE: PLAN AND SECTION ARE DIFFERENT SHOTS",
     "id": "a105-section"
    },
+   "meta": "media/section/sec-c34-meta.json",
    "bytes": {
-    "media/section/sec-c34-color.avif": 43631,
-    "media/section/sec-c34-color.jpg": 150649
+    "media/section/sec-c34-color.avif": 48133,
+    "media/section/sec-c34-color.jpg": 146285
    }
   },
   "sec-near": {
@@ -1183,8 +1189,8 @@
     "id": "a105-section"
    },
    "bytes": {
-    "media/section/sec-near.avif": 42452,
-    "media/section/sec-near.jpg": 153791
+    "media/section/sec-near.avif": 46876,
+    "media/section/sec-near.jpg": 143325
    }
   },
   "sec-mid": {
@@ -1210,8 +1216,8 @@
     "id": "a105-section"
    },
    "bytes": {
-    "media/section/sec-mid.avif": 39380,
-    "media/section/sec-mid.jpg": 149214
+    "media/section/sec-mid.avif": 50230,
+    "media/section/sec-mid.jpg": 157435
    }
   },
   "sec-far": {
@@ -1237,8 +1243,8 @@
     "id": "a105-section"
    },
    "bytes": {
-    "media/section/sec-far.avif": 32901,
-    "media/section/sec-far.jpg": 139985
+    "media/section/sec-far.avif": 51123,
+    "media/section/sec-far.jpg": 169312
    }
   },
   "ref21-portrait": {
@@ -1264,8 +1270,8 @@
     "id": "a300-detail07"
    },
    "bytes": {
-    "media/stills/ref21-portrait.avif": 46133,
-    "media/stills/ref21-portrait.jpg": 100245
+    "media/stills/ref21-portrait.avif": 65215,
+    "media/stills/ref21-portrait.jpg": 90634
    }
   },
   "bay-empty": {
@@ -1291,8 +1297,8 @@
     "id": "a300-empty-bay"
    },
    "bytes": {
-    "media/stills/bay-empty.avif": 115952,
-    "media/stills/bay-empty.jpg": 220668
+    "media/stills/bay-empty.avif": 117660,
+    "media/stills/bay-empty.jpg": 198290
    }
   },
   "mat-1": {
@@ -1318,8 +1324,8 @@
     "id": "a301-materials"
    },
    "bytes": {
-    "media/stills/mat-1.avif": 94506,
-    "media/stills/mat-1.jpg": 191192
+    "media/stills/mat-1.avif": 97949,
+    "media/stills/mat-1.jpg": 226645
    }
   },
   "mat-2": {
@@ -1345,8 +1351,8 @@
     "id": "a301-materials"
    },
    "bytes": {
-    "media/stills/mat-2.avif": 70410,
-    "media/stills/mat-2.jpg": 154876
+    "media/stills/mat-2.avif": 116186,
+    "media/stills/mat-2.jpg": 148747
    }
   },
   "mat-3": {
@@ -1372,8 +1378,8 @@
     "id": "a301-materials"
    },
    "bytes": {
-    "media/stills/mat-3.avif": 95305,
-    "media/stills/mat-3.jpg": 193450
+    "media/stills/mat-3.avif": 93700,
+    "media/stills/mat-3.jpg": 221114
    }
   },
   "mat-4": {
@@ -1399,8 +1405,8 @@
     "id": "a301-materials"
    },
    "bytes": {
-    "media/stills/mat-4.avif": 63801,
-    "media/stills/mat-4.jpg": 147399
+    "media/stills/mat-4.avif": 101716,
+    "media/stills/mat-4.jpg": 167550
    }
   },
   "mat-5": {
@@ -1426,8 +1432,8 @@
     "id": "a301-materials"
    },
    "bytes": {
-    "media/stills/mat-5.avif": 99184,
-    "media/stills/mat-5.jpg": 193317
+    "media/stills/mat-5.avif": 112442,
+    "media/stills/mat-5.jpg": 247248
    }
   },
   "t7-proof": {
@@ -1451,9 +1457,13 @@
     "kind": "drawing"
    },
    "meta": "media/data/t7-proof.json",
+   "proof": {
+    "smallestLabel": "26 PX WIDE",
+    "pass": true
+   },
    "bytes": {
-    "media/stills/t7-proof.avif": 425,
-    "media/stills/t7-proof.jpg": 8127
+    "media/stills/t7-proof.avif": 7774,
+    "media/stills/t7-proof.jpg": 58040
    }
   },
   "hero-matte-169": {
@@ -1475,7 +1485,7 @@
     "hasntHappened": true
    },
    "bytes": {
-    "media/hero/hero-matte-169.webp": 8502
+    "media/hero/hero-matte-169.webp": 31932
    }
   },
   "hero-matte-916": {
@@ -1497,7 +1507,7 @@
     "hasntHappened": true
    },
    "bytes": {
-    "media/hero/hero-matte-916.webp": 8962
+    "media/hero/hero-matte-916.webp": 28178
    }
   },
   "hero-depth-169": {
@@ -1565,7 +1575,7 @@
     "oneFrame": true
    },
    "bytes": {
-    "media/hero/hero-meta-169.json": 571
+    "media/hero/hero-meta-169.json": 5485
    }
   },
   "hero-meta-916": {
@@ -1587,7 +1597,7 @@
     "oneFrame": true
    },
    "bytes": {
-    "media/hero/hero-meta-916.json": 571
+    "media/hero/hero-meta-916.json": 4970
    }
   },
   "sec-c34-depth": {
@@ -1609,7 +1619,30 @@
     "id": "a105-section"
    },
    "bytes": {
-    "media/section/sec-c34-depth.png": 37306
+    "media/section/sec-c34-depth.png": 31869
+   },
+   "meta": "media/section/sec-c34-meta.json"
+  },
+  "sec-c34-meta": {
+   "id": "sec-c34-meta",
+   "kind": "json",
+   "sources": [
+    {
+     "src": "media/section/sec-c34-meta.json",
+     "type": "application/json"
+    }
+   ],
+   "w": 960,
+   "h": 540,
+   "alt": "",
+   "viewTitle": {
+    "view": "SECTION A–A",
+    "kind": "depth",
+    "suffix": "ILLUSTRATIVE: PLAN AND SECTION ARE DIFFERENT SHOTS",
+    "id": "a105-section"
+   },
+   "bytes": {
+    "media/section/sec-c34-meta.json": 1497
    }
   },
   "lines-b44": {
@@ -1630,7 +1663,7 @@
     "id": "a105-trace"
    },
    "bytes": {
-    "media/data/lines-b44.json": 2049
+    "media/data/lines-b44.json": 3945
    }
   },
   "trace-t43": {
@@ -1651,7 +1684,7 @@
     "id": "a104-trace"
    },
    "bytes": {
-    "media/data/trace-t43.svg": 216
+    "media/data/trace-t43.svg": 3477
    }
   },
   "t7-brick": {
@@ -1671,7 +1704,7 @@
     "kind": "drawing"
    },
    "bytes": {
-    "media/data/t7-brick.svg": 7985
+    "media/data/t7-brick.svg": 10549
    }
   },
   "t7-proof-json": {
@@ -1691,7 +1724,7 @@
     "kind": "drawing"
    },
    "bytes": {
-    "media/data/t7-proof.json": 87
+    "media/data/t7-proof.json": 1561
    }
   },
   "kit-t7-letter": {
@@ -1711,7 +1744,7 @@
     "kind": "drawing"
    },
    "bytes": {
-    "kit/hrcg-t7-letter.pdf": 451
+    "kit/hrcg-t7-letter.pdf": 11160
    }
   },
   "kit-t7-a4": {
@@ -1731,7 +1764,7 @@
     "kind": "drawing"
    },
    "bytes": {
-    "kit/hrcg-t7-a4.pdf": 451
+    "kit/hrcg-t7-a4.pdf": 11374
    }
   },
   "kit-t7-svg": {
@@ -1751,7 +1784,7 @@
     "kind": "drawing"
    },
    "bytes": {
-    "kit/hrcg-t7.svg": 7985
+    "kit/hrcg-t7.svg": 10573
    }
   }
  },

@@ -15,15 +15,18 @@ import { Chip, SendBlock } from './FormParts';
 const MAT_IDS = ['mat-1', 'mat-2', 'mat-3', 'mat-4', 'mat-5'] as const;
 
 /**
- * A keynote numeral drawn as a ruled square. The text is the brief's "[1]": the brackets stay in the
- * DOM (copy, lint, screen readers) and the square stands in for them on screen.
+ * A keynote numeral drawn as a ruled square. The text is the brief's "[1]" (copy, lint and screen
+ * readers read it); on screen the square stands in for the brackets and the numeral is drawn by CSS
+ * from data-n, with empty alternative text so assistive tech doesn't read it twice.
  */
 export function KeynoteMark({ n, active = false, hidden = true }: { n: number; active?: boolean; hidden?: boolean }) {
   return (
-    <span className={`keynote-mark num${active ? ' is-active' : ''}`} aria-hidden={hidden ? true : undefined}>
-      <span className="keynote-bracket">[</span>
-      {n}
-      <span className="keynote-bracket">]</span>
+    <span
+      className={`keynote-mark num${active ? ' is-active' : ''}`}
+      data-n={n}
+      aria-hidden={hidden ? true : undefined}
+    >
+      <span className="sr-only">{`[${n}]`}</span>
     </span>
   );
 }

@@ -12,7 +12,7 @@ import { INDEX } from '../../content/copy/chrome';
 import { CHALLENGES } from '../../content/challenges';
 import { CONTACT_EMAIL } from '../../content/config';
 import { NOTES } from '../../content/copy/conversion';
-import { media } from '../../media/manifest';
+import { media, isMockManifest } from '../../media/manifest';
 import { useSheet } from '../../system/sheetStore';
 import { buildMailto } from '../../lib/mailto';
 import { CopyButton } from './FormParts';
@@ -84,6 +84,8 @@ export function Contact() {
   const addr = useRef<HTMLAnchorElement>(null);
   const set = media['the-set-169'];
   const setSrc = set?.sources?.[set.sources.length - 1]?.src;
+  // The link says "(0:30)": show it only for the real 30-second film, never for a placeholder clip.
+  const realSet = hasTheSet() && !isMockManifest && (set?.dur ?? 0) >= 25;
   return (
     <div className="contact">
       <p className="contact-closing t-lead">{NOTES.closing}</p>
@@ -95,7 +97,7 @@ export function Contact() {
       <p className="contact-copy">
         <CopyButton target={() => addr.current} />
       </p>
-      {hasTheSet() && setSrc ? (
+      {realSet && setSrc ? (
         <p className="contact-film">
           <a
             className="cell-button contact-film-link"

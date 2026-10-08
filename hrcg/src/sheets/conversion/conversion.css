@@ -591,13 +591,9 @@
     background-color var(--dur-hover) linear,
     border-color var(--dur-hover) linear;
 }
-.keynote-bracket {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+.keynote-mark::before {
+  content: attr(data-n);
+  content: attr(data-n) / '';
 }
 /* orange on gypsum only as a fill behind slab-black text (brief 5.1) */
 .keynote-mark.is-active {

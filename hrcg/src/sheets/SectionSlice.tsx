@@ -15,7 +15,7 @@ import { useCallback, useEffect, useImperativeHandle, useRef, type Ref } from 'r
 import { ViewTitle } from '../chrome/ViewTitle';
 import { Picture } from '../system/Picture';
 import { useTier } from '../system/tier';
-import { media, hasMedia, loadJson } from '../media/manifest';
+import { media, hasMedia, loadJson, mediaUrl } from '../media/manifest';
 import { A105 } from '../content/copy/a104-a200';
 import { frames } from './a4/util';
 import type { SliceRenderer } from './sliceMaterial';
@@ -39,8 +39,8 @@ const STEPS = [
   { id: 'sec-far', key: 'far' },
 ] as const;
 
-/** Defaults measured on the mock depth map (A4-3 asks A5 for the real values in sec-c34-meta). */
-const DEFAULT_RANGE = { nearD: 0.9, farD: 0.17 };
+/** Used only if sec-c34-meta.json cannot be read (A5 writes the real range there). */
+const DEFAULT_RANGE = { nearD: 0.95, farD: 0.15 };
 
 function stepFor(s: number): 'near' | 'mid' | 'far' {
   return s < 1 / 3 ? 'near' : s < 2 / 3 ? 'mid' : 'far';
@@ -132,13 +132,14 @@ export function SectionSlice({ handle, initial = 0.5, className }: SectionSliceP
     if (!canvas || !stillUrl || !depthUrl) return Promise.resolve(false);
     mounting.current = (async () => {
       try {
-        if (hasMedia('sec-c34-meta')) {
-          try {
-            const m = await loadJson<{ nearD?: number; farD?: number }>('sec-c34-meta');
-            if (typeof m.nearD === 'number' && typeof m.farD === 'number') range.current = { nearD: m.nearD, farD: m.farD };
-          } catch {
-            /* defaults */
-          }
+        try {
+          // the depth meta (A5, D3): by manifest id, or at its documented path while the id is missing
+          const m = await loadJson<{ nearD?: number; farD?: number }>(
+            hasMedia('sec-c34-meta') ? 'sec-c34-meta' : mediaUrl('media/section/sec-c34-meta.json'),
+          );
+          if (typeof m.nearD === 'number' && typeof m.farD === 'number') range.current = { nearD: m.nearD, farD: m.farD };
+        } catch {
+          /* defaults */
         }
         const [mod, still, depth] = await withTimeout(
           Promise.all([import('./sliceMaterial'), loadImage(stillUrl), loadImage(depthUrl)]),

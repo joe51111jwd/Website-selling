@@ -2,9 +2,11 @@
 // ONLY ever loaded with dynamic import() (from SectionSlice), so three stays out of the shell bundle and
 // shares the hero's lazy three chunk. One fullscreen quad, one draw call, rendered on demand.
 //
-//   d = depth(uv)                       near = 1 (8-bit single channel, LinearFilter, NoColorSpace)
-//   in front of the plane (d > uSlice):  mix(slabBlack, chalk, d^1.4) · 0.85 + pencil · contour(d, 14)
-//                                        (+ faint intermediate contours at a quarter interval)
+//   d = depth(uv)                       near = 1 (8-bit single channel, smoothed to half float, LinearFilter)
+//   in front of the plane (d > uSlice):  mix(slabBlack, chalk, d^1.4) · exposure + contour(d, 14)
+//                                        (+ faint intermediate contours at a quarter interval). The brief's
+//                                        0.85 exposure turned the near floor into a sheet of grey paper;
+//                                        0.3 keeps the depth ramp but leaves it chalk on the slab.
 //   behind the plane:                    the film frame
 //   the cut line:                        chalk blue where |d − uSlice| < ~1 px (fwidth), crawling over 07
 //
@@ -19,6 +21,10 @@ import {
   Mesh,
   ShaderMaterial,
   Texture,
+  DataTexture,
+  DataUtils,
+  RedFormat,
+  HalfFloatType,
   LinearFilter,
   NoColorSpace,
   Color,
@@ -64,6 +70,7 @@ uniform sampler2D uStill;
 uniform sampler2D uDepth;
 uniform float uSlice;
 uniform float uLevels;
+uniform float uExposure;
 uniform vec3 cBlack;
 uniform vec3 cChalk;
 uniform vec3 cPencil;
@@ -84,10 +91,11 @@ void main() {
   float fw = max(fwidth(d), 1e-4);
   // 1 where the frame is nearer the camera than the section plane: drawn
   float front = smoothstep(uSlice - fw * 0.5, uSlice + fw * 0.5, d);
-  vec3 drawn = mix(cBlack, cChalk, pow(d, 1.4)) * 0.85;
+  // the brief's depth ramp, exposed low so the drawing sits on the slab like chalk, not like paper
+  vec3 drawn = mix(cBlack, cChalk, pow(d, 1.4)) * uExposure;
   // 14 index contours, and finer intermediate ones (a quarter interval) so 07's body reads as form
-  drawn = mix(drawn, cPencil, contour(d, uLevels * 4.0) * 0.32);
-  drawn = mix(drawn, cPencil, contour(d, uLevels) * 0.9);
+  drawn = mix(drawn, cPencil, contour(d, uLevels * 4.0) * 0.35);
+  drawn = mix(drawn, cChalk, contour(d, uLevels) * 0.62);
   vec3 col = mix(film, drawn, front);
   // the 2 px chalk-blue intersection of plane and scene
   float band = 1.0 - smoothstep(fw * 0.6, fw * 1.8, abs(d - uSlice));
@@ -107,6 +115,59 @@ function tex(img: HTMLImageElement): Texture {
   return t;
 }
 
+/**
+ * The depth map is 8-bit, so a smooth floor arrives as plateaus one code wide; contours drawn on it come
+ * out as stepped bands. Lift it to half float and run a small separable blur (two box passes ≈ Gaussian,
+ * radius 2 px at 960 × 540) so the iso-depth lines are clean, then upload it as a single-channel texture
+ * (half-float linear filtering is core in WebGL2).
+ */
+function depthTexture(img: HTMLImageElement): DataTexture {
+  const w = img.naturalWidth;
+  const h = img.naturalHeight;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d', { willReadFrequently: true })!;
+  ctx.drawImage(img, 0, 0);
+  const px = ctx.getImageData(0, 0, w, h).data;
+  let a = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) a[i] = px[i * 4]! / 255;
+  let b = new Float32Array(w * h);
+  const R = 2;
+  const pass = (src: Float32Array, dst: Float32Array, horizontal: boolean) => {
+    const n = horizontal ? w : h;
+    const m = horizontal ? h : w;
+    for (let j = 0; j < m; j++) {
+      let acc = 0;
+      const at = (i: number) => src[horizontal ? j * w + Math.min(n - 1, Math.max(0, i)) : Math.min(n - 1, Math.max(0, i)) * w + j]!;
+      for (let i = -R; i <= R; i++) acc += at(i);
+      for (let i = 0; i < n; i++) {
+        dst[horizontal ? j * w + i : i * w + j] = acc / (2 * R + 1);
+        acc += at(i + R + 1) - at(i - R);
+      }
+    }
+  };
+  for (let k = 0; k < 2; k++) {
+    pass(a, b, true);
+    pass(b, a, false);
+  }
+  b = new Float32Array(0);
+  const half = new Uint16Array(w * h);
+  // texture rows go bottom-up (flipY is ignored for data textures)
+  for (let y = 0; y < h; y++) {
+    const row = (h - 1 - y) * w;
+    for (let x = 0; x < w; x++) half[y * w + x] = DataUtils.toHalfFloat(a[row + x]!);
+  }
+  a = new Float32Array(0);
+  const t = new DataTexture(half, w, h, RedFormat, HalfFloatType);
+  t.colorSpace = NoColorSpace;
+  t.minFilter = LinearFilter;
+  t.magFilter = LinearFilter;
+  t.generateMipmaps = false;
+  t.needsUpdate = true;
+  return t;
+}
+
 const rgb = (hex: string) => new Color().setRGB(
   parseInt(hex.slice(1, 3), 16) / 255,
   parseInt(hex.slice(3, 5), 16) / 255,
@@ -114,13 +175,9 @@ const rgb = (hex: string) => new Color().setRGB(
   NoColorSpace,
 );
 
-/**
- * Map the slider to the plane depth (brief 4.2: uSlice = mix(nearD, farD, s)). The mix runs through an
- * ease-out (1 − (1 − s)^1.6): relative depth changes fast across the near floor and slowly over 07, so
- * without it most of the cut's travel would be spent on floor and 07 would flash past at the end.
- */
+/** Map the slider to the plane depth (brief 4.2 and sec-c34-meta: uSlice = mix(nearD, farD, s)). */
 export function sliceDepth(s: number, nearD: number, farD: number): number {
-  const k = 1 - Math.pow(1 - Math.min(1, Math.max(0, s)), 1.6);
+  const k = Math.min(1, Math.max(0, s));
   return nearD + (farD - nearD) * k;
 }
 
@@ -138,7 +195,7 @@ export function createSliceRenderer(canvas: HTMLCanvasElement, src: SliceSources
   renderer.setClearColor(rgb(C.slabBlack), 1);
 
   const stillTex = tex(src.still);
-  const depthTex = tex(src.depth);
+  const depthTex = depthTexture(src.depth);
   const material = new ShaderMaterial({
     vertexShader: vert,
     fragmentShader: frag,
@@ -149,6 +206,7 @@ export function createSliceRenderer(canvas: HTMLCanvasElement, src: SliceSources
       uDepth: { value: depthTex },
       uSlice: { value: sliceDepth(0.5, src.nearD, src.farD) },
       uLevels: { value: 14 },
+      uExposure: { value: 0.3 },
       cBlack: { value: rgb(C.slabBlack) },
       cChalk: { value: rgb(C.chalk) },
       cPencil: { value: rgb(C.pencil) },

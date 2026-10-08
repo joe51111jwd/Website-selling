@@ -24,3 +24,5 @@ All files are H.264 crf 14, 24 fps, silent.
 | DETAIL 1 / 3 / 5 | `v0-169.mp4`, `n03-169.mp4`, `n04-169.mp4` |
 
 **Not exported, on purpose:** c30 as delivered and v1-tunnel. Every frame needs a CONCEPT label (truth rule 22).
+
+**THE SET for the site:** put the final render where A5 can encode it, or encode it yourself to `public/media/film/the-set-169.{av1,h264}.mp4` with `.poster.{avif,jpg}`. Then create the empty marker `public/media/film/the-set-169.final` and re-run `pipeline/build_manifest.py`. The manifest lists `the-set-169` **only** when that marker exists, so the INDEX and A-900 film links render only for the real film. The mock placeholder has been removed.

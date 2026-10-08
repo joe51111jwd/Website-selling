@@ -220,12 +220,14 @@ export function CoverStage() {
                 <span className="when-touch">{HERO.hint.tap}</span>
               </span>
             </p>
-            <p className="cv-hint cv-hint--frozen-gl t-label">{HERO.hint.frozenGl}</p>
-            <p className="cv-hint cv-hint--frozen t-label">{HERO.hint.frozen}</p>
-            <button type="button" className="cv-reset cell-button" aria-label={HERO.resetLabel}>
-              <ResetGlyph />
-              <span>{HERO.reset.replace(/^↺\s*/, '')}</span>
-            </button>
+            <div className="cv-restrow">
+              <p className="cv-hint cv-hint--frozen-gl t-label">{HERO.hint.frozenGl}</p>
+              <p className="cv-hint cv-hint--frozen t-label">{HERO.hint.frozen}</p>
+              <button type="button" className="cv-reset cell-button" aria-label={HERO.resetLabel}>
+                <ResetGlyph />
+                <span>{HERO.reset.replace(/^↺\s*/, '')}</span>
+              </button>
+            </div>
             <button type="button" className="cv-play cell-button">
               {HERO.play}
             </button>

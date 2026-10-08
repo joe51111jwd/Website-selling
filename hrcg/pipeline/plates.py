@@ -20,7 +20,7 @@ H264_CRF = [23, 24, 26, 28, 30]
 
 #      id            dir             source              ffmpeg -vf (on the mezzanine)                       budget AV1, H.264 (MB)  seamOf
 PLATES = [
-    ('el-c30',     'perspectives', MZ + '/n09r.mp4', 'crop=1920:804:0:40',                                 0.50, 1.00, 'n09r'),
+    ('el-c30',     'perspectives', MZ + '/n09r.mp4', 'crop=1920:804:0:0',                                 0.50, 1.00, 'n09r'),
     ('el-c30-m',   'perspectives', MZ + '/n09r.mp4', 'crop=861:1076:330:0,scale=1080:1350:flags=lanczos',  0.45, 1.00, 'n09r'),
     ('el-c31',     'perspectives', MZ + '/c31.mp4',  'crop=861:1076:1059:0,scale=1080:1350:flags=lanczos', 0.50, 1.00, None),
     ('el-c32',     'perspectives', MZ + '/c32.mp4',  None,                                                  0.50, 1.00, None),

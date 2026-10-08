@@ -71,21 +71,30 @@ ft = ImageFont.truetype(FONT, int(round(font_px)))
 cap = 0.8 * font_px; step = 0.86 * font_px
 
 def layout(far_dx=0.0, far_dy=0.0, near_dx=0.0, near_dy=0.0):
+    """Exactly where CoverStage (A2) draws the H1 (requests/A2-3): two tight stacks at line-height .86;
+    FAR hangs from its first cap-top, NEAR stands on the chalk line (BUILD?'s baseline 0.005 above it),
+    NEAR's right edge at 0.885 (16:9) / 0.865 (9:16) so the chalk box and control point clear the "?"."""
     if PH:
-        fx, fy1 = 0.08 + far_dx, 0.10 + far_dy
-        nx, ny1 = 0.92 + near_dx, 0.62 + near_dy
-        far = [('WHAT CAN A', fx * W, fy1 * H + cap, 'ls'), ('HUMANOID', fx * W, fy1 * H + cap + step, 'ls')]
-        near = [('ACTUALLY', nx * W, ny1 * H + cap, 'rs'), ('BUILD?', nx * W, ny1 * H + cap + step, 'rs')]
+        fx, nx = 0.08 + far_dx, 0.865 + near_dx
+        fb1 = (0.10 + far_dy) * H + cap; nb2 = (0.775 + near_dy) * H
     else:
-        fx = 0.12 + far_dx; nx = 0.92 + near_dx
-        far = [('WHAT CAN A', fx * W, (0.14 + far_dy) * H + cap, 'ls'), ('HUMANOID', fx * W, (0.37 + far_dy) * H, 'ls')]
-        near = [('ACTUALLY', nx * W, (0.47 + near_dy) * H + cap, 'rs'), ('BUILD?', nx * W, (0.755 + near_dy) * H, 'rs')]
+        fx, nx = 0.12 + far_dx, 0.885 + near_dx
+        fb1 = (0.14 + far_dy) * H + cap; nb2 = (0.755 + near_dy) * H
+    far = [('WHAT CAN A', fx * W, fb1, 'ls'), ('HUMANOID', fx * W, fb1 + step, 'ls')]
+    near = [('ACTUALLY', nx * W, nb2 - step, 'rs'), ('BUILD?', nx * W, nb2, 'rs')]
     return far, near
 
 def raster(lines, scale=1):
     im = Image.new('L', (W * scale, H * scale), 0); dr = ImageDraw.Draw(im)
     fs = ImageFont.truetype(FONT, int(round(font_px * scale)))
-    for t, x0, y0, anc in lines: dr.text((x0 * scale, y0 * scale), t, fill=255, font=fs, anchor=anc)
+    for t, x0, y0, anc in lines:
+        # letter-spacing -0.005em: shift each glyph by its cumulative tracking (kerning on via raqm)
+        tr = -0.005 * font_px * scale; total = tr * (len(t) - 1)
+        xs_ = x0 * scale - (total if anc == 'rs' else 0)
+        pen = 0.0
+        for k_, ch_ in enumerate(t):
+            pre = fs.getlength(t[:k_], features=['kern']) if k_ else 0.0
+            dr.text((xs_ + pre + tr * k_ - (fs.getlength(t, features=['kern']) if anc == 'rs' else 0), y0 * scale), ch_, fill=255, font=fs, anchor='ls')
     m = np.array(im) > 127
     return m if scale == 1 else cv2.resize(m.astype(np.uint8), (W, H), interpolation=cv2.INTER_AREA) > 0
 
@@ -212,7 +221,10 @@ def near_contrast(nearm, img_rgb):
 
 # ---------- type layout search (gates 1 + 2) ----------
 best = None
-for dy in np.arange(-0.03, 0.0301, 0.005):
+# desktop: the brief allows the FAR block +-0.03 in x or y. Phone: "A5 sets the bite window as on desktop";
+# 07 stands lower in the 9:16 take, so the FAR block may also come down to +0.06 (block bottom ~0.28).
+DYS = np.arange(-0.03, 0.0601 if PH else 0.0301, 0.005)
+for dy in DYS:
     for dx in np.arange(-0.03, 0.0301, 0.005):
         far, _ = layout(dx, dy)
         o = occl_yaw0(raster(far))
@@ -305,7 +317,7 @@ sizes = {}
 (np.clip(grid, 0, 1) * 65535 + .5).astype('<u2').tofile(f'{A.outdir}/hero-depth-{SUF}.bin')
 for tag, path in (('av1', A.av1), ('h264', A.h264)):
     im = Image.open(path).convert('RGB')
-    sizes[f'still-{tag}'] = save_fit(im, f'{A.outdir}/hero-still-{SUF}-{tag}.avif', 220, speed=4)
+    sizes[f'still-{tag}'] = save_fit(im, f'{A.outdir}/hero-still-{SUF}-{tag}.avif', 220, qs=(90, 86, 82, 78, 74, 70, 64, 58), speed=4)
     sizes[f'still-{tag}-jpg'] = save_fit(im, f'{A.outdir}/hero-still-{SUF}-{tag}.jpg', 450, 'JPEG', qs=(84, 80, 76, 72, 68), optimize=True, progressive=True)
 # plate: near region inpainted (Telea), blur 6, x0.6, at half size
 pw_, ph_ = (538, 956) if PH else (960, 538)

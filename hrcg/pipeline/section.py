@@ -39,7 +39,10 @@ d = np.clip(cv2.ximgproc.guidedFilter(rgb.mean(2).astype(np.float32) / 255., cv2
 # near floor (07 sits in a narrow 0.25-0.4 band, ~2 contour levels). Monotonic remap: background (Otsu split)
 # linearly into 0..0.12, foreground equalised (CDF) into 0.12..1, so the 14 levels spread over 07 and the floor.
 # Order is preserved, so near/far and the slice sweep are unchanged in meaning (relative, no units).
-thr, _ = cv2.threshold((d * 255).astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU); thr /= 255.
+# Otsu on the lower 70% of values only: the full-range split lands between the near floor and everything else;
+# restricted, it lands in the gap between the haze/background and 07
+sub = d[d < np.percentile(d, 70)]
+thr, _ = cv2.threshold((sub * 255).astype(np.uint8).reshape(-1, 1), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU); thr /= 255.
 fg = d > thr
 vals = np.sort(d[fg].ravel()); ranks = np.searchsorted(vals, d, side='right') / max(1, len(vals))
 d = np.where(fg, 0.12 + 0.88 * ranks, d / max(thr, 1e-6) * 0.12).astype(np.float32)
@@ -81,4 +84,4 @@ json.dump(meta, open(f'{OUT}/sec-c34-meta.json', 'w'), indent=1)
 sheet = np.vstack([np.hstack([cv2.resize(bgr, (640, 359)), cv2.resize(cv2.applyColorMap(d8, cv2.COLORMAP_BONE), (640, 359))]),
                    np.hstack([cv2.resize(cv2.cvtColor(slice_img(0.1), cv2.COLOR_RGB2BGR), (640, 359)), cv2.resize(cv2.cvtColor(slice_img(0.9), cv2.COLOR_RGB2BGR), (640, 359))])])
 cv2.imwrite(f'{QA}/section-sheet.jpg', sheet, [cv2.IMWRITE_JPEG_QUALITY, 85])
-print(json.dumps({'frame': int(best), 'nearD': meta['nearD'], 'farD': meta['farD'], 'scores': {k: v[:2] for k, v in scores.items()}}))
+print(json.dumps({'bgThreshold': round(float(thr), 4), 'fgFrac': round(float(fg.mean()), 3), 'frame': int(best), 'nearD': meta['nearD'], 'farD': meta['farD'], 'scores': {k: v[:2] for k, v in scores.items()}}))

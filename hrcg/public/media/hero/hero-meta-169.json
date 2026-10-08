@@ -8,10 +8,10 @@
   "rows": 145,
   "file": "uint16 little-endian, row-major, top row first, left to right; d = v/65535 (relative inverse depth, near = 1)"
  },
- "a": 0.3113,
- "b": 0.5,
+ "a": 0.282,
+ "b": 0.7,
  "f": 1.2,
- "pivotZ": 2.3943,
+ "pivotZ": 2.3207,
  "nearD": 0.9909,
  "farD": 0.0023,
  "yaw": {
@@ -27,10 +27,11 @@
  "dolly": 0.04,
  "overscan": 0.12,
  "plate": {
-  "z": 3.2766,
-  "scale": 1.3,
-  "note": "quad at z, size = plate.scale x the frame-matched size at that depth"
+  "z": 3.7589,
+  "scale": 1.5,
+  "note": "as A2 FreezeScene: quad at z = 1.06/a, size = scale x the frame-matched size at that depth; the smallest scale (>= 1.5) that leaves no uncovered pixel in any limit pose"
  },
+ "limitPoseRule": "mesh with A2s 12% overscan ring (edge-clamped); FAIL if the ring outer edge enters the frame box or any pixel is uncovered (no mesh, no plate)",
  "stretchDiscard": {
   "threshold": 0.06,
   "rampDeg": 0.5
@@ -113,7 +114,7 @@
  },
  "occlusion": {
   "yaw0": 0.0401,
-  "rest": 0.063,
+  "rest": 0.073,
   "cssMatte": 0.0401,
   "window": [
    0.03,
@@ -142,56 +143,44 @@
   {
    "a": 0.15,
    "b": 1.6,
-   "edgePointsInside": 366,
+   "edgePointsInside": 116,
    "pivotZ": 2.039
   },
   {
    "a": 0.1793,
    "b": 1.4,
-   "edgePointsInside": 289,
+   "edgePointsInside": 111,
    "pivotZ": 2.096
   },
   {
    "a": 0.2087,
    "b": 1.2,
-   "edgePointsInside": 193,
+   "edgePointsInside": 97,
    "pivotZ": 2.156
   },
   {
    "a": 0.238,
    "b": 1.0,
-   "edgePointsInside": 156,
+   "edgePointsInside": 72,
    "pivotZ": 2.219
   },
   {
    "a": 0.2526,
    "b": 0.9,
-   "edgePointsInside": 153,
+   "edgePointsInside": 33,
    "pivotZ": 2.252
   },
   {
    "a": 0.2673,
    "b": 0.8,
-   "edgePointsInside": 150,
+   "edgePointsInside": 7,
    "pivotZ": 2.286
   },
   {
    "a": 0.282,
    "b": 0.7,
-   "edgePointsInside": 146,
+   "edgePointsInside": 0,
    "pivotZ": 2.321
-  },
-  {
-   "a": 0.2966,
-   "b": 0.6,
-   "edgePointsInside": 143,
-   "pivotZ": 2.357
-  },
-  {
-   "a": 0.3113,
-   "b": 0.5,
-   "edgePointsInside": 142,
-   "pivotZ": 2.394
   }
  ],
  "limitPoses": [
@@ -200,7 +189,7 @@
    "pitch": -3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0426,
+   "farOccl": 0.0412,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p-3.png"
   },
   {
@@ -208,7 +197,7 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0425,
+   "farOccl": 0.0402,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p+0.png"
   },
   {
@@ -216,7 +205,7 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0415,
+   "farOccl": 0.0391,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p+3.png"
   },
   {
@@ -224,7 +213,7 @@
    "pitch": -3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0461,
+   "farOccl": 0.0472,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p-3.png"
   },
   {
@@ -232,7 +221,7 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0455,
+   "farOccl": 0.0458,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p+0.png"
   },
   {
@@ -240,31 +229,31 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0454,
+   "farOccl": 0.0453,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p+3.png"
   },
   {
    "yaw": 10,
    "pitch": -3,
    "uncoveredPx": 0,
-   "edgeInside": 44,
-   "farOccl": 0.0698,
+   "edgeInside": 0,
+   "farOccl": 0.0824,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p-3.png"
   },
   {
    "yaw": 10,
    "pitch": 0,
    "uncoveredPx": 0,
-   "edgeInside": 38,
-   "farOccl": 0.064,
+   "edgeInside": 0,
+   "farOccl": 0.0757,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p+0.png"
   },
   {
    "yaw": 10,
    "pitch": 3,
    "uncoveredPx": 0,
-   "edgeInside": 37,
-   "farOccl": 0.0603,
+   "edgeInside": 0,
+   "farOccl": 0.0698,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p+3.png"
   }
  ],
@@ -297,6 +286,6 @@
  "gates": {
   "occlusion": true,
   "nearContrast": true,
-  "limitPoses": false
+  "limitPoses": true
  }
 }

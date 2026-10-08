@@ -58,10 +58,11 @@
   "file": "sec-c34-depth.png",
   "w": 960,
   "h": 540,
-  "encoding": "8-bit single channel, relative inverse depth, near = 255; sample with LinearFilter + NoColorSpace"
+  "encoding": "8-bit single channel, relative inverse depth, near = 255; sample with LinearFilter + NoColorSpace",
+  "remap": "monotonic: background (Otsu) linear into 0..0.12, foreground rank-equalised into 0.12..1 (spreads contour levels over 07 and the floor)"
  },
- "nearD": 0.98,
- "farD": 0.0118,
+ "nearD": 0.9509,
+ "farD": 0.0039,
  "w": 0.012,
  "levels": 14,
  "uSlice": "mix(nearD, farD, s); s = 0 at the camera end of the chalk line, 1 at the robot end",

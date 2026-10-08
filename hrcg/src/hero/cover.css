@@ -80,6 +80,11 @@
 .cv-a100[data-live='on'] {
   pointer-events: auto;
 }
+/* until A-100 has printed, nothing in it takes the pointer (its links stay in the tab order:
+   focusing one jumps the stage to its end, see controller.ts) */
+.js:not(.rm) .cv-a100:not([data-live='on']) * {
+  pointer-events: none !important;
+}
 .cv-plan {
   position: absolute;
   z-index: 3;
@@ -263,7 +268,6 @@
   bottom: calc((var(--fh) - 100cqh) / 2 + var(--chrome-bottom) + 12px);
   margin: 0;
   display: none;
-  pointer-events: auto;
 }
 .no-js .cv-vt {
   top: calc(100% + 8px);
@@ -527,9 +531,24 @@
   background: rgba(11, 11, 10, 0.72);
   opacity: var(--a0-o);
 }
-.cv-reset {
+/* the rest row: the frozen hint and, beside it, the small reset button (brief 2.3) */
+.cv-restrow {
+  position: absolute;
   left: 58%;
-  top: calc(80% + 52px);
+  top: 80%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  translate: 0 -14.5px;
+  pointer-events: none;
+}
+.cv-restrow .cv-hint {
+  position: static;
+}
+.cv-reset {
+  position: static;
+  padding: 0 12px;
 }
 .cv[data-reset='on'] .cv-reset {
   display: inline-flex;
@@ -542,6 +561,7 @@
 .cv-play {
   left: 58%;
   top: 80%;
+  translate: 0 -14.5px;
 }
 .js.rm .cv-play {
   display: inline-flex;
@@ -678,10 +698,12 @@
     bottom: calc((1 - var(--line-y)) * 100% + 12px);
     max-width: 40%;
   }
-  .cv-reset {
+  .cv-restrow {
     left: 8%;
+    right: 8%;
     top: auto;
-    bottom: calc((1 - var(--line-y)) * 100% + 12px);
+    bottom: calc((1 - var(--line-y)) * 100% - 22px);
+    translate: none;
   }
   .cv-play {
     left: 8%;
