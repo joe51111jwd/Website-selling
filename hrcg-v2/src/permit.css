@@ -8,9 +8,9 @@
   /* pencil, pressed a little harder so small labels stay readable */
   --pm-label: color-mix(in srgb, var(--pm-pencil) 66%, var(--pm-ink));
   /* chalk-blue as ballpoint ink: what the applicant writes in */
-  --pm-pen: color-mix(in srgb, var(--pm-blue) 58%, var(--pm-ink));
+  --pm-pen: #2a4683; /* ballpoint */
   --pm-rule: color-mix(in srgb, var(--pm-ink) 26%, transparent);
-  --pm-paper: #f6f3ec;
+  --pm-paper: #fbfbf9;
   --pm-notch: 9px;
   --pm-stub: 200px;
   --pm-expo: cubic-bezier(0.16, 1, 0.3, 1);

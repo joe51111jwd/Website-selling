@@ -12,32 +12,32 @@ const TASKS = [
     name: 'Bricklaying',
     line: 'Lay up a section of wall in straight courses with even joints, and make sure it’s solid.',
     judged: '',
-    film: 'el-c30',
-    ratio: '1920 / 804',
+    film: 'plan-b40',
+    ratio: '1 / 1',
   },
   {
     num: '02',
     name: 'Drywall installation',
     line: 'Hang a sheet of drywall square on the framing and fasten it off clean.',
     judged: '',
-    film: 'el-c31',
-    ratio: '1080 / 1350',
+    film: 'plan-b41',
+    ratio: '1 / 1',
   },
   {
     num: '03',
     name: 'Bolted assembly',
     line: 'Get the holes lined up and bolt the connection tight.',
     judged: '',
-    film: 'el-c32',
-    ratio: '1920 / 1076',
+    film: 'plan-b42',
+    ratio: '1 / 1',
   },
   {
     num: '04',
     name: 'Pipe assembly',
     line: 'Make up a run of pipe and fittings to the drawing, without a loose joint anywhere.',
     judged: '',
-    film: 'el-c33',
-    ratio: '1920 / 804',
+    film: 'plan-b43',
+    ratio: '1 / 1',
   },
   {
     num: '05',
@@ -330,7 +330,7 @@ export function App() {
                   {t.judged ? <p className="judged">{t.judged}</p> : null}
                 </Reveal>
                 <Reveal className="task-film" delay={0.1}>
-                  <Film id={t.film} ratio={t.ratio} label={`Concept film: a robot doing ${t.name.toLowerCase()}.`} />
+                  <Film id={t.film} ratio={t.ratio} label={`Concept film from above: a robot at the ${t.name.toLowerCase()} bay.`} />
                 </Reveal>
               </li>
             ))}
