@@ -1,0 +1,38 @@
+{
+ "mock": true,
+ "frame": 84,
+ "w": 1920,
+ "h": 1076,
+ "grid": {
+  "cols": 257,
+  "rows": 145,
+  "file": "uint16 little-endian, row-major, top row first, left to right; d = v/65535 (relative inverse depth, near = 1)"
+ },
+ "a": 0.15,
+ "b": 1.6,
+ "f": 1.2,
+ "pivotZ": 1.6,
+ "nearD": 0.75,
+ "farD": 0.12,
+ "yaw": {
+  "auto": 8,
+  "min": -6,
+  "max": 10
+ },
+ "pitch": {
+  "auto": -2.5,
+  "min": -3,
+  "max": 3
+ },
+ "dolly": 0.04,
+ "overscan": 0.12,
+ "typeLayers": [],
+ "occlusion": {
+  "yaw0": null,
+  "rest": null
+ },
+ "nearContrast": {
+  "p10": null,
+  "median": null
+ }
+}

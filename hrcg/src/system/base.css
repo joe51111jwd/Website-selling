@@ -1,0 +1,488 @@
+/* Base, layout primitives, system components (LoopVideo, Picture, ViewTitle, SheetTag), motion
+   classes. Owner: A1. Square corners everywhere, 1px hairlines, no shadows, no gradients. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--slab-black);
+  color: var(--chalk);
+  /* focus is never hidden by the fixed chrome (WCAG 2.4.11, brief 3.1) */
+  scroll-padding-top: calc(var(--border) + var(--header-h));
+  scroll-padding-bottom: calc(var(--strip-h) + var(--border) + var(--safe-bottom));
+  scroll-behavior: auto;
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--slab-black);
+  color: var(--fg);
+  font-family: var(--font-text);
+  font-size: 18px;
+  line-height: 28px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  overflow-x: clip;
+}
+
+img,
+svg,
+video,
+canvas,
+picture {
+  display: block;
+  max-width: 100%;
+}
+img,
+video {
+  height: auto;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  border-radius: 0;
+}
+button {
+  cursor: pointer;
+}
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd,
+ol,
+ul {
+  margin: 0;
+}
+ol,
+ul {
+  padding: 0;
+  list-style: none;
+}
+a {
+  color: inherit;
+  text-decoration-color: var(--chalk-blue);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+:where(h1, h2, h3):focus {
+  outline: none;
+}
+:where(h1, h2, h3):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+::selection {
+  background: var(--marking-orange);
+  color: var(--slab-black);
+}
+
+/* focus ring: 2px chalk blue, 3px offset on dark; 2px slab-black on gypsum (brief 5.1) */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------- grounds */
+[data-ground='gypsum'] {
+  --fg: var(--gypsum-ink);
+  --fg-2: var(--gypsum-ink-2);
+  --line: rgba(11, 11, 10, 0.55);
+  --rule: var(--gypsum-ink);
+  --focus: var(--slab-black);
+  --bg: var(--gypsum);
+  background: var(--gypsum);
+  color: var(--gypsum-ink);
+}
+[data-ground='slab'] {
+  --fg: var(--chalk);
+  --fg-2: var(--pencil);
+  --line: var(--hairline-strong);
+  --rule: var(--chalk);
+  --focus: var(--chalk-blue);
+  --bg: var(--slab-black);
+}
+
+/* ------------------------------------------------------------------- a11y utils */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.skip-link {
+  position: fixed;
+  z-index: 1000;
+  top: calc(var(--border) + 8px);
+  left: calc(var(--border) + 8px);
+  padding: 12px 16px;
+  background: var(--marking-orange);
+  color: var(--slab-black);
+  font-family: var(--font-text);
+  font-weight: 600;
+  font-stretch: 68%;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 64px));
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: none;
+  outline: 2px solid var(--chalk);
+  outline-offset: 2px;
+}
+
+/* progressive enhancement switches */
+.no-js .js-only {
+  display: none !important;
+}
+.js .no-js-only {
+  display: none !important;
+}
+.rm .motion-only {
+  display: none !important;
+}
+html:not(.rm) .rm-only {
+  display: none !important;
+}
+
+/* print-in: text prints in (opacity, 200 ms) when its sheet arrives; never travels (brief 3.2, 6) */
+.print-in {
+  opacity: 0;
+  transition: opacity var(--dur-print) linear;
+}
+.print-in.is-in,
+.no-js .print-in,
+.rm .print-in,
+.capture .print-in.is-in {
+  opacity: 1;
+}
+.rm .print-in {
+  transition: none;
+}
+
+/* ?capture: deterministic frames, nothing animates on its own */
+.capture *,
+.capture *::before,
+.capture *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Lenis (lenis/dist/lenis.css, inlined) */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+.lenis [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel],
+.lenis [data-lenis-prevent-touch] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+.lenis.lenis-autoToggle {
+  transition-property: overflow;
+  transition-duration: 1ms;
+  transition-behavior: allow-discrete;
+}
+
+/* ------------------------------------------------------------------- layout */
+#root {
+  isolation: isolate;
+}
+main {
+  display: block;
+  position: relative;
+  padding-bottom: calc(var(--chrome-bottom) + var(--s-7));
+}
+main:focus {
+  outline: none;
+}
+
+/* content column: 12 columns desktop, 4 phone; 72 / 16 px margins; max 1680 */
+.sheet-inner,
+.content {
+  width: min(100% - 2 * var(--margin), var(--content-max));
+  margin-inline: auto;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+
+.sheet {
+  position: relative;
+}
+.set-body {
+  position: relative;
+}
+.set-body > .sheet {
+  margin-top: var(--s-11);
+}
+/* the spine: on the left margin line from A-100 to A-900 (brief 5.3). Every sheet tag and H2
+   starts on it. A-100's segment is drawn by the cover stage (use .spine-line). */
+.set-body::before,
+.spine-line {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: max(var(--margin), calc((100% - var(--content-max)) / 2));
+  width: 1px;
+  background: var(--chalk-blue);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 1;
+}
+.spine-x {
+  margin-left: max(var(--margin), calc((100% - var(--content-max)) / 2));
+}
+
+/* ------------------------------------------------------------------- sheet tag */
+.sheet-tag {
+  color: var(--fg-2);
+}
+
+/* ------------------------------------------------------------------- placeholders */
+.sheet-placeholder {
+  position: relative;
+  padding: calc(var(--border) + var(--header-h) + var(--s-6)) 0 var(--s-8);
+  width: min(100% - 2 * var(--margin), var(--content-max));
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  border-top: 1px solid var(--line);
+}
+.sheet-placeholder::after {
+  content: 'PLACEHOLDER · ' attr(data-placeholder);
+  position: absolute;
+  left: 0;
+  bottom: var(--s-6);
+  font: 600 10px/12px var(--font-text);
+  font-stretch: 68%;
+  letter-spacing: 0.06em;
+  color: var(--fg-2);
+}
+.sheet-placeholder-h {
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.sheet--a-000 .sheet-placeholder {
+  border-top: 0;
+  justify-content: center;
+}
+
+/* ------------------------------------------------------------------- buttons: ruled cells */
+.cell-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--fg);
+  font-family: var(--font-text);
+  font-weight: 600;
+  font-stretch: 68%;
+  font-size: 12px;
+  line-height: 15px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    background-color var(--dur-hover) linear,
+    color var(--dur-hover) linear,
+    border-color var(--dur-hover) linear;
+}
+.cell-button:hover,
+.cell-button:focus-visible {
+  background: var(--marking-orange);
+  border-color: var(--marking-orange);
+  color: var(--slab-black);
+}
+
+/* ------------------------------------------------------------------- ViewTitle */
+.view {
+  display: block;
+  margin: 0;
+}
+.view-frame {
+  position: relative;
+  border: 1px solid var(--line);
+}
+.view-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  margin: var(--s-2) 0 0;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-text);
+  font-weight: 600;
+  font-stretch: 68%;
+  font-size: 12px;
+  line-height: 15px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg);
+  text-wrap: pretty;
+}
+.view-title-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.view-title-status {
+  flex: 0 0 auto;
+  color: var(--fg-2);
+}
+.view-title-nts {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--fg-2);
+}
+@media (max-width: 767px) {
+  .view-title {
+    font-size: 11px;
+    line-height: 14px;
+  }
+}
+
+/* ------------------------------------------------------------------- LoopVideo */
+.loopvideo {
+  position: relative;
+  overflow: hidden;
+  background: var(--slab-black);
+  width: 100%;
+}
+.loopvideo video,
+.loopvideo .loopvideo-poster,
+.loopvideo .loopvideo-poster img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.loopvideo--contain video,
+.loopvideo--contain .loopvideo-poster img {
+  object-fit: contain;
+}
+.loopvideo-poster {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms linear;
+}
+.loopvideo[data-state='idle'] .loopvideo-poster,
+.loopvideo[data-state='loading'] .loopvideo-poster,
+.loopvideo[data-state='error'] .loopvideo-poster,
+.loopvideo[data-state='blocked'] .loopvideo-poster,
+.rm .loopvideo:not([data-state='playing']) .loopvideo-poster {
+  opacity: 1;
+}
+.no-js .loopvideo-poster {
+  display: none;
+}
+.loopvideo-play {
+  position: absolute;
+  left: var(--s-3);
+  bottom: var(--s-3);
+  display: none;
+  background: rgba(11, 11, 10, 0.86);
+  border-color: var(--chalk);
+  color: var(--chalk);
+}
+.js .loopvideo[data-state='blocked'] .loopvideo-play,
+.js.rm .loopvideo:not([data-state='playing']):not([data-state='error']) .loopvideo-play {
+  display: inline-flex;
+}
+.js .loopvideo video::-webkit-media-controls {
+  display: none !important;
+}
+.loopvideo--missing {
+  aspect-ratio: 16 / 9;
+  background: var(--slab);
+}
+
+/* ------------------------------------------------------------------- Picture */
+.picture {
+  display: block;
+  position: relative;
+}
+.picture img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.picture--cover img {
+  object-fit: cover;
+}
+.picture--contain img {
+  object-fit: contain;
+}
+.picture--missing {
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: var(--slab);
+}
+
+/* footage edges that are not full-bleed: 6% feathered mask (brief 5.4) */
+.feather {
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
+    linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
+    linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+  mask-composite: intersect;
+}
+
+/* sandboxes */
+.sandbox-list {
+  padding: 48px 72px;
+}
+.sandbox-list a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.sandbox-error {
+  padding: 48px;
+  color: var(--marking-orange);
+  white-space: pre-wrap;
+  font: 12px/1.5 var(--font-mono);
+}

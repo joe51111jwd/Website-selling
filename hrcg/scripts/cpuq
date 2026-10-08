@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Serialise CPU-heavy jobs (depth passes, encodes, Remotion renders, Playwright runs) on this 4-core box.
+# usage: scripts/cpuq <command> [args...]
+exec flock /tmp/hrcg-cpu.lock nice -n 10 "$@"

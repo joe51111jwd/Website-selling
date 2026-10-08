@@ -1,0 +1,52 @@
+{
+  "$comment": "Exact-string exceptions to the copy lint (src/system/lintRules.ts, brief 10.5). Each entry: text (exact, whitespace-collapsed), reason, optional rules (ids it is exempt from; omitted = all). Owner: A1. Others: request additions via requests/.",
+  "allow": [
+    {
+      "text": "The Set, a 30-second concept film",
+      "rules": [
+        "digits"
+      ],
+      "reason": "Brief 3.13 exact aria-label of THE SET lightbox; the film's real running time."
+    },
+    {
+      "text": "In 1811, the Commissioners' Plan drew Manhattan as a grid of twelve avenues and 155 cross streets, set about 29° east of true north. Survey crews led by John Randel Jr. then marked it out on the ground, much of it still fields, with 1,549 marble markers and 98 iron bolts where rock got in the way.",
+      "rules": [
+        "venue",
+        "digits"
+      ],
+      "reason": "Brief 3.9 A-200 history body (verified version). Manhattan allowed only here and in the grid alt (rule 2). Figures ship only if A6's fact gate verifies them."
+    },
+    {
+      "text": "In 1811, the Commissioners’ Plan drew Manhattan as a grid of twelve avenues and 155 cross streets, set about 29° east of true north. Survey crews led by John Randel Jr. then marked it out on the ground, much of it still fields, with 1,549 marble markers and 98 iron bolts where rock got in the way.",
+      "rules": [
+        "venue",
+        "digits"
+      ],
+      "reason": "Same as above, typographic apostrophe (brief 5.2)."
+    },
+    {
+      "text": "In 1811, the Commissioners' Plan drew Manhattan as a grid of avenues and cross streets, set about 29° east of true north. Survey crews then marked it out on the ground, much of it still fields.",
+      "rules": [
+        "venue",
+        "digits"
+      ],
+      "reason": "Brief 3.9 A-200 history body (fallback version)."
+    },
+    {
+      "text": "In 1811, the Commissioners’ Plan drew Manhattan as a grid of avenues and cross streets, set about 29° east of true north. Survey crews then marked it out on the ground, much of it still fields.",
+      "rules": [
+        "venue",
+        "digits"
+      ],
+      "reason": "Same as above, typographic apostrophe (brief 5.2)."
+    },
+    {
+      "text": "Line drawing of the 1811 Manhattan street-grid module, set about 29 degrees east of true north. A history diagram, not a map, and not the venue.",
+      "rules": [
+        "venue",
+        "digits"
+      ],
+      "reason": "Brief 3.9 A-200 grid SVG alt (rule 2: Manhattan allowed in the history body and its alt)."
+    }
+  ]
+}

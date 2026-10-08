@@ -1,0 +1,29 @@
+{
+  "fps": 30,
+  "formats": {
+    "169": {
+      "duration": 30,
+      "cover": { "start": 0, "end": 7.2, "payout": [0.4, 1.0], "pull": [2.2, 2.9722], "impact": 3.0 },
+      "plancut": { "start": 7.2, "end": 9.0 },
+      "sheets": { "start": 9.0, "each": 3.0, "plan": 0.8 },
+      "context": { "start": 24.0, "end": 27.0 },
+      "end": { "start": 27.0, "end": 30.0 }
+    },
+    "916": {
+      "duration": 30,
+      "cover": { "start": 0, "end": 7.2, "payout": [0.4, 1.0], "pull": [2.2, 2.9722], "impact": 3.0 },
+      "plancut": { "start": 7.2, "end": 9.0 },
+      "sheets": { "start": 9.0, "each": 3.0, "plan": 0.8 },
+      "context": { "start": 24.0, "end": 27.0 },
+      "end": { "start": 27.0, "end": 30.0 }
+    },
+    "11": {
+      "duration": 20,
+      "cover": { "start": 0, "end": 5.0, "payout": [0.2, 0.8], "pull": [1.0, 1.4722], "impact": 1.5 },
+      "plancut": { "start": 5.0, "end": 6.5 },
+      "sheets": { "start": 6.5, "each": 2.2, "plan": 0.7 },
+      "context": null,
+      "end": { "start": 17.5, "end": 20.0 }
+    }
+  }
+}

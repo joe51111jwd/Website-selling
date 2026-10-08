@@ -1,0 +1,1793 @@
+{
+ "version": 1,
+ "mock": true,
+ "generated": "2026-10-08T07:07:15+00:00",
+ "media": {
+  "hero-snap-169": {
+   "id": "hero-snap-169",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/hero/hero-snap-169.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/hero/hero-snap-169.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640028\""
+    }
+   ],
+   "poster": "media/hero/hero-snap-169.poster.avif",
+   "posterFallback": "media/hero/hero-snap-169.poster.jpg",
+   "w": 1920,
+   "h": 1076,
+   "fps": 24,
+   "alt": "AI-generated concept film: robot 07 crouches as a blue chalk line snaps and dust billows toward the camera.",
+   "viewTitle": {
+    "view": "PERSPECTIVE 05-A · LAYOUT AND MARKING",
+    "kind": "film",
+    "id": "hero-film",
+    "hasntHappened": true
+   },
+   "dur": 1.042,
+   "loop": null,
+   "stills": {
+    "av1": "media/hero/hero-still-169-av1.avif",
+    "h264": "media/hero/hero-still-169-h264.avif"
+   },
+   "freezeFrame": 84,
+   "meta": "media/hero/hero-meta-169.json",
+   "bytes": {
+    "media/hero/hero-snap-169.av1.mp4": 128500,
+    "media/hero/hero-snap-169.h264.mp4": 164392,
+    "media/hero/hero-snap-169.poster.avif": 29048,
+    "media/hero/hero-snap-169.poster.jpg": 121109,
+    "media/hero/hero-still-169-av1.avif": 33781,
+    "media/hero/hero-still-169-h264.avif": 34704
+   }
+  },
+  "hero-snap-916": {
+   "id": "hero-snap-916",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/hero/hero-snap-916.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/hero/hero-snap-916.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640028\""
+    }
+   ],
+   "poster": "media/hero/hero-snap-916.poster.avif",
+   "posterFallback": "media/hero/hero-snap-916.poster.jpg",
+   "w": 1076,
+   "h": 1912,
+   "fps": 24,
+   "alt": "AI-generated concept film: robot 07 crouches as a blue chalk line snaps and dust billows toward the camera.",
+   "viewTitle": {
+    "view": "PERSPECTIVE 05-A · LAYOUT AND MARKING",
+    "kind": "film",
+    "id": "hero-film",
+    "hasntHappened": true
+   },
+   "dur": 1.042,
+   "loop": null,
+   "stills": {
+    "av1": "media/hero/hero-still-916-av1.avif",
+    "h264": "media/hero/hero-still-916-h264.avif"
+   },
+   "meta": "media/hero/hero-meta-916.json",
+   "bytes": {
+    "media/hero/hero-snap-916.av1.mp4": 113227,
+    "media/hero/hero-snap-916.h264.mp4": 182417,
+    "media/hero/hero-snap-916.poster.avif": 24623,
+    "media/hero/hero-snap-916.poster.jpg": 107039,
+    "media/hero/hero-still-916-av1.avif": 28711,
+    "media/hero/hero-still-916-h264.avif": 30609
+   }
+  },
+  "plan-b40": {
+   "id": "plan-b40",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/plans/plan-b40.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/plans/plan-b40.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640020\""
+    }
+   ],
+   "poster": "media/plans/plan-b40.poster.avif",
+   "posterFallback": "media/plans/plan-b40.poster.jpg",
+   "w": 1080,
+   "h": 1080,
+   "fps": 24,
+   "alt": "AI-generated concept film, seen from above: robot 07 spreads mortar and lays a course of brick between two line posts.",
+   "viewTitle": {
+    "view": "PLAN 01",
+    "kind": "film",
+    "id": "a101-plan"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "borderRect": [
+    0.08333,
+    0.08333,
+    0.91667,
+    0.91667
+   ],
+   "bytes": {
+    "media/plans/plan-b40.av1.mp4": 364982,
+    "media/plans/plan-b40.h264.mp4": 230000,
+    "media/plans/plan-b40.poster.avif": 50452,
+    "media/plans/plan-b40.poster.jpg": 166294
+   }
+  },
+  "plan-b40-m": {
+   "id": "plan-b40-m",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/plans/plan-b40-m.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.04M.08\""
+    },
+    {
+     "src": "media/plans/plan-b40-m.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.64001F\""
+    }
+   ],
+   "poster": "media/plans/plan-b40-m.poster.avif",
+   "posterFallback": "media/plans/plan-b40-m.poster.jpg",
+   "w": 720,
+   "h": 720,
+   "fps": 24,
+   "alt": "AI-generated concept film, seen from above: robot 07 spreads mortar and lays a course of brick between two line posts.",
+   "viewTitle": {
+    "view": "PLAN 01",
+    "kind": "film",
+    "id": "a101-plan"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "borderRect": [
+    0.08333,
+    0.08333,
+    0.91667,
+    0.91667
+   ],
+   "bytes": {
+    "media/plans/plan-b40-m.av1.mp4": 222073,
+    "media/plans/plan-b40-m.h264.mp4": 121972,
+    "media/plans/plan-b40-m.poster.avif": 24255,
+    "media/plans/plan-b40-m.poster.jpg": 82326
+   }
+  },
+  "plan-b41": {
+   "id": "plan-b41",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/plans/plan-b41.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/plans/plan-b41.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640020\""
+    }
+   ],
+   "poster": "media/plans/plan-b41.poster.avif",
+   "posterFallback": "media/plans/plan-b41.poster.jpg",
+   "w": 1080,
+   "h": 1080,
+   "fps": 24,
+   "alt": "AI-generated concept film, seen from above: robot 07 holds a drywall sheet against a stud frame, steps back, and returns.",
+   "viewTitle": {
+    "view": "PLAN 02",
+    "kind": "film",
+    "id": "a102-plan"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "borderRect": [
+    0.08333,
+    0.08333,
+    0.91667,
+    0.91667
+   ],
+   "bytes": {
+    "media/plans/plan-b41.av1.mp4": 324613,
+    "media/plans/plan-b41.h264.mp4": 223595,
+    "media/plans/plan-b41.poster.avif": 39649,
+    "media/plans/plan-b41.poster.jpg": 140929
+   }
+  },
+  "plan-b41-m": {
+   "id": "plan-b41-m",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/plans/plan-b41-m.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.04M.08\""
+    },
+    {
+     "src": "media/plans/plan-b41-m.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.64001F\""
+    }
+   ],
+   "poster": "media/plans/plan-b41-m.poster.avif",
+   "posterFallback": "media/plans/plan-b41-m.poster.jpg",
+   "w": 720,
+   "h": 720,
+   "fps": 24,
+   "alt": "AI-generated concept film, seen from above: robot 07 holds a drywall sheet against a stud frame, steps back, and returns.",
+   "viewTitle": {
+    "view": "PLAN 02",
+    "kind": "film",
+    "id": "a102-plan"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "borderRect": [
+    0.08333,
+    0.08333,
+    0.91667,
+    0.91667
+   ],
+   "bytes": {
+    "media/plans/plan-b41-m.av1.mp4": 208801,
+    "media/plans/plan-b41-m.h264.mp4": 117609,
+    "media/plans/plan-b41-m.poster.avif": 19826,
+    "media/plans/plan-b41-m.poster.jpg": 70750
+   }
+  },
+  "plan-b42": {
+   "id": "plan-b42",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/plans/plan-b42.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/plans/plan-b42.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640020\""
+    }
+   ],
+   "poster": "media/plans/plan-b42.poster.avif",
+   "posterFallback": "media/plans/plan-b42.poster.jpg",
+   "w": 1080,
+   "h": 1080,
+   "fps": 24,
+   "alt": "AI-generated concept film, seen from above: robot 07 fastens a bolted splice plate.",
+   "viewTitle": {
+    "view": "PLAN 03",
+    "kind": "film",
+    "id": "a103-plan"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "borderRect": [
+    0.08333,
+    0.08333,
+    0.91667,
+    0.91667
+   ],
+   "bytes": {
+    "media/plans/plan-b42.av1.mp4": 347479,
+    "media/plans/plan-b42.h264.mp4": 214138,
+    "media/plans/plan-b42.poster.avif": 50874,
+    "media/plans/plan-b42.poster.jpg": 165918
+   }
+  },
+  "plan-b42-m": {
+   "id": "plan-b42-m",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/plans/plan-b42-m.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.04M.08\""
+    },
+    {
+     "src": "media/plans/plan-b42-m.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.64001F\""
+    }
+   ],
+   "poster": "media/plans/plan-b42-m.poster.avif",
+   "posterFallback": "media/plans/plan-b42-m.poster.jpg",
+   "w": 720,
+   "h": 720,
+   "fps": 24,
+   "alt": "AI-generated concept film, seen from above: robot 07 fastens a bolted splice plate.",
+   "viewTitle": {
+    "view": "PLAN 03",
+    "kind": "film",
+    "id": "a103-plan"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "borderRect": [
+    0.08333,
+    0.08333,
+    0.91667,
+    0.91667
+   ],
+   "bytes": {
+    "media/plans/plan-b42-m.av1.mp4": 215626,
+    "media/plans/plan-b42-m.h264.mp4": 109531,
+    "media/plans/plan-b42-m.poster.avif": 25439,
+    "media/plans/plan-b42-m.poster.jpg": 82879
+   }
+  },
+  "plan-b43": {
+   "id": "plan-b43",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/plans/plan-b43.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/plans/plan-b43.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640020\""
+    }
+   ],
+   "poster": "media/plans/plan-b43.poster.avif",
+   "posterFallback": "media/plans/plan-b43.poster.jpg",
+   "w": 1080,
+   "h": 1080,
+   "fps": 24,
+   "alt": "AI-generated concept film, seen from above: robot 07 joins copper pipe and fittings beside a task drawing taped to the floor.",
+   "viewTitle": {
+    "view": "PLAN 04",
+    "kind": "film",
+    "id": "a104-plan"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "borderRect": [
+    0.08333,
+    0.08333,
+    0.91667,
+    0.91667
+   ],
+   "bytes": {
+    "media/plans/plan-b43.av1.mp4": 276529,
+    "media/plans/plan-b43.h264.mp4": 172403,
+    "media/plans/plan-b43.poster.avif": 40303,
+    "media/plans/plan-b43.poster.jpg": 142065
+   }
+  },
+  "plan-b43-m": {
+   "id": "plan-b43-m",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/plans/plan-b43-m.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.04M.08\""
+    },
+    {
+     "src": "media/plans/plan-b43-m.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.64001F\""
+    }
+   ],
+   "poster": "media/plans/plan-b43-m.poster.avif",
+   "posterFallback": "media/plans/plan-b43-m.poster.jpg",
+   "w": 720,
+   "h": 720,
+   "fps": 24,
+   "alt": "AI-generated concept film, seen from above: robot 07 joins copper pipe and fittings beside a task drawing taped to the floor.",
+   "viewTitle": {
+    "view": "PLAN 04",
+    "kind": "film",
+    "id": "a104-plan"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "borderRect": [
+    0.08333,
+    0.08333,
+    0.91667,
+    0.91667
+   ],
+   "bytes": {
+    "media/plans/plan-b43-m.av1.mp4": 173559,
+    "media/plans/plan-b43-m.h264.mp4": 92935,
+    "media/plans/plan-b43-m.poster.avif": 19930,
+    "media/plans/plan-b43-m.poster.jpg": 71456
+   }
+  },
+  "plan-b44": {
+   "id": "plan-b44",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/plans/plan-b44.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/plans/plan-b44.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640020\""
+    }
+   ],
+   "poster": "media/plans/plan-b44.poster.avif",
+   "posterFallback": "media/plans/plan-b44.poster.jpg",
+   "w": 1080,
+   "h": 1080,
+   "fps": 24,
+   "alt": "AI-generated concept film, seen from above: robot 07 snaps a blue chalk line inside a marked-out bay and moves to the bay’s edge.",
+   "viewTitle": {
+    "view": "PLAN 05",
+    "kind": "film",
+    "id": "a105-plan"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "borderRect": [
+    0.08333,
+    0.08333,
+    0.91667,
+    0.91667
+   ],
+   "bytes": {
+    "media/plans/plan-b44.av1.mp4": 384461,
+    "media/plans/plan-b44.h264.mp4": 250507,
+    "media/plans/plan-b44.poster.avif": 56863,
+    "media/plans/plan-b44.poster.jpg": 176999
+   }
+  },
+  "plan-b44-m": {
+   "id": "plan-b44-m",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/plans/plan-b44-m.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.04M.08\""
+    },
+    {
+     "src": "media/plans/plan-b44-m.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.64001F\""
+    }
+   ],
+   "poster": "media/plans/plan-b44-m.poster.avif",
+   "posterFallback": "media/plans/plan-b44-m.poster.jpg",
+   "w": 720,
+   "h": 720,
+   "fps": 24,
+   "alt": "AI-generated concept film, seen from above: robot 07 snaps a blue chalk line inside a marked-out bay and moves to the bay’s edge.",
+   "viewTitle": {
+    "view": "PLAN 05",
+    "kind": "film",
+    "id": "a105-plan"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "borderRect": [
+    0.08333,
+    0.08333,
+    0.91667,
+    0.91667
+   ],
+   "bytes": {
+    "media/plans/plan-b44-m.av1.mp4": 234929,
+    "media/plans/plan-b44-m.h264.mp4": 128173,
+    "media/plans/plan-b44-m.poster.avif": 27385,
+    "media/plans/plan-b44-m.poster.jpg": 87334
+   }
+  },
+  "arena-0104": {
+   "id": "arena-0104",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/arena/arena-0104.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.04M.08\""
+    },
+    {
+     "src": "media/arena/arena-0104.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.64001F\""
+    }
+   ],
+   "poster": "media/arena/arena-0104.poster.avif",
+   "posterFallback": "media/arena/arena-0104.poster.jpg",
+   "w": 1890,
+   "h": 350,
+   "fps": 24,
+   "alt": "AI-generated concept film, seen from above: five work bays in a row. In each one, robot 07, a concept design, works on one challenge: bricklaying, drywall installation, bolted assembly, pipe assembly, and layout and marking.",
+   "viewTitle": {
+    "view": "PLAN VIEWS 01–05",
+    "kind": "film",
+    "id": "a100-plans"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "bytes": {
+    "media/arena/arena-0104.av1.mp4": 268303,
+    "media/arena/arena-0104.h264.mp4": 136328,
+    "media/arena/arena-0104.poster.avif": 23393,
+    "media/arena/arena-0104.poster.jpg": 87387
+   }
+  },
+  "arena-0104-m": {
+   "id": "arena-0104-m",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/arena/arena-0104-m.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.01M.08\""
+    },
+    {
+     "src": "media/arena/arena-0104-m.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.64001E\""
+    }
+   ],
+   "poster": "media/arena/arena-0104-m.poster.avif",
+   "posterFallback": "media/arena/arena-0104-m.poster.jpg",
+   "w": 1080,
+   "h": 200,
+   "fps": 24,
+   "alt": "AI-generated concept film, seen from above: five work bays in a row. In each one, robot 07, a concept design, works on one challenge: bricklaying, drywall installation, bolted assembly, pipe assembly, and layout and marking.",
+   "viewTitle": {
+    "view": "PLAN VIEWS 01–05",
+    "kind": "film",
+    "id": "a100-plans"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "bytes": {
+    "media/arena/arena-0104-m.av1.mp4": 115503,
+    "media/arena/arena-0104-m.h264.mp4": 60659,
+    "media/arena/arena-0104-m.poster.avif": 8940,
+    "media/arena/arena-0104-m.poster.jpg": 33274
+   }
+  },
+  "el-c30": {
+   "id": "el-c30",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/perspectives/el-c30.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/perspectives/el-c30.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640028\""
+    }
+   ],
+   "poster": "media/perspectives/el-c30.poster.avif",
+   "posterFallback": "media/perspectives/el-c30.poster.jpg",
+   "w": 1920,
+   "h": 804,
+   "fps": 24,
+   "alt": "AI-generated concept film: robot 07 lays a brick on a mortar bed along a stringline, with lights hanging in the dark behind.",
+   "viewTitle": {
+    "view": "PERSPECTIVE 01-A",
+    "kind": "film",
+    "id": "a101-perspective"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "bytes": {
+    "media/perspectives/el-c30.av1.mp4": 455400,
+    "media/perspectives/el-c30.h264.mp4": 453212,
+    "media/perspectives/el-c30.poster.avif": 36111,
+    "media/perspectives/el-c30.poster.jpg": 126820
+   }
+  },
+  "el-c30-m": {
+   "id": "el-c30-m",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/perspectives/el-c30-m.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/perspectives/el-c30-m.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640028\""
+    }
+   ],
+   "poster": "media/perspectives/el-c30-m.poster.avif",
+   "posterFallback": "media/perspectives/el-c30-m.poster.jpg",
+   "w": 1080,
+   "h": 1350,
+   "fps": 24,
+   "alt": "AI-generated concept film: robot 07 lays a brick on a mortar bed along a stringline, with lights hanging in the dark behind.",
+   "viewTitle": {
+    "view": "PERSPECTIVE 01-A",
+    "kind": "film",
+    "id": "a101-perspective"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "bytes": {
+    "media/perspectives/el-c30-m.av1.mp4": 471993,
+    "media/perspectives/el-c30-m.h264.mp4": 500047,
+    "media/perspectives/el-c30-m.poster.avif": 34301,
+    "media/perspectives/el-c30-m.poster.jpg": 122730
+   }
+  },
+  "el-c31": {
+   "id": "el-c31",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/perspectives/el-c31.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/perspectives/el-c31.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640028\""
+    }
+   ],
+   "poster": "media/perspectives/el-c31.poster.avif",
+   "posterFallback": "media/perspectives/el-c31.poster.jpg",
+   "w": 1080,
+   "h": 1350,
+   "fps": 24,
+   "alt": "AI-generated concept film, close on robot 07’s hands pressing a sheet of drywall flat against a steel stud frame; dust hangs in the light.",
+   "viewTitle": {
+    "view": "PERSPECTIVE 02-A",
+    "kind": "film",
+    "id": "a102-perspective"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "bytes": {
+    "media/perspectives/el-c31.av1.mp4": 316825,
+    "media/perspectives/el-c31.h264.mp4": 402435,
+    "media/perspectives/el-c31.poster.avif": 28235,
+    "media/perspectives/el-c31.poster.jpg": 115227
+   }
+  },
+  "el-c32": {
+   "id": "el-c32",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/perspectives/el-c32.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/perspectives/el-c32.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640028\""
+    }
+   ],
+   "poster": "media/perspectives/el-c32.poster.avif",
+   "posterFallback": "media/perspectives/el-c32.poster.jpg",
+   "w": 1920,
+   "h": 1076,
+   "fps": 24,
+   "alt": "AI-generated concept film: robot 07 drives a bolt with an impact wrench and reaches into a tray of bolts.",
+   "viewTitle": {
+    "view": "PERSPECTIVE 03-A",
+    "kind": "film",
+    "id": "a103-perspective"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "bytes": {
+    "media/perspectives/el-c32.av1.mp4": 583358,
+    "media/perspectives/el-c32.h264.mp4": 647861,
+    "media/perspectives/el-c32.poster.avif": 41865,
+    "media/perspectives/el-c32.poster.jpg": 150177
+   }
+  },
+  "el-c33": {
+   "id": "el-c33",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/perspectives/el-c33.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/perspectives/el-c33.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640028\""
+    }
+   ],
+   "poster": "media/perspectives/el-c33.poster.avif",
+   "posterFallback": "media/perspectives/el-c33.poster.jpg",
+   "w": 1920,
+   "h": 804,
+   "fps": 24,
+   "alt": "AI-generated concept film, close on robot 07’s hands joining copper pipe at an elbow under a warm work light.",
+   "viewTitle": {
+    "view": "PERSPECTIVE 04-A",
+    "kind": "film",
+    "id": "a104-perspective"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "bytes": {
+    "media/perspectives/el-c33.av1.mp4": 432859,
+    "media/perspectives/el-c33.h264.mp4": 427079,
+    "media/perspectives/el-c33.poster.avif": 41826,
+    "media/perspectives/el-c33.poster.jpg": 150017
+   }
+  },
+  "det-v0": {
+   "id": "det-v0",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/details/det-v0.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/details/det-v0.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640020\""
+    }
+   ],
+   "poster": "media/details/det-v0.poster.avif",
+   "posterFallback": "media/details/det-v0.poster.jpg",
+   "w": 1076,
+   "h": 1076,
+   "fps": 24,
+   "alt": "AI-generated concept film, close up: a robot hand presses a brick into a mortar bed beside a stringline.",
+   "viewTitle": {
+    "view": "DETAIL 1 / A-101",
+    "kind": "film",
+    "id": "a101-detail"
+   },
+   "dur": 3.5,
+   "loop": null,
+   "bytes": {
+    "media/details/det-v0.av1.mp4": 480008,
+    "media/details/det-v0.h264.mp4": 397670,
+    "media/details/det-v0.poster.avif": 59340,
+    "media/details/det-v0.poster.jpg": 191226
+   }
+  },
+  "det-n03": {
+   "id": "det-n03",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/details/det-n03.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/details/det-n03.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640020\""
+    }
+   ],
+   "poster": "media/details/det-n03.poster.avif",
+   "posterFallback": "media/details/det-n03.poster.jpg",
+   "w": 1076,
+   "h": 1076,
+   "fps": 24,
+   "alt": "AI-generated concept film, close up: a robot hand runs an impact wrench on a nut until it seats.",
+   "viewTitle": {
+    "view": "DETAIL 3 / A-103",
+    "kind": "film",
+    "id": "a103-detail"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "bytes": {
+    "media/details/det-n03.av1.mp4": 543053,
+    "media/details/det-n03.h264.mp4": 520177,
+    "media/details/det-n03.poster.avif": 39487,
+    "media/details/det-n03.poster.jpg": 127647
+   }
+  },
+  "det-n04": {
+   "id": "det-n04",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/details/det-n04.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/details/det-n04.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640020\""
+    }
+   ],
+   "poster": "media/details/det-n04.poster.avif",
+   "posterFallback": "media/details/det-n04.poster.jpg",
+   "w": 1076,
+   "h": 1076,
+   "fps": 24,
+   "alt": "AI-generated concept film, close up from above: robot fingers pinch a blue chalk line, lift it and let it snap onto concrete.",
+   "viewTitle": {
+    "view": "DETAIL 5 / A-105",
+    "kind": "film",
+    "id": "a105-detail"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "bytes": {
+    "media/details/det-n04.av1.mp4": 291883,
+    "media/details/det-n04.h264.mp4": 309900,
+    "media/details/det-n04.poster.avif": 40074,
+    "media/details/det-n04.poster.jpg": 135067
+   }
+  },
+  "the-set-169": {
+   "id": "the-set-169",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/film/the-set-169.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/film/the-set-169.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640028\""
+    }
+   ],
+   "poster": "media/film/the-set-169.poster.avif",
+   "posterFallback": "media/film/the-set-169.poster.jpg",
+   "w": 1920,
+   "h": 1080,
+   "fps": 24,
+   "alt": "The Set, a 30-second concept film",
+   "viewTitle": {
+    "view": "THE SET",
+    "kind": "film"
+   },
+   "dur": 5.042,
+   "loop": null,
+   "bytes": {
+    "media/film/the-set-169.av1.mp4": 356124,
+    "media/film/the-set-169.h264.mp4": 423897,
+    "media/film/the-set-169.poster.avif": 27486,
+    "media/film/the-set-169.poster.jpg": 115765
+   }
+  },
+  "hero-still-169-av1": {
+   "id": "hero-still-169-av1",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/hero/hero-still-169-av1.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/hero/hero-still-169-av1.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1920,
+   "h": 1076,
+   "alt": "AI-generated concept film still: robot 07 crouches as a blue chalk line snaps and dust billows toward the camera.",
+   "viewTitle": {
+    "view": "PERSPECTIVE 05-A · LAYOUT AND MARKING",
+    "kind": "frame",
+    "id": "hero-still",
+    "hasntHappened": true
+   },
+   "bytes": {
+    "media/hero/hero-still-169-av1.avif": 33781,
+    "media/hero/hero-still-169-av1.jpg": 121109
+   }
+  },
+  "hero-still-916-av1": {
+   "id": "hero-still-916-av1",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/hero/hero-still-916-av1.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/hero/hero-still-916-av1.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1076,
+   "h": 1912,
+   "alt": "AI-generated concept film still: robot 07 crouches as a blue chalk line snaps and dust billows toward the camera.",
+   "viewTitle": {
+    "view": "PERSPECTIVE 05-A · LAYOUT AND MARKING",
+    "kind": "frame",
+    "id": "hero-still",
+    "hasntHappened": true
+   },
+   "bytes": {
+    "media/hero/hero-still-916-av1.avif": 28711,
+    "media/hero/hero-still-916-av1.jpg": 107039
+   }
+  },
+  "hero-still-169-h264": {
+   "id": "hero-still-169-h264",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/hero/hero-still-169-h264.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/hero/hero-still-169-h264.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1920,
+   "h": 1076,
+   "alt": "AI-generated concept film still: robot 07 crouches as a blue chalk line snaps and dust billows toward the camera.",
+   "viewTitle": {
+    "view": "PERSPECTIVE 05-A · LAYOUT AND MARKING",
+    "kind": "frame",
+    "id": "hero-still",
+    "hasntHappened": true
+   },
+   "bytes": {
+    "media/hero/hero-still-169-h264.avif": 34704,
+    "media/hero/hero-still-169-h264.jpg": 121109
+   }
+  },
+  "hero-still-916-h264": {
+   "id": "hero-still-916-h264",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/hero/hero-still-916-h264.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/hero/hero-still-916-h264.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1076,
+   "h": 1912,
+   "alt": "AI-generated concept film still: robot 07 crouches as a blue chalk line snaps and dust billows toward the camera.",
+   "viewTitle": {
+    "view": "PERSPECTIVE 05-A · LAYOUT AND MARKING",
+    "kind": "frame",
+    "id": "hero-still",
+    "hasntHappened": true
+   },
+   "bytes": {
+    "media/hero/hero-still-916-h264.avif": 30609,
+    "media/hero/hero-still-916-h264.jpg": 104667
+   }
+  },
+  "hero-ground-169": {
+   "id": "hero-ground-169",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/hero/hero-ground-169.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/hero/hero-ground-169.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1920,
+   "h": 1076,
+   "alt": "",
+   "viewTitle": {
+    "view": "A-000 GROUND",
+    "kind": "still"
+   },
+   "bytes": {
+    "media/hero/hero-ground-169.avif": 67885,
+    "media/hero/hero-ground-169.jpg": 273906
+   }
+  },
+  "hero-ground-916": {
+   "id": "hero-ground-916",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/hero/hero-ground-916.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/hero/hero-ground-916.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1076,
+   "h": 1912,
+   "alt": "",
+   "viewTitle": {
+    "view": "A-000 GROUND",
+    "kind": "still"
+   },
+   "bytes": {
+    "media/hero/hero-ground-916.avif": 67946,
+    "media/hero/hero-ground-916.jpg": 273084
+   }
+  },
+  "hero-plate-169": {
+   "id": "hero-plate-169",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/hero/hero-plate-169.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/hero/hero-plate-169.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 960,
+   "h": 538,
+   "alt": "",
+   "viewTitle": {
+    "view": "3D VIEW 05-A",
+    "kind": "depth",
+    "id": "hero-3d",
+    "oneFrame": true
+   },
+   "bytes": {
+    "media/hero/hero-plate-169.avif": 3405,
+    "media/hero/hero-plate-169.jpg": 17676
+   }
+  },
+  "hero-plate-916": {
+   "id": "hero-plate-916",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/hero/hero-plate-916.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/hero/hero-plate-916.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 538,
+   "h": 956,
+   "alt": "",
+   "viewTitle": {
+    "view": "3D VIEW 05-A",
+    "kind": "depth",
+    "id": "hero-3d",
+    "oneFrame": true
+   },
+   "bytes": {
+    "media/hero/hero-plate-916.avif": 3252,
+    "media/hero/hero-plate-916.jpg": 17623
+   }
+  },
+  "tex-slab": {
+   "id": "tex-slab",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/tex/tex-slab.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/tex/tex-slab.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1024,
+   "h": 1024,
+   "alt": "",
+   "viewTitle": {
+    "view": "A-000 GROUND",
+    "kind": "still"
+   },
+   "bytes": {
+    "media/tex/tex-slab.avif": 106438,
+    "media/tex/tex-slab.jpg": 301013
+   }
+  },
+  "plan-b44-260": {
+   "id": "plan-b44-260",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/plans/plan-b44-260.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/plans/plan-b44-260.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1440,
+   "h": 1440,
+   "alt": "AI-generated concept film still, seen from above: a freshly snapped blue chalk line in bay 05, with robot 07 crouched beside it.",
+   "viewTitle": {
+    "view": "PLAN 05",
+    "kind": "frame",
+    "id": "plan-cut"
+   },
+   "borderRect": [
+    0.08333,
+    0.08333,
+    0.91667,
+    0.91667
+   ],
+   "bytes": {
+    "media/plans/plan-b44-260.avif": 108525,
+    "media/plans/plan-b44-260.jpg": 288947
+   }
+  },
+  "arena-poster": {
+   "id": "arena-poster",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/arena/arena-poster.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/arena/arena-poster.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1890,
+   "h": 350,
+   "alt": "AI-generated concept film still, seen from above: five work bays in a row.",
+   "viewTitle": {
+    "view": "PLAN VIEWS 01–05",
+    "kind": "frame",
+    "id": "a200-poster"
+   },
+   "bytes": {
+    "media/arena/arena-poster.avif": 28750,
+    "media/arena/arena-poster.jpg": 87387
+   }
+  },
+  "sec-c34-color": {
+   "id": "sec-c34-color",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/section/sec-c34-color.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/section/sec-c34-color.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1920,
+   "h": 1076,
+   "alt": "Depth drawing of one frame from an AI-generated concept film: robot 07 crouches, holding a taut chalk line that runs toward the camera. In front of the section plane the frame is drawn as depth contour lines; behind it the film shows.",
+   "viewTitle": {
+    "view": "SECTION A–A",
+    "kind": "depth",
+    "suffix": "ILLUSTRATIVE: PLAN AND SECTION ARE DIFFERENT SHOTS",
+    "id": "a105-section"
+   },
+   "bytes": {
+    "media/section/sec-c34-color.avif": 43631,
+    "media/section/sec-c34-color.jpg": 150649
+   }
+  },
+  "sec-near": {
+   "id": "sec-near",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/section/sec-near.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/section/sec-near.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1920,
+   "h": 1076,
+   "alt": "Depth drawing of one frame from an AI-generated concept film, with the section plane near the camera.",
+   "viewTitle": {
+    "view": "SECTION A–A",
+    "kind": "depth",
+    "suffix": "ILLUSTRATIVE: PLAN AND SECTION ARE DIFFERENT SHOTS",
+    "id": "a105-section"
+   },
+   "bytes": {
+    "media/section/sec-near.avif": 42452,
+    "media/section/sec-near.jpg": 153791
+   }
+  },
+  "sec-mid": {
+   "id": "sec-mid",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/section/sec-mid.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/section/sec-mid.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1920,
+   "h": 1076,
+   "alt": "Depth drawing of one frame from an AI-generated concept film, with the section plane in the middle.",
+   "viewTitle": {
+    "view": "SECTION A–A",
+    "kind": "depth",
+    "suffix": "ILLUSTRATIVE: PLAN AND SECTION ARE DIFFERENT SHOTS",
+    "id": "a105-section"
+   },
+   "bytes": {
+    "media/section/sec-mid.avif": 39380,
+    "media/section/sec-mid.jpg": 149214
+   }
+  },
+  "sec-far": {
+   "id": "sec-far",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/section/sec-far.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/section/sec-far.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1920,
+   "h": 1076,
+   "alt": "Depth drawing of one frame from an AI-generated concept film, with the section plane near the robot.",
+   "viewTitle": {
+    "view": "SECTION A–A",
+    "kind": "depth",
+    "suffix": "ILLUSTRATIVE: PLAN AND SECTION ARE DIFFERENT SHOTS",
+    "id": "a105-section"
+   },
+   "bytes": {
+    "media/section/sec-far.avif": 32901,
+    "media/section/sec-far.jpg": 139985
+   }
+  },
+  "ref21-portrait": {
+   "id": "ref21-portrait",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/stills/ref21-portrait.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/stills/ref21-portrait.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 800,
+   "h": 800,
+   "alt": "Concept illustration: portrait of robot 07, an original concept robot with graphite armor, orange shoulder panels and a stenciled 07 on its chest.",
+   "viewTitle": {
+    "view": "DETAIL 07",
+    "kind": "still",
+    "suffix": "ROBOT 07 IS A CONCEPT DESIGN, NOT A REAL ROBOT OR A COMPETITOR",
+    "id": "a300-detail07"
+   },
+   "bytes": {
+    "media/stills/ref21-portrait.avif": 46133,
+    "media/stills/ref21-portrait.jpg": 100245
+   }
+  },
+  "bay-empty": {
+   "id": "bay-empty",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/stills/bay-empty.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/stills/bay-empty.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1080,
+   "h": 1080,
+   "alt": "Concept illustration, seen from above: an empty work bay with yellow tape and a chalked plan, with YOUR ROBOT stenciled on the floor.",
+   "viewTitle": {
+    "view": "PLAN · AN EMPTY BAY",
+    "kind": "still",
+    "suffix": "NOT A VENUE PLAN",
+    "id": "a300-empty-bay"
+   },
+   "bytes": {
+    "media/stills/bay-empty.avif": 115952,
+    "media/stills/bay-empty.jpg": 220668
+   }
+  },
+  "mat-1": {
+   "id": "mat-1",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/stills/mat-1.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/stills/mat-1.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1080,
+   "h": 1080,
+   "alt": "Concept illustration from above: a pallet of brick and a tub of mortar with a trowel on concrete. Not a sponsor product.",
+   "viewTitle": {
+    "view": "MATERIALS",
+    "kind": "still",
+    "suffix": "NOT SPONSOR PRODUCTS",
+    "id": "a301-materials"
+   },
+   "bytes": {
+    "media/stills/mat-1.avif": 94506,
+    "media/stills/mat-1.jpg": 191192
+   }
+  },
+  "mat-2": {
+   "id": "mat-2",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/stills/mat-2.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/stills/mat-2.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1080,
+   "h": 1080,
+   "alt": "Concept illustration from above: stacked drywall sheets, a box of screws and a drill. Not a sponsor product.",
+   "viewTitle": {
+    "view": "MATERIALS",
+    "kind": "still",
+    "suffix": "NOT SPONSOR PRODUCTS",
+    "id": "a301-materials"
+   },
+   "bytes": {
+    "media/stills/mat-2.avif": 70410,
+    "media/stills/mat-2.jpg": 154876
+   }
+  },
+  "mat-3": {
+   "id": "mat-3",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/stills/mat-3.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/stills/mat-3.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1080,
+   "h": 1080,
+   "alt": "Concept illustration from above: a tray of bolts and nuts and a wrench. Not a sponsor product.",
+   "viewTitle": {
+    "view": "MATERIALS",
+    "kind": "still",
+    "suffix": "NOT SPONSOR PRODUCTS",
+    "id": "a301-materials"
+   },
+   "bytes": {
+    "media/stills/mat-3.avif": 95305,
+    "media/stills/mat-3.jpg": 193450
+   }
+  },
+  "mat-4": {
+   "id": "mat-4",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/stills/mat-4.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/stills/mat-4.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1080,
+   "h": 1080,
+   "alt": "Concept illustration from above: copper fittings in a box and a pipe cutter. Not a sponsor product.",
+   "viewTitle": {
+    "view": "MATERIALS",
+    "kind": "still",
+    "suffix": "NOT SPONSOR PRODUCTS",
+    "id": "a301-materials"
+   },
+   "bytes": {
+    "media/stills/mat-4.avif": 63801,
+    "media/stills/mat-4.jpg": 147399
+   }
+  },
+  "mat-5": {
+   "id": "mat-5",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/stills/mat-5.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/stills/mat-5.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1080,
+   "h": 1080,
+   "alt": "Concept illustration from above: a chalk line reel, a tape measure and an orange marking can. Not a sponsor product.",
+   "viewTitle": {
+    "view": "MATERIALS",
+    "kind": "still",
+    "suffix": "NOT SPONSOR PRODUCTS",
+    "id": "a301-materials"
+   },
+   "bytes": {
+    "media/stills/mat-5.avif": 99184,
+    "media/stills/mat-5.jpg": 193317
+   }
+  },
+  "t7-proof": {
+   "id": "t7-proof",
+   "kind": "image",
+   "sources": [
+    {
+     "src": "media/stills/t7-proof.avif",
+     "type": "image/avif"
+    },
+    {
+     "src": "media/stills/t7-proof.jpg",
+     "type": "image/jpeg"
+    }
+   ],
+   "w": 1200,
+   "h": 400,
+   "alt": "Our digital test renders of the target, flat, warped and blurred, and small, each outlined where the detector found the tag.",
+   "viewTitle": {
+    "view": "CONTROL TARGET T7",
+    "kind": "drawing"
+   },
+   "meta": "media/data/t7-proof.json",
+   "bytes": {
+    "media/stills/t7-proof.avif": 425,
+    "media/stills/t7-proof.jpg": 8127
+   }
+  },
+  "hero-matte-169": {
+   "id": "hero-matte-169",
+   "kind": "matte",
+   "sources": [
+    {
+     "src": "media/hero/hero-matte-169.webp",
+     "type": "image/webp"
+    }
+   ],
+   "w": 1920,
+   "h": 1076,
+   "alt": "",
+   "viewTitle": {
+    "view": "PERSPECTIVE 05-A · LAYOUT AND MARKING",
+    "kind": "frame",
+    "id": "hero-still",
+    "hasntHappened": true
+   },
+   "bytes": {
+    "media/hero/hero-matte-169.webp": 8502
+   }
+  },
+  "hero-matte-916": {
+   "id": "hero-matte-916",
+   "kind": "matte",
+   "sources": [
+    {
+     "src": "media/hero/hero-matte-916.webp",
+     "type": "image/webp"
+    }
+   ],
+   "w": 1076,
+   "h": 1912,
+   "alt": "",
+   "viewTitle": {
+    "view": "PERSPECTIVE 05-A · LAYOUT AND MARKING",
+    "kind": "frame",
+    "id": "hero-still",
+    "hasntHappened": true
+   },
+   "bytes": {
+    "media/hero/hero-matte-916.webp": 8962
+   }
+  },
+  "hero-depth-169": {
+   "id": "hero-depth-169",
+   "kind": "bin",
+   "sources": [
+    {
+     "src": "media/hero/hero-depth-169.bin",
+     "type": "application/octet-stream"
+    }
+   ],
+   "w": 257,
+   "h": 145,
+   "alt": "",
+   "viewTitle": {
+    "view": "3D VIEW 05-A",
+    "kind": "depth",
+    "id": "hero-3d",
+    "oneFrame": true
+   },
+   "bytes": {
+    "media/hero/hero-depth-169.bin": 74530
+   },
+   "meta": "media/hero/hero-meta-169.json"
+  },
+  "hero-depth-916": {
+   "id": "hero-depth-916",
+   "kind": "bin",
+   "sources": [
+    {
+     "src": "media/hero/hero-depth-916.bin",
+     "type": "application/octet-stream"
+    }
+   ],
+   "w": 145,
+   "h": 257,
+   "alt": "",
+   "viewTitle": {
+    "view": "3D VIEW 05-A",
+    "kind": "depth",
+    "id": "hero-3d",
+    "oneFrame": true
+   },
+   "bytes": {
+    "media/hero/hero-depth-916.bin": 74530
+   },
+   "meta": "media/hero/hero-meta-916.json"
+  },
+  "hero-meta-169": {
+   "id": "hero-meta-169",
+   "kind": "json",
+   "sources": [
+    {
+     "src": "media/hero/hero-meta-169.json",
+     "type": "application/json"
+    }
+   ],
+   "w": 1920,
+   "h": 1076,
+   "alt": "",
+   "viewTitle": {
+    "view": "3D VIEW 05-A",
+    "kind": "depth",
+    "id": "hero-3d",
+    "oneFrame": true
+   },
+   "bytes": {
+    "media/hero/hero-meta-169.json": 571
+   }
+  },
+  "hero-meta-916": {
+   "id": "hero-meta-916",
+   "kind": "json",
+   "sources": [
+    {
+     "src": "media/hero/hero-meta-916.json",
+     "type": "application/json"
+    }
+   ],
+   "w": 1076,
+   "h": 1912,
+   "alt": "",
+   "viewTitle": {
+    "view": "3D VIEW 05-A",
+    "kind": "depth",
+    "id": "hero-3d",
+    "oneFrame": true
+   },
+   "bytes": {
+    "media/hero/hero-meta-916.json": 571
+   }
+  },
+  "sec-c34-depth": {
+   "id": "sec-c34-depth",
+   "kind": "depth",
+   "sources": [
+    {
+     "src": "media/section/sec-c34-depth.png",
+     "type": "image/png"
+    }
+   ],
+   "w": 960,
+   "h": 540,
+   "alt": "",
+   "viewTitle": {
+    "view": "SECTION A–A",
+    "kind": "depth",
+    "suffix": "ILLUSTRATIVE: PLAN AND SECTION ARE DIFFERENT SHOTS",
+    "id": "a105-section"
+   },
+   "bytes": {
+    "media/section/sec-c34-depth.png": 37306
+   }
+  },
+  "lines-b44": {
+   "id": "lines-b44",
+   "kind": "json",
+   "sources": [
+    {
+     "src": "media/data/lines-b44.json",
+     "type": "application/json"
+    }
+   ],
+   "w": 1440,
+   "h": 1440,
+   "alt": "",
+   "viewTitle": {
+    "view": "LINES TRACED FROM CONCEPT FOOTAGE",
+    "kind": "drawing",
+    "id": "a105-trace"
+   },
+   "bytes": {
+    "media/data/lines-b44.json": 2049
+   }
+  },
+  "trace-t43": {
+   "id": "trace-t43",
+   "kind": "svg",
+   "sources": [
+    {
+     "src": "media/data/trace-t43.svg",
+     "type": "image/svg+xml"
+    }
+   ],
+   "w": 1000,
+   "h": 1000,
+   "alt": "",
+   "viewTitle": {
+    "view": "TASK DRAWING TRACED FROM CONCEPT FOOTAGE",
+    "kind": "drawing",
+    "id": "a104-trace"
+   },
+   "bytes": {
+    "media/data/trace-t43.svg": 216
+   }
+  },
+  "t7-brick": {
+   "id": "t7-brick",
+   "kind": "svg",
+   "sources": [
+    {
+     "src": "media/data/t7-brick.svg",
+     "type": "image/svg+xml"
+    }
+   ],
+   "w": 200,
+   "h": 200,
+   "alt": "Control target T7: a square panel of dark and light bricks in stack bond, two bricks to each cell, that forms AprilTag tag36h11, ID 7.",
+   "viewTitle": {
+    "view": "CONTROL TARGET T7",
+    "kind": "drawing"
+   },
+   "bytes": {
+    "media/data/t7-brick.svg": 7985
+   }
+  },
+  "t7-proof-json": {
+   "id": "t7-proof-json",
+   "kind": "json",
+   "sources": [
+    {
+     "src": "media/data/t7-proof.json",
+     "type": "application/json"
+    }
+   ],
+   "w": 0,
+   "h": 0,
+   "alt": "",
+   "viewTitle": {
+    "view": "CONTROL TARGET T7",
+    "kind": "drawing"
+   },
+   "bytes": {
+    "media/data/t7-proof.json": 87
+   }
+  },
+  "kit-t7-letter": {
+   "id": "kit-t7-letter",
+   "kind": "pdf",
+   "sources": [
+    {
+     "src": "kit/hrcg-t7-letter.pdf",
+     "type": "application/pdf"
+    }
+   ],
+   "w": 612,
+   "h": 792,
+   "alt": "Download T7 (US Letter PDF)",
+   "viewTitle": {
+    "view": "CONTROL TARGET T7",
+    "kind": "drawing"
+   },
+   "bytes": {
+    "kit/hrcg-t7-letter.pdf": 451
+   }
+  },
+  "kit-t7-a4": {
+   "id": "kit-t7-a4",
+   "kind": "pdf",
+   "sources": [
+    {
+     "src": "kit/hrcg-t7-a4.pdf",
+     "type": "application/pdf"
+    }
+   ],
+   "w": 595,
+   "h": 842,
+   "alt": "Download T7 (A4 PDF)",
+   "viewTitle": {
+    "view": "CONTROL TARGET T7",
+    "kind": "drawing"
+   },
+   "bytes": {
+    "kit/hrcg-t7-a4.pdf": 451
+   }
+  },
+  "kit-t7-svg": {
+   "id": "kit-t7-svg",
+   "kind": "svg",
+   "sources": [
+    {
+     "src": "kit/hrcg-t7.svg",
+     "type": "image/svg+xml"
+    }
+   ],
+   "w": 200,
+   "h": 200,
+   "alt": "Download T7 (SVG)",
+   "viewTitle": {
+    "view": "CONTROL TARGET T7",
+    "kind": "drawing"
+   },
+   "bytes": {
+    "kit/hrcg-t7.svg": 7985
+   }
+  }
+ },
+ "sheetVideoPriority": {
+  "A-000": [
+   "hero-snap-169"
+  ],
+  "A-100": [
+   "arena-0104",
+   "plan-b44"
+  ],
+  "A-101": [
+   "el-c30",
+   "plan-b40",
+   "det-v0"
+  ],
+  "A-102": [
+   "el-c31",
+   "plan-b41"
+  ],
+  "A-103": [
+   "det-n03",
+   "el-c32",
+   "plan-b42"
+  ],
+  "A-104": [
+   "el-c33",
+   "plan-b43"
+  ],
+  "A-105": [
+   "plan-b44",
+   "det-n04"
+  ],
+  "A-200": [],
+  "A-300": [],
+  "A-301": [],
+  "A-900": []
+ }
+}
