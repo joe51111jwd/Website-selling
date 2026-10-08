@@ -26,3 +26,17 @@ After deploy, a QA bot checks every row on the live site at 1440×900 and 390×8
 | 13 | "The front animation where it slaps down a piece of wire makes zero sense… better when it pushes its finger into the ground." | The hero now loops only the hand-into-the-slab moment and the dust roll-out (from frame 60 of the take), in slow motion at 0.6×, as a seamless crossfade loop (3.1 s desktop, 3.5 s phone). The line pickup is cut. | live |
 | 14 | "The smaller animations don't have perfect loops… they need to pick it up, move it, place it, screw it." | Loops: every task film is a seamless crossfade loop (QA measured no hard cuts). Action: five clip bots tried new first=last-frame Kling generations. Pipe is still running. Bricklaying, drywall, bolted (reach to tray) and layout all failed QA (vanishing arms, tools sliding by themselves, static robots), so the old loops stay. Next step needs a different method: image-to-video 10 s plus a crossfade loop, or new start frames with the tools within reach. Needs a credit decision. | blocked on credits (about 90 left) |
 | 15 | QA bot findings | Dark first paint, fully opaque header, balanced phone headline, arena strip as a seamless loop, floating button hides while scrolling down, html overflow-x clip. | live |
+
+## Round 3 (client walk-through of the five task films, 14:0x)
+
+The user's notes, verbatim in spirit. All five need new footage. The user approved spending more Higgsfield credits ("it's okay… as long as you get something good"). Balance: 90.3.
+
+| Bay | What's wrong now | What it must show |
+|---|---|---|
+| 01 Bricklaying | He lays one brick, grabs more mortar, never places it, lays another. Doesn't read as a loop. | Scoop mortar from the tub → spread it on the course → pick up a brick from the pallet → set it in the mortar → tap it level. One clear cycle. |
+| 02 Drywall | He puts the sheet up and "clips" it on; never screws it in. | Pick up the sheet → hold it square on the studs → pick up the screw gun → drive screws along the studs, visibly. |
+| 03 Bolted assembly | Bolts spawn from nowhere; he never goes to grab them. | Reach into the tray → pick up a bolt → insert it in the plate → drive it with the impact wrench. Nothing appears from nowhere. |
+| 04 Pipe assembly | He moves a pipe piece back and forth; no assembly. | Pick up a fitting/pipe → join it to the run → tighten. The run visibly grows. |
+| 05 Layout and marking | Draws one line, then resets. | Make it longer: several lines in a row (snap line, then the next), a continuous layout job. |
+
+Method this round: image-to-video from the bay's start frame, with no forced end frame, at 10 s where the model supports it. Loop with a crossfade from tail to head. Two variants per bay. Accept only clean, readable action.
