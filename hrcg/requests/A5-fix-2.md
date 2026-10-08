@@ -20,7 +20,7 @@ Rebuild with `scripts/cpuq pipeline/run_hero.sh all --refreeze`.
 - Limit-pose gate (`gates.stretchPastMatte`): no visible triangle within 3 cells of the matte stretches more than
   2 px past a rigid copy. **Passes in all 9 poses and at rest, both orientations** (max 1.05 px at yaw 10°; rest
   0.53 px). Renders: `$S/a5qa/d1/limit-*.png`, `rest-*.png`; before/after crops in
-  `qa/review/r1/f008-rest-{169,916}-crop-before-after.png`.
+  `qa/review/r1/a5/f008-rest-{169,916}-crop-before-after.png`.
 
 ## 2. F-004: two changes to the spec, please
 
