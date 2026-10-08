@@ -569,7 +569,10 @@ export default function A105Layout() {
             <SheetTag id="A-105" className="a105-tag" />
             {/* the H2 and the spec sit on the top gridline (the views' shared top edge) */}
             <div className="a105-head">
-              <h2 className="t-h2-challenge a105-h2 print-in">{A105.h2}</h2>
+              {/* a jump (INDEX, CTA) focuses the H2 before the print-in observer may have fired: print at once */}
+              <h2 className="t-h2-challenge a105-h2 print-in" onFocus={() => pinRef.current?.setAttribute('data-printed', '')}>
+                {A105.h2}
+              </h2>
               <p className="t-spec a105-spec print-in" style={{ ['--d' as string]: '120ms' } as CSSProperties}>
                 {A105.spec}
               </p>

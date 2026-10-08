@@ -35,7 +35,7 @@ def livery(f, plan):
 # tool ROIs on the SHIPPED (registered) plan frame, normalised, a little larger than the mezz.py --livery2 boxes
 # (registration moves a bay by a few %); hue in degrees; frames in source frames (plans keep the frame count)
 TOOLS = {
-    'b41': [((8, 32), (0.10, 0.56, 0.29, 0.84), (0, 87)), ((8, 32), (0.28, 0.48, 0.64, 0.69), (84, 97)), ((8, 32), (0.46, 0.22, 0.78, 0.66), (94, 120))],
+    'b41': [((8, 32), (0.10, 0.56, 0.29, 0.84), (0, 87)), ((8, 32), (0.10, 0.53, 0.33, 0.70), (72, 95)), ((8, 32), (0.28, 0.48, 0.64, 0.69), (84, 97)), ((8, 32), (0.46, 0.22, 0.78, 0.66), (94, 120))],
     'b42': [((345, 15), (0.04, 0.04, 0.96, 0.96), (0, 120))],
     'b43': [((345, 15), (0.66, 0.26, 0.92, 0.50), (0, 120))],
 }

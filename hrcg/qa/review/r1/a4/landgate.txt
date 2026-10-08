@@ -1,0 +1,10 @@
+1440x900 a-104 {"want":8327,"got":8327,"want2":8327,"land":null,"focus":"H2.print-in","rect":[127,260],"band":[88,820],"inside":true,"hit":true,"opacity":"1"} PASS
+1440x900 a-105 {"want":9936,"got":9936,"want2":9936,"land":"0","focus":"H2.print-in","rect":[139,222],"band":[88,820],"inside":true,"hit":true,"opacity":"0.916445"} PASS
+1440x900 a-200 {"want":13049,"got":13049,"want2":13049,"land":"88","focus":"H2.a200-h2","rect":[119,392],"band":[88,820],"inside":true,"hit":true,"opacity":"1"} PASS
+1280x800 a-104 {"want":7414,"got":7414,"want2":7414,"land":null,"focus":"H2.print-in","rect":[127,241],"band":[88,720],"inside":true,"hit":true,"opacity":"1"} PASS
+1280x800 a-105 {"want":8856,"got":8856,"want2":8856,"land":"0","focus":"H2.print-in","rect":[136,210],"band":[88,720],"inside":true,"hit":true,"opacity":"0.833735"} PASS
+1280x800 a-200 {"want":11650,"got":11650,"want2":11650,"land":"88","focus":"H2.a200-h2","rect":[119,362],"band":[88,720],"inside":true,"hit":true,"opacity":"1"} PASS
+390x844 a-104 {"want":6994,"got":6994,"want2":6994,"land":null,"focus":"H2.print-in","rect":[130,171],"band":[76,776],"inside":true,"hit":true,"opacity":"1"} PASS
+390x844 a-105 {"want":8090,"got":8090,"want2":8090,"land":null,"focus":"H2.print-in","rect":[126,165],"band":[76,776],"inside":true,"hit":true,"opacity":"1"} PASS
+390x844 a-200 {"want":9360,"got":10927,"want2":9360,"land":null,"focus":"H2.a200-h2","rect":[76,208],"band":[76,776],"inside":true,"hit":true,"opacity":"1"} PASS
+F-089 after tap + blur {"hoverMQ":false,"fill":"rgb(236, 232, 225)"}

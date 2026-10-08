@@ -251,7 +251,10 @@ export default function A104Pipe() {
       </div>
 
       <div className="a104-stage" style={stageVars}>
-        <h2 className="t-h2-challenge a104-h2 print-in">{A104.h2}</h2>
+        {/* a jump (INDEX, CTA) focuses the H2 before the print-in observer may have fired: print at once */}
+        <h2 className="t-h2-challenge a104-h2 print-in" onFocus={() => rootRef.current?.setAttribute('data-printed', '')}>
+          {A104.h2}
+        </h2>
         <p className="t-spec a104-spec print-in" style={{ ['--d' as string]: '120ms' } as CSSProperties}>
           {A104.spec}
         </p>
