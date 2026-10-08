@@ -6,7 +6,7 @@ const EXPO = [0.16, 1, 0.3, 1] as const;
 type Phase = 'dark' | 'play' | 'lit' | 'end';
 
 /** When the line snaps in each take (seconds); the words light up on the snap. */
-const SNAP_AT = { '169': 0.4, '916': 0.4 } as const;
+const SNAP_AT = { '169': 0.05, '916': 0.05 } as const;
 
 /**
  * The opening: the whole take plays and loops seamlessly (its tail crossfades into its head). 07 holds
@@ -150,11 +150,11 @@ export function Hero({ onReady }: { onReady: () => void }) {
             muted
             playsInline
             preload="auto"
-            poster={`/media/hero-windup-${o}.first.jpg`}
+            poster={`/media/hero-impact-${o}.first.jpg`}
             aria-label="Concept film: robot 07 picks up a chalk line, pulls it taut, drives its hand into the slab, and blue chalk dust rolls out across the floor."
           >
-            <source src={`/media/hero-windup-${o}.av1.mp4`} type='video/mp4; codecs="av01.0.08M.08"' />
-            <source src={`/media/hero-windup-${o}.h264.mp4`} type="video/mp4" />
+            <source src={`/media/hero-impact-${o}.av1.mp4`} type='video/mp4; codecs="av01.0.08M.08"' />
+            <source src={`/media/hero-impact-${o}.h264.mp4`} type="video/mp4" />
           </video>
           {/* the words live in the scene: stencilled on the back wall, marking-painted on the slab */}
           <h1 id="hx-h" className={`hx-wall ${lit ? 'is-lit' : ''}`}>
