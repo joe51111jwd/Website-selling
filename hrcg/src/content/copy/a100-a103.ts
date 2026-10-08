@@ -47,8 +47,10 @@ export const A102 = {
   /** Beats, set on the panel's screw rows */
   beats: ['POSITIONED', 'FASTENED', 'ALIGNED', 'CLEAN FINISH'],
   alt: {
+    /** F-009 / DIR-1 #2: the re-cut window (x 0.44, below the head) shows hand, forearm, board and the 07
+     *  stencil; no stud frame or hanging dust is visible, so they are not described (director, 13:25) */
     perspective:
-      'AI-generated concept film, close on robot 07’s hands pressing a sheet of drywall flat against a steel stud frame; dust hangs in the light.',
+      'AI-generated concept film, close on robot 07’s hand and forearm pressing a sheet of drywall flat, the 07 stencil on its chest.',
     plan: 'AI-generated concept film, seen from above: robot 07 holds a drywall sheet against a stud frame, steps back, and returns.',
   },
 } as const;

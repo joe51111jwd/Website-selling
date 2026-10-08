@@ -8,6 +8,9 @@
 /* ------------------------------------------------------------------ stage geometry */
 .cv {
   position: relative;
+  /* the legibility halo of the labels over footage (F-025): tight and dense, so the 1-3 px round each
+     glyph is slab, even over the work light and the rising dust */
+  --cv-halo: 0 0 1px rgba(11, 11, 10, 0.95), 0 0 3px rgba(11, 11, 10, 0.9), 0 0 8px rgba(11, 11, 10, 0.75);
   /* label heights the layout reserves room for: the controller measures them (inline on .cv); these
      are the first-paint values (desktop 1440; the phone values are set below) */
   --vt-h: 21px;
@@ -313,6 +316,7 @@
   bottom: calc(var(--to-vb) + var(--chrome-bottom) + 12px);
   margin: 0;
   display: none;
+  text-shadow: var(--cv-halo);
 }
 .no-js .cv-vt {
   top: calc(100% + 8px);
@@ -353,9 +357,7 @@
   white-space: nowrap;
   opacity: var(--a0-o);
   /* AA over the work light and the footage (F-025) */
-  text-shadow:
-    0 0 6px rgba(11, 11, 10, 0.9),
-    0 0 2px rgba(11, 11, 10, 0.9);
+  text-shadow: var(--cv-halo);
 }
 .cv-h1 {
   position: absolute;
@@ -477,9 +479,7 @@
   color: var(--chalk);
   text-wrap: balance;
   opacity: var(--a0-o);
-  text-shadow:
-    0 0 6px rgba(11, 11, 10, 0.9),
-    0 0 2px rgba(11, 11, 10, 0.9);
+  text-shadow: var(--cv-halo);
 }
 .cv-hint {
   position: absolute;
@@ -491,6 +491,7 @@
   gap: 3px;
   color: var(--chalk);
   opacity: var(--a0-o);
+  text-shadow: var(--cv-halo);
 }
 .cv-hint-2 {
   color: var(--pencil);
@@ -502,9 +503,7 @@
   font-size: 15px;
   line-height: 18px;
   gap: 2px;
-  text-shadow:
-    0 0 6px rgba(11, 11, 10, 0.9),
-    0 0 2px rgba(11, 11, 10, 0.9);
+  text-shadow: var(--cv-halo);
 }
 .cv .cv-hint--pull .cv-hint-2 {
   font-size: 14px;
