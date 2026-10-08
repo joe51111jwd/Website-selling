@@ -1,0 +1,122 @@
+/* Self-hosted fonts only (brief 5.2). Owner: A1.
+   Latin subsets in public/fonts. The *-arrows files add → ← ↑ ↓ (and ▶ ◀) that the Latin subset
+   lacks; unicode-range means they download only if a page uses those glyphs (~1.4 kB each).
+   Loading: the H1 instance (A2) is preloaded with font-display: block; Archivo is preloaded with
+   swap; Big Shoulders, Stencil and JetBrains Mono swap with size-adjusted fallbacks. */
+
+@font-face {
+  font-family: 'Archivo';
+  src: url('/fonts/archivo.woff2') format('woff2');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Archivo';
+  src: url('/fonts/archivo-arrows.woff2') format('woff2');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+2190-2193, U+2318; /* + ⌘ for the copy-address fallback (A6-1) */
+}
+/* ▶ ◀ for Archivo labels (▶ PLAY, ▶ WATCH THE SET): borrowed from Big Shoulders */
+@font-face {
+  font-family: 'Archivo';
+  src: url('/fonts/big-shoulders-arrows.woff2') format('woff2');
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+25B6, U+25C0;
+}
+
+@font-face {
+  font-family: 'Big Shoulders';
+  src: url('/fonts/big-shoulders.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Big Shoulders';
+  src: url('/fonts/big-shoulders-arrows.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+2190-2193, U+25B6, U+25C0;
+}
+
+@font-face {
+  font-family: 'Big Shoulders Stencil';
+  src: url('/fonts/big-shoulders-stencil.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Big Shoulders Stencil';
+  src: url('/fonts/big-shoulders-stencil-arrows.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+2190-2193, U+25B6, U+25C0;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono.woff2') format('woff2');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('/fonts/jetbrains-mono-arrows.woff2') format('woff2');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+2190-2193, U+25B6, U+25C0, U+2318, U+2715;
+}
+
+/* The static H1 instance (900, opsz 72, subset to the H1's glyphs). File owned by A2:
+   public/fonts/BigShoulders-H1.woff2. Canvas text waits for document.fonts.load('900 100px "BS H1"'). */
+@font-face {
+  font-family: 'BS H1';
+  src: url('/fonts/BigShoulders-H1.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: block;
+}
+
+/* Size-adjusted fallbacks (metric-ish matches so swaps barely move text) */
+@font-face {
+  font-family: 'Archivo Fallback';
+  src: local('Arial'), local('Helvetica'), local('Liberation Sans'), local('Arimo');
+  size-adjust: 101%;
+  ascent-override: 87%;
+  descent-override: 21%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Big Shoulders Fallback';
+  src: local('Arial Narrow'), local('Liberation Sans Narrow'), local('Roboto Condensed'), local('Arial');
+  size-adjust: 84%;
+  ascent-override: 98%;
+  descent-override: 26%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Mono Fallback';
+  src: local('Menlo'), local('Consolas'), local('DejaVu Sans Mono'), local('Liberation Mono');
+  size-adjust: 100%;
+}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- HRCG favicon: a wall fragment, three courses in running bond closed with half-bats
+       (2 / half, 1, half / 2); the centre brick in marking orange (brief 5.5) -->
+  <rect width="64" height="64" fill="#0B0B0A"/>
+  <g fill="#ECE8E1">
+    <rect x="8" y="10" width="22" height="12"/>
+    <rect x="34" y="10" width="22" height="12"/>
+    <rect x="8" y="26" width="9" height="12"/>
+    <rect x="47" y="26" width="9" height="12"/>
+    <rect x="8" y="42" width="22" height="12"/>
+    <rect x="34" y="42" width="22" height="12"/>
+  </g>
+  <rect x="21" y="26" width="22" height="12" fill="#F06A2C"/>
+</svg>
