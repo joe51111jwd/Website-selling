@@ -14,11 +14,7 @@ rule 22 on the live DOM (every `<picture>`/`<video>` under a non-drawing view ti
 
 ## Open violations (fix before launch)
 
-| # | Rule | Where | File | Owner | What is wrong | Fix |
-|---|---|---|---|---|---|---|
-| V1 | 22 (labels must be readable), 23-adjacent (no false claim) | INDEX overlay footer and THE SET lightbox | `src/chrome/SheetIndex.tsx` (`hasTheSet()`), `src/chrome/Lightbox.tsx`; data: `src/media/manifest.json` | A1 (render gate), A5 (manifest) | `▶ WATCH THE SET (0:30) · CONCEPT FILM: SCREEN CAPTURE OF THIS SITE + AI-GENERATED CONCEPT FOOTAGE` and the lightbox title `… · 0:30` are rendered now, but `the-set-169` in the mock manifest is a **5.04 s placeholder cut of c34**: not 30 seconds and not a screen capture of the site. The page states two false facts about the film it opens. | Render THE SET links only for the real film: gate `hasTheSet()` on `!isMockManifest && entry.dur >= 25` (A1), or keep `the-set-169` out of the manifest until A7's render is encoded (A5, as A5-MOCK-READY says). A-900's link (A6) is already gated this way. |
-
-No other open violation. Items below are signed line by line.
+**None open** at the time of signing (QA run 4 + the rebuild after A5's real manifest landed).
 
 ## Resolved during the audit
 
@@ -26,7 +22,8 @@ No other open violation. Items below are signed line by line.
 |---|---|---|---|---|---|
 | R1 | 22 (AI disclosure must be legible) | A-104, desktop | A4 (`src/sheets/A104Pipe.tsx`) | `PLAN 04 · CONCEPT FILM · AI-GENERATED` and `TASK DRAWING TRACED FROM CONCEPT FOOTAGE · DRAWING` printed on the same line and overlapped. | **Fixed by A4** (stacked; QA run 4, `qa/shots/desktop-a-104.jpg`). |
 | R2 | 22 / 23-adjacent | A-900 film link | A6 (`src/sheets/conversion/A900Parts.tsx`) | Would have shown `▶ WATCH THE SET (0:30) …` for the 5 s placeholder. | **Fixed:** rendered only for a real, non-mock film of ≥ 25 s. |
-| R3 | 22 (no unlabelled claim of detection) | A-300 T7 proof row | A6 | A proof label next to a placeholder image would claim tests that had not run. | **Built in:** the row renders only when `t7-proof.json` reports a real, passing measurement (now `26 PX WIDE`, pass). |
+| R3 | 22 (no unlabelled claim of detection) | A-300 T7 proof row | A6 | A proof label next to a placeholder image would claim tests that had not run. | **Built in:** the row renders only when the measurement is real and passing (A5 now inlines `proof: {smallestLabel: "26 PX WIDE", pass: true}` in the manifest, so it also prerenders). |
+| R4 | 22, 23-adjacent | INDEX footer, THE SET lightbox, A-900 film link | A1 (`src/chrome/SheetIndex.tsx`, `Lightbox.tsx`, `copy/chrome.ts`, `viewTitles.ts`), A5 (manifest), A7 (film) | While the manifest was the mock, `▶ WATCH THE SET (0:30) · CONCEPT FILM: SCREEN CAPTURE OF THIS SITE + …` opened a 5 s placeholder cut of c34; and THE SET pass A contains no screen capture of the site at all. | **Fixed:** the real 30.016 s pass-A film is in the manifest (A5), and every THE SET string now reads `CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE` (A7-1, applied for A1). If pass B ships with site captures, the brief wording comes back by request. |
 
 ## Rule by rule (brief 10.5)
 
@@ -53,7 +50,7 @@ No other open violation. Items below are signed line by line.
 | 19 No Olympic, no five-in-two-rows | ✓ | Lint clean. Checked every five-element arrangement at 1440, 1024, 768 and 390: COURSE mark one course; A-100 one row (phone: one row + a one-column list); A-300 challenge chips one row (≤1023 px one column); A-301 material strip one row (phone one column); A-301 `WHICH CHALLENGE?` chips one row (≤1023 one column); A-900 roll-call one column; the footer CHALLENGES cell one line (≤1023 one per line, never a 3-over-2 wrap). Favicon is a 2/3/2 wall (seven bricks). |
 | 20 NYC trademarks | ✓ | Lint clean; no subway bullets, I♥NY, Empire State or skyline. |
 | 21 No real brands | ✓ | Lint clean; manual "FIGURE" check clean. 07 is named a concept design wherever it is named (A-300 title `ROBOT 07 IS A CONCEPT DESIGN, NOT A REAL ROBOT OR A COMPETITOR`, note 6, imagery notes, A-100 label). Tool trade dress: see rule 6 for A-301; footage frames are A5's D11. |
-| 22 All AI imagery labelled | ✓ except **V1** | QA rule-22 check on the live DOM: every `<picture>`/`<video>` sits under a non-drawing `<ViewTitle>` (pass at desktop). Our own digital renders (T7, proof strip) and drawings are not AI imagery and carry no AI label. No LIVE bugs, timestamps or lower-thirds. |
+| 22 All AI imagery labelled | ✓ | QA rule-22 check on the live DOM: every `<picture>`/`<video>` sits under a non-drawing `<ViewTitle>` (pass at desktop). Our own digital renders (T7, proof strip) and drawings are not AI imagery and carry no AI label. No LIVE bugs, timestamps or lower-thirds. |
 | 23 No fabricated stats | ✓ | `%` only in `PRINT AT 100%` (the PDFs). No counters. The only measured number on the page is T7's proof width, from the pipeline's detection results. |
 | 24 No extra sponsor promises | ✓ | Exactly the three keynotes; `Ask us about demonstrations and visibility.` kept. |
 | Site: HRCG-2027 with PLANNED | ✓ | INDEX title and the phone title block. |
@@ -81,10 +78,12 @@ The Randel survey-bolt "cross" story is not used anywhere.
 
 ## Watch items (not violations today)
 
-- **Media are still the mock set** (`manifest.json` `"mock": true`): ungraded, no livery shift, no crowd
-  crush. Rules 13 (legible crowds) and 21 (tool trade dress) must be re-checked on A5's final encodes
-  (D4, D11) before launch. The re-check is a screenshot pass of A-101–A-105 at 1440.
-- **THE SET** must keep its `0:30` only when the real 30 s film ships (V1).
+- **Footage gates belong to A5** (D4 crowd crush, D10 no generated text, D11 visor glint and tool
+  livery). The manifest is now the real one (`"mock": false`); this audit did not re-measure those
+  gates frame by frame. Before launch, one screenshot pass of A-101 to A-105 at 1440 against rules 13
+  and 21 closes it.
+- **THE SET** wording must change back to the brief's `SCREEN CAPTURE OF THIS SITE + …` only if pass B
+  really contains site captures (R4).
 - **A-200 under reduced motion**: the HOLD tag sits close to the grid diagram's top-left corner; it does
   not touch it (rule 2 holds), but more space would read more clearly as "parked first".
 - **Replacing the placeholder address** (`CONTACT_EMAIL`) is the client's call; the lint's rule 15 must be
