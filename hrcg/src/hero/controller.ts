@@ -558,10 +558,14 @@ class CoverController {
     this.writeVisInset(heroR, vtSpan);
     this.clipMatte();
     this.registerPlan();
-    if (this.mode !== 'static') {
+    if (this.mode === 'live') {
       this.readP();
       this.applyP();
-      this.render(this.mode === 'capture' ? this.captureT : nowS());
+      this.render(nowS());
+    } else if (this.mode === 'capture') {
+      // capture: P and the camera belong to the seek; a late layout (fonts, a lazy sheet) only re-lays out
+      this.applyP();
+      this.render(this.captureT, 0);
     }
   }
 
@@ -1431,6 +1435,7 @@ class CoverController {
           // the head biting "ID" (A5-fix-2 §3), so phones have no FAR occlusion (F-022 fallback, brief 2.5)
           matteUrls: imageUrls(portrait ? 'hero-matte-916' : 'hero-matte-169'),
           farOcclusion: !portrait,
+          restDeg: Math.abs(portrait ? POSE.phone.yaw : POSE.desktop.yaw) + Math.abs(POSE.desktop.pitch),
           lines: this.typeLines(),
           cssW: this.frameRect.width,
           cssH: this.frameRect.height,

@@ -29,7 +29,7 @@ import {
   WebGLRenderer,
   LinearSRGBColorSpace,
 } from 'three';
-import { createFreezeMaterial, createMatteMaterial, edgeMeasure, stretchK } from './freezeMaterial';
+import { createFreezeMaterial, createMatteMaterial, edgeAlpha, edgeMeasure, stretchK } from './freezeMaterial';
 import { createTypePlane, type TypeLine, type TypePlane } from './typePlanes';
 import { TYPE_Z } from './heroLayout';
 
@@ -59,6 +59,8 @@ export interface FreezeSceneOptions {
   matteUrls: string[];
   /** 07's layer bites FAR (16:9). Off on the 9:16 take, where it would be the head biting "ID" (F-022) */
   farOcclusion: boolean;
+  /** |yaw| + |pitch| of the rest pose: the edge alpha reaches full strength there (stretch grows with the turn) */
+  restDeg: number;
   /** from hero-meta: the plate quad's depth and its size relative to the frame-matched size there */
   plate?: { z?: number; scale?: number };
   lines: TypeLine[];
@@ -133,8 +135,8 @@ function buildMesh(o: FreezeSceneOptions): BufferGeometry {
   // depth per grid sample, and its edge measure (8 neighbours, F-004); the overscan ring copies its edge sample
   const zg = new Float32Array(cols * rows);
   for (let k = 0; k < zg.length; k++) zg[k] = 1 / (meta.a + meta.b * (depth[k] / 65535));
-  const eg = edgeMeasure(zg, cols, rows);
-  const edge = new Float32Array(C * R);
+  const ag = edgeAlpha(edgeMeasure(zg, cols, rows), cols, rows);
+  const alpha = new Float32Array(C * R);
   for (let j = 0; j < R; j++) {
     const jj = Math.max(0, Math.min(rows - 1, j - 1));
     const v = vs[j];
@@ -142,7 +144,7 @@ function buildMesh(o: FreezeSceneOptions): BufferGeometry {
       const ii = Math.max(0, Math.min(cols - 1, i - 1));
       const u = us[i];
       const z = zg[jj * cols + ii];
-      edge[j * C + i] = eg[jj * cols + ii];
+      alpha[j * C + i] = ag[jj * cols + ii];
       const nx = 2 * u - 1;
       const ny = (1 - 2 * v) * aspect;
       const k = (j * C + i) * 3;
@@ -174,7 +176,7 @@ function buildMesh(o: FreezeSceneOptions): BufferGeometry {
   const g = new BufferGeometry();
   g.setAttribute('position', new BufferAttribute(pos, 3));
   g.setAttribute('uv', new BufferAttribute(uv, 2));
-  g.setAttribute('aEdge', new BufferAttribute(edge, 1));
+  g.setAttribute('aAlpha', new BufferAttribute(alpha, 1));
   g.setIndex(new BufferAttribute(index, 1));
   return g;
 }
@@ -290,7 +292,7 @@ export async function createFreezeScene(o: FreezeSceneOptions): Promise<FreezeSc
         pivot.z + r * Math.cos(yaw) * Math.cos(pitch),
       );
       camera.lookAt(pivot);
-      (mat.uniforms.uK as { value: number }).value = stretchK(yawDeg, pitchDeg);
+      (mat.uniforms.uK as { value: number }).value = stretchK(yawDeg, pitchDeg, o.restDeg);
     },
     setTypeOpacity(o) {
       const v = Math.max(0, Math.min(1, o));

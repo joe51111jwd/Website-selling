@@ -13,7 +13,7 @@ added; your `.cv-pool` gradient still sits on top in CSS.
 | | Ghost frame | Film's first frame | Placement |
 |---|---|---|---|
 | **16:9** `hero-ground-169` | c34 frame 60, decoded from the shipped `hero-snap-169.av1.mp4` **frame 0** (NEAR darkening included, as in the film) | the same frame | pixel-identical registration: same 1920×1076 crop (x 2–1922 of the source), no shift, no scale |
-| **9:16** `hero-ground-916` | N01b frame **48** (07 crouched, holding the line taut, before the release at about frame 54), crop 1076×1912 at y 6 (as the film), with the film's NEAR darkening applied | N01b frame 76 (`hero-snap-916` frame 0): already after the snap, dust up | same crop and camera (static); 07's head/chest sits **18.7 px left and 7.8 px lower** in the ghost than in film frame 0 (phase correlation on the head/chest box; that is ~7 × 3 px on a 390 px phone). The lamp, floor and tape measure line up to < 0.5 px. |
+| **9:16** `hero-ground-916` | N01b frame **48** (07 crouched, holding the line taut, before the release at about frame 54), crop 1076×1912 at y 6 (as the film), with the film's NEAR darkening applied | N01b frame 76 (`hero-snap-916` frame 0): already after the snap, dust up | same crop and camera (static); 07's head/chest sits **18.7 px left and 7.8 px lower** in the ghost than in film frame 0 (phase correlation on the head/chest box; that is ~7 × 3 px on a 390 px phone). The camera is static: the lamp, floor and tape measure line up (whole-frame phase correlation −0.4 / −0.2 px). |
 
 So the ghost is laid out exactly like the film: draw `hero-ground-*` in the same `.cv-box` with the same
 `object-fit: cover` and mask as `.cv-film` (it already is, in `.cv-ground-in`), and the film can rise out of it.
@@ -35,13 +35,17 @@ t = 1.5 s (armed, pencil H1, line paid out), screenshots with and without `.cv-f
 pixel without the H1. Gate: large text ≥ 3:1 on ≥ 90% of glyph pixels and every block's median ≥ 3:1.
 Results (and the old, ghost-free ground for comparison) are in `qa/review/r1/a5/h2b-ghost-contrast.json`:
 
-| Viewport | ≥ 3:1 | p10 | median |
-|---|---|---|---|
-| 1440×900 | see json | 4.4 | 4.5 |
-| 1280×800 | | 4.4 | 4.5 |
-| 390×844 (phone context) | | 4.4 | 4.5 |
-| 390×664 | | 4.4 | 4.5 |
+| Viewport | glyph px ≥ 3:1 | p10 | median | min |
+|---|---|---|---|---|
+| 1440×900 | 100% | 4.37 | 4.53 | 3.89 |
+| 1280×800 | 100% | 4.37 | 4.53 | 3.89 |
+| 390×844 (iPhone context) | 98.5% | 4.44 | 4.53 | 1.10 |
+| 390×664 (iPhone context) | 96.8% | 4.44 | 4.54 | 1.12 |
+| *old ground, 1440×900* | *100%* | *4.44* | *4.54* | *4.23* |
+| *old ground, 390×844* | *98.5%* | *4.50* | *4.55* | *1.11* |
 
-The ghost costs about 0.1 of contrast (the old ground: p10 4.44 / 4.50); the brightest background pixel under a
-glyph goes from rgb 37 to rgb ~50. 12% is the middle of the director's 10–14% and passes with a wide margin, so I
+All pass (≥ 90% at ≥ 3:1, every block's median ≥ 3:1). The few phone pixels under 3:1 occur in the same share with the
+old ground (98.5% either way at 390×844), so they are not the ghost's doing.
+
+The ghost costs about 0.07 of contrast at p10; the brightest background pixel under a glyph goes from rgb 37 to rgb 50. 12% is the middle of the director's 10–14% and passes with a wide margin, so I
 did not push it higher. Frames: `qa/review/r1/a5/h2b-ghost-{1440,390}-t1.5-{before,after}.png`.
