@@ -8,12 +8,12 @@
   "rows": 257,
   "file": "uint16 little-endian, row-major, top row first, left to right; d = v/65535 (relative inverse depth, near = 1)"
  },
- "a": 0.15,
- "b": 1.6,
+ "a": 0.3373,
+ "b": 0.5,
  "f": 1.2,
- "pivotZ": 2.5809,
- "nearD": 0.995,
- "farD": 0.0018,
+ "pivotZ": 2.5042,
+ "nearD": 0.9951,
+ "farD": 0.0017,
  "yaw": {
   "auto": 6,
   "min": -6,
@@ -27,8 +27,8 @@
  "dolly": 0.04,
  "overscan": 0.12,
  "plate": {
-  "z": 6.8,
-  "scale": 1.3,
+  "z": 3.024,
+  "scale": 1.2,
   "note": "quad at z, size = plate.scale x the frame-matched size at that depth"
  },
  "stretchDiscard": {
@@ -42,14 +42,14 @@
    "z": 2.6,
    "anchor": "left-baseline",
    "x": 0.08,
-   "baseline": 0.16,
+   "baseline": 0.19,
    "fontPx": 143.4,
    "fontPxFrac": 0.075,
    "box": [
     0.08,
-    0.09933,
+    0.12933,
     0.68223,
-    0.16052
+    0.19052
    ]
   },
   {
@@ -58,14 +58,14 @@
    "z": 2.6,
    "anchor": "left-baseline",
    "x": 0.08,
-   "baseline": 0.2245,
+   "baseline": 0.2545,
    "fontPx": 143.4,
    "fontPxFrac": 0.075,
    "box": [
     0.08,
-    0.16383,
+    0.19383,
     0.60602,
-    0.22502
+    0.25502
    ]
   },
   {
@@ -104,7 +104,7 @@
  "typeLayerShift": {
   "far": [
    0.0,
-   0.0
+   0.03
   ],
   "near": [
    0.0,
@@ -112,9 +112,9 @@
   ]
  },
  "occlusion": {
-  "yaw0": 0.0,
-  "rest": 0.0,
-  "cssMatte": 0.0,
+  "yaw0": 0.0291,
+  "rest": 0.0327,
+  "cssMatte": 0.0291,
   "window": [
    0.03,
    0.1
@@ -122,9 +122,9 @@
   "restMax": 0.15
  },
  "nearContrast": {
-  "p10": 1.891,
-  "median": 3.28,
-  "passFrac": 0.5988,
+  "p10": 3.5,
+  "median": 3.996,
+  "passFrac": 1.0,
   "gate": ">=3:1 on >=90%"
  },
  "nearDarken": {
@@ -135,32 +135,88 @@
    0.7442
   ],
   "linearLightRemoved": 0.845,
-  "feather": "ellipse 1.15x/1.25x the NEAR box, gaussian 3% of the long side",
+  "feather": "flat over the NEAR box + 2% margin, gaussian falloff 2.5% of the long side outside it",
   "bakedInto": "hero-snap-916 (all frames), hence the stills"
  },
+ "depthMappingTune": [
+  {
+   "a": 0.2333,
+   "b": 1.6,
+   "edgePointsInside": 73,
+   "pivotZ": 2.316
+  },
+  {
+   "a": 0.2522,
+   "b": 1.4,
+   "edgePointsInside": 60,
+   "pivotZ": 2.348
+  },
+  {
+   "a": 0.2711,
+   "b": 1.2,
+   "edgePointsInside": 49,
+   "pivotZ": 2.381
+  },
+  {
+   "a": 0.29,
+   "b": 1.0,
+   "edgePointsInside": 41,
+   "pivotZ": 2.415
+  },
+  {
+   "a": 0.2995,
+   "b": 0.9,
+   "edgePointsInside": 35,
+   "pivotZ": 2.432
+  },
+  {
+   "a": 0.3089,
+   "b": 0.8,
+   "edgePointsInside": 31,
+   "pivotZ": 2.45
+  },
+  {
+   "a": 0.3184,
+   "b": 0.7,
+   "edgePointsInside": 26,
+   "pivotZ": 2.468
+  },
+  {
+   "a": 0.3279,
+   "b": 0.6,
+   "edgePointsInside": 22,
+   "pivotZ": 2.486
+  },
+  {
+   "a": 0.3373,
+   "b": 0.5,
+   "edgePointsInside": 17,
+   "pivotZ": 2.504
+  }
+ ],
  "limitPoses": [
   {
    "yaw": -6,
    "pitch": -3,
    "uncoveredPx": 0,
-   "edgeInside": 38,
-   "farOccl": 0.0,
+   "edgeInside": 7,
+   "farOccl": 0.0322,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y-6-p-3.png"
   },
   {
    "yaw": -6,
    "pitch": 0,
    "uncoveredPx": 0,
-   "edgeInside": 28,
-   "farOccl": 0.0,
+   "edgeInside": 0,
+   "farOccl": 0.0318,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y-6-p+0.png"
   },
   {
    "yaw": -6,
    "pitch": 3,
    "uncoveredPx": 0,
-   "edgeInside": 11,
-   "farOccl": 0.0,
+   "edgeInside": 0,
+   "farOccl": 0.0314,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y-6-p+3.png"
   },
   {
@@ -168,7 +224,7 @@
    "pitch": -3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0,
+   "farOccl": 0.0327,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+0-p-3.png"
   },
   {
@@ -176,7 +232,7 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0,
+   "farOccl": 0.0321,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+0-p+0.png"
   },
   {
@@ -184,63 +240,63 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0,
+   "farOccl": 0.0314,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+0-p+3.png"
   },
   {
    "yaw": 6,
    "pitch": -3,
    "uncoveredPx": 0,
-   "edgeInside": 40,
-   "farOccl": 0.0,
+   "edgeInside": 7,
+   "farOccl": 0.0324,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+6-p-3.png"
   },
   {
    "yaw": 6,
    "pitch": 0,
    "uncoveredPx": 0,
-   "edgeInside": 29,
-   "farOccl": 0.0,
+   "edgeInside": 0,
+   "farOccl": 0.0317,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+6-p+0.png"
   },
   {
    "yaw": 6,
    "pitch": 3,
    "uncoveredPx": 0,
-   "edgeInside": 13,
-   "farOccl": 0.0,
+   "edgeInside": 0,
+   "farOccl": 0.0316,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+6-p+3.png"
   }
  ],
  "encodes": {
   "still-av1": {
    "q": 70,
-   "bytes": 41805
+   "bytes": 41255
   },
   "still-av1-jpg": {
    "q": 84,
-   "bytes": 103984
+   "bytes": 102696
   },
   "still-h264": {
    "q": 70,
-   "bytes": 48565
+   "bytes": 47966
   },
   "still-h264-jpg": {
    "q": 84,
-   "bytes": 113172
+   "bytes": 111938
   },
   "plate": {
    "q": 70,
-   "bytes": 2754
+   "bytes": 2987
   },
   "matte": {
    "q": 82,
-   "bytes": 7582
+   "bytes": 28178
   }
  },
  "gates": {
   "occlusion": false,
-  "nearContrast": false,
+  "nearContrast": true,
   "limitPoses": false
  }
 }

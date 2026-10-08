@@ -641,9 +641,10 @@
 
 .a105 {
   position: relative;
-  /* the plan's side: PLAN 05 + SECTION A–A share the content width, and the section's height is the
-     plan's bottom-wall line (--vb), so its bottom edge sits on 07's line */
-  --S: min(calc((100cqw - var(--gutter)) / (1 + 1.7778 * var(--vb, 0.84))), calc(100svh - 336px));
+  /* PLAN 05 (side --S) and SECTION A–A share the content width; the section hangs between 07's top and
+     bottom wall lines (--vt, --vb), so its top and bottom edges are those gridlines */
+  --span: calc(var(--vb, 0.832) - var(--vt, 0.169));
+  --S: min(calc((100cqw - var(--gutter)) / (1 + 1.7778 * var(--span))), calc(100svh - 336px));
 }
 .a105-track {
   position: relative;
@@ -681,17 +682,17 @@
 }
 .a105-views {
   display: grid;
-  grid-template-columns: calc(1.7778 * var(--vb, 0.84) * var(--S)) var(--S);
+  grid-template-columns: var(--S) calc(1.7778 * var(--span) * var(--S));
   justify-content: space-between;
   align-items: start;
 }
-.a105-left {
+.a105-planside,
+.a105-secside {
   display: flex;
   flex-direction: column;
 }
-.a105-right {
-  display: flex;
-  flex-direction: column;
+.a105-secside {
+  margin-top: calc(var(--vt, 0.169) * var(--S) - 1px);
 }
 
 /* SECTION A–A */
@@ -861,7 +862,9 @@
 .a105-textin {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) calc((1 - var(--u1, 0.147)) * var(--S));
+  /* the spec column starts on 07's east wall line, extended down from PLAN 05 */
+  grid-template-columns: calc(var(--u2, 0.836) * var(--S)) minmax(0, 1fr);
+  grid-template-rows: auto auto;
   align-items: start;
 }
 .a105-textgrid {
@@ -874,17 +877,19 @@
   pointer-events: none;
 }
 .a105-h2 {
+  grid-column: 1 / -1;
   margin: 0;
   color: var(--chalk);
 }
 .a105-col {
+  grid-column: 2;
   position: relative;
   padding-left: var(--s-4);
-  max-width: calc((var(--u2, 0.85) - var(--u1, 0.147)) * var(--S) - var(--gutter));
+  max-width: 34rem;
   display: flex;
   flex-direction: column;
   gap: var(--s-5);
-  padding-top: var(--s-3);
+  padding-top: var(--s-6);
 }
 .a105-spec {
   color: var(--chalk);
@@ -941,8 +946,8 @@
     flex-direction: column;
     gap: var(--s-6);
   }
-  .a105-right {
-    order: -1;
+  .a105-secside {
+    margin-top: 0;
   }
   .a105-text {
     padding-top: var(--s-7);
@@ -955,7 +960,7 @@
   }
   .a105-col {
     max-width: none;
-    margin-top: var(--s-5);
+    margin-top: var(--s-2);
     margin-left: calc(var(--u1, 0.147) * 100cqw);
   }
   .a105-cut {

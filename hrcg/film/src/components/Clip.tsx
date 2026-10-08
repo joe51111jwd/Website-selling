@@ -3,7 +3,7 @@
 import React from 'react';
 import { Video } from '@remotion/media';
 import { staticFile, useVideoConfig } from 'remotion';
-import { CLIP_SIZE, clipPath, type ClipId } from '../clips';
+import { CLIP_SIZE, clipPath, fileGeom, type ClipId } from '../clips';
 
 export type Rect = readonly [number, number, number, number];
 
@@ -19,8 +19,11 @@ export const Clip: React.FC<{
   name?: string;
 }> = ({ id, crop, dest, trimBefore = 0, from, durationInFrames, playbackRate, style, name }) => {
   const { fps } = useVideoConfig();
-  const [sw, sh] = CLIP_SIZE[id];
-  const c = crop ?? [0, 0, sw, sh];
+  // crops are authored in canonical source px (1920x1076 / 1440² / 1076x1912); map them into the file
+  const g = fileGeom(id);
+  const cc = crop ?? [0, 0, CLIP_SIZE[id][0], CLIP_SIZE[id][1]];
+  const c = [(cc[0] - g.offset[0]) * g.scale, (cc[1] - g.offset[1]) * g.scale, cc[2] * g.scale, cc[3] * g.scale];
+  const [sw, sh] = g.size;
   const s = dest[2] / c[2];
   return (
     <Video

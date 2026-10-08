@@ -15,9 +15,9 @@ export type ClipId = 'c30' | 'c31' | 'c32' | 'c33' | 'c34' | 'v0' | 'b40' | 'b41
 // inside the regions A5 marks safe (c31 4:5 at x 1059, c33 rows 272+, head out of frame).
 const MEZZ: Record<ClipId, string> = {
   c30: 'clips/c30-n09-169.mp4',
-  c31: 'clips/c31-169.mp4',
+  c31: 'clips/c31-45.mp4', // A5: the 16:9 file shows 07's head; only the 4:5 crop file is used
   c32: 'clips/c32-169.mp4',
-  c33: 'clips/c33-169.mp4',
+  c33: 'clips/c33-239.mp4', // A5: the 16:9 file has the glowing visor in its top rows
   c34: 'clips/c34-169.mp4',
   v0: 'clips/v0-169.mp4',
   b40: 'clips/b40-1440.mp4',
@@ -28,6 +28,15 @@ const MEZZ: Record<ClipId, string> = {
   n09r: 'clips/c30-n09-169.mp4', // N09 retake: PERSPECTIVE 01-A (replaces c30)
   n01b: 'clips/n01b-916.mp4', // N01b: the 9:16 snap (phone hero), 1076x1912
 };
+
+// Pre-cropped mezzanines: file px = (canonical 1920x1076 px − offset) · scale.
+type FileGeom = { offset: [number, number]; scale: number; size: [number, number] };
+const MEZZ_GEOM: Partial<Record<ClipId, FileGeom>> = {
+  c31: { offset: [1059, 0], scale: 1080 / 861, size: [1080, 1350] },
+  c33: { offset: [0, 272], scale: 1, size: [1920, 804] },
+};
+export const fileGeom = (id: ClipId): FileGeom =>
+  (SOURCE === 'mezz' ? MEZZ_GEOM[id] : undefined) ?? { offset: [0, 0], scale: 1, size: CLIP_SIZE[id] };
 
 export const clipPath = (id: ClipId) => (SOURCE === 'raw' ? `clips/raw/${id}.mp4` : MEZZ[id]);
 

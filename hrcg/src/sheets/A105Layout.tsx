@@ -74,7 +74,8 @@ interface Grid {
   xs: number[];
   ys: number[];
   fresh: { x0: number; x1: number; y: number };
-  /** the bottom wall line: SECTION A–A's bottom edge sits on it */
+  /** the top and bottom wall lines: SECTION A–A hangs between them (its top and bottom edges on them) */
+  vt: number;
   vb: number;
   /** the left wall line: the text column is set on it */
   u1: number;
@@ -135,9 +136,12 @@ function deriveGrid(d: LinesData): Grid {
   if (!ys.some((y) => Math.abs(y - fy) < 0.02)) ys.push(fy);
   ys.sort((a, b) => a - b);
   xs.sort((a, b) => a - b);
-  const vb = ys.length ? Math.max(...ys.filter((y) => y > 0.6), 0.84) : 0.84;
+  const lower = ys.filter((y) => y > 0.6);
+  const upper = ys.filter((y) => y < 0.4);
+  const vb = lower.length ? Math.max(...lower) : 0.84;
+  const vt = upper.length ? Math.min(...upper) : 0.16;
   const u1 = xs.length ? xs[0]! : 0.147;
-  return { segs: kept, xs, ys, fresh: { x0, x1, y: fy }, vb: Math.min(0.92, vb), u1 };
+  return { segs: kept, xs, ys, fresh: { x0, x1, y: fy }, vt: Math.max(0.05, vt), vb: Math.min(0.95, vb), u1 };
 }
 
 // ------------------------------------------------------------------ gridline extensions (stage px)
@@ -177,7 +181,8 @@ function extensions(g: Grid, plan: Box, W: number, H: number, edge: number, avoi
   for (const v of g.ys) {
     const y = Math.round(plan.y + v * plan.h) + 0.5;
     const blocks = avoid
-      .filter((b) => y > b.y - pad && y < b.y + b.h + pad && !(Math.abs(y - (b.y + b.h)) < 2.5))
+      // a line that runs along a frame's top or bottom edge is that frame's own registration: keep it
+      .filter((b) => y > b.y - pad && y < b.y + b.h + pad && !(Math.abs(y - (b.y + b.h)) < 3) && !(Math.abs(y - b.y) < 3))
       .map((b) => [b.x - pad, b.x + b.w + pad] as [number, number]);
     // left of the plan
     for (const [p, q] of gaps(edge, plan.x, blocks)) out.push({ d: `M${q} ${y}H${p}`, d0: plan.x - q, d1: plan.x - p });
@@ -445,6 +450,7 @@ export default function A105Layout() {
   } as CSSProperties;
   const u2 = grid.xs.find((x) => x > grid.u1 + 0.2) ?? 0.85;
   const rootStyle = {
+    ['--vt' as string]: String(grid.vt),
     ['--vb' as string]: String(grid.vb),
     ['--u1' as string]: String(grid.u1),
     ['--u2' as string]: String(u2),
@@ -475,17 +481,7 @@ export default function A105Layout() {
             <SheetTag id="A-105" className="a105-tag" />
 
             <div className="a105-views">
-              <div className="a105-left">
-                <SectionSlice handle={sliceRef} initial={0.5} />
-                <p className="a105-hint t-label" data-a105-avoid="">
-                  {A105.hint}
-                </p>
-                <p className="t-lead a105-line" data-a105-avoid="">
-                  {snapped ? A105.lineSnapped : A105.line}
-                </p>
-              </div>
-
-              <div className="a105-right">
+              <div className="a105-planside">
                 <ViewTitle id="a105-plan" className="a105-plan" captionClassName="a105-cap">
                   <div
                     className="a105-planbox"
@@ -535,6 +531,16 @@ export default function A105Layout() {
                 </ViewTitle>
                 <ViewTitle id="a105-trace" captionClassName="a105-cap a105-cap--trace" />
               </div>
+              <div className="a105-secside">
+                <SectionSlice handle={sliceRef} initial={0.5} />
+                <p className="a105-hint t-label" data-a105-avoid="">
+                  {A105.hint}
+                </p>
+                <p className="t-lead a105-line" data-a105-avoid="">
+                  {snapped ? A105.lineSnapped : A105.line}
+                </p>
+              </div>
+
             </div>
           </div>
         </div>
