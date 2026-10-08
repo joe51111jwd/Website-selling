@@ -12,7 +12,7 @@ x264(){ local o="${@: -1}"; ffmpeg -y -v error "${@:1:$#-1}" -an -c:v libx264 -c
 cp_ $MZ/n09r.mp4 c30-n09-169.mp4
 x264 -i $MZ/n09r.mp4 -vf "crop=861:1076:330:0,scale=1080:1350:flags=lanczos" $O/c30-n09-45.mp4
 cp_ $MZ/c31.mp4  c31-169.mp4
-x264 -i $MZ/c31.mp4 -vf "crop=861:1076:1059:0,scale=1080:1350:flags=lanczos" $O/c31-45.mp4
+x264 -i $MZ/c31.mp4 -vf "crop=564:705:845:371,scale=1080:1350:flags=lanczos" $O/c31-45.mp4   # F-009 window (same as el-c31)
 cp_ $MZ/c32.mp4  c32-169.mp4
 cp_ $MZ/c33.mp4  c33-169.mp4
 x264 -i $MZ/c33.mp4 -vf "crop=1920:804:0:272" $O/c33-239.mp4

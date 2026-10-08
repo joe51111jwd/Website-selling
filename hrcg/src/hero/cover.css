@@ -195,7 +195,7 @@
   margin: 0;
   /* frame-space layout, 16:9 (brief 2.2) */
   --t-size: 0.131;
-  --far-left: 0.135; /* D1 shift +0.015 (hero-meta-169 typeLayerShift, A2-3) */
+  --far-left: 0.095; /* F-022: the bite falls on the shoulder pad (hero-meta-169 typeLayerShift.far [-0.025, -0.005]) */
   --far-top: 0.13297; /* cap-top 0.135 (D1 shift -0.005) */
   --near-right: 0.115; /* right edge 0.885: clears the chalk box and the 0.92 control point */
   --near-top: 0.53551; /* last baseline 0.755, on the chalk line */
@@ -209,12 +209,12 @@
     --ar-w: 1076;
     --ar-h: 1912;
     /* 9:16 (brief 2.5) */
-    --t-size: 0.075;
+    --t-size: 0.07;
     --far-left: 0.08;
-    --far-top: 0.14884; /* cap-top 0.15: D2 moved FAR down 0.05 into the bite window (hero-meta-916 typeLayerShift) */
-    --far-cap: 0.15;
+    --far-top: 0.12892; /* cap-top 0.13 at 0.070 H (F-022; hero-meta-916 typeLayerShift.far [0, 0.03]) */
+    --far-cap: 0.13;
     --near-right: 0.135; /* right edge 0.865, clear of the chalk-box handle */
-    --near-top: 0.64934; /* last baseline 0.775 */
+    --near-top: 0.65772; /* last baseline 0.775 */
     --line-x0: 0.47;
     --line-x1: 0.92;
     --line-y: 0.78;
@@ -453,6 +453,12 @@
 @supports selector(:has(:playing)) {
   .no-js .cv-hero:has(.cv-film:playing) .cv-matte {
     opacity: 0;
+  }
+}
+/* the 9:16 take: 07's head (not a shoulder) is behind FAR, so no FAR occlusion on phones (F-022, brief 2.5) */
+@media (max-aspect-ratio: 4/5) {
+  .cv-matte {
+    display: none !important;
   }
 }
 

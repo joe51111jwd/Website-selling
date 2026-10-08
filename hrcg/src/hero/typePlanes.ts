@@ -1,9 +1,9 @@
 // Type planes for the 3D VIEW (brief 4.1). Owner: A2. Lazy GL chunk only.
 // Rasterised AT glReady (not at the crossfade) with canvas2D fillText, after
 // document.fonts.load('900 100px "BS H1"'). The face is the static Big Shoulders H1 instance, the
-// same file the DOM H1 uses, so glyphs match exactly (canvas2D cannot set opsz). Each line sits on a
+// same file the DOM H1 uses, so glyphs match exactly (canvas2D cannot set opsz). Each block sits on a
 // plane at its depth (FAR z = 2.6, NEAR z = 1.05), sized screenPx * z / fPx so it projects
-// identically at yaw 0. FAR planes are depth-tested against the mesh; NEAR planes render last and are
+// identically at yaw 0. FAR is occluded by 07's matte layer (drawn over it); NEAR renders last and is
 // never occluded. Positions come from the DOM line boxes (measured), so GL never drifts from CSS.
 
 import { CanvasTexture, LinearFilter, Mesh, MeshBasicMaterial, NoColorSpace, PlaneGeometry } from 'three';
@@ -37,13 +37,18 @@ export interface TypePlane {
   dispose(): void;
 }
 
-/** Build one plane. `z` is the plane's depth; `scale` = texture px per frame CSS px. */
-export function createTypePlane(line: TypeLine, z: number, frame: FrameGeom, scale: number): TypePlane {
-  const pad = Math.ceil(line.fontPx * 0.18);
-  const top = line.baseline - line.fontPx * H1_FONT.ascent - pad;
-  const bottom = line.baseline + line.fontPx * H1_FONT.descent + pad;
-  const left = line.x - pad;
-  const right = line.x + line.width + pad;
+/**
+ * Build one plane for one or more lines that share a depth (FAR = lines 1-2, NEAR = lines 3-4): one
+ * canvas, one draw call per depth (F-004 adds 07's matte layer; the scene stays within 6 draw calls).
+ * `scale` = texture px per frame CSS px.
+ */
+export function createTypePlane(input: TypeLine | TypeLine[], z: number, frame: FrameGeom, scale: number): TypePlane {
+  const lines = Array.isArray(input) ? input : [input];
+  const pad = Math.ceil(Math.max(...lines.map((l) => l.fontPx)) * 0.18);
+  const top = Math.min(...lines.map((l) => l.baseline - l.fontPx * H1_FONT.ascent)) - pad;
+  const bottom = Math.max(...lines.map((l) => l.baseline + l.fontPx * H1_FONT.descent)) + pad;
+  const left = Math.min(...lines.map((l) => l.x)) - pad;
+  const right = Math.max(...lines.map((l) => l.x + l.width)) + pad;
   const cw = Math.max(2, Math.ceil((right - left) * scale));
   const ch = Math.max(2, Math.ceil((bottom - top) * scale));
   const canvas = document.createElement('canvas');
@@ -51,14 +56,16 @@ export function createTypePlane(line: TypeLine, z: number, frame: FrameGeom, sca
   canvas.height = ch;
   const ctx = canvas.getContext('2d')!;
   ctx.scale(scale, scale);
-  ctx.font = `${H1_FONT.weight} ${line.fontPx}px "${H1_FONT.family}"`;
   const anyCtx = ctx as CanvasRenderingContext2D & { letterSpacing?: string; fontKerning?: string };
-  if ('letterSpacing' in anyCtx) anyCtx.letterSpacing = `${line.letterSpacingPx}px`;
-  if ('fontKerning' in anyCtx) anyCtx.fontKerning = 'normal';
-  ctx.textBaseline = 'alphabetic';
-  ctx.textAlign = 'left';
-  ctx.fillStyle = line.color;
-  ctx.fillText(line.text, line.x - left, line.baseline - top);
+  for (const line of lines) {
+    ctx.font = `${H1_FONT.weight} ${line.fontPx}px "${H1_FONT.family}"`;
+    if ('letterSpacing' in anyCtx) anyCtx.letterSpacing = `${line.letterSpacingPx}px`;
+    if ('fontKerning' in anyCtx) anyCtx.fontKerning = 'normal';
+    ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = line.color;
+    ctx.fillText(line.text, line.x - left, line.baseline - top);
+  }
 
   const tex = new CanvasTexture(canvas);
   tex.colorSpace = NoColorSpace;
@@ -67,10 +74,13 @@ export function createTypePlane(line: TypeLine, z: number, frame: FrameGeom, sca
   tex.generateMipmaps = false;
   tex.needsUpdate = true;
 
+  const plane = lines[0].plane;
   const mat = new MeshBasicMaterial({
     map: tex,
     transparent: true,
-    depthTest: line.plane === 'far',
+    // FAR is bitten by 07's matte layer drawn over it, not by the mesh's depth (A5-fix-2 §2.2): the dilated
+    // ring sits at 07's depth and would bite further out than the DOM's CSS matte does
+    depthTest: false,
     depthWrite: false,
     toneMapped: false,
   });
@@ -82,7 +92,8 @@ export function createTypePlane(line: TypeLine, z: number, frame: FrameGeom, sca
   const cy = (frame.h / 2 - (top + bottom) / 2) / half;
   mesh.position.set((cx * z) / frame.f, (cy * z) / frame.f, -z);
   mesh.scale.set((((right - left) / half) * z) / frame.f, (((bottom - top) / half) * z) / frame.f, 1);
-  mesh.renderOrder = line.plane === 'far' ? 2 : 3;
+  // draw order: plate, mesh (1), FAR (2), 07's matte layer (3), NEAR (4)
+  mesh.renderOrder = plane === 'far' ? 2 : 4;
   return {
     mesh,
     dispose() {

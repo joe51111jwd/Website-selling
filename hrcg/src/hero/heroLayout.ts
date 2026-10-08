@@ -41,8 +41,12 @@ export const H1_CAPTOP_IN_LINE = H1_BASELINE_IN_LINE - H1_FONT.cap; // 0.0155 em
  */
 export const TYPE_LAYOUT = {
   // NEAR's right edge sits just inside the line's chalk box (brief 2.2 lists 0.92 for both; the box needs the room)
-  '169': { size: 0.131, farLeft: 0.135, farCapTop: 0.135, nearRight: 0.885, nearBaseline: 0.755 }, // FAR shifted (+0.015, -0.005) by D1 into the bite window (hero-meta-169 typeLayerShift, A2-3)
-  '916': { size: 0.075, farLeft: 0.08, farCapTop: 0.15, nearRight: 0.865, nearBaseline: 0.775 },
+  // F-022 / F-046 (requests/A5-fix-2.md §3): FAR at x 0.095 (typeLayerShift.far [-0.025, -0.005]) so the
+  // bite is the left shoulder pad on the A and the D, every HUMANOID glyph >= 69 % visible at yaw 0 and rest
+  '169': { size: 0.131, farLeft: 0.095, farCapTop: 0.135, nearRight: 0.885, nearBaseline: 0.755 },
+  // 9:16: FAR up and smaller (typeLayerShift.far [0, 0.03], 0.070 H); on this take 07's head, not a shoulder,
+  // would bite "ID", so phones have no FAR occlusion (brief 2.5)
+  '916': { size: 0.07, farLeft: 0.08, farCapTop: 0.13, nearRight: 0.865, nearBaseline: 0.775 },
 } as const;
 
 /** Depth planes of the type in the 3D VIEW (brief 2.2): FAR just behind 07's shoulder, NEAR in front of the dust. */

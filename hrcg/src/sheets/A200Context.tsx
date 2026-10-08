@@ -5,13 +5,15 @@
 //   0.00–0.12  the row poster (five bays, laid out with A-100's geometry: full content width, b = W/5.4,
 //              gap 0.1 b, from the spine) turns to its pencil outline, "THE FIVE BAYS · ILLUSTRATIVE"
 //   0.12–0.20  the outline morphs into a scalloped orange HOLD cloud (24 cubic segments each, authored by
-//              pipeline/grid1811.mjs); its tag "VENUE: HOLD — Venue to be announced on this site." is in by 0.20
+//              pipeline/grid1811.mjs); its tag "VENUE: HOLD — Venue to be announced on this site." is in by 0.18
+//              (the bays label hands over to it, both readable, over 0.16–0.19)
 //   0.20–0.40  the cloud holds, tag readable (20vh desktop, 16vh phone)
 //   0.40–0.50  it lifts (shadow 2 → 6 px) and flies (FLIP) into the title strip's VENUE cell, which pulses
 //              once; the tag stays on it until 0.48. Phones: it settles on the static tag under the legend.
-//   0.40–0.85  a SEPARATE drawing: the frame strokes on from its top-right corner (0.40–0.52), the caption
-//              prints at 0.45, and the 1811 grid module draws outward from its centre through a radial mask;
-//              TRUE NORTH, the grid's own north arrow and the angle arc draw on (0.70–0.86)
+//   0.40–0.86  a SEPARATE drawing: the frame strokes on from its top-right corner (0.40–0.52), the caption
+//              prints at 0.45, and the 1811 grid module draws outward from its centre through a radial mask
+//              (0.42–0.80; its black ground grows with it, so there is never an empty box); TRUE NORTH, the
+//              grid's own north arrow and the angle arc draw on (0.70–0.86)
 //   0.55       H2 and body print (desktop ≥1024 px: in the left columns, beside the drawing)
 //   0.85       the statement prints
 // Rule 2: the bays, the row outline and the cloud are never drawn on the grid. The grid's lines start at a
@@ -169,7 +171,8 @@ export default function A200Context() {
         posterRef.current.toggleAttribute('data-off', v >= 0.1);
       }
       if (baysRef.current) baysRef.current.style.opacity = String(s(0.0, 0.06) * (1 - s(0.13, 0.19)));
-      if (labelRef.current) labelRef.current.style.opacity = String(s(0.04, 0.09) * (1 - s(0.12, 0.15)));
+      // the label hands over to the cloud's tag with an overlap, so a readable line is always on screen
+      if (labelRef.current) labelRef.current.style.opacity = String(s(0.04, 0.09) * (1 - s(0.16, 0.19)));
       // ---- 0.12–0.20: outline -> cloud, tag in by 0.20
       const m = settleEase(s(0.12, 0.2));
       const tint = s(0.12, 0.18);
@@ -180,7 +183,7 @@ export default function A200Context() {
         path.style.strokeWidth = String(lerp(1, 1.5, tint));
         path.style.opacity = String(s(0.0, 0.06));
       }
-      if (cloudTextRef.current) cloudTextRef.current.style.opacity = String(s(0.15, 0.2) * (1 - s(0.46, 0.48)));
+      if (cloudTextRef.current) cloudTextRef.current.style.opacity = String(s(0.13, 0.18) * (1 - s(0.46, 0.48)));
       // ---- 0.40–0.50: lift and fly (FLIP)
       const lift = s(0.4, 0.42);
       // scroll-mapped, so the flight eases in and out (DRAW); SETTLE's steep start would launch the cloud
@@ -217,7 +220,7 @@ export default function A200Context() {
       gridRef.current?.toggleAttribute('data-cap', v >= 0.45);
       const frame = drawEase(s(0.4, 0.52));
       frameRefs.current.forEach((el) => el?.style.setProperty('stroke-dashoffset', String(1 - frame)));
-      const reveal = drawEase(s(0.42, 0.85));
+      const reveal = drawEase(s(0.42, 0.8));
       if (fieldRef.current) fieldRef.current.style.clipPath = `circle(${(reveal * REVEAL_FULL).toFixed(2)}% at ${VX} ${VY})`;
       const box = boxRef.current;
       if (box) {

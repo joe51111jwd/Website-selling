@@ -3,8 +3,8 @@
 // anything App imports (three stays out of the shell and the prerender).
 //
 // Raw three 0.186: WebGLRenderer, Scene, PerspectiveCamera, Mesh, ShaderMaterial. No R3F, drei or
-// maath. Draw calls: plate 1, mesh 1, type planes 4 (<= 6, QA H9). One context, disposed by the
-// controller after the plan cut (P 0.10). Renders on demand; the controller runs the rig.
+// maath. Draw calls: plate 1, mesh 1, FAR 1, 07's matte layer 1, NEAR 1 (<= 6, QA H9). One context,
+// disposed by the controller after the plan cut (P 0.10). Renders on demand; the controller runs the rig.
 //
 // Mesh: (cols-1) x (rows-1) quads plus one overscan ring (12 %, edge-clamped depth and UV).
 // Depth is baked per vertex on the CPU from hero-depth-*.bin (Uint16 LE, vertex samples):
@@ -28,7 +28,7 @@ import {
   WebGLRenderer,
   LinearSRGBColorSpace,
 } from 'three';
-import { createFreezeMaterial, stretchK } from './freezeMaterial';
+import { createFreezeMaterial, createMatteMaterial, edgeMeasure, stretchK } from './freezeMaterial';
 import { createTypePlane, type TypeLine, type TypePlane } from './typePlanes';
 import { TYPE_Z } from './heroLayout';
 
@@ -54,6 +54,8 @@ export interface FreezeSceneOptions {
   /** [avif, jpg] candidates for the still that matches the playing codec */
   stillUrls: string[];
   plateUrls: string[];
+  /** hero-matte (07's cut-out): its alpha draws 07 over FAR. Empty = no FAR occlusion (phones, F-022) */
+  matteUrls: string[];
   /** from hero-meta: the plate quad's depth and its size relative to the frame-matched size there */
   plate?: { z?: number; scale?: number };
   lines: TypeLine[];
@@ -122,14 +124,19 @@ function buildMesh(o: FreezeSceneOptions): BufferGeometry {
   const R = vs.length;
   const pos = new Float32Array(C * R * 3);
   const uv = new Float32Array(C * R * 2);
+  // depth per grid sample, and its edge measure (8 neighbours, F-004); the overscan ring copies its edge sample
+  const zg = new Float32Array(cols * rows);
+  for (let k = 0; k < zg.length; k++) zg[k] = 1 / (meta.a + meta.b * (depth[k] / 65535));
+  const eg = edgeMeasure(zg, cols, rows);
+  const edge = new Float32Array(C * R);
   for (let j = 0; j < R; j++) {
     const jj = Math.max(0, Math.min(rows - 1, j - 1));
     const v = vs[j];
     for (let i = 0; i < C; i++) {
       const ii = Math.max(0, Math.min(cols - 1, i - 1));
       const u = us[i];
-      const d = depth[jj * cols + ii] / 65535;
-      const z = 1 / (meta.a + meta.b * d);
+      const z = zg[jj * cols + ii];
+      edge[j * C + i] = eg[jj * cols + ii];
       const nx = 2 * u - 1;
       const ny = (1 - 2 * v) * aspect;
       const k = (j * C + i) * 3;
@@ -161,12 +168,17 @@ function buildMesh(o: FreezeSceneOptions): BufferGeometry {
   const g = new BufferGeometry();
   g.setAttribute('position', new BufferAttribute(pos, 3));
   g.setAttribute('uv', new BufferAttribute(uv, 2));
+  g.setAttribute('aEdge', new BufferAttribute(edge, 1));
   g.setIndex(new BufferAttribute(index, 1));
   return g;
 }
 
 export async function createFreezeScene(o: FreezeSceneOptions): Promise<FreezeScene> {
-  const [stillImg, plateImg] = await Promise.all([loadImage(o.stillUrls), loadImage(o.plateUrls)]);
+  const [stillImg, plateImg, matteImg] = await Promise.all([
+    loadImage(o.stillUrls),
+    loadImage(o.plateUrls),
+    o.matteUrls.length ? loadImage(o.matteUrls) : Promise.resolve(null),
+  ]);
 
   const canvas = document.createElement('canvas');
   canvas.className = 'cv-gl-canvas';
@@ -207,7 +219,7 @@ export async function createFreezeScene(o: FreezeSceneOptions): Promise<FreezeSc
   plate.renderOrder = 0;
   scene.add(plate);
 
-  // the depth mesh
+  // the depth mesh (edge alpha over the plate)
   const stillTex = texture(stillImg);
   const geo = buildMesh(o);
   const mat = createFreezeMaterial(stillTex);
@@ -216,12 +228,24 @@ export async function createFreezeScene(o: FreezeSceneOptions): Promise<FreezeSc
   mesh.frustumCulled = false;
   scene.add(mesh);
 
-  // type planes (FAR depth-tested, NEAR last and never occluded)
+  // 07's layer: the same mesh, alpha from the matte, over FAR (the bite) and under NEAR (F-004 step 3)
+  const matteTex = matteImg ? texture(matteImg) : null;
+  const matteMat = matteTex ? createMatteMaterial(stillTex, matteTex) : null;
+  if (matteMat) {
+    const fg = new Mesh(geo, matteMat);
+    fg.renderOrder = 3;
+    fg.frustumCulled = false;
+    scene.add(fg);
+  }
+
+  // type planes: one per depth (FAR under 07's layer, NEAR last and never occluded)
   const frame = { w: o.cssW, h: o.cssH, f: meta.f };
   const rasterScale = Math.max(1.5, Math.min(2.5, o.dpr * 1.25));
-  const planes: TypePlane[] = o.lines.map((l) =>
-    createTypePlane(l, l.plane === 'far' ? TYPE_Z.far : TYPE_Z.near, frame, rasterScale),
-  );
+  const far = o.lines.filter((l) => l.plane === 'far');
+  const near = o.lines.filter((l) => l.plane === 'near');
+  const planes: TypePlane[] = [];
+  if (far.length) planes.push(createTypePlane(far, TYPE_Z.far, frame, rasterScale));
+  if (near.length) planes.push(createTypePlane(near, TYPE_Z.near, frame, rasterScale));
   planes.forEach((p) => scene.add(p.mesh));
 
   let lost = false;
@@ -281,6 +305,8 @@ export async function createFreezeScene(o: FreezeSceneOptions): Promise<FreezeSc
       planes.forEach((p) => p.dispose());
       geo.dispose();
       mat.dispose();
+      matteMat?.dispose();
+      matteTex?.dispose();
       stillTex.dispose();
       plateGeo.dispose();
       plateMat.dispose();

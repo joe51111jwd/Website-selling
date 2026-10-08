@@ -106,7 +106,6 @@
   aspect-ratio: 5 / 4;
   width: 100%;
   overflow: hidden;
-  background: var(--slab-black);
 }
 /* the frame is drawn by .a200-framedraw (it strokes on in the live stage), not by the CSS border */
 .a200 .a200-grid .view-frame {
@@ -133,6 +132,11 @@
   inset: 0;
   width: 100%;
   height: 100%;
+}
+/* the drawing's black ground travels with the reveal: a disc of drawing grows from the vertex, so the
+   frame is never an empty black box (F-043) */
+.a200-field {
+  background: var(--slab-black);
 }
 .a200-field path {
   fill: none;

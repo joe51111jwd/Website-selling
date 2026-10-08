@@ -22,7 +22,9 @@ H264_CRF = [23, 24, 26, 28, 30]
 PLATES = [
     ('el-c30',     'perspectives', MZ + '/n09r.mp4', 'crop=1920:804:0:0',                                 0.50, 1.00, 'n09r'),
     ('el-c30-m',   'perspectives', MZ + '/n09r.mp4', 'crop=861:1076:330:0,scale=1080:1350:flags=lanczos',  0.45, 1.00, 'n09r'),
-    ('el-c31',     'perspectives', MZ + '/c31.mp4',  'crop=861:1076:1059:0,scale=1080:1350:flags=lanczos', 0.50, 1.00, None),
+    # F-009: 4:5 window x 0.44, rows 0.345-1.0 (845,371 564x705): board face, both forearms and hands, the 07 chest
+    # number; the head stays out above the window in every frame (C6). Was x 0.55 full height (studs and a board edge).
+    ('el-c31',     'perspectives', MZ + '/c31.mp4',  'crop=564:705:845:371,scale=1080:1350:flags=lanczos', 0.50, 1.00, None),
     ('el-c32',     'perspectives', MZ + '/c32.mp4',  None,                                                  0.50, 1.00, None),
     ('el-c33',     'perspectives', MZ + '/c33.mp4',  'crop=1920:804:0:272',                                0.50, 1.00, None),
     ('det-v0',     'details',      MZ + '/v0.mp4',   'trim=end_frame=84,setpts=PTS-STARTPTS,crop=1076:1076:{v0x}:0', 0.30, 0.60, None),
