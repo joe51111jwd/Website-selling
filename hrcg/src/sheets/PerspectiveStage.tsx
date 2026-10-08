@@ -199,6 +199,9 @@ export function PerspectiveStage({
     let lastE = -1;
     let lastCompO = -1;
     let playing = false;
+    // iris: the origin detail's frame and caption (re-resolved on every measure)
+    let oFrameEl: HTMLElement | null = null;
+    let oCapEl: HTMLElement | null = null;
 
     const originParts = () => {
       const origin = originRef.current;
@@ -214,6 +217,8 @@ export function PerspectiveStage({
     const measure = () => {
       const { origin, oFrame, oCap } = originParts();
       if (!origin) return;
+      oFrameEl = oFrame;
+      oCapEl = oCap;
       const vh = window.innerHeight;
       const vw = document.documentElement.clientWidth;
       const top = CHROME_TOP();
@@ -364,7 +369,8 @@ export function PerspectiveStage({
         }
       } else {
         const { cx, cy, r0, r1, R } = geo.iris!;
-        const { oFrame, oCap } = originParts();
+        const oFrame = oFrameEl;
+        const oCap = oCapEl;
         setComp(1 - segment(e, IRIS_FADE[0], IRIS_FADE[1]));
         // the detail swells by area while it is still the detail
         const g1 = drawEase(segment(e, IRIS_SWELL[0], IRIS_SWELL[1]));
