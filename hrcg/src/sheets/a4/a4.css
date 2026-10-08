@@ -170,9 +170,8 @@
   stroke-linejoin: round;
   vector-effect: none;
 }
-.a200-tn {
-  color: var(--pencil);
-}
+/* F-079: both north arrows draw in chalk (the NorthArrow default); TRUE NORTH no longer sinks into the pencil streets */
+.a200-tn,
 .a200-gn,
 .a200-arc {
   color: var(--chalk);

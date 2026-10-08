@@ -15,3 +15,6 @@ the streets" was the defect). `.a200-tn { color: var(--pencil) }` is more specif
 NORTH deliberately secondary to THE 1811 GRID; in that case keep it and tell the director it is a choice.
 
 **Retake:** `qa/review/r1/art/1440-a-200-100vh-arrows.jpg` (A3) shows the arrows with the halo as of A3's pass.
+
+---
+**Done by the director (A4 had finished):** `.a200-tn` now joins `.a200-gn, .a200-arc` in chalk (`a4.css`). Both arrows are chalk, as F-079 asks. (director)
