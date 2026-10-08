@@ -4,6 +4,10 @@
 **Shipped by A5 (12:14–12:30):** `public/media/hero/hero-depth-{169,916}.bin`, `hero-matte-{169,916}.webp`,
 `hero-meta-{169,916}.json`, `hero-plate-{169,916}.*` (stills re-saved, pixel-identical; the films are untouched).
 Rebuild with `scripts/cpuq pipeline/run_hero.sh all --refreeze`.
+**Update 14:04–14:12:** for F-049 the c34 tape housing's pseudo-lettering is smudged in the mezzanine, so
+`hero-snap-169.{av1,h264}.mp4` (and its poster) were re-encoded (same 25 frames, same NEAR darkening; only the tape
+housing differs) and the 16:9 freeze, matte, meta and ghost ground were regenerated from it. The numbers below are
+from that final run. 16:9 `pivotZ` is now 2.2924.
 
 ## 1. What the data now is (F-008)
 
@@ -16,10 +20,10 @@ Rebuild with `scripts/cpuq pipeline/run_hero.sh all --refreeze`.
   1.6 px (9:16), with a soft cut (ramp over 3% of H ending at 0.62 / 0.45 H). It lies wholly inside the
   uniformly-near part of the mesh: no triangle that the matte touches spans a depth step.
 - `hero-meta-*.json` gains `depthDilation`, `edgeAlpha`, `farGlyphs`, `restStretch`, and per limit pose `stretch`.
-  `pivotZ` moved slightly (16:9 2.3486 → 2.3257; 9:16 2.2365 → 2.1858); `a`, `b`, `plate` are unchanged.
+  `pivotZ` moved slightly (16:9 2.3486 → 2.2924; 9:16 2.2365 → 2.1858); `a`, `b`, `plate` are unchanged.
 - Limit-pose gate (`gates.stretchPastMatte`): no visible triangle within 3 cells of the matte stretches more than
-  2 px past a rigid copy. **Passes in all 9 poses and at rest, both orientations** (max 1.05 px at yaw 10°; rest
-  0.53 px). Renders: `$S/a5qa/d1/limit-*.png`, `rest-*.png`; before/after crops in
+  2 px past a rigid copy. **Passes in all 9 poses and at rest, both orientations** (0 offending triangles; the band
+  excludes the matte's horizontal cut, which is not a silhouette). Renders: `$S/a5qa/d1/limit-*.png`, `rest-*.png`; before/after crops in
   `qa/review/r1/a5/f008-rest-{169,916}-crop-before-after.png`.
 
 ## 2. F-004: two changes to the spec, please
@@ -28,12 +32,13 @@ Rebuild with `scripts/cpuq pipeline/run_hero.sh all --refreeze`.
    stair-step of the silhouette on the grid) keeps a small aEdge, and the triangle across that diagonal
    (your index order a-c-b / b-c-d) stays visible and stretched. Same data, same poses:
    - 8 neighbours: 0 offending triangles at rest (max 0.53 px), 0 at yaw 10°.
-   - 4 neighbours: **148** at rest on 16:9 (up to 11.7 px), 174 at yaw 10°; 52 on 9:16 (up to 4.7 px).
+   - 4 neighbours: well over a hundred at rest on 16:9 (up to ~12 px) and ~50 on 9:16 (up to 4.7 px); the exact
+     counts are in each meta's `restStretchWith4Neighbours` / `limitPoses[].stretchWith4Neighbours`.
    `aEdge_i = max over the 8 neighbours n of |z_i − z_n| / z_i`, then `a = 1 − smoothstep(0.04, 0.08, vEdge·uK)`,
    discard below 0.01, exactly as F-004 says.
 2. **Occlude FAR with 07's matte layer, not with the mesh's depth buffer.** The dilated ring (background texels
    that move with 07) is at 07's depth by design, so a depth test bites FAR further out than the CSS matte does:
-   at yaw 0 the D is 12% bitten by depth but 0.3% by the matte, so the DOM→GL hand-over would pop the bite.
+   at yaw 0 the worst glyph is 12.8% bitten by depth but 2.4% by the matte, so the DOM→GL hand-over would pop the bite.
    Suggested order: plate → mesh (edge alpha, depthWrite on) → FAR planes (depthTest off) → 07 layer (the mesh
    again, alpha = matte sampled at vUv, depthTest off) → NEAR planes. That makes the GL bite at yaw 0 equal the DOM
    bite, and keeps the silhouette on the matte's clean edge at every yaw (F-004 step 3).
@@ -45,13 +50,13 @@ Rebuild with `scripts/cpuq pipeline/run_hero.sh all --refreeze`.
 
   | farLeft | worst glyph, matte yaw 0 / rest | depth test yaw 0 / rest |
   |---|---|---|
-  | 0.090 | 0.6% / 15.8% | 7.6% / 21.9% |
-  | **0.095** | **2.2% / 22.1%** | **12.3% / 31.1%** |
-  | 0.100 | 6.3% / 31.8% | 24.9% / 43.5% (fails) |
-  | 0.105 | 15.0% / 46.6% (fails) | 34.3% / 58.1% (fails) |
+  | 0.090 | 0.7% / 17.2% | 7.8% / 24.3% |
+  | **0.095** | **2.4% / 23.2%** | **12.8% / 33.9%** |
+  | 0.100 | 6.5% / 34.4% | 26.1% / 45.9% (fails) |
+  | 0.105 | 15.4% / 50.0% (fails) | 35.8% / 60.8% (fails) |
 
   At 0.095 the bite is the A and the D, on the left shoulder pad only (head box clear), and every HUMANOID glyph
-  stays ≥ 69% visible with either occlusion method. 0.100 also passes if you adopt §2.2. `typeLayerShift.far` is
+  stays ≥ 66% visible with either occlusion method. 0.100 also passes if you adopt §2.2. `typeLayerShift.far` is
   now `[-0.025, -0.005]`. Mirror it in `cover.css` (`--far-left: 0.095`).
 - **9:16: turn FAR occlusion off on phones** (F-022's own fallback, brief §2.5). With `farCapTop` 0.13 and size
   0.070 (now in the meta: `typeLayerShift.far = [0, 0.03]`, `fontPxFrac` 0.070), 07's **head**, not a shoulder,
