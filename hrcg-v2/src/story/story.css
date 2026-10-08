@@ -1,0 +1,236 @@
+/* The scroll story: one idea per screen. Tokens, fonts, header, pill, film and footer come from ../styles.css. */
+
+/* the page colour: one fixed layer behind everything, blended by scroll between parts */
+.st-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--ink);
+  pointer-events: none;
+}
+.story {
+  position: relative;
+}
+
+.tone-ink {
+  color: var(--chalk);
+}
+.tone-chalk {
+  color: var(--ink);
+}
+
+/* a part: a tall section with a pinned screen inside */
+.sc {
+  position: relative;
+  height: calc(var(--h, 240) * 1svh);
+}
+.sc-pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 84px var(--gutter) 96px;
+}
+
+/* 2. the statement */
+.st-wrap {
+  width: 100%;
+  max-width: var(--max);
+}
+.st-statement {
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: clamp(40px, 6.3vw, 104px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  max-width: 17ch;
+  text-wrap: balance;
+}
+
+/* 3–7. the tasks */
+.tk {
+  width: 100%;
+  max-width: var(--max);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(40px, 6vw, 112px);
+  align-items: center;
+}
+.tk-film {
+  width: min(44vw, calc(100svh - 200px), 620px);
+  will-change: transform;
+}
+.tk:not(.flip) .tk-film {
+  order: 2;
+}
+.st-film {
+  aspect-ratio: 1 / 1;
+  border-radius: 2px;
+  box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.45);
+}
+.tk-copy {
+  min-width: 0;
+}
+.tk-num {
+  font-family: var(--stencil);
+  font-weight: 800;
+  font-size: clamp(120px, 14vw, 230px);
+  line-height: 0.82;
+  letter-spacing: -0.01em;
+  color: var(--bronze-lt);
+  margin-bottom: clamp(16px, 2.6vh, 32px);
+}
+.tk-name {
+  font-family: var(--body);
+  font-weight: 800;
+  font-stretch: 100%;
+  font-size: clamp(40px, 5vw, 84px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  max-width: 11ch;
+}
+.tk-line {
+  margin-top: clamp(18px, 3vh, 32px);
+}
+.tk-line p {
+  font-size: clamp(18px, 1.55vw, 24px);
+  line-height: 1.45;
+  max-width: 30ch;
+  opacity: 0.84;
+}
+
+/* 8. who */
+.who-s {
+  width: 100%;
+  max-width: var(--max);
+}
+.who-s-h {
+  font-family: var(--body);
+  font-weight: 800;
+  font-size: clamp(44px, 6.4vw, 108px);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  max-width: 12ch;
+}
+.who-s-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(32px, 5vw, 96px);
+  margin-top: clamp(40px, 8vh, 88px);
+  max-width: 1080px;
+}
+.who-s-card {
+  border-top: 2px solid var(--orange);
+  padding-top: 22px;
+}
+.who-s-card h3 {
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: clamp(24px, 2.2vw, 32px);
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+}
+.who-s-card p {
+  font-size: clamp(18px, 1.5vw, 22px);
+  max-width: 32ch;
+  color: var(--body-ink);
+}
+
+/* 9. the permit: a normal section, because people type in it */
+.st-permit {
+  position: relative;
+  background: var(--chalk);
+  padding: clamp(100px, 16vh, 180px) var(--gutter) clamp(120px, 18vh, 200px);
+}
+.st-permit-head {
+  max-width: var(--max);
+  margin: 0 auto clamp(40px, 7vh, 72px);
+}
+.st-permit-head h2 {
+  font-family: var(--body);
+  font-weight: 800;
+  font-size: clamp(48px, 7vw, 120px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.st-permit-head p {
+  margin-top: 24px;
+  font-size: clamp(18px, 1.5vw, 22px);
+  max-width: 36ch;
+  color: var(--body-ink);
+}
+.st-permit > .permit {
+  max-width: var(--max);
+  margin: 0 auto;
+}
+
+.story .foot {
+  position: relative;
+}
+
+/* phones: the film sits above the words */
+@media (max-width: 760px) {
+  .sc-pin {
+    padding: 72px 20px 92px;
+  }
+  .tk,
+  .tk.flip {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+    align-content: center;
+  }
+  .tk:not(.flip) .tk-film {
+    order: 0;
+  }
+  .tk-film {
+    width: min(100%, calc(100svh - 430px));
+    min-width: 220px;
+    justify-self: center;
+  }
+  .tk-num {
+    font-size: clamp(64px, 19vw, 92px);
+    margin-bottom: 10px;
+  }
+  .tk-name {
+    font-size: clamp(32px, 9vw, 42px);
+    max-width: none;
+  }
+  .tk-line {
+    margin-top: 12px;
+  }
+  .tk-line p {
+    font-size: 17px;
+  }
+  .st-statement {
+    font-size: clamp(36px, 10.4vw, 52px);
+  }
+  .who-s-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    margin-top: 36px;
+  }
+  .who-s-h {
+    font-size: clamp(40px, 11.5vw, 60px);
+  }
+}
+
+/* reduced motion: the same screens, stacked, with no scroll-linked movement */
+.is-still .st-bg {
+  display: none;
+}
+.is-still .sc {
+  height: auto;
+}
+.is-still .sc-pin {
+  position: relative;
+  height: auto;
+  min-height: 100svh;
+}
+.is-still .sc.tone-ink {
+  background: var(--ink);
+}
+.is-still .sc.tone-chalk {
+  background: var(--chalk);
+}
