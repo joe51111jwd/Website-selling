@@ -1,0 +1,701 @@
+
+<div id="root">
+<a href="#main">
+Skip to content 
+<a aria-label="HRCG Humanoid Robot Construction Games, back to the cover" href="#a-000">
+HRCG 
+HUMANOID ROBOT 
+CONSTRUCTION GAMES 
+<a aria-label="Open the drawing index" href="#index">
+INDEX 
+<nav aria-label="Title block">
+<a aria-label="Humanoid Robot Construction Games, back to the cover" href="#a-000">
+PROJECT 
+Humanoid Robot Construction Games 
+STATUS · PLACE · YEAR 
+PLANNED · NEW YORK CITY · 
+2027 
+PLANNED · NYC · 
+2027 
+DATE · VENUE 
+HOLD 
+Date to be announced on this site. Venue to be announced on this site. 
+IMAGERY 
+CONCEPT · AI-GENERATED 
+CONCEPT 
+SHEET 
+A-000 · COVER 
+A-000 
+MOTION 
+Motion 
+ON 
+OFF 
+<a href="#a-300">
+ROBOT TEAMS 
+Bring the robot → 
+Teams → 
+<a href="#a-301">
+CONSTRUCTION COMPANIES 
+Bring your product → 
+Sponsors → 
+<nav aria-label="Title block">
+<a href="#index">
+PLANNED · NYC · 
+2027 · 
+A-000 
+<a href="#a-300">
+Teams → 
+<a href="#a-301">
+Sponsors → 
+<main id="main">
+<img alt="">
+<img alt="AI-generated concept film still: robot 07 crouches as a blue chalk line snaps and dust billows toward the camera.">
+<video aria-label="AI-generated concept film: robot 07 crouches as a blue chalk line snaps and dust billows toward the camera.">
+<div aria-label="3D view of the frozen moment. Use arrow keys to look around.">
+PERSPECTIVE 
+05-A · LAYOUT AND MARKING · CONCEPT FILM · AI-GENERATED. THIS HASN’T HAPPENED YET. 
+NTS 
+3D VIEW 
+05-A · DEPTH ESTIMATED FROM ONE FRAME OF AI-GENERATED CONCEPT FILM · RELATIVE, NO UNITS · NOT ROBOT PERCEPTION DATA 
+NTS 
+PERSPECTIVE 
+05-A · LAYOUT AND MARKING · CONCEPT FILM STILL · AI-GENERATED. THIS HASN’T HAPPENED YET. 
+NTS 
+PLANNED · NEW YORK CITY · 2027 
+<h1 id="cv-h1">
+Humanoid Robot Construction Games : 
+What can a 
+What can a 
+humanoid 
+humanoid 
+actually 
+actually 
+build? 
+build? 
+<img alt="">
+Five construction tasks, with results you can see. 
+<button aria-label="Snap the chalk line">
+<button aria-label="Pull the chalk line: drag down, or tap to snap">
+PULL THE LINE. LET GO. 
+or press Space 
+or tap the line 
+DRAG TO LOOK · SCROLL FOR THE PLAN ↓ 
+SCROLL FOR THE PLAN ↓ 
+<button aria-label="Reset the chalk line">
+RESET THE LINE 
+▶ PLAY THE SNAP (1 S) · CONCEPT FILM 
+A-100 · THE FIVE BAYS (ILLUSTRATIVE) · NOT A VENUE PLAN · NTS 
+<video aria-label="AI-generated concept film, seen from above: five work bays in a row. In each one, robot 07, a concept design, works on one challenge: bricklaying, drywall installation, bolted assembly, pipe assembly, and layout and marking.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film, seen from above: five work bays in a row. In each one, robot 07, a concept design, works on one challenge: bricklaying, drywall installation, bolted assembly, pipe assembly, and layout and marking.">
+▶ PLAY 
+<video aria-label="AI-generated concept film, seen from above: robot 07 snaps a blue chalk line inside a marked-out bay and moves to the bay’s edge.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film, seen from above: robot 07 snaps a blue chalk line inside a marked-out bay and moves to the bay’s edge.">
+▶ PLAY 
+<a href="#a-101">
+01 
+01 BRICKLAYING 
+<a href="#a-102">
+02 
+02 DRYWALL INSTALLATION 
+<a href="#a-103">
+03 
+03 BOLTED ASSEMBLY 
+<a href="#a-104">
+04 
+04 PIPE ASSEMBLY 
+<a href="#a-105">
+05 
+05 LAYOUT AND MARKING 
+PLAN VIEWS 
+01–05 · CONCEPT FILM · AI-GENERATED 
+NTS 
+<a href="#a-101">
+01 
+BRICKLAYING 
+A-101 
+→ 
+<a href="#a-102">
+02 
+DRYWALL INSTALLATION 
+A-102 
+→ 
+<a href="#a-103">
+03 
+BOLTED ASSEMBLY 
+A-103 
+→ 
+<a href="#a-104">
+04 
+PIPE ASSEMBLY 
+A-104 
+→ 
+<a href="#a-105">
+05 
+LAYOUT AND MARKING 
+A-105 
+→ 
+LEGEND 
+BAY 
+CONTROL POINT 
+CHALK LINE 
+VIEW MARKER 
+DETAIL 
+SECTION CUT 
+HOLD 
+Five jobs every builder knows. 
+Each one is real trade work, from a straight course of brick to a precisely marked plan. The Games bring robot developers together with the people who build, specify and buy. 
+<img alt="AI-generated concept film still, seen from above: a freshly snapped blue chalk line in bay 05, with robot 07 crouched beside it.">
+PLAN 
+05 · CONCEPT FILM STILL · AI-GENERATED 
+NTS 
+<div id="a-000">
+<div id="a-100">
+<section id="a-101">
+A-101 · CHALLENGE 
+01 · BRICKLAYING · PLAN / PERSPECTIVE / DETAIL · NTS 
+<video aria-label="AI-generated concept film, seen from above: robot 07 spreads mortar and lays a course of brick between two line posts.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film, seen from above: robot 07 spreads mortar and lays a course of brick between two line posts.">
+▶ PLAY 
+PLAN 
+01 · CONCEPT FILM · AI-GENERATED 
+NTS 
+<a aria-label="Go to perspective 01-A / A-101, concept film of bricklaying" href="#a101-persp">
+01-A A-101 
+<button aria-label="Open detail 1 / A-101, concept film of a robot hand pressing a brick into mortar">
+1 / A-101 
+<div id="_R_4q535_">
+<video aria-label="AI-generated concept film, close up: a robot hand presses a brick into a mortar bed beside a stringline.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film, close up: a robot hand presses a brick into a mortar bed beside a stringline.">
+▶ PLAY 
+DETAIL 
+1 / 
+A-101 · CONCEPT FILM · AI-GENERATED 
+NTS 
+DETAIL 
+01 
+BRICK­LAYING 
+Build a wall segment with straight courses, consistent joints, and a stable finish. 
+STRAIGHT COURSES 
+CONSISTENT JOINTS 
+STABLE FINISH 
+<span id="a101-persp">
+<video aria-label="AI-generated concept film: robot 07 lays a brick on a mortar bed along a stringline, with lights hanging in the dark behind.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film: robot 07 lays a brick on a mortar bed along a stringline, with lights hanging in the dark behind.">
+▶ PLAY 
+<figcaption id="a101-persp-title">
+PERSPECTIVE 
+01-A · CONCEPT FILM · AI-GENERATED 
+NTS 
+<section id="a-102">
+A-102 · CHALLENGE 
+02 · DRYWALL INSTALLATION · PERSPECTIVE / PLAN · NTS 
+<video aria-label="AI-generated concept film, close on robot 07’s hands pressing a sheet of drywall flat against a steel stud frame; dust hangs in the light.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film, close on robot 07’s hands pressing a sheet of drywall flat against a steel stud frame; dust hangs in the light.">
+▶ PLAY 
+PERSPECTIVE 
+02-A · CONCEPT FILM · AI-GENERATED 
+NTS 
+<video aria-label="AI-generated concept film, seen from above: robot 07 holds a drywall sheet against a stud frame, steps back, and returns.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film, seen from above: robot 07 holds a drywall sheet against a stud frame, steps back, and returns.">
+▶ PLAY 
+PLAN 
+02 · CONCEPT FILM · AI-GENERATED 
+NTS 
+DRYWALL INSTALLATION 
+Position and fasten a panel on a prepared frame, with correct alignment and a clean finish. 
+POSITIONED 
+FASTENED 
+ALIGNED 
+CLEAN FINISH 
+02 
+<section id="a-103">
+A-103 · CHALLENGE 
+03 · BOLTED ASSEMBLY · DETAIL / PERSPECTIVE / PLAN · NTS 
+03 
+BOLTED 
+ASSEMBLY 
+<video aria-label="AI-generated concept film, close up: a robot hand runs an impact wrench on a nut until it seats.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film, close up: a robot hand runs an impact wrench on a nut until it seats.">
+▶ PLAY 
+DETAIL 
+3 / 
+A-103 · CONCEPT FILM · AI-GENERATED 
+NTS 
+3 / A-103 
+Align components and complete a secure bolted connection. 
+ALIGNED 
+· SECURE 
+<video aria-label="AI-generated concept film, seen from above: robot 07 completes a bolted connection with an impact wrench.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film, seen from above: robot 07 completes a bolted connection with an impact wrench.">
+▶ PLAY 
+PLAN 
+03 · CONCEPT FILM · AI-GENERATED 
+NTS 
+<span id="a103-persp">
+<video aria-label="AI-generated concept film: robot 07 drives a bolt with an impact wrench and reaches into a tray of bolts.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film: robot 07 drives a bolt with an impact wrench and reaches into a tray of bolts.">
+▶ PLAY 
+<figcaption id="a103-persp-title">
+PERSPECTIVE 
+03-A · CONCEPT FILM · AI-GENERATED 
+NTS 
+<section id="a-104">
+A-104 · CHALLENGE 
+04 · PIPE ASSEMBLY · ISOMETRIC / PERSPECTIVE · NTS 
+<video aria-label="AI-generated concept film, seen from above: robot 07 joins copper pipe and fittings beside a task drawing taped to the floor.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film, seen from above: robot 07 joins copper pipe and fittings beside a task drawing taped to the floor.">
+▶ PLAY 
+PLAN 
+04 · CONCEPT FILM · AI-GENERATED 
+NTS 
+TASK DRAWING TRACED FROM CONCEPT FOOTAGE · DRAWING 
+NTS 
+<button aria-label="Play: AI-generated concept film, seen from above: robot 07 joins copper pipe and fittings beside a task drawing taped to the floor.">
+▶ PLAY 
+TO THE DRAWING 
+CORRECT GEOMETRY 
+SECURE JOINTS 
+TO THE DRAWING 
+CORRECT GEOMETRY 
+SECURE JOINTS 
+PIPE ASSEMBLY 
+Connect pipes and fittings to a task drawing, with correct geometry and secure joints. 
+<video aria-label="AI-generated concept film, close on robot 07’s hands joining copper pipe at an elbow under a warm work light.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film, close on robot 07’s hands joining copper pipe at an elbow under a warm work light.">
+▶ PLAY 
+PERSPECTIVE 
+04-A · CONCEPT FILM · AI-GENERATED 
+NTS 
+<section id="a-105">
+A-105 · CHALLENGE 
+05 · LAYOUT AND MARKING · PLAN / SECTION A–A / DETAIL · NTS 
+<video aria-label="AI-generated concept film, seen from above: robot 07 snaps a blue chalk line inside a marked-out bay and moves to the bay’s edge.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film, seen from above: robot 07 snaps a blue chalk line inside a marked-out bay and moves to the bay’s edge.">
+▶ PLAY 
+<div aria-label="Section cut A–A: move the cutting plane along the chalk line" aria-valuetext="Middle">
+A A 
+PLAN 
+05 · CONCEPT FILM · AI-GENERATED 
+NTS 
+LINES TRACED FROM CONCEPT FOOTAGE · DRAWING 
+NTS 
+<div aria-label="Depth drawing of one frame from an AI-generated concept film, with the section plane in the middle.">
+<img alt="">
+<img alt="">
+<img alt="">
+SECTION A–A · DEPTH ESTIMATED FROM AI-GENERATED CONCEPT FILM · RELATIVE, NO UNITS · NOT ROBOT PERCEPTION DATA · ILLUSTRATIVE: PLAN AND SECTION ARE DIFFERENT SHOTS 
+NTS 
+DRAG THE CUT ALONG THE LINE · IN FRONT OF THE PLANE: THE DRAWING · BEHIND IT: THE FILM 
+Before the walls, pipes and fittings go in, someone marks out where they go. That’s this job. 
+LAYOUT AND MARKING 
+<button aria-label="Open DETAIL 5 / A-105, concept film of robot fingers pinching a chalk line and letting it snap">
+5 / A-105 
+<div id="_R_1ab5_">
+<video aria-label="AI-generated concept film, close up from above: robot fingers pinch a blue chalk line, lift it and let it snap onto concrete.">
+<img alt="">
+<button aria-label="Play: AI-generated concept film, close up from above: robot fingers pinch a blue chalk line, lift it and let it snap onto concrete.">
+▶ PLAY 
+DETAIL 
+5 / 
+A-105 · CONCEPT FILM · AI-GENERATED 
+NTS 
+Transfer a plan onto a work surface with accurate positions and clear reference lines. 
+ACCURATE POSITIONS 
+CLEAR REFERENCE LINES 
+<section id="a-200">
+A-200 · CONTEXT · THE 
+1811 GRID (HISTORY) · NOT A MAP · NTS 
+THE FIVE BAYS · ILLUSTRATIVE 
+<img alt="AI-generated concept film still, seen from above: five work bays in a row.">
+PLAN VIEWS 
+01–05 · CONCEPT FILM STILL · AI-GENERATED 
+NTS 
+VENUE: HOLD 
+Venue to be announced on this site. 
+<span aria-label="A cloud marked HOLD: the venue has not been announced.">
+VENUE: HOLD 
+Venue to be announced on this site. 
+<div aria-label="Line drawing of the 1811 Manhattan street-grid module, set about 29 degrees east of true north. A history diagram, not a map, and not the venue.">
+TRUE NORTH THE 1811 GRID · ABOUT 29° E OF TRUE NORTH ABOUT 29° 
+CONTEXT · THE 
+1811 GRID (HISTORY) · DRAWING · NOT A MAP 
+NTS 
+New York’s grid started as a layout. 
+In 1811, the Commissioners’ Plan drew Manhattan as a grid of twelve avenues and 155 cross streets, set about 29° east of true north. Survey crews led by John Randel Jr. then marked it out on the ground, much of it still fields, with 1,549 marble markers and 98 iron bolts where rock got in the way. 
+The Games are planned for New York City in 2027. Date and venue will be announced on this site. 
+<section id="a-300">
+A-300 · FOR TEAMS · 
+RFI-001 · NTS 
+<img alt="Concept illustration: portrait of robot 07, an original concept robot with graphite armor, orange shoulder panels and a stenciled 07 on its chest.">
+DETAIL 
+07 · CONCEPT ILLUSTRATION · AI-GENERATED · ROBOT 
+07 IS A CONCEPT DESIGN, NOT A REAL ROBOT OR A COMPETITOR 
+NTS 
+<img alt="Concept illustration, seen from above: an empty work bay with yellow tape and a chalked plan, with YOUR ROBOT stenciled on the floor.">
+<filter id="bay-paint-_R_aaf5_">YOUR ROBOT — READY FOR 01 02 03 04 05 
+PLAN · AN EMPTY BAY · CONCEPT ILLUSTRATION · AI-GENERATED · NOT A VENUE PLAN 
+NTS 
+07 ISN’T REAL. 
+YOURS IS. 
+07 is a stand-in we designed for these films: no team, no maker, no platform. The Games are for real robots. 
+BRING THE ROBOT. PROVE THE WORK. 
+<img alt="Concept illustration, seen from above: an empty work bay with yellow tape and a chalked plan, with YOUR ROBOT stenciled on the floor.">
+<filter id="bay-paint-_R_5jf5_">YOUR ROBOT — READY FOR 01 02 03 04 05 
+PLAN · AN EMPTY BAY · CONCEPT ILLUSTRATION · AI-GENERATED · NOT A VENUE PLAN 
+NTS 
+For humanoid robot developers, research labs, and university teams. 
+Put your platform to work in front of the construction industry. Tell us three things: your platform, which of the five you’re ready for, and what you’d need to take part. 
+<filter id="mini-paint-_R_ejf5_">YOUR ROBOT READY FOR 01 02 03 04 05 
+<p id="rfi-001-title">
+RFI-001 
+FROM (TEAM OR LAB) 
+<input id="rfi-team" placeholder="Your team or lab">
+1 · PLATFORM 
+<input id="rfi-platform" placeholder="Which robot, and what it does today">
+2 · CHALLENGES YOU’RE READY FOR 
+<input id="rfi-ch-01">
+01 
+BRICKLAYING 
+<input id="rfi-ch-02">
+02 
+DRYWALL INSTALLATION 
+<input id="rfi-ch-03">
+03 
+BOLTED ASSEMBLY 
+<input id="rfi-ch-04">
+04 
+PIPE ASSEMBLY 
+<input id="rfi-ch-05">
+05 
+LAYOUT AND MARKING 
+<p id="rfi-challenges-help">
+Tell us which challenges suit your platform. We’ll start from the work your robot is ready to attempt. 
+3 · WHAT YOU’D NEED TO TAKE PART 
+<textarea id="rfi-needs" placeholder="Equipment, materials, support, questions">
+<a href="mailto:hello@example.com?subject=HRCG%202027%20(planned)%20-%20Discuss%20competing%20-%20our%20team&body=Hello%2C%0D%0A%0D%0AWe'd%20like%20to%20discuss%20competing%20in%20the%20Humanoid%20Robot%20Construction%20Games%2C%20planned%20for%20New%20York%20City%20in%202027.%0D%0A%0D%0AFrom%3A%20-%0D%0A1.%20Platform%3A%20-%0D%0A2.%20Challenges%20we're%20ready%20for%3A%20Not%20sure%20yet%0D%0A3.%20What%20we'd%20need%20to%20take%20part%3A%20-">
+Discuss competing → 
+<p id="rfi-fine">
+Opens your email app with this filled in. Nothing you type is stored or sent by this page. Ticking a box only adds it to the email. 
+Or email 
+<a href="mailto:hello@example.com?subject=HRCG%202027%20(planned)">
+hello@example.com 
+Copy address 
+CONTROL TARGET 
+T7 
+<img alt="Control target T7: a square panel of dark and light bricks in stack bond, two bricks to each cell, that forms AprilTag tag36h11, ID 7.">
+<h3 id="t7-h3">
+A wall a camera can read. 
+This target is 128 bricks in stack bond, two stacked in each square cell. To you it’s brickwork. To a camera it’s an AprilTag: family tag36h11, ID 7, the number on our concept robot’s chest. Print it. Use it in your own tests. 
+A gift for developers, not a rule of the Games. 
+<a href="kit/hrcg-t7-letter.pdf">
+Download 
+T7 (US Letter PDF) 
+<a href="kit/hrcg-t7-a4.pdf">
+Download 
+T7 (A4 PDF) 
+<a href="kit/hrcg-t7.svg">
+Download 
+T7 (SVG) 
+<img alt="Our digital test renders of the target, flat, warped and blurred, and small, each outlined where the detector found the tag.">
+DETECTED IN OUR TESTS ON DIGITAL RENDERS, NOT PRINTS: FLAT · WARPED + BLURRED · 
+26 PX WIDE. DETECTOR: OPEN-SOURCE APRILTAG LIBRARY. 
+<section id="a-301">
+A-301 · FOR SPONSORS · KEYNOTES · NTS 
+<img alt="Concept illustration from above: a pallet of brick and a tub of mortar with a trowel on concrete. Not a sponsor product.">
+MAT 
+01 · BRICK AND MORTAR 
+[1] 
+<img alt="Concept illustration from above: stacked drywall sheets, a box of screws and a drill. Not a sponsor product.">
+MAT 
+02 · BOARD AND FIXINGS 
+[1] 
+[2] 
+<img alt="Concept illustration from above: a tray of bolts and nuts and a wrench. Not a sponsor product.">
+MAT 
+03 · BOLTS AND NUTS 
+[1] 
+[2] 
+<img alt="Concept illustration from above: copper fittings in a box and a pipe cutter. Not a sponsor product.">
+MAT 
+04 · PIPE AND FITTINGS 
+[1] 
+<img alt="Concept illustration from above: a chalk line reel, a tape measure and an orange marking can. Not a sponsor product.">
+MAT 
+05 · LINE AND MARKING 
+[1] 
+[2] 
+MATERIALS · CONCEPT ILLUSTRATION · AI-GENERATED · NOT SPONSOR PRODUCTS 
+NTS 
+<h2 id="a301-h2">
+PUT YOUR PRODUCT IN A ROBOT’S HANDS. 
+Support the inaugural Games and connect your company with robotics teams and the people who specify and buy construction products. 
+KEYNOTES 
+<li id="keynote-1">
+[1] 
+SUPPORT A CHALLENGE 
+— 
+Contribute materials, tools, fixtures, or practical expertise. 
+<li id="keynote-2">
+[2] 
+SHOW WHAT YOU MAKE 
+— 
+Get in front of the people who specify and buy. Ask us about demonstrations and visibility. 
+<li id="keynote-3">
+[3] 
+MEET THE TALENT 
+— 
+Meet the engineers making robots useful on site, through recruiting and technical conversations with developers and research teams. 
+COMPANY 
+<input id="kit-company" placeholder="Your company">
+WHAT YOU MAKE 
+<input id="kit-make" placeholder="Products, tools or services">WHAT COULD YOU BRING? 
+<input id="kit-bring-materials">
+MATERIALS 
+<input id="kit-bring-tools">
+TOOLS 
+<input id="kit-bring-fixtures">
+FIXTURES 
+<input id="kit-bring-expertise">
+EXPERTISE WHICH CHALLENGE? 
+<input id="kit-ch-01">
+01 
+BRICKLAYING 
+<input id="kit-ch-02">
+02 
+DRYWALL INSTALLATION 
+<input id="kit-ch-03">
+03 
+BOLTED ASSEMBLY 
+<input id="kit-ch-04">
+04 
+PIPE ASSEMBLY 
+<input id="kit-ch-05">
+05 
+LAYOUT AND MARKING ALSO INTERESTED IN 
+<input id="kit-also-demos">
+DEMONSTRATIONS AND VISIBILITY 
+<input id="kit-also-talent">
+RECRUITING AND TECHNICAL CONVERSATIONS 
+<a href="mailto:hello@example.com?subject=HRCG%202027%20(planned)%20-%20Discuss%20sponsorship%20-%20our%20company&body=Hello%2C%0D%0A%0D%0AWe'd%20like%20to%20discuss%20supporting%20the%20Humanoid%20Robot%20Construction%20Games%2C%20planned%20for%20New%20York%20City%20in%202027.%0D%0A%0D%0ACompany%3A%20-%0D%0AWhat%20we%20make%3A%20-%0D%0AWe%20could%20bring%3A%20Not%20sure%20yet%0D%0AChallenge(s)%20of%20interest%3A%20Not%20sure%20yet%0D%0AAlso%20interested%20in%3A%20-">
+Discuss sponsorship → 
+<p id="kit-fine">
+Opens your email app with this filled in. Nothing you type is stored or sent by this page. Ticking a box only adds it to the email. 
+Or email 
+<a href="mailto:hello@example.com?subject=HRCG%202027%20(planned)">
+hello@example.com 
+Copy address 
+<section id="a-900">
+A-900 · GENERAL NOTES · END OF SET 
+General notes. 
+1. 
+When and where are the Games? 
+→ 
+Planned for New York City in 2027. Date and venue will be announced on this site. 
+2. 
+Who is the competition for? 
+→ 
+Humanoid robot developers, research labs, and university teams interested in demonstrating construction capabilities. 
+3. 
+Does a team need to enter all five challenges? 
+→ 
+Tell us which challenges suit your platform. We’ll start from the work your robot is ready to attempt. 
+4. 
+How can my company get involved? 
+→ 
+Explore challenge support, product demonstrations, recruiting, and visibility with construction buyers. Get in touch to discuss the right fit. 
+5. 
+Are the images and films real? 
+→ 
+No. Every photo-style image and film of robots, bays and materials on this site is AI-generated concept imagery. The Games haven’t happened yet. 
+6. 
+Who is robot 07? 
+→ 
+A concept robot designed for these films. We didn’t model it on any real robot or company, and it isn’t a competitor. 
+IMAGERY NOTES 
+FOOTAGE 
+Concept films and stills of robots, bays and materials, AI-generated. Robot 07 is an original concept design. 
+DEPTH VIEWS 
+3D VIEW 05-A and SECTION A–A are estimated from single frames of the concept films by a monocular depth model. Relative, no units. A drawing of the footage, not robot perception data. They do not describe how the Games will be judged. 
+KNOWN LIMITATIONS 
+One camera sees one side of everything. Dust and haze confuse the estimate. Where the view looks behind an object, the hidden area is filled with a darkened blur of its surroundings. 
+CONTROL TARGET 
+T7 
+AprilTag family tag36h11, ID 7, laid as 128 bricks in stack bond, two to each cell so the tag is square. A test target for developers, not a rule of the Games. Detection was tested on digital renders, not prints. 
+SCALE 
+Nothing on this site is drawn to scale. 
+<ol aria-label="Roll-call">
+<a href="#a-101">
+A-101 
+LAY BRICK. 
+<a href="#a-102">
+A-102 
+HANG DRYWALL. 
+<a href="#a-103">
+A-103 
+BOLT IT. 
+<a href="#a-104">
+A-104 
+RUN THE PIPE. 
+<a href="#a-105">
+A-105 
+MARK IT OUT. 
+Tell us what your robot can do, or what you could bring. 
+<a href="mailto:hello@example.com?subject=HRCG%202027%20(planned)">
+hello@example.com 
+Copy address 
+<a href="media/film/the-set-169.h264.mp4">
+▶ WATCH THE SET ( 
+0:30 ) · CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE 
+THIS HASN’T HAPPENED YET. 
+PROJECT 
+Humanoid Robot Construction Games 
+LOCATION 
+New York City 
+STATUS 
+Planned 
+YEAR 
+2027 
+DATE 
+Hold. 
+To be announced on this site. 
+VENUE 
+Hold. 
+To be announced on this site. 
+CHALLENGES 
+01 Bricklaying 
+· 
+02 Drywall installation 
+· 
+03 Bolted assembly 
+· 
+04 Pipe assembly 
+· 
+05 Layout and marking 
+IMAGERY 
+Imagery and film are concept visualizations, AI-generated. 
+SCALE 
+NTS 
+SHEET 
+A-900 · End of set 
+CONTACT 
+<a href="mailto:hello@example.com?subject=HRCG%202027%20(planned)">
+hello@example.com 
+INDEX 
+<nav id="index" aria-label="Drawing index">
+<a href="#a-000">
+A-000 COVER 
+<a href="#a-100">
+A-100 THE FIVE BAYS (ILLUSTRATIVE) 
+<a href="#a-101">
+A-101 LAY BRICK. 
+· Bricklaying 
+<a href="#a-102">
+A-102 HANG DRYWALL. 
+· Drywall installation 
+<a href="#a-103">
+A-103 BOLT IT. 
+· Bolted assembly 
+<a href="#a-104">
+A-104 RUN THE PIPE. 
+· Pipe assembly 
+<a href="#a-105">
+A-105 MARK IT OUT. 
+· Layout and marking 
+<a href="#a-200">
+A-200 CONTEXT · THE 1811 GRID 
+<a href="#a-300">
+A-300 FOR TEAMS 
+<a href="#a-301">
+A-301 FOR SPONSORS 
+<a href="#a-900">
+A-900 GENERAL NOTES 
+<p id="index-dialog-title">
+DRAWING INDEX · 
+HRCG-2027 · PLANNED · 
+11 SHEETS · NTS 
+<a href="#a-000">
+A-000 
+COVER 
+<a href="#a-100">
+A-100 
+THE FIVE BAYS (ILLUSTRATIVE) 
+<a href="#a-101">
+A-101 
+LAY BRICK. 
+Bricklaying 
+<a href="#a-102">
+A-102 
+HANG DRYWALL. 
+Drywall installation 
+<a href="#a-103">
+A-103 
+BOLT IT. 
+Bolted assembly 
+<a href="#a-104">
+A-104 
+RUN THE PIPE. 
+Pipe assembly 
+<a href="#a-105">
+A-105 
+MARK IT OUT. 
+Layout and marking 
+<a href="#a-200">
+A-200 
+CONTEXT · THE 1811 GRID 
+<a href="#a-300">
+A-300 
+FOR TEAMS 
+<a href="#a-301">
+A-301 
+FOR SPONSORS 
+<a href="#a-900">
+A-900 
+GENERAL NOTES 
+▶ WATCH THE SET (0:30) · CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE 
+CLOSE (ESC) 
+<p id="title-sheet-title">
+TITLE BLOCK · 
+HRCG-2027 · PLANNED 
+PROJECT 
+Humanoid Robot Construction Games 
+STATUS · PLACE · YEAR 
+PLANNED · NEW YORK CITY · 
+2027 
+DATE · VENUE 
+HOLD 
+Date to be announced on this site. Venue to be announced on this site. 
+IMAGERY 
+CONCEPT · AI-GENERATED 
+SHEET 
+A-000 · COVER 
+MOTION 
+Motion 
+ON 
+OFF 
+<a href="#a-300">
+ROBOT TEAMS 
+Bring the robot → 
+<a href="#a-301">
+CONSTRUCTION COMPANIES 
+Bring your product → 
+CLOSE 
+<dialog aria-label="The Set, a 30-second concept film">
+THE SET · CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE · 
+0:30 
+<video aria-label="Concept film poster: robot 07 behind blue chalk dust under the headline What can a humanoid actually build? AI-generated concept footage.">
+CLOSE (ESC) 
+<div id="hrcg-live">
+
