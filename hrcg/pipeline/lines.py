@@ -96,6 +96,18 @@ def dedupe(v, tol=0.008):
     for x in v:
         if not o or x - o[-1] > tol: o.append(x)
     return o
+def grid_entries():
+    ents = []
+    for ax_, key, other in (('x', 0, 1), ('y', 1, 0)):
+        segs_ = [s_ for s_ in out if (s_['axis'] == 'v') == (ax_ == 'x')]
+        segs_.sort(key=lambda s_: s_['a'][key])
+        for s_ in segs_:
+            at = s_['a'][key] / N; lo, hi = sorted([s_['a'][other] / N, s_['b'][other] / N])
+            if ents and ents[-1]['axis'] == ax_ and abs(ents[-1]['at'] - at) < 0.012:
+                ents[-1]['from'] = round(min(ents[-1]['from'], lo), 4); ents[-1]['to'] = round(max(ents[-1]['to'], hi), 4)
+            else:
+                ents.append({'axis': ax_, 'at': round(at, 4), 'from': round(lo, 4), 'to': round(hi, 4)})
+    return ents
 # plan-cut scale gate
 W1440 = 1584.0; W1920 = 1920 * min(max(1920 / 1920, 1080 / 1076), min(1920 / 1920, 1080 / 1076) * 1.10)
 s1440, s1920 = 0.40 * W1440 / flen, 0.40 * W1920 / flen
@@ -107,8 +119,10 @@ doc = {'space': 'normalised 0..1 of the registered plan frame (plan-b44, plan-b4
        'segments': [{'id': k + 1, 'order': k + 1, 'axis': s['axis'], 'fresh': s is fresh, 'name': s['name'], 'freshFrac': round(s['freshFrac'], 3),
                      'a': [round(s['a'][0] / N, 4), round(s['a'][1] / N, 4)], 'b': [round(s['b'][0] / N, 4), round(s['b'][1] / N, 4)]} for k, s in enumerate(ordered)],
        'fresh': {'a': [round(fa[0] / N, 5), round(fa[1] / N, 5)], 'b': [round(fb[0] / N, 5), round(fb[1] / N, 5)], 'lengthPx1440': round(flen, 1),
+                 'ends': {'a': 'west end, away from 07 (the anchored end)', 'b': 'east end, where 07 crouches with its hand and the chalk reel'},
                  'straightnessResidualPx': round(float(np.percentile(res, 90)), 2)},
-       'gridlines': {'x': dedupe(gx), 'y': dedupe(gy)},
+       # A4-3 shape: one entry per distinct line position; from/to = the drawn extent (A4 extends to the page edges)
+       'gridlines': grid_entries(),
        'planCut': {'heroLineFrac': 0.40, 'upscale1440x900': round(s1440, 3), 'upscale1920x1080': round(s1920, 3), 'gate': gate,
                    'maxHeroLineFrac': round(rec, 4),
                    'registrationErrorPx1440x900': {'median': round(float(np.median(res)) * s1440, 2), 'p90': round(float(np.percentile(res, 90)) * s1440, 2)}}}
@@ -117,9 +131,10 @@ vis = (fr[62] * 0.45).astype(np.uint8)
 for s in ordered:
     cv2.line(vis, tuple(int(v) for v in s['a']), tuple(int(v) for v in s['b']), (232, 152, 111) if s is not fresh else (44, 106, 240), 3)
     cv2.putText(vis, str(ordered.index(s) + 1), (int(s['a'][0]) + 4, int(s['a'][1]) - 6), cv2.FONT_HERSHEY_PLAIN, 1.6, (225, 232, 236), 2)
-for x in doc['gridlines']['x']: cv2.line(vis, (int(x * N), 0), (int(x * N), N), (140, 149, 154), 1)
-for y in doc['gridlines']['y']: cv2.line(vis, (0, int(y * N)), (N, int(y * N)), (140, 149, 154), 1)
+for gl in doc['gridlines']:
+    if gl['axis'] == 'x': cv2.line(vis, (int(gl['at'] * N), 0), (int(gl['at'] * N), N), (140, 149, 154), 1)
+    else: cv2.line(vis, (0, int(gl['at'] * N)), (N, int(gl['at'] * N)), (140, 149, 154), 1)
 cv2.imwrite(QA, np.hstack([cv2.resize(fr[62], (720, 720)), cv2.resize(vis, (720, 720))]), [cv2.IMWRITE_JPEG_QUALITY, 85])
-summary = {'segments': len(ordered), 'fresh': doc['fresh'], 'planCut': doc['planCut'], 'gridlines': doc['gridlines']}
+summary = {'segments': len(ordered), 'fresh': doc['fresh'], 'planCut': doc['planCut'], 'gridlines': len(doc['gridlines'])}
 json.dump({'fresh': [doc['fresh']['a'], doc['fresh']['b']]}, open(OUT.replace('lines-b44.json', '') + '../../../pipeline/out/lines-summary.json', 'w'))
 print(json.dumps(summary))

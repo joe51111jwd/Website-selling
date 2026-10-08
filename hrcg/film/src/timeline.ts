@@ -19,7 +19,6 @@ export const TL = data.formats as unknown as Record<Format, FormatT>;
 /** Film frames after impact at which c34 frame 60 shows (S + 0.267 s), and its play length (24 src frames). */
 export const FILM_DELAY_FRAMES = 8;
 export const FILM_FRAMES = 30; // 1.0 s at 30 fps covers c34 frames 60 → 84
-export const FILM_SRC_START = 2.5; // c34 frame 60 = 2.500 s
 export const FILM_FADE = 0.55;
 
 export const formatOf = (w: number, h: number): Format => (w > h ? '169' : w < h ? '916' : '11');

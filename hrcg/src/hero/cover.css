@@ -1,0 +1,705 @@
+/* A-000 COVER -> A-100 stage (brief 2, 3.3, 4.1). Owner: A2.
+   One prerendered document for every tier. The head script's classes pick the first paint:
+     .js:not(.rm)   armed state: ground, H1 in pencil, line pays out (pinned stage, 320vh / 220vh)
+     .rm, .no-js    final frozen composition: still, inked H1, near-matte; no pin; A-100 static below
+   Everything in the frame is laid out in FRAME SPACE (fractions of the 1920x1076 or 1076x1912 frame)
+   so it registers with frame 84 at every viewport (brief 2.2). */
+
+/* ------------------------------------------------------------------ stage geometry */
+.cv {
+  position: relative;
+  --cv-vh: var(--sheet-vh, 320);
+  --cv-spacer: calc((var(--cv-vh) - 100) * 1vh);
+  --a0-o: 1;
+  --h1-dom: 1;
+  --ink: 1;
+}
+@media (max-width: 767px) {
+  .cv {
+    --cv-vh: 220;
+  }
+}
+.js:not(.rm) .cv {
+  --ink: 0;
+}
+
+.cv-pin {
+  position: sticky;
+  top: 0;
+  min-height: 100svh;
+  isolation: isolate;
+}
+.cv-spacer {
+  height: var(--cv-spacer);
+}
+
+/* anchors: empty tracks that give #a-000 / #a-100 the right scroll geometry (INDEX, strip CTAs) */
+.cv-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+}
+.cv-track:focus {
+  outline: none;
+}
+.cv-track--000 {
+  top: 0;
+  /* covers the hero and the plan cut (P < 0.40) for the SHEET cell */
+  height: calc(var(--cv-spacer) * 0.4 + 50vh);
+}
+.cv-track--100 {
+  /* scrolling here lands on the stage's end state */
+  top: var(--cv-spacer);
+  height: 100vh;
+}
+.cv-track--cover {
+  top: calc(var(--cv-spacer) * 0.4 + 50vh);
+  bottom: 0;
+}
+
+/* layers inside the pin */
+.cv-hero {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100svh;
+  overflow: hidden;
+  container-type: size;
+  touch-action: pan-y;
+}
+.cv-a100 {
+  position: relative;
+  z-index: 2;
+  min-height: 100svh;
+  opacity: var(--a100-o, 0);
+  pointer-events: none;
+}
+.cv-a100[data-live='on'] {
+  pointer-events: auto;
+}
+.cv-plan {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  margin: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.cv-fx {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100svh;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* reduced motion / MOTION OFF / no JS: no pin, the end-state composition in normal flow */
+.rm .cv-pin,
+.no-js .cv-pin {
+  display: contents;
+}
+.rm .cv-hero,
+.no-js .cv-hero {
+  position: relative;
+  z-index: auto;
+}
+.rm .cv-a100,
+.no-js .cv-a100 {
+  min-height: 0;
+  opacity: 1;
+  pointer-events: auto;
+  margin-top: var(--s-9);
+}
+.rm .cv-plan,
+.no-js .cv-plan,
+.rm .cv-fx,
+.no-js .cv-fx,
+.rm .cv-spacer,
+.no-js .cv-spacer,
+.rm .cv-track--cover,
+.no-js .cv-track--cover {
+  display: none;
+}
+.rm .cv-track--000,
+.no-js .cv-track--000 {
+  height: 100svh;
+}
+.rm .cv-track--100,
+.no-js .cv-track--100 {
+  top: 100svh;
+  bottom: 0;
+  height: auto;
+}
+
+/* ------------------------------------------------------------------ the frame box */
+.cv-box {
+  --ar-w: 1920;
+  --ar-h: 1076;
+  /* min(cover, contain x 1.10) (brief 2.2) */
+  --fw: min(
+    max(100cqw, 100cqh * var(--ar-w) / var(--ar-h)),
+    1.1 * min(100cqw, 100cqh * var(--ar-w) / var(--ar-h))
+  );
+  --fh: calc(var(--fw) * var(--ar-h) / var(--ar-w));
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--fw);
+  height: var(--fh);
+  translate: -50% -50%;
+  margin: 0;
+  /* frame-space layout, 16:9 (brief 2.2) */
+  --t-size: 0.131;
+  --far-left: 0.12;
+  --far-top: 0.13797; /* cap-top 0.14 */
+  --near-right: 0.115; /* right edge 0.885: clears the chalk box and the 0.92 control point */
+  --near-top: 0.53551; /* last baseline 0.755, on the chalk line */
+  --line-x0: 0.52;
+  --line-x1: 0.92;
+  --line-y: 0.76;
+}
+@media (max-aspect-ratio: 4/5) {
+  .cv-box {
+    --ar-w: 1076;
+    --ar-h: 1912;
+    /* 9:16 (brief 2.5) */
+    --t-size: 0.075;
+    --far-left: 0.08;
+    --far-top: 0.09884; /* cap-top 0.10 */
+    --near-right: 0.135; /* right edge 0.865, clear of the chalk-box handle */
+    --near-top: 0.64934; /* last baseline 0.775 */
+    --line-x0: 0.47;
+    --line-x1: 0.92;
+    --line-y: 0.78;
+  }
+}
+/* no JS: fit the frame between the header and the strip, so the film's native controls are reachable */
+.no-js .cv-box {
+  /* 40 px under the frame for its view title */
+  --avail: calc(100cqh - var(--border) - var(--header-h) - var(--chrome-bottom) - 40px);
+  --fw: min(100cqw - 2 * var(--border), var(--avail) * var(--ar-w) / var(--ar-h));
+  top: calc(var(--border) + var(--header-h) + (var(--avail) - var(--fh)) / 2);
+  translate: -50% 0;
+}
+
+/* ------------------------------------------------------------------ media */
+.cv-ground,
+.cv-media {
+  pointer-events: none;
+}
+.cv-ground picture,
+.cv-ground img,
+.cv-media-in > picture,
+.cv-media-in > picture img,
+.cv-film,
+.cv-gl,
+.cv-gl canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+.cv-media-in,
+.cv-ground-in {
+  position: absolute;
+  inset: 0;
+  /* letterbox / pillarbox edges feather into the slab (brief 2.2, 5.4) */
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
+    linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
+    linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+  mask-composite: intersect;
+}
+/* the one work-light pool, centre-left (the site's only gradient) */
+.cv-pool {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 44% 54% at 37% 47%, rgba(255, 238, 220, 0.085), rgba(255, 238, 220, 0) 72%);
+}
+.cv-film {
+  opacity: 0;
+  background: transparent;
+}
+.cv-still {
+  display: none;
+}
+.cv-gl {
+  opacity: 0;
+  display: none;
+}
+.cv-gl:focus-visible {
+  outline: 2px solid var(--chalk-blue);
+  outline-offset: -6px;
+}
+.rm .cv-still,
+.no-js .cv-still {
+  display: block;
+}
+.no-js .cv-film {
+  opacity: 1;
+  pointer-events: auto;
+}
+.rm .cv-ground,
+.no-js .cv-ground {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ view titles */
+.cv-vt {
+  position: absolute;
+  left: 9%;
+  right: 8%;
+  bottom: calc((var(--fh) - 100cqh) / 2 + var(--chrome-bottom) + 12px);
+  margin: 0;
+  display: none;
+  pointer-events: auto;
+}
+.no-js .cv-vt {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+.cv[data-vt='film'] .cv-vt--film,
+.cv[data-vt='still'] .cv-vt--still,
+.cv[data-vt='3d'] .cv-vt--3d,
+.rm .cv[data-vt='auto'] .cv-vt--still,
+.no-js .cv[data-vt='auto'] .cv-vt--still {
+  display: flex;
+}
+.cv-plan .cv-vt {
+  /* the plan's caption sits where the hero's sits (the view title "ticks", brief 3.3) */
+  left: max(var(--margin), 9%);
+  right: max(var(--margin), 8%);
+  bottom: calc(var(--chrome-bottom) + 12px);
+}
+.cv[data-vt='plan'] .cv-plan .cv-vt {
+  display: flex;
+}
+.js .cv-vt.is-tick {
+  animation: strip-tick var(--dur-tick) var(--ease-tick) both;
+}
+
+/* ------------------------------------------------------------------ type (frame space) */
+.cv-type {
+  pointer-events: none;
+}
+.cv-status {
+  position: absolute;
+  left: 9%;
+  top: 10.5%;
+  translate: 0 -50%;
+  margin: 0;
+  color: rgba(236, 232, 225, 0.8);
+  white-space: nowrap;
+  opacity: var(--a0-o);
+}
+.cv-h1 {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  font-family: var(--font-h1);
+  font-weight: 900;
+  font-size: calc(var(--fh) * var(--t-size));
+  line-height: 0.86;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+  font-kerning: normal;
+  font-synthesis: none;
+}
+.cv-h1:focus-visible {
+  outline: none;
+}
+.cv-far,
+.cv-near {
+  position: absolute;
+  display: block;
+  white-space: nowrap;
+}
+.cv-far {
+  z-index: 1;
+  left: calc(var(--far-left) * 100%);
+  top: calc(var(--far-top) * 100%);
+}
+.cv-near {
+  z-index: 3;
+  right: calc(var(--near-right) * 100%);
+  top: calc(var(--near-top) * 100%);
+  text-align: right;
+}
+.cv-line {
+  position: relative;
+  display: block;
+  opacity: calc(var(--a0-o) * var(--h1-dom));
+}
+.cv-pen {
+  display: block;
+  /* pencil state before the snap: chalk at 50 % + a 1 px pencil stroke (brief 2.1) */
+  color: rgba(236, 232, 225, 0.5);
+  -webkit-text-stroke: 1px var(--pencil-stroke);
+  paint-order: stroke fill;
+  opacity: clamp(0, (1 - var(--ink)) * 6, 1);
+}
+.cv-ink {
+  position: absolute;
+  inset: 0;
+  display: block;
+  color: var(--chalk);
+  opacity: var(--ink);
+}
+.cv-near .cv-ink {
+  color: var(--marking-orange);
+}
+/* ink-in: fills rise from the baseline through a noise mask (live path only) */
+.cv[data-inkfx] .cv-ink {
+  opacity: 1;
+  -webkit-mask-image: var(--cv-ink-mask);
+  mask-image: var(--cv-ink-mask);
+  -webkit-mask-size: 2.6em 300%;
+  mask-size: 2.6em 300%;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-position: 0 calc(var(--ink) * 100%);
+  mask-position: 0 calc(var(--ink) * 100%);
+}
+.cv[data-inkfx][data-inked] .cv-ink {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* near-matte: 07's cut-out over the FAR lines, under the NEAR lines (brief 2.6, G6) */
+.cv-matte {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: none;
+}
+.cv-matte img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.rm .cv-matte,
+.no-js .cv-matte {
+  display: block;
+}
+@supports selector(:has(:playing)) {
+  .no-js .cv-hero:has(.cv-film:playing) .cv-matte {
+    opacity: 0;
+  }
+}
+
+.cv-sub {
+  position: absolute;
+  left: 9%;
+  top: 80%;
+  max-width: 34ch;
+  margin: 0;
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-stretch: 100%;
+  font-size: 20px;
+  line-height: 26px;
+  color: var(--chalk);
+  text-wrap: balance;
+  opacity: var(--a0-o);
+}
+.cv-hint {
+  position: absolute;
+  left: 58%;
+  top: 80%;
+  margin: 0;
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--chalk);
+  opacity: var(--a0-o);
+}
+.cv-hint-2 {
+  color: var(--pencil);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+.cv-hint .when-touch,
+.cv[data-touch] .cv-hint .when-key {
+  display: none;
+}
+.cv[data-touch] .cv-hint .when-touch {
+  display: inline;
+}
+.cv[data-hint='pull'] .cv-hint--pull,
+.cv[data-hint='frozen'] .cv-hint--frozen,
+.cv[data-hint='frozen-gl'] .cv-hint--frozen-gl {
+  display: flex;
+}
+
+/* the line, its control points and the chalk box */
+.cv-x {
+  position: absolute;
+  translate: -50% -50%;
+  color: var(--marking-orange);
+  opacity: 0;
+}
+.cv-x--l {
+  left: calc(var(--line-x0) * 100%);
+  top: calc(var(--line-y) * 100%);
+}
+.cv-x--r {
+  left: calc(var(--line-x1) * 100%);
+  top: calc(var(--line-y) * 100%);
+}
+.cv-chalkbox {
+  position: absolute;
+  left: calc(var(--line-x1) * 100% - 13px);
+  top: calc(var(--line-y) * 100%);
+  translate: -100% -50%;
+  color: var(--chalk);
+  opacity: 0;
+}
+.cv-chalkbox .mk {
+  display: block;
+  color: inherit;
+}
+.cv-linebtn,
+.cv-handle {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  pointer-events: auto;
+  display: none;
+}
+.cv-linebtn {
+  left: calc(var(--line-x0) * 100% - 12px);
+  width: calc((var(--line-x1) - var(--line-x0)) * 100% + 24px);
+  top: calc(var(--line-y) * 100%);
+  height: 44px;
+  translate: 0 -50%;
+  cursor: grab;
+}
+.cv-linebtn:focus-visible {
+  outline: 2px solid var(--chalk-blue);
+  outline-offset: 3px;
+}
+.cv-handle {
+  left: calc(var(--line-x1) * 100% - 13px);
+  top: calc(var(--line-y) * 100%);
+  width: 44px;
+  height: 44px;
+  translate: calc(-100% + 11px) -50%;
+  touch-action: none;
+}
+.cv-handle:focus-visible {
+  outline: 2px solid var(--chalk-blue);
+  outline-offset: 2px;
+}
+.cv[data-line='armed'] .cv-linebtn {
+  display: block;
+}
+.cv[data-line='armed'][data-touch] .cv-handle {
+  display: block;
+}
+.cv[data-pulling] .cv-linebtn,
+.cv[data-pulling] .cv-hero {
+  cursor: grabbing;
+}
+.cv[data-look] .cv-hero {
+  cursor: grab;
+}
+
+.cv-reset,
+.cv-play {
+  position: absolute;
+  margin: 0;
+  pointer-events: auto;
+  display: none;
+  background: rgba(11, 11, 10, 0.72);
+  opacity: var(--a0-o);
+}
+.cv-reset {
+  left: 58%;
+  top: calc(80% + 52px);
+}
+.cv[data-reset='on'] .cv-reset {
+  display: inline-flex;
+}
+.cv-reset-glyph {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+}
+.cv-play {
+  left: 58%;
+  top: 80%;
+}
+.js.rm .cv-play {
+  display: inline-flex;
+}
+.js.rm .cv[data-playing] .cv-play {
+  visibility: hidden;
+}
+
+/* ------------------------------------------------------------------ string + deposits + puff */
+.cv-string {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.cv-string path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cv-string-line {
+  stroke: var(--chalk-blue);
+  stroke-width: 2.25;
+}
+.cv-string-core {
+  stroke: var(--powder);
+  stroke-width: 0.75;
+  opacity: 0.55;
+}
+.cv-string-shadow {
+  stroke: rgba(0, 0, 0, 0.6);
+  stroke-width: 2.4;
+}
+.cv-puff {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.cv-deps {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+.cv-dep {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 16px;
+  transform-origin: 0 50%;
+  background-image: url('/svg/chalk-pattern.svg');
+  background-repeat: repeat-x;
+  background-size: 256px 16px;
+}
+
+/* the plan still (plan-b44-260) and the landed slot-05 film */
+.cv-plan-sq {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1000px;
+  height: 1000px;
+  transform-origin: 0 0;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.cv-plan-sq picture,
+.cv-plan-sq img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.cv-plan-sq.is-feathered {
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
+    linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 6%, #000 94%, transparent),
+    linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+  mask-composite: intersect;
+}
+.cv-slot5 {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  object-fit: cover;
+  opacity: 0;
+  background: var(--slab-black);
+}
+
+/* ------------------------------------------------------------------ A-100 placeholder (until A3's ArenaPlan) */
+.cv-ph-row {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.cv-ph-bay {
+  position: absolute;
+  border: 1px solid var(--bay-yellow);
+  opacity: 0.55;
+}
+.cv-a100 .sheet-placeholder {
+  border-top: 0;
+  padding-top: calc(var(--border) + var(--header-h) + var(--s-4));
+}
+.cv-a100[data-print='out'] .sheet-placeholder > * {
+  opacity: 0;
+}
+.cv-a100 .sheet-placeholder > * {
+  transition: opacity var(--dur-print) linear;
+}
+.cv-a100 .sheet-placeholder::after {
+  bottom: auto;
+  top: calc(var(--border) + var(--header-h) + var(--s-1));
+}
+
+/* ------------------------------------------------------------------ phone (9:16 frame) */
+@media (max-aspect-ratio: 4/5) {
+  .cv-sub {
+    left: 8%;
+    top: 81%;
+    max-width: calc(84% - 4px);
+    font-size: 17px;
+    line-height: 22px;
+  }
+  .cv-hint {
+    left: 8%;
+    top: auto;
+    bottom: calc((1 - var(--line-y)) * 100% + 12px);
+    max-width: 40%;
+  }
+  .cv-reset {
+    left: 8%;
+    top: auto;
+    bottom: calc((1 - var(--line-y)) * 100% + 12px);
+  }
+  .cv-play {
+    left: 8%;
+    top: auto;
+    bottom: calc((1 - var(--line-y)) * 100% + 12px);
+  }
+  .cv-vt {
+    left: 8%;
+    right: 8%;
+  }
+  .cv-status {
+    left: 8%;
+    top: 6.6%;
+    font-size: 12px;
+  }
+}
+@media (max-width: 767px) {
+  .cv-plan .cv-vt {
+    left: var(--margin);
+    right: var(--margin);
+  }
+}

@@ -40,11 +40,19 @@ def fitsq(img, cx, cy, side, out):
 
 rep = {}
 ld14 = cv2.imread(M + '/lookdev/ld14.png')                      # 1024² seamless concrete
+# clean tile (A1, A4-2): inpaint ld14's faint orange survey ticks so the site-wide tiled ground has no marks
+_h = cv2.cvtColor(ld14, cv2.COLOR_BGR2HSV)
+_m = ((_h[..., 0] <= 22) & (_h[..., 1] >= 70) & (_h[..., 2] >= 50)).astype(np.uint8)
+_m = cv2.dilate(_m, np.ones((7, 7), np.uint8))
+ld14 = cv2.inpaint(ld14, _m * 255, 6, cv2.INPAINT_TELEA)
 tile = lambda w, h: np.tile(ld14, (h // 1024 + 1, w // 1024 + 1, 1))[:h, :w]
-GROUND = 0.12                                                     # ~12% exposure (brief §2.1)
-rep['tex-slab'] = save(exposure(grade(ld14), GROUND), P + '/tex/tex-slab', 120)
-rep['hero-ground-169'] = save(exposure(grade(tile(1920, 1076)), GROUND), P + '/hero/hero-ground-169', 60)
-rep['hero-ground-916'] = save(exposure(grade(tile(1076, 1912)), GROUND), P + '/hero/hero-ground-916', 70)
+# tex-slab ships at FULL exposure: A1 tiles it site-wide multiplied by rgb(31 31 30) (≈12%). The hero
+# grounds are pre-multiplied by exactly that (sRGB multiply, as CSS does) so the frame box matches the page.
+MUL = np.array([30, 31, 31], np.float32) / 255.                   # BGR of rgb(31 31 30)
+mul = lambda im: (im.astype(np.float32) * MUL + .5).astype(np.uint8)
+rep['tex-slab'] = save(grade(ld14), P + '/tex/tex-slab', 120)
+rep['hero-ground-169'] = save(mul(grade(tile(1920, 1076))), P + '/hero/hero-ground-169', 60)
+rep['hero-ground-916'] = save(mul(grade(tile(1076, 1912))), P + '/hero/hero-ground-916', 70)
 rep['ref21-portrait'] = save(cv2.resize(grade(cv2.imread(M + '/lookdev/ref21.png')), (800, 800), interpolation=cv2.INTER_AREA), P + '/stills/ref21-portrait', 100)
 rep['bay-empty'] = save(cv2.resize(grade(cv2.imread(N + '/N02.png')), (1080, 1080), interpolation=cv2.INTER_AREA), P + '/stills/bay-empty', 120)
 # material crops (2048² sources): centred on the subject, no robot

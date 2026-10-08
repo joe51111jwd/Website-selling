@@ -94,7 +94,7 @@ def one(id, kind, path, mime, w, h, alt, vt, **kw): F.append(dict(id=id, kind=ki
 
 FILM = 25 / 24
 vid('hero-snap-169', 'hero', 1920, 1076, FILM, ALT['hero-film'], VT['hero-film'], stills=('hero/hero-still-169-av1.avif', 'hero/hero-still-169-h264.avif'), freezeFrame=84, meta='media/hero/hero-meta-169.json', noloop=True)
-vid('hero-snap-916', 'hero', 1076, 1912, FILM, ALT['hero-film'], VT['hero-film'], stills=('hero/hero-still-916-av1.avif', 'hero/hero-still-916-h264.avif'), freezeFrame=None, meta='media/hero/hero-meta-916.json', noloop=True)
+vid('hero-snap-916', 'hero', 1076, 1912, FILM, ALT['hero-film'], VT['hero-film'], stills=('hero/hero-still-916-av1.avif', 'hero/hero-still-916-h264.avif'), freezeFrame=100, meta='media/hero/hero-meta-916.json', noloop=True)
 for c in ('av1', 'h264'):
     img(f'hero-still-169-{c}', 'hero', 1920, 1076, ALT['hero-still'], VT['hero-still'])
     img(f'hero-still-916-{c}', 'hero', 1076, 1912, ALT['hero-still'], VT['hero-still'])
@@ -112,23 +112,24 @@ img('tex-slab', 'tex', 1024, 1024, '', VT['ground'])
 
 img('plan-b44-260', 'plans', 1440, 1440, ALT['plan-b44-260'], VT['plan-cut'], plan='plan-b44')
 for n, (k, t) in enumerate([('b40', 'plan1'), ('b41', 'plan2'), ('b42', 'plan3'), ('b43', 'plan4'), ('b44', 'plan5')]):
-    vid(f'plan-{k}', 'plans', 1080, 1080, 121 / 24, ALT[k], VT[t], plan=f'plan-{k}', noloop=(k == 'b44'))
-    vid(f'plan-{k}-m', 'plans', 720, 720, 121 / 24, ALT[k], VT[t], plan=f'plan-{k}', noloop=(k == 'b44'), seamOf=f'plan-{k}')
+    vid(f'plan-{k}', 'plans', 1080, 1080, 121 / 24, ALT[k], VT[t], plan=f'plan-{k}', noloop=(k == 'b44'), seamOf=f'reg-{k}')
+    vid(f'plan-{k}-m', 'plans', 720, 720, 121 / 24, ALT[k], VT[t], plan=f'plan-{k}', noloop=(k == 'b44'), seamOf=f'reg-{k}')
 vid('arena-0104', 'arena', 1890, 350, 121 / 24, ALT['arena'], VT['a100'])
 vid('arena-0104-m', 'arena', 1080, 200, 121 / 24, ALT['arena'], VT['a100'], seamOf='arena-0104')
 img('arena-poster', 'arena', 1890, 350, ALT['arena-poster'], VT['a200-poster'])
 
-vid('el-c30', 'perspectives', 1920, 804, 121 / 24, ALT['c30'], VT['p01'])
-vid('el-c30-m', 'perspectives', 1080, 1350, 121 / 24, ALT['c30'], VT['p01'], seamOf='el-c30')
-vid('el-c31', 'perspectives', 1080, 1350, 121 / 24, ALT['c31'], VT['p02'])
-vid('el-c32', 'perspectives', 1920, 1076, 121 / 24, ALT['c32'], VT['p03'])
-vid('el-c33', 'perspectives', 1920, 804, 121 / 24, ALT['c33'], VT['p04'])
+vid('el-c30', 'perspectives', 1920, 804, 121 / 24, ALT['c30'], VT['p01'], seamOf='n09r')
+vid('el-c30-m', 'perspectives', 1080, 1350, 121 / 24, ALT['c30'], VT['p01'], seamOf='n09r')
+vid('el-c31', 'perspectives', 1080, 1350, 121 / 24, ALT['c31'], VT['p02'], seamOf='c31')
+vid('el-c32', 'perspectives', 1920, 1076, 121 / 24, ALT['c32'], VT['p03'], seamOf='c32')
+vid('el-c33', 'perspectives', 1920, 804, 121 / 24, ALT['c33'], VT['p04'], seamOf='c33')
 vid('det-v0', 'details', 1076, 1076, 3.5, ALT['v0'], VT['d1'])
-vid('det-n03', 'details', 1076, 1076, 121 / 24, ALT['n03'], VT['d3'])
-vid('det-n04', 'details', 1076, 1076, 121 / 24, ALT['n04'], VT['d5'])
+vid('det-n03', 'details', 1076, 1076, 121 / 24, ALT['n03'], VT['d3'], seamOf='n03')
+vid('det-n04', 'details', 1076, 1076, 121 / 24, ALT['n04'], VT['d5'], seamOf='n04')
 
-img('sec-c34-color', 'section', 1920, 1076, ALT['section'], VT['sec'])
-one('sec-c34-depth', 'depth', 'media/section/sec-c34-depth.png', 'image/png', 960, 540, '', VT['sec'])
+img('sec-c34-color', 'section', 1920, 1076, ALT['section'], VT['sec'], meta='media/section/sec-c34-meta.json')
+one('sec-c34-depth', 'depth', 'media/section/sec-c34-depth.png', 'image/png', 960, 540, '', VT['sec'], meta='media/section/sec-c34-meta.json')
+one('sec-c34-meta', 'json', 'media/section/sec-c34-meta.json', 'application/json', 960, 540, '', VT['sec'])
 for k in ('near', 'mid', 'far'):
     img(f'sec-{k}', 'section', 1920, 1076, ALT[f'sec-{k}'], VT['sec'])
 one('lines-b44', 'json', 'media/data/lines-b44.json', 'application/json', 1440, 1440, '', VT['trace5'])
@@ -211,7 +212,8 @@ for v in V + ([SET] if True else []):
     if pr.get('width') and (pr['width'], pr['height']) != (v['w'], v['h']):
         print(f'WARN {id}: file is {pr["width"]}x{pr["height"]}, spec {v["w"]}x{v["h"]}')
     key = v.get('seamOf', id)
-    e['loop'] = None if v.get('noloop') else seams.get(key)
+    sm = seams.get(key)
+    e['loop'] = None if (v.get('noloop') or not sm or not sm.get('accepted')) else {'in': sm['in'], 'out': sm['out']}
     if v.get('stills'):
         e['stills'] = {'av1': m(v['stills'][0]), 'h264': m(v['stills'][1])}; files += list(v['stills'])
         e['freezeFrame'] = heroinfo.get(id, {}).get('freezeFrame', v.get('freezeFrame'))

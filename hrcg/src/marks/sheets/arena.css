@@ -1,0 +1,194 @@
+/* ArenaPlan: one row of five bays in R2's units (brief 3.3). Owner: A3.
+   W = row width, b = W / 5.4, gap = 0.1 b, bay n at (n - 1) * 1.1 b. Percentages of the row's width. */
+
+.arena {
+  --bz: 46px; /* gridline-bubble zone above the row */
+  --lz: 44px; /* label zone below the row */
+  position: relative;
+}
+.arena-view {
+  position: relative;
+}
+.arena-plot {
+  position: relative;
+  padding-top: var(--bz);
+  padding-bottom: var(--lz);
+}
+.arena-row {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 5.4 / 1;
+  background: var(--slab-black);
+}
+.arena-strip,
+.arena-slot5 {
+  position: absolute;
+  top: 0;
+  height: 100%;
+}
+.arena-strip {
+  left: 0;
+  width: 100%;
+  opacity: var(--arena-in, 1);
+}
+.arena-slot5 {
+  left: calc(100% * 4.4 / 5.4);
+  width: calc(100% / 5.4);
+}
+.arena-strip .loopvideo,
+.arena-slot5 .loopvideo {
+  height: 100%;
+  aspect-ratio: auto !important;
+}
+
+/* one link per bay: bubble zone + tile + label zone */
+.arena-bays {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+.arena-bay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(100% * var(--i) * 1.1 / 5.4);
+  width: calc(100% / 5.4);
+}
+.arena-link {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: 100%;
+  color: var(--fg);
+  text-decoration: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.arena-bubble {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: var(--bz);
+  padding-bottom: 0;
+  color: var(--chalk);
+}
+.arena-tile {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  outline: 1px solid var(--hairline);
+  outline-offset: -1px;
+  transition:
+    outline-color var(--dur-hover) linear,
+    outline-width var(--dur-hover) linear,
+    outline-offset var(--dur-hover) linear;
+}
+.arena-label {
+  display: block;
+  padding-top: 10px;
+  color: var(--fg-2);
+  transition: color var(--dur-hover) linear;
+  text-wrap: balance;
+}
+.arena-link:hover .arena-tile {
+  outline: 1.25px solid var(--chalk-blue);
+  outline-offset: -1.25px;
+}
+.arena-link:focus-visible .arena-tile {
+  outline: 2px solid var(--chalk-blue);
+  outline-offset: 3px;
+}
+.arena-link:hover .arena-label,
+.arena-link:focus-visible .arena-label {
+  color: var(--chalk);
+}
+
+/* stage hooks (A2): absent = fully visible */
+[data-bubbles='out'] .arena .arena-bubble .mk [data-draw] {
+  stroke-dashoffset: 1;
+}
+[data-bubbles='out'] .arena .arena-bubble .mk [data-ink] {
+  opacity: 0;
+}
+.a100-print {
+  transition: opacity var(--dur-print) linear;
+}
+[data-print='out'] .a100-print {
+  opacity: 0;
+}
+.rm [data-print='out'] .a100-print {
+  opacity: 1;
+}
+
+/* the phone list (numbered links, rows >= 44 px) */
+.arena-list {
+  display: none;
+  margin: var(--s-5) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.arena-list-link {
+  display: grid;
+  grid-template-columns: 28px 1fr auto 20px;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  border-bottom: 1px solid var(--line);
+  color: var(--fg);
+  text-decoration: none;
+  font-family: var(--font-text);
+  font-weight: 600;
+  font-stretch: 68%;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  transition: background-color var(--dur-hover) linear, color var(--dur-hover) linear;
+}
+.arena-list-num,
+.arena-list-sheet {
+  font-size: 12px;
+  color: var(--fg-2);
+}
+.arena-list-arrow {
+  text-align: right;
+  padding-right: 4px;
+}
+.arena-list-link:hover,
+.arena-list-link:focus-visible {
+  background: var(--marking-orange);
+  color: var(--slab-black);
+  outline: none;
+}
+.arena-list-link:hover .arena-list-num,
+.arena-list-link:hover .arena-list-sheet,
+.arena-list-link:focus-visible .arena-list-num,
+.arena-list-link:focus-visible .arena-list-sheet {
+  color: var(--slab-black);
+}
+
+@media (max-width: 1023px) {
+  .arena-label {
+    font-size: 11px;
+    line-height: 14px;
+  }
+}
+@media (max-width: 767px) {
+  .arena {
+    --bz: 40px;
+    --lz: 0px;
+  }
+  .arena-label {
+    display: none;
+  }
+  .arena-list {
+    display: block;
+  }
+  .arena-bubble {
+    transform: scale(0.86);
+    transform-origin: 50% 100%;
+  }
+}

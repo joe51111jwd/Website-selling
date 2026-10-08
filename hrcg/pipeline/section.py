@@ -2,7 +2,7 @@
 # depth (DA2-S once, guided upsample), and the three no-GL stills rendered with EXACTLY the slice shader's
 # formula from the 8-bit depth the GPU will sample.
 # Outputs (public/media/section): sec-c34-color.{avif,jpg} 1920x1076, sec-c34-depth.png 960x540 8-bit
-# (near = 255), sec-{near,mid,far}.{avif,jpg}, sec-meta.json {frame, nearD, farD, w, levels, s, colours}.
+# (near = 255), sec-{near,mid,far}.{avif,jpg}, sec-c34-meta.json {frame, nearD, farD, w, levels, s, colours}.
 # usage: python -I section.py <c34 mezzanine.mp4> <outdir> <qadir>
 import sys, os, json
 import numpy as np, cv2, onnxruntime as ort
@@ -35,6 +35,15 @@ raw = sess.run(None, {'pixel_values': x})[0][0]
 lo, hi = np.percentile(raw, 1), np.percentile(raw, 99.5)
 d = np.clip((raw - lo) / (hi - lo), 0, 1).astype(np.float32)
 d = np.clip(cv2.ximgproc.guidedFilter(rgb.mean(2).astype(np.float32) / 255., cv2.resize(d, (W, H)), 8, 1e-3), 0, 1)
+# Contours must read on 07 AND the floor (D3 acceptance). Raw relative depth spends most of its range on the
+# near floor (07 sits in a narrow 0.25-0.4 band, ~2 contour levels). Monotonic remap: background (Otsu split)
+# linearly into 0..0.12, foreground equalised (CDF) into 0.12..1, so the 14 levels spread over 07 and the floor.
+# Order is preserved, so near/far and the slice sweep are unchanged in meaning (relative, no units).
+thr, _ = cv2.threshold((d * 255).astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU); thr /= 255.
+fg = d > thr
+vals = np.sort(d[fg].ravel()); ranks = np.searchsorted(vals, d, side='right') / max(1, len(vals))
+d = np.where(fg, 0.12 + 0.88 * ranks, d / max(thr, 1e-6) * 0.12).astype(np.float32)
+d = cv2.GaussianBlur(d, (0, 0), 1.0)
 d8 = (cv2.resize(d, (960, 540), interpolation=cv2.INTER_AREA) * 255 + .5).astype(np.uint8)
 cv2.imwrite(f'{OUT}/sec-c34-depth.png', d8, [cv2.IMWRITE_PNG_COMPRESSION, 9])
 Image.fromarray(rgb).save(f'{OUT}/sec-c34-color.avif', quality=58, speed=4)
@@ -57,18 +66,19 @@ def slice_img(s):
     t = np.clip(np.abs(dd - u) / w, 0, 1); band = 1 - t * t * (3 - 2 * t)
     col = col * (1 - band[..., None]) + BLUE * band[..., None]
     return (np.clip(col, 0, 1) * 255 + .5).astype(np.uint8)
-S_ = {'near': 0.15, 'mid': 0.5, 'far': 0.85}
+S_ = {'near': 0.1, 'mid': 0.5, 'far': 0.9}   # A4-3: s = 0.1 / 0.5 / 0.9
 for k, s in S_.items():
     im = Image.fromarray(slice_img(s))
     im.save(f'{OUT}/sec-{k}.avif', quality=55, speed=4); im.save(f'{OUT}/sec-{k}.jpg', quality=80, optimize=True, progressive=True)
 meta = {'frame': int(best), 'candidates': {str(k): {'dustPx480': v[1], 'sharpness': round(v[2], 1)} for k, v in scores.items()},
-        'depth': {'file': 'sec-c34-depth.png', 'w': 960, 'h': 540, 'encoding': '8-bit single channel, relative inverse depth, near = 255; sample with LinearFilter + NoColorSpace'},
+        'depth': {'file': 'sec-c34-depth.png', 'w': 960, 'h': 540, 'encoding': '8-bit single channel, relative inverse depth, near = 255; sample with LinearFilter + NoColorSpace',
+                  'remap': 'monotonic: background (Otsu) linear into 0..0.12, foreground rank-equalised into 0.12..1 (spreads contour levels over 07 and the floor)'},
         'nearD': round(nearD, 4), 'farD': round(farD, 4), 'w': w, 'levels': LEV,
         'uSlice': 'mix(nearD, farD, s); s = 0 at the camera end of the chalk line, 1 at the robot end',
         'stills': {k: {'s': s} for k, s in S_.items()},
         'colours': {'slabBlack': '#0B0B0A', 'chalk': '#ECE8E1', 'pencil': '#9A958C', 'chalkBlue': '#6F98E8'}}
-json.dump(meta, open(f'{OUT}/sec-meta.json', 'w'), indent=1)
+json.dump(meta, open(f'{OUT}/sec-c34-meta.json', 'w'), indent=1)
 sheet = np.vstack([np.hstack([cv2.resize(bgr, (640, 359)), cv2.resize(cv2.applyColorMap(d8, cv2.COLORMAP_BONE), (640, 359))]),
-                   np.hstack([cv2.resize(cv2.cvtColor(slice_img(0.15), cv2.COLOR_RGB2BGR), (640, 359)), cv2.resize(cv2.cvtColor(slice_img(0.85), cv2.COLOR_RGB2BGR), (640, 359))])])
+                   np.hstack([cv2.resize(cv2.cvtColor(slice_img(0.1), cv2.COLOR_RGB2BGR), (640, 359)), cv2.resize(cv2.cvtColor(slice_img(0.9), cv2.COLOR_RGB2BGR), (640, 359))])])
 cv2.imwrite(f'{QA}/section-sheet.jpg', sheet, [cv2.IMWRITE_JPEG_QUALITY, 85])
 print(json.dumps({'frame': int(best), 'nearD': meta['nearD'], 'farD': meta['farD'], 'scores': {k: v[:2] for k, v in scores.items()}}))

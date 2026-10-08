@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="16" viewBox="0 0 256 16">
+  <!-- Chalk deposit tile (brief 4.1): a 6 px blue stripe on the slab, eroded edges, 3 % skip gaps,
+       fine powder grain. Tiles seamlessly along x (stitchTiles). Owner: A2. -->
+  <defs>
+    <filter id="body" x="0" y="0" width="256" height="16" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <!-- streaky along the line, ragged across it -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.05 0.95" numOctaves="4" seed="11" stitchTiles="stitch" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  4.4 0 0 0 -1.72" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in"/>
+    </filter>
+    <filter id="grain" x="0" y="0" width="256" height="16" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="1.3 1.9" numOctaves="2" seed="5" stitchTiles="stitch" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  9 0 0 0 -4.9" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in"/>
+    </filter>
+    <filter id="solid" x="0" y="0" width="256" height="16" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9 1.2" numOctaves="2" seed="17" stitchTiles="stitch" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  5 0 0 0 -2.05" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in"/>
+    </filter>
+  </defs>
+  <!-- loose powder either side of the stripe -->
+  <g filter="url(#grain)" fill="#6F98E8">
+    <rect x="0" y="2.6" width="256" height="10.8" opacity="0.5"/>
+  </g>
+  <!-- the stripe body: ragged edges, density varying along the line, two skip gaps (8 px of 256) -->
+  <g filter="url(#body)" fill="#6F98E8">
+    <rect x="0" y="4.9" width="61" height="6.2"/>
+    <rect x="64" y="4.7" width="117" height="6.6"/>
+    <rect x="186" y="5.0" width="70" height="6.0"/>
+  </g>
+  <g filter="url(#solid)" fill="#7FA4EC">
+    <rect x="0" y="6.2" width="61" height="3.6"/>
+    <rect x="64" y="6.0" width="117" height="4.0"/>
+    <rect x="186" y="6.3" width="70" height="3.4"/>
+  </g>
+  <!-- lit powder on the crown of the stripe -->
+  <g filter="url(#grain)" fill="#A9C3F5">
+    <rect x="0" y="5.6" width="256" height="3.4" opacity="0.75"/>
+  </g>
+</svg>

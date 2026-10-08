@@ -92,8 +92,6 @@ export class Dust2D {
   private sprites: HTMLCanvasElement[] | null = null;
   private particles: Particle[] = [];
   private dpr = 1;
-  private w = 0;
-  private h = 0;
   private drawn = false;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -102,8 +100,6 @@ export class Dust2D {
   }
 
   resize(w: number, h: number, dpr: number) {
-    this.w = w;
-    this.h = h;
     this.dpr = dpr;
     this.canvas.width = Math.max(1, Math.round(w * dpr));
     this.canvas.height = Math.max(1, Math.round(h * dpr));

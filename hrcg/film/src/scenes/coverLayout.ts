@@ -6,9 +6,13 @@ import type { Rect } from '../components/Clip';
 import type { StringGeom } from '../lib/string';
 import { C } from '../theme';
 import type { Format } from '../timeline';
+import { STILLS, USE_N01B, type ClipId } from '../clips';
 
 export type CoverLayout = {
-  crop: Rect; // c34 source px
+  clip: ClipId; // the snap film
+  still: string; // its freeze frame (frame 84)
+  src: [number, number]; // source size
+  crop: Rect; // source px
   dest: Rect; // window / frame rect in comp px
   window: boolean; // framed window on the slab (vs full-bleed frame)
   status: { x: number; cy: number; size: number };
@@ -32,6 +36,9 @@ const CAP169 = H169 * 0.8;
 
 export const COVER: Record<Format, CoverLayout> = {
   '169': {
+    clip: 'c34',
+    still: STILLS.c34f84,
+    src: [1920, 1076],
     crop: [0, 0, 1920, 1076],
     dest: [0, 2, 1920, 1076],
     window: false,
@@ -57,6 +64,9 @@ export const COVER: Record<Format, CoverLayout> = {
     pool: [36, 46],
   },
   '916': {
+    clip: 'c34',
+    still: STILLS.c34f84,
+    src: [1920, 1076],
     crop: [588, 0, 861, 1076],
     dest: [64, 150, 952, 1076 * (952 / 861)],
     window: true,
@@ -82,6 +92,9 @@ export const COVER: Record<Format, CoverLayout> = {
     pool: [50, 72],
   },
   '11': {
+    clip: 'c34',
+    still: STILLS.c34f84,
+    src: [1920, 1076],
     crop: [422, 0, 1076, 1076],
     dest: [0, 0, 1080, 1080],
     window: false,
@@ -108,6 +121,41 @@ export const COVER: Record<Format, CoverLayout> = {
     pool: [44, 50],
   },
 };
+
+// 9:16 from N01b (brief §2.5): FAR left x 0.08, y 0.10–0.25; NEAR right edge x 0.92, y 0.62–0.77;
+// line x 0.47–0.92 at y 0.78. Size 0.068·H (a touch under the brief's 0.075) keeps HUMANOID off 07's head.
+const N01B_S = 1080 / 1076;
+const fy916 = (y: number) => y * 1920;
+const H916 = 0.068 * 1920;
+const COVER_916_N01B: CoverLayout = {
+  clip: 'n01b',
+  still: STILLS.n01bf100,
+  src: [1076, 1912],
+  crop: [0, 0, 1076, 1912],
+  dest: [0, 0, 1080, 1912 * N01B_S],
+  window: false,
+  status: { x: 0.08 * 1080, cy: 140, size: 24 },
+  h1: {
+    size: H916,
+    lines: [
+      { text: 'WHAT CAN A', x: 0.08 * 1080, baseline: fy916(0.1) + H916 * 0.8, anchor: 'start', ink: C.chalk, plane: 'far' },
+      { text: 'HUMANOID', x: 0.08 * 1080, baseline: fy916(0.1) + H916 * 0.8 + H916 * 0.86, anchor: 'start', ink: C.chalk, plane: 'far' },
+      { text: 'ACTUALLY', x: 0.92 * 1080, baseline: fy916(0.62) + H916 * 0.8, anchor: 'end', ink: C.orange, plane: 'near' },
+      { text: 'BUILD?', x: 0.92 * 1080, baseline: fy916(0.77), anchor: 'end', ink: C.orange, plane: 'near' },
+    ],
+  },
+  line: { ax: 0.47 * 1080, bx: 0.92 * 1080, y: fy916(0.78), depth: 92, up: 0.42, sag: 12, maxDepth: 0.15 * 1920 },
+  stroke: 2.4,
+  depositW: 7,
+  xSize: 10,
+  shadowMax: 15,
+  puffScale: 1.1,
+  viewTitle: { x: 64, y: 1744, w: 952, size: 24, wrap: true },
+  pivot: [0.53 * 1080, 0.36 * 1920],
+  push: { frame: 0.045, far: 0.03, near: 0.065 },
+  pool: [50, 40],
+};
+if (USE_N01B) COVER['916'] = COVER_916_N01B;
 
 export const VT_FILM = 'PERSPECTIVE 05-A · LAYOUT AND MARKING · CONCEPT FILM · AI-GENERATED. THIS HASN’T HAPPENED YET.';
 export const VT_STILL = 'PERSPECTIVE 05-A · LAYOUT AND MARKING · CONCEPT FILM STILL · AI-GENERATED. THIS HASN’T HAPPENED YET.';

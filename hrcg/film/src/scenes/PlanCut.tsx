@@ -67,8 +67,8 @@ export const PlanCut: React.FC<{ format: Format }> = ({ format }) => {
       <Framed rect={L.dest} frame={L.window} feather={L.window} opacity={1 - planOpacity}>
         <div style={{ position: 'absolute', inset: 0, scale: String(frameScale), transformOrigin: `${lp[0]}px ${lp[1]}px` }}>
           <Img
-            src={staticFile(STILLS.c34f84)}
-            style={{ position: 'absolute', left: -L.crop[0] * s, top: -L.crop[1] * s, width: 1920 * s, height: 1076 * s }}
+            src={staticFile(L.still)}
+            style={{ position: 'absolute', left: -L.crop[0] * s, top: -L.crop[1] * s, width: L.src[0] * s, height: L.src[1] * s }}
           />
         </div>
       </Framed>

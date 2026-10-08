@@ -1,0 +1,145 @@
+/* A-101 · BRICKLAYING (brief 3.4). Owner: A3. */
+
+.a101-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--s-5);
+}
+.a101-grid {
+  display: grid;
+  grid-template-columns: min(44vw, calc(100svh - 240px)) minmax(0, 1fr);
+  column-gap: var(--s-9);
+  align-items: start;
+}
+.a101-plan {
+  position: relative;
+}
+.a101-plan .view-frame {
+  border-color: var(--hairline);
+}
+/* the view marker sits in the gutter at the plan's foot, pointing down the sheet to 01-A */
+.a101-marker {
+  position: absolute;
+  right: calc(-1 * var(--s-9) / 2 - 39px);
+  bottom: 22px;
+  z-index: 4;
+}
+.a101-side {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.a101-side-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.a101-num {
+  color: var(--fg);
+  margin-top: -0.06em;
+}
+.a101-h2 {
+  margin-top: var(--s-4);
+  hyphens: manual;
+  -webkit-hyphens: manual;
+  overflow-wrap: normal;
+}
+.a101-spec {
+  margin-top: var(--s-5);
+  max-width: 30ch;
+}
+
+/* bond words: two courses of running bond (2 / ½ · 1 · ½), even 6 px joints */
+.a101-bond {
+  --joint: 6px;
+  margin-top: var(--s-7);
+  display: grid;
+  row-gap: var(--joint);
+  max-width: 600px;
+}
+.a101-course {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: var(--joint);
+}
+.a101-course--offset {
+  grid-template-columns: 1fr 2fr 1fr;
+}
+.a101-brick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 58px;
+  padding: 0 var(--s-4);
+  border: 1px solid var(--hairline-strong);
+  color: var(--fg);
+  white-space: nowrap;
+  text-align: center;
+}
+.a101-brick--half {
+  border-color: var(--hairline);
+}
+
+/* the detail opens over the plan, out of the bubble */
+.a101-bubble {
+  margin-left: -5px;
+}
+.a101-detail-panel {
+  right: calc(100% + var(--s-5));
+  top: 40px;
+  width: min(36vw, 560px);
+}
+
+/* the perspective in flow (reduced motion, no JS): full bleed under the composition */
+.a101-persp .view-title {
+  width: min(100% - 2 * var(--margin), var(--content-max));
+  margin-inline: auto;
+}
+.pstage[data-mode='pin'] .a101-persp .view-title {
+  width: auto;
+  margin-inline: var(--margin);
+}
+
+@media (max-width: 1023px) {
+  .a101-grid {
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--s-7);
+  }
+  .a101-marker {
+    right: calc(-1 * var(--s-7) / 2 - 39px);
+  }
+}
+@media (max-width: 767px) {
+  .a101-grid {
+    grid-template-columns: 1fr;
+    row-gap: var(--s-6);
+  }
+  .a101-marker {
+    position: static;
+    margin: var(--s-3) 0 0 auto;
+    display: flex;
+    width: max-content;
+  }
+  .a101-plan {
+    display: flex;
+    flex-direction: column;
+  }
+  .a101-detail-panel {
+    right: auto;
+    left: 0;
+    top: 56px;
+    width: calc(100vw - 2 * var(--margin));
+  }
+  .a101-bond {
+    --joint: 4px;
+  }
+  .a101-brick {
+    height: 48px;
+    padding: 0 var(--s-2);
+  }
+  .a101-persp .view-frame {
+    width: min(100% - 2 * var(--margin), var(--content-max));
+    margin-inline: auto;
+  }
+}

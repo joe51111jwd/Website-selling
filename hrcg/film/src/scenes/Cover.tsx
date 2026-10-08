@@ -10,10 +10,10 @@ import { HeroType } from '../components/HeroType';
 import { Lbl } from '../components/Lbl';
 import { Puff } from '../components/Puff';
 import { ViewTitle } from '../components/ViewTitle';
-import { STILLS } from '../clips';
 import { SETTLE, mix, prog } from '../lib/ease';
 import { C, status as statusStyle } from '../theme';
-import { FILM_DELAY_FRAMES, FILM_FADE, FILM_FRAMES, FILM_SRC_START, TL, type Format } from '../timeline';
+import { FILM_DELAY_FRAMES, FILM_FADE, FILM_FRAMES, TL, type Format } from '../timeline';
+import { SNAP, SRC_FPS } from '../clips';
 import { COVER, STATUS, VT_FILM, VT_STILL } from './coverLayout';
 
 export type CoverProps = { format: Format };
@@ -57,8 +57,8 @@ export const Cover: React.FC<CoverProps> = ({ format }) => {
     position: 'absolute',
     left: -L.crop[0] * s,
     top: -L.crop[1] * s,
-    width: 1920 * s,
-    height: 1076 * s,
+    width: L.src[0] * s,
+    height: L.src[1] * s,
   };
 
   return (
@@ -75,15 +75,14 @@ export const Cover: React.FC<CoverProps> = ({ format }) => {
             transformOrigin: `${lp[0]}px ${lp[1]}px`,
           }}
         >
-          <Sequence name="c34 frames 60→84" from={filmF} durationInFrames={FILM_FRAMES - 1} premountFor={fps}>
+           <Sequence name="snap film, frames 60→84" from={filmF} durationInFrames={FILM_FRAMES - 1} premountFor={fps}>
             <Clip
-              id="c34"
-              crop={[0, 0, 1920, 1076]}
-              dest={[-L.crop[0] * s, -L.crop[1] * s, 1920 * s, 1076 * s]}
-              trimBefore={Math.round(FILM_SRC_START * fps)}
+              id={L.clip}
+              dest={[-L.crop[0] * s, -L.crop[1] * s, L.src[0] * s, L.src[1] * s]}
+              trimBefore={Math.round((SNAP[L.clip as 'c34' | 'n01b'].first / SRC_FPS) * fps)}
             />
           </Sequence>
-          {frozen ? <Img src={staticFile(STILLS.c34f84)} style={imgStyle} /> : null}
+          {frozen ? <Img src={staticFile(L.still)} style={imgStyle} /> : null}
         </div>
       </Framed>
 

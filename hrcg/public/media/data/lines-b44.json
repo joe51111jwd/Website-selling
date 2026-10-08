@@ -211,22 +211,62 @@
    0.52804
   ],
   "lengthPx1440": 527.0,
+  "ends": {
+   "a": "west end, away from 07 (the anchored end)",
+   "b": "east end, where 07 crouches with its hand and the chalk reel"
+  },
   "straightnessResidualPx": 2.52
  },
- "gridlines": {
-  "x": [
-   0.166,
-   0.279,
-   0.763,
-   0.836
-  ],
-  "y": [
-   0.169,
-   0.526,
-   0.558,
-   0.832
-  ]
- },
+ "gridlines": [
+  {
+   "axis": "x",
+   "at": 0.166,
+   "from": 0.1792,
+   "to": 0.8458
+  },
+  {
+   "axis": "x",
+   "at": 0.2792,
+   "from": 0.5243,
+   "to": 0.8319
+  },
+  {
+   "axis": "x",
+   "at": 0.7632,
+   "from": 0.7285,
+   "to": 0.8403
+  },
+  {
+   "axis": "x",
+   "at": 0.8361,
+   "from": 0.1521,
+   "to": 0.8424
+  },
+  {
+   "axis": "y",
+   "at": 0.1694,
+   "from": 0.166,
+   "to": 0.8292
+  },
+  {
+   "axis": "y",
+   "at": 0.5264,
+   "from": 0.1549,
+   "to": 0.7542
+  },
+  {
+   "axis": "y",
+   "at": 0.5583,
+   "from": 0.159,
+   "to": 0.2917
+  },
+  {
+   "axis": "y",
+   "at": 0.8319,
+   "from": 0.1562,
+   "to": 0.8444
+  }
+ ],
  "planCut": {
   "heroLineFrac": 0.4,
   "upscale1440x900": 1.202,

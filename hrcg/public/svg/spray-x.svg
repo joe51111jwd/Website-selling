@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Spray control point ✕ (brief 5.5): marking orange, two painted bars with an overspray edge.
+       Same geometry as A3's <ControlX> (src/marks/ControlX.tsx); this file is the static twin for
+       places that can't render React (404, films, stills). Owner: A2. -->
+  <defs>
+    <filter id="spray" x="-2" y="-2" width="28" height="28" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" seed="3" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  7 0 0 0 -3.6" result="m"/>
+      <feComposite in="SourceGraphic" in2="m" operator="in"/>
+    </filter>
+  </defs>
+  <g fill="none" stroke="#F06A2C" stroke-linecap="butt">
+    <g filter="url(#spray)" opacity="0.5">
+      <path d="M4 4L20 20M20 4L4 20" stroke-width="6.5"/>
+    </g>
+    <path d="M5 5L19 19M19 5L5 19" stroke-width="4.2" opacity="0.22"/>
+    <path d="M5.2 5.2L18.8 18.8M18.8 5.2L5.2 18.8" stroke-width="2.5"/>
+  </g>
+</svg>

@@ -1,0 +1,146 @@
+/* A-102 · DRYWALL INSTALLATION (brief 3.5). Owner: A3.
+   The panel is a 48 x 96 in. board: 1 in. = 100cqi / 48 of its width. Rows every 12 in. = 25cqi. */
+
+.a102-tag {
+  margin-bottom: var(--s-5);
+}
+.a102-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: stretch;
+}
+/* perspective at the board's head, PLAN 02 at its foot: the views span the hung board */
+.a102-views {
+  grid-column: 1 / span 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+.a102-persp .view-frame {
+  border-color: var(--hairline);
+}
+.a102-plan {
+  width: 220px;
+  margin-top: var(--s-8);
+  margin-left: auto;
+}
+
+/* the board */
+.a102-panel {
+  grid-column: 7 / span 6;
+  position: relative;
+  aspect-ratio: 1 / 2;
+  background: var(--gypsum);
+  color: var(--gypsum-ink);
+  container-type: inline-size;
+  --pad: 6.25cqi; /* 3 in. */
+}
+.a102-board {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.a102-taper {
+  stroke: var(--gypsum-ink-2);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.18;
+}
+.a102-stud {
+  stroke: var(--gypsum-ink-2);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 9 6;
+  opacity: 0.42;
+}
+.a102-screw {
+  fill: var(--gypsum-ink);
+  opacity: 0;
+}
+[data-printed] .a102-screw,
+.no-js .a102-screw,
+.rm .a102-screw {
+  opacity: 0.78;
+}
+
+.a102-type {
+  position: absolute;
+  left: var(--pad);
+  right: var(--pad);
+  top: 8.5cqi;
+}
+.a102-h2 {
+  /* INSTALLATION is 4.90 em in Big Shoulders 800 / opsz 72: fill the board between its 3 in. margins */
+  font-size: min(clamp(44px, 12vw, 216px), calc((100cqi - 2 * var(--pad)) / 4.96));
+  color: var(--gypsum-ink);
+}
+.a102-spec {
+  margin-top: 12.5cqi;
+  max-width: 27ch;
+  color: var(--gypsum-ink);
+  font-size: min(clamp(20px, 1.9vw, 28px), 4.3cqi);
+}
+
+/* beats: centred in a stud bay, on a screw row, between that bay's two screws */
+.a102-beats {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.a102-beat {
+  position: absolute;
+  top: calc(var(--row) * 12.5%);
+  left: calc((var(--bay) - 0.5) / 3 * 100%);
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  color: var(--gypsum-ink);
+  font-size: min(clamp(20px, 2vw, 32px), 4.6cqi);
+  line-height: 1;
+  padding-top: 0.08em;
+}
+
+.a102-num {
+  position: absolute;
+  right: var(--pad);
+  bottom: 3cqi;
+  color: var(--gypsum-ink);
+  font-size: min(clamp(64px, 8vw, 140px), 21cqi);
+  line-height: 0.8;
+}
+
+@media (max-width: 1023px) {
+  .a102-views {
+    grid-column: 1 / span 6;
+  }
+  .a102-panel {
+    grid-column: 7 / span 6;
+  }
+}
+@media (max-width: 767px) {
+  .a102-grid {
+    grid-template-columns: 1fr;
+    row-gap: var(--s-7);
+  }
+  .a102-views,
+  .a102-panel {
+    grid-column: 1;
+  }
+  .a102-plan {
+    width: 60%;
+    margin-top: var(--s-6);
+    margin-left: 0;
+  }
+  .a102-spec {
+    font-size: 17px;
+  }
+  /* the spec runs over row 3 on a narrow board: its field screws sit under the type */
+  .a102-screw[data-row='3'][data-field] {
+    display: none;
+  }
+}

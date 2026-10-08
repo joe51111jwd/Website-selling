@@ -55,6 +55,15 @@ def zof(dd): return 1.0 / (a + b * dd)
 ASP = H / W                      # ndc y range is [-ASP, ASP]
 Z_FAR_T, Z_NEAR_T = 2.6, 1.05    # type planes
 D_FAR_T = (1 / Z_FAR_T - a) / b
+if PH and A.a is None:
+    # Phone (D2): 07 is smaller and farther in the 9:16 take, so with the desktop mapping its shoulder sits
+    # BEHIND the FAR plane (no bite possible). Put the FAR plane "just behind 07's shoulder" as on desktop:
+    # the FAR depth threshold = 0.85 x 07's upper-body depth (Otsu split of the upper frame), a from it.
+    up = d[int(H * 0.2):int(H * 0.55), int(W * 0.2):int(W * 0.85)]
+    thr, _ = cv2.threshold((up * 255).astype(np.uint8), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    rob = up[up > thr / 255.]
+    D_FAR_T = float(0.85 * np.percentile(rob, 30))
+    a = 1 / Z_FAR_T - D_FAR_T * b
 
 # robot region: what is nearer than the FAR plane in the upper part of the frame
 font_px = (0.075 if PH else 0.131) * H
@@ -250,12 +259,53 @@ if A.analyse:
     cv2.imwrite(f'{A.qadir}/analyse-{SUF}.jpg', cv2.cvtColor(ov, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 85])
     print(json.dumps(report, indent=1)); sys.exit(0)
 
+# ---------- depth mapping tune (limit poses) ----------
+# The brief's start values (a 0.15, b 1.6) put the near floor at z 0.57 and the haze at z 6.8, so pitch +-3 deg
+# about 07's chest swings the frame's own bottom/top edge into view. A5 may tune a, b: keep the FAR plane's
+# depth threshold (so the bite is unchanged), lower b until no frame edge enters the inner 88% (the 6%
+# feathered mask) at any limit pose.
+yaws_ = (-6, 0, 6) if PH else (-6, 0, 10); pitches_ = (-3, 0, 3)
+def border_intrusions(a_, b_):
+    global a, b
+    a, b = a_, b_
+    bpts = []
+    for (uu, vv) in [(i / 60, 0) for i in range(61)] + [(1, i / 60) for i in range(61)] + [(i / 60, 1) for i in range(61)] + [(0, i / 60) for i in range(61)]:
+        xs_, ys_ = int(min(W - 1, uu * (W - 1))), int(min(H - 1, vv * (H - 1)))
+        z = zof(dmesh[ys_, xs_]); bpts.append([(uu * 2 - 1) * z / f, (vv * 2 - 1) * ASP * z / f, z])
+    bpts = np.array(bpts)
+    piv = float(np.median(zof(d[pivot_region]))) if pivot_region.sum() > 500 else 1.6
+    worst = 0
+    for yw in yaws_:
+        for pt in pitches_:
+            X, Y, Z = xform(bpts, yw, pt, 0.04, piv); px, py = project(X, Y, Z)
+            ins = (px > 0.06 * rw) & (px < 0.94 * rw) & (py > 0.06 * rh) & (py < 0.94 * rh)
+            worst += int(ins.sum())
+    return worst, piv
+tune = []
+a0, b0 = a, b
+for bb in (1.6, 1.4, 1.2, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5):
+    aa = (1 / Z_FAR_T) - D_FAR_T * bb
+    wv, pv = border_intrusions(aa, bb)
+    tune.append({'a': round(aa, 4), 'b': bb, 'edgePointsInside': wv, 'pivotZ': round(pv, 3)})
+    if wv == 0: break
+if A.a is not None or A.b is not None: a, b = a0, b0
+else: a, b = tune[-1]['a'], tune[-1]['b']
+pivotZ = float(np.median(zof(d[pivot_region]))) if pivot_region.sum() > 500 else 1.6
+print('depth mapping tune:', json.dumps(tune))
+
 # ---------- outputs ----------
+import io
+def save_fit(im, path, kb, fmt='AVIF', qs=(70, 64, 58, 52, 46, 40, 34, 28), **kw):
+    for q in qs:
+        b = io.BytesIO(); im.save(b, fmt, quality=q, **kw)
+        if b.tell() <= kb * 1000: break
+    open(path, 'wb').write(b.getvalue()); return q, b.tell()
+sizes = {}
 (np.clip(grid, 0, 1) * 65535 + .5).astype('<u2').tofile(f'{A.outdir}/hero-depth-{SUF}.bin')
 for tag, path in (('av1', A.av1), ('h264', A.h264)):
     im = Image.open(path).convert('RGB')
-    im.save(f'{A.outdir}/hero-still-{SUF}-{tag}.avif', quality=62, speed=4)
-    im.save(f'{A.outdir}/hero-still-{SUF}-{tag}.jpg', quality=84, optimize=True, progressive=True)
+    sizes[f'still-{tag}'] = save_fit(im, f'{A.outdir}/hero-still-{SUF}-{tag}.avif', 220, speed=4)
+    sizes[f'still-{tag}-jpg'] = save_fit(im, f'{A.outdir}/hero-still-{SUF}-{tag}.jpg', 450, 'JPEG', qs=(84, 80, 76, 72, 68), optimize=True, progressive=True)
 # plate: near region inpainted (Telea), blur 6, x0.6, at half size
 pw_, ph_ = (538, 956) if PH else (960, 538)
 small = cv2.resize(bgr, (pw_, ph_), interpolation=cv2.INTER_AREA)
@@ -263,14 +313,14 @@ nearreg = cv2.resize((d > farD + 0.12).astype(np.uint8), (pw_, ph_), interpolati
 nearreg = cv2.dilate(nearreg, np.ones((9, 9), np.uint8))
 inp = cv2.inpaint(small, nearreg * 255, 8, cv2.INPAINT_TELEA)
 plate = (cv2.GaussianBlur(inp, (0, 0), 6).astype(np.float32) * 0.6).astype(np.uint8)
-Image.fromarray(cv2.cvtColor(plate, cv2.COLOR_BGR2RGB)).save(f'{A.outdir}/hero-plate-{SUF}.avif', quality=45, speed=4)
+sizes['plate'] = save_fit(Image.fromarray(cv2.cvtColor(plate, cv2.COLOR_BGR2RGB)), f'{A.outdir}/hero-plate-{SUF}.avif', 60, speed=4)
 Image.fromarray(cv2.cvtColor(plate, cv2.COLOR_BGR2RGB)).save(f'{A.outdir}/hero-plate-{SUF}.jpg', quality=78)
 # near-matte: exactly the pixels the mesh puts in front of the FAR plane at yaw 0, top part of the frame
 alpha = (dmesh > D_FAR_T).astype(np.float32)
 alpha[int(H * (0.62 if not PH else 0.45)):] = 0
 alpha = cv2.GaussianBlur(alpha, (0, 0), 1.2)
 rgba = np.dstack([rgb, (alpha * 255 + .5).astype(np.uint8)]); rgba[alpha < 0.004, :3] = 0
-Image.fromarray(rgba, 'RGBA').save(f'{A.outdir}/hero-matte-{SUF}.webp', quality=80, method=6)
+sizes['matte'] = save_fit(Image.fromarray(rgba, 'RGBA'), f'{A.outdir}/hero-matte-{SUF}.webp', 120, 'WEBP', qs=(82, 74, 66, 58, 50, 42), method=6)
 cssocc = float((alpha[farm] > 0.5).mean())
 
 # limit poses
@@ -331,7 +381,8 @@ meta = {'frame': A.frame, 'w': W, 'h': H, 'mock': False,
         'occlusion': {'yaw0': round(occ0, 4), 'rest': round(rr['farOccl'], 4), 'cssMatte': round(cssocc, 4), 'window': [0.03, 0.10], 'restMax': 0.15},
         'nearContrast': {'p10': round(np10, 3), 'median': round(nmed, 3), 'passFrac': round(nfrac, 4), 'gate': '>=3:1 on >=90%'},
         'nearDarken': json.loads(A.darken) if A.darken else None,
-        'limitPoses': limits}
+        'depthMappingTune': tune,
+        'limitPoses': limits, 'encodes': {k: {'q': v[0], 'bytes': v[1]} for k, v in sizes.items()}}
 g1 = 0.03 <= occ0 <= 0.10 and rr['farOccl'] <= 0.15
 g2 = nfrac >= 0.90
 g3 = all(l['uncoveredPx'] == 0 and l['edgeInside'] == 0 for l in limits)

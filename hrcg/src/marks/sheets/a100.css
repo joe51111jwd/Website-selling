@@ -1,0 +1,127 @@
+/* A-100 · THE FIVE BAYS (brief 3.3). Owner: A3.
+   Must fit 1440x900 between the header (72) and the strip (80) when pinned in A2's stage. */
+
+.a100 {
+  position: relative;
+  padding: calc(var(--border) + var(--header-h) + var(--s-4)) 0 var(--s-8);
+}
+.a100[data-mode='stage'] {
+  padding-bottom: 0;
+}
+.a100-spine {
+  top: calc(var(--border) + var(--header-h));
+}
+.a100-inner {
+  position: relative;
+}
+.a100-tag {
+  margin-bottom: var(--s-3);
+}
+
+/* legend: one quiet line under the plan, the drawing's key */
+.a100-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  margin-top: var(--s-4);
+}
+.a100-legend-title {
+  flex: 0 0 auto;
+  color: var(--fg);
+  padding-right: var(--s-5);
+  border-right: 1px solid var(--line);
+  line-height: 22px;
+}
+.a100-legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--s-6);
+  row-gap: var(--s-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.a100-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--fg-2);
+  white-space: nowrap;
+}
+.a100-sym {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--fg);
+}
+.a100-sym--x {
+  width: 28px;
+}
+
+/* statement H2 with the body set against its last line */
+.a100-text {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: end;
+  margin-top: var(--s-6);
+}
+.a100-h2 {
+  grid-column: 1 / span 8;
+  text-wrap: balance;
+}
+.a100-body {
+  grid-column: 9 / span 4;
+  padding-bottom: 0.35em;
+  color: var(--fg);
+}
+
+@media (max-width: 1279px) {
+  .a100-legend-items {
+    column-gap: var(--s-5);
+  }
+}
+@media (max-width: 1023px) {
+  .a100-h2 {
+    grid-column: 1 / -1;
+  }
+  .a100-body {
+    grid-column: 1 / span 9;
+    margin-top: var(--s-5);
+  }
+}
+@media (max-width: 767px) {
+  .a100 {
+    padding-top: calc(var(--border) + var(--header-h) + var(--s-3));
+  }
+  .a100-legend {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-3);
+    margin-top: var(--s-6);
+    order: 3;
+  }
+  .a100-legend-title {
+    border-right: 0;
+    padding-right: 0;
+  }
+  .a100-legend-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: var(--s-3);
+    column-gap: var(--s-4);
+  }
+  .a100-inner {
+    display: flex;
+    flex-direction: column;
+  }
+  .a100-text {
+    display: block;
+    margin-top: var(--s-7);
+    order: 2;
+  }
+  .a100-body {
+    margin-top: var(--s-4);
+  }
+}

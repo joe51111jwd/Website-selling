@@ -1,0 +1,80 @@
+/* PerspectiveStage: slide and iris (brief 3.4, 3.6, 6). Owner: A3.
+   Flow (default, no JS, reduced motion, phones): composition, then the view, in normal flow.
+   Pin (JS, motion, >= 768): sticky layer; JS sets heights, offsets and per-frame transform /
+   opacity / clip-path only. */
+
+.pstage,
+.pstage-track,
+.pstage-sticky {
+  position: relative;
+}
+/* its own stacking context: nothing in the composition can rise above the matte or the view */
+.pstage-comp {
+  position: relative;
+  z-index: 1;
+}
+.pstage-matte {
+  display: none;
+}
+.pstage-view {
+  position: relative;
+  margin-top: var(--s-9);
+}
+.pstage--content .pstage-view {
+  width: min(100% - 2 * var(--margin), var(--content-max));
+  margin-inline: auto;
+}
+.pstage--full .pstage-view {
+  width: 100%;
+}
+.pstage-anchor {
+  display: block;
+  width: 1px;
+  height: 0;
+}
+
+@media (min-width: 768px) {
+  .pstage[data-mode='pin'] .pstage-track {
+    height: calc(100svh + var(--pin) * 1vh);
+  }
+  .pstage[data-mode='pin'] .pstage-sticky {
+    position: sticky;
+    top: 0;
+    min-height: 100svh;
+  }
+  .pstage[data-mode='pin'] .pstage-matte {
+    display: block;
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 100svh;
+    background: var(--slab-black);
+    opacity: 0;
+    pointer-events: none;
+    /* soft top / bottom edge (inside the sheet border) so no seam shows when the hold scrolls away */
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 var(--border), #000 calc(100% - var(--border)), transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 var(--border), #000 calc(100% - var(--border)), transparent);
+  }
+  .pstage[data-mode='pin'] .pstage-view {
+    position: absolute;
+    z-index: 3;
+    margin: 0;
+  }
+  .pstage[data-mode='pin'] .pstage-view:not([data-ready]) {
+    visibility: hidden;
+  }
+  .pstage[data-mode='pin'] .pstage-view .view-frame {
+    transform-origin: 0 0;
+    will-change: transform, clip-path, opacity;
+    background: var(--slab-black);
+  }
+  .pstage[data-mode='pin'] .pstage-view .view-title {
+    opacity: 0;
+  }
+  .pstage-anchor--hold {
+    position: absolute;
+    left: 0;
+  }
+}

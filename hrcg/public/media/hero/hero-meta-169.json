@@ -1,8 +1,8 @@
 {
- "mock": true,
  "frame": 84,
  "w": 1920,
  "h": 1076,
+ "mock": false,
  "grid": {
   "cols": 257,
   "rows": 145,
@@ -11,9 +11,9 @@
  "a": 0.15,
  "b": 1.6,
  "f": 1.2,
- "pivotZ": 1.6,
- "nearD": 0.75,
- "farD": 0.12,
+ "pivotZ": 2.0667,
+ "nearD": 0.9911,
+ "farD": 0.0021,
  "yaw": {
   "auto": 8,
   "min": -6,
@@ -26,13 +26,221 @@
  },
  "dolly": 0.04,
  "overscan": 0.12,
- "typeLayers": [],
+ "plate": {
+  "z": 6.8,
+  "scale": 1.4,
+  "note": "quad at z, size = plate.scale x the frame-matched size at that depth"
+ },
+ "stretchDiscard": {
+  "threshold": 0.06,
+  "rampDeg": 0.5
+ },
+ "typeLayers": [
+  {
+   "text": "WHAT CAN A",
+   "plane": "FAR",
+   "z": 2.6,
+   "anchor": "left-baseline",
+   "x": 0.12,
+   "baseline": 0.2448,
+   "fontPx": 140.96,
+   "fontPxFrac": 0.131,
+   "box": [
+    0.12,
+    0.13885,
+    0.45229,
+    0.24573
+   ]
+  },
+  {
+   "text": "HUMANOID",
+   "plane": "FAR",
+   "z": 2.6,
+   "anchor": "left-baseline",
+   "x": 0.12,
+   "baseline": 0.37,
+   "fontPx": 140.96,
+   "fontPxFrac": 0.131,
+   "box": [
+    0.12,
+    0.26405,
+    0.41062,
+    0.37093
+   ]
+  },
+  {
+   "text": "ACTUALLY",
+   "plane": "NEAR",
+   "z": 1.05,
+   "anchor": "right-baseline",
+   "x": 0.92,
+   "baseline": 0.5748,
+   "fontPx": 140.96,
+   "fontPxFrac": 0.131,
+   "box": [
+    0.66271,
+    0.46885,
+    0.92,
+    0.57573
+   ]
+  },
+  {
+   "text": "BUILD?",
+   "plane": "NEAR",
+   "z": 1.05,
+   "anchor": "right-baseline",
+   "x": 0.92,
+   "baseline": 0.755,
+   "fontPx": 140.96,
+   "fontPxFrac": 0.131,
+   "box": [
+    0.73146,
+    0.64905,
+    0.92,
+    0.75593
+   ]
+  }
+ ],
+ "typeLayerShift": {
+  "far": [
+   0.0,
+   0.0
+  ],
+  "near": [
+   0.0,
+   0.0
+  ]
+ },
  "occlusion": {
-  "yaw0": null,
-  "rest": null
+  "yaw0": 0.0397,
+  "rest": 0.123,
+  "cssMatte": 0.0397,
+  "window": [
+   0.03,
+   0.1
+  ],
+  "restMax": 0.15
  },
  "nearContrast": {
-  "p10": null,
-  "median": null
+  "p10": 2.083,
+  "median": 4.374,
+  "passFrac": 0.7609,
+  "gate": ">=3:1 on >=90%"
+ },
+ "nearDarken": {
+  "box": [
+   0.663,
+   0.4684,
+   0.9187,
+   0.7546
+  ],
+  "linearLightRemoved": 0.83,
+  "feather": "ellipse 1.15x/1.25x the NEAR box, gaussian 3% of the long side",
+  "bakedInto": "hero-snap-169 (all frames), hence the stills"
+ },
+ "limitPoses": [
+  {
+   "yaw": -6,
+   "pitch": -3,
+   "uncoveredPx": 0,
+   "edgeInside": 71,
+   "farOccl": 0.0239,
+   "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p-3.png"
+  },
+  {
+   "yaw": -6,
+   "pitch": 0,
+   "uncoveredPx": 0,
+   "edgeInside": 35,
+   "farOccl": 0.0193,
+   "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p+0.png"
+  },
+  {
+   "yaw": -6,
+   "pitch": 3,
+   "uncoveredPx": 0,
+   "edgeInside": 25,
+   "farOccl": 0.0152,
+   "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p+3.png"
+  },
+  {
+   "yaw": 0,
+   "pitch": -3,
+   "uncoveredPx": 0,
+   "edgeInside": 37,
+   "farOccl": 0.0541,
+   "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p-3.png"
+  },
+  {
+   "yaw": 0,
+   "pitch": 0,
+   "uncoveredPx": 0,
+   "edgeInside": 0,
+   "farOccl": 0.0469,
+   "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p+0.png"
+  },
+  {
+   "yaw": 0,
+   "pitch": 3,
+   "uncoveredPx": 0,
+   "edgeInside": 0,
+   "farOccl": 0.0389,
+   "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p+3.png"
+  },
+  {
+   "yaw": 10,
+   "pitch": -3,
+   "uncoveredPx": 0,
+   "edgeInside": 74,
+   "farOccl": 0.1434,
+   "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p-3.png"
+  },
+  {
+   "yaw": 10,
+   "pitch": 0,
+   "uncoveredPx": 0,
+   "edgeInside": 38,
+   "farOccl": 0.125,
+   "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p+0.png"
+  },
+  {
+   "yaw": 10,
+   "pitch": 3,
+   "uncoveredPx": 0,
+   "edgeInside": 36,
+   "farOccl": 0.1115,
+   "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p+3.png"
+  }
+ ],
+ "encodes": {
+  "still-av1": {
+   "q": 70,
+   "bytes": 45489
+  },
+  "still-av1-jpg": {
+   "q": 84,
+   "bytes": 120914
+  },
+  "still-h264": {
+   "q": 70,
+   "bytes": 59975
+  },
+  "still-h264-jpg": {
+   "q": 84,
+   "bytes": 133307
+  },
+  "plate": {
+   "q": 70,
+   "bytes": 3648
+  },
+  "matte": {
+   "q": 82,
+   "bytes": 32568
+  }
+ },
+ "gates": {
+  "occlusion": true,
+  "nearContrast": false,
+  "limitPoses": false
  }
 }

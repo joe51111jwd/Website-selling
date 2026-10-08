@@ -1,1 +1,638 @@
-/* A4 sheets (A-104, A-105, A-200). Owner: A4. */
+/* A4 sheets: A-104 PIPE ASSEMBLY, A-105 LAYOUT AND MARKING, A-200 CONTEXT. Owner: A4.
+   Tokens only (src/system/tokens.css). Square corners, 1 px hairlines, no gradients, no glow.
+   The two physical shadows of the brief live here: the iso plan's floor shadow (A-104) and the HOLD
+   cloud's lift shadow (A-200). Static end states are the default; [data-live] adds the staging, so the
+   no-JS, reduced-motion and MOTION OFF compositions never depend on script. */
+
+/* =================================================================== A-200 CONTEXT */
+
+.a200 {
+  position: relative;
+  width: min(100% - 2 * var(--margin), var(--content-max));
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+.a200-track {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  position: relative;
+}
+.a200-pin {
+  position: relative;
+}
+.a200-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: var(--s-6);
+  align-content: start;
+}
+.a200-tag {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+/* ---- static end state (no JS, reduced motion, MOTION OFF, before hydration) */
+.a200-row {
+  display: none;
+}
+.a200-hold {
+  grid-column: 6 / -1;
+  grid-row: 2;
+  padding: var(--s-3) 0 0 var(--s-4);
+}
+.a200-grid {
+  grid-column: 6 / -1;
+  grid-row: 3;
+}
+.a200-text {
+  grid-column: 1 / span 5;
+  grid-row: 1;
+  align-self: end;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding-bottom: calc(var(--s-6) + 15px);
+}
+.a200-h2 {
+  color: var(--chalk);
+  max-width: 9.5ch;
+}
+.a200-body {
+  color: var(--chalk);
+  max-width: 46ch;
+}
+.a200-statement {
+  font-family: var(--font-text);
+  font-weight: 600;
+  font-stretch: 100%;
+  font-size: 32px;
+  line-height: 38px;
+  color: var(--chalk);
+  max-width: 22ch;
+}
+
+/* the HOLD tag (A3's HoldCloud); body text in the label voice */
+.a200-hold .mk-hold {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--s-5);
+}
+.a200-hold-body {
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 20px;
+  color: var(--chalk);
+  white-space: nowrap;
+}
+
+/* ---- the 1811 grid view */
+.a200-box {
+  position: relative;
+  aspect-ratio: 5 / 4;
+  width: 100%;
+  overflow: hidden;
+  background: var(--slab-black);
+}
+.a200-field,
+.a200-field svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.a200-field path {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: butt;
+}
+.a200-streets {
+  stroke: var(--pencil);
+  stroke-width: 0.75;
+  opacity: 0.62;
+}
+.a200-avenues {
+  stroke: var(--pencil);
+  stroke-width: 1.5;
+}
+.a200-compass {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+.a200-compass > svg {
+  position: absolute;
+  max-width: none;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+}
+.a200-compass .mk-label {
+  font-size: 12px;
+  paint-order: stroke;
+  stroke: var(--slab-black);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+  vector-effect: none;
+}
+.a200-tn {
+  color: var(--pencil);
+}
+.a200-gn,
+.a200-arc {
+  color: var(--chalk);
+}
+.a200-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
+  margin-top: var(--s-3);
+  color: var(--pencil);
+}
+
+/* ---- live staging (hydrated, motion on) */
+.a200[data-live] .a200-track {
+  height: calc(var(--sheet-vh, 200) * 1vh);
+}
+.a200[data-live] .a200-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+}
+.a200[data-live] .a200-stage {
+  height: 100%;
+  padding-top: calc(var(--border) + var(--header-h) + var(--s-4));
+  padding-bottom: calc(var(--chrome-bottom) + var(--s-5));
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.a200[data-live] .a200-row {
+  display: block;
+  position: absolute;
+  /* columns 2–11: the cloud's scallops need the outer column on each side */
+  left: calc((100% + var(--gutter)) / 12);
+  right: calc((100% + var(--gutter)) / 12);
+  top: 50%;
+  transform: translateY(-50%);
+  aspect-ratio: 1890 / 350;
+}
+.a200[data-live] .a200-hold {
+  display: none;
+}
+.a200[data-live] .a200-grid {
+  grid-row: 2;
+  align-self: end;
+  justify-self: end;
+  width: min(100%, calc((100svh - var(--border) - var(--header-h) - var(--chrome-bottom) - 128px) * 1.25));
+}
+.a200[data-live] .a200-grid:not([data-on]) {
+  visibility: hidden;
+}
+.a200[data-live] .a200-field {
+  clip-path: circle(0% at 50% 50%);
+}
+.a200[data-live] .a200-text {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  align-self: start;
+  justify-content: flex-end;
+  padding-bottom: calc(var(--chrome-bottom) + var(--s-5) + 21px);
+  pointer-events: none;
+}
+.a200[data-live] .a200-text > * {
+  pointer-events: auto;
+}
+
+/* row poster, outline and cloud (all in the row's own 1890 × 350 units) */
+.a200-poster {
+  position: absolute;
+  inset: 0;
+}
+.a200-poster .view-frame {
+  border-color: transparent;
+}
+.a200-poster .picture,
+.a200-poster img {
+  width: 100%;
+  height: auto;
+}
+.a200-poster[data-off] {
+  visibility: hidden;
+}
+.a200-bays-label {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + var(--s-3));
+  margin: 0;
+  color: var(--pencil);
+  opacity: 0;
+}
+.a200-bays {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  aspect-ratio: 1890 / 350;
+  overflow: visible;
+  pointer-events: none;
+}
+.a200-bays path {
+  fill: none;
+  stroke: var(--pencil);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+}
+.a200-cloud {
+  position: absolute;
+  transform-origin: 0 0;
+  will-change: transform;
+  pointer-events: none;
+  --lift: 2px;
+}
+.a200-cloud svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 var(--lift) calc(var(--lift) * 1.5) rgba(0, 0, 0, 0.6));
+}
+.a200-cloud path {
+  fill: none;
+  stroke: var(--pencil);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+}
+.a200-cloud-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  opacity: 0;
+  text-align: center;
+}
+.a200-cloud-head {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-variation-settings: 'opsz' 72;
+  font-size: clamp(32px, 5.4vw, 96px);
+  line-height: 0.88;
+  letter-spacing: 0.02em;
+  color: var(--marking-orange);
+}
+.a200-cloud-tail {
+  font-family: var(--font-text);
+  font-weight: 500;
+  font-size: clamp(15px, 1.4vw, 20px);
+  line-height: 1.3;
+  color: var(--chalk);
+}
+
+/* north arrows and arc: scroll-driven draw-on (overrides the marks' time-based draw while live) */
+.a200[data-live] .a200-compass .a200-tn [data-draw] {
+  stroke-dashoffset: calc(1 - var(--tn, 0));
+  transition: none;
+}
+.a200[data-live] .a200-compass .a200-tn [data-ink] {
+  opacity: var(--tn-ink, 0);
+  transition: none;
+}
+.a200[data-live] .a200-compass .a200-gn [data-draw] {
+  stroke-dashoffset: calc(1 - var(--gn, 0));
+  transition: none;
+}
+.a200[data-live] .a200-compass .a200-gn [data-ink] {
+  opacity: var(--gn-ink, 0);
+  transition: none;
+}
+.a200[data-live] .a200-compass .a200-arc [data-draw] {
+  stroke-dashoffset: calc(1 - var(--arc, 0));
+  transition: none;
+}
+.a200[data-live] .a200-compass .a200-arc [data-ink] {
+  opacity: var(--arc-ink, 0);
+  transition: none;
+}
+
+/* short desktop screens: the text follows the pinned drawing instead of standing beside it */
+@media (min-width: 768px) and (max-height: 759px) {
+  .a200[data-live] .a200-text {
+    grid-row: 2;
+    grid-column: 1 / span 7;
+    position: relative;
+    height: auto;
+    padding: var(--s-7) 0 0;
+  }
+  .a200[data-live] .a200-grid {
+    grid-column: 1 / -1;
+  }
+}
+
+/* phone: one column; the drawing pins (180vh), the text follows it */
+@media (max-width: 767px) {
+  .a200 {
+    display: block;
+  }
+  .a200-stage {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--s-5);
+  }
+  .a200-hold,
+  .a200-grid {
+    grid-column: 1;
+  }
+  .a200-hold {
+    padding: var(--s-3) 0 0 var(--s-3);
+  }
+  .a200-text {
+    padding: var(--s-7) 0 0;
+    gap: var(--s-4);
+  }
+  .a200-statement {
+    font-size: 24px;
+    line-height: 30px;
+  }
+  .a200[data-live] .a200-track {
+    height: 180vh;
+  }
+  .a200[data-live] .a200-row {
+    left: 7%;
+    right: 7%;
+  }
+  .a200[data-live] .a200-grid {
+    grid-row: 2;
+    align-self: start;
+    width: 100%;
+  }
+  .a200[data-live] .a200-hold {
+    display: block;
+    position: absolute;
+    left: 0;
+    bottom: calc(var(--chrome-bottom) + var(--s-4));
+    opacity: 0;
+  }
+  .a200[data-live] .a200-text {
+    position: relative;
+    height: auto;
+    padding: var(--s-7) 0 0;
+  }
+  .a200-hold-body {
+    font-size: 13px;
+    white-space: normal;
+  }
+}
+
+/* =================================================================== A-104 PIPE ASSEMBLY */
+
+.a104 {
+  width: min(100% - 2 * var(--margin), var(--content-max));
+  margin-inline: auto;
+}
+.a104-head {
+  padding-top: var(--s-2);
+  margin-bottom: var(--s-6);
+}
+.a104-stage {
+  position: relative;
+  container-type: inline-size;
+  aspect-ratio: var(--ar-d);
+  --pl: var(--pl-d);
+  --pt: var(--pt-d);
+  --pw: var(--pw-d);
+  --lift: var(--lift-d);
+  --side: var(--s-d);
+}
+.a104-stage > svg,
+.a104-route,
+.a104-route-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.a104-floor--phone,
+.a104-frame--phone,
+.a104-route--phone {
+  display: none;
+}
+
+/* the plane: one square, laid at true isometric. CSS 3D without perspective = orthographic */
+.a104-plan {
+  position: absolute;
+  left: var(--pl);
+  top: var(--pt);
+  width: var(--pw);
+}
+.a104-plane,
+.a104-shadow {
+  aspect-ratio: 1;
+  transform-origin: 50% 50%;
+}
+.a104-plane {
+  position: relative;
+  transform: rotateX(54.7356deg) rotateZ(-45deg) translateZ(var(--lift));
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 4%, #000 96%, transparent),
+    linear-gradient(to bottom, transparent, #000 4%, #000 96%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 4%, #000 96%, transparent),
+    linear-gradient(to bottom, transparent, #000 4%, #000 96%, transparent);
+  mask-composite: intersect;
+}
+.a104-plane .loopvideo {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+/* the traced task drawing: the D6 SVG recoloured chalk-blue through a mask (lines only) */
+.a104-trace {
+  position: absolute;
+  inset: 0;
+  background: var(--chalk-blue);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  pointer-events: none;
+}
+/* the one allowed physical shadow on this sheet: the plane's own, 24 px below it on the floor */
+.a104-shadow {
+  position: absolute;
+  left: var(--pl);
+  top: var(--pt);
+  width: var(--pw);
+  background: rgba(0, 0, 0, 0.62);
+  filter: blur(14px);
+  transform: rotateX(54.7356deg) rotateZ(-45deg);
+}
+.a104-floor path {
+  fill: none;
+  stroke: var(--pencil);
+  stroke-width: 1;
+  stroke-dasharray: 6 5;
+  opacity: 0.45;
+  vector-effect: non-scaling-stroke;
+}
+.a104-frame path {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* captions: under the plane's footprint (the lowest point of the drawing), centred on it */
+.a104-plan-title {
+  margin-top: calc(14px - 0.0918 * var(--side));
+}
+.a104-trace-title {
+  position: absolute;
+  left: var(--pl);
+  width: var(--pw);
+  top: calc(var(--pt) + var(--side) * 0.9082 + 14px + 30px);
+  margin: 0;
+}
+
+/* the pipe route */
+.a104-pipe {
+  fill: none;
+  stroke: var(--chalk);
+  stroke-width: 1.5;
+  stroke-linejoin: miter;
+  vector-effect: non-scaling-stroke;
+}
+.a104-joint,
+.a104-cap {
+  fill: none;
+  stroke: var(--chalk);
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+}
+.a104-fitting {
+  fill: var(--chalk);
+}
+.a104-end {
+  fill: var(--slab-black);
+  stroke: var(--chalk);
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+}
+.a104-route-svg,
+.a104-trace,
+.a104-floor,
+.a104-frame {
+  opacity: 0;
+  transition: opacity var(--dur-print) linear;
+}
+.a104-stage[data-printed] .a104-route-svg,
+.a104-stage[data-printed] .a104-trace,
+.a104-stage[data-printed] .a104-frame {
+  opacity: 1;
+}
+.a104-stage[data-printed] .a104-floor {
+  opacity: 1;
+}
+.no-js .a104-route-svg,
+.no-js .a104-trace,
+.no-js .a104-frame,
+.no-js .a104-floor,
+.rm .a104-route-svg,
+.rm .a104-trace,
+.rm .a104-frame,
+.rm .a104-floor {
+  opacity: 1;
+  transition: none;
+}
+.a104-stage[data-printed] .print-in {
+  opacity: 1;
+}
+.a104-beats {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+.a104-beat {
+  position: absolute;
+  white-space: nowrap;
+  color: var(--chalk);
+  transform: translateY(-50%);
+}
+
+.a104-h2 {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  margin: 0;
+  color: var(--chalk);
+  max-width: 6ch;
+}
+
+.a104-foot {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  margin-top: var(--s-7);
+  align-items: end;
+}
+.a104-spec {
+  grid-column: 1 / span 3;
+  color: var(--chalk);
+  padding-bottom: calc(15px + var(--s-3));
+}
+.a104-persp {
+  grid-column: 5 / -1;
+}
+
+@media (max-width: 767px) {
+  .a104-stage {
+    aspect-ratio: var(--ar-m);
+    --pl: var(--pl-m);
+    --pt: var(--pt-m);
+    --pw: var(--pw-m);
+    --lift: var(--lift-m);
+    --side: var(--s-m);
+  }
+  .a104-floor--desk,
+  .a104-frame--desk,
+  .a104-route--desk {
+    display: none;
+  }
+  .a104-floor--phone,
+  .a104-frame--phone,
+  .a104-route--phone {
+    display: block;
+  }
+  .a104-beat--right {
+    text-align: right;
+  }
+  .a104-foot {
+    display: block;
+    margin-top: var(--s-6);
+  }
+  .a104-spec {
+    padding-bottom: 0;
+    margin-bottom: var(--s-6);
+  }
+  .a104-h2 {
+    max-width: none;
+  }
+}

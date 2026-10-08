@@ -55,4 +55,5 @@ bay b44 "$SRC/b44-layout.mp4" 1020 360 240 220
 fi
 # gated new takes (A5 QA PASS in media/NEW_SHOTS.md): N09 retake = PERSPECTIVE 01-A, N01b = the 9:16 snap
 crop169 n09r "$S/media/new/N09r.mp4"
-ffmpeg -v error -y -i "$S/media/new/N01b.mp4" -vf "$GRADE" "${ENC[@]}" "$OUT/n01b.mp4"; echo "n01b done"
+# N01b is used as 1076x1912 (6 px off the top and bottom), exactly like A5's n01b-916 mezzanine
+ffmpeg -v error -y -i "$S/media/new/N01b.mp4" -vf "crop=1076:1912:0:6,$GRADE" "${ENC[@]}" "$OUT/n01b.mp4"; echo "n01b done"

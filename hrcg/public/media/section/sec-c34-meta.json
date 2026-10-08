@@ -1,0 +1,85 @@
+{
+ "frame": 18,
+ "candidates": {
+  "18": {
+   "dustPx480": 79,
+   "sharpness": 381.2
+  },
+  "19": {
+   "dustPx480": 92,
+   "sharpness": 387.2
+  },
+  "20": {
+   "dustPx480": 89,
+   "sharpness": 385.1
+  },
+  "21": {
+   "dustPx480": 113,
+   "sharpness": 385.3
+  },
+  "22": {
+   "dustPx480": 129,
+   "sharpness": 392.3
+  },
+  "23": {
+   "dustPx480": 150,
+   "sharpness": 390.0
+  },
+  "24": {
+   "dustPx480": 152,
+   "sharpness": 388.3
+  },
+  "25": {
+   "dustPx480": 187,
+   "sharpness": 375.4
+  },
+  "26": {
+   "dustPx480": 230,
+   "sharpness": 372.3
+  },
+  "27": {
+   "dustPx480": 269,
+   "sharpness": 380.7
+  },
+  "28": {
+   "dustPx480": 311,
+   "sharpness": 376.1
+  },
+  "29": {
+   "dustPx480": 361,
+   "sharpness": 379.4
+  },
+  "30": {
+   "dustPx480": 404,
+   "sharpness": 375.2
+  }
+ },
+ "depth": {
+  "file": "sec-c34-depth.png",
+  "w": 960,
+  "h": 540,
+  "encoding": "8-bit single channel, relative inverse depth, near = 255; sample with LinearFilter + NoColorSpace"
+ },
+ "nearD": 0.98,
+ "farD": 0.0118,
+ "w": 0.012,
+ "levels": 14,
+ "uSlice": "mix(nearD, farD, s); s = 0 at the camera end of the chalk line, 1 at the robot end",
+ "stills": {
+  "near": {
+   "s": 0.1
+  },
+  "mid": {
+   "s": 0.5
+  },
+  "far": {
+   "s": 0.9
+  }
+ },
+ "colours": {
+  "slabBlack": "#0B0B0A",
+  "chalk": "#ECE8E1",
+  "pencil": "#9A958C",
+  "chalkBlue": "#6F98E8"
+ }
+}

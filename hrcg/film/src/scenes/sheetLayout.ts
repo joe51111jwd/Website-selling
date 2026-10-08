@@ -1,7 +1,7 @@
 // Native layouts of the five challenge sheets, per format. Crops are the brief's (§5.6, §7a):
 // c31 only 4:5 at x ≥ 0.50; c33 only bottom-anchored 2.39:1; c30 only a band (until N09 replaces it).
 import type { ClipId } from '../clips';
-import { CROPS } from '../clips';
+import { CROPS, USE_N09 } from '../clips';
 import type { Rect } from '../components/Clip';
 import type { Format } from '../timeline';
 
@@ -53,16 +53,26 @@ export const PLAN_L: Record<Format, (nLines: number) => PlanL> = {
 
 export const PERSP: Record<Format, Persp[]> = {
   '169': [
-    {
-      clip: 'c30',
-      crop: CROPS.c30_239,
-      dest: [0, 138, 1920, 803],
-      inAt: 0.4,
-      framed: false,
-      vt: [96, 958, 1728],
-      // 200 px here (not 220) so the super keeps clear of 07's head
-      sup: { lines: ['LAY BRICK.'], x: 1824, baselines: [372], anchor: 'end', size: 200 },
-    },
+    USE_N09
+      ? {
+          clip: 'n09r',
+          crop: CROPS.n09r_239,
+          dest: [0, 138, 1920, 804],
+          inAt: 1.4,
+          framed: false,
+          vt: [96, 958, 1728],
+          sup: { lines: ['LAY BRICK.'], x: 1824, baselines: [392], anchor: 'end', size: 220 },
+        }
+      : {
+          clip: 'c30',
+          crop: CROPS.c30_239,
+          dest: [0, 138, 1920, 803],
+          inAt: 0.4,
+          framed: false,
+          vt: [96, 958, 1728],
+          // 200 px here (not 220) so the super keeps clear of 07's head
+          sup: { lines: ['LAY BRICK.'], x: 1824, baselines: [372], anchor: 'end', size: 200 },
+        },
     {
       clip: 'c31',
       crop: CROPS.c31_45,
@@ -103,10 +113,10 @@ export const PERSP: Record<Format, Persp[]> = {
   ],
   '916': [
     {
-      clip: 'c30',
-      crop: [96, 0, 861, 1076],
+      clip: USE_N09 ? 'n09r' : 'c30',
+      crop: USE_N09 ? CROPS.n09r_45 : [96, 0, 861, 1076],
       dest: P45_916,
-      inAt: 0.4,
+      inAt: USE_N09 ? 1.4 : 0.4,
       framed: true,
       vt: [64, 1352, 952],
       sup: { lines: ['LAY BRICK.'], x: 64, baselines: [1620], anchor: 'start', size: 190 },
@@ -150,10 +160,10 @@ export const PERSP: Record<Format, Persp[]> = {
   ],
   '11': [
     {
-      clip: 'c30',
-      crop: CROPS.c30_239,
+      clip: USE_N09 ? 'n09r' : 'c30',
+      crop: USE_N09 ? CROPS.n09r_239 : CROPS.c30_239,
       dest: [64, 170, 952, 398],
-      inAt: 0.4,
+      inAt: USE_N09 ? 1.4 : 0.4,
       framed: true,
       vt: [64, 582, 952],
       sup: { lines: ['LAY BRICK.'], x: 64, baselines: [985], anchor: 'start', size: 150 },
