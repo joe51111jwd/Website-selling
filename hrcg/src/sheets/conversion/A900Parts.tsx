@@ -2,9 +2,9 @@
 // Owner: A6. Text only, on paper. No motion except the native <details> opening and the roll-call
 // ink-in (400 ms, once each sheet has been in view).
 
-import { useRef, type MouseEvent } from 'react';
+import { Fragment, useRef, type MouseEvent } from 'react';
 import { LabelText } from '../../chrome/LabelText';
-import { HoldMark } from '../../chrome/HoldMark';
+import { HoldCloud } from '../../marks/HoldCloud';
 import { InPageIndex, hasTheSet } from '../../chrome/SheetIndex';
 import { overlays } from '../../chrome/overlays';
 import { navClick } from '../../chrome/nav';
@@ -106,7 +106,9 @@ export function Contact() {
               overlays.open('the-set', e.currentTarget);
             }}
           >
-            <LabelText text={INDEX.watchTheSet} />
+            <span>
+              <LabelText text={INDEX.watchTheSet} />
+            </span>
           </a>
         </p>
       ) : null}
@@ -130,10 +132,12 @@ export function FooterBlock() {
         return (
           <span className="tb-challenges">
             {CHALLENGES.map((c, i) => (
-              <span key={c.no} className="tb-challenge">
-                <span className="num">{c.num}</span> {c.name}
-                {i < CHALLENGES.length - 1 ? <span aria-hidden="true">{NOTES.challengeSep}</span> : null}
-              </span>
+              <Fragment key={c.no}>
+                <span className="tb-challenge">
+                  <span className="num">{c.num}</span> {c.name}
+                </span>
+                {i < CHALLENGES.length - 1 ? NOTES.challengeSep : null}
+              </Fragment>
             ))}
           </span>
         );
@@ -142,16 +146,27 @@ export function FooterBlock() {
       case 'INDEX':
         return <InPageIndex className="tb-index" title={false} />;
       case 'DATE':
-      case 'VENUE':
+      case 'VENUE': {
+        // "Hold." inside a revision cloud (A3's HoldCloud, brief 5.5), then the rest of the sentence
+        const i = v.indexOf('. ');
+        const head = i > 0 ? v.slice(0, i + 1) : v;
+        const tail = i > 0 ? v.slice(i + 2) : '';
         return (
-          <>
-            <HoldMark className="tb-hold" />
-            <span>{v}</span>
-          </>
+          <span className="tb-holdline">
+            <HoldCloud width={58} height={30} tag={null} flat className="tb-cloud">
+              {head}
+            </HoldCloud>{' '}
+            <span>{tail}</span>
+          </span>
         );
+      }
       case 'YEAR':
       case 'SHEET':
-        return <LabelText text={v} />;
+        return (
+          <span>
+            <LabelText text={v} />
+          </span>
+        );
       default:
         return v;
     }

@@ -29,6 +29,8 @@ export const A101 = {
     label: 'Go to perspective 01-A, concept film of bricklaying',
   },
   detailLabel: 'Open detail 1, concept film of a robot hand pressing a brick into mortar',
+  /** printed beside the bubble (brief 3.4 layout: "◯1 DETAIL 1 / A-101") */
+  bubbleWord: 'DETAIL',
   alt: {
     plan: 'AI-generated concept film, seen from above: robot 07 spreads mortar and lays a course of brick between two line posts.',
     perspective:

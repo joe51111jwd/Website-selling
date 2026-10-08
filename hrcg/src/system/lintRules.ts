@@ -45,6 +45,8 @@ const MONTHS =
 /** Digit tokens allowed anywhere (rule 5). Order matters: longer tokens first. */
 const ALLOWED_DIGIT_TOKENS: RegExp[] = [
   /HRCG-2027/g,
+  // measured T7 proof label, only ever printed from t7-proof.json smallestLabel (A6-1)
+  /\b\d{1,4} PX WIDE\b/g,
   // detail bubble numbering, bare form inside the mark: "1 / A-101" (A3-1)
   /\b[1-6] \/ A-(?:101|102|103|104|105|300|301|900)\b/g,
   // detail numbering in labels: "DETAIL 1", "Open detail 1, …" (A3-1)

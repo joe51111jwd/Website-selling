@@ -77,6 +77,9 @@ export function A101Brick() {
                 <LoopVideo id="det-v0" label={A101.alt.detail} autoPlay={false} phoneId={null} />
               </ViewTitle>
             </DetailBubble>
+            <span className="a101-bubble-label t-label print-in" aria-hidden="true">
+              {A101.bubbleWord}
+            </span>
             <span className="a101-num t-stencil t-bay-numeral print-in" aria-hidden="true">
               {CH.num}
             </span>

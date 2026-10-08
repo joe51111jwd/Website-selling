@@ -101,11 +101,11 @@ export function BayPlate({ platform, ready, crop = FULL, className, sizes, loadi
             >
               {text}
             </text>
-            <text className="bay-number" x={BAY_NO.x} y={BAY_NO.y} fontSize={190} textAnchor="start">
-              {TEAMS.bayNumber}
-            </text>
           </g>
-          <ReadyFor ready={ready} paint={paint} x={SLOT.x} y={READY_Y} size={30} />
+          <text className="bay-number" x={BAY_NO.x} y={BAY_NO.y} fontSize={190} textAnchor="start">
+            {TEAMS.bayNumber}
+          </text>
+          <ReadyFor ready={ready} x={SLOT.x} y={READY_Y} size={30} />
         </svg>
       </div>
     </div>
@@ -115,13 +115,11 @@ export function BayPlate({ platform, ready, crop = FULL, className, sizes, loadi
 /** READY FOR 01 02 03 04 05: painted when ticked, pencil outline otherwise (stable layout). */
 function ReadyFor({
   ready,
-  paint,
   x,
   y,
   size,
 }: {
   ready: ReadonlySet<number>;
-  paint: string;
   x: number;
   y: number;
   size: number;
@@ -130,7 +128,7 @@ function ReadyFor({
   const step = size * 1.42;
   return (
     <g className="bay-ready" fontSize={size}>
-      <text className="bay-ready-label" x={x} y={y} filter={`url(#${paint})`}>
+      <text className="bay-ready-label" x={x} y={y}>
         {TEAMS.readyFor}
       </text>
       {CHALLENGES.map((c, i) => {
@@ -141,7 +139,6 @@ function ReadyFor({
             className={`bay-ready-no${on ? ' is-on' : ''}`}
             x={x + labelW + i * step}
             y={y}
-            filter={on ? `url(#${paint})` : undefined}
           >
             {c.num}
           </text>
@@ -181,7 +178,7 @@ export function MiniSlot({ platform, ready }: { platform: string; ready: Readonl
             {text}
           </text>
         </g>
-        <ReadyFor ready={ready} paint={paint} x={pad} y={H - 9} size={11} />
+        <ReadyFor ready={ready} x={pad} y={H - 9} size={12} />
       </svg>
     </div>
   );

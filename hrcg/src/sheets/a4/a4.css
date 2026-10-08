@@ -636,3 +636,332 @@
     max-width: none;
   }
 }
+
+/* =================================================================== A-105 LAYOUT AND MARKING */
+
+.a105 {
+  position: relative;
+  /* the plan's side: PLAN 05 + SECTION A–A share the content width, and the section's height is the
+     plan's bottom-wall line (--vb), so its bottom edge sits on 07's line */
+  --S: min(calc((100cqw - var(--gutter)) / (1 + 1.7778 * var(--vb, 0.84))), calc(100svh - 336px));
+}
+.a105-track {
+  position: relative;
+}
+.a105-pin {
+  position: relative;
+}
+.a105-stage,
+.a105-text {
+  position: relative;
+  width: min(100% - 2 * var(--margin), var(--content-max));
+  margin-inline: auto;
+  container-type: inline-size;
+}
+.a105-stage {
+  padding-top: var(--s-2);
+}
+.a105-tag {
+  margin: 0 0 var(--s-6);
+}
+.a105-grid {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 3;
+}
+.a105-grid path,
+.a105-textgrid path {
+  fill: none;
+  stroke: var(--chalk-blue);
+  stroke-width: 1;
+  opacity: 0.75;
+}
+.a105-views {
+  display: grid;
+  grid-template-columns: calc(1.7778 * var(--vb, 0.84) * var(--S)) var(--S);
+  justify-content: space-between;
+  align-items: start;
+}
+.a105-left {
+  display: flex;
+  flex-direction: column;
+}
+.a105-right {
+  display: flex;
+  flex-direction: column;
+}
+
+/* SECTION A–A */
+.slice {
+  position: relative;
+  aspect-ratio: 1920 / 1076;
+  overflow: hidden;
+  background: var(--slab-black);
+}
+.slice-still,
+.slice-still img,
+.slice-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.slice-still {
+  opacity: 0;
+  transition: opacity 120ms linear;
+}
+.slice[data-step='near'] .slice-still--near,
+.slice[data-step='mid'] .slice-still--mid,
+.slice[data-step='far'] .slice-still--far {
+  opacity: 1;
+}
+.slice-canvas {
+  opacity: 0;
+  display: block;
+}
+.slice[data-gl] .slice-canvas {
+  opacity: 1;
+}
+.slice[data-gl] .slice-still {
+  visibility: hidden;
+}
+.rm .slice-still,
+.capture .slice-still {
+  transition: none;
+}
+
+.a105-hint {
+  margin-top: var(--s-4);
+  color: var(--pencil);
+  max-width: 64ch;
+}
+.a105-line {
+  margin-top: var(--s-4);
+  color: var(--chalk);
+  max-width: 34ch;
+}
+
+/* PLAN 05 */
+.a105-planbox {
+  position: relative;
+  aspect-ratio: 1;
+  touch-action: pan-y;
+  cursor: ew-resize;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.a105-planbox .loopvideo {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+.a105-traces {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.a105-traces path {
+  fill: none;
+  stroke: var(--chalk-blue);
+  stroke-width: 1.5;
+  stroke-linecap: square;
+  vector-effect: non-scaling-stroke;
+}
+.a105[data-live] .a105-traces path,
+.a105[data-live] .a105-grid path {
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+}
+.capture .a105[data-live] .a105-traces path {
+  transition: none;
+}
+.a105-x {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.a105-x .mk-x {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+.a105[data-live] .a105-x:not([data-stamped]) .mk-x {
+  opacity: 0;
+}
+.a105-x .mk-x {
+  transition: opacity 90ms linear;
+}
+.a105-x0 {
+  margin-left: -10px;
+}
+.a105-x1 {
+  margin-left: 10px;
+}
+
+/* the cut marker: a role="slider" riding the fresh chalk line, drawn perpendicular to it */
+.a105-cutrail {
+  position: absolute;
+  height: 0;
+  pointer-events: none;
+}
+.a105-cut {
+  position: absolute;
+  left: calc(var(--s, 0.5) * 100%);
+  top: 0;
+  width: 44px;
+  height: 120px;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+  cursor: ew-resize;
+  outline: none;
+  touch-action: none;
+}
+.a105-cut-mark {
+  display: block;
+  transform: rotate(90deg);
+}
+.a105-cut .mk-sc {
+  color: var(--chalk);
+}
+.a105-cut .mk-sc .mk-cut {
+  stroke-width: 2;
+}
+.a105-cut:hover .mk-sc .mk-fill,
+.a105-cut:focus-visible .mk-sc .mk-fill {
+  fill: var(--marking-orange);
+}
+.a105-cut:focus-visible::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+.a105-cap {
+  text-wrap: balance;
+}
+.a105-cap--trace {
+  margin-top: var(--s-2);
+}
+
+/* the text, set on 07's lines */
+.a105-text {
+  padding-top: var(--s-8);
+}
+.a105-textin {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc((1 - var(--u1, 0.147)) * var(--S));
+  align-items: start;
+}
+.a105-textgrid {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.a105-h2 {
+  margin: 0;
+  color: var(--chalk);
+  max-width: 6.2ch;
+}
+.a105-col {
+  position: relative;
+  padding-left: var(--s-4);
+  max-width: calc((var(--u2, 0.85) - var(--u1, 0.147)) * var(--S) - var(--gutter));
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+  padding-top: var(--s-3);
+}
+.a105-spec {
+  color: var(--chalk);
+}
+.a105-beats {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  color: var(--chalk);
+}
+.a105-detail {
+  align-self: flex-start;
+}
+.a105-detail-panel {
+  left: 56px;
+  bottom: 0;
+  width: min(36vw, 520px);
+}
+
+/* live desktop: one pinned stage, the text follows it */
+.a105[data-live] .a105-track {
+  height: calc(var(--sheet-vh, 220) * 1vh);
+}
+.a105[data-live] .a105-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: visible;
+}
+.a105[data-live] .a105-stage {
+  padding-top: calc(var(--border) + var(--header-h) + var(--s-4));
+}
+
+@media (max-width: 767px) {
+  .a105 {
+    --S: 100cqw;
+  }
+  .a105[data-live] .a105-track {
+    height: auto;
+  }
+  .a105[data-live] .a105-pin {
+    position: relative;
+    height: auto;
+  }
+  .a105[data-live] .a105-stage {
+    padding-top: var(--s-2);
+  }
+  .a105-views {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-6);
+  }
+  .a105-right {
+    order: -1;
+  }
+  .a105-text {
+    padding-top: var(--s-7);
+  }
+  .a105-textin {
+    display: block;
+  }
+  .a105-h2 {
+    max-width: none;
+  }
+  .a105-col {
+    max-width: none;
+    margin-top: var(--s-5);
+    margin-left: calc(var(--u1, 0.147) * 100cqw);
+  }
+  .a105-cut {
+    height: 96px;
+  }
+  .a105-detail-panel {
+    left: 0;
+    bottom: 56px;
+    width: 86vw;
+  }
+}

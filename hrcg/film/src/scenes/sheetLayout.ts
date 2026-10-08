@@ -61,7 +61,8 @@ export const PERSP: Record<Format, Persp[]> = {
           inAt: 1.4,
           framed: false,
           vt: [96, 958, 1728],
-          sup: { lines: ['LAY BRICK.'], x: 1824, baselines: [392], anchor: 'end', size: 220 },
+          // 200 px here (not 220) so the super keeps clear of 07's head
+          sup: { lines: ['LAY BRICK.'], x: 1824, baselines: [376], anchor: 'end', size: 200 },
         }
       : {
           clip: 'c30',

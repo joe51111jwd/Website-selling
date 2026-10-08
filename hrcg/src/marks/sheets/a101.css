@@ -35,6 +35,10 @@
   align-items: flex-start;
   justify-content: space-between;
 }
+.a101-bubble-label {
+  margin: 20px auto 0 6px;
+  color: var(--fg-2);
+}
 .a101-num {
   color: var(--fg);
   margin-top: -0.06em;

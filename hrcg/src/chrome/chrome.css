@@ -477,15 +477,17 @@
   line-height: 1;
   text-transform: uppercase;
   /* pencil outline until visited */
-  color: transparent;
-  -webkit-text-stroke: 1px var(--pencil);
+  /* fill paints over the inner half of the stroke, hiding the variable font's overlapping contours (A6-1) */
+  color: var(--slab-black);
+  -webkit-text-stroke: 2px var(--pencil);
+  paint-order: stroke fill;
   transition:
     color var(--dur-ink) var(--ease-settle),
     -webkit-text-stroke-color var(--dur-ink) var(--ease-settle);
 }
 .index-row.is-inked .index-name {
   color: var(--chalk);
-  -webkit-text-stroke-color: transparent;
+  -webkit-text-stroke-color: var(--chalk);
 }
 .index-sub {
   color: var(--pencil);

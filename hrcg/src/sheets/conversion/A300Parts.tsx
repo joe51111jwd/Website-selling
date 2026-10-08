@@ -161,10 +161,12 @@ export function proofMeasure(p: Proof | null | undefined): string | null {
   return null;
 }
 
+/** Prefers the measurement inlined in the manifest (static: prerenders), else fetches t7-proof.json. */
 function useProofMeasure(): string | null {
-  const [m, setM] = useState<string | null>(null);
+  const inline = proofMeasure((media['t7-proof'] as { proof?: Proof } | undefined)?.proof);
+  const [m, setM] = useState<string | null>(inline);
   useEffect(() => {
-    if (!media['t7-proof-json']) return;
+    if (inline || !media['t7-proof-json']) return;
     let alive = true;
     loadJson<Proof>('t7-proof-json')
       .then((p) => {
@@ -174,7 +176,7 @@ function useProofMeasure(): string | null {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [inline]);
   return m;
 }
 
@@ -223,7 +225,9 @@ export function ControlTarget() {
           return (
             <li key={id}>
               <a className="cell-button t7-download" href={href} download>
-                <LabelText text={label} />
+                <span>
+                  <LabelText text={label} />
+                </span>
               </a>
             </li>
           );

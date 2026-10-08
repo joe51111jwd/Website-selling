@@ -21,7 +21,7 @@
   font-stretch: 62% 125%;
   font-style: normal;
   font-display: swap;
-  unicode-range: U+2190-2193;
+  unicode-range: U+2190-2193, U+2318; /* + ⌘ for the copy-address fallback (A6-1) */
 }
 /* ▶ ◀ for Archivo labels (▶ PLAY, ▶ WATCH THE SET): borrowed from Big Shoulders */
 @font-face {

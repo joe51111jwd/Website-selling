@@ -100,8 +100,11 @@ export function SectionSlice({ handle, initial = 0.5, className }: SectionSliceP
     const root = rootRef.current;
     if (!root) return;
     const s = value.current;
-    root.dataset.step = stepFor(s);
+    const step = stepFor(s);
+    root.dataset.step = step;
     if (r.current) r.current.render(s);
+    // no-GL: the label follows the still on screen (each still has its own alt in the manifest)
+    root.setAttribute('aria-label', r.current ? A105.sectionLabel : (media[`sec-${step}`]?.alt ?? A105.sectionLabel));
   }, []);
 
   const schedule = useCallback(() => {
@@ -112,7 +115,11 @@ export function SectionSlice({ handle, initial = 0.5, className }: SectionSliceP
     r.current?.dispose();
     r.current = null;
     mounting.current = null;
-    rootRef.current?.removeAttribute('data-gl');
+    const root = rootRef.current;
+    if (root) {
+      root.removeAttribute('data-gl');
+      root.setAttribute('aria-label', media[`sec-${stepFor(value.current)}`]?.alt ?? A105.sectionLabel);
+    }
   }, []);
 
   const mountGL = useCallback((): Promise<boolean> => {
@@ -144,6 +151,7 @@ export function SectionSlice({ handle, initial = 0.5, className }: SectionSliceP
         renderer.resize(Math.max(1, Math.round(box.width)), Math.max(1, Math.round(box.height)), Math.min(1.75, Math.max(1, window.devicePixelRatio || 1)));
         renderer.render(value.current);
         rootRef.current?.setAttribute('data-gl', '');
+        rootRef.current?.setAttribute('aria-label', A105.sectionLabel);
         return true;
       } catch (e) {
         if (import.meta.env.DEV) console.warn('[A-105] section GL unavailable, using the stills:', e);
@@ -237,7 +245,7 @@ export function SectionSlice({ handle, initial = 0.5, className }: SectionSliceP
         className="slice"
         ref={rootRef}
         role="img"
-        aria-label={A105.sectionLabel}
+        aria-label={media[`sec-${stepFor(initial)}`]?.alt ?? A105.sectionLabel}
         data-step={stepFor(initial)}
         data-capture-crop="slice"
       >

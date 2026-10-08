@@ -12,6 +12,22 @@
 .conv-head {
   padding-top: var(--s-6);
 }
+.conv--a301,
+.conv--a900 {
+  padding-top: var(--s-7);
+  padding-bottom: var(--s-10);
+}
+/* the last sheet of paper runs on under the title strip (main's bottom padding is slab otherwise) */
+.conv--a900::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: calc(var(--chrome-bottom) + var(--s-7));
+  background: var(--gypsum);
+  pointer-events: none;
+}
 .conv-h2 {
   color: var(--fg);
   margin: 0;
@@ -768,9 +784,12 @@
 }
 .rollcall-verb {
   display: block;
-  /* pencil outline until the sheet has been in view, then inked (400 ms) */
-  color: transparent;
-  -webkit-text-stroke: 1.25px var(--gypsum-ink-2);
+  /* pencil outline until the sheet has been in view, then inked (400 ms). The fill is painted over
+     the inner half of a 2.5 px stroke (paint-order), so the variable font's overlapping contours
+     never show inside the letters. */
+  color: var(--gypsum);
+  -webkit-text-stroke: 2.5px var(--gypsum-ink-2);
+  paint-order: stroke fill;
   transition:
     color var(--dur-ink) var(--ease-settle),
     -webkit-text-stroke-color var(--dur-ink) var(--ease-settle);
@@ -778,7 +797,7 @@
 .rollcall-row.is-inked .rollcall-verb,
 .no-js .rollcall-verb {
   color: var(--gypsum-ink);
-  -webkit-text-stroke-color: transparent;
+  -webkit-text-stroke-color: var(--gypsum-ink);
 }
 .rm .rollcall-verb {
   transition: none;
@@ -835,13 +854,14 @@
   color: var(--fg);
 }
 
-/* footer title block: full width, ruled cells (hairlines drawn by the 1px grid gap) */
+/* footer title block: full width, ruled cells (hairlines drawn by the 1px grid gap). Every row of
+   cells sums to the full width, so no gap shows through. */
 .title-block {
   margin-top: var(--s-9);
 }
 .tb {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: repeat(24, minmax(0, 1fr));
   gap: 1px;
   margin: 0;
   border: 1px solid var(--line);
@@ -870,54 +890,42 @@
   font-size: 15px;
   line-height: 21px;
   color: var(--fg);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 8px;
 }
 .tb-value a {
   text-decoration-color: var(--fg);
 }
-.tb-hold {
-  align-self: center;
+.tb-holdline {
+  display: inline-flex;
 }
-.tb-cell--project {
-  grid-column: span 4;
-}
-.tb-cell--location {
-  grid-column: span 3;
-}
-.tb-cell--status,
-.tb-cell--year,
-.tb-cell--scale {
-  grid-column: span 1;
-}
-.tb-cell--sheet {
-  grid-column: span 2;
-}
-.tb-cell--date,
-.tb-cell--venue {
-  grid-column: span 3;
-}
-.tb-cell--imagery {
-  grid-column: span 4;
-}
-.tb-cell--contact {
-  grid-column: span 2;
-}
-.tb-cell--challenges {
-  grid-column: span 12;
-}
-.tb-cell--index {
-  grid-column: span 12;
-}
-.tb-challenges {
-  display: flex;
+.tb-holdline {
   flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+.tb-cloud {
+  flex: 0 0 auto;
+}
+.tb-cloud .mk-hold-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 .tb-challenge {
   white-space: nowrap;
 }
+.tb-cell--project { grid-column: span 9; }
+.tb-cell--location { grid-column: span 7; }
+.tb-cell--status { grid-column: span 4; }
+.tb-cell--year { grid-column: span 4; }
+.tb-cell--date { grid-column: span 7; }
+.tb-cell--venue { grid-column: span 7; }
+.tb-cell--challenges { grid-column: span 10; }
+.tb-cell--imagery { grid-column: span 10; }
+.tb-cell--scale { grid-column: span 3; }
+.tb-cell--sheet { grid-column: span 5; }
+.tb-cell--contact { grid-column: span 6; }
+.tb-cell--index { grid-column: span 24; }
 .tb-index .in-page-index-rows {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -945,30 +953,17 @@
   .t7-downloads {
     grid-column: 10 / span 3;
   }
-  .tb-cell--project {
-    grid-column: span 6;
-  }
-  .tb-cell--location {
-    grid-column: span 6;
-  }
-  .tb-cell--status,
-  .tb-cell--year,
-  .tb-cell--scale {
-    grid-column: span 2;
-  }
-  .tb-cell--sheet {
-    grid-column: span 6;
-  }
-  .tb-cell--date,
-  .tb-cell--venue {
-    grid-column: span 6;
-  }
-  .tb-cell--imagery {
-    grid-column: span 8;
-  }
-  .tb-cell--contact {
-    grid-column: span 4;
-  }
+  .tb-cell--project { grid-column: span 12; }
+  .tb-cell--location { grid-column: span 12; }
+  .tb-cell--status { grid-column: span 6; }
+  .tb-cell--year { grid-column: span 6; }
+  .tb-cell--date { grid-column: span 12; }
+  .tb-cell--venue { grid-column: span 12; }
+  .tb-cell--challenges { grid-column: span 12; }
+  .tb-cell--imagery { grid-column: span 12; }
+  .tb-cell--scale { grid-column: span 4; }
+  .tb-cell--sheet { grid-column: span 8; }
+  .tb-cell--contact { grid-column: span 24; }
 }
 
 @media (max-width: 1023px) {
@@ -993,6 +988,8 @@
   }
   .chips--bays .chip {
     flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
     margin: -1px 0 0;
   }
   .chips--bays .chip:first-child {
@@ -1174,22 +1171,19 @@
     gap: 2px;
   }
   .rollcall-verb {
-    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-width: 2px;
   }
   .tb {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .tb-cell {
-    grid-column: span 1 !important;
+  .tb .tb-cell {
+    grid-column: 1 / -1;
   }
-  .tb-cell--project,
-  .tb-cell--challenges,
-  .tb-cell--imagery,
-  .tb-cell--date,
-  .tb-cell--venue,
-  .tb-cell--contact,
-  .tb-cell--index {
-    grid-column: 1 / -1 !important;
+  .tb .tb-cell--status,
+  .tb .tb-cell--year,
+  .tb .tb-cell--scale,
+  .tb .tb-cell--sheet {
+    grid-column: span 1;
   }
   .tb-index .in-page-index-rows {
     grid-template-columns: minmax(0, 1fr);
