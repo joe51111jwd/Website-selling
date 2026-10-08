@@ -101,7 +101,8 @@ export const sheetStore = {
    * closest [data-sheet] ancestor; the app shell also registers every [data-sheet] on mount.
    */
   register(id: string, el: Element | null): () => void {
-    if (!el) return () => {};
+    // <html data-sheet> mirrors `current` for the header ground (SheetHeader); it is never a sheet.
+    if (!el || el === document.documentElement) return () => {};
     const obs = ensureIO();
     if (!obs) return () => {};
     if (elToId.get(el) === id) return () => {};
@@ -119,7 +120,7 @@ export const sheetStore = {
   /** Register every [data-sheet] element under root (idempotent). */
   scan(root: ParentNode = document) {
     if (!isBrowser) return;
-    root.querySelectorAll<HTMLElement>('[data-sheet]').forEach((el) => {
+    root.querySelectorAll<HTMLElement>('[data-sheet]:not(html)').forEach((el) => {
       const id = el.dataset.sheet;
       if (id) sheetStore.register(id, el);
     });
@@ -129,7 +130,7 @@ export const sheetStore = {
     const set = registered.get(id);
     if (set && set.size) return set.values().next().value ?? null;
     if (!isBrowser) return null;
-    return document.querySelector(`[data-sheet="${id}"]`);
+    return document.querySelector(`[data-sheet="${id}"]:not(html)`);
   },
 };
 

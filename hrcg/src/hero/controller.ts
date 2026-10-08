@@ -239,6 +239,7 @@ class CoverController {
   private playBtn!: HTMLButtonElement;
   private a100!: HTMLElement;
   private planSq!: HTMLElement;
+  private planEl!: HTMLElement;
   private deps!: HTMLElement;
   private slot5!: HTMLVideoElement;
   private pShadow!: SVGPathElement;
@@ -331,6 +332,7 @@ class CoverController {
     this.playBtn = q(r, '.cv-play')!;
     this.a100 = q(r, '.cv-a100')!;
     this.planSq = q(r, '.cv-plan-sq')!;
+    this.planEl = q(r, '.cv-plan')!;
     this.deps = q(r, '.cv-deps')!;
     this.slot5 = q(r, '.cv-slot5')!;
     this.pShadow = q(r, '.cv-string-shadow')!;
@@ -1598,8 +1600,10 @@ class CoverController {
     // the plan still and, under it, a full-frame slab: no hero band beside the registered square (F-005)
     const planO = drawEase(segment(C, BEATS.planIn[0], BEATS.planIn[1]));
     this.planO = planO;
-    r.style.setProperty('--plan-o', (planO * (1 - segment(C, BEATS.backdropOut[0], BEATS.backdropOut[1]))).toFixed(3));
-    r.style.setProperty('--cv-bgy', `${(-window.scrollY).toFixed(0)}px`);
+    // (set on the plan layer itself, so a scroll frame restyles only that layer)
+    const backO = planO * (1 - segment(C, BEATS.backdropOut[0], BEATS.backdropOut[1]));
+    this.planEl.style.setProperty('--plan-o', backO.toFixed(3));
+    if (backO > 0) this.planEl.style.setProperty('--cv-bgy', `${(-window.scrollY).toFixed(0)}px`);
     const M0 = this.M0;
     // fetch PLAN 05 (151 kB) on the first sign of a scroll, or a while after the hero rests: never inside
     // the first view's byte budget (F-002 / F-006)

@@ -19,7 +19,7 @@ export function SheetTag({ id, className }: SheetTagProps) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const target = el.closest('[data-sheet]') ?? el;
+    const target = el.closest('[data-sheet]:not(html)') ?? el;
     return sheetStore.register(id, target);
   }, [id]);
 

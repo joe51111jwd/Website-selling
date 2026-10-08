@@ -119,6 +119,9 @@ export default function A200Context() {
   // north arrow length scales with the drawing; labels at the tips only where they fit
   const L = boxW ? Math.max(70, Math.min(210, Math.round(boxW * 0.25))) : 186;
   const tipLabels = boxW === 0 || boxW >= 560;
+  // the frame's own px size, so its stroke is 1 px and its dash (the draw-on) measures true lengths
+  const FW = boxW || 1000;
+  const FH = Math.round(FW * 0.8 * 10) / 10;
 
   /** Cache the FLIP geometry (pin-relative px; the pin is stuck at the viewport top while it runs). */
   const measure = useCallback(() => {
@@ -377,8 +380,8 @@ export default function A200Context() {
                   </div>
                 </div>
                 {/* the frame strokes on from its top-right corner with the first lines (no empty box) */}
-                <svg className="a200-framedraw" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-                  {['M100 0H0V100', 'M100 0V100H0'].map((d, i) => (
+                <svg className="a200-framedraw" viewBox={`0 0 ${FW} ${FH}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                  {[`M${FW - 0.5} 0.5H0.5V${FH - 0.5}`, `M${FW - 0.5} 0.5V${FH - 0.5}H0.5`].map((d, i) => (
                     <path
                       key={d}
                       ref={(el) => {
