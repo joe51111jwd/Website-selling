@@ -134,3 +134,15 @@ Helpers (from `src/system/lenis.ts` or the `src/system` barrel):
 | A-103 | A3 (F-007) | `data-land="0"` | with `geo.startY = max(trackTop + K, sheetTop − padTop + 0.2·vh)` the landing is at e = 0. Note `padTop` is now 88 px (F-001). |
 | A-104 | A4 (F-039) | only if the composed landing needs an offset | without it, the H2 check in step 3 applies. |
 | A-105 | A4 (F-041) | `data-land="0"` | frame top = `border + header-h`. |
+
+---
+
+## 3. Status of the landing walk (12:35, dev :5300 and a clean production build)
+
+`$S/a1fix/landing.cjs <url> desktop|phone` (Enter on every INDEX row and both CTAs; pass = the focused element's
+rect is inside `unobscuredBand()` and `elementFromPoint` at its centre hits it):
+- **Pass** on desktop and phone: A-100, A-101, A-103 (A3's `data-land="0"`), A-104, A-105, A-200, A-300, A-301,
+  A-900, both CTAs.
+- **A-102** fails the hit test only: `ul.a102-beats` covers the H2 (request `A1-fix-2.md` to A3).
+- **A-000**: the focus lands on the cover's H1, which spans the whole hero frame (y 6–894), so "inside the band"
+  cannot hold. A6 (F-053): treat A-000 as the top of the page (scrollY 0, H1 focused) rather than a band check.
