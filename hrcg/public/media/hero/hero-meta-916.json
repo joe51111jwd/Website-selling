@@ -8,12 +8,12 @@
   "rows": 257,
   "file": "uint16 little-endian, row-major, top row first, left to right; d = v/65535 (relative inverse depth, near = 1)"
  },
- "a": 0.2333,
+ "a": 0.2326,
  "b": 1.6,
  "f": 1.2,
- "pivotZ": 2.3158,
- "nearD": 0.9951,
- "farD": 0.0017,
+ "pivotZ": 2.309,
+ "nearD": 0.9949,
+ "farD": 0.0018,
  "yaw": {
   "auto": 6,
   "min": -6,
@@ -27,7 +27,7 @@
  "dolly": 0.04,
  "overscan": 0.12,
  "plate": {
-  "z": 4.5435,
+  "z": 4.5572,
   "scale": 1.5,
   "note": "as A2 FreezeScene: quad at z = 1.06/a, size = scale x the frame-matched size at that depth; the smallest scale (>= 1.5) that leaves no uncovered pixel in any limit pose"
  },
@@ -74,15 +74,15 @@
    "plane": "NEAR",
    "z": 1.05,
    "anchor": "right-baseline",
-   "x": 0.92,
-   "baseline": 0.68,
+   "x": 0.865,
+   "baseline": 0.7105,
    "fontPx": 143.4,
    "fontPxFrac": 0.075,
    "box": [
-    0.45439,
-    0.61933,
-    0.92,
-    0.68052
+    0.39939,
+    0.64983,
+    0.865,
+    0.71102
    ]
   },
   {
@@ -90,15 +90,15 @@
    "plane": "NEAR",
    "z": 1.05,
    "anchor": "right-baseline",
-   "x": 0.92,
-   "baseline": 0.7445,
+   "x": 0.865,
+   "baseline": 0.775,
    "fontPx": 143.4,
    "fontPxFrac": 0.075,
    "box": [
-    0.57892,
-    0.68435,
-    0.92,
-    0.74502
+    0.52392,
+    0.71485,
+    0.865,
+    0.77552
    ]
   }
  ],
@@ -113,9 +113,9 @@
   ]
  },
  "occlusion": {
-  "yaw0": 0.0632,
-  "rest": 0.0657,
-  "cssMatte": 0.0632,
+  "yaw0": 0.066,
+  "rest": 0.0696,
+  "cssMatte": 0.0659,
   "window": [
    0.03,
    0.1
@@ -123,28 +123,28 @@
   "restMax": 0.15
  },
  "nearContrast": {
-  "p10": 3.5,
-  "median": 3.996,
-  "passFrac": 1.0,
+  "p10": 3.436,
+  "median": 4.195,
+  "passFrac": 0.9947,
   "gate": ">=3:1 on >=90%"
  },
  "nearDarken": {
   "box": [
-   0.4563,
-   0.6192,
-   0.9173,
-   0.7442
+   0.4061,
+   0.6496,
+   0.8764,
+   0.7751
   ],
-  "linearLightRemoved": 0.845,
+  "linearLightRemoved": 0.821,
   "feather": "flat over the NEAR box + 2% margin, gaussian falloff 2.5% of the long side outside it",
   "bakedInto": "hero-snap-916 (all frames), hence the stills"
  },
  "depthMappingTune": [
   {
-   "a": 0.2333,
+   "a": 0.2326,
    "b": 1.6,
    "edgePointsInside": 0,
-   "pivotZ": 2.316
+   "pivotZ": 2.309
   }
  ],
  "limitPoses": [
@@ -153,7 +153,7 @@
    "pitch": -3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0702,
+   "farOccl": 0.0747,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y-6-p-3.png"
   },
   {
@@ -161,7 +161,7 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0689,
+   "farOccl": 0.0725,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y-6-p+0.png"
   },
   {
@@ -169,7 +169,7 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0676,
+   "farOccl": 0.0709,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y-6-p+3.png"
   },
   {
@@ -177,7 +177,7 @@
    "pitch": -3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0672,
+   "farOccl": 0.0705,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+0-p-3.png"
   },
   {
@@ -185,7 +185,7 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.067,
+   "farOccl": 0.07,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+0-p+0.png"
   },
   {
@@ -193,7 +193,7 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0655,
+   "farOccl": 0.0684,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+0-p+3.png"
   },
   {
@@ -201,7 +201,7 @@
    "pitch": -3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.066,
+   "farOccl": 0.0693,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+6-p-3.png"
   },
   {
@@ -209,7 +209,7 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0653,
+   "farOccl": 0.068,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+6-p+0.png"
   },
   {
@@ -217,34 +217,34 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.065,
+   "farOccl": 0.0672,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+6-p+3.png"
   }
  ],
  "encodes": {
   "still-av1": {
-   "q": 70,
-   "bytes": 41255
+   "q": 90,
+   "bytes": 92075
   },
   "still-av1-jpg": {
    "q": 84,
-   "bytes": 102696
+   "bytes": 102624
   },
   "still-h264": {
-   "q": 70,
-   "bytes": 47966
+   "q": 90,
+   "bytes": 116624
   },
   "still-h264-jpg": {
    "q": 84,
-   "bytes": 111938
+   "bytes": 112034
   },
   "plate": {
    "q": 70,
-   "bytes": 2987
+   "bytes": 2944
   },
   "matte": {
    "q": 82,
-   "bytes": 28178
+   "bytes": 27804
   }
  },
  "gates": {

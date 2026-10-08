@@ -57,14 +57,21 @@ def border_band(shape, rect, th):
     cv2.rectangle(m, (x0, y0), (x1, y1), 1, int(th))
     return m
 
+LOOSE = False
 def livery(f, roi):
     hsv = cv2.cvtColor(f, cv2.COLOR_BGR2HSV)
-    m = ((hsv[..., 0] >= 30) & (hsv[..., 0] <= 78) & (hsv[..., 1] >= 0.22) & (hsv[..., 2] >= 0.16)).astype(np.uint8)
+    if LOOSE:   # a tight ROI box around one known tool: also catch the shadowed / dust-lit (low-sat, 20-30 deg) yellow
+        m = ((hsv[..., 0] >= 20) & (hsv[..., 0] <= 80) & (hsv[..., 1] >= 0.12) & (hsv[..., 2] >= 0.08)).astype(np.uint8)
+    else:
+        m = ((hsv[..., 0] >= 30) & (hsv[..., 0] <= 78) & (hsv[..., 1] >= 0.22) & (hsv[..., 2] >= 0.16)).astype(np.uint8)
     m &= roi
     m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
-    m = cv2.dilate(m, np.ones((3, 3), np.uint8))
+    if LOOSE:
+        n_, lab_, st_, _ = cv2.connectedComponentsWithStats(m, 8)
+        m = np.isin(lab_, [i for i in range(1, n_) if st_[i, 4] >= 40]).astype(np.uint8)
+    m = cv2.dilate(m, np.ones((5, 5) if LOOSE else (3, 3), np.uint8))
     mf = cv2.GaussianBlur(m.astype(np.float32), (0, 0), 1.6)
-    hsv[..., 1] *= 1.0 - 0.92 * mf
+    hsv[..., 1] *= 1.0 - (0.97 if LOOSE else 0.92) * mf
     hsv[..., 2] *= 1.0 - 0.28 * mf
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR), m
 
@@ -119,6 +126,7 @@ if a.livery:
         roi = np.zeros((H0, W0), np.uint8); pad = int(0.012 * W0)
         roi[T[1] + pad:B[0] - pad, L[1] + pad:R_[0] - pad] = 1
     else:
+        LOOSE = True
         x0, y0, x1, y1 = [float(v) for v in a.livery.split(':', 1)[1].split(',')]
         roi = np.zeros((H0, W0), np.uint8); roi[int(y0 * H0):int(y1 * H0), int(x0 * W0):int(x1 * W0)] = 1
 gbox = [float(v) for v in a.glint.split(',')] if a.glint else None

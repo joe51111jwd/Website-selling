@@ -97,6 +97,8 @@ export async function prerender({ root, outDir, siteUrl = null }) {
   // ---- structure sanity
   const h1s = (html.match(/<h1[\s>]/g) ?? []).length;
   if (h1s !== 1) console.warn(`[hrcg-prerender] WARNING expected exactly one <h1>, found ${h1s}`);
+  // React must not outline Suspense boundaries (ssr.tsx progressiveChunkSize): the no-JS page needs every sheet inline
+  if (/\$RC\(|<template id="B:/.test(html)) fail('prerender outlined a Suspense boundary ($RC / <template id="B:…">); check progressiveChunkSize in src/system/ssr.tsx');
   if (!/\sid="index"/.test(html)) console.warn('[hrcg-prerender] WARNING no element with id="index" (INDEX no-JS target; A-900 footer must render <InPageIndex/>)');
   for (const id of ['a-000', 'a-100', 'a-101', 'a-102', 'a-103', 'a-104', 'a-105', 'a-200', 'a-300', 'a-301', 'a-900']) {
     if (!html.includes(`id="${id}"`)) console.warn(`[hrcg-prerender] WARNING sheet anchor #${id} missing`);

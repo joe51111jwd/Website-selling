@@ -40,6 +40,8 @@ interface Geometry {
   route: readonly P3[];
   /** tee branch from the last fitting */
   branch: readonly P3[];
+  /** route corners drawn as plain bends in the pipe (no fitting, no beat) */
+  bends?: readonly number[];
   /** indexes into route of the three fittings, and where each beat sits relative to it */
   fittings: readonly { at: number; dx: number; dy: number; align: 'left' | 'right' }[];
 }
@@ -75,24 +77,29 @@ const DESK: Geometry = {
 // drops again, so every beat has the whole width to its right.
 const PHONE: Geometry = {
   w: 358,
-  h: 700,
+  h: 690,
   cx: 179,
-  cy: 140,
-  s: 236,
+  cy: 150,
+  s: 240,
   lift: 12,
   route: [
     [0.74, 0.84, 12],
-    [0.74, 0.84, -236],
-    [0.74, 1.32, -236],
-    [0.74, 1.32, -420],
-    [0.36, 1.32, -420],
-    [0.36, 1.32, -560],
+    [0.74, 1.24, 12],
+    [0.74, 1.24, -175],
+    [0.3, 1.24, -175],
+    [0.3, 1.24, -330],
+    [0.05, 1.24, -330],
   ],
-  branch: [],
+  branch: [
+    [0.3, 1.24, -330],
+    [0.3, 1.24, -430],
+  ],
+  // the first corner is a plain bend in the copper (no fitting): the beats start below the captions
+  bends: [1],
   fittings: [
-    { at: 1, dx: -18, dy: -4, align: 'right' },
-    { at: 2, dx: -18, dy: 2, align: 'right' },
-    { at: 3, dx: -18, dy: 0, align: 'right' },
+    { at: 2, dx: -18, dy: 0, align: 'right' },
+    { at: 3, dx: -18, dy: 4, align: 'right' },
+    { at: 4, dx: -18, dy: 0, align: 'right' },
   ],
 };
 
@@ -158,6 +165,25 @@ function planeVars(g: Geometry, tag: 'd' | 'm'): Record<string, string> {
   };
 }
 
+/** The route as a path; corners listed in g.bends are drawn as bends (radius r), the rest as fittings. */
+function routePath(g: Geometry, r = 14): string {
+  const pts = g.route.map((p) => project(g, p));
+  let d = `M${pts[0]![0]} ${pts[0]![1]}`;
+  for (let i = 1; i < pts.length; i++) {
+    const p = pts[i]!;
+    if (g.bends?.includes(i) && pts[i + 1]) {
+      const a = pts[i - 1]!;
+      const b = pts[i + 1]!;
+      const la = Math.hypot(a[0] - p[0], a[1] - p[1]) || 1;
+      const lb = Math.hypot(b[0] - p[0], b[1] - p[1]) || 1;
+      const p1 = [p[0] + ((a[0] - p[0]) / la) * r, p[1] + ((a[1] - p[1]) / la) * r];
+      const p2 = [p[0] + ((b[0] - p[0]) / lb) * r, p[1] + ((b[1] - p[1]) / lb) * r];
+      d += `L${p1[0]!.toFixed(1)} ${p1[1]!.toFixed(1)}Q${p[0]} ${p[1]} ${p2[0]!.toFixed(1)} ${p2[1]!.toFixed(1)}`;
+    } else d += `L${p[0]} ${p[1]}`;
+  }
+  return d;
+}
+
 function Route({ g, variant }: { g: Geometry; variant: 'desk' | 'phone' }) {
   const pts = g.route.map((p) => project(g, p));
   const start = pts[0]!;
@@ -167,7 +193,7 @@ function Route({ g, variant }: { g: Geometry; variant: 'desk' | 'phone' }) {
   return (
     <div className={`a104-route a104-route--${variant}`}>
       <svg className="a104-route-svg" viewBox={`0 0 ${g.w} ${g.h}`} aria-hidden="true" focusable="false">
-        <path className="a104-pipe" d={poly(g, g.route)} />
+        <path className="a104-pipe" d={routePath(g)} />
         {branch ? <path className="a104-pipe" d={branch} /> : null}
         <path className="a104-joint" d={joints(g)} />
         {/* the route starts on the traced drawing: an open end */}

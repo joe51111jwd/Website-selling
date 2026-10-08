@@ -35,10 +35,12 @@ def bricks():
     return out
 B = bricks(); assert len(B) == 128
 
-def svg(title_comment=''):
-    r = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000" shape-rendering="crispEdges">',
-         '<title>Control target T7: AprilTag tag36h11 ID 7 laid as 128 bricks in stack bond</title>',
-         f'<!-- HRCG-2027 (planned). Control target T7. AprilTag family tag36h11, ID 7. 8x8 square cells of two stacked stretchers; rust joints; one-cell chalk quiet zone. A test target for developers, not a rule of the Games. {title_comment} -->',
+def svg(title_comment='', web=False):
+    # web=True: the page copy (t7-brick.svg) carries no <title> or comment, so an inlined SVG adds no text the
+    # copy lint would see (A6 gives it its alt / aria-label); the kit download keeps both
+    head = [] if web else ['<title>Control target T7: AprilTag tag36h11 ID 7 laid as 128 bricks in stack bond</title>',
+         f'<!-- HRCG-2027 (planned). Control target T7. AprilTag family tag36h11, ID 7. 8x8 square cells of two stacked stretchers; rust joints; one-cell chalk quiet zone. A test target for developers, not a rule of the Games. {title_comment} -->']
+    r = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000" shape-rendering="crispEdges">'] + head + [
          f'<rect x="0" y="0" width="1000" height="1000" fill="{CHALK}"/>',
          f'<rect x="100" y="100" width="800" height="800" fill="{RUST}"/>']
     for (x, y, w, h, c) in B:
@@ -77,7 +79,7 @@ def warp_blur(rgb):
     out = cv2.warpPerspective(rgb, cv2.getPerspectiveTransform(src, dst), (w, h), borderValue=(11, 11, 10))
     return cv2.GaussianBlur(out, (5, 5), 1.4)
 
-SVG = svg()
+SVG = svg(web=True)
 if not CHECK_ONLY:
     open(R + '/public/media/data/t7-brick.svg', 'w').write(SVG)
     open(R + '/public/kit/hrcg-t7.svg', 'w').write(svg('Printable vector master.'))

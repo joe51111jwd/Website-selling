@@ -2,7 +2,7 @@
 # MOCK media for the first build wave: real, web-playable placeholder files at the FINAL paths, so every
 # agent can build against src/media/manifest.json before the graded pipeline lands. The real pipeline
 # (pipeline/run.sh) overwrites every file below in place. Low quality on purpose (fast).
-# usage: scripts/cpuq pipeline/mock.sh
+# usage: scripts/cpuq pipeline/mock.sh   (historical: overwrites real media with placeholders — don't run after the real pipeline)
 set -euo pipefail
 S=/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad
 M=$S/media; N=$M/new
@@ -70,8 +70,7 @@ venc $P/perspectives/el-c33 "crop=1920:804:2:272" -i $M/clips/c33-pipe.mp4
 venc $P/details/det-v0 "trim=0:3.5,setpts=PTS-STARTPTS,crop=1076:1076:424:0" -i $M/tests/v0-brick-macro.mp4
 venc $P/details/det-n03 "crop=1076:1076:424:0" -i $N/N03.mp4
 venc $P/details/det-n04 "crop=720:720:300:560,scale=1076:1076" -i $M/clips/b44-layout.mp4
-# film placeholder (THE SET is A7's; this is only so the lightbox can be built)
-POSTER=last venc $P/film/the-set-169 "crop=1920:1076:2:0,pad=1920:1080:0:2" -i $C34
+# (THE SET placeholder removed after the first wave: the manifest lists the-set-169 only for A7's real film)
 
 # stills
 $PY $R/pipeline/img.py $M/lookdev/ref21.png $P/stills/ref21-portrait --size 800x800 >/dev/null
