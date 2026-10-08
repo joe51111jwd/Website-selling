@@ -9,7 +9,7 @@ This folder turns the raw concept clips and stills into everything under `public
 - Every heavy step goes through `scripts/cpuq`.
 - Inputs are `$S/media/{clips,tests,frames,lookdev,new}`.
 
-**Vendor names** (the generation service, its models and the depth model) appear only in this README and in the scratch logs. They never appear in page copy (brief C13). `public/media/CREDITS.md` records them.
+**Vendor names** (the generation service, its models and the depth model) appear only in this README and in the scratch logs. They never appear in page copy (brief C13). `pipeline/CREDITS.md` records them (kept out of `public/`, so it never deploys).
 
 | Step | Script | What it does | Output |
 |---|---|---|---|
