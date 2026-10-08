@@ -239,7 +239,10 @@ export function App() {
             </motion.p>
           </div>
           <motion.div className="hero-film" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.4, ease: EXPO, delay: 0.5 }}>
-            <Film id="arena-0104" ratio="1890 / 350" label="Concept film from above: five work bays in a row, one robot working in each." className="only-wide" />
+            <div className="strip only-wide">
+              <Film id="arena-0104" ratio="1890 / 350" label="Concept film from above: work bays one to four, one robot working in each." />
+              <Film id="plan-b44" ratio="1 / 1" label="Concept film from above: bay five, a robot marking out a plan on the floor." />
+            </div>
             <Film id="el-c30" ratio="4 / 5" label="Concept film: a robot lays a course of brick." className="only-narrow hero-crop" />
           </motion.div>
         </section>

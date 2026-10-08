@@ -55,7 +55,8 @@ def tool_livery(f, rules, i):
     pm = ((h >= 15) & (h <= 30) & (sa >= 0.45) & (va >= 0.25)).astype(np.uint8)
     pm = cv2.morphologyEx(pm, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
     n_, lb_, st_, _ = cv2.connectedComponentsWithStats(pm, 8)
-    pads = cv2.dilate(np.isin(lb_, [j for j in range(1, n_) if st_[j, 4] >= 0.0015 * W * H and st_[j, 4] >= 0.45 * st_[j, 2] * st_[j, 3]]).astype(np.uint8),
+    # 07's pads (as mezz.py --livery2, a little looser: at 720 px a motion-blurred pad is less compact)
+    pads = cv2.dilate(np.isin(lb_, [j for j in range(1, n_) if st_[j, 4] >= 0.0015 * W * H and st_[j, 4] >= 0.35 * st_[j, 2] * st_[j, 3]]).astype(np.uint8),
                       cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (19, 19)))
     for (lo, hi), (x0, y0, x1, y1), (a, b) in rules:
         if not (a <= i <= b): continue

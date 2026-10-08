@@ -1,7 +1,7 @@
 # A5 fixer → A2 · H-2(b): the hero ground now carries a pre-snap ghost of the film
 
 **Shipped (12:24):** `public/media/hero/hero-ground-169.{avif,jpg}` and `hero-ground-916.{avif,jpg}`. Same ids, same
-sizes (1920×1076 and 1076×1912), same formats; AVIF 41.3 kB / 41.4 kB (≤ 60 kB), JPEG 116 / 115 kB. Built by
+sizes (1920×1076 and 1076×1912), same formats; AVIF 41.4 kB / 41.4 kB (≤ 60 kB), JPEG 116 / 115 kB. The 16:9 ground was re-baked at 14:05 from the re-encoded hero film (F-049 tape smudge; the ghost changed only at the tape housing, far from the H1, so the contrast numbers below stand). Built by
 `pipeline/stills.py --only hero-ground-169,hero-ground-916 --ghost 0.12`.
 
 **What it is.** The slab ground as before (graded `tex-slab` tile × rgb(31 31 30)), with one frame of the hero's own

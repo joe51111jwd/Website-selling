@@ -64,7 +64,7 @@ from that final run. 16:9 `pivotZ` is now 2.2924.
   y 0.31 and the FAR block ends at 0.246, so no allowed position gives a shoulder bite. The phone gate in the meta
   passes only on that condition (`farGlyphs.passesOnlyWith`).
 - NEAR is unchanged on both (`nearRight` 0.885 / 0.865, `nearBaseline` 0.755 / 0.775); NEAR contrast passes
-  (16:9 96.8% ≥ 3:1, 9:16 100%).
+  (16:9 96.6% ≥ 3:1, 9:16 100%).
 
 ## 4. Until you land F-004
 
