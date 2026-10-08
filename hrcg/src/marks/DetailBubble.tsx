@@ -2,7 +2,8 @@
 // Owner: A3. Brief 5.5 "detail bubble n / sheet: opens its detail"; 3.4 / 3.13: a <button aria-expanded>;
 // the detail expands with clip-path: circle() to 36vw from the bubble; a second click, Esc, or the
 // sheet leaving the viewport closes it, and focus returns to the bubble.
-// Accessible name (F-035, WCAG 2.5.3): "1 A-101 detail: <label>", so it starts with the visible text.
+// Accessible name (F-035, WCAG 2.5.3): "1 / A-101 detail: <label>", so it starts with the visible text
+// (the copy lint allows "1 / A-101"; the slash is not a word for the visible-label check).
 // Once open, the page scrolls the least it can to bring the detail's caption inside the band between
 // the chrome (F-036). `phoneFlow`: below 768 px the detail opens in flow under the bubble's row.
 // The panel content is the caller's (normally <ViewTitle id="…"><LoopVideo id="…" autoPlay={false}/></ViewTitle>):
@@ -19,7 +20,7 @@ export interface DetailBubbleProps {
   n: number | string;
   /** Sheet (bottom half), e.g. 'A-101' */
   sheet: string;
-  /** What the detail shows (brief copy, e.g. "concept film of …"); the button's name is "n sheet detail: label" */
+  /** What the detail shows (brief copy, e.g. "concept film of …"); the button's name is "n / sheet detail: label" */
   label?: string;
   /** Bubble diameter in px (default 44) */
   size?: number;
@@ -163,7 +164,7 @@ export function DetailBubble({
         className="mk-hit mk-db"
         aria-expanded={open}
         aria-controls={panelId}
-        aria-label={label ? `${n} ${sheet} detail: ${label}` : undefined}
+        aria-label={label ? `${n} / ${sheet} detail: ${label}` : undefined}
         onClick={() => setOpenState(!open, true)}
       >
         <BubbleSymbol n={n} sheet={sheet} size={size} />

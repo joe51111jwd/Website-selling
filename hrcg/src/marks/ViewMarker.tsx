@@ -1,6 +1,6 @@
 // Usage: <ViewMarker view="01-A" sheet="A-101" target="a101-persp" focusId="a101-persp-title" label="go to perspective, …" angle={180} /> goes to its view.
 // Owner: A3. Brief 5.5: "view marker (a circle split by a rule, 01-A over A-101, with a filled triangle): goes to its view".
-// Accessible name (F-035, WCAG 2.5.3): "01-A A-101: <label>", so it starts with the visible text.
+// Accessible name (F-035, WCAG 2.5.3): "01-A / A-101: <label>", so it starts with the visible text.
 // A real <a href="#target"> (works with no JS). With JS it scrolls (Lenis, native under reduced
 // motion) and then focuses the view's title (brief 3.13), without announcing.
 
@@ -18,7 +18,7 @@ export interface ViewMarkerProps {
   target: string;
   /** Element id focused on landing (the view title); defaults to `target` */
   focusId?: string;
-  /** Plain-language purpose (brief copy); the name is "view sheet: label" */
+  /** Plain-language purpose (brief copy); the name is "view / sheet: label" */
   label: string;
   /** Direction of the filled triangle, degrees clockwise from up (180 = looking down the sheet) */
   angle?: number;
@@ -53,7 +53,7 @@ export function ViewMarker({ view, sheet, target, focusId, label, angle = 180, s
     <a
       className={`mk-hit mk-vm ${className ?? ''}`}
       href={`#${target}`}
-      aria-label={`${view} ${sheet}: ${label}`}
+      aria-label={`${view} / ${sheet}: ${label}`}
       onClick={onClick}
       style={{ width: box, height: box, ...style }}
     >

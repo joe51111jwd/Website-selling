@@ -23,13 +23,13 @@ export const A100 = {
 export const A101 = {
   h2: 'BRICKLAYING',
   bondWords: ['STRAIGHT COURSES', 'CONSISTENT JOINTS', 'STABLE FINISH'],
-  /** ViewMarker names itself "01-A A-101: go to perspective, …" (its visible text first, F-035) */
+  /** ViewMarker names itself "01-A / A-101: go to perspective, …" (its visible text first, F-035) */
   viewMarker: {
     view: '01-A',
     sheet: 'A-101',
     label: 'go to perspective, concept film of bricklaying',
   },
-  /** DetailBubble names itself "1 A-101 detail: concept film of …" (its visible text first, F-035) */
+  /** DetailBubble names itself "1 / A-101 detail: concept film of …" (its visible text first, F-035) */
   detailLabel: 'concept film of a robot hand pressing a brick into mortar',
   /** printed beside the bubble (brief 3.4 layout: "◯1 DETAIL 1 / A-101") */
   bubbleWord: 'DETAIL',
