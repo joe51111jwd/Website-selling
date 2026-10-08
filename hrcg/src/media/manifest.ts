@@ -50,6 +50,8 @@ export type MediaEntry = {
   freezeFrame?: number;
   /** URL of a JSON sidecar (hero meta, lines, proof). */
   meta?: string;
+  /** t7-proof only (A6-2): the measured detection label from t7-proof.json, null while unmeasured/mock. */
+  proof?: { smallestLabel: string | null; pass: boolean } | null;
   bytes: Record<string, number>;
 };
 

@@ -112,8 +112,14 @@ function deriveGrid(d: LinesData): Grid {
   let xs: number[];
   let ys: number[];
   if (d.gridlines && d.gridlines.length) {
-    xs = d.gridlines.filter((g) => g.axis === 'x').map((g) => g.at);
-    ys = d.gridlines.filter((g) => g.axis === 'y').map((g) => g.at);
+    // the page grid is 07's long lines (the perimeter and the fresh line); short interior lines and the
+    // door jamb stay traces only, or the sheet would read as a lattice
+    const fyA = (fresh.a[1] + fresh.b[1]) / 2;
+    const long = d.gridlines.filter(
+      (g) => (g.to ?? 1) - (g.from ?? 0) >= 0.45 || (g.axis === 'y' && Math.abs(g.at - fyA) < 0.01),
+    );
+    xs = long.filter((g) => g.axis === 'x').map((g) => g.at);
+    ys = long.filter((g) => g.axis === 'y').map((g) => g.at);
   } else {
     const hv = segs.map((s) => ({ dx: s.b[0] - s.a[0], dy: s.b[1] - s.a[1], s }));
     xs = cluster(
@@ -323,7 +329,7 @@ export default function A105Layout() {
       return r.width ? { x: r.left - pr.left, y: r.top - pr.top, w: r.width, h: r.height } : null;
     };
     const planBox = rel(plan)!;
-    const avoid = Array.from(pin.querySelectorAll('[data-a105-avoid]'))
+    const avoid = Array.from(pin.querySelectorAll('[data-a105-avoid], .a105-stage .view-frame, .a105-stage .view-title, .a105-tag'))
       .map(rel)
       .filter((b): b is Box => !!b);
     const edge = Math.max(12, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--border')) || 24);
@@ -521,7 +527,7 @@ export default function A105Layout() {
                         onKeyDown={onKeyDown}
                       >
                         <span className="a105-cut-mark">
-                          <SectionCut length={phone ? 64 : 92} bubble={phone ? 18 : 20} arrows="along" />
+                          <SectionCut length={phone ? 84 : 132} bubble={phone ? 20 : 24} arrows="along" />
                         </span>
                       </div>
                     </div>

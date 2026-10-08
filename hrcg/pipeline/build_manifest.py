@@ -192,6 +192,8 @@ def codec_type(rel, fallback):
 
 def m(rel): return 'media/' + rel
 
+proofdoc = json.load(open(os.path.join(PUB, 'media/data/t7-proof.json'))) if os.path.exists(os.path.join(PUB, 'media/data/t7-proof.json')) else {}
+PROOF = None if (proofdoc.get('mock') or not proofdoc.get('smallestLabel')) else {'smallestLabel': proofdoc['smallestLabel'], 'pass': bool(proofdoc.get('pass'))}
 media = {}
 for v in V + ([SET] if True else []):
     d, id = v['dir'], v['id']
@@ -232,6 +234,7 @@ for i in I:
          'sources': [{'src': m(r), 'type': {'avif': 'image/avif', 'jpg': 'image/jpeg', 'webp': 'image/webp', 'png': 'image/png'}[r.rsplit('.', 1)[1]]} for r in rels],
          'w': i['w'], 'h': i['h'], 'alt': i['alt'], 'viewTitle': i['vt']}
     if i.get('meta'): e['meta'] = i['meta']
+    if id == 't7-proof': e['proof'] = PROOF          # A6-2: inline the measured label for the prerender
     if i.get('plan'):
         e['borderRect'] = [round(x, 5) for x in rects.get(i['plan'], [120 / 1440, 120 / 1440, 1320 / 1440, 1320 / 1440])]
         if lines.get('fresh'): e['lineEndpoints'] = lines['fresh']

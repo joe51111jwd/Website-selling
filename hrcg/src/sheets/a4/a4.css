@@ -697,7 +697,8 @@
 /* SECTION A–A */
 .slice {
   position: relative;
-  aspect-ratio: 1920 / 1076;
+  /* 16:9 exactly, so the frame's bottom edge lands on 07's bottom wall line (1920×1076 covers it) */
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: var(--slab-black);
 }
@@ -708,6 +709,9 @@
   inset: 0;
   width: 100%;
   height: 100%;
+}
+.slice-still img {
+  object-fit: cover;
 }
 .slice-still {
   opacity: 0;
@@ -736,7 +740,6 @@
 .a105-hint {
   margin-top: var(--s-4);
   color: var(--pencil);
-  max-width: 64ch;
 }
 .a105-line {
   margin-top: var(--s-4);
@@ -813,8 +816,8 @@
   position: absolute;
   left: calc(var(--s, 0.5) * 100%);
   top: 0;
-  width: 44px;
-  height: 120px;
+  width: 48px;
+  height: 172px;
   transform: translate(-50%, -50%);
   display: grid;
   place-items: center;
@@ -873,7 +876,6 @@
 .a105-h2 {
   margin: 0;
   color: var(--chalk);
-  max-width: 6.2ch;
 }
 .a105-col {
   position: relative;

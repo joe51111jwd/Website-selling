@@ -142,12 +142,13 @@ export function PerspectiveStage({
       const sr = sticky.getBoundingClientRect();
       const or = origin.getBoundingClientRect();
       const O = { x: or.left - sr.left, y: or.top - sr.top, w: or.width, h: or.height };
+      // K may be negative: the layer then sticks below the viewport top (the matte covers the gap)
       let K: number;
       if (preset === 'slide') {
-        K = Math.max(0, O.y + O.h - pinAt * vh);
+        K = O.y + O.h - pinAt * vh;
       } else {
         const band = top + (vh - top - bottom - CAPTION_H) / 2;
-        K = Math.max(0, O.y + O.h / 2 - band);
+        K = O.y + O.h / 2 - band;
       }
       const compH = comp.offsetHeight;
       const H = Math.max(compH, K + vh);
@@ -202,7 +203,8 @@ export function PerspectiveStage({
           rw = M.w + (F.w - M.w) * t;
         }
         const s = rw / F.w;
-        const hidden = Math.max(0, O.y + O.h - ry); // px of the frame still under the plan's edge
+        // phase A only: px of the frame still under the plan's bottom edge (it grows over it after)
+        const hidden = e <= A ? Math.max(0, O.y + O.h - ry) : 0;
         frame.style.transform = e >= 1 ? '' : `translate(${rx - F.x}px, ${ry - F.y}px) scale(${s})`;
         frame.style.clipPath = hidden > 0 ? `inset(${hidden / s}px 0 0 0)` : '';
         frame.style.opacity = e <= 0 ? '0' : '1';

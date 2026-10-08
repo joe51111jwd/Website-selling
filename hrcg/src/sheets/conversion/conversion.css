@@ -372,10 +372,14 @@
   font-variation-settings: 'opsz' 72;
   letter-spacing: 0.02em;
 }
-.bay-slot-text,
-.bay-number {
+.bay-slot-text {
   fill: var(--chalk);
   fill-opacity: 0.85;
+}
+/* the bay number slot: "—", never a number */
+.bay-number {
+  fill: var(--chalk);
+  fill-opacity: 0.6;
 }
 .bay-plate[data-slot-default] .bay-slot-text {
   fill-opacity: 0.85;

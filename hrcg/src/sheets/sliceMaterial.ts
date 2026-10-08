@@ -4,6 +4,7 @@
 //
 //   d = depth(uv)                       near = 1 (8-bit single channel, LinearFilter, NoColorSpace)
 //   in front of the plane (d > uSlice):  mix(slabBlack, chalk, d^1.4) · 0.85 + pencil · contour(d, 14)
+//                                        (+ faint intermediate contours at a quarter interval)
 //   behind the plane:                    the film frame
 //   the cut line:                        chalk blue where |d − uSlice| < ~1 px (fwidth), crawling over 07
 //
@@ -70,8 +71,8 @@ uniform vec3 cBlue;
 varying vec2 vUv;
 
 // iso-depth lines, about 1 px wide at any depth gradient (fwidth AA)
-float contour(float d) {
-  float f = d * uLevels;
+float contour(float d, float levels) {
+  float f = d * levels;
   float w = max(fwidth(f), 1e-4);
   float g = abs(fract(f - 0.5) - 0.5) / w;
   return 1.0 - clamp(g - 0.5, 0.0, 1.0);
@@ -84,7 +85,9 @@ void main() {
   // 1 where the frame is nearer the camera than the section plane: drawn
   float front = smoothstep(uSlice - fw * 0.5, uSlice + fw * 0.5, d);
   vec3 drawn = mix(cBlack, cChalk, pow(d, 1.4)) * 0.85;
-  drawn = mix(drawn, cPencil, contour(d) * 0.9);
+  // 14 index contours, and finer intermediate ones (a quarter interval) so 07's body reads as form
+  drawn = mix(drawn, cPencil, contour(d, uLevels * 4.0) * 0.32);
+  drawn = mix(drawn, cPencil, contour(d, uLevels) * 0.9);
   vec3 col = mix(film, drawn, front);
   // the 2 px chalk-blue intersection of plane and scene
   float band = 1.0 - smoothstep(fw * 0.6, fw * 1.8, abs(d - uSlice));
