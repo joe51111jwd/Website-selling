@@ -6,7 +6,7 @@ const EXPO = [0.16, 1, 0.3, 1] as const;
 type Phase = 'dark' | 'play' | 'lit' | 'end';
 
 /** When the line snaps in each take (seconds); the words light up on the snap. */
-const SNAP_AT = { '169': 0.05, '916': 0.05 } as const;
+const SNAP_AT = { '169': 0.4, '916': 0.4 } as const;
 
 /**
  * The opening: the whole take plays and loops seamlessly (its tail crossfades into its head). 07 holds
