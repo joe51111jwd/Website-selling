@@ -1807,7 +1807,7 @@ class CoverController {
     const tl = this.tl;
     const r = this.root;
     let busy = false;
-    const st = this.phase(now);
+    let st = this.phase(now);
     if (heroMachine.get().state !== st) heroMachine.force(st);
 
     // GL has handed back to the DOM still (plan cut): one WebGL context at a time, disposed (brief 8.4,
@@ -1952,7 +1952,9 @@ class CoverController {
       if (moving) this.monitor(dt);
     }
 
-    // ---- UI attributes
+    // ---- UI attributes (the camera may have just come to rest: read the phase again)
+    st = this.phase(now);
+    if (heroMachine.get().state !== st) heroMachine.force(st);
     const armed = st === 'paying-out' || st === 'armed' || st === 'pulling';
     r.dataset.line = armed ? 'armed' : 'off';
     const hint =
