@@ -11,7 +11,6 @@ cp_(){ cp -f "$1" "$O/$2"; }
 x264(){ local o="${@: -1}"; ffmpeg -y -v error "${@:1:$#-1}" -an -c:v libx264 -crf 14 -preset medium -pix_fmt yuv420p -movflags +faststart "$o"; }
 cp_ $MZ/n09r.mp4 c30-n09-169.mp4
 x264 -i $MZ/n09r.mp4 -vf "crop=861:1076:330:0,scale=1080:1350:flags=lanczos" $O/c30-n09-45.mp4
-cp_ $MZ/c30.mp4  c30-orig-169.mp4
 cp_ $MZ/c31.mp4  c31-169.mp4
 x264 -i $MZ/c31.mp4 -vf "crop=861:1076:1059:0,scale=1080:1350:flags=lanczos" $O/c31-45.mp4
 cp_ $MZ/c32.mp4  c32-169.mp4

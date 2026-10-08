@@ -33,7 +33,7 @@ function useSvgId(prefix: string): string {
 export function PaintFilter({ id, rough = 1 }: { id: string; rough?: number }) {
   return (
     <filter id={id} x="-4%" y="-30%" width="108%" height="160%" colorInterpolationFilters="sRGB">
-      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves={2} seed={7} result="grain" />
+      <feTurbulence type="fractalNoise" baseFrequency="0.38" numOctaves={2} seed={7} result="grain" />
       <feColorMatrix
         in="grain"
         type="matrix"
