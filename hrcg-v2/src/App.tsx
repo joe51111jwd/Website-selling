@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { motion, useInView, useScroll, useTransform, type MotionValue } from 'motion/react';
 import Lenis from 'lenis';
 import { Permit, CONTACT_EMAIL } from './permit-entry';
-import { Intro } from './Intro';
+import { Hero } from './Hero';
 
 const EXPO = [0.16, 1, 0.3, 1] as const;
 
@@ -221,10 +221,6 @@ function Mark() {
 
 export function App() {
   const [introDone, setIntroDone] = useState(false);
-  const heroRef = useRef<HTMLElement>(null);
-  const { scrollYProgress: heroP } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const copyY = useTransform(heroP, [0, 1], ['0%', '-28%']);
-  const copyFade = useTransform(heroP, [0, 0.7], [1, 0]);
   const [ctaHidden, setCtaHidden] = useState(false);
   const [headHidden, setHeadHidden] = useState(false);
   useEffect(() => {
@@ -283,30 +279,9 @@ export function App() {
         </a>
       </header>
 
-      <Intro onDone={() => setIntroDone(true)} />
-
       <main id="top">
-        <section className="hero" ref={heroRef}>
-          <motion.div className="hero-copy" style={{ y: copyY, opacity: copyFade }}>
-            <motion.p className="kicker" initial={{ opacity: 0 }} animate={introDone ? { opacity: 1 } : undefined} transition={{ duration: 1, delay: 0.05 }}>
-              The Humanoid Robot Construction Games
-            </motion.p>
-            <div className="hero-head">
-              <h1>
-                <span className="l1">
-                  <Words text="We want to see a robot" delay={0.1} play={introDone} />
-                </span>{' '}
-                <span className="l2">
-                  <Tape delay={0.7} play={introDone}>
-                    lay brick
-                  </Tape>
-                </span>
-              </h1>
-              <motion.p className="sub" initial={{ opacity: 0, y: 14 }} animate={introDone ? { opacity: 1, y: 0 } : undefined} transition={{ duration: 1, ease: EXPO, delay: 0.85 }}>
-                That&rsquo;s one of five tasks at the first Games, which we&rsquo;re planning for New York City in&nbsp;2027.
-              </motion.p>
-            </div>
-          </motion.div>
+        <Hero onReady={() => setIntroDone(true)} />
+        <section className="bays-band" aria-label="The five bays">
           <HeroBays play={introDone} onGo={go} />
         </section>
 
