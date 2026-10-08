@@ -74,8 +74,8 @@ function Film({ id, ratio, label, className = '' }: { id: string; ratio: string;
   );
 }
 
-/** Words blur in one by one. */
-function Words({ text, delay = 0, className = '' }: { text: string; delay?: number; className?: string }) {
+/** Words blur in one by one (when `play` turns true). */
+function Words({ text, delay = 0, play = true, className = '' }: { text: string; delay?: number; play?: boolean; className?: string }) {
   const words = text.split(' ');
   return (
     <span className={className}>
@@ -84,24 +84,27 @@ function Words({ text, delay = 0, className = '' }: { text: string; delay?: numb
           key={i}
           className="w"
           initial={{ opacity: 0, y: '0.35em', filter: 'blur(10px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          animate={play ? { opacity: 1, y: 0, filter: 'blur(0px)' } : undefined}
           transition={{ duration: 0.9, ease: EXPO, delay: delay + i * 0.08 }}
         >
           {w}
-          {i < words.length - 1 ? ' ' : ''}
+          {i < words.length - 1 ? '\u00a0' : ''}
         </motion.span>
       ))}
     </span>
   );
 }
 
-/** The highlighted word: a strip of marking tape slapped on. */
-function Tape({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+/** The highlighted word: a strip of marking tape slapped on. Plays on `play`, or when scrolled into view. */
+function Tape({ children, delay = 0, play }: { children: ReactNode; delay?: number; play?: boolean }) {
+  const shown = { opacity: 1, scale: 1, rotate: -3 };
   return (
     <motion.span
       className="tape"
       initial={{ opacity: 0, scale: 1.5, rotate: -14 }}
-      animate={{ opacity: 1, scale: 1, rotate: -3 }}
+      animate={play === undefined ? undefined : play ? shown : undefined}
+      whileInView={play === undefined ? shown : undefined}
+      viewport={{ once: true, margin: '-10% 0px' }}
       transition={{ type: 'spring', stiffness: 380, damping: 20, delay }}
     >
       {children}
@@ -167,6 +170,43 @@ function Word({ p, from, to, children }: { p: MotionValue<number>; from: number;
   );
 }
 
+/** The five bays from above. Each bay is a link to its task; hover or focus lights it. Phones swipe along the row. */
+function HeroBays({ play, onGo }: { play: boolean; onGo: (id: string) => (e: React.MouseEvent) => void }) {
+  const [hot, setHot] = useState<number | null>(null);
+  return (
+    <motion.div
+      className="bays"
+      initial={{ opacity: 0, y: 48 }}
+      animate={play ? { opacity: 1, y: 0 } : undefined}
+      transition={{ duration: 1.4, ease: EXPO, delay: 0.35 }}
+    >
+      <div className="bays-scroll">
+        <div className={`bays-row ${hot !== null ? 'has-hot' : ''}`}>
+          <Film id="arena-0104" ratio="1890 / 350" label="Concept film from above: work bays one to four, one robot working in each." className="bays-film" />
+          <Film id="plan-b44" ratio="1 / 1" label="Concept film from above: bay five, a robot marking out a plan on the floor." className="bays-five" />
+          {TASKS.map((t, i) => (
+            <a
+              key={t.num}
+              href={`#task-${t.num}`}
+              className={`bay ${hot === i ? 'is-hot' : ''}`}
+              style={{ left: `calc(100% * ${i * 1.1} / 5.4)` }}
+              onMouseEnter={() => setHot(i)}
+              onMouseLeave={() => setHot(null)}
+              onFocus={() => setHot(i)}
+              onBlur={() => setHot(null)}
+              onClick={onGo(`task-${t.num}`)}
+            >
+              <span className="bay-label">
+                <span className="bay-num">{t.num}</span> {t.name}
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function Mark() {
   // five bricks in one course: the HRCG mark
   return (
@@ -179,8 +219,14 @@ function Mark() {
 }
 
 export function App() {
+  const [introDone, setIntroDone] = useState(false);
+  const heroRef = useRef<HTMLElement>(null);
+  const { scrollYProgress: heroP } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const copyY = useTransform(heroP, [0, 1], ['0%', '-28%']);
+  const copyFade = useTransform(heroP, [0, 0.7], [1, 0]);
   const [ctaHidden, setCtaHidden] = useState(false);
   const [headHidden, setHeadHidden] = useState(false);
+  useEffect(() => setIntroDone(true), []); // INTRO-PLACEHOLDER: replaced by <Intro onDone> when it lands
   useEffect(() => {
     // the header steps out of the way while you read down, and comes back when you scroll up
     let last = window.scrollY;
@@ -238,26 +284,28 @@ export function App() {
       </header>
 
       <main id="top">
-        <section className="hero">
-          <div className="hero-copy">
-            <motion.p className="kicker" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.1 }}>
+        <section className="hero" ref={heroRef}>
+          <motion.div className="hero-copy" style={{ y: copyY, opacity: copyFade }}>
+            <motion.p className="kicker" initial={{ opacity: 0 }} animate={introDone ? { opacity: 1 } : undefined} transition={{ duration: 1, delay: 0.05 }}>
               The Humanoid Robot Construction Games
             </motion.p>
-            <h1>
-              <Words text="Can a robot actually" delay={0.2} />{' '}
-              <Tape delay={0.75}>build?</Tape>
-            </h1>
-            <motion.p className="sub" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: EXPO, delay: 1.05 }}>
-              Five real construction tasks. One site in New York City. 2027.
-            </motion.p>
-          </div>
-          <motion.div className="hero-film" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.4, ease: EXPO, delay: 0.5 }}>
-            <div className="strip only-wide">
-              <Film id="arena-0104" ratio="1890 / 350" label="Concept film from above: work bays one to four, one robot working in each." />
-              <Film id="plan-b44" ratio="1 / 1" label="Concept film from above: bay five, a robot marking out a plan on the floor." />
+            <div className="hero-head">
+              <h1>
+                <span className="l1">
+                  <Words text="Can a robot actually" delay={0.1} play={introDone} />
+                </span>{' '}
+                <span className="l2">
+                  <Tape delay={0.62} play={introDone}>
+                    build?
+                  </Tape>
+                </span>
+              </h1>
+              <motion.p className="sub" initial={{ opacity: 0, y: 14 }} animate={introDone ? { opacity: 1, y: 0 } : undefined} transition={{ duration: 1, ease: EXPO, delay: 0.85 }}>
+                Five real construction tasks. One site in New York City. <span className="nowrap">2027.</span>
+              </motion.p>
             </div>
-            <Film id="plan-b40" ratio="1 / 1" label="Concept film from above: a robot lays a course of brick in bay one." className="only-narrow" />
           </motion.div>
+          <HeroBays play={introDone} onGo={go} />
         </section>
 
         <section className="why">
@@ -272,7 +320,7 @@ export function App() {
           </Reveal>
           <ol className="task-list">
             {TASKS.map((t, i) => (
-              <li key={t.num} className={`task ${i % 2 ? 'flip' : ''}`}>
+              <li key={t.num} id={`task-${t.num}`} className={`task ${i % 2 ? 'flip' : ''}`}>
                 <Reveal className="task-copy">
                   <span className="task-num">{t.num}</span>
                   <h3>{t.name}</h3>
@@ -332,7 +380,7 @@ export function App() {
         onClick={go('permit')}
         className="pill"
         initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: ctaHidden ? 0 : 1, y: ctaHidden ? 20 : 0 }}
+        animate={introDone ? { opacity: ctaHidden ? 0 : 1, y: ctaHidden ? 20 : 0 } : undefined}
         transition={{ duration: 0.5, ease: EXPO, delay: ctaHidden ? 0 : 1.4 }}
         style={{ pointerEvents: ctaHidden ? 'none' : 'auto' }}
         tabIndex={ctaHidden ? -1 : 0}

@@ -1,6 +1,7 @@
 @import './fonts.css';
 
 :root {
+  --h1: clamp(64px, 8.6vw, 150px);
   --ink: #0b0b0a;
   --ink-2: #161614;
   --chalk: #ece8e1;
@@ -123,6 +124,7 @@ p {
   color: var(--chalk);
   display: grid;
   grid-template-rows: 1fr auto;
+  grid-template-columns: minmax(0, 1fr);
   padding-top: 120px;
   overflow: hidden;
 }
@@ -144,11 +146,10 @@ p {
 h1 {
   font-family: var(--display);
   font-weight: 800;
-  font-size: clamp(64px, 8.6vw, 150px);
+  font-size: var(--h1);
   line-height: 0.9;
   letter-spacing: -0.005em;
   text-transform: uppercase;
-  max-width: 13ch;
 }
 .w {
   display: inline-block;
@@ -173,25 +174,92 @@ h1 {
   color: var(--chalk);
   opacity: 0.86;
 }
-.hero-film {
-  margin-top: 48px;
-}
-.only-narrow {
-  display: none;
-}
-.strip {
+.hero-head {
   position: relative;
 }
-/* bay 05 sits in the arena strip's empty fifth slot (the strip is 5.4 bay-widths wide) */
-.strip .film:last-child {
-  position: absolute;
+h1 .l1,
+h1 .l2 {
+  display: block;
+}
+.nowrap {
+  white-space: nowrap;
+}
+@media (min-width: 1000px) {
+  /* the sub-line sits beside BUILD?, on its baseline */
+  .hero-head .sub {
+    position: absolute;
+    left: calc(var(--h1) * 3.55);
+    bottom: 0.35em;
+    margin: 0;
+    max-width: 24ch;
+  }
+}
+
+/* the five bays: one strip, each bay a link */
+.bays {
+  margin-top: clamp(40px, 6vh, 64px);
+  min-width: 0;
+}
+.bays-scroll {
+  width: 100%;
+}
+.bays-row {
+  position: relative;
+}
+.bays-film {
+  width: 100%;
+}
+.bays-five {
+  position: absolute !important;
   top: 0;
   bottom: 0;
   left: calc(100% * 4.4 / 5.4);
   width: calc(100% / 5.4);
   aspect-ratio: auto !important;
-  background: transparent;
+  background: transparent !important;
 }
+.bay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc(100% / 5.4);
+  text-decoration: none;
+  outline-offset: -6px;
+  transition: background-color 0.4s ease;
+}
+.bays-row.has-hot .bay:not(.is-hot) {
+  background: rgb(11 11 10 / 0.45);
+}
+.bay-label {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--chalk);
+  background: rgb(11 11 10 / 0.72);
+  padding: 6px 9px 5px;
+  opacity: 0;
+  translate: 0 6px;
+  transition: opacity 0.35s ease, translate 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.bay-num {
+  color: var(--orange);
+}
+.bay.is-hot .bay-label,
+.bay:focus-visible .bay-label {
+  opacity: 1;
+  translate: 0 0;
+}
+@media (hover: none) {
+  .bay-label {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
 .film {
   position: relative;
   overflow: hidden;
@@ -422,24 +490,24 @@ h2 {
   .hero {
     padding-top: 96px;
   }
-  .hero-film {
-    margin-top: 36px;
+  .bays-scroll {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
-  .only-wide {
+  .bays-scroll::-webkit-scrollbar {
     display: none;
   }
-  .only-narrow {
-    display: block;
+  .bays-row {
+    /* five bays at about 74% of the screen each, so the next one peeks in */
+    width: calc(74vw * 5.4);
   }
-  .hero-crop {
-    max-height: 52svh;
-    width: 100%;
+  .bay {
+    scroll-snap-align: start;
   }
-  .hero-crop video {
-    object-position: 30% 50%;
-  }
-  h1 {
-    font-size: clamp(56px, 16vw, 84px);
+  :root {
+    --h1: clamp(56px, 16vw, 84px);
   }
   .sub {
     margin-top: 20px;
