@@ -64,7 +64,7 @@ export function RfiForm({
     set({ ready: next });
   };
   return (
-    <div className="rfi" role="form" aria-labelledby="rfi-001-title">
+    <div className="rfi rfi--teams" role="form" aria-labelledby="rfi-001-title">
       <p className="rfi-head t-label" id="rfi-001-title">
         <LabelText text={TEAMS.formHeader} />
       </p>

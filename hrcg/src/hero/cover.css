@@ -733,18 +733,22 @@
     bottom: calc((1 - var(--line-y)) * 100% + 12px);
     max-width: 38%;
   }
+  /* at rest: the reset button stands where the line was (left of BUILD?), the hint goes under the sub */
   .cv-restrow {
-    left: 8%;
-    top: auto;
-    bottom: calc((1 - var(--line-y)) * 100% - 4px);
-    max-width: 38%;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    translate: none;
+    display: contents;
   }
   .cv-restrow .cv-hint {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: calc(81% + 54px);
     max-width: none;
+  }
+  .cv-reset {
+    position: absolute;
+    left: 8%;
+    bottom: calc((1 - var(--line-y)) * 100% - 4px);
+    translate: none;
   }
   .cv-play {
     left: 8%;

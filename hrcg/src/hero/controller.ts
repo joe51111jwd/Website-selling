@@ -498,7 +498,9 @@ class CoverController {
     // puff canvas
     if (!this.dust) this.dust = new Dust2D(this.puffCanvas);
     this.dust.resize(this.heroW, this.heroH, Math.min(1.5, window.devicePixelRatio || 1));
-    this.dpr = Math.max(1, Math.min(this.isPhone() ? 1.5 : 1.75, window.devicePixelRatio || 1));
+    // DPR clamped to [1, 1.75], 1.5 on the lite tier (brief 8.4); the frame-time monitor may drop it to 1.25
+    const dprMax = this.perfStage > 0 ? 1.25 : tierStore.get().lite ? 1.5 : 1.75;
+    this.dpr = Math.max(1, Math.min(dprMax, window.devicePixelRatio || 1));
     if (this.scene) this.scene.resize(this.frameRect.width, this.frameRect.height, this.dpr);
     this.layoutDeposits();
     this.placeholderRow();
@@ -970,6 +972,9 @@ class CoverController {
     this.scrolledSinceSnap = false;
     delete this.root.dataset.pulling;
     delete this.root.dataset.inked;
+    // the line button leaves with the line: keep keyboard focus in the hero (on its heading)
+    const ae = document.activeElement;
+    if (ae === this.linebtn || ae === this.handle) this.h1.focus({ preventScroll: true });
     heroMachine.force('snapped', byUser ? { snappedByUser: true } : {});
     // the still, the depth, the plate and the matte are fetched after the snap starts (brief 7e)
     this.stillPic.style.display = 'block';
@@ -1941,7 +1946,19 @@ class CoverController {
       const key = v.closest<HTMLElement>('[data-video-key]')?.dataset.videoKey;
       if (key) videoManager.pause(key);
       v.pause();
-      if (v.readyState >= 1) await seekVideo(v, Math.max(0, (this.P - BEATS.arenaIn[0]) * 4));
+      if (this.P < BEATS.arenaIn[0]) continue;
+      if (v.readyState < 2) {
+        v.preload = 'auto';
+        if (v.readyState === 0) {
+          try {
+            v.load();
+          } catch {
+            /* ignore */
+          }
+        }
+        await whenLoaded(v);
+      }
+      await seekVideo(v, Math.max(0, (this.P - BEATS.arenaIn[0]) * 4));
     }
     if (this.P >= BEATS.land) {
       const v = this.slot5;

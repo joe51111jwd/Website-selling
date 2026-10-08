@@ -209,8 +209,9 @@ export function PerspectiveStage({
         // phase A only: px of the frame still under the plan's bottom edge (it grows over it after)
         const hidden = e <= A ? Math.max(0, O.y + O.h - ry) : 0;
         frame.style.transform = e >= 1 ? '' : `translate(${rx - F.x}px, ${ry - F.y}px) scale(${s})`;
-        frame.style.clipPath = hidden > 0 ? `inset(${hidden / s}px 0 0 0)` : '';
-        frame.style.opacity = e <= 0 ? '0' : '1';
+        frame.style.clipPath = hidden > 0 ? `inset(${(hidden + 1) / s}px 0 0 0)` : '';
+        // fully under the plan (or not started): hidden outright, so no sub-pixel sliver shows at its edge
+        frame.style.opacity = e <= 0 || hidden >= hA - 1 ? '0' : '1';
         matte.style.opacity = String(segment(e, A, 0.9));
       } else {
         const cx = O.x + O.w / 2 - F.x;

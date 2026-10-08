@@ -2,56 +2,56 @@
  "frame": 18,
  "candidates": {
   "18": {
-   "dustPx480": 75,
-   "sharpness": 376.0
+   "dustPx480": 82,
+   "sharpness": 376.2
   },
   "19": {
-   "dustPx480": 91,
-   "sharpness": 382.2
+   "dustPx480": 90,
+   "sharpness": 382.7
   },
   "20": {
-   "dustPx480": 93,
-   "sharpness": 379.7
+   "dustPx480": 88,
+   "sharpness": 380.0
   },
   "21": {
-   "dustPx480": 117,
-   "sharpness": 380.4
+   "dustPx480": 115,
+   "sharpness": 380.2
   },
   "22": {
-   "dustPx480": 130,
-   "sharpness": 387.1
+   "dustPx480": 125,
+   "sharpness": 387.8
   },
   "23": {
-   "dustPx480": 153,
-   "sharpness": 384.8
+   "dustPx480": 151,
+   "sharpness": 385.3
   },
   "24": {
-   "dustPx480": 161,
-   "sharpness": 383.6
+   "dustPx480": 158,
+   "sharpness": 383.9
   },
   "25": {
-   "dustPx480": 185,
-   "sharpness": 370.7
-  },
-  "26": {
-   "dustPx480": 229,
-   "sharpness": 367.0
-  },
-  "27": {
-   "dustPx480": 270,
-   "sharpness": 375.5
-  },
-  "28": {
-   "dustPx480": 316,
+   "dustPx480": 184,
    "sharpness": 370.8
   },
+  "26": {
+   "dustPx480": 231,
+   "sharpness": 367.1
+  },
+  "27": {
+   "dustPx480": 273,
+   "sharpness": 376.0
+  },
+  "28": {
+   "dustPx480": 307,
+   "sharpness": 371.4
+  },
   "29": {
-   "dustPx480": 358,
-   "sharpness": 374.7
+   "dustPx480": 356,
+   "sharpness": 374.9
   },
   "30": {
    "dustPx480": 401,
-   "sharpness": 370.1
+   "sharpness": 370.3
   }
  },
  "depth": {
@@ -61,8 +61,8 @@
   "encoding": "8-bit single channel, relative inverse depth, near = 255; sample with LinearFilter + NoColorSpace",
   "remap": "monotonic 3-band: farther than 07 -> 0..0.15; 07 (farthest..nearest point) -> 0.15..0.55, rank-equalised on 07 pixels; nearer than 07 (near floor) -> 0.55..1",
   "raw07": {
-   "far": 0.0758,
-   "near": 0.2294,
+   "far": 0.0756,
+   "near": 0.2267,
    "horizonRow": 796
   }
  },

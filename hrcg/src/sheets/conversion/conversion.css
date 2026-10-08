@@ -118,6 +118,17 @@
   min-width: 0;
   padding: var(--s-3);
 }
+/* RFI-001 sits in a half-width column: its challenge chips take the full row under their legend */
+.rfi--teams .rfi-row--chips {
+  grid-template-columns: minmax(0, 1fr);
+}
+.rfi--teams .rfi-row--chips > .rfi-label {
+  border-right: 0;
+  padding-bottom: 0;
+}
+.chip-name {
+  overflow-wrap: break-word;
+}
 .rfi-help {
   margin-top: var(--s-3);
   max-width: 52ch;
@@ -945,6 +956,25 @@
 /* ============================================================== breakpoints */
 
 @media (max-width: 1279px) {
+  /* RFI-001's column is too narrow for five chips in a row: list them, one bay per row */
+  .rfi--teams .chips--bays {
+    --chip-cols: 1;
+  }
+  .rfi--teams .chips--bays .chip {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 48px;
+    margin: -1px 0 0;
+  }
+  .rfi--teams .chips--bays .chip:first-child {
+    margin-top: 0;
+  }
+  .rfi--teams .chips--bays .chip-face {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--s-4);
+  }
   .t7-label {
     grid-column: 1 / -1;
   }
