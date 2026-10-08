@@ -56,10 +56,16 @@ const C = {
   chalkBlue: '#6f98e8',
 };
 
+// Cover fit (FIXLIST-1 F-041): the section frame can be wider than the 16:9 still (it shares its height with
+// PLAN 05 and takes the width left over, up to 2.1:1). uv is scaled into the still like CSS object-fit: cover,
+// cropping 15% of the excess height from the top and 85% from the bottom (07's head stays in, the floor
+// contours give way first), the same as the stills' object-position: 50% 15%.
 const vert = /* glsl */ `
 varying vec2 vUv;
+uniform vec2 uUvScale;
+uniform vec2 uUvOffset;
 void main() {
-  vUv = uv;
+  vUv = uv * uUvScale + uUvOffset;
   gl_Position = vec4(position.xy, 0.0, 1.0);
 }
 `;
@@ -215,8 +221,11 @@ export function createSliceRenderer(canvas: HTMLCanvasElement, src: SliceSources
       cChalk: { value: rgb(C.chalk) },
       cPencil: { value: rgb(C.pencil) },
       cBlue: { value: rgb(C.chalkBlue) },
+      uUvScale: { value: new Vector2(1, 1) },
+      uUvOffset: { value: new Vector2(0, 0) },
     },
   });
+  const texAspect = src.still.naturalWidth && src.still.naturalHeight ? src.still.naturalWidth / src.still.naturalHeight : 16 / 9;
   const geometry = new PlaneGeometry(2, 2);
   const mesh = new Mesh(geometry, material);
   mesh.frustumCulled = false;
@@ -233,6 +242,16 @@ export function createSliceRenderer(canvas: HTMLCanvasElement, src: SliceSources
     resize(width: number, height: number, dpr: number) {
       renderer.setPixelRatio(dpr);
       renderer.setSize(width, height, false);
+      const a = width / Math.max(1, height);
+      const sc = material.uniforms.uUvScale!.value as Vector2;
+      const of = material.uniforms.uUvOffset!.value as Vector2;
+      if (a > texAspect) {
+        sc.set(1, texAspect / a);
+        of.set(0, 0.85 * (1 - texAspect / a));
+      } else {
+        sc.set(a / texAspect, 1);
+        of.set((1 - a / texAspect) / 2, 0);
+      }
     },
     dispose() {
       geometry.dispose();

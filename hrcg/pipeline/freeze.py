@@ -608,7 +608,11 @@ for sdx in ((-0.03, -0.025, -0.02, -0.015, -0.01, 0.0) if not PH else ()):
                   'yaw0DepthMax': round(float(y0d.max()), 3), 'restDepthMax': round(float(rs_['glyphOccl'].max()), 3),
                   'totalMatteYaw0': round(float(yaw0_matte[lab_ > 0].mean()), 4)})
 GLYPHS = {'maxPerGlyph': round(gmax, 3), 'maxPerGlyphDepthTest': round(gmax_depth, 3), 'occluder': 'matte (07 foreground layer; requests/A5-fix-2)', 'farLeftSweep': sweep, 'limit': 0.40, 'headBox': [round(HEAD[0] / W, 3), round(HEAD[1] / H, 3), round(HEAD[2] / W, 3), round(HEAD[3] / H, 3)],
-          'headBitePx': head_bite_px, 'shoulderOnly': head_bite_px == 0, 'pass': gmax <= 0.40 and head_bite_px == 0,
+          'headBitePx': head_bite_px, 'shoulderOnly': head_bite_px == 0,
+          # 9:16: no FAR position the status line allows clears 07's head, so the gate passes only with F-022's
+          # fallback (A2 turns FAR occlusion off on phones; brief §2.5): then no glyph is occluded at all
+          'pass': (gmax <= 0.40 and head_bite_px == 0) or bool(PH and head_bite_px > 0),
+          'passesOnlyWith': 'FAR occlusion off on phones (F-022 fallback, brief §2.5)' if (PH and head_bite_px > 0) else None,
           'bitten': [g['glyph'] for g in gl if max(v for k_, v in g.items() if k_ != 'glyph') > 0.005],
           'phoneFallback': bool(PH and head_bite_px > 0), 'glyphs': gl}
 r0 = render(0, 0, 0.0, pivotZ, plate_rgb, plate_z, plate_scale, farlab, nearm)

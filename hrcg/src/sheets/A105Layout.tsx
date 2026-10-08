@@ -230,6 +230,7 @@ export default function A105Layout() {
   const pinRef = useRef<HTMLDivElement>(null);
   const planRef = useRef<HTMLDivElement>(null);
   const footRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const cutRef = useRef<HTMLDivElement>(null);
   const sliceRef = useRef<SectionSliceHandle>(null);
   const tracesRef = useRef<SVGSVGElement>(null);
@@ -368,15 +369,37 @@ export default function A105Layout() {
     setS(next, 'user');
   };
 
-  // ---- gridlines (on resize only). Desktop only: on a phone the plan is the full column, so lines out
-  // to the page edges would be 4 px stubs.
+  // ---- fit and gridlines (on resize only). Desktop live: --H (the views' shared height) is the largest that
+  // fits the frame between the chrome; the section takes the width left over (16:9 up to 2.1:1, cover-cropped).
+  // Gridlines are desktop only: on a phone the plan is the full column, so lines out to the page edges
+  // would be 4 px stubs.
   const measure = useCallback(() => {
+    const root = rootRef.current;
     const pin = pinRef.current;
     const plan = planRef.current;
     const foot = footRef.current;
-    if (!pin || !plan) return;
+    const stage = stageRef.current;
+    if (!root || !pin || !plan || !stage) return;
+    const isPhone = window.matchMedia('(max-width: 767px)').matches;
+    const pinned = live && !isPhone;
+    if (!pinned) root.style.removeProperty('--H');
+    else {
+      const cw = stage.clientWidth;
+      const maxH = Math.floor((cw - 32) / 2.7778);
+      for (let i = 0; i < 4; i++) {
+        const cur = plan.closest('.view-frame')?.getBoundingClientRect().height ?? 0;
+        const footRow = foot ? foot.getBoundingClientRect() : null;
+        const cs = getComputedStyle(stage);
+        const innerBottom = stage.getBoundingClientRect().bottom - (parseFloat(cs.paddingBottom) || 0);
+        // slack between the spec/beats row and the frame's bottom padding (negative = overflowing)
+        const slack = footRow ? innerBottom - footRow.bottom : 0;
+        const next = Math.max(160, Math.min(maxH, Math.floor(cur + slack)));
+        if (Math.abs(next - cur) < 1) break;
+        root.style.setProperty('--H', `${next}px`);
+      }
+    }
     const pr = pin.getBoundingClientRect();
-    if (window.matchMedia('(max-width: 767px)').matches) {
+    if (isPhone) {
       setGeo({ W: pr.width, H: pr.height, ext: [] });
       return;
     }
@@ -395,18 +418,20 @@ export default function A105Layout() {
     ext.push(...hLine(frame.y, frame, W, edge));
     ext.push(...hLine(inner.y + grid.fresh.y * inner.h, frame, W, edge));
     ext.push(...hLine(frame.y + frame.h - 1, frame, W, edge));
-    // the bottom gridline the spec and beats sit on, and 07's east wall line carried down to it
+    // 07's east wall line carried down to the bottom gridline, which then runs out both ways from its foot
     const f = rel(foot);
     if (f) {
-      const yb = f.y + f.h + 6;
-      ext.push(...hLine(yb, frame, W, edge));
+      const yb = Math.round(f.y + f.h + 6) + 0.5;
       const u2 = grid.xs.find((x) => x.at > grid.u1 + 0.2)?.at ?? 0.836;
       const x = Math.round(inner.x + u2 * inner.w) + 0.5;
       const y0 = frame.y + frame.h;
-      ext.push({ d: `M${x} ${y0}V${yb}`, d0: 0, d1: Math.max(1, yb - y0) });
+      const v = Math.max(1, yb - y0);
+      ext.push({ d: `M${x} ${y0}V${yb}`, d0: 0, d1: v });
+      ext.push({ d: `M${x} ${yb}H${edge}`, d0: v, d1: v + Math.max(1, x - edge) });
+      ext.push({ d: `M${x} ${yb}H${W - edge}`, d0: v, d1: v + Math.max(1, W - edge - x) });
     }
     setGeo({ W, H: pr.height, ext });
-  }, [grid]);
+  }, [grid, live]);
 
   useEffect(() => {
     measure();
@@ -540,22 +565,14 @@ export default function A105Layout() {
               ))}
             </svg>
           ) : null}
-          <div className="a105-stage">
+          <div className="a105-stage" ref={stageRef}>
             <SheetTag id="A-105" className="a105-tag" />
-            <h2 className="t-h2-challenge a105-h2 print-in">{A105.h2}</h2>
-
-            {/* spec and beats: on the bottom gridline (desktop), right after the H2 (phone) */}
-            <div className="a105-foot" ref={footRef}>
+            {/* the H2 and the spec sit on the top gridline (the views' shared top edge) */}
+            <div className="a105-head">
+              <h2 className="t-h2-challenge a105-h2 print-in">{A105.h2}</h2>
               <p className="t-spec a105-spec print-in" style={{ ['--d' as string]: '120ms' } as CSSProperties}>
                 {A105.spec}
               </p>
-              <ul className="a105-beats print-in" style={{ ['--d' as string]: '240ms' } as CSSProperties}>
-                {A105.beats.map((b) => (
-                  <li key={b} className="t-beat">
-                    {b}
-                  </li>
-                ))}
-              </ul>
             </div>
 
             <div className="a105-views">
@@ -616,19 +633,30 @@ export default function A105Layout() {
                 <p className="a105-hint t-label print-in">{A105.hint}</p>
               </div>
             </div>
+
+            {/* the bottom gridline: DETAIL 5 on the spine, the beats hanging off 07's east wall line */}
+            <div className="a105-foot" ref={footRef}>
+              <div className="a105-detail">
+                <DetailBubble n={5} sheet="A-105" label={A105.detail.label} onOpenChange={onDetail} panelClassName="a105-detail-panel">
+                  <ViewTitle id="a105-detail">
+                    <LoopVideo id="det-n04" autoPlay={false} />
+                  </ViewTitle>
+                </DetailBubble>
+              </div>
+              <ul className="a105-beats print-in" style={{ ['--d' as string]: '240ms' } as CSSProperties}>
+                {A105.beats.map((b) => (
+                  <li key={b} className="t-beat">
+                    {b}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* after the pin: the body line, and DETAIL 5 (N04 pinch and snap) */}
+      {/* after the pin: the body line */}
       <div className="a105-after" ref={afterRef}>
-        <div className="a105-detail">
-          <DetailBubble n={5} sheet="A-105" label={A105.detail.label} onOpenChange={onDetail} panelClassName="a105-detail-panel">
-            <ViewTitle id="a105-detail">
-              <LoopVideo id="det-n04" autoPlay={false} />
-            </ViewTitle>
-          </DetailBubble>
-        </div>
         <p className="t-lead a105-line print-in">{snapped ? A105.lineSnapped : A105.line}</p>
       </div>
     </div>

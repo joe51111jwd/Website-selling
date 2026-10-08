@@ -5,7 +5,7 @@
 //   scripts/cpuq node scripts/qa.mjs --build <dir>        serve an existing build (skips the build)
 //   scripts/cpuq node scripts/qa.mjs --url http://127.0.0.1:5300/   test a running server (no-JS suite
 //                                                         then needs --build, the dev server is not prerendered)
-//   --only build,desktop,strip,phone,rm,nogl,nojs,lint    run some suites (build = the production build + its F-052 checks only)
+//   --only build,desktop,strip,phone,rm,nogl,fixes,nojs,lint   run some suites (build = the production build + its F-052 checks only)
 //   --out qa                                              results + screenshots (default qa/)
 //
 // Always run it through scripts/cpuq (one heavy job at a time on this box) and never call cpuq from
@@ -35,6 +35,11 @@
 //            anchors, #index, mailto links with default bodies, Copy address hidden, nothing hidden.
 //   lint     the copy lint (src/system/lintRules.ts + lint-allow.json) on the rendered DOM after
 //            hydration (incl. runtime-fetched copy) and on the prerendered HTML.
+//   fixes    regression gates for qa/review/FIXLIST-1.md (F-053): one check per item, keyed by its
+//            F-id (H-id for director decisions); visual-only items are listed as skips with their
+//            retake. --dev <url> names the dev server for the prod-vs-dev landing diff (F-013).
+//   build    (always, with a build) the production checks of F-052: no jsxDEV / dev runtime, no
+//            sandbox chunks, exactly one stylesheet.
 //
 // Manual accessibility checks (used when axe-core is not installed; see results.json "a11y.engine"):
 // images without alt, links/buttons without an accessible name, form controls without a label,
@@ -50,6 +55,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, statSy
 import { resolve, dirname, extname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
+import { gzipSync } from 'node:zlib';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
@@ -848,7 +854,7 @@ async function runDesktop(browser, base, mods, axePath) {
       sheet: document.querySelector('.title-strip [data-strip-cell="sheet"]')?.textContent ?? '',
       pressed: document.querySelector('.title-strip [data-strip-cell="motion"] button')?.getAttribute('aria-pressed'),
     }));
-    check('motion-off', 'MOTION OFF pauses every video at once and adds .rm', after.rm && after.playing === 0, `before ${before.playing} playing; after ${after.playing}, rm ${after.rm}, aria-pressed ${after.pressed}`);
+    check('motion-off', 'MOTION OFF pauses every video at once, adds .rm and reports aria-pressed="false" (F-019)', after.rm && after.playing === 0 && after.pressed === 'false', `before ${before.playing} playing; after ${after.playing}, rm ${after.rm}, aria-pressed ${after.pressed}`);
     await page.waitForTimeout(600);
     const later = await page.evaluate(() => document.querySelector('.title-strip [data-strip-cell="sheet"]')?.textContent ?? '');
     check('motion-anchor', 'MOTION OFF keeps the reader on the same sheet', later === before.sheet, `${before.sheet} -> ${later}`);
@@ -1095,26 +1101,30 @@ async function runPhone(browser, base, mods) {
     await page.tap('#rfi-platform');
     await page.setViewportSize({ width: 390, height: 470 }); // ~374 px software keyboard
     await page.waitForTimeout(400);
-    await page.locator('#rfi-platform').scrollIntoViewIfNeeded();
+    // the field aligned to the top of the scrollport, as a browser does on focus at worst (F-054)
+    await page.evaluate(() => document.getElementById('rfi-platform').scrollIntoView({ block: 'start' }));
     await page.keyboard.type('Lab biped mk two');
     await page.waitForTimeout(500);
     const m = await page.evaluate(() => {
       const mini = document.querySelector('.mini-slot');
       const input = document.getElementById('rfi-platform');
       const header = document.querySelector('.sheet-header')?.getBoundingClientRect();
+      const bar = document.querySelector('.phone-bar');
       if (!mini || !input) return null;
       const r = mini.getBoundingClientRect();
       const i = input.getBoundingClientRect();
+      const b = bar && getComputedStyle(bar).display !== 'none' ? bar.getBoundingClientRect() : null;
       return {
         mini: [Math.round(r.top), Math.round(r.bottom)],
         input: [Math.round(i.top), Math.round(i.bottom)],
+        bar: b ? [Math.round(b.top), Math.round(b.bottom)] : null,
         vh: innerHeight,
         headerBottom: header ? Math.round(header.bottom) : 0,
         text: mini.querySelector('[data-bay-slot], .bay-slot-text')?.textContent ?? '',
         shown: getComputedStyle(mini).display !== 'none',
       };
     });
-    check('P6-minislot', 'the 64 px mini-slot stays visible above the field with the keyboard up, and updates', !!m && m.shown && m.mini[0] >= m.headerBottom - 1 && m.mini[1] <= m.vh && m.mini[1] <= m.input[0] + 1 && m.input[1] <= m.vh && m.text === 'LAB BIPED MK TWO', m);
+    check('P6-minislot', 'keyboard up, field aligned to the top: the 64 px mini-slot stays visible and updates, and the field sits below it and clear of the phone bar (F-054)', !!m && m.shown && m.mini[0] >= m.headerBottom - 1 && m.mini[1] <= m.vh && m.mini[1] <= m.input[0] + 1 && m.input[1] <= m.vh && (!m.bar || m.input[1] <= m.bar[0] || m.input[0] >= m.bar[1]) && m.text === 'LAB BIPED MK TWO', m);
     await shot(page, s, 'phone-keyboard-minislot');
     await page.setViewportSize({ width: 390, height: 844 });
   }
@@ -1212,7 +1222,12 @@ async function runNoJs(browser, buildUrl, mods) {
     return {
       cls: document.documentElement.className,
       text: document.body.textContent.replace(/\s+/g, ' '),
-      videos: [...document.querySelectorAll('video')].map((v) => ({ poster: !!v.getAttribute('poster'), controls: v.hasAttribute('controls') })),
+      // a poster is either a real poster attribute or, since F-002 (posters no longer fetched eagerly), the
+      // visible <picture class="loopvideo-poster"> beside the video
+      videos: [...document.querySelectorAll('video')].map((v) => ({
+        poster: (!!v.getAttribute('poster') && !/^data:/.test(v.getAttribute('poster'))) || !!v.parentElement?.querySelector(':scope > .loopvideo-poster'),
+        controls: v.hasAttribute('controls'),
+      })),
       ctas: [...document.querySelectorAll('.title-strip a.strip-cta, .phone-bar a')].map((a) => a.getAttribute('href')),
       indexLink: document.querySelector('.sheet-header a[href="#index"]') !== null,
       indexTarget: document.getElementById('index')?.tagName ?? null,
@@ -1230,7 +1245,7 @@ async function runNoJs(browser, buildUrl, mods) {
   check('nojs-class', 'html stays .no-js', /\bno-js\b/.test(r.cls), r.cls);
   const missing = requiredCopy(mods).filter((t) => !r.text.includes(t));
   check('nojs-copy', 'the prerendered page carries all copy (cross-section of every copy file)', missing.length === 0, missing.slice(0, 30));
-  check('nojs-video', 'every video has a poster and controls', r.videos.every((v) => v.poster && v.controls), `${r.videos.length} videos; ${r.videos.filter((v) => !v.poster || !v.controls).length} without`);
+  check('nojs-video', 'every video has a poster (attribute or .loopvideo-poster sibling) and controls', r.videos.every((v) => v.poster && v.controls), `${r.videos.length} videos; ${r.videos.filter((v) => !v.poster || !v.controls).length} without`);
   check('nojs-anchors', 'strip CTAs are plain anchors to #a-300 / #a-301', r.ctas.includes('#a-300') && r.ctas.includes('#a-301'), r.ctas);
   check('nojs-index', 'INDEX is a plain #index link and <nav id="index"> exists', r.indexLink && r.indexTarget === 'NAV', `${r.indexLink} / ${r.indexTarget}`);
   check('nojs-mailto', 'form buttons are mailto links with the exact default bodies', r.rfi === exp.teamsDefault && r.kit === exp.sponsorsDefault, { rfi: r.rfi === exp.teamsDefault, kit: r.kit === exp.sponsorsDefault });
@@ -1258,6 +1273,1257 @@ function runLint(mods, buildDir) {
     s.prerendered = v;
     check('lint-html', 'copy lint on the prerendered HTML: 0 violations', v.length === 0, v.map((x) => `${x.message} :: "${x.text.slice(0, 160)}"`).slice(0, 20));
   } else check('lint-html', 'copy lint on the prerendered HTML', null, 'no build');
+}
+
+// ---------------------------------------------------------------------------------------- FIXLIST-1 gates (F-053)
+//
+// Suite `fixes`: one regression gate per item of qa/review/FIXLIST-1.md, keyed by its F-id (H-id for
+// the director decisions). Each gate measures the item's pass condition on the production build, so
+// it fails before the fix lands and passes after. Items whose pass condition is a visual judgement
+// (tearing, timing, footage) are listed as `skip` with the retake to look at. Run alone with
+// `--only fixes`; `--dev <url>` (default HRCG_DEV_URL or :5300) is the dev server for the prod-vs-dev
+// landing diff (F-013), skipped when it does not answer.
+
+const PHONE_UA =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
+const FIX_SHEETS = ['a-101', 'a-102', 'a-103', 'a-104', 'a-105', 'a-200', 'a-300', 'a-301', 'a-900'];
+
+/** Page helpers, installed on every page of the fixes suite (window.__qa). Serialized: no closures. */
+function qaHelpers() {
+  const opacityChain = (el) => {
+    let o = 1;
+    for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+      const cs = getComputedStyle(n);
+      if (cs.display === 'none' || cs.visibility === 'hidden') return 0;
+      o *= Number(cs.opacity);
+    }
+    return o;
+  };
+  const vis = (el) => {
+    if (!el) return false;
+    if (opacityChain(el) < 0.1) return false;
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  };
+  const shown = (el) => !!el && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().height > 0;
+  const band = () => {
+    const root = getComputedStyle(document.documentElement);
+    const border = parseFloat(root.getPropertyValue('--border')) || 0;
+    const h = document.querySelector('.sheet-header');
+    const bars = [...document.querySelectorAll('.title-strip, .phone-bar')]
+      .filter((e) => getComputedStyle(e).display !== 'none')
+      .map((e) => e.getBoundingClientRect())
+      .filter((r) => r.height > 0);
+    return {
+      top: h ? Math.max(h.getBoundingClientRect().bottom, border) : border,
+      bottom: bars.length ? Math.min(...bars.map((r) => r.top)) : innerHeight - border,
+    };
+  };
+  const landY = (id) => {
+    const e = document.getElementById(id);
+    const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+    return Math.max(0, Math.round(e.getBoundingClientRect().top + scrollY - pad));
+  };
+  const go = (id, vh = 0) => {
+    const y = (id === 'top' ? 0 : landY(id)) + Math.round((vh * innerHeight) / 100);
+    window.scrollTo(0, y);
+    return y;
+  };
+  const rect = (el) => {
+    const r = el.getBoundingClientRect();
+    return { l: Math.round(r.left), t: Math.round(r.top), r: Math.round(r.right), b: Math.round(r.bottom), w: Math.round(r.width), h: Math.round(r.height) };
+  };
+  const inside = (r, b) => r.top >= b.top - 1 && r.bottom <= b.bottom + 1;
+  const hits = (el) => {
+    const r = el.getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    const y = r.top + r.height / 2;
+    if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return { ok: false, hit: 'off-screen' };
+    const h = document.elementFromPoint(x, y);
+    const viaLabel = !!h && !!el.labels && [...el.labels].some((l) => l === h || l.contains(h));
+    const ok = !!h && (h === el || el.contains(h) || viaLabel || (h.tagName === 'LABEL' && h.control === el));
+    return { ok, hit: h ? `${h.tagName}.${String(h.className?.baseVal ?? h.className ?? '').split(' ')[0]}` : null };
+  };
+  const alpha = (c) => {
+    const m = /rgba?\(([^)]+)\)/.exec(c || '');
+    if (!m) return 0;
+    const p = m[1].split(/[ ,/]+/).filter(Boolean);
+    return p.length > 3 ? Number(p[3]) : 1;
+  };
+  const name = (el) =>
+    `${el.tagName}${el.id ? `#${el.id}` : ''}.${String(el.className?.baseVal ?? el.className ?? '').trim().split(/\s+/)[0]}|${(el.getAttribute('aria-label') || el.textContent || el.getAttribute('placeholder') || '').trim().replace(/\s+/g, ' ').slice(0, 40)}`;
+  const sheetAt = () => {
+    const v = (document.querySelector('.title-strip [data-strip-cell="sheet"]') ?? document.querySelector('.phone-status'))?.textContent ?? '';
+    return /A-\d{3}/.exec(v)?.[0] ?? null;
+  };
+  const overlap = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+  /** Decode two PNG data URLs and count pixels whose RGB differ by more than `thr` (sum of channels). */
+  const pixelDiff = async (a, b, thr = 60) => {
+    const load = async (u) => {
+      const img = await createImageBitmap(await (await fetch(u)).blob());
+      const c = new OffscreenCanvas(img.width, img.height);
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0);
+      return g.getImageData(0, 0, img.width, img.height).data;
+    };
+    const [p, q] = await Promise.all([load(a), load(b)]);
+    let n = 0;
+    for (let i = 0; i < Math.min(p.length, q.length); i += 4) if (Math.abs(p[i] - q[i]) + Math.abs(p[i + 1] - q[i + 1]) + Math.abs(p[i + 2] - q[i + 2]) > thr) n++;
+    return n;
+  };
+  /** WCAG contrast of text over its real background: glyph pixels (with text) against the same pixels with the fill removed (shadow kept). */
+  const glyphContrast = async (withText, without, need) => {
+    const load = async (u) => {
+      const img = await createImageBitmap(await (await fetch(u)).blob());
+      const c = new OffscreenCanvas(img.width, img.height);
+      const g = c.getContext('2d');
+      g.drawImage(img, 0, 0);
+      return g.getImageData(0, 0, img.width, img.height).data;
+    };
+    const [w, b] = await Promise.all([load(withText), load(without)]);
+    const lin = (v) => {
+      v /= 255;
+      return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+    };
+    const L = (d, i) => 0.2126 * lin(d[i]) + 0.7152 * lin(d[i + 1]) + 0.0722 * lin(d[i + 2]);
+    const diffs = [];
+    for (let i = 0; i < Math.min(w.length, b.length); i += 4) {
+      const d = Math.abs(w[i] - b[i]) + Math.abs(w[i + 1] - b[i + 1]) + Math.abs(w[i + 2] - b[i + 2]);
+      if (d > 60) diffs.push([i, d]);
+    }
+    if (diffs.length < 10) return { glyphPx: diffs.length, pass: null };
+    const sorted = diffs.map((x) => x[1]).sort((x, y) => x - y);
+    const thr = sorted[Math.floor(sorted.length * 0.7)];
+    let n = 0;
+    let lt = 0;
+    for (const [i, d] of diffs) if (d >= thr) { lt += L(w, i); n++; }
+    lt /= Math.max(1, n);
+    let ok = 0;
+    for (const [i] of diffs) {
+      const lb = L(b, i);
+      const cr = (Math.max(lt, lb) + 0.05) / (Math.min(lt, lb) + 0.05);
+      if (cr >= need) ok++;
+    }
+    return { glyphPx: diffs.length, pass: ok / diffs.length };
+  };
+  window.__qa = { opacityChain, vis, shown, band, landY, go, rect, inside, hits, alpha, name, sheetAt, overlap, pixelDiff, glyphContrast };
+}
+
+/** axe with the WCAG tags plus best-practice; returns every violation id and the incomplete counts. */
+async function axeState(page, axePath) {
+  if (!axePath) return null;
+  if (!(await page.evaluate(() => typeof window.axe !== 'undefined'))) await page.addScriptTag({ path: axePath });
+  return page.evaluate(async () => {
+    // eslint-disable-next-line no-undef
+    const res = await axe.run(document, {
+      runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'] },
+      resultTypes: ['violations', 'incomplete'],
+    });
+    return {
+      violations: res.violations.map((v) => ({ rule: v.id, count: v.nodes.length, nodes: v.nodes.slice(0, 4).map((n) => n.target.join(' ')) })),
+      incomplete: Object.fromEntries(res.incomplete.map((v) => [v.id, v.nodes.length])),
+    };
+  });
+}
+
+async function newPage(browser, opts, base, { wait = 4000, init = [] } = {}) {
+  const ctx = await browser.newContext(opts);
+  await ctx.addInitScript(qaHelpers);
+  for (const f of init) await ctx.addInitScript(f);
+  const page = await ctx.newPage();
+  await gotoReady(page, `${base}${base.includes('?') ? '&' : '?'}heroperf=0`);
+  await page.waitForTimeout(wait);
+  return { ctx, page };
+}
+
+const desktopOpts = (w = 1440, h = 900, extra = {}) => ({ viewport: { width: w, height: h }, reducedMotion: 'no-preference', ...extra });
+const phoneOpts = (w = 390, h = 844, extra = {}) => ({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true, deviceScaleFactor: 1, userAgent: PHONE_UA, ...extra });
+
+async function settle(page, ms = 900) {
+  await page.waitForTimeout(ms);
+}
+
+async function runFixes(pw, browser, base, mods, axePath, buildDir) {
+  const { s, check } = suite('fixes');
+  const step = async (id, fn) => {
+    try {
+      await fn();
+    } catch (e) {
+      check(id, `${id}: the gate ran`, false, String(e?.stack ?? e).slice(0, 700));
+    }
+  };
+  const manual = (id, what, retake) => check(id, `${what} (visual: judge ${retake})`, null, `manual retake: ${retake}`);
+
+  // ------------------------------------------------------------------ static (files and build)
+  await step('F-013', async () => {
+    // the cascade must not depend on how JS is chunked: a development-mode build also links one stylesheet
+    const dir = join(tmpdir(), 'hrcg-qa-devbuild');
+    const env = { ...buildEnv(), NODE_ENV: 'development', HRCG_SKIP_PRERENDER: '1' };
+    const r = spawnSync('npx', ['vite', 'build', '--outDir', dir, '--emptyOutDir', '--logLevel', 'warn'], { cwd: ROOT, env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    if (r.status !== 0) return check('F-013-devcss', 'development-mode build links exactly one stylesheet', false, `dev build failed: ${(r.stderr ?? '').slice(-600)}`);
+    const html = readFileSync(join(dir, 'index.html'), 'utf8');
+    const links = [...html.matchAll(/<link\b[^>]*\brel=["']?stylesheet["']?[^>]*>/gi)].length;
+    check('F-013-devcss', 'development-mode build (NODE_ENV=development) links exactly one stylesheet, like production', links === 1, `${links} stylesheet links`);
+  });
+  await step('F-014', async () => {
+    if (!buildDir) return check('F-014-entry', 'entry chunk <= 110 kB gz', null, 'no build');
+    const html = readFileSync(join(buildDir, 'index.html'), 'utf8');
+    const src = /<script\b[^>]*type=["']module["'][^>]*src=["']([^"']+)["']/i.exec(html)?.[1];
+    if (!src) return check('F-014-entry', 'entry chunk <= 110 kB gz', false, 'no module script in index.html');
+    const buf = readFileSync(resolve(buildDir, src.replace(/^\.?\//, '')));
+    const gz = gzipSync(buf, { level: 9 }).length;
+    check('F-014-entry', 'shell entry chunk <= 110 kB gzipped (brief 8.6)', gz <= 110 * 1024, `${src}: ${(buf.length / 1024).toFixed(1)} kB raw, ${(gz / 1024).toFixed(1)} kB gz`);
+  });
+  await step('A5-manifest', async () => {
+    const man = JSON.parse(readFileSync(resolve(ROOT, 'src/media/manifest.json'), 'utf8'));
+    const list = Array.isArray(man.media) ? man.media : Object.values(man.media ?? {});
+    const byId = Object.fromEntries(list.map((e) => [e.id, e]));
+    const withBytes = list.filter((e) => JSON.stringify(e).includes('"bytes"')).map((e) => e.id);
+    check('F-045-slim', 'runtime manifest carries no bytes/debug fields (they live in pipeline/out/manifest-qa.json)', withBytes.length === 0, withBytes.slice(0, 12));
+    const want = [[0.4, 0.528], [0.735, 0.528]];
+    const bad = ['plan-b44-260', 'plan-b44', 'plan-b44-m'].filter((id) => {
+      const le = byId[id]?.lineEndpoints;
+      return !le || le.length !== 2 || le.some((p, i) => Math.abs(p[0] - want[i][0]) > 0.012 || Math.abs(p[1] - want[i][1]) > 0.012);
+    });
+    check('F-051-line', 'b44 lineEndpoints sit on the stripe core, about [[0.400, 0.528], [0.735, 0.528]]', bad.length === 0, bad.map((id) => `${id}: ${JSON.stringify(byId[id]?.lineEndpoints ?? null)}`));
+    const alt = 'AI-generated concept film: robot 07 spreads mortar with a trowel and steadies a course of brick between two line posts, against a dark background.';
+    check('F-090-alt', 'manifest alt of el-c30 is the F-081 text', byId['el-c30']?.alt === alt, byId['el-c30']?.alt ?? 'missing');
+  });
+  await step('F-091', async () => {
+    const pdfs = ['public/kit/hrcg-t7-letter.pdf', 'public/kit/hrcg-t7-a4.pdf'].filter((p) => existsSync(resolve(ROOT, p)));
+    const has = spawnSync('pdftotext', ['-v'], { encoding: 'utf8' });
+    if (has.error) return check('F-091-case', 'T7 PDFs print "tag36h11" in its true case', null, 'pdftotext not installed');
+    const bad = pdfs.filter((p) => !/tag36h11/.test(spawnSync('pdftotext', [resolve(ROOT, p), '-'], { encoding: 'utf8' }).stdout ?? ''));
+    check('F-091-case', 'T7 PDFs print "tag36h11" in its true case', pdfs.length > 0 && bad.length === 0, bad);
+  });
+
+  // ------------------------------------------------------------------ first view (budgets, CLS, LCP)
+  await step('F-002', async () => {
+    const b2 = await pw.chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+    try {
+      for (const [label, opts] of [
+        ['desktop', desktopOpts()],
+        ['phone', { ...phoneOpts(), deviceScaleFactor: 3 }],
+      ]) {
+        const ctx = await b2.newContext(opts);
+        await ctx.addInitScript(() => {
+          window.__cls = 0;
+          new PerformanceObserver((l) => l.getEntries().forEach((e) => { if (!e.hadRecentInput) window.__cls += e.value; })).observe({ type: 'layout-shift', buffered: true });
+        });
+        const page = await ctx.newPage();
+        const reqs = [];
+        page.on('requestfinished', async (r) => {
+          try {
+            const sz = await r.sizes();
+            reqs.push({ url: r.url(), bytes: sz.responseBodySize + sz.responseHeadersSize, range: r.headers().range ?? '' });
+          } catch {
+            /* aborted */
+          }
+        });
+        await page.goto(`${base}?heroperf=0`, { waitUntil: 'commit' });
+        await page.waitForTimeout(9000);
+        const cls = await page.evaluate(() => window.__cls);
+        await ctx.close();
+        const total = reqs.reduce((a, r) => a + r.bytes, 0);
+        const budget = 1.1 * 1024 * 1024;
+        const top = [...reqs].sort((a, b) => b.bytes - a.bytes).slice(0, 6).map((r) => `${Math.round(r.bytes / 1024)} kB ${r.url.replace(base, '/')}`);
+        check(`F-002-bytes-${label}`, `first view (0-9 s, no scroll, AV1 path) moves <= 1.1 MB on ${label}`, total <= budget, `${(total / 1024 / 1024).toFixed(2)} MB; largest: ${top.join(' · ')}`);
+        const posters = reqs.filter((r) => /\.poster\.jpg/.test(r.url) && !/\/hero[-/]/.test(r.url)).map((r) => r.url.split('/').pop());
+        check(`F-002-posters-${label}`, `no *.poster.jpg outside A-000 is requested before scroll (${label})`, posters.length === 0, posters.slice(0, 12));
+        const early = reqs.filter((r) => /arena-0104|plan-b44/.test(r.url)).map((r) => `${r.url.split('/').pop()} ${Math.round(r.bytes / 1024)} kB`);
+        check(`F-002-a100-${label}`, `no arena-0104 or plan-b44 bytes arrive before scroll (${label}; F-002, F-006, F-037)`, early.length === 0, early);
+        const snaps = reqs.filter((r) => /hero-snap-169/.test(r.url) && (!r.range || /bytes=0-/.test(r.range)));
+        if (label === 'desktop') check('F-006-snap', 'the hero snap film is requested once (no second full fetch)', snaps.length <= 1, snaps.map((r) => `${r.url.split('/').pop()} ${r.range} ${Math.round(r.bytes / 1024)} kB`));
+        if (label === 'desktop') check('F-065-cls', 'first-view CLS is 0 on desktop (fonts preloaded)', cls <= 0.0001, cls.toFixed(6));
+      }
+    } finally {
+      await b2.close();
+    }
+  });
+  await step('F-069', async () => {
+    const { ctx, page } = await newPage(browser, desktopOpts(1440, 900, { reducedMotion: 'reduce' }), base, {
+      wait: 3500,
+      init: [
+        () => {
+          window.__lcp = null;
+          new PerformanceObserver((l) => l.getEntries().forEach((e) => { window.__lcp = e.element ? { tag: e.element.tagName, loading: e.element.getAttribute('loading'), src: (e.element.currentSrc || e.url || '').split('/').pop() } : null; })).observe({ type: 'largest-contentful-paint', buffered: true });
+        },
+      ],
+    });
+    const lcp = await page.evaluate(() => window.__lcp);
+    check('F-069-lcp', 'the LCP image is not lazy under reduced motion', !!lcp && lcp.loading !== 'lazy', lcp);
+    const ax = await axeState(page, axePath);
+    if (ax) {
+      const bad = ax.violations.filter((v) => ['page-has-heading-one', 'label-content-name-mismatch'].includes(v.rule));
+      check('F-053-axe-rm', 'axe (reduced motion, hero): no page-has-heading-one, no label-content-name-mismatch', bad.length === 0, { fail: bad, incomplete: ax.incomplete, other: ax.violations.map((v) => `${v.rule} x${v.count}`) });
+    }
+    await ctx.close();
+  });
+
+  // ------------------------------------------------------------------ desktop 1440x900, fresh page
+  const D = await newPage(browser, desktopOpts(), base, { wait: 6000 });
+  const p = D.page;
+  const at = async (id, vh = 0, ms = 900) => {
+    await p.evaluate(([id, vh]) => window.__qa.go(id, vh), [id, vh]);
+    await settle(p, ms);
+  };
+
+  await step('F-001', async () => {
+    await at('top', 0, 600);
+    const top = await p.evaluate(() => ({ sheet: document.documentElement.dataset.sheet ?? null, alpha: window.__qa.alpha(getComputedStyle(document.querySelector('.sheet-header')).backgroundColor) }));
+    check('F-001-hero', 'over A-000 the header stays transparent (no rail over the film)', top.alpha <= 0.01, top);
+    const rows = [];
+    for (const [id, vh] of [['a-102', 50], ['a-102', 90], ['a-104', 50], ['a-200', 120], ['a-301', 0], ['a-301', 120], ['a-900', 0]]) {
+      await at(id, vh);
+      rows.push(
+        await p.evaluate(([id, vh]) => {
+          const h = document.querySelector('.sheet-header');
+          const hit = (el) => {
+            if (!el) return false;
+            const r = el.getBoundingClientRect();
+            const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+            return !!e && h.contains(e);
+          };
+          return { at: `${id}+${vh}vh`, sheet: document.documentElement.dataset.sheet ?? null, alpha: window.__qa.alpha(getComputedStyle(h).backgroundColor), lockup: hit(document.querySelector('.header-home')), index: hit(document.querySelector('.header-index')) };
+        }, [id, vh]),
+      );
+    }
+    const bad = rows.filter((r) => r.alpha < 0.99 || !r.lockup || !r.index || r.sheet === 'A-000');
+    check('F-001-rail', 'after A-000 the header is an opaque rail; the lockup and INDEX centres hit header elements (html[data-sheet] set)', bad.length === 0, bad.length ? bad : rows.map((r) => r.at).join(', '));
+  });
+  await step('F-059', async () => {
+    const a = await p.evaluate(() => window.__qa.alpha(getComputedStyle(document.querySelector('.title-strip')).backgroundColor));
+    check('F-059-strip', 'the title strip is opaque', a >= 0.99, `alpha ${a}`);
+  });
+  await step('F-060', async () => {
+    const r = await p.evaluate(() => {
+      const body = document.querySelector('.set-body');
+      const cs = getComputedStyle(body, '::before');
+      const x = body.getBoundingClientRect().left + parseFloat(cs.left);
+      const lefts = [...document.querySelectorAll('.set-body .sheet-tag, .set-body h2')].filter((e) => window.__qa.vis(e)).map((e) => e.getBoundingClientRect().left);
+      return { spine: Math.round(x), z: cs.zIndex, firstText: Math.round(Math.min(...lefts)) };
+    });
+    check('F-060-spine', 'the spine runs clear of the sheet tags and H2s (left of their first glyph) and under the media (z-index 0)', r.spine + 1 <= r.firstText - 4 && r.z === '0', r);
+  });
+  const nowrapGate = async (id, label) => {
+    const broken = await p.evaluate(() => {
+      const words = ['AI-GENERATED', 'NOT A VENUE PLAN', 'NOT SPONSOR PRODUCTS'];
+      const out = [];
+      for (const vt of document.querySelectorAll('.view-title, .cv-vt, figcaption')) {
+        if (!window.__qa.vis(vt)) continue;
+        const tw = document.createTreeWalker(vt, NodeFilter.SHOW_TEXT);
+        let n;
+        while ((n = tw.nextNode())) {
+          for (const w of words) {
+            let i = n.textContent.indexOf(w);
+            while (i >= 0) {
+              const rg = document.createRange();
+              rg.setStart(n, i);
+              rg.setEnd(n, i + w.length);
+              const tops = new Set([...rg.getClientRects()].filter((r) => r.width > 0).map((r) => Math.round(r.top)));
+              if (tops.size > 1) out.push(`${w} in "${vt.textContent.trim().slice(0, 70)}"`);
+              i = n.textContent.indexOf(w, i + 1);
+            }
+          }
+        }
+      }
+      return out;
+    });
+    check(id, `no disclosure keyword (AI-GENERATED, NOT A VENUE PLAN, NOT SPONSOR PRODUCTS) breaks across lines (${label})`, broken.length === 0, broken.slice(0, 10));
+  };
+  await step('F-061', () => nowrapGate('F-061-1440', '1440'));
+  await step('F-062', async () => {
+    await at('a-103', 0, 400);
+    await p.click('.header-index');
+    await settle(p, 700);
+    const xs = await p.evaluate(() => [...document.querySelectorAll('dialog[open] .index-row .index-num')].map((e) => Math.round(e.getBoundingClientRect().left * 2) / 2));
+    check('F-062-index', 'INDEX: every sheet number shares one x, the current row included', xs.length >= 11 && Math.max(...xs) - Math.min(...xs) <= 0.5, xs);
+    const ax = await axeState(p, axePath);
+    if (ax) {
+      const bad = ax.violations.filter((v) => ['page-has-heading-one', 'label-content-name-mismatch'].includes(v.rule));
+      check('F-053-axe-index', 'axe with INDEX open (desktop): no page-has-heading-one, no label-content-name-mismatch', bad.length === 0, { fail: bad, incomplete: ax.incomplete, other: ax.violations.map((v) => `${v.rule} x${v.count}`) });
+    }
+    await p.keyboard.press('Escape');
+    await settle(p, 500);
+  });
+  const h2Tokens = async (label) => {
+    const bad = await p.evaluate(() =>
+      [...document.querySelectorAll('h2')]
+        .filter((h) => window.__qa.shown(h))
+        .map((h) => {
+          const cs = getComputedStyle(h);
+          const fs = parseFloat(cs.fontSize);
+          const lh = cs.lineHeight === 'normal' ? fs * 1.2 : parseFloat(cs.lineHeight);
+          const vh = innerHeight;
+          const st = h.classList.contains('t-h2-statement');
+          const ch = h.classList.contains('t-h2-challenge');
+          const why = [];
+          if (st && fs > 0.12 * vh + 0.5) why.push(`statement ${fs}px > 12vh`);
+          if (st && !h.classList.contains('t-upper') && lh / fs < 0.95) why.push(`sentence-case leading ${(lh / fs).toFixed(2)} < .96`);
+          if (ch && fs > 0.18 * vh + 0.5) why.push(`challenge ${fs}px > 18vh`);
+          return why.length ? `${h.textContent.trim().slice(0, 30)}: ${why.join(', ')}` : null;
+        })
+        .filter(Boolean),
+    );
+    check(`F-016-${label}`, `H2 tokens respect the chrome: statement <= 12vh, challenge <= 18vh, sentence case leading >= .96 (${label})`, bad.length === 0, bad);
+  };
+  await step('F-016', () => h2Tokens('1440x900'));
+  await step('F-040', async () => {
+    const r = await p.evaluate(() => ({ text: document.body.textContent.includes('TASK DRAWING TRACED FROM CONCEPT FOOTAGE'), trace: [...document.querySelectorAll('.a104-trace')].filter((e) => window.__qa.vis(e)).length }));
+    check('F-040-trace', 'no blue task-drawing trace and no trace caption on A-104 until b43 matches it (H-12 rejected)', !r.text && r.trace === 0, r);
+  });
+  await step('F-041', async () => {
+    const rows = [];
+    for (const vh of [0, 30, 60, 100]) {
+      await at('a-105', vh);
+      rows.push(await p.evaluate((vh) => {
+        const h = document.querySelector('#a-105 h2');
+        const r = h.getBoundingClientRect();
+        return { vh, ok: window.__qa.vis(h) && window.__qa.inside(r, window.__qa.band()), h2: window.__qa.rect(h) };
+      }, vh));
+    }
+    check('F-041-h2', 'A-105: the H2 is on screen, between the chrome, through the whole pin (+0/30/60/100vh)', rows.every((r) => r.ok), rows.filter((r) => !r.ok));
+  });
+  await step('F-033', async () => {
+    await at('a-103', 60);
+    const r = await p.evaluate(() => {
+      const b = window.__qa.band();
+      return [...document.querySelectorAll('#a-103 .pstage-view')].filter((e) => window.__qa.vis(e)).map((e) => ({ top: Math.round(e.getBoundingClientRect().top), min: Math.round(b.top) }));
+    });
+    check('F-033-hold', 'A-103 +60vh: the held film frame stays below the header until the pin releases', r.every((x) => x.top >= x.min - 0.5), r);
+  });
+  await step('F-039', async () => {
+    const rows = [];
+    for (const vh of [0, 50]) {
+      await at('a-104', vh);
+      rows.push(await p.evaluate((vh) => {
+        const svg = document.querySelector('#a-104 .a104-route-svg');
+        const inner = document.querySelector('#a-104 .sheet-inner') ?? document.querySelector('#a-104');
+        const edge = inner.getBoundingClientRect().right;
+        if (!svg || !window.__qa.vis(svg)) return { vh, right: null, edge: Math.round(edge) };
+        const right = Math.max(...[...svg.querySelectorAll('path, line, polyline, circle, rect')].map((e) => e.getBoundingClientRect()).filter((r) => r.width + r.height > 0).map((r) => r.right));
+        return { vh, right: Math.round(right), edge: Math.round(edge) };
+      }, vh));
+    }
+    check('F-039-route', 'A-104: the route ends inside the content edge (never runs into INDEX)', rows.every((r) => r.right === null || r.right <= r.edge + 1), rows);
+  });
+  const captions = async (w, h) => {
+    await p.setViewportSize({ width: w, height: h });
+    await settle(p, 600);
+    const bad = [];
+    for (const id of FIX_SHEETS) {
+      for (const vh of id === 'a-104' ? [0, 50] : [0]) {
+        await at(id, vh, 500);
+        bad.push(
+          ...(await p.evaluate(([id, vh]) => {
+            const sheet = document.getElementById(id);
+            const vts = [...sheet.querySelectorAll('.view-title')].filter((e) => window.__qa.vis(e)).map((e) => ({ e, r: e.getBoundingClientRect() }));
+            const out = [];
+            for (let i = 0; i < vts.length; i++)
+              for (let j = i + 1; j < vts.length; j++)
+                if (!vts[i].e.contains(vts[j].e) && !vts[j].e.contains(vts[i].e) && window.__qa.overlap(vts[i].r, vts[j].r) > 2)
+                  out.push(`${id}+${vh}vh: "${vts[i].e.textContent.trim().slice(0, 40)}" x "${vts[j].e.textContent.trim().slice(0, 40)}"`);
+            for (const b of sheet.querySelectorAll('.a104-play, .loopvideo-play')) {
+              if (!window.__qa.vis(b)) continue;
+              const r = b.getBoundingClientRect();
+              for (const v of vts) if (window.__qa.overlap(r, v.r) > 2) out.push(`${id}+${vh}vh: PLAY over "${v.e.textContent.trim().slice(0, 40)}"`);
+            }
+            return out;
+          }, [id, vh])),
+        );
+      }
+    }
+    return bad;
+  };
+  await step('F-083', async () => {
+    const all = {};
+    for (const [w, h] of [[1920, 1080], [1440, 900], [1280, 800], [1024, 768]]) all[w] = await captions(w, h);
+    const bad = Object.entries(all).flatMap(([w, b]) => b.map((x) => `${w}: ${x}`));
+    check('F-083-captions', 'view titles never overprint each other or a PLAY cell, on every sheet at 1920/1440/1280/1024 (A-104 caption stack, X-1)', bad.length === 0, bad.slice(0, 12));
+    await p.setViewportSize({ width: 1440, height: 900 });
+    await settle(p, 600);
+  });
+  await step('F-038', async () => {
+    const rows = [];
+    for (const [w, h] of [[1024, 768], [1280, 800], [1440, 900], [1920, 1080]]) {
+      await p.setViewportSize({ width: w, height: h });
+      await settle(p, 500);
+      rows.push(await p.evaluate((w) => {
+        const h2 = document.querySelector('#a-101 h2');
+        const rg = document.createRange();
+        rg.selectNodeContents(h2);
+        const lines = new Set([...rg.getClientRects()].filter((r) => r.width > 1).map((r) => Math.round(r.top))).size;
+        return { w, shy: h2.textContent.includes('­'), lines, fits: h2.scrollWidth <= h2.clientWidth + 1 };
+      }, w));
+    }
+    await p.setViewportSize({ width: 1440, height: 900 });
+    check('F-038-h2', 'A-101: BRICKLAYING has no soft hyphen and sets on one line at 1024/1280/1440/1920', rows.every((r) => !r.shy && r.lines === 1 && r.fits), rows);
+  });
+  await step('F-016b', async () => {
+    await p.setViewportSize({ width: 1280, height: 800 });
+    await settle(p, 600);
+    await h2Tokens('1280x800');
+    await p.setViewportSize({ width: 1440, height: 900 });
+    await settle(p, 600);
+  });
+  await step('F-055', async () => {
+    const rows = [];
+    for (const [w, h] of [[1440, 900], [1280, 800]]) {
+      await p.setViewportSize({ width: w, height: h });
+      await at('a-300', 0, 600);
+      rows.push(await p.evaluate((w) => {
+        const inner = document.querySelector('#a-300 .sheet-inner').getBoundingClientRect();
+        const L = document.querySelector('.diptych-view--left').getBoundingClientRect();
+        const R = document.querySelector('.diptych-view--right').getBoundingClientRect();
+        const word = document.querySelector('.diptych-word--right').getBoundingClientRect();
+        return { w, left: Math.round(L.left), right: Math.round(R.right), content: [Math.round(inner.left), Math.round(inner.right)], wordStart: Math.round(word.left), panelStart: Math.round(R.left) };
+      }, w));
+    }
+    await p.setViewportSize({ width: 1440, height: 900 });
+    check('F-055-diptych', 'A-300: the diptych spans the content edge to edge (72/1368 at 1440, 72/1208 at 1280) and YOURS IS. starts on its panel', rows.every((r) => Math.abs(r.left - r.content[0]) <= 1 && Math.abs(r.right - r.content[1]) <= 1 && Math.abs(r.wordStart - r.panelStart) <= 1), rows);
+  });
+  await step('F-056', async () => {
+    const rows = [];
+    for (const [w, h] of [[1440, 900], [1280, 800]]) {
+      await p.setViewportSize({ width: w, height: h });
+      await at('a-301', 0, 700);
+      rows.push(await p.evaluate((w) => {
+        const h2 = document.querySelector('#a-301 h2');
+        return { w, h2: window.__qa.rect(h2), band: window.__qa.band(), ok: window.__qa.inside(h2.getBoundingClientRect(), window.__qa.band()) };
+      }, w));
+    }
+    await p.setViewportSize({ width: 1440, height: 900 });
+    check('F-056-desktop', 'A-301 landing: the whole H2 sits between the header and the strip (1440x900, 1280x800)', rows.every((r) => r.ok), rows);
+  });
+  await step('F-098', async () => {
+    const r = await p.evaluate(() => ({
+      none: [...document.querySelectorAll('#a-300 .bay-ready-none')].map((e) => e.textContent),
+      numbers: document.querySelectorAll('#a-300 .bay-ready-no').length,
+    }));
+    check('F-098-ready', 'A-300 bay: READY FOR — until a box is ticked; no challenge number printed before that (rule 11)', r.none.length >= 1 && r.none.every((t) => t === '—') && r.numbers === 0, r);
+  });
+  await step('F-096', async () => {
+    const r = await p.evaluate(() => ({
+      label: [...document.querySelectorAll('#a-300 .bay-number-label')].map((e) => e.textContent),
+      painted: [...document.querySelectorAll('#a-300 .bay-number')].map((e) => !!e.closest('g[filter]')),
+    }));
+    check('F-096-bay', 'A-300 bay number: the legend word BAY over a "—" painted through the stencil mask', r.label.length >= 1 && r.label.every((t) => t === 'BAY') && r.painted.length >= 1 && r.painted.every(Boolean), r);
+  });
+  await step('F-097', async () => {
+    const r = await p.evaluate(() => {
+      const cols = [...document.querySelectorAll('.t7-proof-col')];
+      return { n: cols.length, widths: cols.map((c) => Math.round(c.getBoundingClientRect().width)), labels: cols.map((c) => c.querySelector('.t7-proof-label')?.textContent.trim() ?? '') };
+    });
+    check('F-097-proofs', 'T7 proofs: three equal columns, each with its own label (FLAT · WARPED + BLURRED · measured width)', r.n === 3 && Math.max(...r.widths) - Math.min(...r.widths) <= 1 && r.labels[0] === 'FLAT' && r.labels[1] === 'WARPED + BLURRED' && /^\d+ PX WIDE$/.test(r.labels[2]), r);
+  });
+  await step('F-095', async () => {
+    await at('a-301', 120, 600);
+    const r = await p.evaluate(() =>
+      [...document.querySelectorAll('.chips--bays')]
+        .filter((g) => window.__qa.vis(g))
+        .map((g) => {
+          const chips = [...g.querySelectorAll('.chip')];
+          const row = new Set(chips.map((c) => Math.round(c.getBoundingClientRect().top))).size === 1;
+          const tops = chips.map((c) => Math.round(c.querySelector('.chip-num')?.getBoundingClientRect().top ?? 0));
+          return { row, spread: Math.max(...tops) - Math.min(...tops) };
+        })
+        .filter((x) => x.row),
+    );
+    check('F-095-chips', 'challenge chips laid in one row: every numeral on one line, whatever the names wrap to', r.length > 0 && r.every((x) => x.spread <= 1), r);
+  });
+  await step('F-067', async () => {
+    const r = await p.evaluate(() => {
+      const a = document.getElementById('a-301').getBoundingClientRect();
+      const b = document.getElementById('a-900').getBoundingClientRect();
+      const head = document.querySelector('.conv--a900 > .conv-head');
+      return { gap: Math.round(b.top - a.bottom), rule: head ? parseFloat(getComputedStyle(head).borderTopWidth) : 0 };
+    });
+    check('F-067-paper', 'A-301 runs straight into A-900 on one paper ground (no slab gap; F-067 + F-092)', Math.abs(r.gap) <= 1, r);
+    check('F-092-rule', 'the A-301 → A-900 break is a 1 px rule on paper above the A-900 tag', r.rule >= 1, r);
+  });
+  await step('F-093', async () => {
+    await p.evaluate(() => document.querySelector('.tb-cell--date')?.scrollIntoView({ block: 'center' }));
+    await settle(p, 600);
+    const r = await p.evaluate(() =>
+      [...document.querySelectorAll('.tb-holdline')].map((hl) => {
+        const cell = hl.closest('.tb-cell').getBoundingClientRect();
+        const path = hl.querySelector('.mk-hold path')?.getBoundingClientRect();
+        const txt = hl.querySelector(':scope > span:last-child')?.getBoundingClientRect();
+        if (!path || !txt) return { missing: true };
+        return { inset: +(path.left - cell.left).toFixed(1), gap: +(txt.left - path.right).toFixed(1), top: +(path.top - cell.top).toFixed(1), bottom: +(cell.bottom - path.bottom).toFixed(1) };
+      }),
+    );
+    check('F-093-clouds', 'title block HOLD clouds: >= 4 px clear of the cell rule and >= 10 px before the sentence', r.length >= 2 && r.every((x) => !x.missing && x.inset >= 3.5 && x.gap >= 9.5 && x.bottom >= 3.5), r);
+  });
+  await step('H-7', async () => {
+    await at('a-900', 0, 600);
+    const r = await p.evaluate(() => {
+      const a = document.getElementById('a-900');
+      const notes = [...a.querySelectorAll('.notes > li')];
+      return {
+        details: a.querySelectorAll('details').length,
+        notes: notes.length,
+        headings: a.querySelectorAll('.notes h3').length,
+        answers: a.querySelectorAll('.notes p').length,
+        columns: new Set(notes.map((n) => Math.round(n.getBoundingClientRect().left))).size,
+        open: notes.every((n) => window.__qa.vis(n.querySelector('p'))),
+      };
+    });
+    check('H-7-notes', 'A-900 general notes print open: six headings + paragraphs, no <details>, two ruled columns at >= 1024 px', r.details === 0 && r.notes === 6 && r.headings === 6 && r.answers === 6 && r.columns === 2 && r.open, r);
+  });
+  await step('H-6', async () => {
+    const r = await p.evaluate(() => {
+      const end = document.querySelector('#a-900 .end-line');
+      const tb = document.querySelector('.title-block .tb');
+      const email = document.querySelector('.contact-email');
+      const ctas = [...document.querySelectorAll('#a-900 .close-ctas a')].map((x) => x.getAttribute('href'));
+      const vw = innerWidth;
+      const vh = innerHeight;
+      const e = end.getBoundingClientRect();
+      const close = end.closest('.a900-close')?.getBoundingClientRect() ?? e;
+      const t = tb.getBoundingClientRect();
+      return {
+        endPx: parseFloat(getComputedStyle(end).fontSize),
+        statementPx: Math.min(Math.max(48, 0.08 * vw), 152, 0.12 * vh),
+        ctas,
+        aboveBlock: Math.round(t.top - close.bottom),
+        leftEdge: Math.round(t.left - e.left),
+        emailPx: parseFloat(getComputedStyle(email).fontSize),
+        emailWant: Math.min(Math.max(28, 0.04 * vw), 56),
+      };
+    });
+    check('H-6-close', 'A-900 close: end line at statement size with the two CTA cells (#a-300, #a-301), on its own row directly above the title block, sharing its left edge (F-094)', Math.abs(r.endPx - r.statementPx) <= 1 && r.ctas.join() === '#a-300,#a-301' && r.aboveBlock >= 0 && r.aboveBlock <= 64 && Math.abs(r.leftEdge) <= 1, r);
+    check('H-6-email', 'A-900 email at clamp(28px, 4vw, 56px)', Math.abs(r.emailPx - r.emailWant) <= 0.5, r);
+  });
+  await step('H-4', async () => {
+    const r = await p.evaluate(() => ({ title: document.querySelector('#keynote-3 .keynote-title')?.textContent ?? '', body: document.querySelector('#keynote-3 .keynote-body')?.textContent ?? '' }));
+    const first = (t) => t.trim().split(/\s+/)[0]?.toLowerCase();
+    check('H-4-keynote', 'A-301 keynote 3 no longer repeats "Meet … Meet" and matches the copy file', !!r.body && first(r.title) !== first(r.body) && r.body === mods.conv.SPONSORS.keynotes[2].text, r);
+  });
+  await step('H-5', async () => {
+    const t = await p.evaluate(() => document.getElementById('a-200')?.textContent ?? '');
+    check('H-5-wording', 'A-200 body says "drew most of Manhattan as a grid" (fact gate, qa/TRUTH.md)', t.includes('drew most of Manhattan as a grid') && !t.includes('drew Manhattan as a grid'), t.slice(0, 160));
+  });
+  await step('F-081', async () => {
+    const r = await p.evaluate(() => [...document.querySelectorAll('#a-101 [alt], #a-101 [aria-label]')].map((e) => e.getAttribute('alt') || e.getAttribute('aria-label')).filter((t) => /PERSPECTIVE|concept film/i.test(t) || /mortar|brick/i.test(t)));
+    check('F-081-alt', 'A-101 PERSPECTIVE 01-A alt describes the shot (trowel, mortar, line posts; no lights or stringline)', r.some((t) => t.includes('spreads mortar with a trowel')) && !r.some((t) => /hanging light|stringline/i.test(t)), r.slice(0, 4));
+  });
+  await step('F-023', async () => {
+    const rows = [];
+    for (const id of ['a-105', 'a-300']) {
+      await at(id, 0, 900);
+      rows.push(await p.evaluate((id) => {
+        const h1 = document.querySelector('h1');
+        let hidden = null;
+        for (let n = h1; n && n.nodeType === 1; n = n.parentElement) {
+          const cs = getComputedStyle(n);
+          if (cs.display === 'none' || cs.visibility === 'hidden' || n.getAttribute('aria-hidden') === 'true' || n.inert) hidden = `${n.tagName}.${String(n.className).split(' ')[0]}`;
+        }
+        return { at: id, hidden };
+      }, id));
+    }
+    check('F-023-h1', 'the H1 stays in the accessibility tree after the plan cut (at A-105 and A-300)', rows.every((r) => !r.hidden), rows);
+  });
+  await step('F-066', async () => {
+    const r = await p.evaluate(() => ({
+      contentinfo: [...document.querySelectorAll('footer')].filter((f) => !f.closest('main, article, aside, nav, section, [role="main"], [role="region"]')).length,
+      footers: document.querySelectorAll('footer').length,
+      index: document.querySelectorAll('#index').length,
+      blocks: document.querySelectorAll('.title-block').length,
+    }));
+    check('F-066-footer', 'one title block, rendered once as the page footer (one contentinfo landmark, one #index; F-066 + F-100)', r.contentinfo === 1 && r.blocks === 1 && r.index === 1, r);
+  });
+  await step('F-068', async () => {
+    const bad = await p.evaluate(() => {
+      const out = [];
+      const walk = (rules, gated) => {
+        for (const r of rules) {
+          if (r.type === CSSRule.MEDIA_RULE) walk(r.cssRules, gated || /hover\s*:\s*hover/.test(r.conditionText ?? r.media?.mediaText ?? ''));
+          else if (r.selectorText && /:hover/.test(r.selectorText)) {
+            if (!gated) out.push(r.selectorText.replace(/\s+/g, ' ').slice(0, 90));
+            if (r.cssRules?.length) walk(r.cssRules, gated);
+          } else if (r.cssRules?.length) walk(r.cssRules, gated);
+        }
+      };
+      for (const ss of document.styleSheets) {
+        try {
+          walk(ss.cssRules, false);
+        } catch {
+          /* cross-origin */
+        }
+      }
+      return out;
+    });
+    check('F-068-hover', 'every :hover rule sits inside @media (hover: hover) and (pointer: fine), so a tap leaves no hover state (F-068, F-075, F-082, F-089, F-101)', bad.length === 0, bad.slice(0, 25));
+  });
+  await step('F-064', async () => {
+    const rows = [];
+    for (const id of FIX_SHEETS) {
+      for (const part of [0.45, 0.6]) {
+        await p.evaluate(([id, part]) => {
+          const r = document.getElementById(id).getBoundingClientRect();
+          window.scrollTo(0, Math.round(r.bottom + scrollY - innerHeight * part));
+        }, [id, part]);
+        await settle(p, 1000);
+        rows.push(await p.evaluate(([id, part]) => {
+          const mid = innerHeight / 2;
+          const sheets = [...document.querySelectorAll('[data-sheet]')];
+          let expect = null;
+          for (const s of sheets) if (s.getBoundingClientRect().top <= mid) expect = s.getAttribute('data-sheet');
+          return { at: `${id} end-${part}`, shown: window.__qa.sheetAt(), expect };
+        }, [id, part]));
+      }
+    }
+    const bad = rows.filter((r) => r.shown !== r.expect);
+    check('F-064-sheet', 'the live sheet number is the last sheet whose top is above mid-viewport, also in the gaps between sheets', bad.length === 0, bad.slice(0, 10));
+  });
+  await step('F-019', async () => {
+    const r = await p.evaluate(() => {
+      const btn = document.querySelector('.title-strip .motion-toggle');
+      const cell = btn?.closest('[data-strip-cell]');
+      if (!btn || !cell) return null;
+      const c = cell.getBoundingClientRect();
+      const corners = [[c.left + 3, c.top + 3], [c.right - 3, c.top + 3], [c.left + 3, c.bottom - 3], [c.right - 3, c.bottom - 3]];
+      const hit = corners.every(([x, y]) => document.elementFromPoint(x, y)?.closest('.motion-toggle') === btn);
+      const nameText = (btn.getAttribute('aria-label') ?? [...btn.childNodes].filter((n) => !(n.nodeType === 1 && n.getAttribute('aria-hidden') === 'true')).map((n) => n.textContent).join('')).trim();
+      return { name: nameText, pressed: btn.getAttribute('aria-pressed'), cellH: Math.round(c.height), hit };
+    });
+    check('F-019-desktop', 'MOTION: button "Motion" with aria-pressed; the whole strip cell (>= 44 px) is its target', !!r && r.name === 'Motion' && ['true', 'false'].includes(r.pressed) && r.cellH >= 44 && r.hit, r);
+  });
+  await step('F-020', async () => {
+    const opener = p.locator('.contact-film-link, .index-set').first();
+    if (!(await opener.count())) return check('F-020-lightbox', 'THE SET lightbox has captions and a transcript', null, 'no THE SET link on the page (film not in the manifest)');
+    await opener.scrollIntoViewIfNeeded();
+    await opener.click();
+    await settle(p, 1000);
+    const sum = p.locator('dialog[open] details summary').first();
+    if (await sum.count()) {
+      await sum.click();
+      await settle(p, 1500);
+    }
+    const r = await p.evaluate(() => {
+      const d = document.querySelector('dialog[open]');
+      if (!d) return { open: false };
+      const v = d.querySelector('video');
+      const tr = v?.querySelector('track[kind="captions"]');
+      const det = d.querySelector('details');
+      return { open: true, track: tr?.getAttribute('src') ?? null, label: v?.getAttribute('aria-label') ?? null, transcript: det ? det.textContent.trim().length : 0 };
+    });
+    check('F-020-lightbox', 'THE SET lightbox: a captions <track>, a transcript that opens, and the video named by THE_SET.videoLabel', r.open && !!r.track && r.transcript > 80 && r.label === mods.chrome.THE_SET?.videoLabel, r);
+    await p.keyboard.press('Escape');
+    await settle(p, 500);
+  });
+  await step('F-015', async () => {
+    await at('top', 0, 600);
+    const n = await p.evaluate(() => document.querySelectorAll('.index-dialog .index-row').length);
+    const bad = [];
+    for (let i = 0; i < n; i++) {
+      await p.click('.header-index');
+      await settle(p, 600);
+      const label = await p.locator('dialog[open] .index-row').nth(i).textContent();
+      await p.locator('dialog[open] .index-row').nth(i).click();
+      await settle(p, 3200);
+      const r = await p.evaluate(() => {
+        const a = document.activeElement;
+        if (!a || a === document.body) return { ok: false, el: 'body' };
+        const b = window.__qa.band();
+        const inBand = window.__qa.inside(a.getBoundingClientRect(), b);
+        const h = window.__qa.hits(a);
+        return { ok: inBand && h.ok, el: window.__qa.name(a), rect: window.__qa.rect(a), band: b, hit: h.hit };
+      });
+      if (!r.ok) bad.push({ row: label?.trim().slice(0, 30), ...r });
+    }
+    for (const cell of ['teams', 'sponsors']) {
+      await at('top', 0, 500);
+      await p.click(`.title-strip [data-strip-cell="${cell}"]`);
+      await settle(p, 3500);
+      const r = await p.evaluate(() => {
+        const a = document.activeElement;
+        if (!a || a === document.body) return { ok: false, el: 'body' };
+        const h = window.__qa.hits(a);
+        return { ok: window.__qa.inside(a.getBoundingClientRect(), window.__qa.band()) && h.ok, el: window.__qa.name(a), rect: window.__qa.rect(a), hit: h.hit };
+      });
+      if (!r.ok) bad.push({ row: `strip ${cell}`, ...r });
+    }
+    check('F-015-landing', 'every INDEX row and both strip CTAs land with the focused heading inside the unobscured band, hitting itself (desktop; F-007, F-039, F-041)', n >= 11 && bad.length === 0, bad.slice(0, 8));
+  });
+  await step('F-034', async () => {
+    const r = await p.evaluate(async () => {
+      const els = [...document.querySelectorAll('a[href], button, input:not([type="hidden"]), textarea, select, [role="slider"], [tabindex]:not([tabindex="-1"])')].filter(
+        (e) => !e.closest('dialog, .sheet-header, .title-strip, .phone-bar, .skip-link') && !e.disabled && e.tabIndex >= 0,
+      );
+      const bad = [];
+      let n = 0;
+      for (const el of els) {
+        el.scrollIntoView({ block: 'center', inline: 'nearest' });
+        await new Promise((ok) => setTimeout(ok, 140));
+        const target = el.matches('input[type="checkbox"]') && el.closest('label') ? el.closest('label') : el;
+        if (!window.__qa.vis(target) || getComputedStyle(target).pointerEvents === 'none') continue;
+        n++;
+        const h = window.__qa.hits(el.matches('input[type="checkbox"]') ? el : target);
+        if (!h.ok) bad.push(`${window.__qa.name(el)} -> ${h.hit}`);
+      }
+      return { n, bad };
+    });
+    check('F-034-selfhit', 'every visible interactive element, once scrolled into view, is what elementFromPoint returns at its own centre', r.n > 20 && r.bad.length === 0, { checked: r.n, failing: r.bad.slice(0, 15) });
+  });
+  await step('F-024', async () => {
+    // Visible focus: each Tab stop, focused vs not, must change pixels around it (2.4.7 / 2.4.11)
+    await at('top', 0, 400);
+    await p.evaluate(() => document.querySelectorAll('video').forEach((v) => v.pause()));
+    await p.keyboard.press('Tab');
+    await settle(p, 200);
+    const bad = [];
+    let checked = 0;
+    for (let i = 0; i < 70; i++) {
+      if (i > 0) await p.keyboard.press('Tab');
+      await settle(p, 220);
+      const box = await p.evaluate(() => {
+        const a = document.activeElement;
+        if (!a || a === document.body) return null;
+        document.querySelectorAll('video').forEach((v) => v.pause());
+        const r = a.getBoundingClientRect();
+        const x = Math.max(0, r.left - 8);
+        const y = Math.max(0, r.top - 8);
+        const w = Math.min(innerWidth, r.right + 8) - x;
+        const h = Math.min(innerHeight, r.bottom + 8) - y;
+        if (w < 4 || h < 4) return null;
+        return { x, y, width: w, height: h, el: window.__qa.name(a) };
+      });
+      if (!box) continue;
+      const { el, ...clip } = box;
+      const on = (await p.screenshot({ clip })).toString('base64');
+      await p.evaluate(() => {
+        window.__qaFocus = document.activeElement;
+        document.activeElement.blur();
+      });
+      await settle(p, 120);
+      const off = (await p.screenshot({ clip })).toString('base64');
+      await p.evaluate(() => window.__qaFocus?.focus({ preventScroll: true }));
+      const diff = await p.evaluate(([a, b]) => window.__qa.pixelDiff(`data:image/png;base64,${a}`, `data:image/png;base64,${b}`), [on, off]);
+      checked++;
+      if (diff < 12) bad.push(`${el} (${diff} px changed)`);
+    }
+    check('F-024-focus', 'visible focus: every Tab stop (first 70) changes at least 12 pixels around itself when focused (incl. the 3D view)', checked > 20 && bad.length === 0, { checked, invisible: bad.slice(0, 15) });
+  });
+  for (const [state, id, vh] of [['hero-rest', 'top', 0], ['a-105', 'a-105', 30], ['a-300', 'a-300', 0]]) {
+    await step(`F-053-axe-${state}`, async () => {
+      await at(id, vh, 1200);
+      const ax = await axeState(p, axePath);
+      if (!ax) return check(`F-053-axe-${state}`, 'axe', null, 'axe-core not installed');
+      const bad = ax.violations.filter((v) => ['page-has-heading-one', 'label-content-name-mismatch'].includes(v.rule));
+      check(`F-053-axe-${state}`, `axe at ${state} (desktop): no page-has-heading-one, no label-content-name-mismatch (F-023, F-031, F-035, F-044)`, bad.length === 0, { fail: bad, incomplete: ax.incomplete, other: ax.violations.map((v) => `${v.rule} x${v.count}`) });
+    });
+  }
+  await D.ctx.close();
+
+  // ------------------------------------------------------------------ desktop 1280x800 rest (F-028)
+  await step('F-028', async () => {
+    const { ctx, page } = await newPage(browser, desktopOpts(1280, 800), base, { wait: 9500 });
+    const r = await page.evaluate(() => {
+      const vt = [...document.querySelectorAll('.cv-media .cv-vt')].find((e) => window.__qa.vis(e));
+      const sub = document.querySelector('.cv-sub');
+      const lefts = ['.cv-sub', '.cv-status', '.cv-hint'].map((s) => [...document.querySelectorAll(s)].find((e) => window.__qa.vis(e))).filter(Boolean).map((e) => Math.round(e.getBoundingClientRect().left));
+      const margin = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--margin')) || 72;
+      return { gap: vt && sub ? Math.round(vt.getBoundingClientRect().top - sub.getBoundingClientRect().bottom) : null, lefts, margin };
+    });
+    check('F-028-sub', 'hero at 1280x800 rest: >= 20 px between the sub and the view title, and the labels start on the spine', r.gap !== null && r.gap >= 20 && r.lefts.every((x) => x >= r.margin - 1), r);
+    await ctx.close();
+  });
+
+  // ------------------------------------------------------------------ hero overlap on real phone heights (F-003, F-017)
+  await step('F-003', async () => {
+    const bad = [];
+    for (const [w, h] of [[390, 844], [390, 664], [375, 667], [360, 780], [320, 568], [844, 390]]) {
+      const ctx = await browser.newContext(phoneOpts(w, h));
+      await ctx.addInitScript(qaHelpers);
+      const page = await ctx.newPage();
+      const t0 = Date.now();
+      await page.goto(`${base}?heroperf=0`, { waitUntil: 'load', timeout: 90000 });
+      await page.waitForFunction(() => document.documentElement.classList.contains('js'), null, { timeout: 15000 }).catch(() => {});
+      for (const [state, t] of [['armed', 1600], ['rest', 9500]]) {
+        await page.waitForTimeout(Math.max(200, t - (Date.now() - t0)));
+        const r = await page.evaluate(() => {
+          const vp = { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
+          const clip = (r) => ({ left: Math.max(r.left, vp.left), top: Math.max(r.top, vp.top), right: Math.min(r.right, vp.right), bottom: Math.min(r.bottom, vp.bottom) });
+          const boxes = [];
+          const add = (group, el) => {
+            if (!el || !window.__qa.vis(el)) return;
+            const r = clip(el.getBoundingClientRect());
+            if (r.right - r.left > 1 && r.bottom - r.top > 1) boxes.push({ group, r, el: window.__qa.name(el) });
+          };
+          add('status', document.querySelector('.cv-status'));
+          add('sub', document.querySelector('.cv-sub'));
+          document.querySelectorAll('.cv-hint').forEach((e) => add('hint', e));
+          add('reset', document.querySelector('.cv-reset'));
+          document.querySelectorAll('.cv-media .cv-vt').forEach((e) => add('vt', e));
+          add('header', document.querySelector('.sheet-header'));
+          add('bar', document.querySelector('.phone-bar'));
+          // the H1 lines (line boxes of the DOM type; the GL planes are laid on the same boxes)
+          const h1 = document.querySelector('.cv-h1');
+          if (h1 && getComputedStyle(h1).display !== 'none') {
+            const rg = document.createRange();
+            rg.selectNodeContents(h1);
+            for (const r of rg.getClientRects()) if (r.width > 4 && r.height > 4) boxes.push({ group: 'h1', r: clip(r), el: 'H1 line' });
+          }
+          const out = [];
+          for (let i = 0; i < boxes.length; i++)
+            for (let j = i + 1; j < boxes.length; j++) {
+              const a = boxes[i];
+              const b = boxes[j];
+              if (a.group === b.group) continue;
+              if (window.__qa.overlap(a.r, b.r) > 4) out.push(`${a.group} x ${b.group} (${a.el} / ${b.el})`);
+            }
+          return out;
+        });
+        if (r.length) bad.push(`${w}x${h} ${state}: ${r.slice(0, 4).join('; ')}`);
+      }
+      if (w === 844) {
+        const l = await page.evaluate(() => ({
+          bar: window.__qa.shown(document.querySelector('.phone-bar')),
+          strip: getComputedStyle(document.querySelector('.title-strip')).display,
+          lines: getComputedStyle(document.querySelector('.header-lines')).display,
+          statusTop: Math.round(document.querySelector('.cv-status')?.getBoundingClientRect().top ?? -1),
+          border: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--border')) || 0,
+        }));
+        check('F-017-landscape', 'a phone turned sideways (844x390) gets the phone chrome: phone bar, no strip, no header lines, nothing clipped by the border', l.bar && l.strip === 'none' && l.lines === 'none' && l.statusTop >= l.border, l);
+      }
+      await ctx.close();
+    }
+    check('F-003-overlap', 'phone hero, armed and at rest, at 390x844/390x664/375x667/360x780/320x568/844x390: status, H1 lines, sub, hint, RESET, view title, header and phone bar never intersect', bad.length === 0, bad.slice(0, 12));
+  });
+
+  // ------------------------------------------------------------------ contrast sampler (F-025)
+  await step('F-025', async () => {
+    const rows = [];
+    for (const [label, opts] of [['desktop', desktopOpts()], ['phone', phoneOpts()]]) {
+      for (const t of [1600, 3900, 9000]) {
+        const { ctx, page } = await newPage(browser, opts, base, { wait: Math.max(0, t - 1500) });
+        await page.evaluate(() => document.querySelectorAll('video').forEach((v) => v.pause()));
+        for (const sel of ['.cv-status', '.cv-sub']) {
+          const box = await page.evaluate((sel) => {
+            const el = document.querySelector(sel);
+            if (!el || !window.__qa.vis(el)) return null;
+            const r = el.getBoundingClientRect();
+            const x = Math.max(0, r.left);
+            const y = Math.max(0, r.top);
+            const cs = getComputedStyle(el);
+            const fs = parseFloat(cs.fontSize);
+            return { clip: { x, y, width: Math.min(innerWidth, r.right) - x, height: Math.min(innerHeight, r.bottom) - y }, need: fs >= 24 || (fs >= 18.66 && Number(cs.fontWeight) >= 700) ? 3 : 4.5 };
+          }, sel);
+          if (!box || box.clip.width < 4 || box.clip.height < 4) continue;
+          const a = (await page.screenshot({ clip: box.clip })).toString('base64');
+          await page.addStyleTag({ content: `${sel}, ${sel} * { color: transparent !important; -webkit-text-fill-color: transparent !important; -webkit-text-stroke-color: transparent !important; }` });
+          await page.waitForTimeout(60);
+          const b = (await page.screenshot({ clip: box.clip })).toString('base64');
+          await page.evaluate((sel) => document.querySelectorAll('style').forEach((st) => { if (st.textContent.startsWith(`${sel},`)) st.remove(); }), sel);
+          const c = await page.evaluate(([a, b, need]) => window.__qa.glyphContrast(`data:image/png;base64,${a}`, `data:image/png;base64,${b}`, need), [a, b, box.need]);
+          rows.push({ at: `${label} ${t / 1000}s ${sel}`, ...c });
+        }
+        await ctx.close();
+      }
+    }
+    const bad = rows.filter((r) => r.pass !== null && r.pass < 0.9);
+    check('F-025-contrast', 'hero status line and sub over the footage: >= 90% of glyph pixels at >= 4.5:1 at t 1.6/3.9/9 s (desktop, phone)', rows.length > 0 && bad.length === 0, bad.length ? bad : rows.map((r) => `${r.at} ${r.pass === null ? 'n/a' : `${Math.round(r.pass * 100)}%`}`));
+  });
+
+  // ------------------------------------------------------------------ phone 390x844
+  const P = await newPage(browser, phoneOpts(), base, { wait: 5000 });
+  const q = P.page;
+  const pat = async (id, vh = 0, ms = 900) => {
+    await q.evaluate(([id, vh]) => window.__qa.go(id, vh), [id, vh]);
+    await settle(q, ms);
+  };
+  await step('F-061-390', async () => {
+    await pat('top', 0, 2500);
+    const broken = await q.evaluate(() => {
+      const out = [];
+      for (const vt of document.querySelectorAll('.view-title, .cv-vt, figcaption')) {
+        if (!window.__qa.vis(vt)) continue;
+        const tw = document.createTreeWalker(vt, NodeFilter.SHOW_TEXT);
+        let n;
+        while ((n = tw.nextNode())) {
+          for (const w of ['AI-GENERATED', 'NOT A VENUE PLAN', 'NOT SPONSOR PRODUCTS']) {
+            const i = n.textContent.indexOf(w);
+            if (i < 0) continue;
+            const rg = document.createRange();
+            rg.setStart(n, i);
+            rg.setEnd(n, i + w.length);
+            if (new Set([...rg.getClientRects()].filter((r) => r.width > 0).map((r) => Math.round(r.top))).size > 1) out.push(`${w} in "${vt.textContent.trim().slice(0, 60)}"`);
+          }
+        }
+      }
+      return out;
+    });
+    check('F-061-390', 'no disclosure keyword breaks across lines on the phone (390, hero after the snap)', broken.length === 0, broken.slice(0, 8));
+    const sp = await q.evaluate(() => getComputedStyle(document.querySelector('.set-body'), '::before').display);
+    check('F-060-phone', 'no spine line on phones (no doubled left edge)', sp === 'none', sp);
+  });
+  await step('F-018', async () => {
+    await q.tap('.header-index');
+    await settle(q, 900);
+    const r = await q.evaluate(() => {
+      const d = document.querySelector('dialog[open]');
+      if (!d) return null;
+      const btn = [...d.querySelectorAll('button')].find((b) => /close/i.test(b.textContent) && window.__qa.vis(b));
+      const focusables = [...d.querySelectorAll('a[href], button, [tabindex]:not([tabindex="-1"])')].filter((e) => window.__qa.vis(e));
+      if (!btn) return { close: null };
+      const r = btn.getBoundingClientRect();
+      return { close: window.__qa.rect(btn), inView: r.top >= 0 && r.bottom <= innerHeight, right: r.left > innerWidth / 2, first: focusables[0] === btn, size: [Math.round(r.width), Math.round(r.height)] };
+    });
+    check('F-018-close', 'phone INDEX: a CLOSE control is in view at top right, >= 44 px, and is the first focusable', !!r && !!r.close && r.inView && r.right && r.first && r.size[0] >= 44 && r.size[1] >= 44, r);
+    const ax = await axeState(q, axePath);
+    if (ax) {
+      const bad = ax.violations.filter((v) => ['page-has-heading-one', 'label-content-name-mismatch'].includes(v.rule));
+      check('F-053-axe-phone-index', 'axe with INDEX open (phone): no page-has-heading-one, no label-content-name-mismatch', bad.length === 0, { fail: bad, incomplete: ax.incomplete, other: ax.violations.map((v) => `${v.rule} x${v.count}`) });
+    }
+    await q.keyboard.press('Escape');
+    await settle(q, 500);
+  });
+  await step('F-019-phone', async () => {
+    await q.tap('.phone-status');
+    await settle(q, 900);
+    const r = await q.evaluate(() => {
+      const btn = document.querySelector('dialog[open] .motion-toggle');
+      const cell = btn?.closest('.ts-cell') ?? btn;
+      if (!btn) return null;
+      const c = cell.getBoundingClientRect();
+      const corners = [[c.left + 3, c.top + 3], [c.right - 3, c.bottom - 3]];
+      return { h: Math.round(c.height), pressed: btn.getAttribute('aria-pressed'), hit: corners.every(([x, y]) => document.elementFromPoint(x, y)?.closest('.motion-toggle') === btn) };
+    });
+    check('F-019-phone', 'title sheet MOTION row: >= 44 px target over the whole cell, with aria-pressed', !!r && r.h >= 44 && ['true', 'false'].includes(r.pressed) && r.hit, r);
+    const ax = await axeState(q, axePath);
+    if (ax) {
+      const bad = ax.violations.filter((v) => ['page-has-heading-one', 'label-content-name-mismatch'].includes(v.rule));
+      check('F-053-axe-phone-titlesheet', 'axe with the title sheet open (phone): no page-has-heading-one, no label-content-name-mismatch', bad.length === 0, { fail: bad, incomplete: ax.incomplete, other: ax.violations.map((v) => `${v.rule} x${v.count}`) });
+    }
+    await q.keyboard.press('Escape');
+    await settle(q, 500);
+  });
+  for (const [state, id, vh] of [['hero-rest', 'top', 0], ['a-105', 'a-105', 30], ['a-300', 'a-300', 0]]) {
+    await step(`F-053-axe-phone-${state}`, async () => {
+      await pat(id, vh, 1200);
+      const ax = await axeState(q, axePath);
+      if (!ax) return;
+      const bad = ax.violations.filter((v) => ['page-has-heading-one', 'label-content-name-mismatch'].includes(v.rule));
+      check(`F-053-axe-phone-${state}`, `axe at ${state} (phone): no page-has-heading-one, no label-content-name-mismatch`, bad.length === 0, { fail: bad, incomplete: ax.incomplete, other: ax.violations.map((v) => `${v.rule} x${v.count}`) });
+    });
+  }
+  await step('F-056-phone', async () => {
+    await pat('top', 0, 500);
+    await q.tap('.phone-bar a[href="#a-301"]');
+    await settle(q, 3500);
+    const r = await q.evaluate(() => {
+      const h2 = document.querySelector('#a-301 h2');
+      return { h2: window.__qa.rect(h2), band: window.__qa.band(), ok: window.__qa.inside(h2.getBoundingClientRect(), window.__qa.band()) };
+    });
+    check('F-056-phone', 'phone: after "Sponsors →" the A-301 H2 is on screen', r.ok, r);
+  });
+  await step('F-057', async () => {
+    const mat = q.locator('.material-button').nth(1);
+    await mat.scrollIntoViewIfNeeded();
+    await settle(q, 400);
+    await mat.tap();
+    await settle(q, 500);
+    const r = await q.evaluate(() => ({
+      active: [...document.querySelectorAll('.material')].map((x) => (x.classList.contains('is-active') ? 1 : 0)).join(''),
+      lit: [...document.querySelectorAll('.keynote.is-lit')].map((k) => k.id),
+      inline: document.querySelector('.materials-readout') && window.__qa.vis(document.querySelector('.materials-readout')) ? document.querySelector('.materials-readout').textContent : '',
+    }));
+    const titles = mods.conv.SPONSORS.keynotes.filter((k) => k.n <= 2).map((k) => k.title);
+    check('F-057-tap', 'phone: one tap on MAT 02 makes it active, lights keynotes 1 and 2, and prints their titles inline', r.active === '01000' && JSON.stringify(r.lit) === '["keynote-1","keynote-2"]' && titles.every((t) => r.inline.includes(t)), r);
+  });
+  await step('F-054', async () => {
+    const rows = [];
+    for (const id of ['rfi-team', 'rfi-platform', 'rfi-needs', 'rfi-ch-02', 'kit-company', 'kit-make']) {
+      await q.setViewportSize({ width: 390, height: 844 });
+      await q.locator(`#${id}`).scrollIntoViewIfNeeded();
+      await settle(q, 300);
+      await q.focus(`#${id}`);
+      await q.setViewportSize({ width: 390, height: 470 });
+      await settle(q, 300);
+      await q.evaluate((id) => document.getElementById(id).scrollIntoView({ block: 'start' }), id);
+      await settle(q, 500);
+      rows.push(await q.evaluate((id) => {
+        const el = document.getElementById(id);
+        const t = (el.closest('.chip') ?? el).getBoundingClientRect();
+        const block = [];
+        const mini = document.querySelector('.mini-slot');
+        if (mini && el.closest('#a-300') && window.__qa.shown(mini)) block.push(['mini-slot', mini.getBoundingClientRect()]);
+        const bar = document.querySelector('.phone-bar');
+        if (window.__qa.shown(bar)) block.push(['phone-bar', bar.getBoundingClientRect()]);
+        block.push(['header', document.querySelector('.sheet-header').getBoundingClientRect()]);
+        const hit = block.filter(([, r]) => window.__qa.overlap(r, t) > 0).map(([n]) => n);
+        return { id, field: [Math.round(t.top), Math.round(t.bottom)], covered: hit, barShown: window.__qa.shown(bar) };
+      }, id));
+    }
+    await q.setViewportSize({ width: 390, height: 844 });
+    check('F-054-keyboard', 'phone, keyboard up (390x470), each field aligned to the top: it never sits under the mini-slot, the header or the phone bar', rows.every((r) => r.covered.length === 0), rows);
+    check('F-021-bar', 'phone: the phone bar steps aside while a text field has focus (keyboard up)', rows.filter((r) => !r.id.includes('-ch-')).every((r) => !r.barShown), rows.map((r) => `${r.id}: bar ${r.barShown ? 'shown' : 'hidden'}`));
+  });
+  await step('F-099', async () => {
+    await q.evaluate(() => document.querySelector('.tb-cell--index')?.scrollIntoView({ block: 'end' }));
+    await settle(q, 600);
+    const r = await q.evaluate(() => ({
+      links: [...document.querySelectorAll('.tb-index a')].map((a) => Math.round(a.getBoundingClientRect().height)),
+      email: Math.round(document.querySelector('.contact-email').getBoundingClientRect().height),
+      chipName: parseFloat(getComputedStyle(document.querySelector('.chip-name')).fontSize),
+    }));
+    check('F-099-targets', 'phone: footer index links and the email are >= 44 px targets; chip names >= 13 px', r.links.length >= 11 && r.links.every((h) => h >= 44) && r.email >= 44 && r.chipName >= 13, r);
+  });
+  await step('F-085', async () => {
+    await pat('a-105', 0, 900);
+    const r = await q.evaluate(() => {
+      const h2 = document.querySelector('#a-105 h2')?.getBoundingClientRect();
+      const body = document.querySelector('#a-105 .a105-line')?.getBoundingClientRect();
+      const views = document.querySelector('#a-105 .a105-views')?.getBoundingClientRect();
+      return { h2: h2 && Math.round(h2.top + scrollY), body: body && Math.round(body.top + scrollY), views: views && Math.round(views.top + scrollY) };
+    });
+    check('F-085-order', 'phone A-105: the H2 comes before the plan, the section and the body paragraph', r.h2 !== null && (r.body == null || r.h2 < r.body) && (r.views == null || r.h2 < r.views), r);
+  });
+  await step('F-084', async () => {
+    const cut = q.locator('#a-105 .a105-cut').first();
+    if (!(await cut.count())) return check('F-084-swipe', 'a vertical swipe on the section-cut handle scrolls the page', null, 'no .a105-cut');
+    await cut.evaluate((e) => e.scrollIntoView({ block: 'center' }));
+    await settle(q, 800);
+    const box = await cut.boundingBox();
+    const y0 = await q.evaluate(() => scrollY);
+    const cdp = await P.ctx.newCDPSession(q);
+    const cx = box.x + box.width / 2;
+    const cy = box.y + box.height / 2;
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: cx, y: cy }] });
+    for (let i = 1; i <= 12; i++) {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: cx, y: cy - (250 * i) / 12 }] });
+      await q.waitForTimeout(16);
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await settle(q, 800);
+    const y1 = await q.evaluate(() => scrollY);
+    check('F-084-swipe', 'phone: a vertical swipe that starts on the section-cut handle scrolls the page', y1 > y0 + 50, `${y0} -> ${y1}`);
+  });
+  await step('F-015-phone', async () => {
+    const bad = [];
+    const n = await q.evaluate(() => document.querySelectorAll('.index-dialog .index-row').length);
+    for (let i = 0; i < n; i++) {
+      await q.tap('.header-index');
+      await settle(q, 700);
+      const label = await q.locator('dialog[open] .index-row').nth(i).textContent();
+      await q.locator('dialog[open] .index-row').nth(i).tap();
+      await settle(q, 3200);
+      const r = await q.evaluate(() => {
+        const a = document.activeElement;
+        if (!a || a === document.body) return { ok: false, el: 'body' };
+        const h = window.__qa.hits(a);
+        return { ok: window.__qa.inside(a.getBoundingClientRect(), window.__qa.band()) && h.ok, el: window.__qa.name(a), rect: window.__qa.rect(a), hit: h.hit };
+      });
+      if (!r.ok) bad.push({ row: label?.trim().slice(0, 30), ...r });
+    }
+    for (const href of ['#a-300', '#a-301']) {
+      await pat('top', 0, 500);
+      await q.tap(`.phone-bar a[href="${href}"]`);
+      await settle(q, 3500);
+      const r = await q.evaluate(() => {
+        const a = document.activeElement;
+        if (!a || a === document.body) return { ok: false, el: 'body' };
+        const h = window.__qa.hits(a);
+        return { ok: window.__qa.inside(a.getBoundingClientRect(), window.__qa.band()) && h.ok, el: window.__qa.name(a), rect: window.__qa.rect(a), hit: h.hit };
+      });
+      if (!r.ok) bad.push({ row: `phone ${href}`, ...r });
+    }
+    check('F-015-phone', 'phone: every INDEX row and both phone-bar CTAs land with the focused heading on screen, hitting itself', n >= 11 && bad.length === 0, bad.slice(0, 8));
+  });
+  await P.ctx.close();
+
+  await step('F-063', async () => {
+    const rows = [];
+    for (const [w, h] of [[320, 568], [360, 780]]) {
+      const { ctx, page } = await newPage(browser, phoneOpts(w, h), base, { wait: 1500 });
+      rows.push(await page.evaluate((w) => {
+        const st = document.querySelector('.phone-status');
+        const clipped = [st, ...st.querySelectorAll('*')].filter((e) => window.__qa.shown(e) && !e.closest('.sr-only') && e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).display !== 'inline').map((e) => `${e.className} ${e.scrollWidth}>${e.clientWidth}`);
+        return { w, text: st.innerText.replace(/\s+/g, ' '), clipped, sheet: /A-\d{3}/.test(st.innerText) };
+      }, w));
+      await ctx.close();
+    }
+    check('F-063-status', 'phone status cell shows the sheet number unclipped at 320 and 360', rows.every((r) => r.clipped.length === 0 && r.sheet), rows);
+  });
+
+  // ------------------------------------------------------------------ prod vs dev landings (F-013)
+  await step('F-013-dev', async () => {
+    const dev = String(arg('dev', DEV_URL));
+    let ok = false;
+    try {
+      const res = await fetch(dev, { signal: AbortSignal.timeout(4000) });
+      ok = res.ok;
+    } catch {
+      ok = false;
+    }
+    if (!ok || dev === base) return check('F-013-prodvsdev', 'sheet landings match between the production build and the dev server', null, `dev server ${dev} not answering`);
+    const sig = async (url) => {
+      const { ctx, page } = await newPage(browser, desktopOpts(), url, { wait: 5000 }).catch(() => ({}));
+      if (!page) return null;
+      const out = {};
+      for (const id of FIX_SHEETS) {
+        await page.evaluate((id) => window.__qa.go(id, 0), id);
+        await page.waitForTimeout(900);
+        out[id] = await page.evaluate((id) => {
+          const sh = document.getElementById(id);
+          const r = (e) => { const b = e.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top), Math.round(b.width), Math.round(b.height)]; };
+          return {
+            vts: [...sh.querySelectorAll('.view-title')].filter((e) => window.__qa.vis(e)).map(r),
+            h2: [...sh.querySelectorAll('h2')].map(r),
+            buttons: [...sh.querySelectorAll('.cell-button')].filter((e) => window.__qa.vis(e)).length,
+          };
+        }, id);
+      }
+      await ctx.close();
+      return out;
+    };
+    const a = await sig(base);
+    const b = await sig(dev);
+    if (!b) return check('F-013-prodvsdev', 'sheet landings match between the production build and the dev server', null, 'dev server did not render the set');
+    const near = (x, y) => x.length === y.length && x.every((v, i) => v.every((n, k) => Math.abs(n - y[i][k]) <= 2));
+    const diff = FIX_SHEETS.filter((id) => !(near(a[id].vts, b[id].vts) && near(a[id].h2, b[id].h2) && a[id].buttons === b[id].buttons)).map((id) => ({ id, prod: a[id], dev: b[id] }));
+    check('F-013-prodvsdev', 'every sheet lands with the same view titles, H2 and visible buttons on the production build and the dev server (CSS order independent of chunking)', diff.length === 0, diff.slice(0, 3));
+  });
+
+  // ------------------------------------------------------------------ visual items (retake, not automatable)
+  manual('F-004', 'rest pose: no streak or step more than 2 px past 07 (and the nine limit-pose PNGs)', 'r1/hero-1440-t8.0s.jpg, juror/hero390-t12.jpg');
+  manual('F-005', 'plan cut: no hero type or band beside the plan, one view title, H2 + list from P 0.55', 'r1/plan-1440-t*.jpg, r1/plan-390-t*.jpg, motion/glout-seq.png');
+  manual('F-008', 'freeze depth dilated (A5 limit-pose gate report)', 'pipeline gate report');
+  manual('F-009', 'c31: no warm figure between the studs; hands and board readable (crowd sign-off in qa/TRUTH.md)', 'r1/1440-a-102-land.jpg, truth/c31-t3.4-person.jpg');
+  manual('F-010', 'og image and film: grey tape housing; qa_shipped.py liveryFrames = 0', 'truth/og-tape.jpg');
+  manual('F-011', 'og image / X card: no yellow-and-black tape measure', 'truth/og-tape.jpg, truth/x-card-small.jpg');
+  manual('F-012', 'THE SET: no warm figure at 0:13.2 / 0:14.0 / 0:14.6', 'film frames');
+  manual('F-022', 'FAR bite: every HUMANOID glyph >= 60% visible; the bite on the shoulder', 'r1/hero-1440-t8.0s.jpg, juror/hero390-t12.jpg');
+  manual('F-026', 'ACT and UALLY the same orange through the DOM-to-GL handover', 'motion/zz-near.png');
+  manual('F-027', 'fast scroll from rest: no pop', 'motion/glout-seq.png');
+  manual('F-029', 'phone sideways drag keeps the H1 inside the border', 'phone/p2-hero-lookdrag.jpg');
+  manual('F-030', 'bay 05 lands without a black frame (no-JS part: nojs-video)', 'motion/land-seq.png');
+  manual('F-032', 'perspective entrances: caption rule never covered, no fragments, even iris', 'motion/a101-25-caption.png, a11y-perf/vm-a101-40vh.jpg, motion/a103-iris-grid.png');
+  manual('F-036', 'phone detail bubble opens in flow under the H2 and spec', 'phone/p6-a101-bubble-open.jpg');
+  manual('F-037', 'A-100 tiles show stills, slot 05 never empty', 'plan-390-t1.2s.jpg, plan-390-t1.8s.jpg, plan-1440-t1.8s.jpg');
+  manual('F-042', 'A–A marker centred on the chalk line ✕ (probe105.cjs)', 'stage-a-105-100vh-1440.jpg');
+  manual('F-043', 'A-200: readable text on every frame; HOLD tag readable over >= 15vh', 'art/montage-a200-cloud-1440.jpg');
+  manual('F-046', 'per-glyph occlusion gate (A5 freeze report)', 'pipeline gate report');
+  manual('F-047', 'no light fringe round the helmet or pads', 'art/crop-a101-persp-halo.png, stage-a-103-060vh-1440.jpg');
+  manual('F-048', 'tools graphite, no orange/red trade dress', 'truth/b41-drill.jpg, truth/b42-tool.jpg');
+  manual('F-049', 'no glyph-like marks in det-n03 / b41', 'truth/n03-socket-text.jpg');
+  manual('F-050', 'b40 course intact next to STRAIGHT COURSES', 'stage-a-101-000vh-1440.jpg, truth/b40-wall-t4.5.jpg');
+  manual('F-058', 'THE SET disclosure readable at 390 wide, outside the bottom 20%', 'truth/set916-at-390.jpg');
+  manual('F-070', 'no shadow wedge, no stray tick', 'hero-1440-t0.0s.jpg, hero-1440-t0.8s.jpg');
+  manual('F-071', 'hint dimmed under the pulled V', 'hero-1440-t2.4s.jpg');
+  manual('F-072', 'BUILD? clean orange (no puff haze)', 'motion/zoom-32-build.png');
+  manual('F-073', 'deposit gone by t 3.6 s', 'hero-1440-t3.6s.jpg');
+  manual('F-074', 'snap releases at 3.0 ± 0.1 s; rest UI by 6.5 s (real-time run)', '$S/artrev/hero.cjs log');
+  manual('F-076', 'A-103 hold frame left edge on the 72 px spine', 'stage-a-103-060vh-1440.jpg');
+  manual('F-077', 'PLAN 03 thumbnail >= 24 px clear of the detail circle', 'extra-stage-a-103-minus025vh-1440.jpg');
+  manual('F-078', 'no spine line across the perspective films', 'a11y-perf/vm-a101-40vh.jpg');
+  manual('F-079', 'north arrows read against the grid', 'art/1440-a-200-100vh.jpg');
+  manual('F-080', 'A-101 bond drawn as masonry, no empty outlined cells', 'stage-a-101-000vh-1440.jpg');
+  manual('F-086', '07 not painted over by the A-105 traces', 'stage-a-105-030vh-1440.jpg');
+  manual('F-088', 'A-200 grid knocked out under the arrows and the arc', 'art/1440-a-200-100vh.jpg');
+  manual('F-102', 'THE SET end card gives the site address or DATE · VENUE: HOLD', 'truth/set-sheet4.jpg');
 }
 
 // ---------------------------------------------------------------------------------------- report
@@ -1313,7 +2579,7 @@ async function main() {
   let buildDir = null;
   let base = URL_ARG ? String(URL_ARG) : null;
   let http = null;
-  const needBuild = !base || want('nojs') || want('lint');
+  const needBuild = !base || want('nojs') || want('lint') || want('fixes');
   if (needBuild) {
     const b = ensureBuild(log);
     if (b.error) {
@@ -1362,6 +2628,7 @@ async function main() {
   await run('phone', () => runPhone(browser, base, mods));
   await run('rm', () => runRm(browser, base));
   await run('nogl', () => runNoGl(pw, base));
+  await run('fixes', () => runFixes(pw, browser, base, mods, axePath, buildDir));
   if (want('nojs')) {
     if (http) await run('nojs', () => runNoJs(browser, http.url, mods));
     else suite('nojs').check('nojs', 'no-JS suite', null, 'needs a prerendered build (--build)');

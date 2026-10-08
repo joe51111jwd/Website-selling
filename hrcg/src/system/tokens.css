@@ -133,7 +133,7 @@
   font-weight: 600;
   font-stretch: 125%;
   font-size: 14px;
-  line-height: 1;
+  line-height: 1.06;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -156,9 +156,9 @@
   letter-spacing: 0;
 }
 /* F-016: sentence case has descenders and ascenders that fuse at .88 (the j of "jobs" met the d of
-   "builder"); caps keep .88 */
+   "builder"; Big Shoulders 800 needs 1.06 for its j tail to clear a d ascender); caps keep .88 */
 .t-h2-statement:not(.t-upper) {
-  line-height: 0.96;
+  line-height: 1.06;
 }
 .t-upper {
   text-transform: uppercase;
@@ -206,7 +206,7 @@
   font-weight: 800;
   font-variation-settings: 'opsz' 72;
   font-size: clamp(20px, 2vw, 32px);
-  line-height: 1;
+  line-height: 1.06;
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -232,7 +232,7 @@
   font-weight: 900;
   font-variation-settings: 'opsz' 72;
   font-size: clamp(36px, 7vw, 128px);
-  line-height: 1;
+  line-height: 1.06;
   text-transform: lowercase;
 }
 

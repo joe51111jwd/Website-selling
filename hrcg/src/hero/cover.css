@@ -867,19 +867,18 @@
 }
 
 /* a phone turned sideways (pairs with A1's F-017 phone chrome): the 16:9 frame, fitted the same way.
-   The status line sits under the header, the sub (left) and the hint row (right, at x 0.58) stand on
-   one line above the view title, and the frame is the largest one whose FAR cap clears the status and
-   whose line clears that row. */
+   The status line sits under the header; the sub and the hint row stand in the free column under
+   HUMANOID (left of the line), above the full-width view title; the frame is the largest one whose FAR
+   cap clears the status line and whose line clears the view title. */
 @media (max-height: 500px) and (pointer: coarse) and (min-aspect-ratio: 1/1) {
   .cv {
     --status-h: 12px;
     --row-h: 44px;
   }
   .cv-box {
-    --row-top-v: calc(100cqh - var(--chrome-bottom) - 12px - var(--vt-h) - 10px - var(--row-h));
+    --vt-top-v: calc(100cqh - var(--chrome-bottom) - 12px - var(--vt-h));
     --far-min-v: calc(var(--hb) + 8px + var(--status-h) + 8px);
-    --far-cap: 0.135;
-    --fh-fit: calc((var(--row-top-v) - 16px - var(--far-min-v)) / (var(--line-y) - var(--far-cap)));
+    --fh-fit: calc((var(--vt-top-v) - 8px - 16px - var(--far-min-v)) / (var(--line-y) - var(--far-cap)));
     --fw: min(
       max(100cqw, 100cqh * var(--ar-w) / var(--ar-h)),
       1.1 * min(100cqw, 100cqh * var(--ar-w) / var(--ar-h)),
@@ -888,7 +887,7 @@
     --ftop: clamp(
       var(--far-min-v) - var(--far-cap) * var(--fh),
       (100cqh - var(--fh)) / 2,
-      var(--row-top-v) - 16px - var(--line-y) * var(--fh)
+      var(--vt-top-v) - 8px - 16px - var(--line-y) * var(--fh)
     );
   }
   .cv-status {
@@ -897,14 +896,21 @@
     translate: none;
     font-size: 12px;
   }
+  .cv-vt {
+    left: var(--spine-l);
+    right: var(--spine-r);
+  }
   .cv-sub {
-    bottom: calc(var(--to-vb) + var(--chrome-bottom) + 12px + var(--vt-h) + 10px);
+    left: var(--spine-l);
+    bottom: calc(var(--to-vb) + var(--chrome-bottom) + 12px + var(--vt-h) + 10px + var(--row-h) + 10px);
+    max-width: 30ch;
     font-size: 17px;
     line-height: 22px;
   }
   .cv-hint,
   .cv-restrow,
   .cv-play {
+    left: var(--spine-l);
     top: auto;
     bottom: calc(var(--to-vb) + var(--chrome-bottom) + 12px + var(--vt-h) + 10px);
     translate: none;

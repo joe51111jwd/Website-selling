@@ -1005,6 +1005,22 @@
   display: block;
   padding-top: var(--s-6);
 }
+/* F-066 / F-100: once the shell renders the title block as the page <footer> after </main>, A-900
+   hands its bottom over to it: no bottom padding or paper run-on in A-900, and the footer pulls up
+   over main's bottom padding so the paper stays continuous, then clears the strip itself. Inert while
+   the block still renders inside A-900. */
+body:has(main ~ .title-block, main ~ * .title-block) .conv--a900 {
+  padding-bottom: 0;
+}
+body:has(main ~ .title-block, main ~ * .title-block) .conv--a900::after {
+  display: none;
+}
+main ~ .title-block,
+main ~ * .title-block {
+  position: relative;
+  margin-top: calc(-1 * (var(--chrome-bottom) + var(--s-7)));
+  padding-bottom: calc(var(--chrome-bottom) + var(--s-7));
+}
 .tb {
   display: grid;
   grid-template-columns: repeat(24, minmax(0, 1fr));
