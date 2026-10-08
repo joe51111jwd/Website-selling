@@ -114,9 +114,13 @@ const rgb = (hex: string) => new Color().setRGB(
   NoColorSpace,
 );
 
-/** Map the slider to the plane depth (brief 4.2: uSlice = mix(nearD, farD, s)). */
+/**
+ * Map the slider to the plane depth (brief 4.2: uSlice = mix(nearD, farD, s)). The mix runs through an
+ * ease-out (1 − (1 − s)^1.6): relative depth changes fast across the near floor and slowly over 07, so
+ * without it most of the cut's travel would be spent on floor and 07 would flash past at the end.
+ */
 export function sliceDepth(s: number, nearD: number, farD: number): number {
-  const k = Math.min(1, Math.max(0, s));
+  const k = 1 - Math.pow(1 - Math.min(1, Math.max(0, s)), 1.6);
   return nearD + (farD - nearD) * k;
 }
 

@@ -70,6 +70,7 @@ const SOFT = Boolean(arg('soft'));
 const URL_ARG = arg('url');
 let BUILD = arg('build') ? resolve(String(arg('build'))) : null;
 const want = (s) => !ONLY || ONLY.includes(s);
+const DEV_URL = process.env.HRCG_DEV_URL || 'http://127.0.0.1:5300/';
 
 mkdirSync(SHOTS, { recursive: true });
 
@@ -1260,9 +1261,12 @@ async function main() {
   if (needBuild) {
     const b = ensureBuild(log);
     if (b.error) {
-      results.meta.notes.push(b.error.slice(0, 1500));
+      results.meta.notes.push(`The production build failed, so the JS suites ran against the shared dev server (${DEV_URL}) and the no-JS suite could not run:\n\n\`\`\`\n${b.error.slice(-2500)}\n\`\`\``);
+      suite('build').check('build', 'vite build + prerender (incl. the prerender copy lint) succeeds', false, b.error.slice(-2500));
       log(b.error);
+      if (!base) base = DEV_URL;
     } else {
+      suite('build').check('build', 'vite build + prerender (incl. the prerender copy lint) succeeds', true);
       buildDir = typeof b === 'string' ? b : b.dir;
       results.meta.build = buildDir;
       http = await serve(buildDir);

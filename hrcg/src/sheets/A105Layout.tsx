@@ -67,12 +67,17 @@ const FALLBACK: LinesData = {
 /** Measured on the mock's last frame (A4-3): used while the JSON still says "mock". */
 const MOCK_FRESH = { a: [0.4, 0.527] as V2, b: [0.708, 0.527] as V2 };
 
+interface Line {
+  at: number;
+  from: number;
+  to: number;
+}
 interface Grid {
   /** traced segments, in snap order (merged near-duplicates) */
   segs: Array<{ a: V2; b: V2 }>;
-  /** vertical gridlines (u) and horizontal gridlines (v), plan units */
-  xs: number[];
-  ys: number[];
+  /** vertical gridlines (at = u) and horizontal gridlines (at = v), with the traced extent along them */
+  xs: Line[];
+  ys: Line[];
   fresh: { x0: number; x1: number; y: number };
   /** the top and bottom wall lines: SECTION A–A hangs between them (its top and bottom edges on them) */
   vt: number;
@@ -81,17 +86,19 @@ interface Grid {
   u1: number;
 }
 
-function cluster(vals: Array<{ at: number; len: number }>, tol = 0.02): number[] {
+function cluster(vals: Array<{ at: number; len: number; from: number; to: number }>, tol = 0.02): Line[] {
   const sorted = [...vals].sort((a, b) => a.at - b.at);
-  const out: Array<{ at: number; w: number }> = [];
+  const out: Array<Line & { w: number }> = [];
   for (const v of sorted) {
     const last = out[out.length - 1];
     if (last && Math.abs(v.at - last.at) <= tol) {
       last.at = (last.at * last.w + v.at * v.len) / (last.w + v.len);
       last.w += v.len;
-    } else out.push({ at: v.at, w: v.len });
+      last.from = Math.min(last.from, v.from);
+      last.to = Math.max(last.to, v.to);
+    } else out.push({ ...v, w: v.len });
   }
-  return out.filter((c) => c.w >= 0.12).map((c) => Math.round(c.at * 1000) / 1000);
+  return out.filter((c) => c.w >= 0.12).map((c) => ({ at: Math.round(c.at * 1000) / 1000, from: c.from, to: c.to }));
 }
 
 function deriveGrid(d: LinesData): Grid {
@@ -110,37 +117,51 @@ function deriveGrid(d: LinesData): Grid {
   const freshSeg = { a: fresh.a, b: fresh.b };
   if (!kept.some((k) => Math.abs(k.a[1] - fresh.a[1]) < 0.01 && Math.abs(k.a[0] - fresh.a[0]) < 0.02)) kept.push(freshSeg);
 
-  let xs: number[];
-  let ys: number[];
+  let xs: Line[];
+  let ys: Line[];
+  const fyA = (fresh.a[1] + fresh.b[1]) / 2;
   if (d.gridlines && d.gridlines.length) {
     // the page grid is 07's long lines (the perimeter and the fresh line); short interior lines and the
     // door jamb stay traces only, or the sheet would read as a lattice
-    const fyA = (fresh.a[1] + fresh.b[1]) / 2;
-    const long = d.gridlines.filter(
-      (g) => (g.to ?? 1) - (g.from ?? 0) >= 0.45 || (g.axis === 'y' && Math.abs(g.at - fyA) < 0.01),
-    );
-    xs = long.filter((g) => g.axis === 'x').map((g) => g.at);
-    ys = long.filter((g) => g.axis === 'y').map((g) => g.at);
+    const long = d.gridlines
+      .map((g) => ({ axis: g.axis, at: g.at, from: g.from ?? 0, to: g.to ?? 1 }))
+      .filter((g) => g.to - g.from >= 0.45 || (g.axis === 'y' && Math.abs(g.at - fyA) < 0.01));
+    xs = long.filter((g) => g.axis === 'x');
+    ys = long.filter((g) => g.axis === 'y');
   } else {
-    const hv = segs.map((s) => ({ dx: s.b[0] - s.a[0], dy: s.b[1] - s.a[1], s }));
+    const hv = segs.map((t) => ({ dx: t.b[0] - t.a[0], dy: t.b[1] - t.a[1], t }));
     xs = cluster(
-      hv.filter((t) => Math.abs(t.dx) < 0.15 * Math.abs(t.dy)).map((t) => ({ at: (t.s.a[0] + t.s.b[0]) / 2, len: Math.abs(t.dy) })),
-    );
+      hv
+        .filter((q) => Math.abs(q.dx) < 0.15 * Math.abs(q.dy))
+        .map((q) => ({
+          at: (q.t.a[0] + q.t.b[0]) / 2,
+          len: Math.abs(q.dy),
+          from: Math.min(q.t.a[1], q.t.b[1]),
+          to: Math.max(q.t.a[1], q.t.b[1]),
+        })),
+    ).filter((l) => l.to - l.from >= 0.45);
     ys = cluster(
-      hv.filter((t) => Math.abs(t.dy) < 0.15 * Math.abs(t.dx)).map((t) => ({ at: (t.s.a[1] + t.s.b[1]) / 2, len: Math.abs(t.dx) })),
-    );
+      hv
+        .filter((q) => Math.abs(q.dy) < 0.15 * Math.abs(q.dx))
+        .map((q) => ({
+          at: (q.t.a[1] + q.t.b[1]) / 2,
+          len: Math.abs(q.dx),
+          from: Math.min(q.t.a[0], q.t.b[0]),
+          to: Math.max(q.t.a[0], q.t.b[0]),
+        })),
+    ).filter((l) => l.to - l.from >= 0.45 || Math.abs(l.at - fyA) < 0.02);
   }
   const x0 = Math.min(fresh.a[0], fresh.b[0]);
   const x1 = Math.max(fresh.a[0], fresh.b[0]);
-  const fy = (fresh.a[1] + fresh.b[1]) / 2;
-  if (!ys.some((y) => Math.abs(y - fy) < 0.02)) ys.push(fy);
-  ys.sort((a, b) => a - b);
-  xs.sort((a, b) => a - b);
-  const lower = ys.filter((y) => y > 0.6);
-  const upper = ys.filter((y) => y < 0.4);
+  const fy = fyA;
+  if (!ys.some((y) => Math.abs(y.at - fy) < 0.02)) ys.push({ at: fy, from: x0, to: x1 });
+  ys.sort((a, b) => a.at - b.at);
+  xs.sort((a, b) => a.at - b.at);
+  const lower = ys.filter((y) => y.at > 0.6).map((y) => y.at);
+  const upper = ys.filter((y) => y.at < 0.4).map((y) => y.at);
   const vb = lower.length ? Math.max(...lower) : 0.84;
   const vt = upper.length ? Math.min(...upper) : 0.16;
-  const u1 = xs.length ? xs[0]! : 0.147;
+  const u1 = xs.length ? xs[0]!.at : 0.147;
   return { segs: kept, xs, ys, fresh: { x0, x1, y: fy }, vt: Math.max(0.05, vt), vb: Math.min(0.95, vb), u1 };
 }
 
@@ -175,30 +196,31 @@ function gaps(a: number, b: number, blocks: Array<[number, number]>): Array<[num
   return parts.filter(([p, q]) => q - p > 6);
 }
 
-function extensions(g: Grid, plan: Box, W: number, H: number, edge: number, avoid: Box[], top: number, bottom: number): Ext[] {
+function extensions(g: Grid, plan: Box, W: number, edge: number, avoid: Box[], top: number, bottom: number): Ext[] {
   const out: Ext[] = [];
   const pad = 10;
-  for (const v of g.ys) {
-    const y = Math.round(plan.y + v * plan.h) + 0.5;
+  for (const l of g.ys) {
+    const y = Math.round(plan.y + l.at * plan.h) + 0.5;
+    const xa = plan.x + l.from * plan.w;
+    const xb = plan.x + l.to * plan.w;
     const blocks = avoid
       // a line that runs along a frame's top or bottom edge is that frame's own registration: keep it
       .filter((b) => y > b.y - pad && y < b.y + b.h + pad && !(Math.abs(y - (b.y + b.h)) < 3) && !(Math.abs(y - b.y) < 3))
       .map((b) => [b.x - pad, b.x + b.w + pad] as [number, number]);
-    // left of the plan
-    for (const [p, q] of gaps(edge, plan.x, blocks)) out.push({ d: `M${q} ${y}H${p}`, d0: plan.x - q, d1: plan.x - p });
-    for (const [p, q] of gaps(plan.x + plan.w, W - edge, blocks))
-      out.push({ d: `M${p} ${y}H${q}`, d0: p - plan.x - plan.w, d1: q - plan.x - plan.w });
+    // from the traced line's own ends, out across the footage and on to the page edges
+    for (const [p, q] of gaps(edge, xa, blocks)) out.push({ d: `M${q} ${y}H${p}`, d0: xa - q, d1: xa - p });
+    for (const [p, q] of gaps(xb, W - edge, blocks)) out.push({ d: `M${p} ${y}H${q}`, d0: p - xb, d1: q - xb });
   }
-  for (const u of g.xs) {
-    const x = Math.round(plan.x + u * plan.w) + 0.5;
+  for (const l of g.xs) {
+    const x = Math.round(plan.x + l.at * plan.w) + 0.5;
+    const ya = plan.y + l.from * plan.h;
+    const yb = plan.y + l.to * plan.h;
     const blocks = avoid
       .filter((b) => x > b.x - pad && x < b.x + b.w + pad)
       .map((b) => [b.y - pad, b.y + b.h + pad] as [number, number]);
-    for (const [p, q] of gaps(top, plan.y, blocks)) out.push({ d: `M${x} ${q}V${p}`, d0: plan.y - q, d1: plan.y - p });
-    for (const [p, q] of gaps(plan.y + plan.h, bottom, blocks))
-      out.push({ d: `M${x} ${p}V${q}`, d0: p - plan.y - plan.h, d1: q - plan.y - plan.h });
+    for (const [p, q] of gaps(top, ya, blocks)) out.push({ d: `M${x} ${q}V${p}`, d0: ya - q, d1: ya - p });
+    for (const [p, q] of gaps(yb, bottom, blocks)) out.push({ d: `M${x} ${p}V${q}`, d0: p - yb, d1: q - yb });
   }
-  void H;
   return out;
 }
 
@@ -339,14 +361,14 @@ export default function A105Layout() {
       .filter((b): b is Box => !!b);
     const edge = Math.max(12, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--border')) || 24);
     const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 48;
-    const ext = extensions(grid, planBox, pr.width, pr.height, edge, avoid, edge + header, pr.height - 4);
+    const ext = extensions(grid, planBox, pr.width, edge, avoid, edge + header, pr.height - 4);
     // the text block: its verticals, set exactly on the plan's x positions, minus the text itself
     let textGeo = { W: 0, H: 0, lines: [] as string[] };
     if (text) {
       const tr = text.getBoundingClientRect();
       const blocks = Array.from(text.querySelectorAll('[data-a105-text]')).map((el) => el.getBoundingClientRect());
       const lines: string[] = [];
-      for (const u of grid.xs) {
+      for (const { at: u } of grid.xs) {
         const xv = planBox.x + pr.left + u * planBox.w;
         const x = Math.round(xv - tr.left) + 0.5;
         const bl = blocks
@@ -448,7 +470,7 @@ export default function A105Layout() {
     top: `${grid.fresh.y * 100}%`,
     ['--s' as string]: '0.5',
   } as CSSProperties;
-  const u2 = grid.xs.find((x) => x > grid.u1 + 0.2) ?? 0.85;
+  const u2 = grid.xs.find((x) => x.at > grid.u1 + 0.2)?.at ?? 0.85;
   const rootStyle = {
     ['--vt' as string]: String(grid.vt),
     ['--vb' as string]: String(grid.vb),

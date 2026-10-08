@@ -15,7 +15,7 @@ sign-off is `qa/TRUTH.md`.
 | Low Power Mode | iOS: Settings → Battery → Low Power Mode on, reload. | Every film shows its poster with a `▶ PLAY` button; tapping plays it. Nothing is blank. |
 | Memory over a full scroll | Scroll top to bottom twice, then back up. | No reload or crash (iOS kills tabs that hold too many decoded videos); at most two films play at once. |
 | A-300 mini-slot with the keyboard up | Tap `1 · PLATFORM` in RFI-001 and type. | The 64 px strip with the stencil slot stays visible above the field while the keyboard is up and shows what you type, upper-cased. iOS sometimes scrolls the visual viewport under sticky elements; if the strip slides away, report it (fix: pin it to `visualViewport`). |
-| Forms do not zoom | Tap every field on A-300 and A-301. | The page does not zoom in (inputs are 18 px). Chips toggle on a single tap and are easy to hit (64 px rows on phones). |
+| Forms do not zoom | Tap every field on A-300 and A-301. | The page does not zoom in (inputs are 18 px). Chips toggle on a single tap and are easy to hit (48 px rows on phones). |
 | Phone bar | Scroll the whole page on a phone with a home indicator. | `PLANNED · NYC · 2027 · A-xxx`, `Teams →`, `Sponsors →` always visible above the home indicator (safe-area inset respected); the left button opens the title block sheet. |
 
 ## 2. A real GPU (desktop and laptop)

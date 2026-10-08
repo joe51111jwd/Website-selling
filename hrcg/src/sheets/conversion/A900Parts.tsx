@@ -24,7 +24,7 @@ export function Notes() {
         <li key={n.q} className="note">
           <details className="note-details">
             <summary className="note-summary">
-              <span className="note-num num">{i + 1}</span>
+              <span className="note-num num">{`${i + 1}.`}</span>
               <span className="note-q">{n.q}</span>
               <span className="note-arrow" aria-hidden="true">
                 →

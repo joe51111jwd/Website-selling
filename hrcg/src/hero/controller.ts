@@ -1367,6 +1367,8 @@ class CoverController {
     this.hero.style.visibility = P >= BEATS.planCut[1] ? 'hidden' : '';
     // plan still: registered on the deposit, then FLIP into bay 05
     const M0 = this.M0;
+    // fetch PLAN 05 once the hero has settled or the plan is near (never on the first view)
+    if (this.planSq.style.display !== 'block' && (P > 0.01 || this.tl.rest)) this.planSq.style.display = 'block';
     if (M0 && P > BEATS.planCut[0] * 0.5) {
       const e = drawEase(segment(P, BEATS.pullOut[0], BEATS.pullOut[1]));
       const M1 = onBox(this.bayRect());

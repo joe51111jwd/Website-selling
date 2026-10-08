@@ -607,6 +607,7 @@
   height: 1000px;
   transform-origin: 0 0;
   opacity: 0;
+  display: none; /* the controller shows it (and so fetches the still) once the stage needs it */
   will-change: transform, opacity;
 }
 .cv-plan-sq picture,

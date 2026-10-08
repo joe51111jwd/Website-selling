@@ -664,6 +664,7 @@
 }
 .a105-tag {
   margin: 0 0 var(--s-6);
+  width: fit-content;
 }
 .a105-grid {
   position: absolute;
@@ -830,6 +831,12 @@
 .a105-cut-mark {
   display: block;
   transform: rotate(90deg);
+}
+/* the section letters stay upright on the rotated symbol */
+.a105-cut-mark .mk-id {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: rotate(-90deg);
 }
 .a105-cut .mk-sc {
   color: var(--chalk);

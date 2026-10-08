@@ -14,10 +14,16 @@ import { Chip, SendBlock } from './FormParts';
 /** Media ids of the five crops, in order (MAT 01 … MAT 05) */
 const MAT_IDS = ['mat-1', 'mat-2', 'mat-3', 'mat-4', 'mat-5'] as const;
 
+/**
+ * A keynote numeral drawn as a ruled square. The text is the brief's "[1]": the brackets stay in the
+ * DOM (copy, lint, screen readers) and the square stands in for them on screen.
+ */
 export function KeynoteMark({ n, active = false, hidden = true }: { n: number; active?: boolean; hidden?: boolean }) {
   return (
     <span className={`keynote-mark num${active ? ' is-active' : ''}`} aria-hidden={hidden ? true : undefined}>
+      <span className="keynote-bracket">[</span>
       {n}
+      <span className="keynote-bracket">]</span>
     </span>
   );
 }
@@ -41,7 +47,6 @@ export function Materials({
                 type="button"
                 className="material-button"
                 aria-describedby={ids}
-                aria-pressed={on}
                 onMouseEnter={() => setActive(i)}
                 onMouseLeave={() => setActive(null)}
                 onFocus={() => setActive(i)}

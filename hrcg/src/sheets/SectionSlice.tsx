@@ -40,7 +40,7 @@ const STEPS = [
 ] as const;
 
 /** Defaults measured on the mock depth map (A4-3 asks A5 for the real values in sec-c34-meta). */
-const DEFAULT_RANGE = { nearD: 0.92, farD: 0.16 };
+const DEFAULT_RANGE = { nearD: 0.9, farD: 0.17 };
 
 function stepFor(s: number): 'near' | 'mid' | 'far' {
   return s < 1 / 3 ? 'near' : s < 2 / 3 ? 'mid' : 'far';

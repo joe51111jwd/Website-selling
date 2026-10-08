@@ -184,15 +184,20 @@ def render(yaw, pitch, dolly, pivot, plate_img, plate_z, plate_scale, farm=None,
             X, Y, Z = xform(T, yaw, pitch, dolly, pivot); px, py = project(X, Y, Z)
             xi = np.clip(px.astype(np.int32), 0, rw - 1); yi = np.clip(py.astype(np.int32), 0, rh - 1)
             img[yi, xi] = (240, 106, 44)
-    # mesh border projected: the frame edge of the still
-    bpts = []
-    for (uu, vv) in [(i / 50, 0) for i in range(51)] + [(1, i / 50) for i in range(51)] + [(i / 50, 1) for i in range(51)] + [(0, i / 50) for i in range(51)]:
-        xs_, ys_ = int(min(W - 1, uu * (W - 1))), int(min(H - 1, vv * (H - 1)))
-        z = zof(dmesh[ys_, xs_]); u = uu * 2 - 1; v = (vv * 2 - 1) * ASP
-        bpts.append([u * z / f, v * z / f, z])
-    X, Y, Z = xform(np.array(bpts), yaw, pitch, dolly, pivot); px, py = project(X, Y, Z)
+    # the mesh's outer edge (end of the 12% overscan ring) projected: the frame edge
+    X, Y, Z = xform(ring_border(50), yaw, pitch, dolly, pivot); px, py = project(X, Y, Z)
     res['border'] = np.stack([px, py], 1)
     return res
+
+OS = 0.12   # A2's mesh carries a 12% overscan ring (edge-clamped depth and UV); its OUTER edge is the frame edge
+def ring_border(n=60):
+    pts = []
+    us = [-OS + (1 + 2 * OS) * i / n for i in range(n + 1)]
+    for (uu, vv) in [(u_, -OS) for u_ in us] + [(1 + OS, v_) for v_ in us] + [(u_, 1 + OS) for u_ in us] + [(-OS, v_) for v_ in us]:
+        cx_, cy_ = min(max(uu, 0), 1), min(max(vv, 0), 1)
+        z = zof(dmesh[int(cy_ * (H - 1)), int(cx_ * (W - 1))])
+        pts.append([(uu * 2 - 1) * z / f, (vv * 2 - 1) * ASP * z / f, z])
+    return np.array(pts)
 
 def lum(c8):
     c = c8.astype(np.float32) / 255.
@@ -268,17 +273,13 @@ yaws_ = (-6, 0, 6) if PH else (-6, 0, 10); pitches_ = (-3, 0, 3)
 def border_intrusions(a_, b_):
     global a, b
     a, b = a_, b_
-    bpts = []
-    for (uu, vv) in [(i / 60, 0) for i in range(61)] + [(1, i / 60) for i in range(61)] + [(i / 60, 1) for i in range(61)] + [(0, i / 60) for i in range(61)]:
-        xs_, ys_ = int(min(W - 1, uu * (W - 1))), int(min(H - 1, vv * (H - 1)))
-        z = zof(dmesh[ys_, xs_]); bpts.append([(uu * 2 - 1) * z / f, (vv * 2 - 1) * ASP * z / f, z])
-    bpts = np.array(bpts)
+    bpts = ring_border()
     piv = float(np.median(zof(d[pivot_region]))) if pivot_region.sum() > 500 else 1.6
     worst = 0
     for yw in yaws_:
         for pt in pitches_:
             X, Y, Z = xform(bpts, yw, pt, 0.04, piv); px, py = project(X, Y, Z)
-            ins = (px > 0.06 * rw) & (px < 0.94 * rw) & (py > 0.06 * rh) & (py < 0.94 * rh)
+            ins = (px > 0) & (px < rw) & (py > 0) & (py < rh)   # the ring's outer edge inside the frame box
             worst += int(ins.sum())
     return worst, piv
 tune = []
@@ -325,12 +326,12 @@ cssocc = float((alpha[farm] > 0.5).mean())
 
 # limit poses
 plate_rgb = cv2.cvtColor(plate, cv2.COLOR_BGR2RGB).astype(np.float32)
-plate_z = zof(0.0) * 1.02
+plate_z = (1 / a) * 1.06          # as A2's FreezeScene: plate at 1.06/a, 1.5x the frame-matched size
 yaws = (-6, 0, 6) if PH else (-6, 0, 10)
 pitches = (-3, 0, 3)
 # plate scale: smallest that covers the frame box in every limit pose
-plate_scale = 1.0
-for sc in np.arange(1.0, 2.01, 0.05):
+plate_scale = 1.5
+for sc in ([1.5] + list(np.arange(1.55, 2.51, 0.05))):
     ok = True
     for yw in yaws:
         for pt in pitches:
@@ -344,7 +345,7 @@ for yw in yaws:
     for pt in pitches:
         r = render(yw, pt, 0.04, pivotZ, plate_rgb, plate_z, plate_scale, farm, nearm)
         bx = r['border']; x0i, x1i, y0i, y1i = inner * rw, (1 - inner) * rw, inner * rh, (1 - inner) * rh
-        inside = (bx[:, 0] > x0i) & (bx[:, 0] < x1i) & (bx[:, 1] > y0i) & (bx[:, 1] < y1i)
+        inside = (bx[:, 0] > 0) & (bx[:, 0] < rw) & (bx[:, 1] > 0) & (bx[:, 1] < rh)   # ring edge inside the frame box
         uncovered = int((r['cover'] == 0).sum())
         img = np.clip(r['img'], 0, 255).astype(np.uint8).copy()
         img[r['cover'] == 0] = (255, 0, 255)
@@ -374,7 +375,8 @@ meta = {'frame': A.frame, 'w': W, 'h': H, 'mock': False,
         'a': a, 'b': b, 'f': f, 'pivotZ': round(pivotZ, 4), 'nearD': round(nearD, 4), 'farD': round(farD, 4),
         'yaw': ({'auto': 6, 'min': -6, 'max': 6} if PH else {'auto': 8, 'min': -6, 'max': 10}),
         'pitch': {'auto': -2.5, 'min': -3, 'max': 3}, 'dolly': 0.04, 'overscan': 0.12,
-        'plate': {'z': round(plate_z, 4), 'scale': plate_scale, 'note': 'quad at z, size = plate.scale x the frame-matched size at that depth'},
+        'plate': {'z': round(plate_z, 4), 'scale': plate_scale, 'note': 'as A2 FreezeScene: quad at z = 1.06/a, size = scale x the frame-matched size at that depth; the smallest scale (>= 1.5) that leaves no uncovered pixel in any limit pose'},
+        'limitPoseRule': 'mesh with A2s 12% overscan ring (edge-clamped); FAIL if the ring outer edge enters the frame box or any pixel is uncovered (no mesh, no plate)',
         'stretchDiscard': {'threshold': 0.06, 'rampDeg': 0.5},
         'typeLayers': lines_meta(far, Z_FAR_T, 'FAR') + lines_meta(near, Z_NEAR_T, 'NEAR'),
         'typeLayerShift': {'far': [report['far']['dx'], report['far']['dy']], 'near': [report['near']['dx'], report['near']['dy']]},

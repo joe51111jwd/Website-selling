@@ -1,0 +1,16 @@
+{
+ "meta": {
+  "started": "2026-10-08T08:18:23.545Z",
+  "root": "/home/user/Website-selling/hrcg",
+  "url": null,
+  "build": null,
+  "axe": null,
+  "notes": [
+   "build failed (exit 1):\n\n\u001b[33m[INEFFECTIVE_DYNAMIC_IMPORT] \u001b[0msrc/hero/heroMachine.ts is dynamically imported by src/sheets/A105Layout.tsx but also statically imported by src/hero/controller.ts, dynamic import will not move module into another chunk.\n\n[hrcg-prerender] WARNING expected exactly one <h1>, found 2\nerror during build:\n[[hrcg-prerender] copy lint failed on the prerendered HTML (brief 10.5):\n  ../../../../tmp/hrcg-qa-build/index.html: rule 5 (digits): digit run \"1\" is not an allowed pattern\n    \"MAT 01 · BRICK AND MORTAR 1\"\n  ../../../../tmp/hrcg-qa-build/index.html: rule 5 (digits): digit run \"1\" is not an allowed pattern\n    \"MAT 02 · BOARD AND FIXINGS 1 2\"\n  ../../../../tmp/hrcg-qa-build/index.html: rule 5 (digits): digit run \"1\" is not an allowed pattern\n    \"MAT 03 · BOLTS AND NUTS 1 2\"\n  ../../../../tmp/hrcg-qa-build/index.html: rule 5 (digits): digit run \"1\" is not an allowed pattern\n    \"MAT 04 · PIPE AND FITTINGS 1\"\n  ../../../../tmp/hrcg-qa-build/index.html: rule 5 (digits): digit run \"1\" is not an allowed pattern\n    \"MAT 05 · LINE AND MARKING 1 2\"\n  ../../../../tmp/hrcg-qa-build/index.html: rule 5 (digits): digit run \"1\" is not an allowed pattern\n    \"1\"\n  ../../../../tmp/hrcg-qa-build/index.html: rule 5 (digits): digit run \"2\" is not an allowed pattern\n    \"2\"\n  ../../../../tmp/hrcg-qa-build/index.html: rule 5 (digits): digit run \"3\" is not an allowed pattern\n    \"3\"\n  ../../../../tmp/hrcg-qa-build/index.html: rule 5 (digits): digit run \"1\" is not an al",
+   "qa.mjs crashed: Error: nothing to test: the build failed and no --url was given\n    at main (file:///home/user/Website-selling/hrcg/scripts/qa.mjs:1272:20)"
+  ],
+  "finished": "2026-10-08T08:18:28.196Z",
+  "failures": 0
+ },
+ "suites": {}
+}
