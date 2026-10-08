@@ -484,6 +484,10 @@
   opacity: var(--a0-o);
   text-shadow: var(--cv-halo-wide);
 }
+/* no JS: the frame carries the film's native controls along its bottom edge; the sub stands clear of them */
+.no-js .cv-sub {
+  bottom: 52px;
+}
 .cv-hint {
   position: absolute;
   left: 58%;
@@ -914,9 +918,6 @@
   .cv-vt {
     left: var(--spine-l);
     right: var(--spine-r);
-  }
-  .no-js .cv-sub {
-    bottom: 3%;
   }
   /* on phones the sub stands just under the line, so the pulled V crosses it: it steps back too (F-071) */
   .cv[data-pull] .cv-sub {
