@@ -5,7 +5,7 @@
 //   p 0–0.30   the traced vectors draw over the filmed chalk lines (chalk blue, 1.5 px, DRAW, in the order
 //              a crew snaps them); orange ✕ control points stamp in at the fresh line's ends; the extracted
 //              lines extend outward to the page edges and become the sheet's gridlines. SECTION A–A sits
-//              between them (its bottom edge on 07's bottom wall line); the H2 and spec are set on them.
+//              between them (its top and bottom edges on 07's wall lines); the H2 and spec are set on them.
 //   p 0.30–0.80 SECTION A–A: the cut marker sits on PLAN 05's fresh chalk line; dragging it (or ←/→)
 //              moves the depth plane through the section (left = near the camera, right = near the robot).
 //              Untouched, scroll sweeps it from near to far.
@@ -28,7 +28,7 @@ import { DetailBubble } from '../marks/DetailBubble';
 import { videoManager } from '../system/VideoManager';
 import { A105 } from '../content/copy/a104-a200';
 import { SectionSlice, type SectionSliceHandle } from './SectionSlice';
-import { useLive, useMediaQuery, frames } from './a4/util';
+import { useLive, useMediaQuery, usePrinted, frames } from './a4/util';
 import './a4/a4.css';
 
 // ------------------------------------------------------------------ data: lines-b44.json (A5, D5)
@@ -47,22 +47,36 @@ interface LinesData {
 }
 
 /**
- * Prerender / no-JS fallback: the first-wave mock (normalised 0..1 of the plan frame). The real file is
- * always fetched at runtime; this only keeps the first paint from being empty.
+ * Prerender / no-JS fallback: a copy of lines-b44.json (A5, D5) as of 2026-10-08, normalised 0..1 of the
+ * registered plan frame. The real file is always fetched at runtime; this keeps the first paint (and the
+ * no-JS sheet) drawn and registered. Regenerate it if D5 changes.
  */
 const FALLBACK: LinesData = {
-  mock: true,
   segments: [
-    [0.1611, 0.835, 0.6689, 0.8398],
-    [0.1475, 0.5273, 0.1504, 0.1602],
-    [0.1396, 0.8262, 0.1455, 0.1592],
-    [0.8457, 0.584, 0.8545, 0.8252],
-    [0.5693, 0.8369, 0.6699, 0.8379],
-    [0.1377, 0.5215, 0.2949, 0.5215],
-    [0.833, 0.166, 0.8369, 0.3203],
-    [0.5684, 0.5225, 0.75, 0.5234],
+    [0.166, 0.1792, 0.166, 0.8458],
+    [0.1562, 0.8326, 0.6667, 0.8326],
+    [0.7576, 0.8319, 0.8444, 0.8319],
+    [0.8361, 0.1521, 0.8361, 0.8424],
+    [0.166, 0.1722, 0.3139, 0.1722],
+    [0.7479, 0.1694, 0.8292, 0.1694],
+    [0.1549, 0.5292, 0.3083, 0.5292],
+    [0.159, 0.5583, 0.2917, 0.5583],
+    [0.2868, 0.5243, 0.2868, 0.8319],
+    [0.2792, 0.5243, 0.2792, 0.8319],
+    [0.7632, 0.7285, 0.7632, 0.8403],
+    [0.3882, 0.5264, 0.7542, 0.5264],
   ].map(([ax, ay, bx, by], i) => ({ id: i + 1, a: [ax!, ay!] as V2, b: [bx!, by!] as V2, order: i + 1 })),
-  fresh: { a: [0.4, 0.527], b: [0.708, 0.527] },
+  fresh: { a: [0.3882, 0.5255], b: [0.7542, 0.528] },
+  gridlines: [
+    { axis: 'x', at: 0.166, from: 0.1792, to: 0.8458 },
+    { axis: 'x', at: 0.2792, from: 0.5243, to: 0.8319 },
+    { axis: 'x', at: 0.7632, from: 0.7285, to: 0.8403 },
+    { axis: 'x', at: 0.8361, from: 0.1521, to: 0.8424 },
+    { axis: 'y', at: 0.1694, from: 0.166, to: 0.8292 },
+    { axis: 'y', at: 0.5264, from: 0.1549, to: 0.7542 },
+    { axis: 'y', at: 0.5583, from: 0.159, to: 0.2917 },
+    { axis: 'y', at: 0.8319, from: 0.1562, to: 0.8444 },
+  ],
 };
 /** Measured on the mock's last frame (A4-3): used while the JSON still says "mock". */
 const MOCK_FRESH = { a: [0.4, 0.527] as V2, b: [0.708, 0.527] as V2 };
@@ -254,6 +268,8 @@ export default function A105Layout() {
   const secRef = useRef<HTMLDivElement>(null);
   // desktop: the pinned stage's progress. Phone (not pinned): the traces follow the stage passing through
   // the viewport and the sweep follows the section itself, so it happens while the section is on screen.
+  usePrinted(pinRef, '0px 0px -10% 0px');
+  usePrinted(textRef);
   const p = useStageProgress(trackRef, phone ? { start: 'top bottom', end: 'bottom top' } : {});
   const pSec = useStageProgress(secRef, { start: 'top bottom', end: 'bottom top' });
 
@@ -561,10 +577,10 @@ export default function A105Layout() {
                 <div ref={secRef}>
                   <SectionSlice handle={sliceRef} initial={0.5} />
                 </div>
-                <p className="a105-hint t-label" data-a105-avoid="">
+                <p className="a105-hint t-label print-in" data-a105-avoid="">
                   {A105.hint}
                 </p>
-                <p className="t-lead a105-line" data-a105-avoid="">
+                <p className="t-lead a105-line print-in" data-a105-avoid="" style={{ ['--d' as string]: '120ms' } as CSSProperties}>
                   {snapped ? A105.lineSnapped : A105.line}
                 </p>
               </div>
@@ -583,7 +599,7 @@ export default function A105Layout() {
           </svg>
         ) : null}
         <div className="a105-textin">
-        <h2 className="t-h2-challenge a105-h2" data-a105-text="">
+        <h2 className="t-h2-challenge a105-h2 print-in" data-a105-text="">
           {A105.h2}
         </h2>
         <div className="a105-detail" data-a105-text="">
@@ -594,10 +610,10 @@ export default function A105Layout() {
           </DetailBubble>
         </div>
         <div className="a105-col">
-          <p className="t-spec a105-spec" data-a105-text="">
+          <p className="t-spec a105-spec print-in" data-a105-text="" style={{ ['--d' as string]: '120ms' } as CSSProperties}>
             {A105.spec}
           </p>
-          <ul className="a105-beats" data-a105-text="">
+          <ul className="a105-beats print-in" data-a105-text="" style={{ ['--d' as string]: '240ms' } as CSSProperties}>
             {A105.beats.map((b) => (
               <li key={b} className="t-beat">
                 {b}

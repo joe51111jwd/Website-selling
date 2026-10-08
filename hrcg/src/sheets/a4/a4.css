@@ -197,18 +197,39 @@
 .a200[data-live] .a200-field {
   clip-path: circle(0% at 50% 50%);
 }
+/* the text follows the pinned drawing by default; it stands beside it (pinned too) only where a
+   viewport is tall and wide enough to hold H2, body and statement next to the grid */
 .a200[data-live] .a200-text {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100svh;
-  align-self: start;
-  justify-content: flex-end;
-  padding-bottom: calc(var(--chrome-bottom) + var(--s-5) + 21px);
-  pointer-events: none;
+  grid-row: 2;
+  grid-column: 1 / span 7;
+  position: relative;
+  height: auto;
+  padding: var(--s-7) 0 0;
 }
-.a200[data-live] .a200-text > * {
-  pointer-events: auto;
+.a200[data-live] .a200-grid {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+@media (min-width: 1200px) and (min-height: 860px) {
+  .a200[data-live] .a200-text {
+    grid-row: 1;
+    grid-column: 1 / span 5;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    align-self: start;
+    justify-content: flex-end;
+    padding: 0 0 calc(var(--chrome-bottom) + var(--s-5) + 21px);
+    pointer-events: none;
+  }
+  .a200[data-live] .a200-text > * {
+    pointer-events: auto;
+  }
+  .a200[data-live] .a200-grid {
+    grid-column: 6 / -1;
+    justify-self: end;
+  }
 }
 
 /* row poster, outline and cloud (all in the row's own 1890 × 350 units) */
@@ -326,20 +347,6 @@
 .a200[data-live] .a200-compass .a200-arc [data-ink] {
   opacity: var(--arc-ink, 0);
   transition: none;
-}
-
-/* short desktop screens: the text follows the pinned drawing instead of standing beside it */
-@media (min-width: 768px) and (max-height: 759px) {
-  .a200[data-live] .a200-text {
-    grid-row: 2;
-    grid-column: 1 / span 7;
-    position: relative;
-    height: auto;
-    padding: var(--s-7) 0 0;
-  }
-  .a200[data-live] .a200-grid {
-    grid-column: 1 / -1;
-  }
 }
 
 /* phone: one column; the drawing pins (180vh), the text follows it */
@@ -540,12 +547,10 @@
   opacity: 0;
   transition: opacity var(--dur-print) linear;
 }
-.a104-stage[data-printed] .a104-route-svg,
-.a104-stage[data-printed] .a104-trace,
-.a104-stage[data-printed] .a104-frame {
-  opacity: 1;
-}
-.a104-stage[data-printed] .a104-floor {
+.a104[data-printed] .a104-route-svg,
+.a104[data-printed] .a104-trace,
+.a104[data-printed] .a104-frame,
+.a104[data-printed] .a104-floor {
   opacity: 1;
 }
 .no-js .a104-route-svg,
@@ -559,7 +564,7 @@
   opacity: 1;
   transition: none;
 }
-.a104-stage[data-printed] .print-in {
+.a104[data-printed] .print-in {
   opacity: 1;
 }
 .a104-beats {
@@ -997,4 +1002,10 @@
     top: calc(100% + var(--s-3));
     width: 100cqw;
   }
+}
+
+/* print-in for A-105 (stage copy and the text block) */
+.a105-pin[data-printed] .print-in,
+.a105-text[data-printed] .print-in {
+  opacity: 1;
 }

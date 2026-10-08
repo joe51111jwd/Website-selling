@@ -12,7 +12,8 @@
 //   centre + s·((u − ½)·(1/√2, −1/√6) + (v − ½)·(1/√2, 1/√6)) + z·(0, −√⅔)
 // which is exactly what rotateX(54.7356°) rotateZ(−45°) translateZ(z) does to the plane's own pixels.
 
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useRef, type CSSProperties } from 'react';
+import { usePrinted } from './a4/util';
 import { ViewTitle } from '../chrome/ViewTitle';
 import { SheetTag } from '../chrome/SheetTag';
 import { LoopVideo } from '../system/LoopVideo';
@@ -225,27 +226,9 @@ function Route({ g, variant }: { g: Geometry; variant: 'desk' | 'phone' }) {
 }
 
 export default function A104Pipe() {
-  const stageRef = useRef<HTMLDivElement>(null);
-
-  // print in when the sheet arrives (opacity only; never travels)
-  useEffect(() => {
-    const el = stageRef.current;
-    if (!el || typeof IntersectionObserver === 'undefined') {
-      el?.setAttribute('data-printed', '');
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          el.setAttribute('data-printed', '');
-          io.disconnect();
-        }
-      },
-      { rootMargin: '0px 0px -25% 0px' },
-    );
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
+  const rootRef = useRef<HTMLDivElement>(null);
+  // the route, its beats, the trace and the copy print in when the sheet arrives (opacity only)
+  usePrinted(rootRef, '0px 0px -25% 0px');
 
   const trace = media['trace-t43']?.sources?.[0]?.src;
   const stageVars = { ...planeVars(DESK, 'd'), ...planeVars(PHONE, 'm') } as CSSProperties;
@@ -254,12 +237,12 @@ export default function A104Pipe() {
     : undefined;
 
   return (
-    <div className="a104">
+    <div className="a104" ref={rootRef}>
       <div className="a104-head">
         <SheetTag id="A-104" />
       </div>
 
-      <div className="a104-stage" ref={stageRef} style={stageVars}>
+      <div className="a104-stage" style={stageVars}>
         {/* the floor: the plane's soft shadow and its dashed footprint, behind the plane */}
         <div className="a104-shadow" aria-hidden="true" />
         <svg className="a104-floor a104-floor--desk" viewBox={`0 0 ${DESK.w} ${DESK.h}`} aria-hidden="true" focusable="false">
@@ -289,11 +272,13 @@ export default function A104Pipe() {
         <Route g={DESK} variant="desk" />
         <Route g={PHONE} variant="phone" />
 
-        <h2 className="t-h2-challenge a104-h2">{A104.h2}</h2>
+        <h2 className="t-h2-challenge a104-h2 print-in">{A104.h2}</h2>
       </div>
 
       <div className="a104-foot">
-        <p className="t-spec a104-spec">{A104.spec}</p>
+        <p className="t-spec a104-spec print-in" style={{ ['--d' as string]: '120ms' } as CSSProperties}>
+          {A104.spec}
+        </p>
         <ViewTitle id="a104-perspective" className="a104-persp">
           <LoopVideo id="el-c33" className="feather" />
         </ViewTitle>

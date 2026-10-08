@@ -79,3 +79,29 @@ export function frames(n = 2): Promise<void> {
     step(n);
   });
 }
+
+/**
+ * Print-in (brief 3.2, 6): puts data-printed on the element once it arrives (IntersectionObserver), so
+ * every .print-in inside prints in (opacity, 200 ms). No re-render. Under .no-js / .rm text is simply there.
+ */
+export function usePrinted(ref: RefObject<HTMLElement | null>, rootMargin = '0px 0px -20% 0px') {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      el.setAttribute('data-printed', '');
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          el.setAttribute('data-printed', '');
+          io.disconnect();
+        }
+      },
+      { rootMargin },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref, rootMargin]);
+}

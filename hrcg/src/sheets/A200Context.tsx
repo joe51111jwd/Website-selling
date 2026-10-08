@@ -102,6 +102,7 @@ export default function A200Context() {
   const geo = useRef<{ C: Rect; T: Rect | null; phone: boolean } | null>(null);
   const pulsed = useRef(false);
   const lastP = useRef(-1);
+  const focused = useRef(false);
 
   const p = useStageProgress(trackRef);
   const boxW = useWidth(boxRef);
@@ -206,7 +207,7 @@ export default function A200Context() {
         box.style.setProperty('--arc-ink', String(s(0.81, 0.86)));
       }
       // ---- phase 5: text prints in
-      textRef.current?.classList.toggle('is-in', v >= 0.9);
+      textRef.current?.classList.toggle('is-in', v >= 0.9 || focused.current);
       lastP.current = v;
     },
     [],
@@ -349,7 +350,19 @@ export default function A200Context() {
       </div>
 
       <div className="a200-text print-in" ref={textRef}>
-        <h2 className="t-h2-statement a200-h2">{A200.h2}</h2>
+        <h2
+          className="t-h2-statement a200-h2"
+          onFocus={() => {
+            // a CTA / INDEX jump focuses the H2 before the stage has printed it: show it at once
+            focused.current = true;
+            textRef.current?.classList.add('is-in');
+          }}
+          onBlur={() => {
+            focused.current = false;
+          }}
+        >
+          {A200.h2}
+        </h2>
         <p className="t-body a200-body">{body}</p>
         <p className="a200-statement">{A200.statement}</p>
       </div>
