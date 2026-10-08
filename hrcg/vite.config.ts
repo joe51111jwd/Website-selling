@@ -60,7 +60,12 @@ function hrcgHtml(): Plugin {
         const h1Font = existsSync(resolve(ROOT, 'public/fonts/BigShoulders-H1.woff2'))
           ? '<link rel="preload" href="/fonts/BigShoulders-H1.woff2" as="font" type="font/woff2" crossorigin />'
           : '';
-        return html.replace('<!--hrcg:head-->', headTags()).replace('<!--hrcg:preload-h1-->', h1Font);
+        // F-065: the header lockup (HRCG) is set in Big Shoulders; preloading it removes the 22 px
+        // swap shift of .header-rule / .header-lines on first paint
+        const lockupFont = existsSync(resolve(ROOT, 'public/fonts/big-shoulders.woff2'))
+          ? '<link rel="preload" href="/fonts/big-shoulders.woff2" as="font" type="font/woff2" crossorigin />'
+          : '';
+        return html.replace('<!--hrcg:head-->', headTags()).replace('<!--hrcg:preload-h1-->', [h1Font, lockupFont].filter(Boolean).join('\n    '));
       },
     },
   };
@@ -104,6 +109,9 @@ export default defineConfig({
   preview: { port: 5300 },
   build: {
     target: 'es2022',
+    // F-013: one stylesheet in import order, whatever happens to the JS chunks (lazy sheets, F-014).
+    // With split CSS, chunk sheets could load before index-*.css and lose equal-specificity overrides.
+    cssCodeSplit: false,
     // three is lazy (hero / section chunks); keep the shell lean
     chunkSizeWarningLimit: 800,
   },

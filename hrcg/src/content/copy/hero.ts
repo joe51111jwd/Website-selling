@@ -28,7 +28,8 @@ export const HERO = {
   /** The phone handle (44 x 44 chalk box) */
   handleLabel: 'Pull the chalk line: drag down, or tap to snap',
   reset: '↺ RESET THE LINE',
-  resetLabel: 'Reset the chalk line',
+  /** accessible name; starts with the visible text "RESET THE LINE" (WCAG 2.5.3, F-031) */
+  resetLabel: 'Reset the line',
   /** Reduced motion / MOTION OFF (brief 2.6) */
   play: '▶ PLAY THE SNAP (1 S) · CONCEPT FILM',
   /** The 3D VIEW wrapper (focusable; the canvas itself is aria-hidden) */

@@ -13,6 +13,7 @@ html {
   background: var(--slab-black);
   color: var(--chalk);
   /* focus is never hidden by the fixed chrome (WCAG 2.4.11, brief 3.1) */
+  /* F-001: landings stop 16 px clear of the header rail */
   scroll-padding-top: calc(var(--border) + var(--header-h) + var(--s-4));
   scroll-padding-bottom: calc(var(--strip-h) + var(--border) + var(--safe-bottom));
   scroll-behavior: auto;
@@ -256,20 +257,32 @@ main:focus {
 .set-body > .sheet {
   margin-top: var(--s-11);
 }
-/* the spine: on the left margin line from A-100 to A-900 (brief 5.3). Every sheet tag and H2
-   starts on it. A-100's segment is drawn by the cover stage (use .spine-line). */
+/* F-067: consecutive paper sheets (A-301 -> A-900) are one paper set, no slab gap between them */
+.set-body > .sheet[data-ground='gypsum'] + .sheet[data-ground='gypsum'] {
+  margin-top: 0;
+}
+/* the spine: along the left margin line from A-100 to A-900 (brief 5.3), 12 px outside it, so it
+   runs beside every sheet tag and H2 instead of through their first glyph (F-060), and under the
+   sheet content. Phones have no spine: it would double the 12 px sheet border. A-100's segment is
+   drawn by the cover stage (use .spine-line). */
 .set-body::before,
 .spine-line {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
-  left: max(var(--margin), calc((100% - var(--content-max)) / 2));
+  left: calc(max(var(--margin), calc((100% - var(--content-max)) / 2)) - 12px);
   width: 1px;
   background: var(--chalk-blue);
   opacity: 0.55;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
+}
+@media (max-width: 767px) {
+  .set-body::before,
+  .spine-line {
+    display: none;
+  }
 }
 .spine-x {
   margin-left: max(var(--margin), calc((100% - var(--content-max)) / 2));
@@ -385,6 +398,12 @@ main:focus {
     font-size: 11px;
     line-height: 14px;
   }
+}
+
+/* F-001: a paper sheet lands with its paper running up under the header (top at the border), so the
+   rail takes the paper's ground and no slab band shows above the paper */
+.sheet[data-sheet][data-ground='gypsum'] {
+  scroll-margin-top: calc(-1 * (var(--header-h) + var(--s-4)));
 }
 
 /* ------------------------------------------------------------------- LoopVideo */

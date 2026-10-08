@@ -152,7 +152,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* top-aligned, so the numerals share one line when a name wraps to two (F-095) */
+  justify-content: flex-start;
+  align-content: start;
   gap: 4px;
   min-height: 64px;
   margin: 0 0 0 -1px;
@@ -194,7 +196,13 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
-.chip:hover {
+/* hover only where hover is real (a tap must not leave it behind, F-101); :active gives touch feedback */
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover {
+    box-shadow: inset 0 0 0 1px var(--fg);
+  }
+}
+.chip:active {
   box-shadow: inset 0 0 0 1px var(--fg);
 }
 .chip:has(.chip-input:focus-visible) {
@@ -315,6 +323,17 @@
   grid-column: 7 / span 6;
   grid-row: 2;
 }
+/* the right panel ends on the right margin, so the pair spans the content edge to edge; its word
+   starts on the panel's left edge (F-055) */
+.diptych-view--right,
+.diptych-word--right {
+  justify-self: end;
+}
+.diptych-word--right {
+  width: max-content;
+  min-width: var(--dip-size);
+  text-align: left;
+}
 .diptych-picture,
 .diptych-picture img {
   aspect-ratio: 1;
@@ -381,28 +400,28 @@
   fill: var(--chalk);
   fill-opacity: 0.85;
 }
-/* the bay number slot: "—", never a number */
+/* the bay number slot: "—" under the legend word BAY, never a number; painted through the same
+   stencil mask as the slot (F-096) */
 .bay-number {
   fill: var(--chalk);
-  fill-opacity: 0.6;
+  fill-opacity: 0.85;
+}
+.bay-number-label {
+  font-family: var(--font-stencil);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  fill: var(--chalk);
+  fill-opacity: 0.85;
 }
 .bay-plate[data-slot-default] .bay-slot-text {
   fill-opacity: 0.85;
 }
+/* READY FOR —, then only the ticked numbers (F-098) */
 .bay-ready-label,
+.bay-ready-none,
 .bay-ready-no.is-on {
   fill: var(--chalk);
   fill-opacity: 0.85;
-}
-.bay-ready-no {
-  fill: none;
-  stroke: var(--chalk);
-  stroke-opacity: 0.42;
-  stroke-width: 1px;
-  vector-effect: non-scaling-stroke;
-}
-.bay-ready-no.is-on {
-  stroke: none;
 }
 
 /* RFI-001 on gypsum paper (a full-bleed band; the slab returns for T7) */
@@ -506,15 +525,47 @@
 }
 .t7-proof {
   grid-column: 3 / span 10;
+  margin: 0;
+}
+.t7-proof-head,
+.t7-proof-tail {
+  color: var(--fg-2);
+}
+/* three equal columns, one render each, centred, each with its own label (F-097) */
+.t7-proof-cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  margin-top: var(--s-4);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.t7-proof-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-5) 0 var(--s-4);
+}
+.t7-proof-tile {
+  display: block;
+  width: min(100%, 280px);
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  overflow: hidden;
 }
 .t7-proof-img {
+  display: block;
   width: 100%;
-  height: auto;
-  border: 1px solid var(--line);
+  height: 100%;
+  object-fit: cover;
 }
 .t7-proof-label {
-  margin-top: var(--s-2);
-  color: var(--fg-2);
+  color: var(--fg);
+  text-align: center;
+}
+.t7-proof-tail {
+  margin-top: var(--s-3);
 }
 
 /* ============================================================== A-301 FOR SPONSORS */
@@ -609,14 +660,21 @@
 .materials .view-title {
   margin-top: var(--s-3);
 }
+.materials-readout {
+  display: none;
+}
 
 .a301-grid {
   display: grid;
   grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
   column-gap: var(--gutter);
   row-gap: var(--s-8);
-  margin-top: var(--s-9);
+  margin-top: var(--s-7);
   align-items: start;
+}
+/* the whole H2 lands above the strip with the material row (F-056; F-016's cap, tightened to 10vh) */
+.conv--a301 .conv-h2.t-h2-statement {
+  font-size: min(clamp(48px, 8vw, 152px), 10vh);
 }
 .a301-main {
   grid-column: 1 / span 7;
@@ -676,77 +734,56 @@
 
 /* ============================================================== A-900 GENERAL NOTES */
 
+/* A-301 and A-900 are one paper set: the break is a 1 px rule on paper with the A-900 tag under it,
+   and each paper sheet starts flush at its top (F-092; the slab margin between them is F-067). */
+.conv--a900 > .conv-head {
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line);
+}
 .a900-body .conv-h2 {
   margin-top: var(--s-6);
 }
+/* H-7: the notes print open, like drawing notes; two ruled columns at >= 1024 px, read down */
 .a900-notes {
-  max-width: 64ch;
   margin-top: var(--s-8);
 }
 .notes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   border-top: 1px solid var(--line);
 }
 .note {
+  padding: var(--s-4) 0 var(--s-5);
   border-bottom: 1px solid var(--line);
+  min-width: 0;
 }
-.note-details {
-  interpolate-size: allow-keywords;
-}
-.note-details::details-content {
-  block-size: 0;
-  overflow: clip;
-  transition:
-    block-size 220ms var(--ease-settle),
-    content-visibility 220ms allow-discrete;
-}
-.note-details[open]::details-content {
-  block-size: auto;
-}
-.rm .note-details::details-content,
-.capture .note-details::details-content {
-  transition: none;
-}
-.note-summary {
+.note-q {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) 24px;
+  grid-template-columns: 40px minmax(0, 1fr);
   align-items: baseline;
   gap: var(--s-3);
-  min-height: 56px;
-  padding: var(--s-4) 0;
-  cursor: pointer;
-  list-style: none;
+  margin: 0;
+  font-family: var(--font-text);
   font-weight: 600;
   font-size: 20px;
   line-height: 26px;
-}
-.note-summary::-webkit-details-marker {
-  display: none;
-}
-.note-summary:focus-visible {
-  outline-offset: 2px;
+  color: var(--fg);
 }
 .note-num {
   font-size: 13px;
   color: var(--fg-2);
 }
-.note-arrow {
-  justify-self: end;
-  font-weight: 400;
-  transition: transform var(--dur-hover) var(--ease-settle);
-}
-.note-details[open] .note-arrow {
-  transform: rotate(90deg);
-}
-.rm .note-arrow {
-  transition: none;
-}
-.note-summary:hover .note-q {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-}
 .note-a {
-  padding: 0 0 var(--s-5) calc(40px + var(--s-3));
+  margin-top: var(--s-2);
+  padding-left: calc(40px + var(--s-3));
+}
+@media (min-width: 1024px) {
+  .notes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, auto);
+    grid-auto-flow: column;
+    column-gap: var(--s-7);
+  }
 }
 
 .imagery {
@@ -816,7 +853,15 @@
 .rm .rollcall-verb {
   transition: none;
 }
-.rollcall-link:hover .rollcall-verb {
+@media (hover: hover) and (pointer: fine) {
+  .rollcall-link:hover .rollcall-verb {
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 0.08em;
+    text-decoration-color: var(--gypsum-ink);
+  }
+}
+.rollcall-link:active .rollcall-verb {
   text-decoration: underline;
   text-decoration-thickness: 3px;
   text-underline-offset: 0.08em;
@@ -834,6 +879,10 @@
 }
 .contact-email-line {
   margin-top: var(--s-5);
+}
+/* H-6: the email steps down to clamp(28px, 4vw, 56px) (overrides brief 5.2's 7vw) */
+.contact-email.t-email {
+  font-size: clamp(28px, 4vw, 56px);
 }
 .contact-email {
   display: inline-block;
@@ -856,22 +905,93 @@
   justify-content: flex-start;
   padding-block: 12px;
 }
-.end-line {
+/* the close (H-6, F-094): the end line at statement size on its own ruled row, directly above the
+   title block and on its left edge, with the strip's two CTA cells beside it (under it < 1024 px) */
+.a900-close {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: var(--s-5);
+  align-items: end;
   margin-top: var(--s-9);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--line);
+}
+.end-line {
+  grid-column: 1 / span 8;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-variation-settings: 'opsz' 72;
+  font-size: min(clamp(48px, 8vw, 152px), 12vh);
+  line-height: 0.88;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.close-ctas {
+  grid-column: 9 / span 4;
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.close-ctas li + li .close-cta {
+  margin-top: -1px;
+}
+.close-cta {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 12px var(--s-4);
+  border: 1px solid var(--fg);
+  color: var(--fg);
+  text-decoration: none;
+}
+.close-cta-label {
   font-family: var(--font-text);
   font-weight: 600;
   font-stretch: 68%;
-  font-size: 13px;
-  line-height: 16px;
+  font-size: 10px;
+  line-height: 12px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--fg);
+  color: var(--fg-2);
+}
+.close-cta-value {
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 26px;
+}
+/* orange on paper only as a fill under slab-black text (brief 5.1) */
+@media (hover: hover) and (pointer: fine) {
+  .close-cta:hover {
+    background: var(--marking-orange);
+    border-color: var(--marking-orange);
+    color: var(--slab-black);
+  }
+  .close-cta:hover .close-cta-label {
+    color: var(--slab-black);
+  }
+}
+.close-cta:focus-visible,
+.close-cta:active {
+  background: var(--marking-orange);
+  border-color: var(--marking-orange);
+  color: var(--slab-black);
+}
+.close-cta:focus-visible .close-cta-label,
+.close-cta:active .close-cta-label {
+  color: var(--slab-black);
 }
 
 /* footer title block: full width, ruled cells (hairlines drawn by the 1px grid gap). Every row of
    cells sums to the full width, so no gap shows through. */
 .title-block {
-  margin-top: var(--s-9);
+  display: block;
+  padding-top: var(--s-6);
 }
 .tb {
   display: grid;
@@ -908,16 +1028,22 @@
 .tb-value a {
   text-decoration-color: var(--fg);
 }
+/* the HOLD cloud sits in the cell: 4 px clear of the cell rule, 4 px down, 10 px before the
+   sentence (F-093). The scallops are drawn outside the cloud's box (overflow: visible), so the
+   margins add that bleed (measured: about 10 px each side, 7 px top and bottom) to the gaps; the
+   cell's own 12 px left padding is taken off the left margin. */
 .tb-holdline {
   display: inline-flex;
-}
-.tb-holdline {
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 10px;
+  gap: 4px 0;
+  --cloud-bleed-x: 10px;
+  --cloud-bleed-y: 7px;
 }
 .tb-cloud {
   flex: 0 0 auto;
+  margin: calc(4px + var(--cloud-bleed-y)) calc(10px + var(--cloud-bleed-x)) var(--cloud-bleed-y)
+    calc(4px + var(--cloud-bleed-x) - 12px);
 }
 .tb-cloud .mk-hold-body {
   display: flex;
@@ -1065,6 +1191,18 @@
   .tb-sep {
     display: none;
   }
+  /* the close: the end line full width, the two CTA cells side by side under it */
+  .end-line,
+  .close-ctas {
+    grid-column: 1 / -1;
+  }
+  .close-ctas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .close-ctas li + li .close-cta {
+    margin-top: 0;
+    margin-left: -1px;
+  }
 }
 
 @media (max-width: 767px) {
@@ -1163,29 +1301,59 @@
     max-width: 280px;
   }
 
+  /* F-056: five square crops in one row with the MAT number under each, so the H2 lands inside the
+     first screen; the names stay in the accessible name and print in the readout when tapped */
   .materials-list {
-    grid-template-columns: minmax(0, 1fr);
-    border-top: 1px solid var(--line);
-  }
-  .material {
-    border-bottom: 1px solid var(--line);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    column-gap: var(--s-2);
   }
   .material-button {
-    display: grid;
-    grid-template-columns: 112px minmax(0, 1fr);
-    gap: var(--s-4);
-    align-items: center;
-    padding: var(--s-3) 0;
     cursor: pointer;
   }
   .material-meta {
-    flex-direction: column;
+    margin-top: var(--s-2);
+    padding-bottom: 0;
+  }
+  .material-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .material-keys {
+    display: none;
+  }
+  .material-label {
+    font-size: 11px;
+    line-height: 14px;
+    white-space: nowrap;
+  }
+  .material.is-active .material-frame {
+    outline: 2px solid var(--fg);
+    outline-offset: 2px;
+  }
+  /* F-057: the tapped crop's name and its keynote titles, inline under the row */
+  .materials-readout {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-2) var(--s-4);
+    min-height: 44px;
+    margin-top: var(--s-3);
+    color: var(--fg);
+  }
+  .materials-readout-name {
+    flex: 1 0 100%;
+  }
+  .materials-readout-key {
+    display: inline-flex;
+    align-items: center;
     gap: var(--s-2);
-    margin: 0;
-    padding: 0;
   }
   .a301-grid {
-    margin-top: var(--s-8);
+    margin-top: var(--s-7);
     row-gap: var(--s-7);
   }
   .a301-main,
@@ -1194,13 +1362,42 @@
     grid-column: 1 / -1;
   }
 
-  .note-summary {
-    grid-template-columns: 28px minmax(0, 1fr) 20px;
+  .note-q {
+    grid-template-columns: 28px minmax(0, 1fr);
     font-size: 18px;
     line-height: 24px;
   }
   .note-a {
     padding-left: calc(28px + var(--s-3));
+  }
+  .close-ctas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .close-ctas li + li .close-cta {
+    margin-top: -1px;
+    margin-left: 0;
+  }
+  /* F-054: with the keyboard up, a focused field lands below the 64 px sticky mini-slot (A-300) and
+     clear of the header (A-301), never under them */
+  .rfi--teams :is(input, textarea, .chip, .rfi-label),
+  .composer :is(input, textarea, .chip, .rfi-label) {
+    scroll-margin-top: calc(64px + var(--s-4));
+    scroll-margin-bottom: var(--s-4);
+  }
+  /* F-099: phone targets and legibility */
+  .tb-index .in-page-index-rows a {
+    display: block;
+    padding: 12px 0;
+    min-height: 44px;
+  }
+  .contact-email {
+    display: inline-block;
+    padding: 8px 0;
+  }
+  .chip-name {
+    font-size: 13px;
+    line-height: 16px;
+    font-stretch: 80%;
   }
   .imagery-row {
     grid-template-columns: minmax(0, 1fr);

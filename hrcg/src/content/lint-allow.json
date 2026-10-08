@@ -47,6 +47,45 @@
         "digits"
       ],
       "reason": "Brief 3.9 A-200 grid SVG alt (rule 2: Manhattan allowed in the history body and its alt)."
+    },
+    {
+      "text": "The Set, a 30-second concept film: the drawing set from the cover to the general notes, with AI-generated concept footage of robot 07, a concept design, on all five challenges.",
+      "rules": [
+        "digits"
+      ],
+      "reason": "FIXLIST-1 F-020: THE SET video's accessible name (copy/chrome.ts THE_SET.videoLabel); the film's real running time."
+    },
+    {
+      "text": "In 1811, the Commissioners' Plan drew most of Manhattan as a grid of twelve avenues and 155 cross streets, set about 29° east of true north. Survey crews led by John Randel Jr. then marked it out on the ground, much of it still fields, with 1,549 marble markers and 98 iron bolts where rock got in the way.",
+      "rules": [
+        "venue",
+        "digits"
+      ],
+      "reason": "Brief 3.9 A-200 history body (verified version). Manhattan allowed only here and in the grid alt (rule 2). Figures ship only if A6's fact gate verifies them. FIXLIST-1 H-5 (director-approved): 'drew most of Manhattan as a grid'."
+    },
+    {
+      "text": "In 1811, the Commissioners’ Plan drew most of Manhattan as a grid of twelve avenues and 155 cross streets, set about 29° east of true north. Survey crews led by John Randel Jr. then marked it out on the ground, much of it still fields, with 1,549 marble markers and 98 iron bolts where rock got in the way.",
+      "rules": [
+        "venue",
+        "digits"
+      ],
+      "reason": "Same as above, typographic apostrophe (brief 5.2). FIXLIST-1 H-5 (director-approved): 'drew most of Manhattan as a grid'."
+    },
+    {
+      "text": "In 1811, the Commissioners' Plan drew most of Manhattan as a grid of avenues and cross streets, set about 29° east of true north. Survey crews then marked it out on the ground, much of it still fields.",
+      "rules": [
+        "venue",
+        "digits"
+      ],
+      "reason": "Brief 3.9 A-200 history body (fallback version). FIXLIST-1 H-5 (director-approved): 'drew most of Manhattan as a grid'."
+    },
+    {
+      "text": "In 1811, the Commissioners’ Plan drew most of Manhattan as a grid of avenues and cross streets, set about 29° east of true north. Survey crews then marked it out on the ground, much of it still fields.",
+      "rules": [
+        "venue",
+        "digits"
+      ],
+      "reason": "Same as above, typographic apostrophe (brief 5.2). FIXLIST-1 H-5 (director-approved): 'drew most of Manhattan as a grid'."
     }
   ]
 }

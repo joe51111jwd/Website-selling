@@ -91,8 +91,11 @@ export const TIMING = {
   /** film rises through the dust */
   filmIn: 0.25,
   filmFade: 0.55,
-  /** puff + deposit gone by S + 0.8 */
+  /** puff gone by S + 0.8 */
   dustOut: 0.8,
+  /** the deposit and the control points leave over S + 0.15 -> S + 0.5, before the film's own line is up (F-073) */
+  depositFrom: 0.15,
+  depositOut: 0.5,
   /** film can't play by S + 1.2 -> jump to the still */
   filmLate: 1.2,
   /** freeze crossfade: the canvas fades in over the film (120 ms), then the DOM H1 hands over to the
@@ -106,24 +109,40 @@ export const TIMING = {
 /** Rest pose of the 3D VIEW camera (brief 2.3, 4.1); overridden by hero-meta's yaw/pitch/dolly when present. */
 export const POSE = {
   desktop: { yaw: 8, pitch: -2.5, dolly: 0.04, yawMin: -6, yawMax: 10, pitchMin: -3, pitchMax: 3 },
-  phone: { yaw: 6, pitch: -2.5, dolly: 0.04, yawMin: -6, yawMax: 6, pitchMin: -3, pitchMax: 3 },
+  // phone: a sideways drag may not push the H1 out of the frame (F-029): -1 deg left, +6 deg right
+  phone: { yaw: 6, pitch: -2.5, dolly: 0.04, yawMin: -1, yawMax: 6, pitchMin: -3, pitchMax: 3 },
   lookDeg: 3,
   keyDeg: 2,
   lambda: 4,
 } as const;
 
-/** Stage beats, P = 0..1 over the pinned scroll (brief 3.3). */
+/** Stage beats, P = 0..1 over the pinned scroll (brief 3.3, as overridden by FIXLIST-1 F-005 / §5):
+ *  the H1 is out by 0.10, the plan cut runs 0.10-0.30, the pull-out 0.30-0.75, A-100 prints at 0.55. */
 export const BEATS = {
   camBack: [0, 0.1],
-  h1Out: [0, 0.25],
-  planCut: [0.1, 0.4],
-  pullOut: [0.4, 0.75],
-  depositOut: [0.45, 0.6],
-  arenaIn: [0.45, 0.75],
-  bubblesAt: 0.5,
+  /** status line, H1, sub, hint, RESET */
+  h1Out: [0, 0.1],
+  planCut: [0.1, 0.3],
+  /** the hero media leave under the plan */
+  heroOut: [0.1, 0.25],
+  /** the plan still (and its slab backdrop) come in; DRAW-eased */
+  planIn: [0.12, 0.28],
+  /** the backdrop leaves before the A-100 row arrives (the row sits under the plan layer) */
+  backdropOut: [0.28, 0.32],
+  /** the visitor's deposit returns for the cut; portrait FLIPs it onto b44's line over this range */
+  depositIn: [0.1, 0.22],
+  /** ... and hands over to b44's own line as the plan's opacity passes 0.6 */
+  depositHandover: [0.6, 1],
+  pullOut: [0.3, 0.75],
+  arenaIn: [0.32, 0.6],
+  /** the A-100 row (bays, bubbles, captions) only once the pull-out has started */
+  a100In: [0.32, 0.38],
+  bubblesAt: 0.4,
   land: 0.75,
-  printAt: 0.75,
-  sheetA100At: 0.4,
+  printAt: 0.55,
+  /** the A-100 load group (posters + videos) is released here, in time for the row at 0.32 (F-006) */
+  releaseA100At: 0.25,
+  sheetA100At: 0.3,
 } as const;
 
 /** Capture timeline (registerCaptureScene('hero')): the passive path with a scripted pull. */

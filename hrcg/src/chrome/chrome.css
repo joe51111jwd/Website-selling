@@ -44,14 +44,34 @@
   padding: 0 var(--s-4) 0 calc(var(--margin) - var(--border));
   color: var(--chalk);
   pointer-events: none;
-  transition: color var(--dur-hover) linear;
+  /* F-001: an opaque rail of the ground under the lockup (slab or gypsum), transparent over A-000 only.
+     The inset shadows redraw the sheet border's top and side hairlines that the rail covers. */
+  --rail-bg: var(--slab-black);
+  background: var(--rail-bg);
+  border-bottom: 1px solid var(--hairline);
+  box-shadow:
+    inset 0 1px 0 var(--hairline),
+    inset 1px 0 0 var(--hairline),
+    inset -1px 0 0 var(--hairline);
+  transition:
+    color var(--dur-hover) linear,
+    background-color var(--dur-hover) linear,
+    border-color var(--dur-hover) linear;
 }
 .sheet-header > * {
   pointer-events: auto;
 }
 .sheet-header[data-on='gypsum'] {
+  --rail-bg: var(--gypsum);
   color: var(--slab-black);
   --focus: var(--slab-black);
+}
+/* before hydration (JS on) and while A-000 is current: no rail over the hero film */
+html.js:not([data-sheet]) .sheet-header,
+html[data-sheet='A-000'] .sheet-header {
+  --rail-bg: transparent;
+  border-bottom-color: transparent;
+  box-shadow: none;
 }
 .header-home {
   display: inline-flex;
@@ -94,7 +114,7 @@
   color: inherit;
   border-color: currentColor;
   min-width: 88px;
-  background: transparent;
+  background: var(--rail-bg);
 }
 .sheet-header .header-index:hover,
 .sheet-header .header-index:focus-visible {
@@ -122,7 +142,8 @@
   height: var(--strip-h);
   display: flex;
   align-items: stretch;
-  background: rgba(11, 11, 10, 0.96);
+  /* F-059: opaque, nothing ghosts through the strip */
+  background: var(--slab-black);
   border-top: 1px solid var(--hairline);
   color: var(--chalk);
   --focus: var(--chalk-blue);

@@ -1,6 +1,10 @@
-// A-900 parts (brief 3.12): Notes, ImageryNotes, RollCall, Contact (the email), FooterBlock.
-// Owner: A6. Text only, on paper. No motion except the native <details> opening and the roll-call
-// ink-in (400 ms, once each sheet has been in view).
+// A-900 parts (brief 3.12): Notes, ImageryNotes, RollCall, Contact (the email), Close (the end line
+// and the two CTA cells), FooterBlock. Owner: A6. Text only, on paper. No motion except the
+// roll-call ink-in (400 ms, once each sheet has been in view).
+// Director decisions (FIXLIST-1 §8): H-7, the general notes print open like drawing notes (headings
+// and paragraphs, no accordion), two ruled columns at >= 1024 px; H-6, the end line at statement
+// size with the strip's two CTA cells beside it (under it on phones), and the email at
+// clamp(28px, 4vw, 56px).
 
 import { Fragment, useRef, type MouseEvent } from 'react';
 import { LabelText } from '../../chrome/LabelText';
@@ -8,7 +12,8 @@ import { HoldCloud } from '../../marks/HoldCloud';
 import { InPageIndex, hasTheSet } from '../../chrome/SheetIndex';
 import { overlays } from '../../chrome/overlays';
 import { navClick } from '../../chrome/nav';
-import { INDEX } from '../../content/copy/chrome';
+import { INDEX, STRIP } from '../../content/copy/chrome';
+import { HASNT_HAPPENED } from '../../content/viewTitles';
 import { CHALLENGES } from '../../content/challenges';
 import { CONTACT_EMAIL } from '../../content/config';
 import { NOTES } from '../../content/copy/conversion';
@@ -17,21 +22,17 @@ import { useSheet } from '../../system/sheetStore';
 import { buildMailto } from '../../lib/mailto';
 import { CopyButton } from './FormParts';
 
+/** The six general notes, printed open (H-7): a numbered heading and its answer, no disclosure. */
 export function Notes() {
   return (
     <ol className="notes">
       {NOTES.notes.map((n, i) => (
         <li key={n.q} className="note">
-          <details className="note-details">
-            <summary className="note-summary">
-              <span className="note-num num">{`${i + 1}.`}</span>
-              <span className="note-q">{n.q}</span>
-              <span className="note-arrow" aria-hidden="true">
-                →
-              </span>
-            </summary>
-            <p className="note-a t-body">{n.a}</p>
-          </details>
+          <h3 className="note-q">
+            <span className="note-num num">{`${i + 1}.`}</span>
+            <span className="note-q-text">{n.q}</span>
+          </h3>
+          <p className="note-a t-body">{n.a}</p>
         </li>
       ))}
     </ol>
@@ -118,6 +119,33 @@ export function Contact() {
   );
 }
 
+/**
+ * The close (H-6, F-094): THIS HASN'T HAPPENED YET. at statement size on its own ruled row,
+ * directly above the title block and on its left edge, with the strip's two CTA cells (same copy,
+ * same targets) beside it at >= 1024 px and under it below.
+ */
+export function Close() {
+  return (
+    <div className="a900-close">
+      <p className="end-line">{HASNT_HAPPENED}</p>
+      <ul className="close-ctas">
+        <li>
+          <a className="close-cta" href="#a-300" onClick={navClick(true)}>
+            <span className="close-cta-label">{STRIP.teamsLabel}</span>
+            <span className="close-cta-value">{STRIP.teamsValue}</span>
+          </a>
+        </li>
+        <li>
+          <a className="close-cta" href="#a-301" onClick={navClick(true)}>
+            <span className="close-cta-label">{STRIP.sponsorsLabel}</span>
+            <span className="close-cta-value">{STRIP.sponsorsValue}</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
 function rows(): Array<[string, string]> {
   return NOTES.block.split('\n').map((line) => {
     const i = line.indexOf('|');
@@ -173,16 +201,20 @@ export function FooterBlock() {
         return v;
     }
   };
+  // The block brings its own paper ground and margins, so it reads the same inside A-900 or as the
+  // page's <footer> after </main> (F-066 / F-100).
   return (
-    <footer className="title-block">
-      <dl className="tb" data-lint-group="">
-        {cells.map(([label, v]) => (
-          <div key={label} className={`tb-cell tb-cell--${label.toLowerCase()}`}>
-            <dt className="tb-label">{label}</dt>
-            <dd className="tb-value">{value(label, v)}</dd>
-          </div>
-        ))}
-      </dl>
+    <footer className="title-block" data-ground="gypsum">
+      <div className="sheet-inner">
+        <dl className="tb" data-lint-group="">
+          {cells.map(([label, v]) => (
+            <div key={label} className={`tb-cell tb-cell--${label.toLowerCase()}`}>
+              <dt className="tb-label">{label}</dt>
+              <dd className="tb-value">{value(label, v)}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
     </footer>
   );
 }

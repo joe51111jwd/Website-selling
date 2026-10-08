@@ -6,8 +6,13 @@
 //
 // Accepted exports per file: default, or a named export equal to the file name
 // (e.g. export function A101Brick()). Components take no props.
+//
+// Shell JS budget (FIXLIST F-014): the sheets below the fold (A-105 with its section slice, A-200,
+// A-300, A-301, A-900) are React.lazy chunks, each behind its own <Suspense>. The prerender waits for
+// them, so their HTML is in index.html; on the client React keeps that server HTML in place until each
+// chunk has loaded, then hydrates it. CSS stays one file (vite.config.ts cssCodeSplit: false, F-013).
 
-import { Suspense, useEffect, type ComponentType, type CSSProperties } from 'react';
+import { Suspense, lazy, useEffect, type ComponentType, type CSSProperties } from 'react';
 import { COVER_STAGE_VH, sheetById, type SheetId } from './content/sheets';
 import { SKIP_LINK } from './content/copy/chrome';
 import { SheetHeader } from './chrome/SheetHeader';
@@ -21,8 +26,8 @@ import { useShellEffects } from './system/shell';
 
 type Mod = Record<string, unknown>;
 
-// Explicit file list: never glob a whole folder eagerly (it would pull lazy GL modules into the shell).
-const modules = import.meta.glob<Mod>(
+// Explicit file lists: never glob a whole folder (it would pull lazy GL modules into the shell).
+const eagerModules = import.meta.glob<Mod>(
   [
     './hero/CoverStage.tsx',
     './sheets/A100Bays.tsx',
@@ -30,22 +35,41 @@ const modules = import.meta.glob<Mod>(
     './sheets/A102Drywall.tsx',
     './sheets/A103Bolt.tsx',
     './sheets/A104Pipe.tsx',
-    './sheets/A105Layout.tsx',
-    './sheets/A200Context.tsx',
-    './sheets/A300Teams.tsx',
-    './sheets/A301Sponsors.tsx',
-    './sheets/A900Notes.tsx',
   ],
   { eager: true },
 );
+const lazyModules = import.meta.glob<Mod>([
+  './sheets/A105Layout.tsx',
+  './sheets/A200Context.tsx',
+  './sheets/A300Teams.tsx',
+  './sheets/A301Sponsors.tsx',
+  './sheets/A900Notes.tsx',
+]);
 
-function pick(path: string): ComponentType | null {
-  const mod = modules[path];
+function componentOf(mod: Mod | undefined, path: string): ComponentType | null {
   if (!mod) return null;
   const name = path.split('/').pop()!.replace(/\.tsx$/, '');
   const c = (mod.default ?? mod[name]) as ComponentType | undefined;
   if (typeof c === 'function' || (typeof c === 'object' && c !== null)) return c;
   return null;
+}
+
+/** A module that loads but exports no component renders nothing (the build stays green). */
+function Empty() {
+  return null;
+}
+
+// one lazy component per file, created once (stable identity across renders)
+const lazyComponents = new Map<string, ComponentType>();
+for (const [path, load] of Object.entries(lazyModules)) {
+  lazyComponents.set(
+    path,
+    lazy(() => load().then((mod) => ({ default: componentOf(mod, path) ?? Empty }))),
+  );
+}
+
+function pick(path: string): ComponentType | null {
+  return componentOf(eagerModules[path], path) ?? lazyComponents.get(path) ?? null;
 }
 
 interface Slot {

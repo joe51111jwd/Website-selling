@@ -1,6 +1,10 @@
-// Sheet header (brief 3.1): top line inside the border, transparent over media.
+// Sheet header (brief 3.1 + FIXLIST F-001 override): top line inside the border.
 // Left: COURSE mark lockup -> #a-000. Right: INDEX, a real <a href="#index"> that JS upgrades to
-// open the dialog. Text inverts to slab-black while a gypsum sheet is under it. Owner: A1.
+// open the dialog.
+// Ground (F-001): transparent only while A-000 is the current sheet (html[data-sheet], set here from
+// sheetStore); everywhere else an opaque rail that takes the ground under the LOCKUP: slab, or gypsum
+// (data-on="gypsum", slab-black ink) when a [data-ground="gypsum"] element crosses the header line
+// within the lockup's x-range. INDEX sits on the same rail, so its ink always matches it. Owner: A1.
 
 import { useEffect, useRef, useState } from 'react';
 import { CourseMark } from './CourseMark';
@@ -8,22 +12,42 @@ import { HEADER } from '../content/copy/chrome';
 import { navClick } from './nav';
 import { openIndex } from './overlays';
 import { onLayout } from '../system/scroll';
+import { sheetStore } from '../system/sheetStore';
 
 export function SheetHeader() {
   const ref = useRef<HTMLElement>(null);
   const [onPaper, setOnPaper] = useState(false);
 
+  // the current sheet on <html data-sheet>: the header is transparent over A-000 only (chrome.css)
+  useEffect(() => {
+    const root = document.documentElement;
+    const sync = () => {
+      const cur = sheetStore.get().current;
+      if (root.dataset.sheet !== cur) root.dataset.sheet = cur;
+    };
+    sync();
+    const unsub = sheetStore.subscribe(sync);
+    return () => {
+      unsub();
+      delete root.dataset.sheet;
+    };
+  }, []);
+
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') return;
-    // a thin band through the header's text line: which ground is under the header?
+    // a thin band through the header's text line, as wide as the lockup: which ground is under the logo?
     const papers = new Set<Element>();
     let io: IntersectionObserver | null = null;
     const build = () => {
       io?.disconnect();
       papers.clear();
       const header = ref.current?.getBoundingClientRect();
+      const home = ref.current?.querySelector('.header-home')?.getBoundingClientRect();
       const mid = header ? header.top + header.height / 2 : 48;
       const vh = window.innerHeight;
+      const vw = document.documentElement.clientWidth || window.innerWidth;
+      const left = home ? Math.max(0, Math.round(home.left)) : 0;
+      const right = home ? Math.max(0, Math.round(vw - home.right)) : 0;
       io = new IntersectionObserver(
         (entries) => {
           for (const e of entries) {
@@ -32,7 +56,9 @@ export function SheetHeader() {
           }
           setOnPaper(papers.size > 0);
         },
-        { rootMargin: `-${Math.round(mid - 4)}px 0px -${Math.max(0, Math.round(vh - mid - 4))}px 0px` },
+        {
+          rootMargin: `-${Math.round(mid - 4)}px -${right}px -${Math.max(0, Math.round(vh - mid - 4))}px -${left}px`,
+        },
       );
       scan();
     };
