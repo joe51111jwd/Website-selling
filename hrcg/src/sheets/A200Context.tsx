@@ -11,7 +11,7 @@
 //   0.40–0.50  it lifts (shadow 2 → 6 px) and flies (FLIP) into the title strip's VENUE cell, which pulses
 //              once; the tag stays on it until 0.48. Phones: it settles on the static tag under the legend.
 //   0.40–0.86  a SEPARATE drawing: the frame strokes on from its top-right corner (0.40–0.52), the caption
-//              prints at 0.45, and the 1811 grid module draws outward from its centre through a radial mask
+//              prints at 0.44, and the 1811 grid module draws outward from its centre through a radial mask
 //              (0.42–0.80; its black ground grows with it, so there is never an empty box); TRUE NORTH, the
 //              grid's own north arrow and the angle arc draw on (0.70–0.86)
 //   0.55       H2 and body print (desktop ≥1024 px: in the left columns, beside the drawing)
@@ -221,7 +221,7 @@ export default function A200Context() {
       if (v < 0.4) pulsed.current = false;
       // ---- 0.40–0.85: the 1811 grid, a separate drawing; never an empty frame
       gridRef.current?.toggleAttribute('data-on', v >= 0.4);
-      gridRef.current?.toggleAttribute('data-cap', v >= 0.45);
+      gridRef.current?.toggleAttribute('data-cap', v >= 0.44);
       const frame = drawEase(s(0.4, 0.52));
       frameRefs.current.forEach((el) => el?.style.setProperty('stroke-dashoffset', String(1 - frame)));
       const reveal = drawEase(s(0.42, 0.8));

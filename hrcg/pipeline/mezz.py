@@ -5,7 +5,8 @@
 #        [--glint x0,y0,x1,y1] [--crush depth.npy:farD] [--crushtop y0,y1] [--nograde] [--dump n,n,..:dir]
 #        [--maskdump dir] [--crushmode 2] [--studs x0]
 # --crushmode 2 (FIXLIST-1 F-009 / F-047): keep the near side (07, the board, the set) whole: its depth matte is
-#   eroded 3 px (the lit haze rim goes with the background) and feathered OUTWARD only (σ 1.5 px), the
+#   re-keyed to the frame's edges (guided filter), eroded 3 px (the lit haze rim goes with the background) and
+#   feathered OUTWARD only (σ 1.5 px, no temporal blending, which trails on moving heads), the
 #   background is crushed fully to #0B0B0A in linear light, and the clip's own grain is re-added there.
 # --livery2 RULES (FIXLIST-1 F-048 / F-049): orange/red power-tool bodies -> graphite inside per-clip, per-frame-range
 #   ROIs, so 07's own orange shoulder pads stay untouched. RULES = rule|rule|..., rule = key=value;... with
@@ -258,6 +259,8 @@ while True:
         k = i / dstep; k0 = min(int(k), len(dep) - 1); k1 = min(k0 + 1, len(dep) - 1); t = k - int(k)
         d = cv2.resize(dep[k0] * (1 - t) + dep[k1] * t, (W0, H0), interpolation=cv2.INTER_LINEAR)
         u = np.clip((d - farD) / 0.08, 0, 1); near = u * u * (3 - 2 * u)           # 1 = near side (07, board, set)
+        # re-key the (518 px, soft) depth matte to the frame's own edges, so it follows the silhouette, not the haze
+        near = cv2.ximgproc.guidedFilter(cv2.cvtColor(np.clip(f, 0, 1).astype(np.float32), cv2.COLOR_BGR2GRAY), near.astype(np.float32), 6, 1e-4)
         core = (near > 0.5).astype(np.uint8)
         core = cv2.erode(core, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7)))  # 3 px: the haze rim is background
         if GAPCOLS is not None:   # behind the stud plane: gaps between studs (darker than steel, warm, or small lights)
@@ -269,7 +272,7 @@ while True:
             gap = cv2.morphologyEx(gap.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
             core[gap > 0] = 0
         keep = np.maximum(cv2.GaussianBlur(core.astype(np.float32), (0, 0), 1.5), core.astype(np.float32))  # outward only
-        keep = keep if prev_m is None else 0.5 * keep + 0.5 * prev_m; prev_m = keep
+        # no temporal blending of this mask: on a moving head it leaves echo rims of lit haze (seen on c32)
         stats['crushMean'] += float(1 - keep.mean())
         rng = np.random.default_rng(i)
         bg = SLAB[None, None, :] + rng.normal(0, GRAIN, (H0, W0, 1)).astype(np.float32)
