@@ -11,9 +11,9 @@
  "a": 0.2966,
  "b": 0.6,
  "f": 1.2,
- "pivotZ": 2.3257,
+ "pivotZ": 2.2924,
  "nearD": 0.991,
- "farD": 0.0019,
+ "farD": 0.002,
  "yaw": {
   "auto": 8,
   "min": -6,
@@ -52,12 +52,12 @@
   "matteFeatherSigmaPx": 1.2,
   "matteCutY": 0.62,
   "farPlaneD": 0.14663,
-  "matteCellsWithEdge": 61,
-  "matteCellsWithEdgeOnSilhouette": 51,
+  "matteCellsWithEdge": 64,
+  "matteCellsWithEdgeOnSilhouette": 54,
   "snap": {
    "minJumpD": 0.05,
    "reachPx": 31,
-   "pxSnappedToFar": 20118,
+   "pxSnappedToFar": 20536,
    "reliefSigmaPx": 37.5,
    "note": "hard depth step around the upper-body core (above the matte cut); 07 above the cut is a smooth relief"
   }
@@ -139,10 +139,10 @@
   ]
  },
  "occlusion": {
-  "yaw0": 0.0142,
-  "rest": 0.033,
-  "cssMatte": 0.0014,
-  "restMatte": 0.0231,
+  "yaw0": 0.0145,
+  "rest": 0.0362,
+  "cssMatte": 0.0015,
+  "restMatte": 0.0251,
   "window": [
    0.03,
    0.1
@@ -150,65 +150,65 @@
   "restMax": 0.15
  },
  "farGlyphs": {
-  "maxPerGlyph": 0.221,
-  "maxPerGlyphDepthTest": 0.311,
+  "maxPerGlyph": 0.232,
+  "maxPerGlyphDepthTest": 0.339,
   "occluder": "matte (07 foreground layer; requests/A5-fix-2)",
   "farLeftSweep": [
    {
     "farLeft": 0.09,
-    "yaw0MatteMax": 0.006,
-    "restMatteMax": 0.158,
-    "yaw0DepthMax": 0.076,
-    "restDepthMax": 0.219,
+    "yaw0MatteMax": 0.007,
+    "restMatteMax": 0.172,
+    "yaw0DepthMax": 0.078,
+    "restDepthMax": 0.243,
     "totalMatteYaw0": 0.0004
    },
    {
     "farLeft": 0.095,
-    "yaw0MatteMax": 0.022,
-    "restMatteMax": 0.221,
-    "yaw0DepthMax": 0.123,
-    "restDepthMax": 0.311,
-    "totalMatteYaw0": 0.0014
+    "yaw0MatteMax": 0.024,
+    "restMatteMax": 0.232,
+    "yaw0DepthMax": 0.128,
+    "restDepthMax": 0.339,
+    "totalMatteYaw0": 0.0015
    },
    {
     "farLeft": 0.1,
-    "yaw0MatteMax": 0.063,
-    "restMatteMax": 0.318,
-    "yaw0DepthMax": 0.249,
-    "restDepthMax": 0.435,
-    "totalMatteYaw0": 0.0061
+    "yaw0MatteMax": 0.065,
+    "restMatteMax": 0.344,
+    "yaw0DepthMax": 0.261,
+    "restDepthMax": 0.459,
+    "totalMatteYaw0": 0.0064
    },
    {
     "farLeft": 0.105,
-    "yaw0MatteMax": 0.15,
-    "restMatteMax": 0.466,
-    "yaw0DepthMax": 0.343,
-    "restDepthMax": 0.581,
-    "totalMatteYaw0": 0.0142
+    "yaw0MatteMax": 0.154,
+    "restMatteMax": 0.5,
+    "yaw0DepthMax": 0.358,
+    "restDepthMax": 0.608,
+    "totalMatteYaw0": 0.0146
    },
    {
     "farLeft": 0.11,
-    "yaw0MatteMax": 0.227,
-    "restMatteMax": 0.632,
-    "yaw0DepthMax": 0.465,
-    "restDepthMax": 0.743,
-    "totalMatteYaw0": 0.0235
+    "yaw0MatteMax": 0.229,
+    "restMatteMax": 0.665,
+    "yaw0DepthMax": 0.478,
+    "restDepthMax": 0.782,
+    "totalMatteYaw0": 0.0239
    },
    {
     "farLeft": 0.12,
-    "yaw0MatteMax": 0.429,
-    "restMatteMax": 0.88,
-    "yaw0DepthMax": 0.758,
-    "restDepthMax": 0.95,
-    "totalMatteYaw0": 0.0413
+    "yaw0MatteMax": 0.431,
+    "restMatteMax": 0.907,
+    "yaw0DepthMax": 0.772,
+    "restDepthMax": 0.97,
+    "totalMatteYaw0": 0.0417
    }
   ],
   "limit": 0.4,
   "headBox": [
    0.501,
    0.058,
-   0.609,
-   0.171
+   0.61,
+   0.172
   ],
   "headBitePx": 0,
   "shoulderOnly": true,
@@ -299,14 +299,14 @@
    },
    {
     "glyph": "WHAT CAN A[9]=A",
-    "yaw0Depth@frame 1920": 0.114,
-    "yaw0Matte@frame 1920": 0.022,
-    "yaw0Depth@1440x900": 0.115,
-    "yaw0Matte@1440x900": 0.022,
-    "yaw0Depth@1280x800": 0.115,
-    "yaw0Matte@1280x800": 0.022,
-    "restDepth": 0.241,
-    "restMatte": 0.166
+    "yaw0Depth@frame 1920": 0.116,
+    "yaw0Matte@frame 1920": 0.024,
+    "yaw0Depth@1440x900": 0.116,
+    "yaw0Matte@1440x900": 0.024,
+    "yaw0Depth@1280x800": 0.116,
+    "yaw0Matte@1280x800": 0.024,
+    "restDepth": 0.266,
+    "restMatte": 0.189
    },
    {
     "glyph": "HUMANOID[0]=H",
@@ -387,21 +387,21 @@
    },
    {
     "glyph": "HUMANOID[7]=D",
-    "yaw0Depth@frame 1920": 0.123,
+    "yaw0Depth@frame 1920": 0.128,
     "yaw0Matte@frame 1920": 0.003,
-    "yaw0Depth@1440x900": 0.123,
+    "yaw0Depth@1440x900": 0.129,
     "yaw0Matte@1440x900": 0.003,
-    "yaw0Depth@1280x800": 0.123,
+    "yaw0Depth@1280x800": 0.129,
     "yaw0Matte@1280x800": 0.003,
-    "restDepth": 0.311,
-    "restMatte": 0.221
+    "restDepth": 0.339,
+    "restMatte": 0.232
    }
   ]
  },
  "nearContrast": {
-  "p10": 3.436,
-  "median": 4.788,
-  "passFrac": 0.968,
+  "p10": 3.443,
+  "median": 4.801,
+  "passFrac": 0.966,
   "gate": ">=3:1 on >=90%"
  },
  "nearDarken": {
@@ -419,50 +419,50 @@
   {
    "a": 0.15,
    "b": 1.6,
-   "edgePointsInside": 120,
-   "pivotZ": 1.977
+   "edgePointsInside": 121,
+   "pivotZ": 1.915
   },
   {
    "a": 0.1793,
    "b": 1.4,
-   "edgePointsInside": 114,
-   "pivotZ": 2.039
+   "edgePointsInside": 115,
+   "pivotZ": 1.98
   },
   {
    "a": 0.2087,
    "b": 1.2,
-   "edgePointsInside": 107,
-   "pivotZ": 2.103
+   "edgePointsInside": 108,
+   "pivotZ": 2.05
   },
   {
    "a": 0.238,
    "b": 1.0,
-   "edgePointsInside": 85,
-   "pivotZ": 2.173
+   "edgePointsInside": 89,
+   "pivotZ": 2.125
   },
   {
    "a": 0.2526,
    "b": 0.9,
-   "edgePointsInside": 54,
-   "pivotZ": 2.209
+   "edgePointsInside": 76,
+   "pivotZ": 2.164
   },
   {
    "a": 0.2673,
    "b": 0.8,
-   "edgePointsInside": 24,
-   "pivotZ": 2.246
+   "edgePointsInside": 37,
+   "pivotZ": 2.205
   },
   {
    "a": 0.282,
    "b": 0.7,
-   "edgePointsInside": 4,
-   "pivotZ": 2.285
+   "edgePointsInside": 6,
+   "pivotZ": 2.248
   },
   {
    "a": 0.2966,
    "b": 0.6,
    "edgePointsInside": 0,
-   "pivotZ": 2.325
+   "pivotZ": 2.292
   }
  ],
  "limitPoses": [
@@ -471,23 +471,23 @@
    "pitch": -3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.003,
-   "farOcclMatte": 0.0018,
-   "glyphOcclMax": 0.0536,
+   "farOccl": 0.0033,
+   "farOcclMatte": 0.0022,
+   "glyphOcclMax": 0.0577,
    "stretch": {
     "yaw": -6,
     "pitch": -3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 487,
+    "stepTrianglesInBand": 510,
     "offendingTriangles": 0,
     "maxVisibleStretchPxBand": 0.31,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
-    "maxVisibleStretchPxAnywhereOutsideMatte": 8.07
+    "maxVisibleStretchPxAnywhereOutsideMatte": 9.08
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 128,
-    "maxVisibleStretchPxBand": 9.91
+    "offendingTriangles": 142,
+    "maxVisibleStretchPxBand": 9.82
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p-3.png"
   },
@@ -496,23 +496,23 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0013,
-   "farOcclMatte": 0.0005,
-   "glyphOcclMax": 0.0234,
+   "farOccl": 0.0012,
+   "farOcclMatte": 0.0004,
+   "glyphOcclMax": 0.0209,
    "stretch": {
     "yaw": -6,
     "pitch": 0,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 487,
+    "stepTrianglesInBand": 510,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.3,
+    "maxVisibleStretchPxBand": 0.67,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
-    "maxVisibleStretchPxAnywhereOutsideMatte": 6.8
+    "maxVisibleStretchPxAnywhereOutsideMatte": 8.48
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 116,
-    "maxVisibleStretchPxBand": 8.3
+    "offendingTriangles": 130,
+    "maxVisibleStretchPxBand": 8.23
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p+0.png"
   },
@@ -521,23 +521,23 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0001,
+   "farOccl": 0.0,
    "farOcclMatte": 0.0,
-   "glyphOcclMax": 0.0013,
+   "glyphOcclMax": 0.0004,
    "stretch": {
     "yaw": -6,
     "pitch": 3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 487,
+    "stepTrianglesInBand": 510,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.32,
+    "maxVisibleStretchPxBand": 1.46,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
-    "maxVisibleStretchPxAnywhereOutsideMatte": 7.14
+    "maxVisibleStretchPxAnywhereOutsideMatte": 9.14
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 142,
-    "maxVisibleStretchPxBand": 8.85
+    "offendingTriangles": 152,
+    "maxVisibleStretchPxBand": 8.77
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p+3.png"
   },
@@ -546,23 +546,23 @@
    "pitch": -3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0082,
-   "farOcclMatte": 0.0054,
-   "glyphOcclMax": 0.0932,
+   "farOccl": 0.0088,
+   "farOcclMatte": 0.0058,
+   "glyphOcclMax": 0.0985,
    "stretch": {
     "yaw": 0,
     "pitch": -3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 487,
+    "stepTrianglesInBand": 510,
     "offendingTriangles": 0,
     "maxVisibleStretchPxBand": 0.11,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
-    "maxVisibleStretchPxAnywhereOutsideMatte": 4.16
+    "maxVisibleStretchPxAnywhereOutsideMatte": 3.88
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 8,
-    "maxVisibleStretchPxBand": 4.33
+    "offendingTriangles": 6,
+    "maxVisibleStretchPxBand": 4.3
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p-3.png"
   },
@@ -571,23 +571,23 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0177,
-   "farOcclMatte": 0.0029,
-   "glyphOcclMax": 0.1601,
+   "farOccl": 0.0183,
+   "farOcclMatte": 0.0032,
+   "glyphOcclMax": 0.1693,
    "stretch": {
     "yaw": 0,
     "pitch": 0,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 487,
+    "stepTrianglesInBand": 510,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.01,
+    "maxVisibleStretchPxBand": 0.08,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
-    "maxVisibleStretchPxAnywhereOutsideMatte": 2.29
+    "maxVisibleStretchPxAnywhereOutsideMatte": 2.42
    },
    "stretchWith4Neighbours": {
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.02
+    "maxVisibleStretchPxBand": 0.09
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p+0.png"
   },
@@ -596,23 +596,23 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0035,
-   "farOcclMatte": 0.001,
-   "glyphOcclMax": 0.0313,
+   "farOccl": 0.0034,
+   "farOcclMatte": 0.0011,
+   "glyphOcclMax": 0.0305,
    "stretch": {
     "yaw": 0,
     "pitch": 3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 487,
+    "stepTrianglesInBand": 510,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.17,
+    "maxVisibleStretchPxBand": 1.06,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 5.15
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 78,
-    "maxVisibleStretchPxBand": 3.1
+    "offendingTriangles": 72,
+    "maxVisibleStretchPxBand": 3.05
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p+3.png"
   },
@@ -621,23 +621,23 @@
    "pitch": -3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0422,
-   "farOcclMatte": 0.0306,
-   "glyphOcclMax": 0.3939,
+   "farOccl": 0.0449,
+   "farOcclMatte": 0.0341,
+   "glyphOcclMax": 0.4141,
    "stretch": {
     "yaw": 10,
     "pitch": -3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 487,
-    "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.73,
+    "stepTrianglesInBand": 510,
+    "offendingTriangles": 2,
+    "maxVisibleStretchPxBand": 3.42,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
-    "maxVisibleStretchPxAnywhereOutsideMatte": 12.63
+    "maxVisibleStretchPxAnywhereOutsideMatte": 13.4
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 154,
-    "maxVisibleStretchPxBand": 15.02
+    "offendingTriangles": 172,
+    "maxVisibleStretchPxBand": 14.98
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p-3.png"
   },
@@ -646,23 +646,23 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0376,
-   "farOcclMatte": 0.0266,
-   "glyphOcclMax": 0.3918,
+   "farOccl": 0.0397,
+   "farOcclMatte": 0.0288,
+   "glyphOcclMax": 0.4112,
    "stretch": {
     "yaw": 10,
     "pitch": 0,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 487,
-    "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.87,
+    "stepTrianglesInBand": 510,
+    "offendingTriangles": 2,
+    "maxVisibleStretchPxBand": 4.03,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
-    "maxVisibleStretchPxAnywhereOutsideMatte": 12.26
+    "maxVisibleStretchPxAnywhereOutsideMatte": 13.67
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 154,
-    "maxVisibleStretchPxBand": 14.97
+    "offendingTriangles": 172,
+    "maxVisibleStretchPxBand": 14.93
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p+0.png"
   },
@@ -671,23 +671,23 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0332,
-   "farOcclMatte": 0.025,
-   "glyphOcclMax": 0.3696,
+   "farOccl": 0.0355,
+   "farOcclMatte": 0.0271,
+   "glyphOcclMax": 0.4003,
    "stretch": {
     "yaw": 10,
     "pitch": 3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 487,
-    "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 1.05,
+    "stepTrianglesInBand": 510,
+    "offendingTriangles": 2,
+    "maxVisibleStretchPxBand": 4.79,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
-    "maxVisibleStretchPxAnywhereOutsideMatte": 13.86
+    "maxVisibleStretchPxAnywhereOutsideMatte": 15.37
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 156,
-    "maxVisibleStretchPxBand": 16.28
+    "offendingTriangles": 174,
+    "maxVisibleStretchPxBand": 16.25
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p+3.png"
   }
@@ -695,56 +695,56 @@
  "encodes": {
   "still-av1": {
    "q": 90,
-   "bytes": 91723
+   "bytes": 92151
   },
   "still-av1-jpg": {
    "q": 84,
-   "bytes": 116094
+   "bytes": 116130
   },
   "still-h264": {
    "q": 90,
-   "bytes": 136011
+   "bytes": 135941
   },
   "still-h264-jpg": {
    "q": 84,
-   "bytes": 129925
+   "bytes": 129681
   },
   "plate": {
    "q": 70,
-   "bytes": 3383
+   "bytes": 3399
   },
   "matte": {
    "q": 82,
-   "bytes": 32502
+   "bytes": 32340
   }
  },
  "restStretch": {
   "yaw": 8,
   "pitch": -2.5,
   "aEdgeNeighbours": 8,
-  "stepTrianglesInBand": 487,
-  "offendingTriangles": 0,
-  "maxVisibleStretchPxBand": 0.53,
+  "stepTrianglesInBand": 510,
+  "offendingTriangles": 2,
+  "maxVisibleStretchPxBand": 2.45,
   "maxVisibleStretchPxInsideMatte": 0.0,
   "trianglesInsideMatteOver2px": 0,
-  "maxVisibleStretchPxAnywhereOutsideMatte": 10.2
+  "maxVisibleStretchPxAnywhereOutsideMatte": 10.82
  },
  "restStretchWith4Neighbours": {
   "yaw": 8,
   "pitch": -2.5,
   "aEdgeNeighbours": 4,
-  "stepTrianglesInBand": 487,
-  "offendingTriangles": 148,
-  "maxVisibleStretchPxBand": 11.7,
+  "stepTrianglesInBand": 510,
+  "offendingTriangles": 166,
+  "maxVisibleStretchPxBand": 11.67,
   "maxVisibleStretchPxInsideMatte": 0.0,
   "trianglesInsideMatteOver2px": 0,
-  "maxVisibleStretchPxAnywhereOutsideMatte": 12.47
+  "maxVisibleStretchPxAnywhereOutsideMatte": 11.69
  },
  "gates": {
   "occlusion": "superseded by F-046 farGlyphs (yaw-0 window not met; rest <= 15% met)",
   "nearContrast": true,
   "limitPoses": true,
   "farGlyphs": true,
-  "stretchPastMatte": true
+  "stretchPastMatte": false
  }
 }
