@@ -52,7 +52,8 @@ ALT = {
     't7': 'Control target T7: a square panel of dark and light bricks in stack bond, two bricks to each cell, that forms AprilTag tag36h11, ID 7.',
     't7-proof': 'Our digital test renders of the target, flat, warped and blurred, and small, each outlined where the detector found the tag.',
     'the-set': 'The Set, a 30-second concept film',
-    'the-set-poster': 'Concept film poster: the HRCG drawing set, a screen capture of this site with AI-generated concept footage.',
+    # pass A (A7-1/A7-2): no screen capture of the site in the film, so the poster alt says so (truth rule 22)
+    'the-set-poster': 'Concept film poster: robot 07 behind blue chalk dust under the headline What can a humanoid actually build? AI-generated concept footage.',
 }
 VT = {
     'hero-film': {'view': 'PERSPECTIVE 05-A · LAYOUT AND MARKING', 'kind': 'film', 'id': 'hero-film', 'hasntHappened': True},
@@ -204,6 +205,9 @@ for v in V + ([SET] if True else []):
         continue  # THE SET ships in the real manifest only once A7's final render is encoded (marker file)
     pa, pj = f'{d}/{id}.poster.avif', f'{d}/{id}.poster.jpg'
     files = [a1, h2, pa, pj]
+    if id == 'the-set-169':
+        for extra in ('the-set-169.vtt', 'the-set-transcript.txt'):
+            if os.path.exists(os.path.join(PUB, 'media', d, extra)): files.append(f'{d}/{extra}')
     e = {'id': id, 'kind': 'video',
          'sources': [{'src': m(a1), 'type': codec_type('media/' + a1, 'video/mp4; codecs="av01.0.08M.08"')},
                      {'src': m(h2), 'type': codec_type('media/' + h2, 'video/mp4; codecs="avc1.640028"')}],
@@ -221,6 +225,10 @@ for v in V + ([SET] if True else []):
         e['freezeFrame'] = heroinfo.get(id, {}).get('freezeFrame', v.get('freezeFrame'))
         if e['freezeFrame'] is None: del e['freezeFrame']
     if v.get('meta'): e['meta'] = v['meta']
+    if id == 'the-set-169':
+        e['posterAlt'] = v.get('posterAlt')
+        if os.path.exists(os.path.join(PUB, 'media', d, 'the-set-169.vtt')): e['captions'] = m(f'{d}/the-set-169.vtt')
+        if os.path.exists(os.path.join(PUB, 'media', d, 'the-set-transcript.txt')): e['transcript'] = m(f'{d}/the-set-transcript.txt')
     if v.get('plan'):
         r = rects.get(v['plan'], [120 / 1440, 120 / 1440, 1320 / 1440, 1320 / 1440])
         e['borderRect'] = [round(x, 5) for x in r]

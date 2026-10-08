@@ -163,7 +163,9 @@ export default function A200Context() {
       if (cloudTextRef.current) cloudTextRef.current.style.opacity = String(s(0.27, 0.32) * (1 - s(0.35, 0.39)));
       // ---- phase 3: lift and fly (FLIP)
       const lift = s(0.35, 0.39);
-      const fly = settleEase(s(0.38, 0.5));
+      // scroll-mapped, so the flight eases in and out (DRAW); SETTLE's steep start would launch the cloud
+      // on the first wheel tick. The landing still settles: the last fifth of the path barely moves.
+      const fly = drawEase(s(0.37, 0.49));
       const cloud = cloudRef.current;
       const g = geo.current;
       if (cloud) {

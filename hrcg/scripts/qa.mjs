@@ -980,10 +980,16 @@ async function runPhone(browser, base, mods) {
   // P2: a vertical touch swipe on the hero scrolls the page
   const cdp = await ctx.newCDPSession(page);
   const y0 = await page.evaluate(() => scrollY);
+  // a real touch sequence (Input.synthesizeScrollGesture does not scroll in this headless build)
   try {
-    await cdp.send('Input.synthesizeScrollGesture', { x: 195, y: 500, yDistance: -360, gestureSourceType: 'touch', speed: 1200 });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 195, y: 600 }] });
+    for (let i = 1; i <= 12; i++) {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 195, y: 600 - (350 * i) / 12 }] });
+      await page.waitForTimeout(16);
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   } catch (e) {
-    s.console.push(`synthesizeScrollGesture: ${e.message}`);
+    s.console.push(`dispatchTouchEvent: ${e.message}`);
   }
   await page.waitForTimeout(800);
   const y1 = await page.evaluate(() => scrollY);

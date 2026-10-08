@@ -50,6 +50,10 @@ export type MediaEntry = {
   freezeFrame?: number;
   /** URL of a JSON sidecar (hero meta, lines, proof). */
   meta?: string;
+  /** the-set-169 only: poster alt, WebVTT captions and the transcript file (resolved URLs). */
+  posterAlt?: string;
+  captions?: string;
+  transcript?: string;
   /** t7-proof only (A6-2): the measured detection label from t7-proof.json, null while unmeasured/mock. */
   proof?: { smallestLabel: string | null; pass: boolean } | null;
   bytes: Record<string, number>;
@@ -81,6 +85,8 @@ function resolveEntry(e: MediaEntry): MediaEntry {
     posterFallback: e.posterFallback ? mediaUrl(e.posterFallback) : undefined,
     stills: e.stills ? { av1: mediaUrl(e.stills.av1), h264: mediaUrl(e.stills.h264) } : undefined,
     meta: e.meta ? mediaUrl(e.meta) : undefined,
+    captions: e.captions ? mediaUrl(e.captions) : undefined,
+    transcript: e.transcript ? mediaUrl(e.transcript) : undefined,
     bytes,
   };
 }

@@ -129,15 +129,10 @@
     grid-template-columns: 1fr;
     row-gap: var(--s-6);
   }
+  /* phones: the marker sits on the plan's bottom-right corner (dark slab outside the bay), over its caption rule */
   .a101-marker {
-    position: static;
-    margin: var(--s-3) 0 0 auto;
-    display: flex;
-    width: max-content;
-  }
-  .a101-plan {
-    display: flex;
-    flex-direction: column;
+    right: -6px;
+    bottom: 6px;
   }
   .a101-detail-panel {
     right: auto;
