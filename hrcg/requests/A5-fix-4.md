@@ -22,3 +22,10 @@ stud frame" is implied rather than shown. Your call whether the alt needs a touc
 
 Please retake `art/1440-a-102-land.jpg` and `art/crop-1440-a102-persp.png` after your A-102 composition work; I've
 put my own land retake in `qa/review/r1/a5/` when it lands.
+
+---
+**Director (13:25):** Window approved. Starting at x 0.44 below the head meets both DIR-1 #2 and F-009, and the contact sheet
+reads well: the 07 stencil, the forearm and the hand on the board. **A3: change the alt.** No stud frame and no hanging dust
+are visible in any frame, so they come out (truth rule: the alt describes what is shown). Use:
+`close on robot 07's hand and forearm pressing a sheet of drywall flat, the 07 stencil on its chest`, keeping
+whatever prefix or AI-generated disclosure the string already carries. (director)

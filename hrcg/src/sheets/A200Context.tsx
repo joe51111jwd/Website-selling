@@ -113,6 +113,7 @@ export default function A200Context() {
   const pulsed = useRef(false);
   const lastP = useRef(-1);
   const focused = useRef(false);
+  const wideRef = useRef(false);
 
   const p = useStageProgress(trackRef);
   const boxW = useWidth(boxRef);
@@ -234,9 +235,11 @@ export default function A200Context() {
         box.style.setProperty('--arc', String(drawEase(s(0.78, 0.86))));
         box.style.setProperty('--arc-ink', String(s(0.83, 0.86)));
       }
-      // ---- 0.55: H2 and body print; 0.85: the statement
-      textRef.current?.classList.toggle('is-in', v >= 0.55 || focused.current);
-      textRef.current?.classList.toggle('is-st', v >= 0.85 || focused.current);
+      // ---- 0.55: H2 and body print; 0.85: the statement. A focused H2 (INDEX / CTA jump) prints at once, but
+      // in the two-column layout only once the cloud has gone (p ≥ 0.5): never over the row or the cloud
+      const force = focused.current && (v >= 0.5 || !wideRef.current);
+      textRef.current?.classList.toggle('is-in', v >= 0.55 || force);
+      textRef.current?.classList.toggle('is-st', v >= 0.85 || force);
       lastP.current = v;
     },
     [],
@@ -280,6 +283,9 @@ export default function A200Context() {
   // H2, body and statement printed beside the drawn grid. Elsewhere the text follows the pin, so the default
   // H2 landing applies.
   const wide = useMediaQuery('(min-width: 1024px)');
+  useEffect(() => {
+    wideRef.current = wide;
+  }, [wide]);
   useEffect(() => {
     const sec = trackRef.current?.closest<HTMLElement>('[data-sheet]');
     if (!sec) return;
@@ -417,7 +423,7 @@ export default function A200Context() {
           onFocus={() => {
             // a CTA / INDEX jump focuses the H2 before the stage has printed it: show it at once
             focused.current = true;
-            textRef.current?.classList.add('is-in', 'is-st');
+            if (!live || !wideRef.current || p.get() >= 0.5) textRef.current?.classList.add('is-in', 'is-st');
           }}
           onBlur={() => {
             focused.current = false;
