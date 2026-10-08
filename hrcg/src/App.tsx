@@ -73,6 +73,21 @@ function pick(path: string): ComponentType | null {
   return componentOf(eagerModules[path], path) ?? lazyComponents.get(path) ?? null;
 }
 
+// F-066: the title block is the page's <footer> (contentinfo), a sibling after </main>. A6's
+// FooterBlock (src/sheets/conversion/A900Parts.tsx) brings its own paper ground and margins; it loads
+// lazily with the A-900 chunk's shared module. A6 removes it from A900Notes (F-100).
+const footerModules = import.meta.glob<Mod>('./sheets/conversion/A900Parts.tsx');
+const FooterSlot: ComponentType | null = (() => {
+  const load = footerModules['./sheets/conversion/A900Parts.tsx'];
+  if (!load) return null;
+  return lazy(() =>
+    load().then((mod) => {
+      const c = mod.FooterBlock as ComponentType | undefined;
+      return { default: typeof c === 'function' ? c : Empty };
+    }),
+  );
+})();
+
 interface Slot {
   id: SheetId;
   file: string;
@@ -100,7 +115,7 @@ function SheetSection({ id, file }: Slot) {
   const fallback = (
     <>
       <SheetPlaceholder id={id} file={file.replace('./', 'src/')} />
-      {id === 'A-900' ? (
+      {id === 'A-900' && !FooterSlot ? (
         <footer className="placeholder-footer">
           <InPageIndex />
         </footer>
@@ -196,6 +211,13 @@ export function App() {
           ))}
         </div>
       </main>
+      {FooterSlot ? (
+        <SheetBoundary name="footer" fallback={null}>
+          <Suspense fallback={null}>
+            <FooterSlot />
+          </Suspense>
+        </SheetBoundary>
+      ) : null}
       <SheetIndex />
       <TitleSheet />
       <Lightbox />

@@ -19,6 +19,11 @@
   }
 }
 
+/* F-061: disclosure keywords never break (LabelText) */
+.nowrap {
+  white-space: nowrap;
+}
+
 /* ------------------------------------------------------------------- COURSE mark */
 .course-mark {
   display: block;
@@ -414,6 +419,17 @@ html[data-sheet='A-000'] .sheet-header {
   .phone-cta:focus-visible {
     outline-offset: -4px;
   }
+  /* F-063: a small ▴ after the sheet number says the cell opens the title block (aria-hidden: a
+     pseudo-element with empty content) */
+  .phone-status::after {
+    content: '';
+    flex: 0 0 auto;
+    width: 8px;
+    height: 5px;
+    margin-left: 6px;
+    background: currentColor;
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  }
   .phone-cta.cell-button {
     flex: 0 0 auto;
     min-height: 44px;
@@ -426,6 +442,47 @@ html[data-sheet='A-000'] .sheet-header {
     letter-spacing: 0;
     text-transform: none;
     color: var(--chalk);
+  }
+}
+
+/* F-063: the status cell fits its sheet number at 360 and 320 px */
+@media (max-width: 380px) {
+  .phone-status {
+    letter-spacing: 0.02em;
+    padding: 0 10px;
+  }
+  .phone-cta.cell-button {
+    padding: 0 10px;
+  }
+}
+@media (max-width: 340px) {
+  .phone-status-first {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* F-021: while a text field has focus on a phone (the on-screen keyboard is up), the phone bar steps
+   aside and the sheet border closes at the bottom edge, so the field and its label get the room */
+@media (max-width: 767px), (max-height: 500px) and (pointer: coarse) {
+  html:has(:is(input:not([type='checkbox'], [type='radio'], [type='button'], [type='submit'], [type='reset'], [type='range']), textarea, select, [contenteditable='true']):focus) {
+    --chrome-bottom: 0px;
+    scroll-padding-bottom: var(--s-4);
+  }
+  html:has(:is(input:not([type='checkbox'], [type='radio'], [type='button'], [type='submit'], [type='reset'], [type='range']), textarea, select, [contenteditable='true']):focus) .phone-bar {
+    display: none;
+  }
+  html:has(:is(input:not([type='checkbox'], [type='radio'], [type='button'], [type='submit'], [type='reset'], [type='range']), textarea, select, [contenteditable='true']):focus) .sheet-border {
+    bottom: var(--border);
+    border-bottom: 1px solid var(--hairline);
   }
 }
 

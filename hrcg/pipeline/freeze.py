@@ -85,7 +85,7 @@ core0 = (d_raw > D_FAR_T).astype(np.uint8)
 CUT_FRAC = 0.45 if PH else 0.62                   # the matte (and so the snap) covers 07's upper body only;
 zone = (cv2.dilate(core0, ell(SNAP_REACH)) > 0) & ((cv2.dilate(d_raw, ell(SNAP_REACH)) - d_min) > SNAP_DD)
 zone[int(H * CUT_FRAC) + SNAP_REACH:] = False      # below it the dust and floor keep their soft depth (no tears)
-near0 = ((d_raw > (cv2.dilate(d_raw, ell(SNAP_REACH)) + d_min) / 2) | (core0 > 0)).astype(np.uint8)
+near0 = (((d_raw > (cv2.dilate(d_raw, ell(SNAP_REACH)) + d_min) / 2) & zone) | (core0 > 0)).astype(np.uint8)   # local near side of a real jump, or 07's core
 nearside = cv2.dilate(near0, ell(DIL_R)) > 0
 # inside 07's upper body (above the cut), a smooth relief: normalized-convolution blur of the near side, so 07's
 # internal steps (arm over torso, head over shoulder) become gentle slopes instead of single stretched cells

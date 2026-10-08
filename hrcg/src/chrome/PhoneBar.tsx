@@ -14,6 +14,9 @@ import { lenisScrollTo } from '../system/lenis';
 import { navClick } from './nav';
 import type { MouseEvent } from 'react';
 
+// F-063: "PLANNED · " can be dropped visually on the narrowest phones (≤340 px) and stays in the name
+const [STATUS_FIRST, ...STATUS_REST] = PHONE_BAR.statusPrefix.split(' · ');
+
 export function PhoneBar() {
   const { current } = useSheet();
   return (
@@ -29,7 +32,8 @@ export function PhoneBar() {
         }}
       >
         <span>
-          <LabelText text={`${PHONE_BAR.statusPrefix} · ${current}`} />
+          <span className="phone-status-first">{STATUS_FIRST} · </span>
+          <LabelText text={`${STATUS_REST.join(' · ')} · ${current}`} />
         </span>
       </a>
       <a className="phone-cta cell-button" data-strip-cell="teams" href="#a-300" onClick={navClick(true)}>
