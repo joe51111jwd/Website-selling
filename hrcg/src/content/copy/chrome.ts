@@ -50,7 +50,7 @@ export const INDEX = {
   title: 'DRAWING INDEX · HRCG-2027 · PLANNED · 11 SHEETS · NTS',
   dialogLabel: 'Drawing index, HRCG-2027, planned',
   watchTheSet:
-    '▶ WATCH THE SET (0:30) · CONCEPT FILM: SCREEN CAPTURE OF THIS SITE + AI-GENERATED CONCEPT FOOTAGE',
+    '▶ WATCH THE SET (0:30) · CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE',
   close: 'CLOSE (ESC)',
   inPageLabel: 'Drawing index',
 } as const;
@@ -58,7 +58,7 @@ export const INDEX = {
 export const THE_SET = {
   dialogLabel: 'The Set, a 30-second concept film',
   posterAlt:
-    'Concept film poster: the HRCG drawing set, a screen capture of this site with AI-generated concept footage.',
+    'Concept film poster: robot 07 behind blue chalk dust under the headline What can a humanoid actually build? AI-generated concept footage.',
   close: 'CLOSE (ESC)',
 } as const;
 

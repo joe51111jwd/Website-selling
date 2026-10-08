@@ -90,9 +90,15 @@
   margin-left: -5px;
 }
 .a101-detail-panel {
-  right: calc(100% + var(--s-5));
-  top: 40px;
+  /* the circle opens over the plan, its right edge 24 px inside the plan's, clear of the view marker */
+  right: calc(100% + var(--s-9) - 5px + var(--s-5));
+  top: 48px;
   width: min(36vw, 560px);
+}
+.a101-detail-panel .view-title {
+  margin-top: 0;
+  padding: 8px 10px 6px;
+  background: var(--slab-black);
 }
 
 /* the perspective in flow (reduced motion, no JS): full bleed under the composition */
@@ -112,6 +118,10 @@
   }
   .a101-marker {
     right: calc(-1 * var(--s-7) / 2 - 39px);
+  }
+  .a101-detail-panel {
+    right: calc(100% + var(--s-7) - 5px + var(--s-4));
+    width: 40vw;
   }
 }
 @media (max-width: 767px) {

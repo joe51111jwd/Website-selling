@@ -26,9 +26,10 @@ H, W = frames[0].shape[:2]
 if A.darken:
     x0, y0, x1, y1, amt = map(float, A.darken.split(','))
     # flat over the NEAR box (+2% margin) so every glyph pixel gets the full amount, feathered outside it
-    m = np.zeros((H, W), np.float32); mg = 0.02 * W
-    cv2.rectangle(m, (int(x0 * W - mg), int(y0 * H - mg)), (int(x1 * W + mg), int(y1 * H + mg)), 1.0, -1)
-    sig = max(W, H) * 0.025
+    # (wide, soft falloff so the darkened dust reads as thinner plume, not as a box behind the type)
+    m = np.zeros((H, W), np.float32); mg = 0.03 * max(W, H)
+    cv2.ellipse(m, (int((x0 + x1) / 2 * W), int((y0 + y1) / 2 * H)), (int((x1 - x0) / 2 * W * 1.18 + mg), int((y1 - y0) / 2 * H * 1.35 + mg)), 0, 0, 360, 1.0, -1)
+    sig = max(W, H) * 0.045
     m = cv2.GaussianBlur(cv2.dilate(m, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (int(sig * 2.5) | 1, int(sig * 2.5) | 1))), (0, 0), sig)
     m = (m / m.max())[..., None]
     def dk(f):

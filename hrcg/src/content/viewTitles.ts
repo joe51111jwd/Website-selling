@@ -110,4 +110,4 @@ export function isKnownViewTitle(text: string): boolean {
 
 /** THE SET lightbox title (brief 3.13); not a view title, kept here so the disclosure has one home. */
 export const THE_SET_TITLE =
-  'THE SET · CONCEPT FILM: SCREEN CAPTURE OF THIS SITE + AI-GENERATED CONCEPT FOOTAGE · 0:30';
+  'THE SET · CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE · 0:30';

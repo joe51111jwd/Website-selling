@@ -55,7 +55,7 @@ function makeSprites(): HTMLCanvasElement[] {
           if (q > d) d = q;
         }
         if (d <= 0) continue;
-        const grain = 0.75 + rnd() * 0.5;
+        const grain = 0.88 + rnd() * 0.24;
         const a = Math.min(1, d * d * (3 - 2 * d)) * grain;
         // top-lit: +16 % on the upper half, -22 % on the lower half
         const lit = 1 + 0.16 * (1 - y / cx) - (y > cx ? 0.22 * ((y - cx) / cx) : 0);
@@ -63,7 +63,7 @@ function makeSprites(): HTMLCanvasElement[] {
         img.data[i] = Math.min(255, r * lit);
         img.data[i + 1] = Math.min(255, gg * lit);
         img.data[i + 2] = Math.min(255, b * lit);
-        img.data[i + 3] = Math.round(a * 150);
+        img.data[i + 3] = Math.round(a * 120);
       }
     }
     g.putImageData(img, 0, 0);
@@ -127,18 +127,20 @@ export class Dust2D {
       const u = Math.min(1, Math.max(0, 0.5 + (rnd() + rnd() + rnd() - 1.5) * 0.62));
       const off = (rnd() - 0.5) * 6;
       const strong = rnd();
+      // two populations: soft clouds that hang low, and fine specks that fly higher
+      const cloud = rnd() < 0.62;
       this.particles.push({
         x: L.x + (R.x - L.x) * u + nx * off,
         y: L.y + (R.y - L.y) * u + ny * off,
-        vx: (rnd() - 0.5) * 90 * s,
-        v0: (110 + strong * strong * 560) * (0.55 + 0.45 * A) * s,
-        k: 3.6 + rnd() * 2.4,
+        vx: (rnd() - 0.5) * (cloud ? 70 : 110) * s,
+        v0: (cloud ? 90 + strong * 300 : 160 + strong * strong * 520) * (0.55 + 0.45 * A) * s,
+        k: cloud ? 5 + rnd() * 2.5 : 3.4 + rnd() * 2,
         g: 300 * s,
-        size: (5 + rnd() * rnd() * 24) * s,
-        grow: 0.25 + rnd() * 0.45,
+        size: (cloud ? 18 + rnd() * 30 : 3 + rnd() * 6) * s,
+        grow: cloud ? 0.5 + rnd() * 0.6 : 0.1 + rnd() * 0.2,
         sprite: Math.floor(rnd() * SPRITES),
         delay: rnd() * 0.05,
-        alpha: 0.35 + rnd() * 0.5,
+        alpha: cloud ? 0.16 + rnd() * 0.22 : 0.4 + rnd() * 0.45,
       });
     }
   }

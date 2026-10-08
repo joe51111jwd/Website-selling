@@ -226,10 +226,9 @@ function extensions(g: Grid, plan: Box, W: number, edge: number, avoid: Box[], t
 
 const valueText = (n: number) => (n <= 3 ? A105.slider.near : n <= 6 ? A105.slider.middle : A105.slider.far);
 
-// lazy, optional: the hero's machine (A2). Absent → the non-snapped line (brief F9).
-const heroMods = import.meta.glob<{ heroMachine?: { get(): { snappedByUser: boolean }; subscribe(l: () => void): () => void } }>(
-  '../hero/heroMachine.ts',
-);
+// optional: the hero's machine (A2; already in the shell). Absent → the non-snapped line (brief F9).
+type HeroMachineLike = { get(): { snappedByUser: boolean }; subscribe(l: () => void): () => void };
+const heroMods = import.meta.glob<{ heroMachine?: HeroMachineLike }>('../hero/heroMachine.ts', { eager: true });
 
 export default function A105Layout() {
   const live = useLive();
@@ -252,7 +251,11 @@ export default function A105Layout() {
   const s = useRef(0.5);
   const touched = useRef(false);
   const capture = useRef<number | null>(null);
-  const p = useStageProgress(trackRef);
+  const secRef = useRef<HTMLDivElement>(null);
+  // desktop: the pinned stage's progress. Phone (not pinned): the traces follow the stage passing through
+  // the viewport and the sweep follows the section itself, so it happens while the section is on screen.
+  const p = useStageProgress(trackRef, phone ? { start: 'top bottom', end: 'bottom top' } : {});
+  const pSec = useStageProgress(secRef, { start: 'top bottom', end: 'bottom top' });
 
   // the real lines (A5)
   useEffect(() => {
@@ -267,23 +270,11 @@ export default function A105Layout() {
 
   // F9: "you already snapped one line of it" only if the visitor really snapped
   useEffect(() => {
-    const load = heroMods['../hero/heroMachine.ts'];
-    if (!load) return;
-    let off: (() => void) | undefined;
-    let alive = true;
-    load()
-      .then((m) => {
-        const hm = m.heroMachine;
-        if (!alive || !hm) return;
-        const read = () => setSnapped(!!hm.get().snappedByUser);
-        read();
-        off = hm.subscribe(read);
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-      off?.();
-    };
+    const hm = heroMods['../hero/heroMachine.ts']?.heroMachine;
+    if (!hm || typeof hm.get !== 'function') return;
+    const read = () => setSnapped(!!hm.get().snappedByUser);
+    read();
+    return hm.subscribe(read);
   }, []);
 
   // ---- slider
@@ -415,10 +406,17 @@ export default function A105Layout() {
         el.style.strokeDashoffset = String(1 - t);
       });
       xRef.current?.toggleAttribute('data-stamped', v >= 0.18);
-      if (capture.current !== null) return;
+      if (capture.current !== null || phone) return;
       if (!touched.current) setS(segment(v, 0.3, 0.8), 'sweep');
     },
-    [grid, geo, setS],
+    [grid, geo, setS, phone],
+  );
+  const applySec = useCallback(
+    (v: number) => {
+      if (capture.current !== null || !phone || touched.current) return;
+      setS(segment(v, 0.3, 0.75), 'sweep');
+    },
+    [phone, setS],
   );
 
   useEffect(() => {
@@ -432,8 +430,14 @@ export default function A105Layout() {
     }
     void root;
     apply(p.get());
-    return p.on('change', apply);
-  }, [live, p, apply, setS]);
+    applySec(pSec.get());
+    const offA = p.on('change', apply);
+    const offB = pSec.on('change', applySec);
+    return () => {
+      offA();
+      offB();
+    };
+  }, [live, p, pSec, apply, applySec, setS]);
 
   // ?capture scene 'slice': t (0..1) = the cut position; the section view is brought on screen
   useEffect(() => {
@@ -513,7 +517,7 @@ export default function A105Layout() {
                     onPointerUp={onPointerUp}
                     onPointerCancel={onPointerUp}
                   >
-                    <LoopVideo id="plan-b44" />
+                    <LoopVideo id="plan-b44" instance="a105" />
                     <svg className="a105-traces" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true" focusable="false">
                       {grid.segs.map((sg, i) => (
                         <path
@@ -554,7 +558,9 @@ export default function A105Layout() {
                 <ViewTitle id="a105-trace" captionClassName="a105-cap a105-cap--trace" />
               </div>
               <div className="a105-secside">
-                <SectionSlice handle={sliceRef} initial={0.5} />
+                <div ref={secRef}>
+                  <SectionSlice handle={sliceRef} initial={0.5} />
+                </div>
                 <p className="a105-hint t-label" data-a105-avoid="">
                   {A105.hint}
                 </p>

@@ -1,6 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000" shape-rendering="crispEdges">
-<title>Control target T7: AprilTag tag36h11 ID 7 laid as 128 bricks in stack bond</title>
-<!-- HRCG-2027 (planned). Control target T7. AprilTag family tag36h11, ID 7. 8x8 square cells of two stacked stretchers; rust joints; one-cell chalk quiet zone. A test target for developers, not a rule of the Games.  -->
 <rect x="0" y="0" width="1000" height="1000" fill="#ECE8E1"/>
 <rect x="100" y="100" width="800" height="800" fill="#A8441C"/>
 <rect x="102.273" y="102.273" width="95.455" height="45.455" fill="#0B0B0A"/>

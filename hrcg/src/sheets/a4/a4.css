@@ -356,7 +356,7 @@
     grid-column: 1;
   }
   .a200-hold {
-    padding: var(--s-3) 0 0 var(--s-3);
+    padding: var(--s-4) 0 0 var(--s-6);
   }
   .a200-text {
     padding: var(--s-7) 0 0;
@@ -840,6 +840,7 @@
 }
 .a105-cut .mk-sc {
   color: var(--chalk);
+  max-width: none;
 }
 .a105-cut .mk-sc .mk-cut {
   stroke-width: 2;
@@ -951,6 +952,7 @@
   .a105-views {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: var(--s-6);
   }
   .a105-secside {

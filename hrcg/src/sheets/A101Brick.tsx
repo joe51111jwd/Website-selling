@@ -92,7 +92,7 @@ export function A101Brick() {
 
           {/* the bond words, laid as two courses of running bond: 2 / ½ · 1 · ½ */}
           <div className="a101-bond" role="list">
-            <div className="a101-course">
+            <div className="a101-course" role="none">
               <span role="listitem" className="a101-brick t-beat print-in" style={{ ['--d' as string]: '0ms' } as CSSProperties}>
                 {w1}
               </span>
@@ -100,7 +100,7 @@ export function A101Brick() {
                 {w2}
               </span>
             </div>
-            <div className="a101-course a101-course--offset">
+            <div className="a101-course a101-course--offset" role="none">
               <span className="a101-brick a101-brick--half print-in" aria-hidden="true" style={{ ['--d' as string]: '240ms' } as CSSProperties} />
               <span role="listitem" className="a101-brick t-beat print-in" style={{ ['--d' as string]: '240ms' } as CSSProperties}>
                 {w3}

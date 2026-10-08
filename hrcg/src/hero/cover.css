@@ -368,8 +368,9 @@
   opacity: 1;
   -webkit-mask-image: var(--cv-ink-mask);
   mask-image: var(--cv-ink-mask);
-  -webkit-mask-size: 2.6em 300%;
-  mask-size: 2.6em 300%;
+  /* the 64 x 384 mask at a uniform scale (300 % of a .86 em line box = 2.58 em tall -> 0.43 em wide) */
+  -webkit-mask-size: 0.43em 300%;
+  mask-size: 0.43em 300%;
   -webkit-mask-repeat: repeat-x;
   mask-repeat: repeat-x;
   -webkit-mask-position: 0 calc(var(--ink) * 100%);
@@ -439,6 +440,10 @@
 }
 .cv[data-touch] .cv-hint .when-touch {
   display: inline;
+}
+.cv[data-pulling] .cv-hint--pull {
+  opacity: 0;
+  transition: opacity var(--dur-hover) linear;
 }
 .cv[data-hint='pull'] .cv-hint--pull,
 .cv[data-hint='frozen'] .cv-hint--frozen,

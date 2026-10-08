@@ -19,7 +19,7 @@ print('' if need is None else ','.join(str(v) for v in r['box'])+','+str(round(m
   echo "[$s] analyse: $(cat $T/analyse-$s.json | tr -d '\n ' | cut -c1-400)"
   echo "[$s] darken: ${dk:-none}"
   $PY $R/pipeline/hero.py $mz $a $b $H/hero-snap-$s $T/enc-$s ${hcrop:+--crop $hcrop} ${dk:+--darken $dk}
-  local dj='null'; [ -n "$dk" ] && dj="{\"box\":[${dk%,*}],\"linearLightRemoved\":${dk##*,},\"feather\":\"flat over the NEAR box + 2% margin, gaussian falloff 2.5% of the long side outside it\",\"bakedInto\":\"hero-snap-$s (all frames), hence the stills\"}"
+  local dj='null'; [ -n "$dk" ] && dj="{\"box\":[${dk%,*}],\"linearLightRemoved\":${dk##*,},\"feather\":\"flat ellipse covering the NEAR box (1.18x / 1.35x + 3% of the long side), gaussian falloff 4.5% of the long side\",\"bakedInto\":\"hero-snap-$s (all frames), hence the stills\"}"
   $PY $R/pipeline/freeze.py $T/enc-$s/last-av1.png $T/enc-$s/last-h264.png $H $QA $s --frame $b --darken "$dj"
 }
 want=${1:-all}

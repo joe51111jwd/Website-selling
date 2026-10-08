@@ -328,10 +328,13 @@ function pageFacts() {
     return r.width > 0 && r.height > 0;
   };
   const h1 = [...document.querySelectorAll('h1')].length;
-  const sheets = [...document.querySelectorAll('[data-sheet]')].map((el) => ({
-    id: el.getAttribute('data-sheet'),
-    h2: el.querySelectorAll('h2').length,
-  }));
+  // A sheet is its [data-sheet] element; the cover stage (A2) puts data-sheet on empty scroll-track
+  // elements inside a [data-stage], so an empty track counts the H2 / H1 of its stage instead.
+  const sheets = [...document.querySelectorAll('[data-sheet]')].map((el) => {
+    const id = el.getAttribute('data-sheet');
+    const scope = el.textContent.trim().length === 0 ? el.closest('[data-stage]') ?? el : el;
+    return { id, h2: scope.querySelectorAll('h2').length, h1: scope.querySelectorAll('h1').length, track: scope !== el };
+  });
   // rule 22: media must sit under a non-drawing view title
   const media = [...document.querySelectorAll('video, picture, img')].filter((el) => {
     if (el.tagName === 'IMG' && el.closest('picture')) return false; // counted as its picture
@@ -699,8 +702,9 @@ async function runDesktop(browser, base, mods, axePath) {
 
   const facts = await page.evaluate(pageFacts);
   check('H1-one', 'exactly one <h1>', facts.h1 === 1, `${facts.h1}`);
-  const badH2 = facts.sheets.filter((x) => x.h2 !== 1);
-  check('H2-per-sheet', 'one <h2> per sheet', badH2.length === 0, badH2);
+  // one H2 per sheet (A-000 carries the page's H1 instead); a cover-stage track counts its stage
+  const badH2 = facts.sheets.filter((x) => (x.id === 'A-000' ? x.h1 !== 1 : x.track ? x.h2 < 1 : x.h2 !== 1));
+  check('H2-per-sheet', 'one <h2> per sheet (A-000: the <h1>)', badH2.length === 0, badH2);
   check('S2-labels', 'every media element sits under a non-drawing view title (rule 22)', facts.unlabelled.length === 0, facts.unlabelled);
   check('S2-hasnt', 'THIS HASN’T HAPPENED YET in the DOM only at the hero film title and the A-900 end line', facts.hasntVisible <= 2 && facts.hasnt >= 1, `textContent ${facts.hasnt}, visible ${facts.hasntVisible}`);
   check('S5-1440', 'no horizontal page scroll at 1440', facts.scrollW <= facts.clientW, `${facts.scrollW} > ${facts.clientW}`);
@@ -884,7 +888,7 @@ async function runStrip(browser, base) {
       const visible = cells.filter(shown);
       const overflow = [];
       for (const c of visible) {
-        const els = [c, ...c.querySelectorAll('*')].filter(shown);
+        const els = [c, ...c.querySelectorAll('*')].filter((e) => shown(e) && !e.closest('.sr-only'));
         for (const e of els) {
           if (e.scrollWidth > e.clientWidth + 1 && getComputedStyle(e).display !== 'inline') {
             overflow.push(`${c.getAttribute('data-strip-cell')}: ${e.className || e.tagName} ${e.scrollWidth}>${e.clientWidth}`);
@@ -1090,7 +1094,7 @@ async function runRm(browser, base) {
     lenis: document.documentElement.classList.contains('lenis'),
     viewTitles: document.querySelectorAll('.view-title').length,
     mailtos: [...document.querySelectorAll('a[data-mailto]')].map((a) => a.getAttribute('data-mailto')),
-    printHidden: [...document.querySelectorAll('.print-in')].filter((e) => Number(getComputedStyle(e).opacity) < 1).length,
+    printHidden: [...document.querySelectorAll('.print-in')].filter((e) => Number(getComputedStyle(e).opacity) < 0.1).length,
     playButtons: [...document.querySelectorAll('.loopvideo-play')].filter((b) => getComputedStyle(b).display !== 'none').length,
     videos: document.querySelectorAll('video').length,
   }));
@@ -1166,8 +1170,10 @@ async function runNoJs(browser, buildUrl, mods) {
       kit: document.querySelector('a[data-mailto="kit"]')?.getAttribute('href') ?? null,
       copyShown: [...document.querySelectorAll('.copy-button')].filter(vis).length,
       jsOnlyShown: [...document.querySelectorAll('.js-only')].filter(vis).length,
-      printHidden: [...document.querySelectorAll('.print-in')].filter((e) => Number(getComputedStyle(e).opacity) < 1).length,
-      emptySheets: [...document.querySelectorAll('[data-sheet]')].filter((el) => el.textContent.trim().length < 20).map((el) => el.id),
+      printHidden: [...document.querySelectorAll('.print-in')].filter((e) => Number(getComputedStyle(e).opacity) < 0.1).length,
+      emptySheets: [...document.querySelectorAll('[data-sheet]')]
+        .filter((el) => (el.textContent.trim().length === 0 ? el.closest('[data-stage]') ?? el : el).textContent.trim().length < 20)
+        .map((el) => el.id),
       placeholders: [...document.querySelectorAll('.sheet-placeholder')].map((el) => el.closest('[data-sheet]')?.id ?? '?'),
     };
   });

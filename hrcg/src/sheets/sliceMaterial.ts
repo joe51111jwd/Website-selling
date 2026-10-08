@@ -88,9 +88,11 @@ float contour(float d, float levels) {
 void main() {
   float d = texture2D(uDepth, vUv).r;
   vec3 film = texture2D(uStill, vUv).rgb;
-  float fw = max(fwidth(d), 1e-4);
-  // 1 where the frame is nearer the camera than the section plane: drawn
-  float front = smoothstep(uSlice - fw * 0.5, uSlice + fw * 0.5, d);
+  float g = fwidth(d);
+  float fw = max(g, 1e-4);
+  // 1 where the frame is nearer the camera than the section plane: drawn. The tiny bias keeps a flat
+  // region that sits exactly at the plane's depth (the encoded background) on the film side.
+  float front = smoothstep(uSlice - fw * 0.5, uSlice + fw * 0.5, d - 2e-4);
   // the brief's depth ramp, exposed low so the drawing sits on the slab like chalk, not like paper
   vec3 drawn = mix(cBlack, cChalk, pow(d, 1.4)) * uExposure;
   // 14 index contours, and finer intermediate ones (a quarter interval) so 07's body reads as form
@@ -99,6 +101,8 @@ void main() {
   vec3 col = mix(film, drawn, front);
   // the 2 px chalk-blue intersection of plane and scene
   float band = 1.0 - smoothstep(fw * 0.6, fw * 1.8, abs(d - uSlice));
+  // a plane only draws a line where it actually crosses the scene: none on flat, featureless depth
+  band *= smoothstep(2e-5, 2e-4, g);
   col = mix(col, cBlue, band);
   gl_FragColor = vec4(col, 1.0);
 }

@@ -95,10 +95,12 @@ export const TIMING = {
   dustOut: 0.8,
   /** film can't play by S + 1.2 -> jump to the still */
   filmLate: 1.2,
-  /** freeze crossfade */
+  /** freeze crossfade: the canvas fades in over the film (120 ms), then the DOM H1 hands over to the
+   *  type planes (120 ms; at yaw 0 they coincide, so this is where the FAR bite appears) */
   crossfade: 0.12,
-  /** swing to rest */
-  swing: 2.2,
+  /** swing to rest, starting when the hand-over is done: 0.24 + 2.0 = the brief's 2.2 s window */
+  swingDelay: 0.24,
+  swing: 2.0,
 } as const;
 
 /** Rest pose of the 3D VIEW camera (brief 2.3, 4.1); overridden by hero-meta's yaw/pitch/dolly when present. */

@@ -1050,7 +1050,7 @@ class CoverController {
     if (!this.scene) return;
     tl.glAt = t;
     tl.swing = swing;
-    tl.swingStart = swing ? t : null;
+    tl.swingStart = swing ? t + TIMING.swingDelay : null;
     this.glShown = true;
     this.glOutAt = null;
     this.glHost.style.display = 'block';
@@ -1614,16 +1614,25 @@ class CoverController {
     this.stillPic.style.display = tl.S !== null || tl.rest ? 'block' : 'none';
     this.stillPic.style.opacity = frozen || tl.rest ? '1' : '0';
     const glIn = this.glShown && tl.glAt !== null ? segment(now, tl.glAt, tl.glAt + TIMING.crossfade) : 0;
+    // the DOM H1 hands over to the type planes once the canvas is fully in (no washed-out double layer)
+    const typeIn =
+      this.glShown && tl.glAt !== null ? segment(now, tl.glAt + TIMING.crossfade, tl.glAt + 2 * TIMING.crossfade) : 0;
     const glOut = this.glOutAt !== null ? segment(now, this.glOutAt, this.glOutAt + TIMING.crossfade) : 0;
     const glO = glIn * (1 - glOut);
-    if ((glIn > 0 && glIn < 1) || (glOut > 0 && glOut < 1)) busy = true;
+    if ((typeIn > 0 && typeIn < 1) || (glIn > 0 && glIn < 1) || (glOut > 0 && glOut < 1)) busy = true;
     this.glHost.style.opacity = glO.toFixed(3);
-    // near-matte bites the FAR lines whenever the DOM still is what you see
-    const matteO = frozen || tl.rest ? 1 - glO : 0;
+    // who draws the type: the DOM H1 (+ the CSS near-matte for the FAR bite) or the GL type planes.
+    // In: canvas first, then the DOM hands over (typeIn). Out (plan cut): the DOM takes it back at once.
+    const glOwnsType = this.glShown && glOut === 0 ? typeIn : 0;
+    let matteO = 0;
+    if (frozen || tl.rest) {
+      const fade = tl.frozenAt !== null && !tl.rest ? segment(now, tl.frozenAt, tl.frozenAt + TIMING.crossfade) : 1;
+      matteO = fade * (1 - glOwnsType);
+    }
     this.matte.style.display = matteO > 0 ? 'block' : 'none';
-    this.matte.style.opacity = (frozen && tl.frozenAt !== null && !tl.rest ? segment(now, tl.frozenAt, tl.frozenAt + TIMING.crossfade) * (1 - glO) : matteO).toFixed(3);
-    // the DOM H1 crossfades to the type planes (it stays in the accessibility tree)
-    r.style.setProperty('--h1-dom', (1 - glO).toFixed(3));
+    this.matte.style.opacity = matteO.toFixed(3);
+    // the DOM H1 stays in the accessibility tree throughout
+    r.style.setProperty('--h1-dom', (1 - glOwnsType).toFixed(3));
     if (glOut >= 1 && this.scene) {
       // after the plan cut: one WebGL context at a time, disposed (brief 8.4, H9)
       this.disposeGl();
@@ -1827,7 +1836,7 @@ class CoverController {
         if (this.scene) {
           tl.glAt = tF;
           tl.swing = true;
-          tl.swingStart = tF;
+          tl.swingStart = tF + TIMING.swingDelay;
         }
       }
     }
@@ -1870,8 +1879,8 @@ class CoverController {
     else await seekVideo(v, 0);
     this.matchCodec();
     // camera: deterministic integration from the freeze
-    if (this.scene && tl.glAt !== null && t >= tl.glAt) {
-      const p = this.rig.poseAt(t - tl.glAt);
+    if (this.scene && tl.swingStart !== null && t >= tl.swingStart) {
+      const p = this.rig.poseAt(t - tl.swingStart);
       this.rig.snapTo(p);
       this.rig.base = { ...p };
     } else {
@@ -1901,6 +1910,23 @@ class CoverController {
       this.scene.render();
     }
     this.render(10, 0);
+    // the plan still must be decoded before the frame is taken
+    const planImg = this.planSq.querySelector('img');
+    if (planImg && this.P > 0.01) {
+      if (!planImg.complete) await new Promise<void>((res) => {
+        planImg.addEventListener('load', () => res(), { once: true });
+        planImg.addEventListener('error', () => res(), { once: true });
+        window.setTimeout(res, 8000);
+      });
+      await planImg.decode?.().catch(() => {});
+    }
+    // A3's R2 strip: hold it on a deterministic frame (capture frames must repeat exactly)
+    for (const v of Array.from(this.a100.querySelectorAll<HTMLVideoElement>('video'))) {
+      const key = v.closest<HTMLElement>('[data-video-key]')?.dataset.videoKey;
+      if (key) videoManager.pause(key);
+      v.pause();
+      if (v.readyState >= 1) await seekVideo(v, Math.max(0, (this.P - BEATS.arenaIn[0]) * 4));
+    }
     if (this.P >= BEATS.land) {
       const v = this.slot5;
       if (v.readyState === 0) {

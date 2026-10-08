@@ -1,12 +1,12 @@
 /* A-103 · BOLTED ASSEMBLY (brief 3.6). Owner: A3.
    --fs: the challenge H2 size; --D: the detail circle; --cl: the circle's left edge, set so ASSEMBLY
-   (3.75 em) runs about 0.35 em behind the circle. Everything fits the band between the chrome when
+   (3.75 em) tucks its last 0.2 em behind the circle. Everything fits the band between the chrome when
    the iris pins (the circle is centred in it). */
 
 .a103 {
   --fs: clamp(44px, 12vw, 216px);
   --D: min(36vw, 60svh, 600px);
-  --cl: calc(3.4 * var(--fs));
+  --cl: calc(3.55 * var(--fs));
 }
 .a103-head {
   margin-bottom: var(--s-5);
@@ -99,8 +99,8 @@
 .a103-plan {
   position: absolute;
   right: 0;
-  top: calc(var(--D) - min(13vw, 220px) - 2px);
-  width: min(13vw, 220px);
+  top: calc(var(--D) - min(12vw, 220px) - 2px);
+  width: min(12vw, 220px);
 }
 .a103-plan .view-title {
   font-size: 11px;
@@ -111,6 +111,11 @@
   border-color: var(--hairline-strong);
 }
 
+@media (max-width: 1279px) {
+  .a103 {
+    --D: min(34vw, 56svh);
+  }
+}
 @media (max-width: 1023px) {
   .a103 {
     --D: min(46vw, 56svh);

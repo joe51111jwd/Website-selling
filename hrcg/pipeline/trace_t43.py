@@ -31,14 +31,13 @@ n2, lab2, st2, _ = cv2.connectedComponentsWithStats(strokes, 8)
 keep = np.zeros_like(strokes)
 for j in range(1, n2):
     if st2[j, 4] >= 60 and max(st2[j, 2], st2[j, 3]) >= 30: keep[lab2 == j] = 1     # drop specks and glyph-sized marks
-keep = cv2.morphologyEx(keep, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
-keep = (cv2.GaussianBlur(keep.astype(np.float32), (0, 0), 1.5) > 0.5).astype(np.uint8)
+keep = cv2.morphologyEx(keep, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))   # bridge 1-px breaks only
 skel = cv2.ximgproc.thinning(keep * 255)
 cs, _ = cv2.findContours(skel, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
 polys = []
 for c in cs:
-    if cv2.arcLength(c, False) < 60: continue
-    a = cv2.approxPolyDP(c, 2.2, False).reshape(-1, 2)
+    if cv2.arcLength(c, False) < 40: continue
+    a = cv2.approxPolyDP(c, 1.6, False).reshape(-1, 2)
     polys.append(a)
 # residual: distance from every stroke pixel to the traced polylines (in plan px)
 dr = np.zeros_like(g); [cv2.polylines(dr, [p.astype(np.int32)], False, 255, 1) for p in polys]

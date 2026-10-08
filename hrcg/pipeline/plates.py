@@ -15,7 +15,7 @@ P = R + '/public/media'
 TMP = S + '/a5tmp/plates'; os.makedirs(TMP, exist_ok=True)
 seams = json.load(open(R + '/pipeline/out/seams.json')) if os.path.exists(R + '/pipeline/out/seams.json') else {}
 MB = 1e6
-AV1_CRF = [34, 36, 38, 40, 42, 44, 46]
+AV1_CRF = [34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54]
 H264_CRF = [23, 24, 26, 28, 30]
 
 #      id            dir             source              ffmpeg -vf (on the mezzanine)                       budget AV1, H.264 (MB)  seamOf

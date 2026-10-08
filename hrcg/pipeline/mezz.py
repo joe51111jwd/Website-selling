@@ -61,14 +61,16 @@ LOOSE = False
 def livery(f, roi):
     hsv = cv2.cvtColor(f, cv2.COLOR_BGR2HSV)
     if LOOSE:   # a tight ROI box around one known tool: also catch the shadowed / dust-lit (low-sat, 20-30 deg) yellow
-        m = ((hsv[..., 0] >= 20) & (hsv[..., 0] <= 80) & (hsv[..., 1] >= 0.12) & (hsv[..., 2] >= 0.08)).astype(np.uint8)
+        m = ((hsv[..., 0] >= 22) & (hsv[..., 0] <= 80) & (hsv[..., 1] >= 0.12) & (hsv[..., 2] >= 0.08)).astype(np.uint8)
     else:
         m = ((hsv[..., 0] >= 30) & (hsv[..., 0] <= 78) & (hsv[..., 1] >= 0.22) & (hsv[..., 2] >= 0.16)).astype(np.uint8)
     m &= roi
     m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
     if LOOSE:
         n_, lab_, st_, _ = cv2.connectedComponentsWithStats(m, 8)
-        m = np.isin(lab_, [i for i in range(1, n_) if st_[i, 4] >= 40]).astype(np.uint8)
+        Hh, Ww = m.shape
+        # keep the tool (body + blade); drop specks and the long thin orange floor marking running through the box
+        m = np.isin(lab_, [i for i in range(1, n_) if st_[i, 4] >= 40 and not (st_[i, 2] >= 0.12 * Ww and st_[i, 3] <= 0.035 * Hh)]).astype(np.uint8)
     m = cv2.dilate(m, np.ones((5, 5) if LOOSE else (3, 3), np.uint8))
     mf = cv2.GaussianBlur(m.astype(np.float32), (0, 0), 1.6)
     hsv[..., 1] *= 1.0 - (0.97 if LOOSE else 0.92) * mf
