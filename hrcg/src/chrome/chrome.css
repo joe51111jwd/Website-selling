@@ -9,6 +9,8 @@
   inset: var(--border);
   border: 1px solid var(--hairline);
   pointer-events: none;
+  /* the band outside the border is the slab, not the sheet: content never shows in it */
+  box-shadow: 0 0 0 var(--border) var(--slab-black);
 }
 @media (max-width: 767px) {
   .sheet-border {
@@ -227,7 +229,7 @@
   appearance: none;
   display: inline-flex;
   align-items: center;
-  min-height: 24px;
+  min-height: 15px;
   margin: 0;
   padding: 0;
   border: 0;

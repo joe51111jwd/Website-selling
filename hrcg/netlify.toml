@@ -1,0 +1,16 @@
+# Netlify (brief 8.8, 8.9). Owner: A1.
+# This folder (hrcg/) is the site's BASE DIRECTORY: in the Netlify UI set
+#   Site configuration > Build & deploy > Base directory = hrcg
+# so Netlify reads this file, runs the build here and publishes hrcg/dist.
+# Netlify's URL env var gives SITE_URL (absolute og:image / canonical); see src/content/config.ts.
+# Headers (CSP with the head-script hash, caching) live in public/_headers -> dist/_headers.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NPM_FLAGS = "--no-audit --no-fund"
+
+# No SPA fallback: unknown paths get the static 404.html (A-404).

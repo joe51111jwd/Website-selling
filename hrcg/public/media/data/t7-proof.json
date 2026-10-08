@@ -1,1 +1,74 @@
-{"mock": true, "smallestDetectedPx": null, "printedEdge": {"letter": null, "a4": null}}
+{
+ "family": "tag36h11",
+ "id": 7,
+ "bricks": 128,
+ "detector": "pupil_apriltags (open-source AprilTag library)",
+ "renders": [
+  "flat",
+  "warped + blurred",
+  "smallest detected"
+ ],
+ "smallestDetectedPx": 26,
+ "smallestDetectedPanelPx": 32,
+ "smallestLabel": "26 PX WIDE",
+ "printedEdge": {
+  "letter": "15.0 CM (5.91 IN)",
+  "a4": "15.0 CM (5.91 IN)",
+  "mm": 150.0
+ },
+ "checks": {
+  "t7-brick.svg@1000": {
+   "sideRatio": 1.0001,
+   "detector": "quad_sigma=3.0"
+  },
+  "t7-brick.svg@400": {
+   "sideRatio": 1.0004,
+   "detector": "quad_sigma=1.2"
+  },
+  "t7-brick.svg@200": {
+   "sideRatio": 1.0023,
+   "detector": "default"
+  },
+  "t7-brick.svg@120": {
+   "sideRatio": 1.0014,
+   "detector": "default"
+  },
+  "t7-brick.svg@600 warped+blur": {
+   "sideRatio": 1.2436,
+   "detector": "quad_sigma=1.2"
+  },
+  "hrcg-t7.svg@1000": {
+   "sideRatio": 1.0001,
+   "detector": "quad_sigma=3.0"
+  },
+  "hrcg-t7.svg@400": {
+   "sideRatio": 1.0004,
+   "detector": "quad_sigma=1.2"
+  },
+  "hrcg-t7.svg@200": {
+   "sideRatio": 1.0023,
+   "detector": "default"
+  },
+  "hrcg-t7.svg@120": {
+   "sideRatio": 1.0014,
+   "detector": "default"
+  },
+  "hrcg-t7.svg@600 warped+blur": {
+   "sideRatio": 1.2436,
+   "detector": "quad_sigma=1.2"
+  },
+  "hrcg-t7-letter.pdf@100dpi": {
+   "sideRatio": 1.0004,
+   "sidePx": 589.1,
+   "detector": "quad_sigma=3.0"
+  },
+  "hrcg-t7-letter.pdf measuredEdgeMm": 149.6,
+  "hrcg-t7-a4.pdf@100dpi": {
+   "sideRatio": 1.0007,
+   "sidePx": 589.4,
+   "detector": "quad_sigma=3.0"
+  },
+  "hrcg-t7-a4.pdf measuredEdgeMm": 149.7
+ },
+ "pass": true
+}

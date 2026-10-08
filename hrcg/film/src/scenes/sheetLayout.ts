@@ -60,7 +60,8 @@ export const PERSP: Record<Format, Persp[]> = {
       inAt: 0.4,
       framed: false,
       vt: [96, 958, 1728],
-      sup: { lines: ['LAY BRICK.'], x: 1824, baselines: [392], anchor: 'end', size: 220 },
+      // 200 px here (not 220) so the super keeps clear of 07's head
+      sup: { lines: ['LAY BRICK.'], x: 1824, baselines: [372], anchor: 'end', size: 200 },
     },
     {
       clip: 'c31',
@@ -73,8 +74,9 @@ export const PERSP: Record<Format, Persp[]> = {
     },
     {
       clip: 'c32',
-      crop: [0, 0, 1920, 1076],
-      dest: [0, 2, 1920, 1076],
+      // full width, matted above the view title so the labels never sit on the busy bolt tray
+      crop: [0, 0, 1920, 934],
+      dest: [0, 2, 1920, 934],
       inAt: 0.2,
       framed: false,
       vt: [96, 958, 1728],

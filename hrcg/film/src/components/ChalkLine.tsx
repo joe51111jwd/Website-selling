@@ -69,8 +69,8 @@ export const ChalkLine: React.FC<{
     <svg width={width} height={height} style={{ position: 'absolute', left: 0, top: 0, overflow: 'visible' }}>
       <defs>
         <SprayDefs id={id} />
-        <DepositDefs id={id} w={depositWidth} />
-        <filter id={`shadow-${id}`} x="-5%" y="-100%" width="110%" height="300%">
+        <DepositDefs id={id} w={depositWidth} width={width} height={height} />
+        <filter id={`shadow-${id}`} filterUnits="userSpaceOnUse" x={-100} y={-100} width={width + 200} height={height + 200}>
           <feGaussianBlur stdDeviation={stroke * 0.9} />
         </filter>
       </defs>

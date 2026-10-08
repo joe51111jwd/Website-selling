@@ -29,6 +29,12 @@ export type VideoState =
 
 export interface RegisterOptions {
   entry?: MediaEntry;
+  /**
+   * Manifest id used for the sheet priority list when the registry key differs (one id mounted twice,
+   * e.g. plan-b44 on A-100 and A-105: register under 'plan-b44#a105' with mediaId 'plan-b44').
+   * Default: the key up to '#'.
+   */
+  mediaId?: string;
   /** Sheet id whose priority list ranks this video ('A-101'); defaults to the closest [data-sheet]. */
   sheet?: string | null;
   /** Tie-break inside a sheet when the manifest has no list (lower plays first). */
@@ -44,7 +50,10 @@ export interface RegisterOptions {
 }
 
 interface Reg {
+  /** registry key ('plan-b44' or 'plan-b44#a105') */
   id: string;
+  /** manifest id, for priority lists */
+  mediaId: string;
   el: HTMLVideoElement;
   wrapper: HTMLElement | null;
   sheet: string | null;
@@ -110,7 +119,7 @@ function unload(r: Reg) {
 function rank(r: Reg): number {
   if (r.userPlay) return -1000;
   const list = r.sheet ? sheetVideoPriority[r.sheet] : undefined;
-  const idx = list ? list.indexOf(r.id) : -1;
+  const idx = list ? list.indexOf(r.mediaId) : -1;
   return (idx >= 0 ? idx : 50) * 100 + r.priority;
 }
 
@@ -223,16 +232,25 @@ function bind() {
 }
 
 export const videoManager = {
-  /** Register a <video>. Returns an unregister fn. LoopVideo does this for you. */
+  /**
+   * Register a <video> under a registry key (the manifest id, or 'id#instance' when one id is mounted
+   * twice). Returns an unregister fn. LoopVideo does this for you.
+   */
   register(id: string, el: HTMLVideoElement, opts: RegisterOptions = {}): () => void {
     if (!isBrowser) return () => {};
     bind();
     const prev = regs.get(id);
-    if (prev) prev.cleanup();
+    if (prev) {
+      if (import.meta.env.DEV && prev.el !== el) {
+        console.warn(`[HRCG] video key "${id}" registered twice; pass <LoopVideo instance="…"> to keep both.`);
+      }
+      prev.cleanup();
+    }
     const sheet =
       opts.sheet !== undefined ? opts.sheet : (el.closest<HTMLElement>('[data-sheet]')?.dataset.sheet ?? null);
     const r: Reg = {
       id,
+      mediaId: opts.mediaId ?? id.split('#')[0]!,
       el,
       wrapper: opts.wrapper ?? null,
       sheet,

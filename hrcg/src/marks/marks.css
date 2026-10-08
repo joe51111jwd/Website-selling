@@ -1,0 +1,312 @@
+/* Drafting marks (brief 5.5). Owner: A3.
+   In-house SVG, 1.25 px strokes (non-scaling), currentColor so every mark flips on gypsum.
+   Interactive marks are real <a>/<button> elements with >= 44 px targets; they take the
+   marking-orange fill on hover and focus like every other action (brief 5.4). */
+
+.mk {
+  display: inline-block;
+  flex: 0 0 auto;
+  overflow: visible;
+  vertical-align: middle;
+  color: var(--fg);
+}
+.mk :where(path, line, circle, rect, polyline, polygon) {
+  vector-effect: non-scaling-stroke;
+}
+.mk-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+}
+.mk-fill {
+  fill: currentColor;
+  stroke: none;
+}
+.mk-paper {
+  fill: var(--bg);
+}
+.mk-id {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  fill: currentColor;
+}
+.mk-label {
+  font-family: var(--font-text);
+  font-weight: 600;
+  font-stretch: 68%;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: currentColor;
+}
+.mk-stencil {
+  font-family: var(--font-stencil);
+  font-weight: 800;
+  font-variation-settings: 'opsz' 72;
+  letter-spacing: 0.02em;
+  fill: currentColor;
+}
+
+/* draw-on: elements with pathLength="1" and data-draw; parent [data-drawn] draws them (DRAW) */
+.mk [data-draw] {
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--draw-ms, 400ms) var(--ease-draw) var(--draw-delay, 0ms);
+}
+.mk[data-drawn] [data-draw] {
+  stroke-dashoffset: 0;
+}
+.mk [data-ink] {
+  opacity: 0;
+  transition: opacity var(--dur-print) linear calc(var(--draw-delay, 0ms) + var(--draw-ms, 400ms) * 0.6);
+}
+.mk[data-drawn] [data-ink] {
+  opacity: 1;
+}
+.no-js .mk [data-draw],
+.rm .mk [data-draw],
+.capture .mk[data-drawn] [data-draw] {
+  stroke-dashoffset: 0;
+  transition: none;
+}
+.no-js .mk [data-ink],
+.rm .mk [data-ink] {
+  opacity: 1;
+  transition: none;
+}
+
+/* print-in stagger: [data-printed] on a block prints every .print-in inside it */
+[data-printed] .print-in {
+  opacity: 1;
+}
+.print-in {
+  transition-delay: var(--d, 0ms);
+}
+
+/* ------------------------------------------------------------------ ControlX (spray ✕) */
+.mk-x {
+  color: var(--marking-orange);
+}
+.mk-x[data-stamp] {
+  opacity: 0;
+  transform: scale(1.35);
+  transition:
+    opacity 90ms linear var(--stamp-delay, 0ms),
+    transform 300ms var(--ease-settle) var(--stamp-delay, 0ms);
+}
+.mk-x[data-stamp='in'] {
+  opacity: 1;
+  transform: none;
+}
+.no-js .mk-x[data-stamp],
+.rm .mk-x[data-stamp] {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* ------------------------------------------------------------------ interactive marks */
+.mk-hit {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  color: var(--fg);
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.mk-hit:focus-visible {
+  outline: none;
+}
+.mk-hit .mk-face {
+  fill: var(--bg);
+  transition: fill var(--dur-hover) linear;
+}
+.mk-hit .mk-ink {
+  transition: fill var(--dur-hover) linear, stroke var(--dur-hover) linear;
+}
+.mk-hit:hover .mk-face,
+.mk-hit:focus-visible .mk-face,
+.mk-hit[aria-expanded='true'] .mk-face {
+  fill: var(--marking-orange);
+}
+.mk-hit:hover .mk-ink.mk-fill,
+.mk-hit:hover .mk-id,
+.mk-hit:focus-visible .mk-ink.mk-fill,
+.mk-hit:focus-visible .mk-id,
+.mk-hit[aria-expanded='true'] .mk-id {
+  fill: var(--slab-black);
+}
+.mk-hit:hover .mk-ink.mk-line,
+.mk-hit:focus-visible .mk-ink.mk-line,
+.mk-hit[aria-expanded='true'] .mk-ink.mk-line {
+  stroke: var(--slab-black);
+}
+.mk-hit:hover .mk-pointer,
+.mk-hit:focus-visible .mk-pointer {
+  fill: var(--marking-orange);
+}
+/* focus ring drawn as a circle around the symbol: 2 px, focus colour, 3 px off the edge */
+.mk-ring {
+  fill: none;
+  stroke: var(--focus);
+  stroke-width: 2;
+  opacity: 0;
+}
+.mk-hit:focus-visible .mk-ring {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------ ViewMarker */
+.mk-vm .mk-pointer {
+  fill: currentColor;
+  transition: fill var(--dur-hover) linear;
+}
+
+/* ------------------------------------------------------------------ DetailBubble + panel */
+.mk-detail {
+  position: relative;
+  display: inline-block;
+}
+.mk-detail-panel {
+  position: absolute;
+  z-index: 30;
+  width: 36vw;
+  --r0: 22px;
+  --cx: 50%;
+  --cy: 50%;
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility 0s linear 700ms;
+}
+.mk-detail-panel .view-frame {
+  border: 0;
+  clip-path: circle(var(--r0) at var(--cx) var(--cy));
+  transition: clip-path 700ms var(--ease-settle);
+  background: var(--slab-black);
+}
+.mk-detail-panel .view-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1.25px solid var(--chalk);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.mk-detail-panel .view-title {
+  opacity: 0;
+  transition: opacity var(--dur-print) linear;
+}
+.mk-detail-panel[data-open] {
+  visibility: visible;
+  pointer-events: auto;
+  transition: none;
+}
+.mk-detail-panel[data-open] .view-frame {
+  clip-path: circle(calc(50% + 1px) at 50% 50%);
+}
+.mk-detail-panel[data-open] .view-title {
+  opacity: 1;
+  transition-delay: 450ms;
+}
+.rm .mk-detail-panel .view-frame,
+.rm .mk-detail-panel .view-title {
+  transition: none;
+}
+/* no JS: the detail is simply printed under its bubble */
+.no-js .mk-detail-panel {
+  position: static;
+  visibility: visible;
+  pointer-events: auto;
+  margin-top: var(--s-4);
+}
+.no-js .mk-detail-panel .view-frame {
+  clip-path: circle(calc(50% + 1px) at 50% 50%);
+}
+.no-js .mk-detail-panel .view-title {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------------ GridBubble */
+.mk-gb {
+  color: var(--fg);
+}
+.mk-gb .mk-stencil {
+  font-size: 14px;
+}
+
+/* ------------------------------------------------------------------ SectionCut */
+.mk-sc .mk-cut {
+  stroke: var(--chalk-blue);
+  stroke-width: 1.25;
+  fill: none;
+}
+
+/* ------------------------------------------------------------------ HOLD cloud */
+.mk-hold {
+  position: relative;
+  display: inline-block;
+  color: var(--marking-orange);
+  --lift: 2px;
+}
+.mk-hold > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 var(--lift) calc(var(--lift) * 1.5) rgba(0, 0, 0, 0.55));
+}
+.mk-hold[data-flat] > svg {
+  filter: none;
+}
+.mk-hold-tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-30%, -60%);
+  padding: 2px 6px 1px;
+  background: var(--marking-orange);
+  color: var(--slab-black);
+  font-family: var(--font-text);
+  font-weight: 700;
+  font-stretch: 68%;
+  font-size: 10px;
+  line-height: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.mk-hold-body {
+  position: relative;
+  display: block;
+  color: var(--fg);
+}
+
+/* ------------------------------------------------------------------ north arrow, angle arc */
+.mk-na .mk-label,
+.mk-aa .mk-label {
+  font-size: 11px;
+}
+
+/* ------------------------------------------------------------------ chalk box */
+.mk-cb .mk-reel {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+}
+.mk-hit:hover .mk-stencil,
+.mk-hit:focus-visible .mk-stencil {
+  fill: var(--slab-black);
+}

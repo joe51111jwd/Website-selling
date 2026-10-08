@@ -210,14 +210,17 @@ if abs(fdx) < 1e-9 and abs(fdy) < 1e-9: pass
 far0, _ = layout(0, 0); o0 = occl_yaw0(raster(far0))
 if 0.03 <= o0 <= 0.10: fdx, fdy = 0.0, 0.0
 nbest = None
-for dy in np.arange(-0.05, 0.0501, 0.01):
-    for dx in np.arange(-0.05, 0.0501, 0.01):
+# NEAR may move +-0.05 per the brief, but never right (the 16:10 viewport crops ~4.5% per side) and never
+# down (the sub and the hint sit at y 0.80); so the search is left/up only.
+for dy in np.arange(-0.05, 0.0001, 0.01):
+    for dx in np.arange(-0.05, 0.0001, 0.01):
         _, near = layout(fdx, fdy, dx, dy)
         frac, p10, med = near_contrast(raster(near), rgb)
         sc = frac - 0.002 * (abs(dx) + abs(dy)) / 0.01
         if nbest is None or sc > nbest[0]: nbest = (sc, dx, dy, frac, p10, med)
 _, n0 = layout(fdx, fdy, 0, 0); f0 = near_contrast(raster(n0), rgb)
-ndx, ndy = (0.0, 0.0) if f0[0] >= 0.90 else (nbest[1], nbest[2])
+# take a shift only if it alone passes the gate; otherwise stay put and let R3 darken under the box
+ndx, ndy = (nbest[1], nbest[2]) if (f0[0] < 0.90 and nbest[3] >= 0.90) else (0.0, 0.0)
 far, near = layout(fdx, fdy, ndx, ndy)
 farm, nearm = raster(far), raster(near)
 occ0 = occl_yaw0(farm)

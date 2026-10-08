@@ -7,6 +7,7 @@ import { CourseMark } from './CourseMark';
 import { HEADER } from '../content/copy/chrome';
 import { navClick } from './nav';
 import { openIndex } from './overlays';
+import { onLayout } from '../system/scroll';
 
 export function SheetHeader() {
   const ref = useRef<HTMLElement>(null);
@@ -14,24 +15,35 @@ export function SheetHeader() {
 
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') return;
-    // a thin band at the header's height: which ground is under the header?
+    // a thin band through the header's text line: which ground is under the header?
     const papers = new Set<Element>();
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) papers.add(e.target);
-          else papers.delete(e.target);
-        }
-        setOnPaper(papers.size > 0);
-      },
-      { rootMargin: '-24px 0px -92% 0px' },
-    );
-    const scan = () => document.querySelectorAll('[data-ground="gypsum"]').forEach((el) => io.observe(el));
-    scan();
+    let io: IntersectionObserver | null = null;
+    const build = () => {
+      io?.disconnect();
+      papers.clear();
+      const header = ref.current?.getBoundingClientRect();
+      const mid = header ? header.top + header.height / 2 : 48;
+      const vh = window.innerHeight;
+      io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting && e.intersectionRect.height > 0) papers.add(e.target);
+            else papers.delete(e.target);
+          }
+          setOnPaper(papers.size > 0);
+        },
+        { rootMargin: `-${Math.round(mid - 4)}px 0px -${Math.max(0, Math.round(vh - mid - 4))}px 0px` },
+      );
+      scan();
+    };
+    const scan = () => document.querySelectorAll('[data-ground="gypsum"]').forEach((el) => io?.observe(el));
+    build();
+    const offLayout = onLayout(build);
     const mo = new MutationObserver(scan);
     mo.observe(document.getElementById('main') ?? document.body, { childList: true, subtree: true });
     return () => {
-      io.disconnect();
+      io?.disconnect();
+      offLayout();
       mo.disconnect();
     };
   }, []);

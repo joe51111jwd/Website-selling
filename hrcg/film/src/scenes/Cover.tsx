@@ -87,6 +87,22 @@ export const Cover: React.FC<CoverProps> = ({ format }) => {
         </div>
       </Framed>
 
+      {/* phone layout: the empty window waits on the slab as a hairline viewport until the film rises */}
+      {L.window ? (
+        <div
+          style={{
+            position: 'absolute',
+            left: L.dest[0] - 1,
+            top: L.dest[1] - 1,
+            width: L.dest[2] + 2,
+            height: L.dest[3] + 2,
+            border: `1px solid ${C.pencil}`,
+            boxSizing: 'border-box',
+            opacity: 0.45 * (1 - filmOpacity),
+          }}
+        />
+      ) : null}
+
       {/* status line */}
       <div style={{ position: 'absolute', left: L.status.x, top: L.status.cy - L.status.size * 0.5, opacity: 0.8 }}>
         <span style={statusStyle(L.status.size)}>{STATUS}</span>

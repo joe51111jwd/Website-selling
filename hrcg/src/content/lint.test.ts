@@ -120,6 +120,9 @@ describe('copy lint: rules catch what they must', () => {
     'Download T7 (US Letter PDF)',
     'Download T7 (A4 PDF)',
     'A-404 · SHEET NOT FOUND',
+    '1 / A-101',
+    'Open detail 1, concept film of a robot hand pressing a brick into mortar',
+    'DETAIL 5 / A-105 · CONCEPT FILM · AI-GENERATED',
   ];
   for (const text of good) {
     it(`passes: "${text}"`, () => {

@@ -1,6 +1,6 @@
 {
- "mock": true,
- "space": "normalised 0..1 of the registered plan frame (plan-b44 and plan-b44-260), x right, y down",
+ "space": "normalised 0..1 of the registered plan frame (plan-b44, plan-b44-260; 1440\u00b2, border at 120..1320), x right, y down",
+ "frame": "b44 at 2.60 s (frame 62), graded, livery-shifted, registered",
  "borderRect": [
   0.08333333333333333,
   0.08333333333333333,
@@ -10,194 +10,232 @@
  "segments": [
   {
    "id": 1,
+   "order": 1,
+   "axis": "v",
+   "fresh": false,
+   "name": "perimeter west",
+   "freshFrac": 0.0,
    "a": [
-    0.1611,
-    0.835
+    0.166,
+    0.1792
    ],
    "b": [
-    0.6689,
-    0.8398
-   ],
-   "order": 1
+    0.166,
+    0.8458
+   ]
   },
   {
    "id": 2,
+   "order": 2,
+   "axis": "h",
+   "fresh": false,
+   "name": "perimeter south, west of the door",
+   "freshFrac": 0.001,
    "a": [
-    0.1475,
-    0.5273
+    0.1562,
+    0.8326
    ],
    "b": [
-    0.1504,
-    0.1602
-   ],
-   "order": 2
+    0.6667,
+    0.8326
+   ]
   },
   {
    "id": 3,
+   "order": 3,
+   "axis": "h",
+   "fresh": false,
+   "name": "perimeter south, east of the door",
+   "freshFrac": 0.0,
    "a": [
-    0.1396,
-    0.8262
+    0.7576,
+    0.8319
    ],
    "b": [
-    0.1455,
-    0.1592
-   ],
-   "order": 3
+    0.8444,
+    0.8319
+   ]
   },
   {
    "id": 4,
+   "order": 4,
+   "axis": "v",
+   "fresh": false,
+   "name": "perimeter east",
+   "freshFrac": 0.0,
    "a": [
-    0.1582,
-    0.8408
+    0.8361,
+    0.1521
    ],
    "b": [
-    0.6689,
-    0.8408
-   ],
-   "order": 4
+    0.8361,
+    0.8424
+   ]
   },
   {
    "id": 5,
+   "order": 5,
+   "axis": "h",
+   "fresh": false,
+   "name": "perimeter north, west",
+   "freshFrac": 0.0,
    "a": [
-    0.1465,
-    0.5273
+    0.166,
+    0.1722
    ],
    "b": [
-    0.1465,
-    0.1582
-   ],
-   "order": 5
+    0.3139,
+    0.1722
+   ]
   },
   {
    "id": 6,
+   "order": 6,
+   "axis": "h",
+   "fresh": false,
+   "name": "perimeter north, east",
+   "freshFrac": 0.0,
    "a": [
-    0.2178,
-    0.8418
+    0.7479,
+    0.1694
    ],
    "b": [
-    0.668,
-    0.8418
-   ],
-   "order": 6
+    0.8292,
+    0.1694
+   ]
   },
   {
    "id": 7,
+   "order": 7,
+   "axis": "h",
+   "fresh": false,
+   "name": "partition, north face",
+   "freshFrac": 0.0,
    "a": [
-    0.1494,
-    0.5273
+    0.1549,
+    0.5292
    ],
    "b": [
-    0.1523,
-    0.1582
-   ],
-   "order": 7
+    0.3083,
+    0.5292
+   ]
   },
   {
    "id": 8,
+   "order": 8,
+   "axis": "h",
+   "fresh": false,
+   "name": "partition, south face",
+   "freshFrac": 0.007,
    "a": [
-    0.8457,
-    0.584
+    0.159,
+    0.5583
    ],
    "b": [
-    0.8545,
-    0.8252
-   ],
-   "order": 8
+    0.2917,
+    0.5583
+   ]
   },
   {
    "id": 9,
+   "order": 9,
+   "axis": "v",
+   "fresh": false,
+   "name": "partition, east face",
+   "freshFrac": 0.0,
    "a": [
-    0.8477,
-    0.585
+    0.2868,
+    0.5243
    ],
    "b": [
-    0.8555,
-    0.8174
-   ],
-   "order": 9
+    0.2868,
+    0.8319
+   ]
   },
   {
    "id": 10,
+   "order": 10,
+   "axis": "v",
+   "fresh": false,
+   "name": "partition, west face",
+   "freshFrac": 0.0,
    "a": [
-    0.5693,
-    0.8369
+    0.2792,
+    0.5243
    ],
    "b": [
-    0.6699,
-    0.8379
-   ],
-   "order": 10
+    0.2792,
+    0.8319
+   ]
   },
   {
    "id": 11,
+   "order": 11,
+   "axis": "v",
+   "fresh": false,
+   "name": "door jamb",
+   "freshFrac": 0.0,
    "a": [
-    0.1377,
-    0.5215
+    0.7632,
+    0.7285
    ],
    "b": [
-    0.2949,
-    0.5215
-   ],
-   "order": 11
+    0.7632,
+    0.8403
+   ]
   },
   {
    "id": 12,
+   "order": 12,
+   "axis": "h",
+   "fresh": true,
+   "name": "fresh line (snapped in the film)",
+   "freshFrac": 0.315,
    "a": [
-    0.833,
-    0.166
+    0.3882,
+    0.5264
    ],
    "b": [
-    0.8369,
-    0.3203
-   ],
-   "order": 12
-  },
-  {
-   "id": 13,
-   "a": [
-    0.5684,
-    0.5225
-   ],
-   "b": [
-    0.75,
-    0.5234
-   ],
-   "order": 13
-  },
-  {
-   "id": 14,
-   "a": [
-    0.1582,
-    0.8398
-   ],
-   "b": [
-    0.6348,
-    0.8398
-   ],
-   "order": 14
-  },
-  {
-   "id": 15,
-   "a": [
-    0.1367,
-    0.5244
-   ],
-   "b": [
-    0.2949,
-    0.5225
-   ],
-   "order": 15
+    0.7542,
+    0.5264
+   ]
   }
  ],
  "fresh": {
   "a": [
-   0.1611,
-   0.835
+   0.38819,
+   0.52551
   ],
   "b": [
-   0.6689,
-   0.8398
+   0.75417,
+   0.52804
+  ],
+  "lengthPx1440": 527.0,
+  "straightnessResidualPx": 2.52
+ },
+ "gridlines": {
+  "x": [
+   0.166,
+   0.279,
+   0.763,
+   0.836
+  ],
+  "y": [
+   0.169,
+   0.526,
+   0.558,
+   0.832
   ]
  },
- "gridlines": []
+ "planCut": {
+  "heroLineFrac": 0.4,
+  "upscale1440x900": 1.202,
+  "upscale1920x1080": 1.463,
+  "gate": true,
+  "maxHeroLineFrac": 0.4,
+  "registrationErrorPx1440x900": {
+   "median": 0.95,
+   "p90": 3.03
+  }
+ }
 }

@@ -10,11 +10,11 @@ import react from '@vitejs/plugin-react';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { HEAD_SCRIPT } from './src/system/headScript';
-import { SEO } from './src/content/copy/chrome';
-import { resolveSiteUrl, absoluteUrl, OG_IMAGE_PATH } from './src/content/config';
+import { HEAD_SCRIPT } from './src/system/headScript.ts';
+import { SEO } from './src/content/copy/chrome.ts';
+import { resolveSiteUrl, absoluteUrl, OG_IMAGE_PATH } from './src/content/config.ts';
 
-const ROOT = __dirname;
+const ROOT = import.meta.dirname;
 const SITE_URL = resolveSiteUrl(process.env);
 
 function esc(s: string): string {
@@ -69,6 +69,7 @@ function hrcgHtml(): Plugin {
 function hrcgPrerender(): Plugin {
   let outDir = resolve(ROOT, 'dist');
   let isSsrBuild = false;
+  let failed = false;
   return {
     name: 'hrcg-prerender',
     apply: 'build',
@@ -77,8 +78,15 @@ function hrcgPrerender(): Plugin {
       outDir = resolve(c.root, c.build.outDir);
       isSsrBuild = Boolean(c.build.ssr);
     },
+    buildEnd(error) {
+      failed = Boolean(error);
+    },
+    renderError() {
+      failed = true;
+    },
     async closeBundle() {
-      if (isSsrBuild || process.env.HRCG_SKIP_PRERENDER === '1') return;
+      // a failed client build reports its own error; never prerender a stale index.html
+      if (failed || isSsrBuild || process.env.HRCG_SKIP_PRERENDER === '1') return;
       const mod = await import(/* @vite-ignore */ pathToFileURL(resolve(ROOT, 'scripts/prerender.mjs')).href);
       await mod.prerender({ root: ROOT, outDir, siteUrl: SITE_URL });
     },

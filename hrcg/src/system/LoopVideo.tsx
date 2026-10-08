@@ -13,6 +13,11 @@ import { MEDIA_STATES } from '../content/copy/chrome';
 export interface LoopVideoProps {
   /** Manifest id */
   id: string;
+  /**
+   * Distinguishes two elements showing the same manifest id (plan-b44 on A-100 and A-105).
+   * Registry key becomes `${id}#${instance}`; priority lists still use `id`.
+   */
+  instance?: string;
   className?: string;
   /**
    * Manifest id used below 768 px. Default: the manifest's phone variant (phoneVariant(id), e.g.
@@ -55,6 +60,7 @@ function assignRef<T>(ref: Ref<T> | undefined, value: T | null) {
 
 export function LoopVideo({
   id,
+  instance,
   className,
   phoneId: phoneIdProp,
   autoPlay = true,
@@ -67,6 +73,7 @@ export function LoopVideo({
   onState,
 }: LoopVideoProps) {
   const ctx = useViewContext();
+  const key = instance ? `${id}#${instance}` : id;
   const phoneCandidate = phoneIdProp === undefined ? phoneVariant(id) : phoneIdProp;
   const phoneId = phoneCandidate && phoneCandidate !== id ? phoneCandidate : null;
   const [usePhone, setUsePhone] = useState(false);
@@ -91,24 +98,25 @@ export function LoopVideo({
   useEffect(() => {
     const el = elRef.current;
     if (!el || !entry) return;
-    const unregister = videoManager.register(id, el, {
+    const unregister = videoManager.register(key, el, {
       entry,
+      mediaId: id,
       sheet,
       priority,
       autoplay: autoPlay,
       startAt,
       wrapper: rootRef.current,
     });
-    const unsub = videoManager.onState(id, (s) => {
+    const unsub = videoManager.onState(key, (s) => {
       onStateRef.current?.(s);
-      ctx?.setStatus(id, s === 'error' ? MEDIA_STATES.filmUnavailable : '');
+      ctx?.setStatus(key, s === 'error' ? MEDIA_STATES.filmUnavailable : '');
     });
     return () => {
       unsub();
       unregister();
     };
     // re-register when the source set changes (phone variant)
-  }, [id, activeId, entry, sheet, priority, autoPlay, startAt, ctx]);
+  }, [key, id, activeId, entry, sheet, priority, autoPlay, startAt, ctx]);
 
   const aria = label ?? entry?.alt ?? '';
 
@@ -131,6 +139,7 @@ export function LoopVideo({
       ref={rootRef}
       className={`loopvideo loopvideo--${fit} ${className ?? ''}`}
       data-media-id={id}
+      data-video-key={key}
       data-state="idle"
       style={{ aspectRatio: `${entry.w} / ${entry.h}` }}
     >
@@ -171,7 +180,7 @@ export function LoopVideo({
         type="button"
         className="loopvideo-play cell-button"
         aria-label={`${MEDIA_STATES.playLabelPrefix}${aria}`}
-        onClick={() => videoManager.userPlay(id)}
+        onClick={() => videoManager.userPlay(key)}
       >
         {MEDIA_STATES.play}
       </button>

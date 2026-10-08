@@ -28,7 +28,9 @@ export function PhoneBar() {
           overlays.open('title-sheet', e.currentTarget);
         }}
       >
-        <LabelText text={`${PHONE_BAR.statusPrefix} · ${current}`} />
+        <span>
+          <LabelText text={`${PHONE_BAR.statusPrefix} · ${current}`} />
+        </span>
       </a>
       <a className="phone-cta cell-button" data-strip-cell="teams" href="#a-300" onClick={navClick(true)}>
         {STRIP.teamsShort}
@@ -64,7 +66,9 @@ export function TitleSheet() {
           <div className="ts-cell">
             <dt className="strip-label">{STRIP.statusLabel}</dt>
             <dd className="strip-value strip-value--strong">
-              <LabelText text={STRIP.statusValue} />
+              <span>
+                <LabelText text={STRIP.statusValue} />
+              </span>
             </dd>
           </div>
           <div className="ts-cell" data-strip-cell="venue">
@@ -82,7 +86,9 @@ export function TitleSheet() {
           <div className="ts-cell">
             <dt className="strip-label">{STRIP.sheetLabel}</dt>
             <dd className="strip-value">
-              <LabelText text={sheet.strip} />
+              <span>
+                <LabelText text={sheet.strip} />
+              </span>
             </dd>
           </div>
           <div className="ts-cell">

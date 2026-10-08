@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Sheet not found | Humanoid Robot Construction Games</title>
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#0B0B0A" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- A-404 (brief 3.13): static, same sheet border and strip, no scripts. Owner: A1. -->
+    <style>
+      @font-face { font-family: 'Archivo'; src: url('/fonts/archivo.woff2') format('woff2'); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; }
+      @font-face { font-family: 'Archivo'; src: url('/fonts/archivo-arrows.woff2') format('woff2'); font-weight: 100 900; font-stretch: 62% 125%; font-display: swap; unicode-range: U+2190-2193; }
+      @font-face { font-family: 'Big Shoulders'; src: url('/fonts/big-shoulders.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+      @font-face { font-family: 'Big Shoulders'; src: url('/fonts/big-shoulders-arrows.woff2') format('woff2'); font-weight: 100 900; font-display: swap; unicode-range: U+2190-2193; }
+      @font-face { font-family: 'JetBrains Mono'; src: url('/fonts/jetbrains-mono.woff2') format('woff2'); font-weight: 100 800; font-display: swap; }
+      :root { --border: 24px; --margin: 72px; --strip-h: 56px; --hair: rgba(154,149,140,.4); }
+      @media (max-width: 767px) { :root { --border: 12px; --margin: 16px; } }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; background: #0b0b0a; color: #ece8e1; }
+      body { min-height: 100vh; font-family: 'Archivo', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+      a { color: inherit; }
+      :focus-visible { outline: 2px solid #6f98e8; outline-offset: 3px; }
+      .border { position: fixed; inset: var(--border); border: 1px solid var(--hair); pointer-events: none; box-shadow: 0 0 0 var(--border) #0b0b0a; }
+      .label { font-weight: 600; font-stretch: 68%; font-size: 12px; line-height: 15px; letter-spacing: .06em; text-transform: uppercase; }
+      .num { font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0; }
+      header { position: fixed; top: var(--border); left: var(--border); right: var(--border); height: 48px; display: flex; align-items: center; padding: 0 16px 0 calc(var(--margin) - var(--border)); }
+      .home { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; text-decoration: none; }
+      .home svg { height: 8.6px; width: auto; fill: currentColor; }
+      .name { font-family: 'Big Shoulders', 'Arial Narrow', sans-serif; font-weight: 800; font-variation-settings: 'opsz' 72; font-size: 20px; letter-spacing: .02em; }
+      main { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; gap: 24px; padding: 120px var(--margin) calc(var(--strip-h) + var(--border) + 48px); }
+      .tag { color: #9a958c; }
+      h1 { margin: 0; font-family: 'Big Shoulders', 'Arial Narrow', sans-serif; font-weight: 800; font-variation-settings: 'opsz' 72; font-size: clamp(48px, 8vw, 152px); line-height: .88; max-width: 14ch; }
+      .back { align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid rgba(154,149,140,.6); text-decoration: none; font-weight: 600; font-size: 16px; }
+      .back:hover, .back:focus-visible { background: #f06a2c; border-color: #f06a2c; color: #0b0b0a; }
+      nav { position: fixed; left: var(--border); right: var(--border); bottom: var(--border); height: var(--strip-h); display: flex; background: rgba(11,11,10,.96); border-top: 1px solid var(--hair); }
+      .cell { display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 0 14px; border-left: 1px solid var(--hair); white-space: nowrap; overflow: hidden; text-decoration: none; }
+      .cell:first-child { border-left: 0; }
+      .cell small { display: block; font-weight: 600; font-stretch: 68%; font-size: 10px; line-height: 12px; letter-spacing: .06em; text-transform: uppercase; color: #9a958c; }
+      .cell span { font-weight: 600; font-stretch: 68%; font-size: 12px; line-height: 15px; letter-spacing: .06em; text-transform: uppercase; }
+      .cta { flex: 1 1 0; }
+      .cta span { font-stretch: 100%; font-size: 14px; letter-spacing: 0; text-transform: none; }
+      .cta:hover, .cta:focus-visible { background: #f06a2c; color: #0b0b0a; }
+      .cta:hover small, .cta:focus-visible small { color: #0b0b0a; }
+      .hold { color: #f06a2c; }
+      @media (max-width: 1023px) { .wide { display: none; } }
+      @media (max-width: 767px) {
+        nav { left: 0; right: 0; bottom: 0; }
+        .border { bottom: var(--strip-h); border-bottom: 0; }
+        .phone-hide { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a class="home" href="/" aria-label="Humanoid Robot Construction Games, back to the cover">
+        <svg viewBox="0 0 10.5 1" aria-hidden="true" focusable="false"><rect x="0" width="2" height="1"/><rect x="2.125" width="2" height="1"/><rect x="4.25" width="2" height="1"/><rect x="6.375" width="2" height="1"/><rect x="8.5" width="2" height="1"/></svg>
+        <span class="name">HRCG</span>
+      </a>
+    </header>
+    <main id="main">
+      <p class="tag label"><span class="num">A-404</span> · SHEET NOT FOUND</p>
+      <h1>This sheet isn’t in the set.</h1>
+      <a class="back" href="/">Back to the cover →</a>
+    </main>
+    <nav aria-label="Title block">
+      <div class="cell phone-hide"><small>STATUS · PLACE · YEAR</small><span>PLANNED · NEW YORK CITY · <span class="num">2027</span></span></div>
+      <div class="cell phone-hide wide"><small>DATE · VENUE</small><span style="display:flex;align-items:center;gap:8px"><svg class="hold" viewBox="0 0 30 14" width="30" height="14" aria-hidden="true" focusable="false"><path d="M4 11.5c-2.2 0-3.3-2.4-1.9-4 .2-2 2.4-3 4-2C6.6 3.2 9.4 2.3 11 3.6 12 1.6 15.2 1.3 16.6 3c1.4-1.5 4.3-1.2 5 .9 1.9-.6 4 .7 4 2.6 1.9.5 2.6 2.8 1.2 4.1-.4 1.6-2.4 2.3-3.8 1.4-1.1 1.5-3.6 1.6-4.7.2-1.3 1.3-3.8 1.2-4.8-.3-1.3 1.2-3.6 1.1-4.6-.3C8 12.3 5.6 12.5 4 11.5Z" fill="none" stroke="currentColor" stroke-width="1.25"/></svg><span aria-hidden="true">HOLD</span><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)">Date to be announced on this site. Venue to be announced on this site.</span></span></div>
+      <div class="cell phone-hide wide"><small>IMAGERY</small><span>CONCEPT · AI-GENERATED</span></div>
+      <div class="cell"><small>SHEET</small><span><span class="num">A-404</span></span></div>
+      <a class="cell cta" href="/#a-300"><small>ROBOT TEAMS</small><span>Bring the robot →</span></a>
+      <a class="cell cta" href="/#a-301"><small>CONSTRUCTION COMPANIES</small><span>Bring your product →</span></a>
+    </nav>
+    <div class="border" aria-hidden="true"></div>
+  </body>
+</html>

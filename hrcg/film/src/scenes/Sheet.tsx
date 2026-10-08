@@ -1,7 +1,7 @@
 // One challenge sheet, 3.0 s: PLAN (0.8 s, the bay loop under its view title) → hard cut →
 // PERSPECTIVE (2.2 s) with the roll-call verb as the super.
 import React from 'react';
-import { AbsoluteFill, Sequence, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, Sequence, useVideoConfig } from 'remotion';
 import { Clip } from '../components/Clip';
 import { Framed } from '../components/Framed';
 import { Ground } from '../components/Ground';
@@ -39,12 +39,10 @@ export const Super: React.FC<{ lines: string[]; x: number; baselines: number[]; 
 );
 
 export const Sheet: React.FC<{ format: Format; index: number }> = ({ format, index }) => {
-  const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
   const tl = TL[format].sheets;
   const sh = SHEETS[index];
   const planF = Math.round(tl.plan * fps);
-  const isPlan = frame < planF;
   const P = PLAN_L[format](sh.nameLines.length);
   const Q = PERSP[format][index];
   const lbl = CHROME[format].lbl;
@@ -52,13 +50,10 @@ export const Sheet: React.FC<{ format: Format; index: number }> = ({ format, ind
 
   return (
     <AbsoluteFill style={{ backgroundColor: C.slabBlack }}>
-      {isPlan ? (
-        <>
+      <Sequence name={`PLAN ${sh.n}`} durationInFrames={planF} premountFor={fps}>
           <Ground pool={[30, 50]} exposure={0.1} />
           <Framed rect={P.dest}>
-            <Sequence name={`PLAN ${sh.n}`} durationInFrames={planF} premountFor={fps}>
-              <Clip id={sh.plan} dest={[0, 0, P.dest[2], P.dest[3]]} trimBefore={0} />
-            </Sequence>
+            <Clip id={sh.plan} dest={[0, 0, P.dest[2], P.dest[3]]} trimBefore={0} />
           </Framed>
           <ViewTitle x={P.vt[0]} y={P.vt[1]} w={P.vt[2]} size={lbl} text={`PLAN ${sh.n} · CONCEPT FILM · AI-GENERATED`} />
           <div style={{ position: 'absolute', left: P.tag[0], top: P.tag[1] }}>
@@ -89,14 +84,11 @@ export const Sheet: React.FC<{ format: Format; index: number }> = ({ format, ind
               {ln}
             </div>
           ))}
-        </>
-      ) : (
-        <>
+      </Sequence>
+      <Sequence name={PERSP_TITLES[index]} from={planF} premountFor={fps}>
           {Q.framed ? <Ground pool={[50, 50]} exposure={0.1} /> : null}
           <Framed rect={Q.dest} frame={Q.framed} feather={Q.framed}>
-            <Sequence name={PERSP_TITLES[index]} from={planF} premountFor={fps}>
-              <Clip id={Q.clip} crop={Q.crop} dest={[0, 0, Q.dest[2], Q.dest[3]]} trimBefore={Math.round(Q.inAt * fps)} />
-            </Sequence>
+            <Clip id={Q.clip} crop={Q.crop} dest={[0, 0, Q.dest[2], Q.dest[3]]} trimBefore={Math.round(Q.inAt * fps)} />
           </Framed>
           <ViewTitle x={Q.vt[0]} y={Q.vt[1]} w={Q.vt[2]} size={lbl} wrap={Q.vt[2] < 700} text={`${PERSP_TITLES[index]} · CONCEPT FILM · AI-GENERATED`} />
           <Super
@@ -106,8 +98,7 @@ export const Sheet: React.FC<{ format: Format; index: number }> = ({ format, ind
             anchor={Q.sup.anchor}
             size={Q.sup.size}
           />
-        </>
-      )}
+      </Sequence>
     </AbsoluteFill>
   );
 };

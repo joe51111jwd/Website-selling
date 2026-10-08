@@ -87,11 +87,12 @@ export const COVER: Record<Format, CoverLayout> = {
     window: false,
     status: { x: 64, cy: 106, size: 18 },
     h1: {
-      size: 108,
+      // 96 px (not 108) so WHAT CAN A ends clear of 07's head in the square crop
+      size: 96,
       lines: [
-        { text: 'WHAT CAN A', x: 64, baseline: 232, anchor: 'start', ink: C.chalk, plane: 'far' },
-        { text: 'HUMANOID', x: 64, baseline: 335, anchor: 'start', ink: C.chalk, plane: 'far' },
-        { text: 'ACTUALLY', x: 1016, baseline: 742, anchor: 'end', ink: C.orange, plane: 'near' },
+        { text: 'WHAT CAN A', x: 64, baseline: 218, anchor: 'start', ink: C.chalk, plane: 'far' },
+        { text: 'HUMANOID', x: 64, baseline: 310, anchor: 'start', ink: C.chalk, plane: 'far' },
+        { text: 'ACTUALLY', x: 1016, baseline: 752, anchor: 'end', ink: C.orange, plane: 'near' },
         { text: 'BUILD?', x: 1016, baseline: 846, anchor: 'end', ink: C.orange, plane: 'near' },
       ],
     },

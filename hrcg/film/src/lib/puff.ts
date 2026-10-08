@@ -20,9 +20,9 @@ type Seeded = {
 };
 
 const POP: { kind: 0 | 1 | 2; n: number }[] = [
-  { kind: 0, n: 460 },
-  { kind: 1, n: 110 },
-  { kind: 2, n: 18 },
+  { kind: 0, n: 380 },
+  { kind: 1, n: 170 },
+  { kind: 2, n: 26 },
 ];
 
 const seeds: Seeded[] = (() => {
@@ -38,18 +38,18 @@ const seeds: Seeded[] = (() => {
       out.push({
         u,
         jy: (r('jy') - 0.5) * (kind === 0 ? 6 : 3),
-        vx: (r('vx') - 0.5) * (kind === 0 ? 190 : kind === 1 ? 90 : 40),
+        vx: (r('vx') - 0.5) * (kind === 0 ? 200 : kind === 1 ? 110 : 50),
         vy:
           kind === 0
-            ? -(260 + Math.pow(r('vy'), 0.8) * 680)
+            ? -(200 + Math.pow(r('vy'), 0.8) * 720)
             : kind === 1
-              ? -(110 + r('vy') * 300)
-              : -(40 + r('vy') * 90),
-        r0: kind === 0 ? 0.9 + Math.pow(r('r'), 2) * 2.6 : kind === 1 ? 12 + r('r') * 26 : 48 + r('r') * 60,
-        grow: kind === 0 ? 0.2 + r('gr') * 0.4 : kind === 1 ? 0.9 + r('gr') * 1.1 : 0.5 + r('gr') * 0.6,
+              ? -(120 + Math.pow(r('vy'), 1.2) * 640)
+              : -(30 + r('vy') * 110),
+        r0: kind === 0 ? 0.55 + Math.pow(r('r'), 2) * 1.2 : kind === 1 ? 7 + r('r') * 18 : 30 + r('r') * 42,
+        grow: kind === 0 ? 0.1 + r('gr') * 0.3 : kind === 1 ? 1.3 + r('gr') * 1.4 : 0.6 + r('gr') * 0.7,
         lens: r('lens'),
         g: Math.floor(r('g') * 8),
-        o: kind === 0 ? 0.45 + r('o') * 0.5 : kind === 1 ? 0.1 + r('o') * 0.16 : 0.07 + r('o') * 0.07,
+        o: kind === 0 ? 0.35 + r('o') * 0.4 : kind === 1 ? 0.16 + r('o') * 0.16 : 0.1 + r('o') * 0.09,
         kind,
       });
     }

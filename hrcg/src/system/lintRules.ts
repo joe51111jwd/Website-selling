@@ -45,6 +45,10 @@ const MONTHS =
 /** Digit tokens allowed anywhere (rule 5). Order matters: longer tokens first. */
 const ALLOWED_DIGIT_TOKENS: RegExp[] = [
   /HRCG-2027/g,
+  // detail bubble numbering, bare form inside the mark: "1 / A-101" (A3-1)
+  /\b[1-6] \/ A-(?:101|102|103|104|105|300|301|900)\b/g,
+  // detail numbering in labels: "DETAIL 1", "Open detail 1, …" (A3-1)
+  /\bdetail [1-6]\b/gi,
   /\bA-(?:000|100|101|102|103|104|105|200|300|301|900|404)\b/gi,
   /\bRFI-001\b/g,
   /\btag36h11\b/g,
@@ -62,7 +66,6 @@ const ALLOWED_DIGIT_TOKENS: RegExp[] = [
   /\bT7\b/g,
   /\b404\b/g,
   /\b2027\b/g,
-  /\bDETAIL [1-6] \/ /g,
   /\b0[1-5]-A\b/g,
   /\b0[1-5]–0[1-5]\b/g,
   /\b0[1-5]\b/g,

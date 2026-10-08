@@ -105,10 +105,13 @@ export async function prerender({ root, outDir, siteUrl = null }) {
   // ---- copy lint on the final HTML
   const allow = JSON.parse(readFileSync(resolve(root, 'src/content/lint-allow.json'), 'utf8')).allow;
   const violations = lint.lintHtml(html, relative(root, indexPath), allow);
+  // the static 404 page is copy too
+  const nfPath = resolve(outDir, '404.html');
+  if (existsSync(nfPath)) violations.push(...lint.lintHtml(readFileSync(nfPath, 'utf8'), '404.html', allow));
   if (violations.length) {
     fail(
       `copy lint failed on the prerendered HTML (brief 10.5):${violations
-        .map((v) => `\n  ${v.message}\n    "${v.text}"`)
+        .map((v) => `\n  ${v.where}: ${v.message}\n    "${v.text}"`)
         .join('')}\nFix the copy, or add an exact-string exception with a reason to src/content/lint-allow.json (A1).`,
     );
   }

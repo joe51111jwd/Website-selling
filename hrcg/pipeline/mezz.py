@@ -69,18 +69,23 @@ def livery(f, roi):
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR), m
 
 def glint(f, box):
+    """Tracked-by-detection visor fix: small, bright, WHITE (unsaturated) points inside the head path box are
+    found per frame with a top-hat and replaced by a darkened median of their surroundings.
+    box = x0,y0,x1,y1[,maxsize px]."""
     H, W = f.shape[:2]
+    ms = int(box[4]) if len(box) > 4 else 10
     x0, y0, x1, y1 = int(box[0] * W), int(box[1] * H), int(box[2] * W), int(box[3] * H)
     reg = f[y0:y1, x0:x1]
     g = cv2.cvtColor(reg, cv2.COLOR_BGR2GRAY)
     k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (11, 11))
     th = g - cv2.morphologyEx(g, cv2.MORPH_OPEN, k)
-    m = ((th > 0.16) & (g > 0.42)).astype(np.uint8)
+    sat = cv2.cvtColor(reg, cv2.COLOR_BGR2HSV)[..., 1]
+    m = ((th > 0.16) & (g > 0.42) & (sat < 0.3)).astype(np.uint8)   # white points only (blue dust is saturated)
     n, lab, st, _ = cv2.connectedComponentsWithStats(m, 8)
     keep = np.zeros_like(m)
     for i in range(1, n):
         x, y, w, h, ar = st[i]
-        if w <= 10 and h <= 10 and ar <= 60: keep[lab == i] = 1
+        if w <= ms and h <= ms and ar <= ms * ms * 0.6: keep[lab == i] = 1
     if keep.any():
         keep = cv2.dilate(keep, np.ones((5, 5), np.uint8))
         kf = cv2.GaussianBlur(keep.astype(np.float32), (0, 0), 1.5)[..., None]
@@ -150,7 +155,10 @@ while True:
         d = dep[k0] * (1 - t) + dep[k1] * t
         u = np.clip((farD + 0.08 - d) / 0.08, 0, 1); m = u * u * (3 - 2 * u)
         m = cv2.resize(m, (W0, H0), interpolation=cv2.INTER_LINEAR)
-        m = cv2.GaussianBlur(m, (0, 0), 12)            # ~24 px feather
+        # grow the crush 10 px into the subject before feathering, so the feather never leaves a bright
+        # un-crushed rim of background haze around 07 (that read as a glow)
+        m = cv2.dilate(m, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21)))
+        m = cv2.GaussianBlur(m, (0, 0), 6)             # ~24 px feather (2.5 sigma each side)
         if a.crushtop:
             y0, y1 = [float(v) for v in a.crushtop.split(',')]
             band = np.clip((y1 * H0 - np.arange(H0)) / max(1, (y1 - y0) * H0), 0, 1)[:, None]

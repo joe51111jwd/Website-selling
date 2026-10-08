@@ -112,7 +112,7 @@ export function lenisScrollTo(target: string | HTMLElement, opts: ScrollToOption
   if (!isBrowser) return;
   const el = resolve(target);
   if (!el) return;
-  const offset = -scrollPaddingTop() + (opts.offset ?? 0);
+  const extra = opts.offset ?? 0;
   const land = () => {
     if (opts.focus !== false) focusTarget(el);
     if (opts.announce) {
@@ -123,10 +123,11 @@ export function lenisScrollTo(target: string | HTMLElement, opts: ScrollToOption
     opts.onComplete?.();
   };
   if (lenis && !opts.immediate && prefsStore.get().motion) {
-    lenis.scrollTo(el, { offset, duration: 1.2, easing: settleEase, onComplete: land, force: true });
+    // Lenis already subtracts the root's scroll-padding-top and the target's scroll-margin-top
+    lenis.scrollTo(el, { offset: extra, duration: 1.2, easing: settleEase, onComplete: land, force: true });
     return;
   }
-  const top = el.getBoundingClientRect().top + window.scrollY + offset;
+  const top = el.getBoundingClientRect().top + window.scrollY - scrollPaddingTop() + extra;
   if (lenis) lenis.scrollTo(top, { immediate: true, force: true });
   else window.scrollTo({ top, behavior: 'auto' });
   land();

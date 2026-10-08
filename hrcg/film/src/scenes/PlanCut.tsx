@@ -99,13 +99,12 @@ export const PlanCut: React.FC<{ format: Format }> = ({ format }) => {
 
       {/* PLAN 05: the still while it moves, then b44 from 2.60 s once it lands */}
       <Framed rect={planRect} frame={landed} opacity={planOpacity}>
-        {landed ? (
-          <Sequence name="b44 from 2.60 s" from={Math.round(T.pull[1] * fps)} premountFor={fps}>
-            <Clip id="b44" dest={[0, 0, planRect[2], planRect[3]]} trimBefore={Math.round(2.6 * fps)} />
-          </Sequence>
-        ) : (
+        <Sequence name="plan-cut still" durationInFrames={Math.round(T.pull[1] * fps)}>
           <Img src={staticFile(STILLS.b44at260)} style={{ position: 'absolute', left: 0, top: 0, width: planRect[2], height: planRect[3] }} />
-        )}
+        </Sequence>
+        <Sequence name="b44 from 2.60 s" from={Math.round(T.pull[1] * fps)} premountFor={fps}>
+          <Clip id="b44" dest={[0, 0, planRect[2], planRect[3]]} trimBefore={Math.round(2.6 * fps)} />
+        </Sequence>
       </Framed>
       <ChalkDeposit ax={dA[0]} bx={dB[0]} y={dA[1]} width={width} height={height} w={Math.max(2, L.depositW * (sc / s0))} opacity={depOpacity} id="pc" />
 
