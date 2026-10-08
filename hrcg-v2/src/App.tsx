@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { motion, useInView, useScroll, useTransform, type MotionValue } from 'motion/react';
 import Lenis from 'lenis';
-import { Permit, CONTACT_EMAIL } from './Permit';
+import { Permit, CONTACT_EMAIL } from './permit-entry';
 
 const EXPO = [0.16, 1, 0.3, 1] as const;
 
