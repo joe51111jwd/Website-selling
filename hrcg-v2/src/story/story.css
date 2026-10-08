@@ -178,7 +178,7 @@
   .tk,
   .tk.flip {
     grid-template-columns: minmax(0, 1fr);
-    gap: 22px;
+    gap: 28px;
     align-content: center;
   }
   .tk:not(.flip) .tk-film {

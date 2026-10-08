@@ -70,10 +70,10 @@ function Scene({
   );
 }
 
-/** Lifts the scene's content up and away at the end (s from h - 50 to h + 30). */
+/** Lifts the scene's content up and away at the end (s from h - 40 to h + 40). */
 function useExit(p: MotionValue<number>, at: (s: number) => number, h: number) {
-  const y = useTransform(p, [at(h - 50), at(h + 30)], ['0%', '-22%']);
-  const opacity = useTransform(p, [at(h - 50), at(h + 20)], [1, 0]);
+  const y = useTransform(p, [at(h - 40), at(h + 40)], ['0%', '-22%']);
+  const opacity = useTransform(p, [at(h - 40), at(h + 30)], [1, 0]);
   return { y, opacity };
 }
 
@@ -191,7 +191,7 @@ function StatementScene({ still }: { still: boolean }) {
   const H = 260;
   const { ref, p, at } = useScene(H);
   const exit = useExit(p, at, H);
-  const enterY = useTransform(p, [at(20), at(110)], [80, 0]);
+  const enterY = useTransform(p, [at(10), at(100)], [80, 0]);
   const words = STATEMENT.split(' ');
   // the words light up one by one while the screen is pinned
   const a = at(70);
@@ -223,9 +223,9 @@ function TaskScene({ task, index, still }: { task: (typeof TASKS)[number]; index
   const { ref, p, at } = useScene(H);
   const exit = useExit(p, at, H);
   // the film slides up through the whole stay and settles from 0.9 to full size while the words hold
-  const filmY = useTransform(p, [at(0), at(H)], ['26%', '-6%']);
-  const filmScale = useTransform(p, [at(30), at(150)], [0.9, 1]);
-  const filmOpacity = useTransform(p, [at(15), at(80)], [0, 1]);
+  const filmY = useTransform(p, [at(0), at(H)], ['20%', '-12%']);
+  const filmScale = useTransform(p, [at(20), at(150)], [0.9, 1]);
+  const filmOpacity = useTransform(p, [at(0), at(60)], [0, 1]);
   const tone: Tone = index % 2 === 0 ? 'ink' : 'chalk';
   return (
     <Scene tone={tone} h={H} sceneRef={ref} id={`task-${task.num}`} className="sc-task" label={`Task ${task.num}: ${task.name}`}>
@@ -234,14 +234,14 @@ function TaskScene({ task, index, still }: { task: (typeof TASKS)[number]; index
           <Film id={task.film} label={`Concept film from above: a robot at the ${task.name.toLowerCase()} bay.`} />
         </motion.div>
         <div className="tk-copy">
-          <RiseBlock p={p} from={at(35)} to={at(105)} still={still} className="tk-num">
+          <RiseBlock p={p} from={at(25)} to={at(95)} still={still} className="tk-num">
             <span aria-hidden="true">{task.num}</span>
             <span className="sr-only">Task {task.num}</span>
           </RiseBlock>
           <h2 className="tk-name">
-            <Rise text={task.name} p={p} from={at(50)} step={at(6)} span={at(55)} still={still} />
+            <Rise text={task.name} p={p} from={at(40)} step={at(6)} span={at(55)} still={still} />
           </h2>
-          <RiseBlock p={p} from={at(75)} to={at(135)} still={still} className="tk-line">
+          <RiseBlock p={p} from={at(65)} to={at(125)} still={still} className="tk-line">
             <p>{task.line}</p>
           </RiseBlock>
         </div>
@@ -260,14 +260,14 @@ function WhoScene({ still }: { still: boolean }) {
     <Scene tone="chalk" h={H} sceneRef={ref} className="sc-who" label="Who we’d like to hear from">
       <motion.div className="who-s" style={still ? undefined : exit}>
         <h2 className="who-s-h">
-          <Rise text="Who we’d like to hear from" p={p} from={at(35)} step={at(6)} span={at(55)} still={still} />
+          <Rise text="Who we’d like to hear from" p={p} from={at(25)} step={at(6)} span={at(55)} still={still} />
         </h2>
         <div className="who-s-grid">
-          <RiseBlock p={p} from={at(80)} to={at(140)} still={still} className="who-s-card">
+          <RiseBlock p={p} from={at(70)} to={at(130)} still={still} className="who-s-card">
             <h3>Robot teams</h3>
             <p>If your company, lab or university team is building a humanoid, tell us which tasks suit it and what you&rsquo;d need.</p>
           </RiseBlock>
-          <RiseBlock p={p} from={at(95)} to={at(155)} still={still} className="who-s-card">
+          <RiseBlock p={p} from={at(85)} to={at(145)} still={still} className="who-s-card">
             <h3>Construction companies</h3>
             <p>You could supply materials, tools or fixtures for one of the tasks, or lend us someone who knows the trade.</p>
           </RiseBlock>
@@ -307,7 +307,8 @@ function useToneBackground(bgRef: React.RefObject<HTMLDivElement | null>, enable
           const a = stops[k];
           const b = stops[k + 1];
           if (y >= a.y && y <= b.y) {
-            const t0 = b.y > a.y ? (y - a.y) / (b.y - a.y) : 1;
+            // the blend happens in the middle of the handover, so no screen sits long in a muddy in-between
+            const t0 = b.y > a.y ? Math.min(1, Math.max(0, ((y - a.y) / (b.y - a.y) - 0.2) / 0.6)) : 1;
             const t = t0 * t0 * (3 - 2 * t0);
             c = [0, 1, 2].map((j) => Math.round(a.c[j] + (b.c[j] - a.c[j]) * t)) as [number, number, number];
             break;
