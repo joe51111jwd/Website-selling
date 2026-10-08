@@ -136,7 +136,7 @@ export function FooterBlock() {
                 <span className="tb-challenge">
                   <span className="num">{c.num}</span> {c.name}
                 </span>
-                {i < CHALLENGES.length - 1 ? NOTES.challengeSep : null}
+                {i < CHALLENGES.length - 1 ? <span className="tb-sep">{NOTES.challengeSep}</span> : null}
               </Fragment>
             ))}
           </span>

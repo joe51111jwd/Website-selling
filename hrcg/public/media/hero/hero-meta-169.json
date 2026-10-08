@@ -8,12 +8,12 @@
   "rows": 145,
   "file": "uint16 little-endian, row-major, top row first, left to right; d = v/65535 (relative inverse depth, near = 1)"
  },
- "a": 0.15,
- "b": 1.6,
+ "a": 0.3113,
+ "b": 0.5,
  "f": 1.2,
- "pivotZ": 2.0667,
- "nearD": 0.9911,
- "farD": 0.0021,
+ "pivotZ": 2.3943,
+ "nearD": 0.9909,
+ "farD": 0.0023,
  "yaw": {
   "auto": 8,
   "min": -6,
@@ -27,8 +27,8 @@
  "dolly": 0.04,
  "overscan": 0.12,
  "plate": {
-  "z": 6.8,
-  "scale": 1.4,
+  "z": 3.2766,
+  "scale": 1.3,
   "note": "quad at z, size = plate.scale x the frame-matched size at that depth"
  },
  "stretchDiscard": {
@@ -112,9 +112,9 @@
   ]
  },
  "occlusion": {
-  "yaw0": 0.0397,
-  "rest": 0.123,
-  "cssMatte": 0.0397,
+  "yaw0": 0.0401,
+  "rest": 0.063,
+  "cssMatte": 0.0401,
   "window": [
    0.03,
    0.1
@@ -122,9 +122,9 @@
   "restMax": 0.15
  },
  "nearContrast": {
-  "p10": 2.083,
-  "median": 4.374,
-  "passFrac": 0.7609,
+  "p10": 3.552,
+  "median": 5.209,
+  "passFrac": 0.9987,
   "gate": ">=3:1 on >=90%"
  },
  "nearDarken": {
@@ -135,40 +135,96 @@
    0.7546
   ],
   "linearLightRemoved": 0.83,
-  "feather": "ellipse 1.15x/1.25x the NEAR box, gaussian 3% of the long side",
+  "feather": "flat over the NEAR box + 2% margin, gaussian falloff 2.5% of the long side outside it",
   "bakedInto": "hero-snap-169 (all frames), hence the stills"
  },
+ "depthMappingTune": [
+  {
+   "a": 0.15,
+   "b": 1.6,
+   "edgePointsInside": 366,
+   "pivotZ": 2.039
+  },
+  {
+   "a": 0.1793,
+   "b": 1.4,
+   "edgePointsInside": 289,
+   "pivotZ": 2.096
+  },
+  {
+   "a": 0.2087,
+   "b": 1.2,
+   "edgePointsInside": 193,
+   "pivotZ": 2.156
+  },
+  {
+   "a": 0.238,
+   "b": 1.0,
+   "edgePointsInside": 156,
+   "pivotZ": 2.219
+  },
+  {
+   "a": 0.2526,
+   "b": 0.9,
+   "edgePointsInside": 153,
+   "pivotZ": 2.252
+  },
+  {
+   "a": 0.2673,
+   "b": 0.8,
+   "edgePointsInside": 150,
+   "pivotZ": 2.286
+  },
+  {
+   "a": 0.282,
+   "b": 0.7,
+   "edgePointsInside": 146,
+   "pivotZ": 2.321
+  },
+  {
+   "a": 0.2966,
+   "b": 0.6,
+   "edgePointsInside": 143,
+   "pivotZ": 2.357
+  },
+  {
+   "a": 0.3113,
+   "b": 0.5,
+   "edgePointsInside": 142,
+   "pivotZ": 2.394
+  }
+ ],
  "limitPoses": [
   {
    "yaw": -6,
    "pitch": -3,
    "uncoveredPx": 0,
-   "edgeInside": 71,
-   "farOccl": 0.0239,
+   "edgeInside": 0,
+   "farOccl": 0.0426,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p-3.png"
   },
   {
    "yaw": -6,
    "pitch": 0,
    "uncoveredPx": 0,
-   "edgeInside": 35,
-   "farOccl": 0.0193,
+   "edgeInside": 0,
+   "farOccl": 0.0425,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p+0.png"
   },
   {
    "yaw": -6,
    "pitch": 3,
    "uncoveredPx": 0,
-   "edgeInside": 25,
-   "farOccl": 0.0152,
+   "edgeInside": 0,
+   "farOccl": 0.0415,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p+3.png"
   },
   {
    "yaw": 0,
    "pitch": -3,
    "uncoveredPx": 0,
-   "edgeInside": 37,
-   "farOccl": 0.0541,
+   "edgeInside": 0,
+   "farOccl": 0.0461,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p-3.png"
   },
   {
@@ -176,7 +232,7 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0469,
+   "farOccl": 0.0455,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p+0.png"
   },
   {
@@ -184,15 +240,15 @@
    "pitch": 3,
    "uncoveredPx": 0,
    "edgeInside": 0,
-   "farOccl": 0.0389,
+   "farOccl": 0.0454,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p+3.png"
   },
   {
    "yaw": 10,
    "pitch": -3,
    "uncoveredPx": 0,
-   "edgeInside": 74,
-   "farOccl": 0.1434,
+   "edgeInside": 44,
+   "farOccl": 0.0698,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p-3.png"
   },
   {
@@ -200,47 +256,47 @@
    "pitch": 0,
    "uncoveredPx": 0,
    "edgeInside": 38,
-   "farOccl": 0.125,
+   "farOccl": 0.064,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p+0.png"
   },
   {
    "yaw": 10,
    "pitch": 3,
    "uncoveredPx": 0,
-   "edgeInside": 36,
-   "farOccl": 0.1115,
+   "edgeInside": 37,
+   "farOccl": 0.0603,
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p+3.png"
   }
  ],
  "encodes": {
   "still-av1": {
    "q": 70,
-   "bytes": 45489
+   "bytes": 44558
   },
   "still-av1-jpg": {
    "q": 84,
-   "bytes": 120914
+   "bytes": 117877
   },
   "still-h264": {
    "q": 70,
-   "bytes": 59975
+   "bytes": 59358
   },
   "still-h264-jpg": {
    "q": 84,
-   "bytes": 133307
+   "bytes": 131961
   },
   "plate": {
    "q": 70,
-   "bytes": 3648
+   "bytes": 3543
   },
   "matte": {
    "q": 82,
-   "bytes": 32568
+   "bytes": 31932
   }
  },
  "gates": {
   "occlusion": true,
-  "nearContrast": false,
+  "nearContrast": true,
   "limitPoses": false
  }
 }

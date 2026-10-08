@@ -2,6 +2,5 @@ node_modules
 build
 out
 public/clips/raw
-# footage is regenerated, never committed: A5's mezzanines (pipeline/run_mezz.sh) and A7's draft copies
-public/clips/**/*.mp4
+# A7's synthesis intermediates (scripts/sound.mjs regenerates them)
 public/audio/sfx/

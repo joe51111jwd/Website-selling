@@ -41,9 +41,13 @@ def fitsq(img, cx, cy, side, out):
 rep = {}
 ld14 = cv2.imread(M + '/lookdev/ld14.png')                      # 1024² seamless concrete
 # clean tile (A1, A4-2): inpaint ld14's faint orange survey ticks so the site-wide tiled ground has no marks
-_h = cv2.cvtColor(ld14, cv2.COLOR_BGR2HSV)
-_m = ((_h[..., 0] <= 22) & (_h[..., 1] >= 70) & (_h[..., 2] >= 50)).astype(np.uint8)
-_m = cv2.dilate(_m, np.ones((7, 7), np.uint8))
+_lab = cv2.cvtColor(ld14, cv2.COLOR_BGR2LAB).astype(np.float32)
+_a, _b = _lab[..., 1] - 128, _lab[..., 2] - 128
+_m = ((_a > 5) | (np.hypot(_a, _b) > 9)).astype(np.uint8)          # chromatic (orange/pink) marks
+_m = cv2.morphologyEx(_m, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+_n, _lb, _st, _ = cv2.connectedComponentsWithStats(_m, 8)
+_m = np.isin(_lb, [i for i in range(1, _n) if _st[i, 4] >= 30]).astype(np.uint8)   # ticks, not specks
+_m = cv2.dilate(_m, np.ones((11, 11), np.uint8))
 ld14 = cv2.inpaint(ld14, _m * 255, 6, cv2.INPAINT_TELEA)
 tile = lambda w, h: np.tile(ld14, (h // 1024 + 1, w // 1024 + 1, 1))[:h, :w]
 # tex-slab ships at FULL exposure: A1 tiles it site-wide multiplied by rgb(31 31 30) (≈12%). The hero

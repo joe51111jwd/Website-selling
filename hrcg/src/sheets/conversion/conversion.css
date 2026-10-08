@@ -922,9 +922,10 @@
 .tb-cell--location { grid-column: span 7; }
 .tb-cell--status { grid-column: span 4; }
 .tb-cell--year { grid-column: span 4; }
-.tb-cell--date { grid-column: span 7; }
-.tb-cell--venue { grid-column: span 7; }
-.tb-cell--challenges { grid-column: span 10; }
+.tb-cell--date { grid-column: span 12; }
+.tb-cell--venue { grid-column: span 12; }
+/* the five challenges always on one line, or one per line: never a 3-over-2 wrap (rule 19) */
+.tb-cell--challenges { grid-column: span 24; }
 .tb-cell--imagery { grid-column: span 10; }
 .tb-cell--scale { grid-column: span 3; }
 .tb-cell--sheet { grid-column: span 5; }
@@ -958,12 +959,12 @@
     grid-column: 10 / span 3;
   }
   .tb-cell--project { grid-column: span 12; }
-  .tb-cell--location { grid-column: span 12; }
-  .tb-cell--status { grid-column: span 6; }
-  .tb-cell--year { grid-column: span 6; }
+  .tb-cell--location { grid-column: span 6; }
+  .tb-cell--status { grid-column: span 3; }
+  .tb-cell--year { grid-column: span 3; }
   .tb-cell--date { grid-column: span 12; }
   .tb-cell--venue { grid-column: span 12; }
-  .tb-cell--challenges { grid-column: span 12; }
+  .tb-cell--challenges { grid-column: span 24; }
   .tb-cell--imagery { grid-column: span 12; }
   .tb-cell--scale { grid-column: span 4; }
   .tb-cell--sheet { grid-column: span 8; }
@@ -1028,6 +1029,12 @@
   }
   .tb-index .in-page-index-rows {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tb-challenge {
+    display: block;
+  }
+  .tb-sep {
+    display: none;
   }
 }
 
