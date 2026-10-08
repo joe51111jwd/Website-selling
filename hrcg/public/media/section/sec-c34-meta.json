@@ -80,7 +80,8 @@
   },
   "far": {
    "s": 0.9
-  }
+  },
+  "source": "captures of A4 src/sheets/sliceMaterial.ts via scripts/capture.mjs (scene \"slice\", t = s), 1750x984 crop resized to 1920x1076"
  },
  "colours": {
   "slabBlack": "#0B0B0A",

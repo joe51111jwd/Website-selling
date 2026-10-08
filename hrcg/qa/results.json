@@ -1,12 +1,12 @@
 {
  "meta": {
-  "started": "2026-10-08T08:47:55.778Z",
+  "started": "2026-10-08T09:00:32.773Z",
   "root": "/home/user/Website-selling/hrcg",
-  "url": "http://127.0.0.1:37341/",
-  "build": "/tmp/hrcg-qa-build",
+  "url": "http://127.0.0.1:46785/",
+  "build": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/build-a6",
   "axe": "axe-core",
   "notes": [],
-  "finished": "2026-10-08T08:51:22.297Z",
+  "finished": "2026-10-08T09:03:58.545Z",
   "failures": 2
  },
  "suites": {
@@ -159,22 +159,22 @@
    ],
    "console": [],
    "shots": [
-    "shots/desktop-first-view.png",
-    "shots/desktop-a-000.png",
-    "shots/desktop-a-100.png",
-    "shots/desktop-a-101.png",
-    "shots/desktop-a-102.png",
-    "shots/desktop-a-103.png",
-    "shots/desktop-a-104.png",
-    "shots/desktop-a-105.png",
-    "shots/desktop-a-200.png",
-    "shots/desktop-a-300.png",
-    "shots/desktop-a-301.png",
-    "shots/desktop-a-900.png",
-    "shots/desktop-a300-typed.png",
-    "shots/desktop-a300-form.png",
-    "shots/desktop-a301-hover.png",
-    "shots/desktop-copy-denied.png"
+    "shots/desktop-first-view.jpg",
+    "shots/desktop-a-000.jpg",
+    "shots/desktop-a-100.jpg",
+    "shots/desktop-a-101.jpg",
+    "shots/desktop-a-102.jpg",
+    "shots/desktop-a-103.jpg",
+    "shots/desktop-a-104.jpg",
+    "shots/desktop-a-105.jpg",
+    "shots/desktop-a-200.jpg",
+    "shots/desktop-a-300.jpg",
+    "shots/desktop-a-301.jpg",
+    "shots/desktop-a-900.jpg",
+    "shots/desktop-a300-typed.jpg",
+    "shots/desktop-a300-form.jpg",
+    "shots/desktop-a301-hover.jpg",
+    "shots/desktop-copy-denied.jpg"
    ],
    "a11y": {
     "engine": "axe-core",
@@ -371,12 +371,12 @@
    ],
    "console": [],
    "shots": [
-    "shots/strip-1920.png",
-    "shots/strip-1680.png",
-    "shots/strip-1440.png",
-    "shots/strip-1280.png",
-    "shots/strip-1024.png",
-    "shots/strip-768.png"
+    "shots/strip-1920.jpg",
+    "shots/strip-1680.jpg",
+    "shots/strip-1440.jpg",
+    "shots/strip-1280.jpg",
+    "shots/strip-1024.jpg",
+    "shots/strip-768.jpg"
    ]
   },
   "phone": {
@@ -397,7 +397,7 @@
      "id": "P2-swipe",
      "title": "a vertical touch swipe on the hero scrolls the page",
      "status": "pass",
-     "detail": "0 -> 455"
+     "detail": "0 -> 404"
     },
     {
      "id": "P-S3",
@@ -462,19 +462,19 @@
    ],
    "console": [],
    "shots": [
-    "shots/phone-first-view.png",
-    "shots/phone-a-000.png",
-    "shots/phone-a-100.png",
-    "shots/phone-a-101.png",
-    "shots/phone-a-102.png",
-    "shots/phone-a-103.png",
-    "shots/phone-a-104.png",
-    "shots/phone-a-105.png",
-    "shots/phone-a-200.png",
-    "shots/phone-a-300.png",
-    "shots/phone-a-301.png",
-    "shots/phone-a-900.png",
-    "shots/phone-keyboard-minislot.png"
+    "shots/phone-first-view.jpg",
+    "shots/phone-a-000.jpg",
+    "shots/phone-a-100.jpg",
+    "shots/phone-a-101.jpg",
+    "shots/phone-a-102.jpg",
+    "shots/phone-a-103.jpg",
+    "shots/phone-a-104.jpg",
+    "shots/phone-a-105.jpg",
+    "shots/phone-a-200.jpg",
+    "shots/phone-a-300.jpg",
+    "shots/phone-a-301.jpg",
+    "shots/phone-a-900.jpg",
+    "shots/phone-keyboard-minislot.jpg"
    ]
   },
   "rm": {
@@ -513,7 +513,7 @@
      "id": "rm-play",
      "title": "▶ buttons offered over posters",
      "status": "pass",
-     "detail": "14 of 16"
+     "detail": "13 of 16"
     },
     {
      "id": "rm-pins",
@@ -530,18 +530,18 @@
    ],
    "console": [],
    "shots": [
-    "shots/rm-first-view.png",
-    "shots/rm-a-000.png",
-    "shots/rm-a-100.png",
-    "shots/rm-a-101.png",
-    "shots/rm-a-102.png",
-    "shots/rm-a-103.png",
-    "shots/rm-a-104.png",
-    "shots/rm-a-105.png",
-    "shots/rm-a-200.png",
-    "shots/rm-a-300.png",
-    "shots/rm-a-301.png",
-    "shots/rm-a-900.png"
+    "shots/rm-first-view.jpg",
+    "shots/rm-a-000.jpg",
+    "shots/rm-a-100.jpg",
+    "shots/rm-a-101.jpg",
+    "shots/rm-a-102.jpg",
+    "shots/rm-a-103.jpg",
+    "shots/rm-a-104.jpg",
+    "shots/rm-a-105.jpg",
+    "shots/rm-a-200.jpg",
+    "shots/rm-a-300.jpg",
+    "shots/rm-a-301.jpg",
+    "shots/rm-a-900.jpg"
    ],
    "viewTitles": 26
   },
@@ -574,10 +574,10 @@
    ],
    "console": [],
    "shots": [
-    "shots/nogl-gl0-first-view.png",
-    "shots/nogl-gl0-a-105.png",
-    "shots/nogl-disable-webgl-first-view.png",
-    "shots/nogl-disable-webgl-a-105.png"
+    "shots/nogl-gl0-first-view.jpg",
+    "shots/nogl-gl0-a-105.jpg",
+    "shots/nogl-disable-webgl-first-view.jpg",
+    "shots/nogl-disable-webgl-a-105.jpg"
    ]
   },
   "nojs": {
@@ -598,7 +598,7 @@
      "id": "nojs-video",
      "title": "every video has a poster and controls",
      "status": "fail",
-     "detail": "16 videos; 2 without"
+     "detail": "16 videos; 1 without"
     },
     {
      "id": "nojs-anchors",
@@ -643,64 +643,13 @@
      "detail": "{\"empty\":[],\"placeholders\":[]}"
     }
    ],
-   "console": [
-    "requestfailed: http://127.0.0.1:37341/assets/jsx-dev-runtime-CBW7NE-z.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/sheets-BB-35nJY.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/store-D5ALOvq_.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/sheetStore-DkJoAI7x.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/LabelText-BjkybHrN.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/SheetTag-rXQA6l73.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/a100-a103-CIImsWQ1.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/geometry-DYqUGzyZ.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/ControlX-DUHvQ2nf.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/viewTitles-ByO-0SQD.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/manifest-BJulBHdI.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/viewContext-d5GGCWKl.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/ViewTitle-DpIwbNBX.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/prefs-BTKXsEqW.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/VideoManager-CbRwEciX.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/chrome-DyU4LY3L.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/LoopVideo-Dm4BIpGy.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/easing-DE_wmn8P.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/announce-CgCtypXO.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/preload-helper-BaNbYf_w.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/lenis-CWn3t8Jh.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/challenges-DOfTaYwU.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/useInView-B_O9TRKZ.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/GridBubble-BQmjFVSY.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/ArenaPlan-R7re3aXj.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/A100Bays-B1IXnWhS.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/Picture-BlgdI86S.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/tier-CBtdXGqb.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/scroll-xsJ1AQgb.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/ViewMarker-NWOH8QaH.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/DetailBubble-BBojLGNo.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/PerspectiveStage-B4Axjv7D.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/a4-BZnyesGK.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/useStageProgress-C96L7jUM.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/SectionCut-CnxrihLY.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/SectionSlice-Bk_ROQ9t.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/HoldCloud-DAp49QW_.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/conversion-BrwLZKXt.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/BaySlot-B2u9veUt.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/FormParts-DoiZdNOW.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/A300Parts-DaibVeQo.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/A301Parts-Bhfx7QiP.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/overlays-CE2oJt1H.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/Dialog-EVTxPYiW.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/nav-BDSgEjmR.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/SheetIndex-Cducrmgx.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/A900Parts-y1iWloFv.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/CourseMark-kSnXgmsj.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/HoldMark-CrjEvSow.js csp",
-    "requestfailed: http://127.0.0.1:37341/assets/MotionToggle-HQfwrYdF.js csp"
-   ],
+   "console": [],
    "shots": [
-    "shots/nojs-first-view.png",
-    "shots/nojs-a-000.png",
-    "shots/nojs-a-300.png",
-    "shots/nojs-a-301.png",
-    "shots/nojs-a-900.png"
+    "shots/nojs-first-view.jpg",
+    "shots/nojs-a-000.jpg",
+    "shots/nojs-a-300.jpg",
+    "shots/nojs-a-301.jpg",
+    "shots/nojs-a-900.jpg"
    ]
   },
   "lint": {

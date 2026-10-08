@@ -1,7 +1,7 @@
 {
  "version": 1,
  "mock": false,
- "generated": "2026-10-08T08:22:12+00:00",
+ "generated": "2026-10-08T09:05:17+00:00",
  "media": {
   "hero-snap-169": {
    "id": "hero-snap-169",
@@ -37,12 +37,12 @@
    "freezeFrame": 84,
    "meta": "media/hero/hero-meta-169.json",
    "bytes": {
-    "media/hero/hero-snap-169.av1.mp4": 190235,
-    "media/hero/hero-snap-169.h264.mp4": 494627,
-    "media/hero/hero-snap-169.poster.avif": 30902,
-    "media/hero/hero-snap-169.poster.jpg": 109908,
-    "media/hero/hero-still-169-av1.avif": 44558,
-    "media/hero/hero-still-169-h264.avif": 59358
+    "media/hero/hero-snap-169.av1.mp4": 184646,
+    "media/hero/hero-snap-169.h264.mp4": 485166,
+    "media/hero/hero-snap-169.poster.avif": 30312,
+    "media/hero/hero-snap-169.poster.jpg": 108108,
+    "media/hero/hero-still-169-av1.avif": 91723,
+    "media/hero/hero-still-169-h264.avif": 136011
    }
   },
   "hero-snap-916": {
@@ -79,12 +79,12 @@
    "freezeFrame": 100,
    "meta": "media/hero/hero-meta-916.json",
    "bytes": {
-    "media/hero/hero-snap-916.av1.mp4": 108486,
-    "media/hero/hero-snap-916.h264.mp4": 255678,
-    "media/hero/hero-snap-916.poster.avif": 27710,
-    "media/hero/hero-snap-916.poster.jpg": 95430,
-    "media/hero/hero-still-916-av1.avif": 41255,
-    "media/hero/hero-still-916-h264.avif": 47966
+    "media/hero/hero-snap-916.av1.mp4": 103447,
+    "media/hero/hero-snap-916.h264.mp4": 245800,
+    "media/hero/hero-snap-916.poster.avif": 26902,
+    "media/hero/hero-snap-916.poster.jpg": 92269,
+    "media/hero/hero-still-916-av1.avif": 89779,
+    "media/hero/hero-still-916-h264.avif": 113964
    }
   },
   "plan-b40": {
@@ -593,10 +593,10 @@
     "out": 5.0
    },
    "bytes": {
-    "media/perspectives/el-c30.av1.mp4": 271290,
-    "media/perspectives/el-c30.h264.mp4": 406300,
-    "media/perspectives/el-c30.poster.avif": 30629,
-    "media/perspectives/el-c30.poster.jpg": 78602
+    "media/perspectives/el-c30.av1.mp4": 252483,
+    "media/perspectives/el-c30.h264.mp4": 379610,
+    "media/perspectives/el-c30.poster.avif": 26881,
+    "media/perspectives/el-c30.poster.jpg": 69933
    }
   },
   "el-c30-m": {
@@ -761,7 +761,7 @@
    "dur": 3.5,
    "loop": null,
    "bytes": {
-    "media/details/det-v0.av1.mp4": 390450,
+    "media/details/det-v0.av1.mp4": 281209,
     "media/details/det-v0.h264.mp4": 546016,
     "media/details/det-v0.poster.avif": 76331,
     "media/details/det-v0.poster.jpg": 184030
@@ -794,7 +794,7 @@
    "dur": 5.042,
    "loop": null,
    "bytes": {
-    "media/details/det-n03.av1.mp4": 360429,
+    "media/details/det-n03.av1.mp4": 290952,
     "media/details/det-n03.h264.mp4": 480288,
     "media/details/det-n03.poster.avif": 53034,
     "media/details/det-n03.poster.jpg": 128566
@@ -827,10 +827,47 @@
    "dur": 5.042,
    "loop": null,
    "bytes": {
-    "media/details/det-n04.av1.mp4": 311594,
+    "media/details/det-n04.av1.mp4": 280804,
     "media/details/det-n04.h264.mp4": 578052,
     "media/details/det-n04.poster.avif": 60683,
     "media/details/det-n04.poster.jpg": 146832
+   }
+  },
+  "the-set-169": {
+   "id": "the-set-169",
+   "kind": "video",
+   "sources": [
+    {
+     "src": "media/film/the-set-169.av1.mp4",
+     "type": "video/mp4; codecs=\"av01.0.08M.08\""
+    },
+    {
+     "src": "media/film/the-set-169.h264.mp4",
+     "type": "video/mp4; codecs=\"avc1.640032\""
+    }
+   ],
+   "poster": "media/film/the-set-169.poster.avif",
+   "posterFallback": "media/film/the-set-169.poster.jpg",
+   "w": 1920,
+   "h": 1080,
+   "fps": 24,
+   "alt": "The Set, a 30-second concept film",
+   "viewTitle": {
+    "view": "THE SET",
+    "kind": "film"
+   },
+   "dur": 30.016,
+   "loop": null,
+   "posterAlt": "Concept film poster: robot 07 behind blue chalk dust under the headline What can a humanoid actually build? AI-generated concept footage.",
+   "captions": "media/film/the-set-169.vtt",
+   "transcript": "media/film/the-set-transcript.txt",
+   "bytes": {
+    "media/film/the-set-169.av1.mp4": 3703080,
+    "media/film/the-set-169.h264.mp4": 5671856,
+    "media/film/the-set-169.poster.avif": 39408,
+    "media/film/the-set-169.poster.jpg": 216169,
+    "media/film/the-set-169.vtt": 4031,
+    "media/film/the-set-transcript.txt": 3761
    }
   },
   "hero-still-169-av1": {
@@ -856,8 +893,8 @@
     "hasntHappened": true
    },
    "bytes": {
-    "media/hero/hero-still-169-av1.avif": 44558,
-    "media/hero/hero-still-169-av1.jpg": 117877
+    "media/hero/hero-still-169-av1.avif": 91723,
+    "media/hero/hero-still-169-av1.jpg": 116094
    }
   },
   "hero-still-916-av1": {
@@ -883,8 +920,8 @@
     "hasntHappened": true
    },
    "bytes": {
-    "media/hero/hero-still-916-av1.avif": 41255,
-    "media/hero/hero-still-916-av1.jpg": 102696
+    "media/hero/hero-still-916-av1.avif": 89779,
+    "media/hero/hero-still-916-av1.jpg": 99601
    }
   },
   "hero-still-169-h264": {
@@ -910,8 +947,8 @@
     "hasntHappened": true
    },
    "bytes": {
-    "media/hero/hero-still-169-h264.avif": 59358,
-    "media/hero/hero-still-169-h264.jpg": 131961
+    "media/hero/hero-still-169-h264.avif": 136011,
+    "media/hero/hero-still-169-h264.jpg": 129925
    }
   },
   "hero-still-916-h264": {
@@ -937,8 +974,8 @@
     "hasntHappened": true
    },
    "bytes": {
-    "media/hero/hero-still-916-h264.avif": 47966,
-    "media/hero/hero-still-916-h264.jpg": 111938
+    "media/hero/hero-still-916-h264.avif": 113964,
+    "media/hero/hero-still-916-h264.jpg": 108138
    }
   },
   "hero-ground-169": {
@@ -962,8 +999,8 @@
     "kind": "still"
    },
    "bytes": {
-    "media/hero/hero-ground-169.avif": 44462,
-    "media/hero/hero-ground-169.jpg": 123720
+    "media/hero/hero-ground-169.avif": 43917,
+    "media/hero/hero-ground-169.jpg": 123621
    }
   },
   "hero-ground-916": {
@@ -987,8 +1024,8 @@
     "kind": "still"
    },
    "bytes": {
-    "media/hero/hero-ground-916.avif": 44223,
-    "media/hero/hero-ground-916.jpg": 123072
+    "media/hero/hero-ground-916.avif": 43853,
+    "media/hero/hero-ground-916.jpg": 122769
    }
   },
   "hero-plate-169": {
@@ -1014,8 +1051,8 @@
     "oneFrame": true
    },
    "bytes": {
-    "media/hero/hero-plate-169.avif": 3543,
-    "media/hero/hero-plate-169.jpg": 15100
+    "media/hero/hero-plate-169.avif": 3462,
+    "media/hero/hero-plate-169.jpg": 14975
    }
   },
   "hero-plate-916": {
@@ -1041,8 +1078,8 @@
     "oneFrame": true
    },
    "bytes": {
-    "media/hero/hero-plate-916.avif": 2987,
-    "media/hero/hero-plate-916.jpg": 14169
+    "media/hero/hero-plate-916.avif": 2535,
+    "media/hero/hero-plate-916.jpg": 13299
    }
   },
   "tex-slab": {
@@ -1066,8 +1103,8 @@
     "kind": "still"
    },
    "bytes": {
-    "media/tex/tex-slab.avif": 103703,
-    "media/tex/tex-slab.jpg": 291962
+    "media/tex/tex-slab.avif": 103378,
+    "media/tex/tex-slab.jpg": 291075
    }
   },
   "plan-b44-260": {
@@ -1162,8 +1199,8 @@
    },
    "meta": "media/section/sec-c34-meta.json",
    "bytes": {
-    "media/section/sec-c34-color.avif": 48133,
-    "media/section/sec-c34-color.jpg": 146285
+    "media/section/sec-c34-color.avif": 47932,
+    "media/section/sec-c34-color.jpg": 146061
    }
   },
   "sec-near": {
@@ -1189,8 +1226,8 @@
     "id": "a105-section"
    },
    "bytes": {
-    "media/section/sec-near.avif": 46876,
-    "media/section/sec-near.jpg": 143325
+    "media/section/sec-near.avif": 53023,
+    "media/section/sec-near.jpg": 140201
    }
   },
   "sec-mid": {
@@ -1216,8 +1253,8 @@
     "id": "a105-section"
    },
    "bytes": {
-    "media/section/sec-mid.avif": 50230,
-    "media/section/sec-mid.jpg": 157435
+    "media/section/sec-mid.avif": 52218,
+    "media/section/sec-mid.jpg": 154469
    }
   },
   "sec-far": {
@@ -1243,8 +1280,8 @@
     "id": "a105-section"
    },
    "bytes": {
-    "media/section/sec-far.avif": 51123,
-    "media/section/sec-far.jpg": 169312
+    "media/section/sec-far.avif": 59069,
+    "media/section/sec-far.jpg": 183182
    }
   },
   "ref21-portrait": {
@@ -1485,7 +1522,7 @@
     "hasntHappened": true
    },
    "bytes": {
-    "media/hero/hero-matte-169.webp": 31932
+    "media/hero/hero-matte-169.webp": 32084
    }
   },
   "hero-matte-916": {
@@ -1507,7 +1544,7 @@
     "hasntHappened": true
    },
    "bytes": {
-    "media/hero/hero-matte-916.webp": 28178
+    "media/hero/hero-matte-916.webp": 28040
    }
   },
   "hero-depth-169": {
@@ -1575,7 +1612,7 @@
     "oneFrame": true
    },
    "bytes": {
-    "media/hero/hero-meta-169.json": 5485
+    "media/hero/hero-meta-169.json": 5531
    }
   },
   "hero-meta-916": {
@@ -1597,7 +1634,7 @@
     "oneFrame": true
    },
    "bytes": {
-    "media/hero/hero-meta-916.json": 4970
+    "media/hero/hero-meta-916.json": 5007
    }
   },
   "sec-c34-depth": {
@@ -1619,7 +1656,7 @@
     "id": "a105-section"
    },
    "bytes": {
-    "media/section/sec-c34-depth.png": 31869
+    "media/section/sec-c34-depth.png": 56911
    },
    "meta": "media/section/sec-c34-meta.json"
   },
@@ -1642,7 +1679,7 @@
     "id": "a105-section"
    },
    "bytes": {
-    "media/section/sec-c34-meta.json": 1497
+    "media/section/sec-c34-meta.json": 1736
    }
   },
   "lines-b44": {
@@ -1684,7 +1721,7 @@
     "id": "a104-trace"
    },
    "bytes": {
-    "media/data/trace-t43.svg": 3477
+    "media/data/trace-t43.svg": 2841
    }
   },
   "t7-brick": {
@@ -1704,7 +1741,7 @@
     "kind": "drawing"
    },
    "bytes": {
-    "media/data/t7-brick.svg": 10549
+    "media/data/t7-brick.svg": 10238
    }
   },
   "t7-proof-json": {

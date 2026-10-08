@@ -52,10 +52,12 @@ export function SheetHeader() {
     <header ref={ref} className="sheet-header" data-on={onPaper ? 'gypsum' : 'slab'}>
       <a className="header-home" href="#a-000" aria-label={HEADER.homeLabel} onClick={navClick(false)}>
         <CourseMark width={72} className="header-mark" />
-        <span className="header-name">{HEADER.name}</span>
+        {/* spaces between the spans keep the visible text "HRCG HUMANOID ROBOT CONSTRUCTION GAMES" a
+            substring of the accessible name (WCAG 2.5.3); the layout is flex, so they render nothing */}
+        <span className="header-name">{HEADER.name}</span>{' '}
         <span className="header-rule" aria-hidden="true" />
         <span className="header-lines">
-          <span>{HEADER.line1}</span>
+          <span>{HEADER.line1}</span>{' '}
           <span>{HEADER.line2}</span>
         </span>
       </a>

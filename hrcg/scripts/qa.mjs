@@ -12,7 +12,7 @@
 // inside it (the lock is already held). Headless Chromium here renders WebGL in SwiftShader at
 // 2-5 fps: these checks judge layout, states, copy and determinism, never smoothness.
 //
-// Writes: <out>/results.json (every check), <out>/RESULTS.md (summary), <out>/shots/*.png.
+// Writes: <out>/results.json (every check), <out>/RESULTS.md (summary), <out>/shots/*.jpg.
 // Exit code 1 when any check fails (unless --soft).
 //
 // Suites
@@ -137,7 +137,7 @@ async function loadSiteModules() {
 // ---------------------------------------------------------------------------------------- build + serve
 
 function ensureBuild(log) {
-  if (BUILD && existsSync(join(BUILD, 'index.html'))) return BUILD;
+  if (BUILD && existsSync(join(BUILD, 'index.html'))) return { dir: BUILD, reused: true };
   const dir = BUILD ?? join(tmpdir(), 'hrcg-qa-build');
   log(`building into ${dir} (vite build + prerender; HRCG_PRERENDER_LENIENT=1)`);
   const r = spawnSync('npx', ['vite', 'build', '--outDir', dir, '--emptyOutDir', '--logLevel', 'warn'], {
@@ -254,9 +254,10 @@ function attachConsole(page, s) {
 }
 
 async function shot(page, s, name, opts = {}) {
-  const file = join(SHOTS, `${name}.png`);
+  // JPEG keeps qa/ small enough to commit after every run (layout review, not pixel diffs)
+  const file = join(SHOTS, `${name}.jpg`);
   try {
-    await page.screenshot({ path: file, ...opts });
+    await page.screenshot({ path: file, type: 'jpeg', quality: 82, ...opts });
     s.shots.push(relative(OUT, file));
   } catch (e) {
     s.console.push(`screenshot ${name} failed: ${e.message}`);
@@ -1278,8 +1279,12 @@ async function main() {
       log(b.error);
       if (!base) base = DEV_URL;
     } else {
-      suite('build').check('build', 'vite build + prerender (incl. the prerender copy lint) succeeds', true);
-      buildDir = typeof b === 'string' ? b : b.dir;
+      suite('build').check(
+        'build',
+        b.reused ? `existing prerendered build ${b.dir} (not rebuilt; pass --build only with a fresh build)` : 'vite build + prerender (incl. the prerender copy lint) succeeds',
+        true,
+      );
+      buildDir = b.dir;
       results.meta.build = buildDir;
       http = await serve(buildDir);
       if (!base) base = http.url;

@@ -36,6 +36,10 @@ const page = await browser.newPage({ viewport: { width: opt.w, height: opt.h }, 
 page.on('pageerror', (e) => console.error('pageerror:', e.message));
 await page.goto(url, { waitUntil: 'load', timeout: opt.timeout });
 await page.waitForFunction(() => window.__hrcgCapture && window.__hrcgCapture.ready, null, { timeout: opt.timeout });
+// scenes register when their component mounts (lazy sheets), which can be after `ready`: wait for it
+try {
+  await page.waitForFunction((s) => window.__hrcgCapture.list().includes(s), scene, { timeout: opt.timeout });
+} catch { /* reported below */ }
 const scenes = await page.evaluate(() => window.__hrcgCapture.list());
 if (!scenes.includes(scene)) {
   console.error(`scene "${scene}" not registered; have: ${scenes.join(', ')}`);

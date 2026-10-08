@@ -772,3 +772,8 @@
   }
 }
 
+
+/* ?capture: no promoted layers, so frames rasterise identically run to run */
+.capture .cv-plan-sq {
+  will-change: auto;
+}
