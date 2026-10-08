@@ -17,3 +17,12 @@ The user's notes, in order, with the action for each and where it stands. Live a
 | 11 | Contact email is a placeholder (`hello@example.com`). | Swap it in when the client's address arrives. | director | waiting on the user |
 
 After deploy, a QA bot checks every row on the live site at 1440×900 and 390×844 and reports anything that still fails.
+
+## Round 2 (16:30)
+
+| # | Feedback | Action | Status |
+|---|---|---|---|
+| 12 | "The brick lettering looks really AI-generated… pick a more rustic, construction-hardware-store typeface." | LAY BRICK is now set in Alfa Slab One (a heavy slab, sign-painter / hardware-store style), solid bronze, slight tilt, with no texture. | live |
+| 13 | "The front animation where it slaps down a piece of wire makes zero sense… better when it pushes its finger into the ground." | The hero now loops only the hand-into-the-slab moment and the dust roll-out (from frame 60 of the take), in slow motion at 0.6×, as a seamless crossfade loop (3.1 s desktop, 3.5 s phone). The line pickup is cut. | live |
+| 14 | "The smaller animations don't have perfect loops… they need to pick it up, move it, place it, screw it." | Loops: every task film is a seamless crossfade loop (QA measured no hard cuts). Action: five clip bots tried new first=last-frame Kling generations. Pipe is still running. Bricklaying, drywall, bolted (reach to tray) and layout all failed QA (vanishing arms, tools sliding by themselves, static robots), so the old loops stay. Next step needs a different method: image-to-video 10 s plus a crossfade loop, or new start frames with the tools within reach. Needs a credit decision. | blocked on credits (about 90 left) |
+| 15 | QA bot findings | Dark first paint, fully opaque header, balanced phone headline, arena strip as a seamless loop, floating button hides while scrolling down, html overflow-x clip. | live |
