@@ -1,12 +1,12 @@
 {
  "meta": {
-  "started": "2026-10-08T09:00:32.773Z",
+  "started": "2026-10-08T09:06:40.442Z",
   "root": "/home/user/Website-selling/hrcg",
-  "url": "http://127.0.0.1:46785/",
+  "url": "http://127.0.0.1:39269/",
   "build": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/build-a6",
   "axe": "axe-core",
   "notes": [],
-  "finished": "2026-10-08T09:03:58.545Z",
+  "finished": "2026-10-08T09:09:53.630Z",
   "failures": 2
  },
  "suites": {
@@ -14,7 +14,7 @@
    "checks": [
     {
      "id": "build",
-     "title": "vite build + prerender (incl. the prerender copy lint) succeeds",
+     "title": "existing prerendered build /tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/build-a6 (not rebuilt; pass --build only with a fresh build)",
      "status": "pass",
      "detail": ""
     }
@@ -142,13 +142,13 @@
      "id": "S4-focus",
      "title": "every focused element lies inside the unobscured viewport (Tab walk)",
      "status": "pass",
-     "detail": "{\"focused\":73,\"partlyHidden\":[],\"entirelyHidden\":[]}"
+     "detail": "{\"focused\":74,\"partlyHidden\":[],\"entirelyHidden\":[]}"
     },
     {
      "id": "a11y",
      "title": "accessibility (axe-core): 0 violations",
      "status": "fail",
-     "detail": "[{\"rule\":\"label-content-name-mismatch\",\"impact\":\"serious\",\"msg\":\"Elements must have their visible text as part of their accessible name\",\"nodes\":[\".header-home\",\".mk-vm\",\"button[aria-controls=\\\"_R_4q535_\\\"]\",\"button[aria-controls=\\\"_R_1ab5_\\\"]\"],\"count\":4}]"
+     "detail": "[{\"rule\":\"label-content-name-mismatch\",\"impact\":\"serious\",\"msg\":\"Elements must have their visible text as part of their accessible name\",\"nodes\":[\".mk-vm\",\"button[aria-controls=\\\"_R_4q535_\\\"]\",\"button[aria-controls=\\\"_R_1ab5_\\\"]\"],\"count\":3}]"
     },
     {
      "id": "copy-denied",
@@ -184,18 +184,17 @@
       "impact": "serious",
       "msg": "Elements must have their visible text as part of their accessible name",
       "nodes": [
-       ".header-home",
        ".mk-vm",
        "button[aria-controls=\"_R_4q535_\"]",
        "button[aria-controls=\"_R_1ab5_\"]"
       ],
-      "count": 4
+      "count": 3
      }
     ],
     "incomplete": [
      {
       "rule": "color-contrast",
-      "count": 383
+      "count": 385
      },
      {
       "rule": "video-caption",
@@ -397,7 +396,7 @@
      "id": "P2-swipe",
      "title": "a vertical touch swipe on the hero scrolls the page",
      "status": "pass",
-     "detail": "0 -> 404"
+     "detail": "0 -> 469"
     },
     {
      "id": "P-S3",
@@ -513,7 +512,7 @@
      "id": "rm-play",
      "title": "▶ buttons offered over posters",
      "status": "pass",
-     "detail": "13 of 16"
+     "detail": "13 of 17"
     },
     {
      "id": "rm-pins",
@@ -598,7 +597,7 @@
      "id": "nojs-video",
      "title": "every video has a poster and controls",
      "status": "fail",
-     "detail": "16 videos; 1 without"
+     "detail": "17 videos; 1 without"
     },
     {
      "id": "nojs-anchors",

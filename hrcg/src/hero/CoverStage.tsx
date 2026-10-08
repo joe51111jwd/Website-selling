@@ -221,7 +221,7 @@ export function CoverStage() {
             <button type="button" className="cv-linebtn" aria-label={HERO.lineLabel} />
             <button type="button" className="cv-handle" aria-label={HERO.handleLabel} />
 
-            <p className="cv-hint cv-hint--pull t-label" aria-live="off">
+            <p className="cv-hint cv-hint--pull t-label">
               <span>{HERO.hint.pull}</span>
               <span className="cv-hint-2">
                 <span className="when-key">{HERO.hint.key}</span>

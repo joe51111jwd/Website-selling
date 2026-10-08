@@ -3,7 +3,7 @@
 # lit visor point shows up); livery check = yellow tool-tape area (bay border excluded for plans). Writes
 # pipeline/out/assets-shipped.json and a contact sheet per video (5 frames + head crops) to <sheet_dir>.
 # usage: python -I qa_shipped.py <sheet_dir>
-import os, sys, json
+import os, sys, json, subprocess
 import numpy as np, cv2
 
 R = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -33,12 +33,10 @@ res = {}
 for id, e in man.items():
     if e['kind'] != 'video': continue
     src = R + '/public/' + e['sources'][0]['src']
-    cap = cv2.VideoCapture(src); frames = []
-    while True:
-        ok, f = cap.read()
-        if not ok: break
-        frames.append(f)
-    H, W = frames[0].shape[:2]; box = HEAD.get(id); plan = id.startswith('plan-') or id.startswith('arena')
+    # decode the AV1 file with the system ffmpeg (OpenCV's bundled build has no software AV1 decoder)
+    W, H = e['w'], e['h']
+    raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', src, '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-'], capture_output=True, check=True).stdout
+    frames = list(np.frombuffer(raw, np.uint8).reshape(-1, H, W, 3)); box = HEAD.get(id); plan = id.startswith('plan-') or id.startswith('arena')
     pts, liv = [], []
     for f in frames:
         if box:
