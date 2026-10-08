@@ -34,8 +34,11 @@ export const TEAMS = {
   /** Stencil slot default and the bay number slot (we never assign numbers) */
   slotDefault: 'YOUR ROBOT',
   bayNumber: '—',
-  /** Painted on the bay floor under the slot */
+  /** Legend word over the bay number slot (F-096) */
+  bayLabel: 'BAY',
+  /** Painted on the bay floor under the slot: READY FOR — until a box is ticked, then only the ticked numbers (F-098) */
   readyFor: 'READY FOR',
+  readyNone: '—',
   h2: 'BRING THE ROBOT. PROVE THE WORK.',
   lead: 'For humanoid robot developers, research labs, and university teams.',
   body: 'Put your platform to work in front of the construction industry. Tell us three things: your platform, which of the five you’re ready for, and what you’d need to take part.',
@@ -63,13 +66,15 @@ export const T7 = {
   a4: 'Download T7 (A4 PDF)',
   svg: 'Download T7 (SVG)',
   /**
-   * Proof label (brief 3.10): before + `{measured}` + after, where `{measured}` is the exact
-   * `smallestLabel` string from t7-proof.json (e.g. "26 PX WIDE"), else `{px}` + proofUnit. The row
-   * is shown only when the pipeline has really measured it.
+   * Proof caption (brief 3.10), split over the three proof columns with no new words (F-097):
+   * proofHead, then one label per render (FLAT · WARPED + BLURRED · `{measured}`), then proofTail.
+   * `{measured}` is the exact `smallestLabel` string from t7-proof.json (e.g. "26 PX WIDE"), else
+   * `{px}` + proofUnit. The row is shown only when the pipeline has really measured it.
    */
-  proofBefore: 'DETECTED IN OUR TESTS ON DIGITAL RENDERS, NOT PRINTS: FLAT · WARPED + BLURRED · ',
+  proofHead: 'DETECTED IN OUR TESTS ON DIGITAL RENDERS, NOT PRINTS:',
+  proofRenders: ['FLAT', 'WARPED + BLURRED'],
   proofUnit: ' PX WIDE',
-  proofAfter: '. DETECTOR: OPEN-SOURCE APRILTAG LIBRARY.',
+  proofTail: 'DETECTOR: OPEN-SOURCE APRILTAG LIBRARY.',
   alt: 'Control target T7: a square panel of dark and light bricks in stack bond, two bricks to each cell, that forms AprilTag tag36h11, ID 7.',
   proofAlt:
     'Our digital test renders of the target, flat, warped and blurred, and small, each outlined where the detector found the tag.',
@@ -108,7 +113,9 @@ export const SPONSORS = {
     {
       n: 3,
       title: 'MEET THE TALENT',
-      text: 'Meet the engineers making robots useful on site, through recruiting and technical conversations with developers and research teams.',
+      // H-4 (director, FIXLIST-1 §8): "Meet … Meet" repetition removed; "Connect with" is the
+      // client's own verb for this keynote (audit §1), same meaning (rule 24).
+      text: 'Connect with the engineers making robots useful on site, through recruiting and technical conversations with developers and research teams.',
     },
   ] as readonly Keynote[],
   /** Five 1:1 material crops (N07), left to right, with the keynotes printed beside each (brief 3.11) */

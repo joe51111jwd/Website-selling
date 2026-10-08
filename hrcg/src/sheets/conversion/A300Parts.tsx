@@ -180,6 +180,42 @@ function useProofMeasure(): string | null {
   return m;
 }
 
+/**
+ * The three proof renders in three equal columns (F-097). The pipeline ships them as one 3:1 image
+ * of three square tiles (flat · warped + blurred · smallest detected); each column shows its own
+ * tile (object-position 0 / 50 / 100 %) with its own label, split from the brief's single caption
+ * with no new words. The first <img> carries the alt for all three; the other two are the same
+ * file and decorative.
+ */
+function ProofStrip({ src: href, measured }: { src: string; measured: string }) {
+  const labels = [...T7.proofRenders, measured];
+  return (
+    <figure className="t7-proof">
+      <figcaption className="t7-proof-head t-label">{T7.proofHead}</figcaption>
+      <ol className="t7-proof-cols">
+        {labels.map((label, i) => (
+          <li key={label} className="t7-proof-col">
+            <span className="t7-proof-tile">
+              <img
+                className="t7-proof-img"
+                src={href}
+                alt={i === 0 ? T7.proofAlt : ''}
+                style={{ objectPosition: `${i * 50}% 50%` }}
+                loading="lazy"
+                decoding="async"
+              />
+            </span>
+            <span className="t7-proof-label t-label">
+              <LabelText text={label} />
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="t7-proof-tail t-label">{T7.proofTail}</p>
+    </figure>
+  );
+}
+
 function src(id: string): string | null {
   return media[id]?.sources?.[0]?.src ?? null;
 }
@@ -234,20 +270,7 @@ export function ControlTarget() {
         })}
       </ul>
       {measured !== null && proof?.sources?.length ? (
-        <figure className="t7-proof">
-          <img
-            className="t7-proof-img"
-            src={proof.sources[proof.sources.length - 1]!.src}
-            alt={T7.proofAlt}
-            width={proof.w}
-            height={proof.h}
-            loading="lazy"
-            decoding="async"
-          />
-          <figcaption className="t7-proof-label t-label">
-            <LabelText text={`${T7.proofBefore}${measured}${T7.proofAfter}`} />
-          </figcaption>
-        </figure>
+        <ProofStrip src={proof.sources[proof.sources.length - 1]!.src} measured={measured} />
       ) : null}
     </div>
   );

@@ -4,8 +4,10 @@
 // overlay in the still's own frame (0..1000), so the paint sits on the floor at every size:
 //   - the stencil slot: `platform || 'YOUR ROBOT'`, upper-case, max 24 characters, fitted to the slot
 //     width with measureText, Big Shoulders Stencil 800, chalk at 85% with a paint mask;
-//   - the bay number slot "—" (we never assign numbers);
-//   - READY FOR 01–05: the ticked challenges are painted, the others stay as pencil outlines.
+//   - the bay number slot "—" under the legend word BAY, painted with the same stencil mask (we
+//     never assign numbers; F-096);
+//   - READY FOR —, then only the ticked challenges once a box is ticked (F-098: nothing is printed
+//     that the visitor hasn't chosen).
 // `crop` [x0, y0, x1, y1] (0..1) shows a detail of the same still (the sticky RFI column).
 //
 // <MiniSlot/> is the phone's 64 px sticky strip: the slot and the READY FOR line, no photo.
@@ -20,7 +22,8 @@ import { slotText, useFitSize } from './fitText';
 export const SLOT = { x: 296, y: 566, w: 468, h: 118 } as const;
 const SLOT_PAD = 26;
 const READY_Y = 748;
-const BAY_NO = { x: 206, y: 318 } as const;
+/** The bay number slot: legend word BAY over a stencilled "—", in the plan's top-left room. */
+const BAY_NO = { x: 206, y: 318, label: 30, size: 150 } as const;
 
 export type Crop = readonly [number, number, number, number];
 export const FULL: Crop = [0, 0, 1, 1];
@@ -102,9 +105,14 @@ export function BayPlate({ platform, ready, crop = FULL, className, sizes, loadi
               {text}
             </text>
           </g>
-          <text className="bay-number" x={BAY_NO.x} y={BAY_NO.y} fontSize={190} textAnchor="start">
-            {TEAMS.bayNumber}
+          <text className="bay-number-label" x={BAY_NO.x} y={BAY_NO.y - BAY_NO.size * 0.62} fontSize={BAY_NO.label}>
+            {TEAMS.bayLabel}
           </text>
+          <g filter={`url(#${paint})`}>
+            <text className="bay-number" x={BAY_NO.x - BAY_NO.size * 0.04} y={BAY_NO.y} fontSize={BAY_NO.size} textAnchor="start">
+              {TEAMS.bayNumber}
+            </text>
+          </g>
           <ReadyFor ready={ready} x={SLOT.x} y={READY_Y} size={30} />
         </svg>
       </div>
@@ -112,7 +120,10 @@ export function BayPlate({ platform, ready, crop = FULL, className, sizes, loadi
   );
 }
 
-/** READY FOR 01 02 03 04 05: painted when ticked, pencil outline otherwise (stable layout). */
+/**
+ * READY FOR —, until a challenge is ticked; then READY FOR with only the ticked numbers, in
+ * challenge order (F-098). Nothing is printed that the visitor hasn't chosen (rule 11).
+ */
 function ReadyFor({
   ready,
   x,
@@ -126,24 +137,23 @@ function ReadyFor({
 }) {
   const labelW = size * 4.2;
   const step = size * 1.42;
+  const ticked = CHALLENGES.filter((c) => ready.has(c.no));
   return (
     <g className="bay-ready" fontSize={size}>
       <text className="bay-ready-label" x={x} y={y}>
         {TEAMS.readyFor}
       </text>
-      {CHALLENGES.map((c, i) => {
-        const on = ready.has(c.no);
-        return (
-          <text
-            key={c.no}
-            className={`bay-ready-no${on ? ' is-on' : ''}`}
-            x={x + labelW + i * step}
-            y={y}
-          >
+      {ticked.length === 0 ? (
+        <text className="bay-ready-none" x={x + labelW} y={y}>
+          {TEAMS.readyNone}
+        </text>
+      ) : (
+        ticked.map((c, i) => (
+          <text key={c.no} className="bay-ready-no is-on" x={x + labelW + i * step} y={y}>
             {c.num}
           </text>
-        );
-      })}
+        ))
+      )}
     </g>
   );
 }

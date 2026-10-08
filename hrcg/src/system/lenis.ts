@@ -72,9 +72,11 @@ export function unlockScroll(key: string) {
   if (!locks.size) lenis?.start();
 }
 
-function scrollPaddingTop(): number {
-  const v = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
-  return Number.isFinite(v) ? v : 0;
+function scrollPadding(): { top: number; bottom: number } {
+  const cs = getComputedStyle(document.documentElement);
+  const top = parseFloat(cs.scrollPaddingTop);
+  const bottom = parseFloat(cs.scrollPaddingBottom);
+  return { top: Number.isFinite(top) ? top : 0, bottom: Number.isFinite(bottom) ? bottom : 0 };
 }
 
 function resolve(target: string | HTMLElement): HTMLElement | null {
@@ -83,12 +85,71 @@ function resolve(target: string | HTMLElement): HTMLElement | null {
   return document.getElementById(id) ?? document.querySelector<HTMLElement>(target.startsWith('#') ? target : `#${id}`);
 }
 
-/** Focus the target sheet's H2 (tabindex -1), else the target itself. */
+/** The element a landing focuses: the target's H2 (tabindex -1), else the target itself. */
+function focusElement(el: HTMLElement): HTMLElement {
+  return (el.matches('h2') ? el : el.querySelector<HTMLElement>('h2')) ?? el;
+}
+
 function focusTarget(el: HTMLElement) {
-  const focusEl =
-    (el.matches('h2') ? el : el.querySelector<HTMLElement>('h2')) ?? el;
+  const focusEl = focusElement(el);
   if (!focusEl.hasAttribute('tabindex')) focusEl.setAttribute('tabindex', '-1');
   focusEl.focus({ preventScroll: true });
+}
+
+/**
+ * The unobscured band between the fixed chrome, in viewport px (FIXLIST F-015): from
+ * scroll-padding-top (border + header + 16) down to innerHeight − scroll-padding-bottom
+ * (strip or phone bar + border + safe area).
+ */
+export function unobscuredBand(): { top: number; bottom: number } {
+  const pad = scrollPadding();
+  return { top: pad.top, bottom: window.innerHeight - pad.bottom };
+}
+
+/** A sheet's `data-land` (vh from the sheet top), or null. Only on the [data-sheet] element itself. */
+function landVh(el: HTMLElement): number | null {
+  if (!el.hasAttribute('data-sheet')) return null;
+  const raw = el.dataset.land;
+  if (raw == null || raw.trim() === '') return null;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * The scroll position a jump to `target` lands on (FIXLIST F-015):
+ * - a [data-sheet] with `data-land="N"` (pinned stages): sheet top + N vh, exactly (the owner composed
+ *   that frame; the H2 check is skipped);
+ * - anything else: its top at scroll-padding-top (+ its own scroll-margin-top).
+ */
+export function landingTop(target: string | HTMLElement, offset = 0): number | null {
+  if (!isBrowser) return null;
+  const el = resolve(target);
+  if (!el) return null;
+  const docTop = el.getBoundingClientRect().top + window.scrollY;
+  const vh = landVh(el);
+  if (vh !== null) return Math.max(0, docTop + (vh * window.innerHeight) / 100 + offset);
+  const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+  return Math.max(0, docTop - scrollPadding().top - margin + offset);
+}
+
+function jumpTo(top: number) {
+  if (lenis) lenis.scrollTo(top, { immediate: true, force: true });
+  else window.scrollTo({ top, behavior: 'auto' });
+}
+
+/**
+ * After a landing: if the H2 that will take focus is not fully inside the unobscured band, jump so
+ * its top sits at scroll-padding-top (WCAG 2.4.11). One correction, no loop.
+ */
+function revealFocusTarget(el: HTMLElement) {
+  if (landVh(el) !== null) return;
+  const f = focusElement(el);
+  const band = unobscuredBand();
+  const r = f.getBoundingClientRect();
+  if (r.width === 0 && r.height === 0) return; // not rendered
+  const inside = r.top >= band.top - 1 && r.bottom <= band.bottom + 1;
+  if (inside || Math.abs(r.top - band.top) <= 1) return;
+  jumpTo(Math.max(0, r.top + window.scrollY - band.top));
 }
 
 export interface ScrollToOptions {
@@ -105,30 +166,36 @@ export interface ScrollToOptions {
 
 /**
  * Scroll to a sheet or element: Lenis (duration 1.2 s, SETTLE) when motion is on, a native jump
- * otherwise. Lands under the fixed header (scroll-padding-top), then focuses the target's H2.
- * `target` is '#a-300', 'a-300' or an element.
+ * otherwise. Lands at landingTop() (the sheet's data-land, else under the fixed header), then, two
+ * frames later (stages have applied the new scroll), makes sure the H2 is fully inside the unobscured
+ * band and focuses it (FIXLIST F-015). `target` is '#a-300', 'a-300' or an element.
  */
 export function lenisScrollTo(target: string | HTMLElement, opts: ScrollToOptions = {}): void {
   if (!isBrowser) return;
   const el = resolve(target);
   if (!el) return;
-  const extra = opts.offset ?? 0;
+  const top = landingTop(el, opts.offset ?? 0);
+  if (top === null) return;
   const land = () => {
-    if (opts.focus !== false) focusTarget(el);
-    if (opts.announce) {
-      const sheetEl = el.closest<HTMLElement>('[data-sheet]') ?? el;
-      const sheet = sheetById(sheetEl.dataset.sheet ?? '');
-      if (sheet) announce(sheet.announce);
-    }
-    opts.onComplete?.();
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        if (opts.focus !== false) {
+          revealFocusTarget(el);
+          focusTarget(el);
+        }
+        if (opts.announce) {
+          const sheetEl = el.closest<HTMLElement>('[data-sheet]') ?? el;
+          const sheet = sheetById(sheetEl.dataset.sheet ?? '');
+          if (sheet) announce(sheet.announce);
+        }
+        opts.onComplete?.();
+      }),
+    );
   };
   if (lenis && !opts.immediate && prefsStore.get().motion) {
-    // Lenis already subtracts the root's scroll-padding-top and the target's scroll-margin-top
-    lenis.scrollTo(el, { offset: extra, duration: 1.2, easing: settleEase, onComplete: land, force: true });
+    lenis.scrollTo(top, { duration: 1.2, easing: settleEase, onComplete: land, force: true });
     return;
   }
-  const top = el.getBoundingClientRect().top + window.scrollY - scrollPaddingTop() + extra;
-  if (lenis) lenis.scrollTo(top, { immediate: true, force: true });
-  else window.scrollTo({ top, behavior: 'auto' });
+  jumpTo(top);
   land();
 }

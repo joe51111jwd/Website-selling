@@ -1,8 +1,8 @@
 // A-301 parts (brief 3.11): Materials (five 1:1 crops with keynote numerals), Keynotes, KitComposer.
 // Owner: A6. Hovering or focusing a crop underlines its keynote rows (150 ms); on phones a tap
-// does the same. No leader lines.
+// does the same, and the tapped crop's keynote titles print under the row. No leader lines.
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState, type PointerEvent } from 'react';
 import { ViewTitle } from '../../chrome/ViewTitle';
 import { LabelText } from '../../chrome/LabelText';
 import { Picture } from '../../system/Picture';
@@ -31,6 +31,12 @@ export function KeynoteMark({ n, active = false, hidden = true }: { n: number; a
   );
 }
 
+/** 'MAT 02 · BOARD AND FIXINGS' -> ['MAT 02', ' · ', 'BOARD AND FIXINGS'] (textContent unchanged) */
+function splitLabel(label: string): [string, string, string] {
+  const i = label.indexOf(' · ');
+  return i < 0 ? [label, '', ''] : [label.slice(0, i), ' · ', label.slice(i + 3)];
+}
+
 export function Materials({
   active,
   setActive,
@@ -38,30 +44,56 @@ export function Materials({
   active: number | null;
   setActive: (i: number | null) => void;
 }) {
+  // F-057: a touch tap must leave its crop active. The compat focus event activates the crop
+  // before the click, so the click may only toggle it off if it was already active when the finger
+  // went down. Hover is real mouse hover only (pointerType), never the emulated mouseenter.
+  const down = useRef<{ i: number; was: boolean } | null>(null);
+  const isMouse = (e: PointerEvent) => e.pointerType === 'mouse';
+  const current = active === null ? null : SPONSORS.materials[active];
   return (
     <ViewTitle id="a301-materials" className="materials" frame={false}>
       <ol className="materials-list">
         {SPONSORS.materials.map((m, i) => {
           const ids = m.keynotes.map((n) => `keynote-${n}`).join(' ');
           const on = active === i;
+          const [no, sep, name] = splitLabel(m.label);
           return (
             <li key={m.label} className={`material${on ? ' is-active' : ''}`}>
               <button
                 type="button"
                 className="material-button"
                 aria-describedby={ids}
-                onMouseEnter={() => setActive(i)}
-                onMouseLeave={() => setActive(null)}
+                onPointerEnter={(e) => {
+                  if (isMouse(e)) setActive(i);
+                }}
+                onPointerLeave={(e) => {
+                  if (isMouse(e)) setActive(null);
+                }}
+                onPointerDown={() => {
+                  down.current = { i, was: on };
+                }}
                 onFocus={() => setActive(i)}
                 onBlur={() => setActive(null)}
-                onClick={() => setActive(on ? null : i)}
+                onClick={() => {
+                  const d = down.current;
+                  down.current = null;
+                  // pointer: decided by the state before the pointer went down; keyboard: a toggle
+                  const was = d && d.i === i ? d.was : on;
+                  setActive(was ? null : i);
+                }}
               >
                 <span className="material-frame">
-                  <Picture id={MAT_IDS[i]!} className="material-picture" sizes="(min-width: 768px) 18vw, 120px" />
+                  <Picture id={MAT_IDS[i]!} className="material-picture" sizes="(min-width: 768px) 18vw, 20vw" />
                 </span>
                 <span className="material-meta">
                   <span className="material-label t-label">
-                    <LabelText text={m.label} />
+                    <span className="material-no">
+                      <LabelText text={no} />
+                    </span>
+                    <span className="material-name">
+                      {sep}
+                      {name}
+                    </span>
                   </span>
                   <span className="material-keys">
                     {m.keynotes.map((n) => (
@@ -74,6 +106,22 @@ export function Materials({
           );
         })}
       </ol>
+      {/* phones: the tapped crop's name and keynote titles, under the five-up row (F-056, F-057) */}
+      <p className="materials-readout t-label" aria-hidden="true">
+        {current ? (
+          <>
+            <span className="materials-readout-name">
+              <LabelText text={current.label} />
+            </span>
+            {current.keynotes.map((n) => (
+              <span key={n} className="materials-readout-key">
+                <KeynoteMark n={n} active />
+                {SPONSORS.keynotes.find((k) => k.n === n)?.title}
+              </span>
+            ))}
+          </>
+        ) : null}
+      </p>
     </ViewTitle>
   );
 }

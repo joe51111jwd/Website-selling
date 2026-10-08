@@ -3,10 +3,19 @@ export { useStageProgress, type StageProgressOptions, type EdgePair } from './us
 export { useTier, tierStore, type Tier } from './tier';
 export { usePrefs, prefsStore, motionEnabled, type Prefs } from './prefs';
 export { sheetStore, useSheet, type SheetState } from './sheetStore';
-export { LoopVideo, sortSources, type LoopVideoProps } from './LoopVideo';
+export { LoopVideo, sortSources, PHONE_MEDIA, type LoopVideoProps } from './LoopVideo';
+export { CLEAR_POSTER } from './clearPoster';
 export { Picture, type PictureProps } from './Picture';
 export { videoManager, MAX_DECODERS, type VideoState, type RegisterOptions } from './VideoManager';
-export { lenisScrollTo, getLenis, lockScroll, unlockScroll, type ScrollToOptions } from './lenis';
+export {
+  lenisScrollTo,
+  landingTop,
+  unobscuredBand,
+  getLenis,
+  lockScroll,
+  unlockScroll,
+  type ScrollToOptions,
+} from './lenis';
 export { registerCaptureScene, isCapture, type CaptureScene } from './capture';
 export { announce } from './announce';
 export { onScroll, onLayout } from './scroll';

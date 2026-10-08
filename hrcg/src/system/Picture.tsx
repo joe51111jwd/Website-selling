@@ -20,6 +20,11 @@ export interface PictureProps {
   style?: CSSProperties;
   /** object-fit (default 'cover') */
   fit?: 'cover' | 'contain' | 'none';
+  /**
+   * Load group (FIXLIST F-002), rendered as data-vm-group: a lazy Picture in a held group (or inside a
+   * [data-vm-group] ancestor) stays out of layout, so unfetched, until videoManager.release(group).
+   */
+  group?: string;
 }
 
 const MODERN = /avif|webp/i;
@@ -40,6 +45,7 @@ export function Picture({
   sizes,
   style,
   fit = 'cover',
+  group,
 }: PictureProps) {
   const ctx = useViewContext();
   if (!decorative) assertLabelled(id, ctx);
@@ -63,7 +69,12 @@ export function Picture({
   const fallback = pickFallback(entry.sources)!;
   const modern = entry.sources.filter((s) => s !== fallback && MODERN.test(s.type));
   return (
-    <picture className={`picture picture--${fit} ${className ?? ''}`} data-media-id={id} style={style}>
+    <picture
+      className={`picture picture--${fit} ${className ?? ''}`}
+      data-media-id={id}
+      data-vm-group={group}
+      style={style}
+    >
       {modern.map((s) => (
         <source key={s.src} srcSet={s.src} type={s.type} sizes={sizes} />
       ))}

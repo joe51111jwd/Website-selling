@@ -1,12 +1,18 @@
 // <LoopVideo id="plan-b40" className? /> (brief 8.5, 9.2). Owner: A1.
-// Prerendered markup works with no JS (<video controls preload="none" poster> + AV1-first
-// <source>s). After hydration the VideoManager takes over: no controls, lazy load, ≤2 decoders,
-// posters under MOTION OFF, ▶ PLAY when play() is rejected, FILM UNAVAILABLE on error.
+// Prerendered markup works with no JS (<video controls preload="none"> + AV1-first <source>s).
+// After hydration the VideoManager takes over: no controls, lazy load, ≤2 decoders, posters under
+// MOTION OFF, ▶ PLAY when play() is rejected, FILM UNAVAILABLE on error.
+// Bytes (FIXLIST F-002): the <video> carries a transparent 1x1 poster (browsers fetch a real poster
+// eagerly); the visible poster is the lazy <picture class="loopvideo-poster">, on every tier, no-JS
+// included. The phone variant's sources are prerendered first with media="(max-width: 767px)", so a
+// phone never fetches the desktop file. `group` (or a [data-vm-group] ancestor) holds the video and
+// its poster until videoManager.release(group).
 // Must sit inside a <ViewTitle> whose kind is not 'drawing'.
 
-import { useEffect, useRef, useState, type Ref } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type Ref } from 'react';
 import { media, phoneVariant, type MediaEntry, type Src } from '../media/manifest';
 import { videoManager, type VideoState } from './VideoManager';
+import { CLEAR_POSTER } from './clearPoster';
 import { useViewContext, assertLabelled } from './viewContext';
 import { MEDIA_STATES } from '../content/copy/chrome';
 
@@ -21,9 +27,15 @@ export interface LoopVideoProps {
   className?: string;
   /**
    * Manifest id used below 768 px. Default: the manifest's phone variant (phoneVariant(id), e.g.
-   * 'plan-b40' -> 'plan-b40-m'), chosen after hydration. Pass phoneId={null} to never switch.
+   * 'plan-b40' -> 'plan-b40-m'), prerendered as <source media="(max-width: 767px)"> (video and poster)
+   * and aspect-ratio. Pass phoneId={null} to never switch.
    */
   phoneId?: string | null;
+  /**
+   * Load group (FIXLIST F-002), rendered as data-vm-group on the root: held (no video or poster bytes)
+   * until videoManager.release(group). A [data-vm-group] ancestor does the same for every video in it.
+   */
+  group?: string;
   /** Plays when ≥50% visible (default true). false: only ▶ or videoManager.request(id). */
   autoPlay?: boolean;
   /** Tie-break when the sheet has no manifest priority list (lower first) */
@@ -40,6 +52,9 @@ export interface LoopVideoProps {
   videoRef?: Ref<HTMLVideoElement>;
   onState?: (state: VideoState) => void;
 }
+
+/** Below this the phone variant is used (matches the CSS phone breakpoint). */
+export const PHONE_MEDIA = '(max-width: 767px)';
 
 const CODEC_ORDER = (s: Src) => {
   const t = s.type.toLowerCase();
@@ -69,6 +84,7 @@ export function LoopVideo({
   startAt,
   label,
   fit = 'cover',
+  group,
   videoRef,
   onState,
 }: LoopVideoProps) {
@@ -76,9 +92,11 @@ export function LoopVideo({
   const key = instance ? `${id}#${instance}` : id;
   const phoneCandidate = phoneIdProp === undefined ? phoneVariant(id) : phoneIdProp;
   const phoneId = phoneCandidate && phoneCandidate !== id ? phoneCandidate : null;
+  // the label may differ per variant: switched after hydration (sources and poster never switch in React)
   const [usePhone, setUsePhone] = useState(false);
-  const activeId = usePhone && phoneId ? phoneId : id;
-  const entry: MediaEntry | undefined = media[activeId] ?? media[id];
+  const entry: MediaEntry | undefined = media[id];
+  const phoneEntry: MediaEntry | undefined = phoneId ? media[phoneId] : undefined;
+  const labelEntry = (usePhone && phoneEntry) || entry;
   const rootRef = useRef<HTMLDivElement>(null);
   const elRef = useRef<HTMLVideoElement>(null);
   const onStateRef = useRef(onState);
@@ -87,13 +105,19 @@ export function LoopVideo({
   assertLabelled(id, ctx);
 
   useEffect(() => {
-    if (!phoneId) return;
-    const mq = window.matchMedia('(max-width: 767px)');
-    const apply = () => setUsePhone(mq.matches && !!media[phoneId]);
+    if (!phoneId || !media[phoneId]) return;
+    const mq = window.matchMedia(PHONE_MEDIA);
+    let first = true;
+    const apply = () => {
+      setUsePhone(mq.matches);
+      // crossing the breakpoint (rotation, resize): re-run source selection if it already loaded
+      if (!first) videoManager.reload(key);
+      first = false;
+    };
     apply();
     mq.addEventListener('change', apply);
     return () => mq.removeEventListener('change', apply);
-  }, [phoneId]);
+  }, [phoneId, key]);
 
   useEffect(() => {
     const el = elRef.current;
@@ -115,10 +139,9 @@ export function LoopVideo({
       unsub();
       unregister();
     };
-    // re-register when the source set changes (phone variant)
-  }, [key, id, activeId, entry, sheet, priority, autoPlay, startAt, ctx]);
+  }, [key, id, entry, sheet, priority, autoPlay, startAt, ctx]);
 
-  const aria = label ?? entry?.alt ?? '';
+  const aria = label ?? labelEntry?.alt ?? '';
 
   if (!entry) {
     return (
@@ -126,6 +149,7 @@ export function LoopVideo({
         ref={rootRef}
         className={`loopvideo loopvideo--missing ${className ?? ''}`}
         data-media-id={id}
+        data-vm-group={group}
         data-missing=""
         role="img"
         aria-label={aria || undefined}
@@ -133,15 +157,25 @@ export function LoopVideo({
     );
   }
 
-  const sources = sortSources(entry.sources);
+  const phone = phoneEntry?.sources?.length ? phoneEntry : undefined;
+  const sources: Array<Src & { media?: string }> = [
+    ...(phone ? sortSources(phone.sources).map((s) => ({ ...s, media: PHONE_MEDIA })) : []),
+    ...sortSources(entry.sources),
+  ];
+  const style = {
+    aspectRatio: 'var(--lv-ar)',
+    '--lv-ar-d': `${entry.w} / ${entry.h}`,
+    ...(phone ? { '--lv-ar-m': `${phone.w} / ${phone.h}` } : null),
+  } as CSSProperties;
   return (
     <div
       ref={rootRef}
       className={`loopvideo loopvideo--${fit} ${className ?? ''}`}
       data-media-id={id}
       data-video-key={key}
+      data-vm-group={group}
       data-state="idle"
-      style={{ aspectRatio: `${entry.w} / ${entry.h}` }}
+      style={style}
     >
       <video
         ref={(el) => {
@@ -152,30 +186,16 @@ export function LoopVideo({
         playsInline
         controls
         preload="none"
-        poster={entry.posterFallback ?? entry.poster}
+        poster={CLEAR_POSTER}
         aria-label={aria}
         width={entry.w}
         height={entry.h}
       >
         {sources.map((s) => (
-          <source key={s.src} src={s.src} type={s.type} />
+          <source key={s.src} src={s.src} type={s.type} media={s.media} />
         ))}
       </video>
-      {entry.poster || entry.posterFallback ? (
-        <picture className="loopvideo-poster" aria-hidden="true">
-          {entry.poster && entry.posterFallback && entry.poster !== entry.posterFallback ? (
-            <source srcSet={entry.poster} type={/\.avif$/i.test(entry.poster) ? 'image/avif' : undefined} />
-          ) : null}
-          <img
-            src={entry.posterFallback ?? entry.poster}
-            alt=""
-            width={entry.w}
-            height={entry.h}
-            decoding="async"
-            loading="lazy"
-          />
-        </picture>
-      ) : null}
+      <PosterPicture entry={entry} phone={phone} />
       <button
         type="button"
         className="loopvideo-play cell-button"
@@ -185,6 +205,31 @@ export function LoopVideo({
         {MEDIA_STATES.play}
       </button>
     </div>
+  );
+}
+
+function isAvif(src: string) {
+  return /\.avif$/i.test(src);
+}
+
+/** The visible poster: lazy, art-directed (phone variant first), AVIF before JPEG. */
+function PosterPicture({ entry, phone }: { entry: MediaEntry; phone?: MediaEntry }) {
+  const img = entry.posterFallback ?? entry.poster;
+  if (!img) return null;
+  const modern = (e: MediaEntry) =>
+    e.poster && e.posterFallback && e.poster !== e.posterFallback ? e.poster : null;
+  const phoneImg = phone ? (phone.posterFallback ?? phone.poster) : undefined;
+  const phoneModern = phone ? modern(phone) : null;
+  const deskModern = modern(entry);
+  return (
+    <picture className="loopvideo-poster" aria-hidden="true">
+      {phoneModern ? (
+        <source media={PHONE_MEDIA} srcSet={phoneModern} type={isAvif(phoneModern) ? 'image/avif' : undefined} />
+      ) : null}
+      {phoneImg ? <source media={PHONE_MEDIA} srcSet={phoneImg} /> : null}
+      {deskModern ? <source srcSet={deskModern} type={isAvif(deskModern) ? 'image/avif' : undefined} /> : null}
+      <img src={img} alt="" width={entry.w} height={entry.h} decoding="async" loading="lazy" />
+    </picture>
   );
 }
 

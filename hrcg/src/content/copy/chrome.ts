@@ -59,6 +59,12 @@ export const THE_SET = {
   dialogLabel: 'The Set, a 30-second concept film',
   posterAlt:
     'Concept film poster: robot 07 behind blue chalk dust under the headline What can a humanoid actually build? AI-generated concept footage.',
+  /** The video's accessible name (FIXLIST F-020); posterAlt stays on the poster only. */
+  videoLabel:
+    'The Set, a 30-second concept film: the drawing set from the cover to the general notes, with AI-generated concept footage of robot 07, a concept design, on all five challenges.',
+  transcript: 'Transcript',
+  /** Shown in the transcript panel if the text file can't be fetched (it links to the file). */
+  transcriptFile: 'Open the transcript as a text file',
   close: 'CLOSE (ESC)',
 } as const;
 

@@ -10,6 +10,12 @@
 // - Error: state 'error' -> poster stays, FILM UNAVAILABLE · POSTER SHOWN.
 // - Pauses: off-screen, on visibilitychange, with MOTION OFF (poster shown).
 // - Never gates paint or interaction.
+// - Groups (FIXLIST F-002): a video inside a `[data-vm-group="<name>"]` element (or registered with
+//   `group`) is HELD from page start: preload="none", never load()ed, never autoplayed, until
+//   `videoManager.release(name)`. `hold(name)` holds it again. While held, base.css also keeps the
+//   group's lazy posters / Pictures out of layout (display: none), so not one byte of the group loads.
+//   Safety valves: MOTION OFF / reduced motion ignores holds; a user ▶ PLAY loads its own video; and a
+//   group nobody released by the time the page has scrolled one full viewport is released then.
 
 import { isBrowser, queryParam } from './store';
 import { prefsStore } from './prefs';
@@ -47,6 +53,11 @@ export interface RegisterOptions {
   startAt?: number;
   /** Wrapper that receives data-state / data-user attributes (LoopVideo's root). */
   wrapper?: HTMLElement | null;
+  /**
+   * Load group (FIXLIST F-002). Default: the closest `[data-vm-group]` ancestor's value. A grouped video
+   * is held (no bytes) until `videoManager.release(group)`. Pass null to opt out of an ancestor's group.
+   */
+  group?: string | null;
 }
 
 interface Reg {
@@ -57,6 +68,7 @@ interface Reg {
   el: HTMLVideoElement;
   wrapper: HTMLElement | null;
   sheet: string | null;
+  group: string | null;
   priority: number;
   autoplay: boolean;
   loop: boolean;
@@ -75,6 +87,11 @@ interface Reg {
 const regs = new Map<string, Reg>();
 const byEl = new WeakMap<Element, Reg>();
 const reservations = new Set<string>();
+/**
+ * Group hold state. A group that is not in the map is held by default ('boot'); 'held' = held again by
+ * an explicit hold() (the scroll valve leaves it alone); 'released' = loads like any other video.
+ */
+const groups = new Map<string, 'boot' | 'held' | 'released'>();
 let orderSeq = 0;
 let nearIO: IntersectionObserver | null = null;
 let visIO: IntersectionObserver | null = null;
@@ -90,8 +107,28 @@ function setState(r: Reg, s: VideoState) {
   debugRender();
 }
 
+function groupHeld(group: string | null): boolean {
+  if (!group) return false;
+  if (!prefsStore.get().motion) return false; // MOTION OFF / reduced motion: posters only, holds are moot
+  return (groups.get(group) ?? 'boot') !== 'released';
+}
+
+function isHeld(r: Reg): boolean {
+  return !r.userPlay && groupHeld(r.group);
+}
+
+/** Mirror a group's state onto its DOM, for the base.css poster hold. */
+function markGroup(group: string, released: boolean) {
+  if (!isBrowser) return;
+  document.querySelectorAll<HTMLElement>('[data-vm-group]').forEach((el) => {
+    if (el.dataset.vmGroup !== group) return;
+    if (released) el.setAttribute('data-vm-released', '');
+    else el.removeAttribute('data-vm-released');
+  });
+}
+
 function load(r: Reg) {
-  if (r.loaded) return;
+  if (r.loaded || isHeld(r)) return;
   r.loaded = true;
   r.el.preload = 'metadata';
   setState(r, 'loading');
@@ -141,6 +178,7 @@ function run() {
     const eligible =
       !hidden &&
       r.loaded &&
+      !isHeld(r) &&
       r.ratio >= 0.5 &&
       r.state !== 'error' &&
       r.state !== 'blocked' &&
@@ -209,6 +247,21 @@ function bind() {
     { rootMargin: '300% 0px 300% 0px' },
   );
   document.addEventListener('visibilitychange', schedule);
+  // Valve: a boot-held group that nobody released by the time the page has scrolled one viewport
+  // (deep link, a hero path that never releases) is released then, so it can never stay empty.
+  const valve = () => {
+    if (window.scrollY < window.innerHeight) return;
+    window.removeEventListener('scroll', valve);
+    const boot = new Set<string>();
+    for (const r of regs.values()) if (r.group && (groups.get(r.group) ?? 'boot') === 'boot') boot.add(r.group);
+    document.querySelectorAll<HTMLElement>('[data-vm-group]').forEach((el) => {
+      const g = el.dataset.vmGroup;
+      if (g && (groups.get(g) ?? 'boot') === 'boot') boot.add(g);
+    });
+    boot.forEach((g) => videoManager.release(g));
+  };
+  window.addEventListener('scroll', valve, { passive: true });
+  requestAnimationFrame(valve);
   prefsStore.subscribe(() => {
     if (!prefsStore.get().motion) {
       // MOTION OFF: pause every video within one frame (synchronously, not on the next rAF)
@@ -217,9 +270,17 @@ function bind() {
         if (!r.el.paused) r.el.pause();
       }
     }
+    // holds are ignored under MOTION OFF (and apply again when it comes back on)
+    for (const r of regs.values()) if (r.near && r.group) load(r);
     schedule();
   });
   if (queryParam('debug') === 'video') debugMount();
+  // QA hooks (F-053): window.__hrcgVideoGroups.release('a100') / .hold / .isHeld
+  (window as unknown as { __hrcgVideoGroups?: unknown }).__hrcgVideoGroups = {
+    hold: (g: string) => videoManager.hold(g),
+    release: (g: string) => videoManager.release(g),
+    isHeld: (g: string) => videoManager.isHeld(g),
+  };
   (window as unknown as { __hrcgVideos?: () => unknown }).__hrcgVideos = () =>
     [...regs.values()].map((r) => ({
       id: r.id,
@@ -227,6 +288,8 @@ function bind() {
       playing: !r.el.paused,
       ratio: Number(r.ratio.toFixed(2)),
       loaded: r.loaded,
+      group: r.group,
+      held: isHeld(r),
       src: r.el.currentSrc,
     }));
 }
@@ -248,12 +311,19 @@ export const videoManager = {
     }
     const sheet =
       opts.sheet !== undefined ? opts.sheet : (el.closest<HTMLElement>('[data-sheet]')?.dataset.sheet ?? null);
+    const group =
+      opts.group !== undefined ? opts.group : (el.closest<HTMLElement>('[data-vm-group]')?.dataset.vmGroup ?? null);
+    // a video mounted after its group was released (e.g. a swapped-in slot) shows its poster at once
+    if (group && groups.get(group) === 'released') {
+      el.closest<HTMLElement>('[data-vm-group]')?.setAttribute('data-vm-released', '');
+    }
     const r: Reg = {
       id,
       mediaId: opts.mediaId ?? id.split('#')[0]!,
       el,
       wrapper: opts.wrapper ?? null,
       sheet,
+      group,
       priority: opts.priority ?? 0,
       autoplay: opts.autoplay ?? true,
       loop: opts.loop ?? (opts.entry ? opts.entry.loop != null : false),
@@ -399,6 +469,37 @@ export const videoManager = {
       reservations.delete(key);
       schedule();
     };
+  },
+
+  /**
+   * Hold a load group (FIXLIST F-002): its videos stay at preload="none" (no bytes) and are not played,
+   * and base.css keeps the group's lazy posters out of layout. Groups are held from page start anyway;
+   * call hold() only to hold one again after release(). Videos already loaded keep their bytes but stop
+   * autoplaying. Ignored under MOTION OFF.
+   */
+  hold(group: string) {
+    if (groups.get(group) === 'held') return;
+    groups.set(group, 'held');
+    markGroup(group, false);
+    schedule();
+  },
+
+  /**
+   * Release a load group: its posters enter layout (lazy-load) and its videos load (preload="metadata")
+   * as soon as they are within the 150% margin, then play by the usual rules. Idempotent. The cover
+   * stage releases 'a100' at P >= 0.25 (A2, F-006).
+   */
+  release(group: string) {
+    if (groups.get(group) === 'released') return;
+    groups.set(group, 'released');
+    markGroup(group, true);
+    for (const r of regs.values()) if (r.group === group && r.near) load(r);
+    schedule();
+  },
+
+  /** true while the group is held (default for any group until release()); false under MOTION OFF. */
+  isHeld(group: string): boolean {
+    return groupHeld(group);
   },
 
   /** Ids currently playing (QA: never more than MAX_DECODERS). */

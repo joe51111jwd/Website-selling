@@ -646,3 +646,43 @@
 .set-close {
   justify-self: start;
 }
+.set-panel {
+  max-height: calc(100svh - 2 * var(--border));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.set-transcript {
+  border-top: 1px solid var(--hairline-strong);
+  padding-top: var(--s-3);
+}
+.set-transcript summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--chalk);
+}
+.set-transcript summary:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.set-transcript-body {
+  max-height: 40svh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--chalk);
+  max-width: 72ch;
+}
+.set-transcript-body p {
+  margin: 0 0 var(--s-3);
+}
+.set-transcript-body .set-transcript-h {
+  margin: var(--s-5) 0 var(--s-2);
+  color: var(--pencil);
+}
+.set-transcript-body a {
+  color: var(--chalk);
+  text-decoration-color: var(--chalk-blue);
+}

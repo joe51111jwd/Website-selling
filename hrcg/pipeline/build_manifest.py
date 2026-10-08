@@ -1,4 +1,4 @@
-# Builds src/media/manifest.json from the id spec below + the files actually on disk in public/media
+# Builds src/media/manifest.json (slim, runtime) and pipeline/out/manifest-qa.json (full, with bytes) from the id spec below + the files actually on disk in public/media
 # (byte sizes and codec strings are MEASURED from the files) + pipeline/out/*.json (seams, rects, lines).
 # usage: python -I build_manifest.py [--mock]
 # Fails (exit 1) if any listed file is missing, unless --allow-missing.
@@ -17,6 +17,33 @@ def jload(name, default):
 seams = jload('seams.json', {})          # id -> {in, out} | null      (D11 measure.py)
 rects = jload('rects.json', {})          # plan id -> [x0,y0,x1,y1] normalised (D7)
 lines = jload('lines-summary.json', {})  # {'fresh': [[x,y],[x,y]]} (D5)
+
+def stripe_core():
+    """F-051: the plan-cut registration needs the CORE of the snapped chalk stripe in the shipped plan-b44-260
+    still (light-blue pixels, columns >= 50% filled inside the stripe band), not D5's centreline, which ran
+    along the stripe's top edge and out over the dust fringe / reel string at both ends. Normalised 0..1."""
+    try:
+        import numpy as np, cv2
+    except ImportError:
+        return None
+    p = os.path.join(PUB, 'media/plans/plan-b44-260.jpg')
+    im = cv2.imread(p) if os.path.exists(p) else None
+    if im is None or MOCK: return None
+    im = im.astype(np.float32); H, W = im.shape[:2]
+    m = (((im[..., 0] - im[..., 2]) > 25) & (im[..., 0] > 170)).astype(np.uint8)
+    m = cv2.morphologyEx(m, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+    y0, y1, x0, x1 = int(0.45 * H), int(0.62 * H), int(0.31 * W), int(0.83 * W)   # the stripe's neighbourhood
+    reg = m[y0:y1, x0:x1]
+    ys = np.where(reg.sum(1) > reg.shape[1] * 0.25)[0]
+    if not len(ys): return None
+    band = reg[ys.min():ys.max() + 1]
+    xs = np.where(band.mean(0) >= 0.5)[0]
+    yc = round((ys.min() + ys.max()) / 2 / H + y0 / H, 3)
+    a, b = round((xs.min() + x0) / W, 3), round((xs.max() + x0) / W, 3)
+    assert 0.38 < a < 0.42 and 0.70 < b < 0.75 and 0.51 < yc < 0.54, (a, b, yc)   # sanity vs the review scan
+    return [[a, yc], [b, yc]]
+_core = stripe_core()
+if _core: lines = dict(lines, fresh=_core)
 heroinfo = jload('hero.json', {})        # optional overrides (D1/D2: freeze frame etc.)
 
 A = 'AI-generated concept film'
@@ -31,7 +58,7 @@ ALT = {
     'b42': A + ', seen from above: robot 07 fastens a bolted splice plate.',
     'b43': A + ', seen from above: robot 07 joins copper pipe and fittings beside a task drawing taped to the floor.',
     'b44': A + ', seen from above: robot 07 snaps a blue chalk line inside a marked-out bay and moves to the bay’s edge.',
-    'c30': A + ': robot 07 lays a brick on a mortar bed along a stringline, with lights hanging in the dark behind.',
+    'c30': A + ': robot 07 spreads mortar with a trowel and steadies a course of brick between two line posts, against a dark background.',  # F-090 = F-081
     'c31': A + ', close on robot 07’s hands pressing a sheet of drywall flat against a steel stud frame; dust hangs in the light.',
     'c32': A + ': robot 07 drives a bolt with an impact wrench and reaches into a tray of bolts.',
     'c33': A + ', close on robot 07’s hands joining copper pipe at an elbow under a warm work light.',
@@ -261,8 +288,22 @@ for sheet, ids in PRIORITY.items():
 if missing and not ALLOW_MISSING:
     print('MISSING files:\n  ' + '\n  '.join(missing)); sys.exit(1)
 
-doc = {'version': 1, 'mock': MOCK, 'generated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
-       'media': media, 'sheetVideoPriority': PRIORITY}
+# F-045: two outputs. pipeline/out/manifest-qa.json keeps every measured/debug field (bytes, kind, fps, dur,
+# borderRect, freezeFrame, posterAlt, generated) for QA; src/media/manifest.json is the slim RUNTIME manifest
+# with only the fields the site reads, so the entry chunk stays small. Keep SLIM_KEYS in step with
+# src/media/manifest.ts (MediaEntry).
+SLIM_KEYS = ('id', 'sources', 'poster', 'posterFallback', 'w', 'h', 'alt', 'viewTitle', 'loop', 'stills', 'meta',
+             'lineEndpoints', 'captions', 'transcript', 'proof')
+SLIM_EXTRA = {'the-set-169': ('dur',)}   # A900Parts reads the real film's duration
+def slim(e):
+    keep = SLIM_KEYS + SLIM_EXTRA.get(e['id'], ())
+    return {k: e[k] for k in keep if k in e}
+qa_doc = {'version': 1, 'mock': MOCK, 'generated': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
+          'media': media, 'sheetVideoPriority': PRIORITY}
+os.makedirs(OUT, exist_ok=True)
+json.dump(qa_doc, open(os.path.join(OUT, 'manifest-qa.json'), 'w'), indent=1, ensure_ascii=False)
+doc = {'version': 2, 'mock': MOCK, 'media': {k: slim(e) for k, e in media.items()}, 'sheetVideoPriority': PRIORITY}
 json.dump(doc, open(os.path.join(R, 'src', 'media', 'manifest.json'), 'w'), indent=1, ensure_ascii=False)
 tot = sum(sum(e['bytes'].values()) for e in media.values())
-print(f'manifest: {len(media)} entries, {tot / 1e6:.2f} MB on disk, mock={MOCK}, missing={len(missing)}')
+sz = len(json.dumps(doc, separators=(',', ':'), ensure_ascii=False).encode())
+print(f'manifest: {len(media)} entries, {tot / 1e6:.2f} MB on disk, mock={MOCK}, missing={len(missing)}; runtime json {sz / 1e3:.1f} kB minified; QA copy in pipeline/out/manifest-qa.json')

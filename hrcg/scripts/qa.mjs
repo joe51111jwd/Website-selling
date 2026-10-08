@@ -5,7 +5,7 @@
 //   scripts/cpuq node scripts/qa.mjs --build <dir>        serve an existing build (skips the build)
 //   scripts/cpuq node scripts/qa.mjs --url http://127.0.0.1:5300/   test a running server (no-JS suite
 //                                                         then needs --build, the dev server is not prerendered)
-//   --only desktop,strip,phone,rm,nogl,nojs,lint          run some suites
+//   --only build,desktop,strip,phone,rm,nogl,nojs,lint    run some suites (build = the production build + its F-052 checks only)
 //   --out qa                                              results + screenshots (default qa/)
 //
 // Always run it through scripts/cpuq (one heavy job at a time on this box) and never call cpuq from
@@ -46,13 +46,17 @@
 import { createRequire } from 'node:module';
 import { spawnSync } from 'node:child_process';
 import { createServer as createHttpServer } from 'node:http';
-import { existsSync, mkdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, statSync } from 'node:fs';
 import { resolve, dirname, extname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
+// The environment this script was started with, before anything in it changes process.env: Vite's
+// createServer (loadSiteModules) sets NODE_ENV=development, and a build that inherits that is a
+// development build (jsxDEV, sandbox chunks, chunk CSS linked ahead of index-*.css). FIXLIST-1 F-052.
+const BASE_ENV = { ...process.env };
 
 // ---------------------------------------------------------------------------------------- args
 
@@ -136,13 +140,20 @@ async function loadSiteModules() {
 
 // ---------------------------------------------------------------------------------------- build + serve
 
+/** The env of a plain `vite build` from a clean shell, forced to production (F-052). */
+function buildEnv() {
+  const env = { ...BASE_ENV, NODE_ENV: 'production', HRCG_PRERENDER_LENIENT: '1', VITE_CONFIG_NATIVE_IGNORE_WARNING: 'true' };
+  delete env.HRCG_PRERENDER_CHILD; // set by loadSiteModules for its own SSR server only
+  return env;
+}
+
 function ensureBuild(log) {
   if (BUILD && existsSync(join(BUILD, 'index.html'))) return { dir: BUILD, reused: true };
   const dir = BUILD ?? join(tmpdir(), 'hrcg-qa-build');
-  log(`building into ${dir} (vite build + prerender; HRCG_PRERENDER_LENIENT=1)`);
+  log(`building into ${dir} (production vite build + prerender; NODE_ENV=production, HRCG_PRERENDER_LENIENT=1)`);
   const r = spawnSync('npx', ['vite', 'build', '--outDir', dir, '--emptyOutDir', '--logLevel', 'warn'], {
     cwd: ROOT,
-    env: { ...process.env, HRCG_PRERENDER_LENIENT: '1', VITE_CONFIG_NATIVE_IGNORE_WARNING: 'true' },
+    env: buildEnv(),
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
   });
@@ -152,6 +163,38 @@ function ensureBuild(log) {
   }
   BUILD = dir;
   return { dir, log: out.slice(-4000) };
+}
+
+/**
+ * Is this a real production build (F-052)? A development-mode build ships React's dev runtime
+ * (jsxDEV, react-stack-bottom-frame), the dev-only sandbox chunks, and links chunk stylesheets
+ * ahead of index-*.css, which flips the cascade (FIXLIST-1 §0, X-1). Runs on every build QA uses,
+ * fresh or reused with --build.
+ */
+function productionFacts(dir) {
+  const assets = join(dir, 'assets');
+  const files = existsSync(assets) ? readdirSync(assets) : [];
+  const devRuntime = [];
+  for (const f of files) {
+    if (!/\.(m?js)$/.test(f)) continue;
+    const src = readFileSync(join(assets, f), 'utf8');
+    if (/\bjsxDEV\b|react-stack-bottom-frame/.test(src)) devRuntime.push(f);
+  }
+  const sandboxes = files.filter((f) => /sandbox/i.test(f) || /^jsx-dev-runtime-/.test(f));
+  const html = readFileSync(join(dir, 'index.html'), 'utf8');
+  const stylesheets = [...html.matchAll(/<link\b[^>]*\brel=["']?stylesheet["']?[^>]*>/gi)].map(
+    (m) => /\bhref=["']?([^"' >]+)/i.exec(m[0])?.[1] ?? m[0],
+  );
+  const cssFiles = files.filter((f) => f.endsWith('.css'));
+  return { devRuntime, sandboxes, stylesheets, cssFiles };
+}
+
+function checkProduction(dir, check) {
+  const p = productionFacts(dir);
+  check('prod-runtime', 'production React runtime: no asset contains jsxDEV or react-stack-bottom-frame', p.devRuntime.length === 0, p.devRuntime);
+  check('prod-sandboxes', 'no dev-only chunks (sandboxes, MarksSandbox, chromeSandbox, jsx-dev-runtime)', p.sandboxes.length === 0, p.sandboxes);
+  check('prod-onecss', 'index.html links exactly one stylesheet (cascade order independent of JS chunking)', p.stylesheets.length === 1, { linked: p.stylesheets, cssFiles: p.cssFiles });
+  return p;
 }
 
 const MIME = {
@@ -1279,11 +1322,13 @@ async function main() {
       log(b.error);
       if (!base) base = DEV_URL;
     } else {
-      suite('build').check(
+      const { check: bcheck } = suite('build');
+      bcheck(
         'build',
-        b.reused ? `existing prerendered build ${b.dir} (not rebuilt; pass --build only with a fresh build)` : 'vite build + prerender (incl. the prerender copy lint) succeeds',
+        b.reused ? `existing prerendered build ${b.dir} (not rebuilt; pass --build only with a fresh build)` : 'production vite build + prerender (incl. the prerender copy lint) succeeds',
         true,
       );
+      checkProduction(b.dir, bcheck);
       buildDir = b.dir;
       results.meta.build = buildDir;
       http = await serve(buildDir);

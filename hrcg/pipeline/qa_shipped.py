@@ -8,7 +8,7 @@ import numpy as np, cv2
 
 R = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = sys.argv[1]; os.makedirs(OUT, exist_ok=True)
-man = json.load(open(R + '/src/media/manifest.json'))['media']
+man = json.load(open(R + '/pipeline/out/manifest-qa.json'))['media']   # F-045: the full manifest (kind, bytes) lives here
 HEAD = {  # head path boxes, normalised to the SHIPPED frame (None = no head in frame)
     'hero-snap-169': [0.3, 0.0, 0.66, 0.32], 'hero-snap-916': [0.3, 0.12, 0.7, 0.4],
     'el-c30': [0.34, 0.0, 0.54, 0.33], 'el-c30-m': [0.3, 0.0, 0.75, 0.26], 'el-c32': [0.38, 0.0, 0.66, 0.3],

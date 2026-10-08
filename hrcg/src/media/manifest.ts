@@ -15,12 +15,13 @@
 //   already carries the crossfaded seam, so a plain `loop` attribute is correct.
 // - Phone variants are separate ids with the suffix "-m" (plan-b40-m, arena-0104-m, el-c30-m) or "-916"
 //   (the phone hero set). Use `phoneVariant(id)` to resolve one.
-// - `bytes` maps each file path (resolved, as in sources/poster) to its size in bytes.
-// - Hero: `hero-snap-169.stills` = { av1, h264 } freeze stills matched by video.currentSrc; `freezeFrame`
-//   is the source frame number in c34 (84; the film's last frame); `meta` points at hero-meta-169.json.
-// - Plans: `borderRect` = [x0, y0, x1, y1] of the yellow bay border, normalised 0..1 of the plan frame
-//   (all registered plans share 120..1320 of 1440 = 0.0833..0.9167). plan-b44 / plan-b44-260 also carry
-//   `lineEndpoints` (the freshly snapped line, normalised, for the plan-cut registration).
+// - F-045: this is the SLIM runtime manifest (only the fields the site reads). Byte sizes, kinds, fps, durations,
+//   border rects and freeze frames live in pipeline/out/manifest-qa.json for QA; `bytes`/`kind`/`dur` stay in
+//   the type as optional so QA tooling can load that file with the same type. `dur` is kept for the-set-169 only.
+// - Hero: `hero-snap-169.stills` = { av1, h264 } freeze stills matched by video.currentSrc; `meta` points at
+//   hero-meta-169.json (the freeze frame number is in the QA manifest and the meta file).
+// - Plans: plan-b44 / plan-b44-m / plan-b44-260 carry `lineEndpoints` (the core of the freshly snapped chalk
+//   stripe in the registered frame, normalised, for the plan-cut registration; F-051).
 // - `mock: true` on the root marks the first-wave placeholder manifest.
 import raw from './manifest.json';
 
@@ -30,14 +31,17 @@ export type MediaKind = 'video' | 'image' | 'depth' | 'matte' | 'json' | 'svg' |
 
 export type MediaEntry = {
   id: string;
-  kind: MediaKind;
+  /** QA manifest only (pipeline/out/manifest-qa.json). */
+  kind?: MediaKind;
   sources?: Src[];
   poster?: string;
   /** JPEG twin of `poster` (extension to §9.2, optional). */
   posterFallback?: string;
   w: number;
   h: number;
+  /** the-set-169 only in the runtime manifest (every video in the QA manifest). */
   dur?: number;
+  /** QA manifest only. */
   fps?: number;
   /** null = play once and hold the last frame. */
   loop?: { in: number; out: number } | null;
@@ -46,23 +50,28 @@ export type MediaEntry = {
   alt: string;
   /** `id` (when set) is the key in src/content/viewTitles.ts VIEW_TITLES; hasntHappened/oneFrame mirror that table. */
   viewTitle: { view: string; kind: ViewKind; suffix?: string; id?: string; hasntHappened?: boolean; oneFrame?: boolean };
+  /** QA manifest only. */
   borderRect?: [number, number, number, number];
   lineEndpoints?: [[number, number], [number, number]];
+  /** QA manifest only. */
   freezeFrame?: number;
   /** URL of a JSON sidecar (hero meta, lines, proof). */
   meta?: string;
-  /** the-set-169 only: poster alt, WebVTT captions and the transcript file (resolved URLs). */
+  /** the-set-169 only: WebVTT captions and the transcript file (resolved URLs). posterAlt: QA manifest only
+   *  (the page takes the poster alt from copy/chrome.ts THE_SET). */
   posterAlt?: string;
   captions?: string;
   transcript?: string;
   /** t7-proof only (A6-2): the measured detection label from t7-proof.json, null while unmeasured/mock. */
   proof?: { smallestLabel: string | null; pass: boolean } | null;
-  bytes: Record<string, number>;
+  /** QA manifest only: file path → size in bytes. */
+  bytes?: Record<string, number>;
 };
 
 type RawManifest = {
   version: number;
   mock?: boolean;
+  /** QA manifest only. */
   generated?: string;
   media: Record<string, MediaEntry>;
   sheetVideoPriority: Record<string, string[]>;
@@ -81,8 +90,6 @@ export function mediaUrl(path: string): string {
 }
 
 function resolveEntry(e: MediaEntry): MediaEntry {
-  const bytes: Record<string, number> = {};
-  for (const [k, v] of Object.entries(e.bytes || {})) bytes[mediaUrl(k)] = v;
   return {
     ...e,
     sources: e.sources?.map((s) => ({ src: mediaUrl(s.src), type: s.type })),
@@ -92,7 +99,6 @@ function resolveEntry(e: MediaEntry): MediaEntry {
     meta: e.meta ? mediaUrl(e.meta) : undefined,
     captions: e.captions ? mediaUrl(e.captions) : undefined,
     transcript: e.transcript ? mediaUrl(e.transcript) : undefined,
-    bytes,
   };
 }
 
