@@ -18,6 +18,11 @@ MB = 1e6
 AV1_CRF = [34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54]
 H264_CRF = [23, 24, 26, 28, 30]
 
+# F-050: b40 plays frames 0-10 once and holds (07 lowering a brick onto its mortar bed). From frame ~12 the trowel
+# leaves bare mortar slabs in the course where bricks belong, and they stay to the end (also at 2.0 s), so the
+# fixlist's 0-2.0 s window would still hold on them. The arena row uses the same segment.
+B40_END = 10
+TRIM = {'b40': f'trim=end_frame={B40_END + 1},setpts=PTS-STARTPTS,'}
 #      id            dir             source              ffmpeg -vf (on the mezzanine)                       budget AV1, H.264 (MB)  seamOf
 PLATES = [
     ('el-c30',     'perspectives', MZ + '/n09r.mp4', 'crop=1920:804:0:0',                                 0.50, 1.00, 'n09r'),
@@ -28,10 +33,11 @@ PLATES = [
     ('el-c32',     'perspectives', MZ + '/c32.mp4',  None,                                                  0.50, 1.00, None),
     ('el-c33',     'perspectives', MZ + '/c33.mp4',  'crop=1920:804:0:272',                                0.50, 1.00, None),
     ('det-v0',     'details',      MZ + '/v0.mp4',   'trim=end_frame=84,setpts=PTS-STARTPTS,crop=1076:1076:{v0x}:0', 0.30, 0.60, None),
-    ('det-n03',    'details',      MZ + '/n03.mp4',  'crop=1076:1076:638:0',                               0.30, 0.60, None),
+    # F-049: frames 0-84 only (3.5 s), then hold: from frame ~88 the socket's pseudo-lettering rotates into view
+    ('det-n03',    'details',      MZ + '/n03.mp4',  'trim=end_frame=85,setpts=PTS-STARTPTS,crop=1076:1076:638:0', 0.30, 0.60, None),
     ('det-n04',    'details',      MZ + '/n04.mp4',  'crop=1076:1076:383:0',                               0.30, 0.60, None),
-] + [(f'plan-{b}', 'plans', f'{REG}/{b}.mp4', 'scale=1080:1080:flags=lanczos', 0.45, 0.90, f'reg-{b}') for b in ('b40', 'b41', 'b42', 'b43', 'b44')] \
-  + [(f'plan-{b}-m', 'plans', f'{REG}/{b}.mp4', 'scale=720:720:flags=lanczos', 0.27, 0.90, f'reg-{b}') for b in ('b40', 'b41', 'b42', 'b43', 'b44')]
+] + [(f'plan-{b}', 'plans', f'{REG}/{b}.mp4', TRIM.get(b, '') + 'scale=1080:1080:flags=lanczos', 0.45, 0.90, f'reg-{b}') for b in ('b40', 'b41', 'b42', 'b43', 'b44')] \
+  + [(f'plan-{b}-m', 'plans', f'{REG}/{b}.mp4', TRIM.get(b, '') + 'scale=720:720:flags=lanczos', 0.27, 0.90, f'reg-{b}') for b in ('b40', 'b41', 'b42', 'b43', 'b44')]
 CFG = json.load(open(R + '/pipeline/out/plates-cfg.json')) if os.path.exists(R + '/pipeline/out/plates-cfg.json') else {}
 
 def read_frames(src, vf):
@@ -78,6 +84,7 @@ def arena(phone=False):
     clips = []
     for k, b in enumerate(('b40', 'b41', 'b42', 'b43')):
         fr, _, _ = read_frames(f'{REG}/{b}.mp4', f'scale={bay}:{bay}:flags=lanczos')
+        if b == 'b40': fr = np.concatenate([fr[:B40_END + 1], np.repeat(fr[B40_END:B40_END + 1], 121 - B40_END - 1, 0)])   # F-050 hold
         o = int(round(offs[k] * 24)); seq = list(fr[o:]) + [fr[-1]] * o
         clips.append(np.stack(seq[:121]))
     out = np.zeros((121, bay, W, 3), np.uint8); out[:] = (10, 11, 11)

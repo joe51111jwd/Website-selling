@@ -493,7 +493,8 @@
     overflow: visible;
     clip-path: none;
     white-space: normal;
-    padding: var(--s-4) 0 0;
+    /* room on the left for the cloud's tag cell, which hangs off its top-left corner */
+    padding: var(--s-4) 0 0 var(--s-5);
     opacity: 0;
   }
   .a200[data-live] .a200-text {
@@ -1137,6 +1138,7 @@
   }
   .a105 .a105-spec {
     order: 2;
+    flex: none;
     margin-top: var(--s-4);
   }
   .a105-beats {

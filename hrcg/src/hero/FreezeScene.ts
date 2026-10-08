@@ -12,6 +12,7 @@
 // The camera's fov matches f, so at yaw 0 every vertex projects back onto its own pixel.
 
 import {
+  Color,
   BufferAttribute,
   BufferGeometry,
   ClampToEdgeWrapping,
@@ -54,8 +55,10 @@ export interface FreezeSceneOptions {
   /** [avif, jpg] candidates for the still that matches the playing codec */
   stillUrls: string[];
   plateUrls: string[];
-  /** hero-matte (07's cut-out): its alpha draws 07 over FAR. Empty = no FAR occlusion (phones, F-022) */
+  /** hero-matte (07's cut-out): its alpha draws 07's layer with the matte's clean edge (F-004 step 3) */
   matteUrls: string[];
+  /** 07's layer bites FAR (16:9). Off on the 9:16 take, where it would be the head biting "ID" (F-022) */
+  farOcclusion: boolean;
   /** from hero-meta: the plate quad's depth and its size relative to the frame-matched size there */
   plate?: { z?: number; scale?: number };
   lines: TypeLine[];
@@ -77,6 +80,9 @@ export interface FreezeScene {
   onContextLost(cb: () => void): void;
   dispose(): void;
 }
+
+/** the plate's exposure back to the still's (A5 darkens it to 60 %) */
+const PLATE_GAIN = 1 / 0.6;
 
 function loadImage(urls: string[]): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -212,7 +218,16 @@ export async function createFreezeScene(o: FreezeSceneOptions): Promise<FreezeSc
   for (let i = 0; i < puv.count; i++) {
     puv.setXY(i, 0.5 + (puv.getX(i) - 0.5) * over, 0.5 + (puv.getY(i) - 0.5) * over);
   }
-  const plateMat = new MeshBasicMaterial({ map: plateTex, depthWrite: false, depthTest: true, toneMapped: false });
+  // A5 darkens the plate to 60 %. Where the edge alpha opens a stretched cell (F-004) the plate IS the
+  // background, so it is shown at the still's exposure (x 1/0.6): a soft, blurred background in the gap,
+  // never a dark outline round 07
+  const plateMat = new MeshBasicMaterial({
+    map: plateTex,
+    color: new Color(PLATE_GAIN, PLATE_GAIN, PLATE_GAIN),
+    depthWrite: false,
+    depthTest: true,
+    toneMapped: false,
+  });
   const plate = new Mesh(plateGeo, plateMat);
   plate.position.set(0, 0, -plateZ);
   plate.scale.set(((2 * plateZ) / meta.f) * over, ((2 * plateZ) / meta.f) * (o.frameH / o.frameW) * over, 1);
@@ -244,7 +259,12 @@ export async function createFreezeScene(o: FreezeSceneOptions): Promise<FreezeSc
   const far = o.lines.filter((l) => l.plane === 'far');
   const near = o.lines.filter((l) => l.plane === 'near');
   const planes: TypePlane[] = [];
-  if (far.length) planes.push(createTypePlane(far, TYPE_Z.far, frame, rasterScale));
+  if (far.length) {
+    const fp = createTypePlane(far, TYPE_Z.far, frame, rasterScale);
+    // under 07's layer when it bites FAR, else over it (phones)
+    fp.mesh.renderOrder = o.farOcclusion ? 2 : 3.5;
+    planes.push(fp);
+  }
   if (near.length) planes.push(createTypePlane(near, TYPE_Z.near, frame, rasterScale));
   planes.forEach((p) => scene.add(p.mesh));
 

@@ -1425,9 +1425,10 @@ class CoverController {
           plate: (data.meta as { plate?: { z?: number; scale?: number } }).plate,
           stillUrls: imageUrls(stillId),
           plateUrls: imageUrls(plateId),
-          // 07 bites FAR on the 16:9 take only; on the 9:16 take it would be the head biting "ID"
-          // (A5-fix-2 §3), so phones have no FAR occlusion (F-022 fallback, brief 2.5)
-          matteUrls: portrait ? [] : imageUrls('hero-matte-169'),
+          // 07's clean-edged layer (F-004). It bites FAR on the 16:9 take only; on the 9:16 take it would be
+          // the head biting "ID" (A5-fix-2 §3), so phones have no FAR occlusion (F-022 fallback, brief 2.5)
+          matteUrls: imageUrls(portrait ? 'hero-matte-916' : 'hero-matte-169'),
+          farOcclusion: !portrait,
           lines: this.typeLines(),
           cssW: this.frameRect.width,
           cssH: this.frameRect.height,

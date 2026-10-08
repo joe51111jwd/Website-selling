@@ -822,10 +822,11 @@
    label heights into the --*-h variables (the defaults below are the 390 px values). */
 @media (max-aspect-ratio: 4/5) {
   .cv {
-    --vt-h: 34px;
+    /* the 3D VIEW title is three lines at 11/14 px on 320-430 px phones */
+    --vt-h: 48px;
     --status-h: 12px;
     --sub-h: 44px;
-    --pull-h: 33px;
+    --pull-h: 35px;
     --frozen-h: 15px;
     --play-h: 44px;
   }
@@ -901,9 +902,6 @@
     bottom: 3%;
   }
   /* on phones the sub stands just under the line, so the pulled V crosses it: it steps back too (F-071) */
-  .cv-sub {
-    transition: opacity var(--dur-hover) linear;
-  }
   .cv[data-pull] .cv-sub {
     opacity: calc(var(--a0-o) * 0.25);
   }

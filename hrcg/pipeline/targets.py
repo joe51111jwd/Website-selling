@@ -107,7 +107,7 @@ def pdf(path, paper_mm, label):
     ty = oy + panel + 10
     edge_in = TAG_EDGE_MM / 25.4
     lines = ['HRCG-2027 · PLANNED · CONTROL TARGET T7',
-             'APRILTAG FAMILY TAG36H11 · ID 7 · 128 BRICKS IN STACK BOND',
+             'AprilTag family tag36h11 · ID 7 · 128 BRICKS IN STACK BOND',   # F-091: the family name is case-sensitive
              f'PRINT AT 100% · TAG EDGE {TAG_EDGE_MM / 10:.1f} CM ({edge_in:.2f} IN), OUTER EDGE OF THE DARK BORDER',
              'A TEST TARGET FOR DEVELOPERS, NOT A RULE OF THE GAMES.',
              f'{label}']

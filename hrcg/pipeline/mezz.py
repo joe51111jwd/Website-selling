@@ -7,6 +7,13 @@
 # --crushmode 2 (FIXLIST-1 F-009 / F-047): keep the near side (07, the board, the set) whole: its depth matte is
 #   eroded 3 px (the lit haze rim goes with the background) and feathered OUTWARD only (σ 1.5 px), the
 #   background is crushed fully to #0B0B0A in linear light, and the clip's own grain is re-added there.
+# --livery2 RULES (FIXLIST-1 F-048 / F-049): orange/red power-tool bodies -> graphite inside per-clip, per-frame-range
+#   ROIs, so 07's own orange shoulder pads stay untouched. RULES = rule|rule|..., rule = key=value;... with
+#   hue=lo-hi (degrees, may wrap: 345-15), box=x0,y0,x1,y1 (normalised source), frames=a-b, nopads (exclude 07's
+#   pads: large compact 15-30 deg blobs, grown 9 px), label (also smudge bright unsaturated label pixels inside the
+#   tool's own extent, e.g. the b41 battery label).
+# --smudge x0,y0,x1,y1[;...] (F-049): blur generated pseudo-lettering inside fixed source boxes (feathered ellipse),
+#   e.g. the c34 tape-housing face; runs after the livery shift, before the grade.
 # --studs x0: (c31) everything behind the stud plane right of x0 (normalised): gap columns between studs (dark in
 #   the clip's temporal median) are crushed wherever a pixel is darker than the steel, warm, or a small light.
 # Boxes are normalised to the SOURCE frame. Ops run on the full source frame in this order:
@@ -20,7 +27,7 @@ ap.add_argument('--crop'); ap.add_argument('--trim'); ap.add_argument('--livery'
 ap.add_argument('--crush'); ap.add_argument('--crushtop'); ap.add_argument('--nograde', action='store_true')
 ap.add_argument('--visor', help='x0,y0,x1,y1 source px: head box at the first kept frame; tracked, then darkened');
 ap.add_argument('--dump'); ap.add_argument('--maskdump'); ap.add_argument('--crf', default='14')
-ap.add_argument('--crushmode', type=int, default=1); ap.add_argument('--studs', type=float)
+ap.add_argument('--crushmode', type=int, default=1); ap.add_argument('--studs', type=float); ap.add_argument('--livery2'); ap.add_argument('--smudge')
 a = ap.parse_args()
 
 SLAB = np.array([10, 11, 11], np.float32) / 255.0   # #0B0B0A in BGR
@@ -83,6 +90,52 @@ def livery(f, roi):
     hsv[..., 2] *= 1.0 - 0.28 * mf
     return cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR), m
 
+def parse_rules(spec):
+    out = []
+    for r in spec.split('|'):
+        d = {}
+        for kv in r.split(';'):
+            if not kv: continue
+            k, _, v = kv.partition('=')
+            d[k] = v if v else True
+        lo, hi = [float(x) for x in d['hue'].split('-')]
+        out.append({'hue': (lo, hi), 'box': [float(x) for x in d['box'].split(',')],
+                    'frames': [int(x) for x in d['frames'].split('-')] if 'frames' in d else [0, 10 ** 9],
+                    'nopads': 'nopads' in d, 'label': 'label' in d})
+    return out
+def livery2(f, rules, i):
+    H, W = f.shape[:2]; hsv = cv2.cvtColor(f, cv2.COLOR_BGR2HSV); h, sa, va = hsv[..., 0], hsv[..., 1], hsv[..., 2]
+    tot = np.zeros((H, W), np.uint8); pads = None; lab_m = np.zeros((H, W), np.uint8)
+    for r in rules:
+        if not (r['frames'][0] <= i <= r['frames'][1]): continue
+        lo, hi = r['hue']
+        hm = ((h >= lo) & (h <= hi)) if lo <= hi else ((h >= lo) | (h <= hi))
+        m = (hm & (sa >= 0.30) & (va >= 0.12)).astype(np.uint8)
+        x0, y0, x1, y1 = r['box']; bx = np.zeros_like(m); bx[int(y0 * H):int(y1 * H), int(x0 * W):int(x1 * W)] = 1; m &= bx
+        if r['nopads']:
+            if pads is None:
+                pm = ((h >= 15) & (h <= 30) & (sa >= 0.45) & (va >= 0.25)).astype(np.uint8)
+                pm = cv2.morphologyEx(pm, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+                n_, lb_, st_, _ = cv2.connectedComponentsWithStats(pm, 8)
+                big = [j for j in range(1, n_) if st_[j, 4] >= 0.0015 * W * H and st_[j, 4] >= 0.45 * st_[j, 2] * st_[j, 3]]
+                pads = cv2.dilate(np.isin(lb_, big).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (19, 19)))
+            m &= (1 - pads)
+        n_, lb_, st_, _ = cv2.connectedComponentsWithStats(m, 8)
+        m = np.isin(lb_, [j for j in range(1, n_) if st_[j, 4] >= 20]).astype(np.uint8)
+        tot |= m
+        if r['label'] and m.any():
+            ext = cv2.dilate(m, np.ones((25, 25), np.uint8)) & bx
+            lab_m |= (ext.astype(bool) & (sa < 0.22) & (va > 0.55)).astype(np.uint8)
+    if tot.any():
+        mm = cv2.dilate(tot, np.ones((3, 3), np.uint8)); mf = cv2.GaussianBlur(mm.astype(np.float32), (0, 0), 1.6)
+        hsv[..., 1] *= 1.0 - 0.97 * mf; hsv[..., 2] *= 1.0 - 0.28 * mf
+        f = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+    if lab_m.any():   # pseudo-text label: smudge to the surrounding tone (heavy local blur, darkened)
+        lm = cv2.GaussianBlur(cv2.dilate(lab_m, np.ones((5, 5), np.uint8)).astype(np.float32), (0, 0), 2.0)[..., None]
+        bl = cv2.GaussianBlur(f, (0, 0), 9) * 0.8
+        f = f * (1 - lm) + bl * lm
+    return f, tot, lab_m
+
 def glint(f, box):
     """Tracked-by-detection visor fix: small, bright, WHITE (unsaturated) points inside the head path box are
     found per frame with a top-hat and replaced by a darkened median of their surroundings.
@@ -138,6 +191,16 @@ if a.livery:
         x0, y0, x1, y1 = [float(v) for v in a.livery.split(':', 1)[1].split(',')]
         roi = np.zeros((H0, W0), np.uint8); roi[int(y0 * H0):int(y1 * H0), int(x0 * W0):int(x1 * W0)] = 1
 gbox = [float(v) for v in a.glint.split(',')] if a.glint else None
+RULES2 = parse_rules(a.livery2) if a.livery2 else None
+SMUDGE = [[float(v) for v in b.split(',')] for b in a.smudge.split(';')] if a.smudge else []
+def smudge(f, boxes):
+    H, W = f.shape[:2]
+    for x0, y0, x1, y1 in boxes:
+        m = np.zeros((H, W), np.float32)
+        cv2.ellipse(m, (int((x0 + x1) / 2 * W), int((y0 + y1) / 2 * H)), (int((x1 - x0) / 2 * W), int((y1 - y0) / 2 * H)), 0, 0, 360, 1.0, -1)
+        m = cv2.GaussianBlur(m, (0, 0), 3)[..., None]
+        f = f * (1 - m) + cv2.GaussianBlur(f, (0, 0), 6) * m
+    return f
 vt = VisorTrack([int(v) for v in a.visor.split(',')]) if a.visor else None
 vboxes = []
 dep = None
@@ -182,6 +245,10 @@ while True:
     if roi is not None:
         f, lm = livery(f, roi); stats['liveryPx'] += int(lm.sum())
         if a.maskdump and i % 24 == 0: cv2.imwrite(f'{a.maskdump}/livery-{i:03d}.png', lm * 255)
+    if SMUDGE: f = smudge(f, SMUDGE)
+    if RULES2:
+        f, lm2, lab2 = livery2(f, RULES2, i); stats['liveryPx'] += int(lm2.sum()); stats['labelPx'] = stats.get('labelPx', 0) + int(lab2.sum())
+        if a.maskdump and i % 8 == 0: cv2.imwrite(f'{a.maskdump}/livery2-{i:03d}.png', np.maximum(lm2 * 255, lab2 * 128))
     if gbox:
         f, gp = glint(f, gbox); stats['glintPx'] += gp
     if vt is not None:

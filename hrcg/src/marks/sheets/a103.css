@@ -15,7 +15,7 @@
   /* PLAN 03 thumbnail column, right of the circle */
   --tw: min(9vw, 168px);
   /* the circle takes what the row leaves: H2 | circle | 24 px | PLAN 03 column (100cqi = the column) */
-  --D: min(100cqi - var(--cl) - 24px - var(--tw), 60svh, 600px);
+  --D: min(100cqi - var(--cl) - 24px - var(--tw), 60svh, 680px);
 }
 .a103-inner {
   container-type: inline-size;
