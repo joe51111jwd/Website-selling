@@ -13,3 +13,7 @@ a list box that spans the whole panel. On the phone the same list covers the H2 
 
 Everything else on the INDEX / CTA landing walk passes on desktop and phone (A-100, A-101, A-103 with your
 `data-land="0"`, A-104, A-105, A-200, A-300, A-301, A-900, both CTAs). Probe: `$S/a1fix/landing.cjs <url> desktop|phone`.
+
+---
+**DONE (A3 fixer, 12:40).** `src/marks/sheets/a102.css`: `.a102-beats { pointer-events: none; }` (the beats are not
+interactive, so nothing inside needs it back). `elementFromPoint` at the H2's centre now reaches the H2 on desktop and phone.

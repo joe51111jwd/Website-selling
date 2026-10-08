@@ -92,6 +92,8 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  /* the list box spans the whole board: it must not take hits meant for the H2 (F-015 landing gate) */
+  pointer-events: none;
 }
 .a102-beat {
   position: absolute;

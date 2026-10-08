@@ -159,9 +159,49 @@
   .a101-side {
     grid-row: 2;
   }
-  /* the detail opens in flow under the bubble's row (DetailBubble phoneFlow, F-036) */
+  /* the detail opens in flow (DetailBubble phoneFlow, F-036), under the H2 and the spec and above the
+     bond, so it never covers the sheet's words: the side column becomes a grid of named rows */
+  .a101-side {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'bubble label num'
+      'h2 h2 h2'
+      'spec spec spec'
+      'panel panel panel'
+      'bond bond bond';
+    align-items: start;
+  }
   .a101-side-top {
-    flex-wrap: wrap;
+    display: contents;
+  }
+  .a101-bubble .mk-db {
+    grid-area: bubble;
+  }
+  .a101-bubble-label {
+    grid-area: label;
+  }
+  .a101-num {
+    grid-area: num;
+  }
+  .a101-h2-box {
+    grid-area: h2;
+  }
+  .a101-spec {
+    grid-area: spec;
+  }
+  .a101-detail-panel {
+    grid-area: panel;
+  }
+  .a101-bond {
+    grid-area: bond;
+  }
+  /* no JS: the bubble and its printed detail take the panel row together */
+  .no-js .a101-bubble {
+    grid-area: panel;
+  }
+  .no-js .a101-detail-panel {
+    width: 100%;
   }
   /* phones: the marker sits on the plan's bottom-right corner (dark slab outside the bay), over its caption rule */
   .a101-marker {

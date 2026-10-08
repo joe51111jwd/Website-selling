@@ -28,3 +28,13 @@ after `</main>`. Each half alone breaks the page: without F-066 there is no foot
 
 **Gate:** `scripts/qa.mjs --only fixes`, check `F-066-footer`: exactly one `contentinfo` footer, one
 `.title-block`, one `#index`.
+
+---
+
+**Update (A6, after F-066 landed):** done on my side. `A900Notes.tsx` no longer renders `<FooterBlock />`;
+the page has one title block, after `</main>`, and the A-900 close joins it on one paper ground
+(retakes `qa/review/r1/a6/art/prod-1440-a-900-280vh.jpg`; page end checked at 1440 and 390).
+**One thing for you (F-064):** scrolled to the very end of the page (over the footer), the strip SHEET cell
+and the phone bar read `A-000 · COVER`; the reader is still on A-900. The footer is outside every
+`[data-sheet]`, so `sheetStore` probably falls back to its first entry there. Gate: `F-064-sheet` now
+includes a "page end (footer)" row that expects `A-900`.

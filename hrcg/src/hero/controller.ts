@@ -1614,7 +1614,7 @@ class CoverController {
     // view titles: one at a time. PLAN 05 ticks in with the cut; the A-100 row's own title takes over
     // as the row arrives (it covers bay 05 too)
     if (C >= BEATS.a100In[0]) this.setVt('none');
-    else if (C >= BEATS.planCut[0]) this.setVt('plan');
+    else if (C >= BEATS.planCut[0] && planO >= 0.5) this.setVt('plan');
     else this.setVt(this.heroVt());
     // the 3D VIEW eases back to yaw 0 over P 0..0.10, then hands over to the DOM still once the
     // camera is home (F-027)
@@ -1853,8 +1853,9 @@ class CoverController {
       depO = tl.S === null ? 1 : 1 - segment(now, tl.S + TIMING.depositFrom, tl.S + TIMING.depositOut);
     }
     const C = this.cutP();
+    // (it comes back WITH the plan, never alone over the perspective still and its own filmed line)
     const planDep =
-      segment(C, BEATS.depositIn[0], BEATS.depositIn[0] + 0.03) *
+      (C >= BEATS.depositIn[0] ? segment(this.planO, 0, 0.15) : 0) *
       (1 - segment(this.planO, BEATS.depositHandover[0], BEATS.depositHandover[1]));
     const dO = Math.max(depO, planDep);
     for (const d of this.deposits) {
@@ -1970,7 +1971,7 @@ class CoverController {
     if (tl.S === null && tl.pullKind !== 'none' && !tl.rest) r.dataset.pull = '';
     else delete r.dataset.pull;
     r.dataset.reset = st === 'rest' || (frozen && !this.glShown) ? 'on' : 'off';
-    if (this.P < BEATS.planCut[0]) this.setVt(this.heroVt());
+    if (this.cutP() < BEATS.planCut[0] || (this.planO < 0.5 && this.cutP() < BEATS.a100In[0])) this.setVt(this.heroVt());
     if (st === 'paying-out' || st === 'pulling' || (tl.pullKind !== 'none' && tl.S === null)) busy = true;
     return busy;
   }

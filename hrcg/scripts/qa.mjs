@@ -1995,8 +1995,12 @@ async function runFixes(pw, browser, base, mods, axePath, buildDir) {
         }, [id, part]));
       }
     }
+    // the page end: the footer (title block) follows A-900 outside any sheet (F-066); the reader is still on A-900
+    await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await settle(p, 1000);
+    rows.push(await p.evaluate(() => ({ at: 'page end (footer)', shown: window.__qa.sheetAt(), expect: 'A-900' })));
     const bad = rows.filter((r) => r.shown !== r.expect);
-    check('F-064-sheet', 'the live sheet number is the last sheet whose top is above mid-viewport, also in the gaps between sheets', bad.length === 0, bad.slice(0, 10));
+    check('F-064-sheet', 'the live sheet number is the last sheet whose top is above mid-viewport, also in the gaps between sheets and over the footer', bad.length === 0, bad.slice(0, 10));
   });
   await step('F-019', async () => {
     const r = await p.evaluate(() => {

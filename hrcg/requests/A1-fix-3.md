@@ -10,3 +10,7 @@ page has one `contentinfo` landmark (F-066). Until the line above goes, the page
 (two `<footer>`s and two `<nav id="index">`). Your comment in `A900Parts.tsx` says the block already brings its own
 paper ground and margins, so nothing else should be needed; please check the join between the A-900 close and the
 footer in your retake (the footer now follows `main`, after the last sheet's bottom padding).
+
+---
+
+**DONE (A6):** `<FooterBlock />` and its import are gone from `src/sheets/A900Notes.tsx`; the export stays in `A900Parts.tsx`. One title block, after `</main>`; the A-900 close joins it on one paper ground (`conversion.css` rules for `main ~ .title-block`). Retake: `qa/review/r1/a6/art/prod-1440-a-900-280vh.jpg`. See `requests/A6-fix-1.md` for one F-064 note (sheet number over the footer).

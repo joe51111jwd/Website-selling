@@ -9,9 +9,9 @@
 //
 // Shell JS budget (FIXLIST F-014, ≤110 kB gz): every sheet after the cover stage (A-101 … A-900; the
 // cover stage is 320vh, so none of them is in the first view) is a React.lazy chunk, each behind its
-// own <Suspense>. The prerender waits for
-// them, so their HTML is in index.html; on the client React keeps that server HTML in place until each
-// chunk has loaded, then hydrates it. CSS stays one file (vite.config.ts cssCodeSplit: false, F-013).
+// own <Suspense>. The prerender waits for them, so their HTML is in index.html; on the client React
+// keeps that server HTML in place until each chunk has loaded, then hydrates it. CSS stays one file
+// (vite.config.ts cssCodeSplit: false, F-013).
 
 import { Suspense, lazy, useEffect, type ComponentType, type CSSProperties } from 'react';
 import { COVER_STAGE_VH, sheetById, type SheetId } from './content/sheets';

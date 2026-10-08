@@ -142,3 +142,25 @@ No console errors were recorded in the JS suites. The no-JS suite logged 50 `req
 - `index-open-1440.jpg`: the full-screen DRAWING INDEX (`HRCG-2027 · PLANNED · 11 SHEETS · NTS`). It lists eleven rows from A-000 COVER to A-900 GENERAL NOTES. COVER and BOLT IT. are solid; BOLT IT. carries an orange current-sheet square. The other titles are outline type, with challenge names at right. At the bottom are `▸ WATCH THE SET (0:30) · CONCEPT FILM: AI-GENERATED CONCEPT FOOTAGE` and `CLOSE (ESC)`.
 - `index-open-390.jpg`: phone INDEX. The same eleven rows with challenge names under the titles, and A-103 marked orange. The WATCH THE SET button is cut off at the bottom edge (needs a scroll).
 - `title-sheet-open-390.jpg`: the phone title-block bottom sheet over the dimmed A-103. It shows `TITLE BLOCK · HRCG-2027 · PLANNED`, PROJECT, STATUS · PLACE · YEAR, DATE · VENUE with the HOLD cloud, IMAGERY, `SHEET A-103 · BOLTED ASSEMBLY`, `MOTION ON`, two CTA cells (Bring the robot → / Bring your product →) and CLOSE.
+
+## Round 1 retakes: A6 (conversion, notes, QA)
+
+Taken on a clean production build of the current sources (R-PROD, served with byte ranges), with the
+landing that INDEX rows and CTAs really use (`landingTop()` in `src/system/lenis.ts`: paper sheets land
+with their top under the header rail). Desktop frames are 1440x900 unless the name says 1280; phone
+frames use the R-PHONE context (390x844, `isMobile`, touch, iPhone UA, DPR 1). Every file was opened.
+
+- `r1/sheet-a-104-1280.jpg` (F-052): from the production QA build. The two A-104 captions sit on separate rules; no ▸ PLAY cell.
+- `r1/a6/art/1440-a-300-land.jpg`, `r1/a6/art/1280-a-300-land.jpg` (F-055, F-096, F-098): the diptych spans 72→1368 (72→1208 at 1280); YOURS IS. starts on the right panel's left edge. The bay shows `BAY` over a stencil-painted dash, and `READY FOR —`.
+- `r1/a6/a300-typed-grid-1440.jpg` (F-095, F-098): with 01 and 03 ticked, the five chip numerals share one line; the bay reads `READY FOR 01 03`.
+- `r1/a6/art/1440-a-300-300vh.jpg` (F-097): T7 proofs in three equal columns, labelled FLAT · WARPED + BLURRED · 26 PX WIDE, between the head and tail of the original caption.
+- `r1/a6/art/1440-a-301-land.jpg`, `r1/a6/art/1280-a-301-land.jpg` (F-056): the three H2 lines sit above the strip, with the material row above them.
+- `r1/a6/art/1440-a-301-120vh.jpg` (F-092, F-095): the composer ends, paper runs on into A-900 under one 1 px rule and the A-900 tag; the WHICH CHALLENGE? numerals share one line.
+- `r1/a6/art/1440-a-900-land.jpg` (H-7): the six general notes print open, in two ruled columns read down (1–3, 4–6).
+- `r1/a6/art/1440-a-900-100vh.jpg`, `r1/a6/art/prod-1440-a-900-240vh.jpg` (H-6): the roll-call, closing line, email at `clamp(28px, 4vw, 56px)`, Copy address and the film link.
+- `r1/a6/art/prod-1440-a-900-280vh.jpg` (H-6, F-094, F-093): THIS HASN'T HAPPENED YET. at statement size on its own ruled row with the two CTA cells (ROBOT TEAMS · Bring the robot →, CONSTRUCTION COMPANIES · Bring your product →), the title block directly under it on the same left edge; the HOLD clouds clear their text and cell rules.
+- `r1/a6/phone/p4-after-sponsors-tap.jpg` (F-056): after "Sponsors →" the five crops sit in one row with MAT numbers, and the H2 is on screen.
+- `r1/a6/phone/p4-a301-tap1.jpg` (F-057): one tap on MAT 02 frames the crop, lights keynotes 1 and 2 and prints `MAT 02 · BOARD AND FIXINGS` with `[1] SUPPORT A CHALLENGE [2] SHOW WHAT YOU MAKE` under the row.
+- `r1/a6/phone/p5-kbd-rfi-platform.jpg` (F-054): 390x470 keyboard viewport, field aligned to the top: the PLATFORM input sits below the mini-slot.
+- `r1/a6/phone/p7-a-900-4_4.jpg` (F-099): the footer index rows are 45 px targets. (The phone bar reads A-300 over the footer: A1's sheet store, F-064.)
+- `r1/a6/a300-typed-ticks-390.jpg` (F-101): after tapping two chips and "Discuss competing →", neither keeps a hover fill.

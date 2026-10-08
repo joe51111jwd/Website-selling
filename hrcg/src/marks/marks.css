@@ -245,6 +245,15 @@
 .rm .mk-detail-panel .view-title {
   transition: none;
 }
+/* round frames (detail circles): a ▶ PLAY fallback sits at the centre, never in a corner the circle cuts */
+.mk-detail-panel .loopvideo-play,
+.a103-circle-view .loopvideo-play {
+  left: 50%;
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+}
+
 /* phones, opt-in (DetailBubble phoneFlow, F-036): the detail opens in flow under its bubble's row,
    full width, instead of covering the sheet; the circle still grows out of the bubble */
 @keyframes mk-iris-open {

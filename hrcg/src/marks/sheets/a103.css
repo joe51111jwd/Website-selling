@@ -61,9 +61,12 @@
 .a103-circle {
   width: var(--D);
 }
+/* round by border-radius + overflow, not clip-path: under the iris swell (a transform) Chromium leaks a
+   composited <video> past a clip-path circle; the rounded overflow clip holds */
 .a103-circle-view .view-frame {
   border: 0;
-  clip-path: circle(50% at 50% 50%);
+  border-radius: 50%;
+  overflow: hidden;
   background: var(--slab-black);
 }
 .a103-circle-view .view-frame::after {

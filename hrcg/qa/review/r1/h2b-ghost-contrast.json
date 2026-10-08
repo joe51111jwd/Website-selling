@@ -1,0 +1,152 @@
+{
+ "d1440": {
+  "glyphPx": 94598,
+  "fracAtLeast3": 0.9929,
+  "p10": 4.37,
+  "p1": 4.13,
+  "median": 4.53,
+  "min": 1.07,
+  "blocks": {
+   "FAR": {
+    "px": 55585,
+    "p10": 4.36,
+    "median": 4.47,
+    "min": 3.85,
+    "bgMaxRGB": 49
+   },
+   "NEAR": {
+    "px": 39013,
+    "p10": 4.53,
+    "median": 4.55,
+    "min": 1.07,
+    "bgMaxRGB": 35
+   }
+  },
+  "pass": true
+ },
+ "d1280": {
+  "glyphPx": 75258,
+  "fracAtLeast3": 0.9926,
+  "p10": 4.37,
+  "p1": 4.12,
+  "median": 4.53,
+  "min": 1.07,
+  "blocks": {
+   "FAR": {
+    "px": 44062,
+    "p10": 4.36,
+    "median": 4.47,
+    "min": 1.22,
+    "bgMaxRGB": 50
+   },
+   "NEAR": {
+    "px": 31196,
+    "p10": 4.53,
+    "median": 4.55,
+    "min": 1.07,
+    "bgMaxRGB": 42
+   }
+  },
+  "pass": true
+ },
+ "p390": {
+  "glyphPx": 23608,
+  "fracAtLeast3": 0.9735,
+  "p10": 4.44,
+  "p1": 1.29,
+  "median": 4.53,
+  "min": 1.07,
+  "blocks": {
+   "FAR": {
+    "px": 13734,
+    "p10": 4.41,
+    "median": 4.51,
+    "min": 1.07,
+    "bgMaxRGB": 46
+   },
+   "NEAR": {
+    "px": 9874,
+    "p10": 4.44,
+    "median": 4.54,
+    "min": 1.07,
+    "bgMaxRGB": 35
+   }
+  },
+  "pass": true
+ },
+ "p390x664": {
+  "glyphPx": 13749,
+  "fracAtLeast3": 0.9559,
+  "p10": 4.41,
+  "p1": 1.11,
+  "median": 4.53,
+  "min": 1.06,
+  "blocks": {
+   "FAR": {
+    "px": 7823,
+    "p10": 4.41,
+    "median": 4.53,
+    "min": 1.08,
+    "bgMaxRGB": 45
+   },
+   "NEAR": {
+    "px": 5926,
+    "p10": 4.44,
+    "median": 4.55,
+    "min": 1.06,
+    "bgMaxRGB": 35
+   }
+  },
+  "pass": true
+ },
+ "d1440old": {
+  "glyphPx": 93036,
+  "fracAtLeast3": 0.9998,
+  "p10": 4.44,
+  "p1": 4.37,
+  "median": 4.54,
+  "min": 1.35,
+  "blocks": {
+   "FAR": {
+    "px": 55601,
+    "p10": 4.44,
+    "median": 4.51,
+    "min": 3.88,
+    "bgMaxRGB": 37
+   },
+   "NEAR": {
+    "px": 37435,
+    "p10": 4.53,
+    "median": 4.57,
+    "min": 1.35,
+    "bgMaxRGB": 27
+   }
+  },
+  "pass": true
+ },
+ "p390old": {
+  "glyphPx": 22721,
+  "fracAtLeast3": 0.9861,
+  "p10": 4.5,
+  "p1": 2.03,
+  "median": 4.54,
+  "min": 1.07,
+  "blocks": {
+   "FAR": {
+    "px": 13614,
+    "p10": 4.49,
+    "median": 4.54,
+    "min": 1.12,
+    "bgMaxRGB": 31
+   },
+   "NEAR": {
+    "px": 9107,
+    "p10": 4.5,
+    "median": 4.57,
+    "min": 1.07,
+    "bgMaxRGB": 30
+   }
+  },
+  "pass": true
+ }
+}
