@@ -486,7 +486,7 @@
 }
 /* no JS: the frame carries the film's native controls along its bottom edge; the sub stands clear of them */
 .no-js .cv-sub {
-  bottom: 52px;
+  bottom: 64px;
 }
 .cv-hint {
   position: absolute;

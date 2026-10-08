@@ -321,7 +321,8 @@ def stretch_gate(yaw, pitch, dolly, pivot, k=1.0, nbs=None):
     in1 = i_ac & i_ab & i_cb; in2 = i_cb & i_bd & i_cd
     cx = ((np.arange(COLS - 1) + .5) / (COLS - 1) * (W - 1)).astype(int); cy = ((np.arange(ROWS - 1) + .5) / (ROWS - 1) * (H - 1)).astype(int)
     dist = cv2.distanceTransform((MATTE < 0.5).astype(np.uint8), cv2.DIST_L2, 5)[cy][:, cx]
-    band = (dist <= 3 * CELL) & (cy[:, None] <= MATTE_CUT - 3 * CELL)
+    # above the matte's soft cut (ramp 0.03 H): along the cut the matte edge is the horizontal cut, not 07's silhouette
+    band = (dist <= 3 * CELL) & (cy[:, None] <= MATTE_CUT - 0.03 * H - 3 * CELL)
     vis = np.concatenate([vis1, vis2]); inm = np.concatenate([in1, in2]); bnd = np.concatenate([band, band])
     # a STREAK is a visible triangle that spans a depth step (z range >= EDGE_LO, A2's own continuity threshold);
     # smoothly sloped triangles (07's relief, the floor) deform with the view and are geometry, not streaks

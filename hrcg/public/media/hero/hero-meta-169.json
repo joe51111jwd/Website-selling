@@ -478,7 +478,7 @@
     "yaw": -6,
     "pitch": -3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 510,
+    "stepTrianglesInBand": 490,
     "offendingTriangles": 0,
     "maxVisibleStretchPxBand": 0.31,
     "maxVisibleStretchPxInsideMatte": 0.0,
@@ -486,7 +486,7 @@
     "maxVisibleStretchPxAnywhereOutsideMatte": 9.08
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 142,
+    "offendingTriangles": 136,
     "maxVisibleStretchPxBand": 9.82
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p-3.png"
@@ -503,16 +503,16 @@
     "yaw": -6,
     "pitch": 0,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 510,
+    "stepTrianglesInBand": 490,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.67,
+    "maxVisibleStretchPxBand": 0.3,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 8.48
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 130,
-    "maxVisibleStretchPxBand": 8.23
+    "offendingTriangles": 124,
+    "maxVisibleStretchPxBand": 8.12
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p+0.png"
   },
@@ -528,16 +528,16 @@
     "yaw": -6,
     "pitch": 3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 510,
+    "stepTrianglesInBand": 490,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 1.46,
+    "maxVisibleStretchPxBand": 0.31,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 9.14
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 152,
-    "maxVisibleStretchPxBand": 8.77
+    "offendingTriangles": 146,
+    "maxVisibleStretchPxBand": 8.3
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y-6-p+3.png"
   },
@@ -553,7 +553,7 @@
     "yaw": 0,
     "pitch": -3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 510,
+    "stepTrianglesInBand": 490,
     "offendingTriangles": 0,
     "maxVisibleStretchPxBand": 0.11,
     "maxVisibleStretchPxInsideMatte": 0.0,
@@ -561,7 +561,7 @@
     "maxVisibleStretchPxAnywhereOutsideMatte": 3.88
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 6,
+    "offendingTriangles": 4,
     "maxVisibleStretchPxBand": 4.3
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p-3.png"
@@ -578,16 +578,16 @@
     "yaw": 0,
     "pitch": 0,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 510,
+    "stepTrianglesInBand": 490,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.08,
+    "maxVisibleStretchPxBand": 0.01,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 2.42
    },
    "stretchWith4Neighbours": {
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.09
+    "maxVisibleStretchPxBand": 0.02
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+0-p+0.png"
   },
@@ -603,9 +603,9 @@
     "yaw": 0,
     "pitch": 3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 510,
+    "stepTrianglesInBand": 490,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 1.06,
+    "maxVisibleStretchPxBand": 0.16,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 5.15
@@ -628,15 +628,15 @@
     "yaw": 10,
     "pitch": -3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 510,
-    "offendingTriangles": 2,
-    "maxVisibleStretchPxBand": 3.42,
+    "stepTrianglesInBand": 490,
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 0.99,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 13.4
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 172,
+    "offendingTriangles": 162,
     "maxVisibleStretchPxBand": 14.98
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p-3.png"
@@ -653,15 +653,15 @@
     "yaw": 10,
     "pitch": 0,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 510,
-    "offendingTriangles": 2,
-    "maxVisibleStretchPxBand": 4.03,
+    "stepTrianglesInBand": 490,
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 0.99,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 13.67
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 172,
+    "offendingTriangles": 162,
     "maxVisibleStretchPxBand": 14.93
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p+0.png"
@@ -678,15 +678,15 @@
     "yaw": 10,
     "pitch": 3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 510,
-    "offendingTriangles": 2,
-    "maxVisibleStretchPxBand": 4.79,
+    "stepTrianglesInBand": 490,
+    "offendingTriangles": 0,
+    "maxVisibleStretchPxBand": 1.04,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 15.37
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 174,
+    "offendingTriangles": 164,
     "maxVisibleStretchPxBand": 16.25
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-169-y+10-p+3.png"
@@ -722,9 +722,9 @@
   "yaw": 8,
   "pitch": -2.5,
   "aEdgeNeighbours": 8,
-  "stepTrianglesInBand": 510,
-  "offendingTriangles": 2,
-  "maxVisibleStretchPxBand": 2.45,
+  "stepTrianglesInBand": 490,
+  "offendingTriangles": 0,
+  "maxVisibleStretchPxBand": 0.78,
   "maxVisibleStretchPxInsideMatte": 0.0,
   "trianglesInsideMatteOver2px": 0,
   "maxVisibleStretchPxAnywhereOutsideMatte": 10.82
@@ -733,8 +733,8 @@
   "yaw": 8,
   "pitch": -2.5,
   "aEdgeNeighbours": 4,
-  "stepTrianglesInBand": 510,
-  "offendingTriangles": 166,
+  "stepTrianglesInBand": 490,
+  "offendingTriangles": 156,
   "maxVisibleStretchPxBand": 11.67,
   "maxVisibleStretchPxInsideMatte": 0.0,
   "trianglesInsideMatteOver2px": 0,
@@ -745,6 +745,6 @@
   "nearContrast": true,
   "limitPoses": true,
   "farGlyphs": true,
-  "stretchPastMatte": false
+  "stretchPastMatte": true
  }
 }

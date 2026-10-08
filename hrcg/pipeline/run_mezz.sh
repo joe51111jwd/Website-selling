@@ -27,7 +27,7 @@ run n09r $N/N09r.mp4 $MZ/n09r.mp4 $C169 --crush $D/n09r.npy:0.08 --crushmode 2 -
 run b40  $M/clips/b40-brick.mp4   $MZ/b40.mp4
 # F-048 / F-049: orange and red power tools -> graphite inside per-clip, per-frame-range ROIs (07's pads excluded);
 # b41's drill lies on the floor (0-87), is picked up (72-95), carried (84-97) and held at the board (94-120); its battery label is smudged
-run b41  $M/clips/b41-drywall.mp4 $MZ/b41.mp4  --livery2 "hue=8-32;box=0.12,0.58,0.27,0.82;frames=0-87;nopads;label|hue=8-32;box=0.12,0.55,0.31,0.69;frames=72-95;nopads|hue=8-32;box=0.30,0.50,0.62,0.67;frames=84-97;nopads;label|hue=8-32;box=0.48,0.24,0.76,0.64;frames=94-120;nopads;label"
+run b41  $M/clips/b41-drywall.mp4 $MZ/b41.mp4  --livery2 "hue=8-32;box=0.12,0.58,0.27,0.82;frames=0-87;nopads;label|hue=8-32;box=0.12,0.55,0.31,0.69;frames=72-95;nopads|hue=8-32;box=0.30,0.50,0.62,0.67;frames=84-97;nopads;label|hue=8-32;box=0.48,0.24,0.82,0.66;frames=94-120;nopads;label"
 run b42  $M/clips/b42-bolt.mp4    $MZ/b42.mp4  --livery2 "hue=345-15;box=0.06,0.06,0.94,0.94;nopads"
 run b43  $M/clips/b43-pipe.mp4    $MZ/b43.mp4  --livery2 "hue=345-15;box=0.68,0.28,0.90,0.48"
 run b44  $M/clips/b44-layout.mp4  $MZ/b44.mp4  --livery bay --maskdump $MZ/b44m

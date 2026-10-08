@@ -324,7 +324,7 @@
     "yaw": -6,
     "pitch": -3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 373,
+    "stepTrianglesInBand": 330,
     "offendingTriangles": 0,
     "maxVisibleStretchPxBand": 0.0,
     "maxVisibleStretchPxInsideMatte": 0.0,
@@ -332,7 +332,7 @@
     "maxVisibleStretchPxAnywhereOutsideMatte": 5.04
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 50,
+    "offendingTriangles": 48,
     "maxVisibleStretchPxBand": 5.13
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y-6-p-3.png"
@@ -349,7 +349,7 @@
     "yaw": -6,
     "pitch": 0,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 373,
+    "stepTrianglesInBand": 330,
     "offendingTriangles": 0,
     "maxVisibleStretchPxBand": 0.0,
     "maxVisibleStretchPxInsideMatte": 0.0,
@@ -357,7 +357,7 @@
     "maxVisibleStretchPxAnywhereOutsideMatte": 4.88
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 50,
+    "offendingTriangles": 48,
     "maxVisibleStretchPxBand": 4.1
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y-6-p+0.png"
@@ -374,7 +374,7 @@
     "yaw": -6,
     "pitch": 3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 373,
+    "stepTrianglesInBand": 330,
     "offendingTriangles": 0,
     "maxVisibleStretchPxBand": 0.0,
     "maxVisibleStretchPxInsideMatte": 0.0,
@@ -382,7 +382,7 @@
     "maxVisibleStretchPxAnywhereOutsideMatte": 5.02
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 50,
+    "offendingTriangles": 48,
     "maxVisibleStretchPxBand": 4.4
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y-6-p+3.png"
@@ -399,7 +399,7 @@
     "yaw": 0,
     "pitch": -3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 373,
+    "stepTrianglesInBand": 330,
     "offendingTriangles": 0,
     "maxVisibleStretchPxBand": 0.0,
     "maxVisibleStretchPxInsideMatte": 0.0,
@@ -424,9 +424,9 @@
     "yaw": 0,
     "pitch": 0,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 373,
+    "stepTrianglesInBand": 330,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.0,
+    "maxVisibleStretchPxBand": -0.0,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 1.64
@@ -449,16 +449,16 @@
     "yaw": 0,
     "pitch": 3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 373,
+    "stepTrianglesInBand": 330,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.01,
+    "maxVisibleStretchPxBand": 0.0,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 3.31
    },
    "stretchWith4Neighbours": {
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 1.65
+    "maxVisibleStretchPxBand": 1.61
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+0-p+3.png"
   },
@@ -474,15 +474,15 @@
     "yaw": 6,
     "pitch": -3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 373,
+    "stepTrianglesInBand": 330,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.02,
+    "maxVisibleStretchPxBand": 0.0,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 3.82
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 52,
+    "offendingTriangles": 50,
     "maxVisibleStretchPxBand": 4.83
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+6-p-3.png"
@@ -499,15 +499,15 @@
     "yaw": 6,
     "pitch": 0,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 373,
+    "stepTrianglesInBand": 330,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.04,
+    "maxVisibleStretchPxBand": 0.0,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 4.81
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 52,
+    "offendingTriangles": 50,
     "maxVisibleStretchPxBand": 4.35
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+6-p+0.png"
@@ -524,15 +524,15 @@
     "yaw": 6,
     "pitch": 3,
     "aEdgeNeighbours": 8,
-    "stepTrianglesInBand": 373,
+    "stepTrianglesInBand": 330,
     "offendingTriangles": 0,
-    "maxVisibleStretchPxBand": 0.07,
+    "maxVisibleStretchPxBand": 0.0,
     "maxVisibleStretchPxInsideMatte": 0.0,
     "trianglesInsideMatteOver2px": 0,
     "maxVisibleStretchPxAnywhereOutsideMatte": 5.9
    },
    "stretchWith4Neighbours": {
-    "offendingTriangles": 54,
+    "offendingTriangles": 50,
     "maxVisibleStretchPxBand": 4.97
    },
    "png": "/tmp/claude-0/-home-user/a462cba4-955f-5044-9e19-3a11e18ef1bf/scratchpad/a5qa/d1/limit-916-y+6-p+3.png"
@@ -568,9 +568,9 @@
   "yaw": 6,
   "pitch": -2.5,
   "aEdgeNeighbours": 8,
-  "stepTrianglesInBand": 373,
+  "stepTrianglesInBand": 330,
   "offendingTriangles": 0,
-  "maxVisibleStretchPxBand": 0.02,
+  "maxVisibleStretchPxBand": 0.0,
   "maxVisibleStretchPxInsideMatte": 0.0,
   "trianglesInsideMatteOver2px": 0,
   "maxVisibleStretchPxAnywhereOutsideMatte": 3.97
@@ -579,8 +579,8 @@
   "yaw": 6,
   "pitch": -2.5,
   "aEdgeNeighbours": 4,
-  "stepTrianglesInBand": 373,
-  "offendingTriangles": 52,
+  "stepTrianglesInBand": 330,
+  "offendingTriangles": 50,
   "maxVisibleStretchPxBand": 4.69,
   "maxVisibleStretchPxInsideMatte": 0.0,
   "trianglesInsideMatteOver2px": 0,

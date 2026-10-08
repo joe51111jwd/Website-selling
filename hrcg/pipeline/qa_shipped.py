@@ -32,13 +32,23 @@ def livery(f, plan):
         m[:int(0.06 * H)] = 0; m[int(0.94 * H):] = 0; m[:, :int(0.06 * W)] = 0; m[:, int(0.94 * W):] = 0
     n, lab, st, _ = cv2.connectedComponentsWithStats(m, 8)
     return int(sum(st[i, 4] for i in range(1, n) if st[i, 4] >= 12))
-# tool ROIs on the SHIPPED (registered) plan frame, normalised, a little larger than the mezz.py --livery2 boxes
-# (registration moves a bay by a few %); hue in degrees; frames in source frames (plans keep the frame count)
-TOOLS = {
-    'b41': [((8, 32), (0.10, 0.56, 0.29, 0.84), (0, 87)), ((8, 32), (0.10, 0.53, 0.33, 0.70), (72, 95)), ((8, 32), (0.28, 0.48, 0.64, 0.69), (84, 97)), ((8, 32), (0.46, 0.22, 0.78, 0.66), (94, 120))],
-    'b42': [((345, 15), (0.04, 0.04, 0.96, 0.96), (0, 120))],
-    'b43': [((345, 15), (0.66, 0.26, 0.92, 0.50), (0, 120))],
+# tool ROIs: the SAME source boxes as pipeline/run_mezz.sh --livery2 (normalised to the 1440² source bay), mapped
+# into the shipped (registered) frame with D7's per-axis scale/offset (pipeline/out/registration.json)
+SRC_TOOLS = {
+    'b41': [((8, 32), (0.12, 0.58, 0.27, 0.82), (0, 87)), ((8, 32), (0.12, 0.55, 0.31, 0.69), (72, 95)),
+            ((8, 32), (0.30, 0.50, 0.62, 0.67), (84, 97)), ((8, 32), (0.48, 0.24, 0.82, 0.66), (94, 120))],
+    'b42': [((345, 15), (0.06, 0.06, 0.94, 0.94), (0, 120))],
+    'b43': [((345, 15), (0.68, 0.28, 0.90, 0.48), (0, 120))],
 }
+REG = json.load(open(R + '/pipeline/out/registration.json')) if os.path.exists(R + '/pipeline/out/registration.json') else {}
+def reg_box(b, box):
+    r = REG.get(b)
+    if not r: return box
+    (sx, sy), (ox, oy) = r['scale'], r['offset']; x0, y0, x1, y1 = box
+    return ((x0 * 1440 * sx + ox) / 1440, (y0 * 1440 * sy + oy) / 1440, (x1 * 1440 * sx + ox) / 1440, (y1 * 1440 * sy + oy) / 1440)
+TOOLS = {b: [(h, reg_box(b, bx), fr) for h, bx, fr in rules] for b, rules in SRC_TOOLS.items()}
+# tape-measure ROIs (yellow-and-black trade dress, D11) in the clips that carry a tape: the hero films (c34, N01b)
+TAPE = {'hero-snap-169': (0.08, 0.60, 0.30, 0.84), 'hero-snap-916': (0.0, 0.52, 0.25, 0.68)}
 def tool_livery(f, rules, i):
     hsv = cv2.cvtColor(f.astype(np.float32) / 255., cv2.COLOR_BGR2HSV); h, sa, va = hsv[..., 0], hsv[..., 1], hsv[..., 2]
     H, W = h.shape; tot = 0
@@ -76,7 +86,11 @@ for id, e in man.items():
         if box:
             x0, y0, x1, y1 = int(box[0] * W), int(box[1] * H), int(box[2] * W), int(box[3] * H)
             pts.append(tophat_points(f[y0:y1, x0:x1]))
-        liv.append(livery(f, plan))
+        if id in TAPE:
+            x0, y0, x1, y1 = TAPE[id]; sub = f[int(y0 * H):int(y1 * H), int(x0 * W):int(x1 * W)]
+            liv.append(livery(np.ascontiguousarray(sub), False))
+        else:
+            liv.append(livery(f, plan))
         if trules: tl.append(tool_livery(f, trules, k_))
     res[id] = {'frames': len(frames), 'size': [W, H], 'visorPointsMax': max(pts) if pts else None,
                'visorFramesWithPoints': int(sum(1 for p in pts if p > 0)) if pts else None,
@@ -115,10 +129,19 @@ for pth in cands:
     if not os.path.exists(pth): continue
     im = cv2.imread(pth)
     if im is None: continue
-    y = livery(im, False) * (1440 * 1440) / (im.shape[0] * im.shape[1])
-    stills[os.path.relpath(pth, R)] = {'yellowPx': int(livery(im, False)), 'redPx': red_px(im), 'liveryFrames': int(livery(im, False) >= 25 or red_px(im) >= 200)}
+    bay = os.path.basename(pth).startswith('b4')          # bay stills: the yellow bay border is not livery
+    ypx = livery(cv2.resize(im, (1440, 1440)) if bay else im, bay)
+    stills[os.path.relpath(pth, R)] = {'yellowPx': int(ypx), 'redPx': red_px(im), 'liveryFrames': int(ypx >= 25 or red_px(im) >= 200)}
 res['_stills'] = stills
-res['_summary'] = {'liveryFrames': int(sum(v.get('liveryFrames') or 0 for k, v in res.items() if not k.startswith('_')) + sum(v['liveryFrames'] for v in stills.values())),
-                   'toolLiveryFrames': int(sum(v.get('toolLiveryFrames') or 0 for k, v in res.items() if not k.startswith('_')))}
+# The GATE (F-010 / F-048): tape-measure livery in the clips that carry a tape (TAPE ROIs) and in b44 (bay band
+# excluded), tool livery in the plan tool ROIs, and every social card / poster / film still. Yellow found elsewhere
+# is the set's own brass fittings, copper, bricks or the bay tape of the arena row: listed, not gated.
+GATED = set(TAPE) | {k for k in res if k.startswith('plan-b44')}
+res['_summary'] = {'liveryFrames': int(sum(res[k].get('liveryFrames') or 0 for k in GATED if k in res) + sum(v.get('toolLiveryFrames') or 0 for k, v in res.items() if not k.startswith('_'))
+                                       + sum(v['liveryFrames'] for v in stills.values())),
+                   'toolLiveryFrames': int(sum(v.get('toolLiveryFrames') or 0 for k, v in res.items() if not k.startswith('_'))),
+                   'tapeLiveryFrames': int(sum(res[k].get('liveryFrames') or 0 for k in GATED if k in res)),
+                   'stillsLivery': int(sum(v['liveryFrames'] for v in stills.values())),
+                   'yellowElsewhereInfo': {k: v['liveryFrames'] for k, v in res.items() if not k.startswith('_') and k not in GATED and v.get('liveryFrames')}}
 print('_stills', json.dumps(stills)); print('_summary', json.dumps(res['_summary']))
 json.dump(res, open(R + '/pipeline/out/assets-shipped.json', 'w'), indent=1)
