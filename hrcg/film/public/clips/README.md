@@ -17,7 +17,7 @@ Everything here is **AI-generated concept footage**. Every use needs a CONCEPT l
 | `c30-n09-45.mp4` | 1080×1350 | same | 0 → 120 | 4:5 crop at x 330–1191 of the 1920 frame, scaled 1.254×. Use it for the phone. |
 | `c31-169.mp4` | 1920×1076 | c31-drywall (job c37bbdfd-…) | 0 → 120 | **The head is in frame here.** The site only ever uses the 4:5 crop below. Don't show the head. |
 | `c31-45.mp4` | 1080×1350 | same | 0 → 120 | 4:5 crop at x 1059–1920 (board, hands, studs). This is the site's PERSPECTIVE 02-A. |
-| `c32-169.mp4` | 1920×1076 | c32-bolt (job 1b46ff7f-…) | 0 → 120 | PERSPECTIVE 03-A. Visor points removed, crowd crushed. |
+| `c32-169.mp4` | 1920×1076 | c32-bolt (job 1b46ff7f-…) | 0 → 120 | PERSPECTIVE 03-A. Visor points removed (up to 14 px, incl. the dash in frames 119–120; re-exported 09:25), crowd crushed. |
 | `c33-169.mp4` | 1920×1076 | c33-pipe (job b18d0efc-…) | 0 → 120 | **The visor glows in the top rows from about 2 s.** Use only the 2.39:1 crop below. |
 | `c33-239.mp4` | 1920×804 | same | 0 → 120 | Rows 272–1076 of the 1920×1076 frame, bottom-anchored. The head is out of frame. This is the site's PERSPECTIVE 04-A. |
 | `c34-169.mp4` | 1920×1076 | c34-layout (job 1cce3f28-…) | 0 → 120 | The snap. The hero film is frames 60 → 84; 84 is the dust peak and the freeze frame. This file has **no** NEAR darkening (that's baked into the site's hero film only). |
