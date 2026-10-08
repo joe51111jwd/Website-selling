@@ -99,7 +99,8 @@
 .a103-plan {
   position: absolute;
   right: 0;
-  top: calc(var(--D) - min(12vw, 220px) - 2px);
+  /* its caption ends above the circle's caption, clear of the DETAIL 3 title */
+  top: calc(var(--D) - min(12vw, 220px) - 64px);
   width: min(12vw, 220px);
 }
 .a103-plan .view-title {

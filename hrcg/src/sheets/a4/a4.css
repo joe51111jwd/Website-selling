@@ -182,8 +182,14 @@
   transform: translateY(-50%);
   aspect-ratio: 1890 / 350;
 }
+/* desktop: the cloud itself flies into the strip, so the static tag stays only for assistive tech */
 .a200[data-live] .a200-hold {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .a200[data-live] .a200-grid {
   grid-row: 2;
@@ -390,6 +396,11 @@
     position: absolute;
     left: 0;
     bottom: calc(var(--chrome-bottom) + var(--s-4));
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
     opacity: 0;
   }
   .a200[data-live] .a200-text {

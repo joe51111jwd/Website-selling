@@ -1575,9 +1575,17 @@ class CoverController {
     const pay = tl.payStart === null ? 0 : segment(now, tl.payStart, tl.payStart + TIMING.payout);
     let markO = 0;
     if (!tl.rest && tl.payStart !== null) markO = tl.S === null ? 1 : 1 - segment(now, tl.S + 0.3, tl.S + TIMING.dustOut);
-    this.xr.style.opacity = (markO * Math.min(1, pay * 8)).toFixed(3);
+    // each control point stamps (1.35 -> 1, SETTLE 300 ms): the right one as the line leaves the box,
+    // the left one as the line arrives
+    const ps = tl.payStart ?? 0;
+    const stR = tl.payStart === null ? 0 : settleEase(segment(now, ps, ps + 0.3));
+    const stL = tl.payStart === null ? 0 : settleEase(segment(now, ps + TIMING.payout, ps + TIMING.payout + 0.3));
+    this.xr.style.opacity = (markO * Math.min(1, stR * 3)).toFixed(3);
+    this.xr.style.scale = (1.35 - 0.35 * stR).toFixed(3);
+    this.xl.style.opacity = (markO * Math.min(1, stL * 3)).toFixed(3);
+    this.xl.style.scale = (1.35 - 0.35 * stL).toFixed(3);
     this.chalkbox.style.opacity = (markO * Math.min(1, pay * 8)).toFixed(3);
-    this.xl.style.opacity = (markO * (pay >= 1 ? 1 : 0)).toFixed(3);
+    if (tl.payStart !== null && now < ps + TIMING.payout + 0.3) busy = true;
 
     // ---- deposits: on the slab while armed; fade out by S + 0.8 (the filmed line is perpendicular)
     let depO = 0;
@@ -1674,7 +1682,7 @@ class CoverController {
     const armed = st === 'paying-out' || st === 'armed' || st === 'pulling';
     r.dataset.line = armed ? 'armed' : 'off';
     const hint =
-      st === 'armed' || st === 'pulling'
+      st === 'paying-out' || st === 'armed' || st === 'pulling'
         ? 'pull'
         : st === 'rest' || (frozen && !this.glShown)
           ? this.glShown

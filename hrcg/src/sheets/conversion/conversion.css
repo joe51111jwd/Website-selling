@@ -199,12 +199,6 @@
   color: var(--gypsum);
   z-index: 1;
 }
-[data-ground='slab'] .chip.is-checked,
-[data-ground='slab'] .chip:has(.chip-input:checked) {
-  background: var(--chalk);
-  border-color: var(--chalk);
-  color: var(--slab-black);
-}
 /* the five challenge chips stand for bays: a bay-yellow inner rule */
 .chip--bay.is-checked::after,
 .chip--bay:has(.chip-input:checked)::after {

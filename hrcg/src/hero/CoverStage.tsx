@@ -39,6 +39,13 @@ function pickBays(): ComponentType<BaysProps> | null {
 
 const PORTRAIT = PORTRAIT_QUERY;
 
+/**
+ * The hero film's poster is the frame-84 still <picture> directly under it (it switches 16:9 / 9:16
+ * by media query, which a poster attribute cannot). A transparent poster keeps the no-JS video box
+ * from painting grey over it; the film's own pixels cover the still once it plays.
+ */
+const CLEAR_POSTER = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
 function srcOf(e: MediaEntry | undefined, re: RegExp): string | undefined {
   return e?.sources?.find((s) => re.test(s.type) || re.test(s.src))?.src;
 }
@@ -174,6 +181,7 @@ export function CoverStage() {
                 playsInline
                 controls
                 preload="none"
+                poster={CLEAR_POSTER}
                 aria-label={film?.alt}
                 width={film?.w}
                 height={film?.h}

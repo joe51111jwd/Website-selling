@@ -450,6 +450,16 @@
 .cv[data-hint='frozen'] .cv-hint--frozen,
 .cv[data-hint='frozen-gl'] .cv-hint--frozen-gl {
   display: flex;
+  animation: cv-print var(--dur-print) linear backwards;
+}
+/* labels print in (opacity only, brief 3.2); they never travel */
+@keyframes cv-print {
+  from {
+    opacity: 0;
+  }
+}
+.cv[data-reset='on'] .cv-reset {
+  animation: cv-print var(--dur-print) linear backwards;
 }
 
 /* the line, its control points and the chalk box */

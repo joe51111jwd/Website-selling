@@ -2,56 +2,56 @@
  "frame": 18,
  "candidates": {
   "18": {
-   "dustPx480": 79,
-   "sharpness": 381.2
+   "dustPx480": 75,
+   "sharpness": 376.0
   },
   "19": {
-   "dustPx480": 92,
-   "sharpness": 387.2
+   "dustPx480": 91,
+   "sharpness": 382.2
   },
   "20": {
-   "dustPx480": 89,
-   "sharpness": 385.1
+   "dustPx480": 93,
+   "sharpness": 379.7
   },
   "21": {
-   "dustPx480": 113,
-   "sharpness": 385.3
+   "dustPx480": 117,
+   "sharpness": 380.4
   },
   "22": {
-   "dustPx480": 129,
-   "sharpness": 392.3
+   "dustPx480": 130,
+   "sharpness": 387.1
   },
   "23": {
-   "dustPx480": 150,
-   "sharpness": 390.0
+   "dustPx480": 153,
+   "sharpness": 384.8
   },
   "24": {
-   "dustPx480": 152,
-   "sharpness": 388.3
+   "dustPx480": 161,
+   "sharpness": 383.6
   },
   "25": {
-   "dustPx480": 187,
-   "sharpness": 375.4
+   "dustPx480": 185,
+   "sharpness": 370.7
   },
   "26": {
-   "dustPx480": 230,
-   "sharpness": 372.3
+   "dustPx480": 229,
+   "sharpness": 367.0
   },
   "27": {
-   "dustPx480": 269,
-   "sharpness": 380.7
+   "dustPx480": 270,
+   "sharpness": 375.5
   },
   "28": {
-   "dustPx480": 311,
-   "sharpness": 376.1
+   "dustPx480": 316,
+   "sharpness": 370.8
   },
   "29": {
-   "dustPx480": 361,
-   "sharpness": 379.4
+   "dustPx480": 358,
+   "sharpness": 374.7
   },
   "30": {
-   "dustPx480": 404,
-   "sharpness": 375.2
+   "dustPx480": 401,
+   "sharpness": 370.1
   }
  },
  "depth": {
@@ -59,10 +59,15 @@
   "w": 960,
   "h": 540,
   "encoding": "8-bit single channel, relative inverse depth, near = 255; sample with LinearFilter + NoColorSpace",
-  "remap": "monotonic: background (Otsu) linear into 0..0.12, foreground rank-equalised into 0.12..1 (spreads contour levels over 07 and the floor)"
+  "remap": "monotonic 3-band: farther than 07 -> 0..0.15; 07 (farthest..nearest point) -> 0.15..0.55, rank-equalised on 07 pixels; nearer than 07 (near floor) -> 0.55..1",
+  "raw07": {
+   "far": 0.0758,
+   "near": 0.2294,
+   "horizonRow": 796
+  }
  },
- "nearD": 0.9793,
- "farD": 0.0196,
+ "nearD": 0.9882,
+ "farD": 0.15,
  "w": 0.012,
  "levels": 14,
  "uSlice": "mix(nearD, farD, s); s = 0 at the camera end of the chalk line, 1 at the robot end",

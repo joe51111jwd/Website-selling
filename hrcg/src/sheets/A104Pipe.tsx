@@ -49,8 +49,7 @@ interface Geometry {
   fittings: readonly { at: number; dx: number; dy: number; align: 'left' | 'right' }[];
 }
 
-// Desktop: plane top-left, the route leaves the drawing down the plane's lower-right edge, drops,
-// runs up and right to a tee, and carries on toward the page edge. H2 sits under the plane.
+// Desktop: plane top-left, H2 under it, the route out to the right.
 const DESK: Geometry = {
   w: 1296,
   h: 900,
@@ -58,21 +57,23 @@ const DESK: Geometry = {
   cy: 270,
   s: 500,
   lift: 24,
+  // down the plane's lower-right edge, a drop, a long run down and right, then up and away to the page
+  // edge: each fitting sits lower than the last, so the beats read in route order from the top
   route: [
     [0.74, 0.84, 24],
     [0.74, 1.32, 24],
-    [0.74, 1.32, -210],
-    [1.3, 1.32, -210],
-    [1.3, 2.3, -210],
+    [0.74, 1.32, -130],
+    [0.74, 1.95, -130],
+    [1.62, 1.95, -130],
   ],
   branch: [
-    [1.3, 1.32, -210],
-    [1.3, 1.32, -318],
+    [0.74, 1.95, -130],
+    [0.74, 1.95, -214],
   ],
   fittings: [
     { at: 1, dx: 20, dy: -6, align: 'left' },
-    { at: 2, dx: 20, dy: 26, align: 'left' },
-    { at: 3, dx: 20, dy: -30, align: 'left' },
+    { at: 2, dx: 20, dy: -22, align: 'left' },
+    { at: 3, dx: 22, dy: 22, align: 'left' },
   ],
 };
 
