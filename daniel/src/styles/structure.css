@@ -1,0 +1,106 @@
+/*
+ * Structure mode: the site drawn as its own blueprint. Colours flip to the
+ * blueprint blue, the grid shows, and every block marked with data-x gets a
+ * dashed outline and a label naming what it is.
+ */
+
+:root[data-mode="structure"] {
+  --bg: var(--blue);
+  --fg: #fff;
+}
+
+:where([data-x]) {
+  position: relative;
+}
+
+[data-mode="structure"] .grid-overlay {
+  opacity: 1;
+}
+
+[data-mode="structure"] [data-x] {
+  outline: 1px dashed rgba(255, 255, 255, 0.5);
+  outline-offset: -1px;
+}
+[data-mode="structure"] [data-x]::before {
+  content: attr(data-x);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 6;
+  padding: 4px 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 450;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  white-space: nowrap;
+  background: #fff;
+  color: var(--blue);
+  pointer-events: none;
+}
+
+/* every word's box */
+[data-mode="structure"] main .mask {
+  outline: 1px dotted rgba(255, 255, 255, 0.32);
+  outline-offset: -1px;
+}
+
+[data-mode="structure"] .nav {
+  mix-blend-mode: normal;
+}
+
+[data-mode="structure"] .btn {
+  background: transparent;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px #fff;
+}
+[data-mode="structure"] .btn::before {
+  background: #fff;
+}
+[data-mode="structure"] .btn:is(:hover, :focus-visible) {
+  color: var(--blue);
+}
+[data-mode="structure"] .cta-circle {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px #fff;
+  outline: 1px dashed rgba(255, 255, 255, 0.5);
+  outline-offset: 10px;
+}
+[data-mode="structure"] .cta-circle::before {
+  background: #fff;
+}
+[data-mode="structure"] .cta-circle:hover {
+  color: var(--blue);
+}
+[data-mode="structure"] .dot {
+  background: #fff;
+}
+[data-mode="structure"] .curtain,
+[data-mode="structure"] .menu,
+[data-mode="structure"] .preloader {
+  background: var(--blue);
+}
+[data-mode="structure"] .preloader-bar {
+  background: #fff;
+}
+[data-mode="structure"] ::selection {
+  background: #fff;
+  color: var(--blue);
+}
+[data-mode="structure"] .case-hero-shade {
+  opacity: 0.4;
+}
+[data-mode="structure"] .media:not(.gl-on) img {
+  filter: grayscale(1) contrast(1.6) brightness(1.2);
+  mix-blend-mode: screen;
+}
+[data-mode="structure"] .big-letter {
+  color: transparent;
+  -webkit-text-stroke: 1.5px #fff;
+}
+[data-mode="structure"] .marquee-group > span:nth-child(odd) {
+  color: transparent;
+  -webkit-text-stroke: 1.2px #fff;
+}
