@@ -1,17 +1,8 @@
 import { useEffect, useState } from "react";
 import { scrollToId } from "../lib/scroll";
 import { store, useStore } from "../lib/store";
+import Logo from "./Logo";
 
-export function Wordmark() {
-  return (
-    <span className="wordmark" aria-label="Strand">
-      <svg viewBox="0 0 22 22" aria-hidden="true">
-        <path d="M3 18.5h16M3 14.5h16M3 10.5h16M3 6.5h16" />
-      </svg>
-      Strand
-    </span>
-  );
-}
 
 export default function Header() {
   const count = useStore((s) => s.queue.length);
@@ -29,7 +20,7 @@ export default function Header() {
   return (
     <header className={`header${dark ? " is-dark" : ""}`}>
       <a href="#top" className="header__home" onClick={(e) => (e.preventDefault(), scrollToId("top"))}>
-        <Wordmark />
+        <Logo className="header__logo" />
       </a>
       <nav className="header__nav mono" aria-label="Sections">
         <a href="#collection" onClick={(e) => (e.preventDefault(), scrollToId("collection"))}>Collection</a>

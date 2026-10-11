@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { reducedMotion } from "../lib/scroll";
 import { store } from "../lib/store";
+import Logo from "./Logo";
 
 // The page "heats the nozzle" while fonts and the 3D scene get ready: 24 °C to 215 °C.
 export default function Preloader() {
@@ -12,8 +13,8 @@ export default function Preloader() {
   useEffect(() => {
     let seen = false;
     try {
-      seen = sessionStorage.getItem("strand-seen") === "1";
-      sessionStorage.setItem("strand-seen", "1");
+      seen = sessionStorage.getItem("vayn3d-seen") === "1";
+      sessionStorage.setItem("vayn3d-seen", "1");
     } catch {
       /* no storage, play the full heat-up */
     }
@@ -43,6 +44,7 @@ export default function Preloader() {
   return (
     <div className={`preloader${lift ? " is-lifting" : ""}`} aria-hidden="true">
       <div className="preloader__inner mono">
+        <Logo className="preloader__logo" />
         <span>Heating nozzle</span>
         <span className="preloader__temp">
           <span ref={temp}>024</span> / 215 °C

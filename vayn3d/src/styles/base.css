@@ -1,13 +1,15 @@
+/* VAYN3D: the logo is black on white, so the page is too. The only colour is the
+   filament itself, plus nozzle orange for anything hot or live. */
 :root {
-  --paper: #ebe7df;
-  --paper-2: #e1dcd2;
-  --paper-3: #d6d0c4;
-  --ink: #151413;
-  --ink-2: #4f4b45;
-  --ink-3: #87827a;
-  --rule: rgba(21, 20, 19, 0.15);
+  --paper: #eeeeec;
+  --paper-2: #e4e4e1;
+  --paper-3: #d5d5d1;
+  --ink: #0d0d0d;
+  --ink-2: #4a4a47;
+  --ink-3: #868683;
+  --rule: rgba(13, 13, 13, 0.14);
   --hot: #ff5a1f;
-  --display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --display: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
   --mono: "Martian Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
   --gutter: clamp(16px, 3.4vw, 52px);
   --ease: cubic-bezier(0.2, 0.7, 0, 1);
@@ -38,7 +40,8 @@ body {
   color: var(--ink);
   font-family: var(--display);
   font-size: 17px;
-  line-height: 1.5;
+  font-weight: 450;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: clip;
@@ -123,11 +126,10 @@ svg {
 }
 
 .section-title {
-  font-size: clamp(40px, 5.6vw, 92px);
-  font-weight: 720;
-  font-stretch: 82%;
-  line-height: 0.92;
-  letter-spacing: -0.03em;
+  font-size: clamp(36px, 4.6vw, 76px);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
   text-wrap: balance;
 }
 
@@ -196,8 +198,8 @@ svg {
 .btn__price {
   font-family: var(--display);
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   text-transform: none;
 }
 
@@ -236,7 +238,7 @@ svg {
   height: 40px;
   padding: 0 16px 0 12px;
   border-radius: 999px;
-  background: rgba(235, 231, 223, 0.8);
+  background: rgba(238, 238, 236, 0.82);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: inset 0 0 0 1px var(--rule);
@@ -253,6 +255,7 @@ svg {
   *::before,
   *::after {
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }

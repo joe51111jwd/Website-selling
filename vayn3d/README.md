@@ -1,10 +1,16 @@
-# Strand — 3D-printed objects, made to order
+# VAYN3D — 3D-printed objects, made to order
 
 **Everything here is one line.** An FDM print is literally one unbroken strand of plastic, so this shop is built out of one. A single strand runs down the whole page. As you scroll, a nozzle rides its tip and prints each product layer by layer, then the line leaves the top of the piece, loops down and feeds into the next one. It ends at a live printer working on a customer's order.
 
 Built with React, TypeScript, Vite, three.js, [@react-three/fiber](https://r3f.docs.pmnd.rs) + [drei](https://drei.docs.pmnd.rs) and [Lenis](https://lenis.darkroom.engineering).
 
-> The brand name, copy, prices, contact details and the products themselves are **placeholders**. Every product is a stand-in cube. See [Swapping in the real products](#swapping-in-the-real-products).
+> The only brand asset so far is the VAYN3D logo (a profile-picture JPEG). It's traced to a vector in `src/content/mark.ts`. The copy, prices, contact details and the products themselves are **placeholders**. Every product is a stand-in cube. See [Swapping in the real products](#swapping-in-the-real-products).
+
+## Brand
+
+- **Logo**: `src/components/Logo.tsx` draws the traced mark (wordmark and cube as separate paths, so the cube can be animated on its own). It's in the header, the preloader and the footer, where it traces itself as one line and then fills. When the original vector file turns up, paste its paths into `src/content/mark.ts`.
+- **Type**: Manrope for headlines and text, picked to match the wordmark (geometric, wide, the same flat-topped 3). Martian Mono for the printer readouts.
+- **Colour**: black on white, like the logo. The only colour on the page is the filament, plus nozzle orange for anything hot or live.
 
 ## Run it
 
@@ -16,7 +22,7 @@ npm run build    # typechecks, then outputs dist/
 
 ## Deploy
 
-Vercel: import the repo with **Root Directory** set to `strand`. It's a Vite project with no extra settings. The inspector uses a hash route (`#/p/<slug>`), so no rewrites are needed.
+Vercel: import the repo with **Root Directory** set to `vayn3d`. It's a Vite project with no extra settings. The inspector uses a hash route (`#/p/<slug>`), so no rewrites are needed.
 
 ## What's on the page
 
@@ -28,7 +34,7 @@ Vercel: import the repo with **Root Directory** set to `strand`. It's a Vite pro
 | The collection | `src/components/Piece.tsx` | Each product prints as you scroll to it: it's finished when its frame reaches the middle of the screen. Its line, layer count and text tick up with the print. Scroll back and it un-prints. Click the piece to inspect it. |
 | Live printer | `src/components/Live.tsx` | The end of the line. A printer on a loop, working through customer orders, with live layer and time-left numbers. |
 | Custom | `src/components/Custom.tsx` | Quote request with a file drop (STL, 3MF, OBJ, STEP, photo). |
-| Footer | `src/components/Footer.tsx` | Total line in the collection, and the wordmark drawn as one stroke. |
+| Footer | `src/components/Footer.tsx` | Total line in the collection, and the logo traced as one line, then filled. |
 | HUD | `src/components/Hud.tsx` | Bottom-left counter of metres of line laid and layers printed as you scroll. |
 | Queue | `src/components/Queue.tsx` | The cart, called a queue: each item shows its print time, and the total says how long the order takes to print. |
 
@@ -67,7 +73,7 @@ If that's too much work for launch, a plain GLB per product can go in the inspec
 
 Before launch:
 
-- [ ] Real brand name, wordmark (`Footer.tsx` path, `Header.tsx`), copy and prices.
+- [ ] The original logo vector (`src/content/mark.ts`), real copy and prices.
 - [ ] Replace `hello@example.com`, the social links and "[City]" in `Footer.tsx`.
 - [ ] Wire the custom-quote form (`Custom.tsx`) to a form service or email API. It only confirms on the page right now.
 - [ ] Connect checkout in `Queue.tsx` (Stripe Checkout or a Shopify Buy Button). The button shows a mockup notice.

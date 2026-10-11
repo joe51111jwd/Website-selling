@@ -38,6 +38,13 @@ main,
   color: var(--ink-2);
 }
 
+.preloader__logo {
+  width: 150px;
+  height: auto;
+  fill: var(--ink);
+  margin-bottom: 18px;
+}
+
 .preloader__temp {
   font-size: 13px;
   color: var(--ink);
@@ -69,7 +76,7 @@ main,
   justify-content: space-between;
   gap: 16px;
   padding: 18px var(--gutter) 26px;
-  background: linear-gradient(var(--paper) 45%, rgba(235, 231, 223, 0));
+  background: linear-gradient(var(--paper) 45%, rgba(238, 238, 236, 0));
   pointer-events: none;
 }
 
@@ -83,11 +90,11 @@ main,
 
 .header.is-dark {
   color: var(--paper);
-  background: linear-gradient(var(--ink) 45%, rgba(21, 20, 19, 0));
+  background: linear-gradient(var(--ink) 45%, rgba(13, 13, 13, 0));
 }
 
 .header.is-dark .header__nav a {
-  color: rgba(235, 231, 223, 0.7);
+  color: rgba(238, 238, 236, 0.7);
 }
 
 .header.is-dark .header__queue {
@@ -103,23 +110,11 @@ main,
   text-decoration: none;
 }
 
-.wordmark {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 21px;
-  font-weight: 720;
-  font-stretch: 85%;
-  letter-spacing: -0.02em;
-}
-
-.wordmark svg {
-  width: 22px;
-  height: 22px;
-  fill: none;
-  stroke: var(--hot);
-  stroke-width: 2.2;
-  stroke-linecap: round;
+.header__logo {
+  display: block;
+  height: 30px;
+  width: auto;
+  fill: currentColor;
 }
 
 .header__nav {
@@ -187,19 +182,18 @@ main,
 }
 
 .hero__title {
-  font-size: clamp(58px, 10.2vw, 178px);
-  font-weight: 780;
-  font-stretch: 76%;
-  line-height: 0.84;
-  letter-spacing: -0.04em;
-  margin-left: -0.04em;
+  font-size: clamp(52px, 8vw, 140px);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  margin-left: -0.05em;
 }
 
 .hero__title .line {
   display: block;
   overflow: hidden;
-  padding-bottom: 0.04em;
-  margin-bottom: -0.04em;
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
 }
 
 .hero__title .line > span {
@@ -258,6 +252,7 @@ main,
   text-transform: uppercase;
   letter-spacing: 0.03em;
   padding: 14px 20px 14px 22px;
+  transition: background 0.25s, color 0.25s, opacity 0.8s 0.35s, transform 1s 0.35s var(--ease);
   border-radius: 999px;
   background: var(--ink);
   color: var(--paper);
@@ -329,17 +324,16 @@ main,
 }
 
 .statement__text {
-  max-width: 24ch;
-  font-size: clamp(30px, 4.1vw, 66px);
-  font-weight: 460;
-  font-stretch: 90%;
-  line-height: 1.04;
-  letter-spacing: -0.025em;
+  max-width: 25ch;
+  font-size: clamp(28px, 3.6vw, 58px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
   text-wrap: pretty;
 }
 
 .statement__text strong {
-  font-weight: 760;
+  font-weight: 800;
 }
 
 .statement__note {
@@ -467,12 +461,11 @@ main,
 }
 
 .piece__name {
-  font-size: clamp(64px, 8.6vw, 148px);
-  font-weight: 780;
-  font-stretch: 78%;
-  line-height: 0.84;
-  letter-spacing: -0.04em;
-  margin-left: -0.04em;
+  font-size: clamp(56px, 7vw, 120px);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  margin-left: -0.05em;
 }
 
 .piece__line {
@@ -524,8 +517,8 @@ main,
 }
 
 .piece__price {
-  font-size: 34px;
-  font-weight: 620;
+  font-size: 32px;
+  font-weight: 700;
   letter-spacing: -0.02em;
   margin-right: 4px;
 }
@@ -809,38 +802,49 @@ main,
 }
 
 .footer__total {
-  font-size: clamp(26px, 3.4vw, 54px);
-  font-weight: 460;
-  font-stretch: 90%;
-  line-height: 1.06;
-  letter-spacing: -0.02em;
-  max-width: 24ch;
+  font-size: clamp(26px, 3.2vw, 50px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  max-width: 25ch;
 }
 
 .footer__total strong {
-  font-weight: 760;
+  font-weight: 800;
   color: var(--hot);
 }
 
-.footer__word {
+.footer__mark .logo {
+  display: block;
   width: 100%;
   height: auto;
   overflow: visible;
 }
 
-.footer__word path {
-  fill: none;
+/* traced as one line, then filled */
+.footer__mark path {
+  fill: var(--paper);
+  fill-opacity: 0;
   stroke: var(--paper);
-  stroke-width: 9;
-  stroke-linecap: round;
+  stroke-width: 0.6;
   stroke-linejoin: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
 }
 
-.footer__word.is-drawn path {
-  transition: stroke-dashoffset 3.2s var(--ease-in-out);
+.footer__mark.is-drawn path {
   stroke-dashoffset: 0;
+  fill-opacity: 1;
+  transition: stroke-dashoffset 3s var(--ease-in-out), fill-opacity 1.2s 2.6s;
+}
+
+.footer__mark .logo__cube {
+  stroke: var(--hot);
+}
+
+.footer__mark.is-drawn .logo__cube {
+  transition: stroke-dashoffset 1.6s var(--ease-in-out), fill-opacity 1s 1.4s, stroke 1s 2.2s;
+  stroke: var(--paper);
 }
 
 .footer__row {
@@ -848,9 +852,9 @@ main,
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 14px 28px;
-  color: rgba(235, 231, 223, 0.6);
+  color: rgba(238, 238, 236, 0.6);
   padding-top: 20px;
-  border-top: 1px solid rgba(235, 231, 223, 0.18);
+  border-top: 1px solid rgba(238, 238, 236, 0.18);
 }
 
 .footer__row a {
@@ -877,7 +881,7 @@ main,
   gap: 18px;
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(235, 231, 223, 0.78);
+  background: rgba(238, 238, 236, 0.8);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   box-shadow: inset 0 0 0 1px var(--rule);
@@ -925,7 +929,7 @@ main,
 .queue__scrim {
   position: absolute;
   inset: 0;
-  background: rgba(21, 20, 19, 0.35);
+  background: rgba(13, 13, 13, 0.38);
   opacity: 0;
   transition: opacity 0.4s;
 }
@@ -961,10 +965,9 @@ main,
 }
 
 .queue__head h2 {
-  font-size: 30px;
-  font-weight: 720;
-  font-stretch: 82%;
-  letter-spacing: -0.02em;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.045em;
 }
 
 .queue__empty {
@@ -997,7 +1000,7 @@ main,
 }
 
 .queue__what b {
-  font-weight: 620;
+  font-weight: 700;
 }
 
 .queue__what .mono {
@@ -1007,7 +1010,7 @@ main,
 
 .queue__price {
   grid-area: price;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 18px;
 }
 
@@ -1057,7 +1060,8 @@ main,
 
 .queue__total b {
   font-size: 30px;
-  font-weight: 640;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
 .queue__note {
@@ -1082,7 +1086,7 @@ main,
   }
 
   .hero__title {
-    font-size: clamp(58px, 19vw, 110px);
+    font-size: clamp(50px, 15.5vw, 96px);
   }
 
   .station,

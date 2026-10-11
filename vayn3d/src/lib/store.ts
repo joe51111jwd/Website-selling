@@ -13,7 +13,7 @@ type State = {
   ready: boolean; // preloader finished
 };
 
-const KEY = "strand-queue";
+const KEY = "vayn3d-queue";
 const load = (): QueueItem[] => {
   try {
     return JSON.parse(localStorage.getItem(KEY) || "[]");
