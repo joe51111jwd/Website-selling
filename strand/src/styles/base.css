@@ -1,0 +1,258 @@
+:root {
+  --paper: #ebe7df;
+  --paper-2: #e1dcd2;
+  --paper-3: #d6d0c4;
+  --ink: #151413;
+  --ink-2: #4f4b45;
+  --ink-3: #87827a;
+  --rule: rgba(21, 20, 19, 0.15);
+  --hot: #ff5a1f;
+  --display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --mono: "Martian Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+  --gutter: clamp(16px, 3.4vw, 52px);
+  --ease: cubic-bezier(0.2, 0.7, 0, 1);
+  --ease-in-out: cubic-bezier(0.7, 0, 0.2, 1);
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: clip;
+}
+
+html.locked {
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3,
+p,
+dl,
+dd,
+figure,
+fieldset {
+  margin: 0;
+}
+
+fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+legend {
+  padding: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+svg {
+  display: block;
+}
+
+:focus-visible {
+  outline: 2px solid var(--hot);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.mono {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 420;
+  font-stretch: 87.5%;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.kicker {
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.kicker::before {
+  content: "";
+  width: 22px;
+  height: 0;
+  border-top: 2px solid var(--hot);
+}
+
+.section-title {
+  font-size: clamp(40px, 5.6vw, 92px);
+  font-weight: 720;
+  font-stretch: 82%;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+/* buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-stretch: 87.5%;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: background 0.25s, color 0.25s, transform 0.4s var(--ease), opacity 0.25s;
+}
+
+.btn:hover {
+  background: var(--hot);
+  color: var(--ink);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.btn--ghost:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btn--big {
+  height: 56px;
+  width: 100%;
+  font-size: 12px;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.btn--big:only-child,
+.btn--big:not(:has(.btn__price)) {
+  justify-content: center;
+}
+
+.btn--wide {
+  width: 100%;
+}
+
+.btn__price {
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--rule);
+  transition: background 0.25s, box-shadow 0.25s;
+}
+
+.icon-btn:hover {
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: none;
+}
+
+.icon-btn svg,
+.pill svg,
+.cta svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px 0 12px;
+  border-radius: 999px;
+  background: rgba(235, 231, 223, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px var(--rule);
+  transition: background 0.25s, color 0.25s;
+}
+
+.pill:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
