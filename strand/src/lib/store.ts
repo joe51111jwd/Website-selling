@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { productBySlug } from "../content/catalog";
 
 // One small store for the UI: what's open, what's hovered, what's in the queue.
 
@@ -23,11 +24,23 @@ const load = (): QueueItem[] => {
 
 let state: State = { inspect: null, hover: null, queue: load(), queueOpen: false, ready: false };
 const subs = new Set<() => void>();
+const isLocked = (s: State) => !!s.inspect || s.queueOpen;
+let returnFocus: HTMLElement | null = null;
+
+// Where focus goes back to when the last overlay closes. Captured before the overlay opens,
+// since the page behind it turns inert and drops focus straight away.
+export const takeReturnFocus = () => {
+  const el = returnFocus;
+  returnFocus = null;
+  return el;
+};
 
 export const store = {
   get: () => state,
   set(patch: Partial<State>) {
-    state = { ...state, ...patch };
+    const next = { ...state, ...patch };
+    if (!isLocked(state) && isLocked(next)) returnFocus = document.activeElement as HTMLElement | null;
+    state = next;
     if (patch.queue) {
       try {
         localStorage.setItem(KEY, JSON.stringify(state.queue));
@@ -71,6 +84,7 @@ const nav = (fn: () => void) => {
 };
 
 export function openInspector(slug: string) {
+  if (!productBySlug(slug)) return;
   const url = `#/p/${slug}`;
   if (location.hash !== url) {
     if (state.inspect) nav(() => history.replaceState(null, "", url));
@@ -90,6 +104,11 @@ export function closeInspector() {
 
 export function syncFromHash() {
   const m = location.hash.match(/^#\/p\/([\w-]+)/);
-  if (!m) pushed = false;
-  store.set({ inspect: m ? m[1] : null });
+  const slug = m && productBySlug(m[1]) ? m[1] : null;
+  if (!slug) {
+    pushed = false;
+    // an old or mistyped link: drop it rather than lock the page behind nothing
+    if (m) nav(() => history.replaceState(null, "", location.pathname + location.search));
+  }
+  store.set({ inspect: slug });
 }

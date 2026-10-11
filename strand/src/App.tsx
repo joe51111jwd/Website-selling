@@ -3,7 +3,7 @@ import { products } from "./content/catalog";
 import { watchLayout } from "./lib/layout";
 import { lenis } from "./lib/scroll";
 import { line } from "./lib/line";
-import { store, syncFromHash, useStore } from "./lib/store";
+import { store, syncFromHash, takeReturnFocus, useStore } from "./lib/store";
 import Preloader from "./components/Preloader";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
@@ -43,13 +43,16 @@ export default function App() {
     };
   }, []);
 
-  // freeze the page under overlays
+  // freeze the page under overlays, and hand focus back to where it was when they close
+  const locked = !!inspect || queueOpen;
   useEffect(() => {
-    const locked = !!inspect || queueOpen;
     if (locked) lenis.stop();
-    else lenis.start();
+    else {
+      lenis.start();
+      takeReturnFocus()?.focus({ preventScroll: true });
+    }
     document.documentElement.classList.toggle("locked", locked);
-  }, [inspect, queueOpen]);
+  }, [locked]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -67,20 +70,22 @@ export default function App() {
           <World />
         </Suspense>
       )}
-      <Header />
-      <main>
-        <Hero />
-        <Statement />
-        <section className="collection" id="collection" aria-label="The collection">
-          {products.map((p, i) => (
-            <Piece key={p.slug} product={p} index={i} />
-          ))}
-        </section>
-        <Live />
-        <Custom />
-      </main>
-      <Footer />
-      <Hud />
+      <div className="page" inert={locked}>
+        <Header />
+        <main>
+          <Hero />
+          <Statement />
+          <section className="collection" id="collection" aria-label="The collection">
+            {products.map((p, i) => (
+              <Piece key={p.slug} product={p} index={i} />
+            ))}
+          </section>
+          <Live />
+          <Custom />
+        </main>
+        <Footer />
+        <Hud />
+      </div>
       <Queue />
       {inspect && (
         <Suspense fallback={null}>

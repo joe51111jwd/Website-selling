@@ -11,7 +11,10 @@ export default function Hud() {
       everyFrame(() => {
         if (m.current) m.current.textContent = line.meters.toFixed(1).padStart(6, "0");
         if (l.current) l.current.textContent = String(Math.round(line.layer)).padStart(4, "0");
-        root.current?.classList.toggle("is-on", window.scrollY > window.innerHeight * 0.5);
+        // on after the hero, off once the footer arrives (it would cover the footer links)
+        const footer = document.querySelector(".footer");
+        const footerIn = !!footer && footer.getBoundingClientRect().top < window.innerHeight - 60;
+        root.current?.classList.toggle("is-on", window.scrollY > window.innerHeight * 0.5 && !footerIn);
       }),
     [],
   );

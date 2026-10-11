@@ -25,7 +25,7 @@ export default function Queue() {
   const minutes = rows.reduce((s, r) => s + r.min, 0);
 
   return (
-    <div className={`queue${open ? " is-open" : ""}`} aria-hidden={!open}>
+    <div className={`queue${open ? " is-open" : ""}`} inert={!open}>
       <div className="queue__scrim" onClick={() => store.set({ queueOpen: false })} />
       <div ref={panel} className="queue__panel" role="dialog" aria-modal="true" aria-label="Your print queue" tabIndex={-1} data-lenis-prevent>
         <div className="queue__head">

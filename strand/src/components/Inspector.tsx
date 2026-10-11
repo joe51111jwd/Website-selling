@@ -46,7 +46,10 @@ export default function Inspector({ slug }: { slug: string }) {
       const p = print.current.p;
       const layer = Math.round(p * s.layers);
       if (fill.current) fill.current.style.transform = `scaleY(${p})`;
-      if (knob.current) knob.current.style.top = `${(1 - p) * 100}%`;
+      if (knob.current) {
+        knob.current.style.top = `${(1 - p) * 100}%`;
+        knob.current.setAttribute("aria-valuenow", String(layer));
+      }
       if (layerOut.current) layerOut.current.textContent = String(layer).padStart(3, "0");
       if (zOut.current) zOut.current.textContent = (layer * 0.2).toFixed(1);
     });
@@ -56,7 +59,9 @@ export default function Inspector({ slug }: { slug: string }) {
     if (!root.current?.contains(document.activeElement)) root.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeInspector();
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      // arrows step between pieces, except inside a control that uses them (the layer slider)
+      const t = e.target as HTMLElement | null;
+      if (t && t !== root.current && t.closest("input, textarea, [role=slider]")) return;
       if (e.key === "ArrowRight") step(1);
       if (e.key === "ArrowLeft") step(-1);
     };
@@ -95,9 +100,10 @@ export default function Inspector({ slug }: { slug: string }) {
     if (!s) return;
     const one = 1 / s.layers;
     const pr = print.current;
-    const k = { ArrowUp: one * 5, ArrowDown: -one * 5, PageUp: 0.1, PageDown: -0.1, Home: 1, End: -1 }[e.key];
+    const k = { ArrowUp: one * 5, ArrowRight: one * 5, ArrowDown: -one * 5, ArrowLeft: -one * 5, PageUp: 0.1, PageDown: -0.1, Home: -1, End: 1 }[e.key];
     if (k === undefined) return;
     e.preventDefault();
+    e.stopPropagation();
     pr.p = pr.target = Math.min(1, Math.max(0, pr.p + k));
   };
   const finish = () => {
@@ -165,7 +171,7 @@ export default function Inspector({ slug }: { slug: string }) {
               aria-label="Layer"
               aria-valuemin={0}
               aria-valuemax={s.layers}
-              aria-valuetext="Drag down to cut through the layers"
+              aria-valuenow={0}
               onKeyDown={onSliderKey}
             />
           </div>

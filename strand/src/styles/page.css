@@ -1081,6 +1081,10 @@ main,
     order: -1;
   }
 
+  .hero__title {
+    font-size: clamp(58px, 19vw, 110px);
+  }
+
   .station,
   .piece__stage,
   .live__stage .station {

@@ -114,7 +114,9 @@ export class StrandMesh {
     const { mesh, tp } = this;
     const arr = mesh.instanceMatrix.array as Float32Array;
     const attr = mesh.instanceMatrix;
-    attr.clearUpdateRanges();
+    // three uploads the queued ranges (and clears them) only when the mesh is drawn. While
+    // it's culled, ranges pile up; past a few dozen, drop them so the next draw uploads it all.
+    if (attr.updateRanges.length > 48) attr.clearUpdateRanges();
 
     if (this.partial >= 0) {
       arr.set(this.full.subarray(this.partial * 16, this.partial * 16 + 16), this.partial * 16);
@@ -162,5 +164,6 @@ export class StrandMesh {
 
   dispose() {
     this.mesh.geometry.dispose();
+    this.mesh.dispose();
   }
 }

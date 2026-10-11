@@ -323,6 +323,7 @@ function Line() {
       const st = stations[k];
       _a.copy(st.strand.head);
       _a.y += st.strand.tp.h * 0.5;
+      st.inner.updateWorldMatrix(true, false);
       st.inner.localToWorld(_a);
       st.inner.getWorldQuaternion(_q);
       nozzle.scale.setScalar(st.side * 0.5);
