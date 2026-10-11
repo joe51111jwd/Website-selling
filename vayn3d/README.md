@@ -24,6 +24,10 @@ npm run build    # typechecks, then outputs dist/
 
 Vercel: import the repo with **Root Directory** set to `vayn3d`. It's a Vite project with no extra settings. The inspector uses a hash route (`#/p/<slug>`), so no rewrites are needed.
 
+### Watermarked preview
+
+`npm run build:watermark` builds a copy for sending to people before it's paid for: a tiled watermark over every layer (the 3D inspector too), which puts itself back if it's deleted in dev tools; right-click, copy, drag, save and print are blocked; and `noindex` keeps it out of search. The watermark text lives in `.env.watermark` (lines split on `|`). A normal `npm run build` has none of it.
+
 ## What's on the page
 
 | Piece | File | What it does |

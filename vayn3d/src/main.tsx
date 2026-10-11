@@ -8,6 +8,10 @@ import "./styles/base.css";
 import "./styles/page.css";
 import "./styles/inspector.css";
 import App from "./App";
+import { installWatermark } from "./lib/watermark";
+
+// set in .env.watermark, so only `npm run build:watermark` carries it
+if (import.meta.env.VITE_WATERMARK) installWatermark(import.meta.env.VITE_WATERMARK);
 
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
