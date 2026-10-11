@@ -271,11 +271,11 @@
 }
 
 .inspector__name {
-  font-size: clamp(48px, 5vw, 88px);
+  font-size: clamp(44px, 4.4vw, 78px);
   font-weight: 800;
-  line-height: 0.92;
-  letter-spacing: -0.055em;
-  margin: -4px 0 0 -0.05em;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  margin: -4px 0 0 -0.04em;
 }
 
 .inspector__about {
@@ -435,7 +435,7 @@
   }
 
   .inspector__name {
-    font-size: 56px;
+    font-size: 50px;
   }
 
   .inspector__hint {

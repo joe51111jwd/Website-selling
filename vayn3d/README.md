@@ -1,6 +1,6 @@
 # VAYN3D — 3D-printed objects, made to order
 
-**Everything here is one line.** An FDM print is literally one unbroken strand of plastic, so this shop is built out of one. A single strand runs down the whole page. As you scroll, a nozzle rides its tip and prints each product layer by layer, then the line leaves the top of the piece, loops down and feeds into the next one. It ends at a live printer working on a customer's order.
+**Everything here is one line.** An FDM print is literally one unbroken strand of plastic, so this shop is built out of one. A single strand runs down the whole page. As you scroll, a nozzle rides its tip: for each product it writes the product's name (outlines first, then fill, the way a printer would), then prints the piece layer by layer, and the line leaves for the next one by a different route every time (a long S, a coiled cord, a loop-the-loop, square travel moves, a wave, a swoop towards you, a figure of eight). It ends at a live printer working on a customer's order.
 
 Built with React, TypeScript, Vite, three.js, [@react-three/fiber](https://r3f.docs.pmnd.rs) + [drei](https://drei.docs.pmnd.rs) and [Lenis](https://lenis.darkroom.engineering).
 
@@ -9,7 +9,7 @@ Built with React, TypeScript, Vite, three.js, [@react-three/fiber](https://r3f.d
 ## Brand
 
 - **Logo**: `src/components/Logo.tsx` draws the traced mark (wordmark and cube as separate paths, so the cube can be animated on its own). It's in the header, the preloader and the footer, where it traces itself as one line and then fills. When the original vector file turns up, paste its paths into `src/content/mark.ts`.
-- **Type**: Manrope for headlines and text, picked to match the wordmark (geometric, wide, the same flat-topped 3). Martian Mono for the printer readouts.
+- **Type**: Hubot Sans (wide, at 112.5%) for headlines: an engineered grotesk whose curves are cut like machined parts, wide like the wordmark. Mona Sans, its sibling, for reading. Martian Mono for the printer readouts.
 - **Colour**: black on white, like the logo. The only colour on the page is the filament, plus nozzle orange for anything hot or live.
 
 ## Run it
@@ -31,7 +31,7 @@ Vercel: import the repo with **Root Directory** set to `vayn3d`. It's a Vite pro
 | Preloader | `src/components/Preloader.tsx` | "Heating nozzle 024 → 215 °C" while fonts load. Shorter on repeat visits. |
 | Hero | `src/components/Hero.tsx` | The line drops in from off-screen and prints the first piece live, with a slicer readout (layer, metres of line). |
 | Statement | `src/components/Statement.tsx` | What a printer actually does, with the real line length of a 45 mm cube. |
-| The collection | `src/components/Piece.tsx` | Each product prints as you scroll to it: it's finished when its frame reaches the middle of the screen. Its line, layer count and text tick up with the print. Scroll back and it un-prints. Click the piece to inspect it. |
+| The collection | `src/components/Piece.tsx` | Each product's name drifts in with parallax as a dashed preview and locks into place as the nozzle writes it; then the rest of its text comes in and the piece prints, finished when its frame reaches the middle of the screen. Line and layer counts tick up with the print. Scroll back and it all un-prints. Click the piece to inspect it. |
 | Live printer | `src/components/Live.tsx` | The end of the line. A printer on a loop, working through customer orders, with live layer and time-left numbers. |
 | Custom | `src/components/Custom.tsx` | Quote request with a file drop (STL, 3MF, OBJ, STEP, photo). |
 | Footer | `src/components/Footer.tsx` | Total line in the collection, and the logo traced as one line, then filled. |
@@ -56,7 +56,8 @@ Vercel: import the repo with **Root Directory** set to `vayn3d`. It's a Vite pro
 | --- | --- |
 | `src/lib/toolpath.ts` | Generates each cube as a real toolpath, the way a slicer does: walls inside-out, then grid, gyroid or honeycomb infill, with solid diagonal skins on the bottom and top layers. `locate()` maps print progress to a point on the path (one layer at a time, so pieces grow at an even rate). |
 | `src/three/strand.ts` | Renders a toolpath as one `InstancedMesh`: every segment is a flattened cylinder ("bead") of plastic, so a whole piece is one draw call. `set(progress)` shows the line up to the nozzle, with the freshly laid bit glowing hot. |
-| `src/three/World.tsx` | The fixed WebGL layer behind the page. Each frame it moves the camera with the scroll and places every piece on its DOM box (`data-station="…"`), so CSS controls the layout. A single number, the line's position, is derived from the scroll, and every piece, connector and the nozzle are drawn from it. |
+| `src/lib/textpath.ts` | Turns a DOM heading into a print: renders it in the page's own font, builds a distance field, traces two perimeters just inside each letter (marching squares) and fills the rest with 45° solid infill, letter by letter. |
+| `src/three/World.tsx` | The fixed WebGL layer behind the page. Each frame it moves the camera with the scroll and places every print (pieces and names) on its DOM box (`data-station="…"`), so CSS controls the layout. A single number, the line's position, is derived from the scroll, and every print, connector and the nozzle are drawn from it. The route shapes between prints are in `route()`. |
 | `src/three/nozzle.ts` | The print head, built from primitives (brass nozzle, heater block, heat sink). |
 | `src/lib/layout.ts` | Measures the DOM boxes the line attaches to, again on resize and after fonts load. |
 | `src/lib/scroll.ts` | Lenis smooth scroll, driven from the render loop so the page and the line never drift apart. |

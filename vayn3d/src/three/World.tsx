@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer } from "@react-three/drei";
 import { cubeToolpath, type CubeSpec } from "../lib/toolpath";
+import { textKey, textToolpath } from "../lib/textpath";
 import { filaments, heroSpec, liveOrders, liveSpec, products, sizes, stats, type Filament } from "../content/catalog";
 import { boxes, layoutVersion } from "../lib/layout";
 import { lenis, markDriven, reducedMotion } from "../lib/scroll";
@@ -12,11 +13,12 @@ import { filamentMaterial, styleMaterial, StrandMesh } from "./strand";
 import { makeNozzle, setNozzleHeat } from "./nozzle";
 
 // The page is one continuous line. It prints the hero piece as the page opens, then follows
-// the scroll down, winding itself into each product in turn and finally into the live printer.
+// the scroll down: for each product it writes the product's name, then prints the piece,
+// and it ends at the live printer. Between prints the line takes a different route every time.
 //
-// Element order along the line: lead-in, hero, then (connector, station) for each station.
-// G is the line's position along that list: floor(G) is the element being drawn, the
-// fraction is how far along it. Everything on screen is derived from G.
+// The prints run in page order (`seq`). Element 2i is the connector into print i, element
+// 2i+1 is print i. G is the line's position along that list, derived from the scroll, and
+// everything on screen comes from G.
 
 const CAM_Z = 20;
 const FOV = 30;
@@ -25,20 +27,39 @@ const INTRO_LEAD = 1.1;
 const INTRO_PRINT = 4.6;
 const LIVE_PRINT = 13;
 const LIVE_HOLD = 3.2;
+const PARALLAX = 0.42; // how far ahead of the page a title drifts in before it locks into place
+const TITLE_LOCK = 0.68; // titles lock in (and finish printing) when their centre is here, in viewport heights
+const Q_WRITE = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.4, 0, 0)); // the head, leaning in to write
+const INK: Filament = { ...filaments.graphite, id: "ink", hex: "#151515" };
 
-type Station = {
-  id: string;
+// Route shapes for the runs between products, in order down the page, and for the short hop
+// from a product's name to its piece.
+const ROUTES = ["swing", "coil", "loop", "zigzag", "wave", "swoop", "eight"] as const;
+const LINKS = ["curl", "hop", "drop"] as const;
+type Route = (typeof ROUTES)[number] | (typeof LINKS)[number] | "lead";
+
+type Print = {
+  id: string; // key in line.progress
+  kind: "cube" | "text";
+  product: number; // index into products, or -1 for the hero and the live printer
+  anchor: string; // data-station of the DOM box it sits on
   outer: THREE.Group;
   inner: THREE.Group;
-  strand: StrandMesh;
+  strand: StrandMesh | null;
   mat: THREE.MeshStandardMaterial;
-  ghost: THREE.LineSegments;
+  ghost: THREE.LineSegments | null;
   filament: Filament;
-  side: number;
+  size: number; // cube side, or the font size, in world units
+  fontPx: number; // text: font size in CSS px
   spin: number;
   spinSpeed: number;
-  meters: number; // real-world metres in the M size
+  meters: number;
   realLayers: number;
+  key: string; // text: what its toolpath was built from
+  baseY: number; // text: position before parallax
+  par: number; // text: current parallax, world units
+  cy: number; // page y of its box centre
+  win: { start: number; end: number }; // scroll range it prints over
 };
 
 type Conn = {
@@ -46,6 +67,8 @@ type Conn = {
   curve: THREE.CatmullRomCurve3 | null;
   tubular: number;
   radial: number;
+  offA: { value: THREE.Vector3 };
+  offB: { value: THREE.Vector3 };
 };
 
 export default function World() {
@@ -82,10 +105,12 @@ function ScrollDriver() {
   return null;
 }
 
-function buildStation(id: string, spec: CubeSpec, f: Filament, infillPct: number): Station {
-  const tp = cubeToolpath(spec);
+const dashed = (dash: number) =>
+  new THREE.LineDashedMaterial({ color: "#0d0d0d", dashSize: dash, gapSize: dash * 0.85, transparent: true, opacity: 0.3, depthWrite: false });
+
+function cubePrint(id: string, anchor: string, product: number, spec: CubeSpec, f: Filament, infillPct: number): Print {
   const mat = filamentMaterial(f);
-  const strand = new StrandMesh(tp, mat, 6);
+  const strand = new StrandMesh(cubeToolpath(spec), mat, 6);
   strand.mesh.frustumCulled = true;
   const outer = new THREE.Group();
   const inner = new THREE.Group();
@@ -93,35 +118,98 @@ function buildStation(id: string, spec: CubeSpec, f: Filament, infillPct: number
   inner.add(strand.mesh);
   const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1));
   edges.translate(0, 0.5, 0);
-  const ghost = new THREE.LineSegments(
-    edges,
-    new THREE.LineDashedMaterial({ color: "#151413", dashSize: 0.035, gapSize: 0.03, transparent: true, opacity: 0.3, depthWrite: false }),
-  );
+  const ghost = new THREE.LineSegments(edges, dashed(0.035));
   ghost.computeLineDistances();
   inner.add(ghost);
   outer.add(inner);
   outer.rotation.set(TILT, 0.72, 0);
   const s = stats({ infillPct, spec }, sizes[1].mm, f);
-  return { id, outer, inner, strand, mat, ghost, filament: f, side: 1, spin: 0, spinSpeed: 0.1, meters: s.lineM, realLayers: s.layers };
+  return {
+    id, kind: "cube", product, anchor, outer, inner, strand, mat, ghost, filament: f, size: 1, fontPx: 0, spin: 0, spinSpeed: 0.1,
+    meters: s.lineM, realLayers: s.layers, key: "", baseY: 0, par: 0, cy: 0, win: { start: 0, end: 0 },
+  };
+}
+
+function textPrint(slug: string, product: number): Print {
+  const outer = new THREE.Group();
+  const inner = new THREE.Group();
+  outer.add(inner);
+  // the word is printed flat on a bed that faces the camera: bed x -> right, bed z -> down, up -> towards us
+  outer.rotation.x = Math.PI / 2;
+  return {
+    id: `t:${slug}`, kind: "text", product, anchor: `t:${slug}`, outer, inner, strand: null, mat: filamentMaterial(INK),
+    ghost: null, filament: INK, size: 1, fontPx: 0, spin: 0, spinSpeed: 0, meters: 0, realLayers: 0, key: "", baseY: 0, par: 0, cy: 0,
+    win: { start: 0, end: 0 },
+  };
+}
+
+// (Re)build a title's toolpath from its DOM element when the font, size or text changes.
+function buildText(p: Print) {
+  const el = document.querySelector<HTMLElement>(`[data-station="${p.anchor}"]`);
+  if (!el) return false;
+  if (p.strand && textKey(el) === p.key) return true;
+  const built = textToolpath(el);
+  if (!built) return false;
+  p.key = built.key;
+  if (p.strand) {
+    p.inner.remove(p.strand.mesh);
+    p.strand.dispose();
+  }
+  if (p.ghost) {
+    p.inner.remove(p.ghost);
+    p.ghost.geometry.dispose();
+  }
+  p.strand = new StrandMesh(built.tp, p.mat, 6);
+  p.strand.mesh.frustumCulled = true;
+  p.inner.add(p.strand.mesh);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(built.ghost, 3));
+  p.ghost = new THREE.LineSegments(g, dashed(5));
+  p.ghost.computeLineDistances();
+  p.inner.add(p.ghost);
+  p.fontPx = built.fontPx;
+  return true;
+}
+
+function connMaterial() {
+  const offA = { value: new THREE.Vector3() };
+  const offB = { value: new THREE.Vector3() };
+  const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62 });
+  // the ends of a connector follow the titles' parallax: each end is offset, blended along the tube
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uOffA = offA;
+    sh.uniforms.uOffB = offB;
+    sh.vertexShader = sh.vertexShader
+      .replace("#include <common>", "#include <common>\nattribute float aT;\nuniform vec3 uOffA;\nuniform vec3 uOffB;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\ntransformed += mix(uOffA, uOffB, smoothstep(0.0, 1.0, aT));");
+  };
+  m.customProgramCacheKey = () => "connector";
+  return { m, offA, offB };
 }
 
 function buildConn(): Conn {
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.62 });
-  const mesh = new THREE.Mesh(new THREE.BufferGeometry(), mat);
+  const { m, offA, offB } = connMaterial();
+  const mesh = new THREE.Mesh(new THREE.BufferGeometry(), m);
   mesh.frustumCulled = false;
-  return { mesh, curve: null, tubular: 220, radial: 6 };
+  return { mesh, curve: null, tubular: 220, radial: 6, offA, offB };
 }
 
 const _a = new THREE.Vector3();
+const _o = new THREE.Vector3();
 const _q = new THREE.Quaternion();
 const _qa = new THREE.Quaternion();
 const _qb = new THREE.Quaternion();
 const _ca = new THREE.Color();
 const _cb = new THREE.Color();
 
-function shapeConn(c: Conn, pts: THREE.Vector3[], radius: number, from: string, to: string) {
+function shapeConn(c: Conn, pts: THREE.Vector3[], radius: number, from: string, to: string, unit: number) {
   c.curve = new THREE.CatmullRomCurve3(pts, false, "centripetal");
+  c.tubular = THREE.MathUtils.clamp(Math.round(c.curve.getLength() / (unit * 0.035)), 160, 1100);
   const geo = new THREE.TubeGeometry(c.curve, c.tubular, radius, c.radial, false);
+  const ring = c.radial + 1;
+  const t = new Float32Array((c.tubular + 1) * ring);
+  for (let i = 0; i <= c.tubular; i++) t.fill(i / c.tubular, i * ring, (i + 1) * ring);
+  geo.setAttribute("aT", new THREE.BufferAttribute(t, 1));
   c.mesh.geometry.dispose();
   c.mesh.geometry = geo;
   paintConn(c, from, to);
@@ -150,32 +238,50 @@ function paintConn(c: Conn, from: string, to: string) {
   col.needsUpdate = true;
 }
 
+// where the head is on a print, in world space, and how it's held
+function printHead(p: Print, out: THREE.Vector3, q: THREE.Quaternion) {
+  if (!p.strand) {
+    p.outer.getWorldPosition(out);
+    q.copy(p.kind === "text" ? Q_WRITE : p.outer.quaternion);
+    return;
+  }
+  out.copy(p.strand.head);
+  out.y += p.strand.tp.h * 0.5;
+  p.inner.updateWorldMatrix(true, false);
+  p.inner.localToWorld(out);
+  if (p.kind === "text") q.copy(Q_WRITE);
+  else p.inner.getWorldQuaternion(q);
+}
+
+const nozzleSize = (p: Print) => (p.kind === "text" ? p.size * 0.62 : p.size * 0.5);
+
 function Line() {
   const { camera, size } = useThree();
   const root = useRef<THREE.Group>(null);
 
   const scene = useMemo(() => {
-    const stations: Station[] = [
-      buildStation("hero", heroSpec, filaments.signal, 15),
-      ...products.map((p) => buildStation(p.slug, p.spec, filaments[p.filaments[0]], p.infillPct)),
-      buildStation("live", liveSpec, filaments[liveOrders[0].filament], 20),
-    ];
-    const conns = stations.map(() => buildConn()); // conns[k] runs into stations[k]; conns[0] is the lead-in
-    const nozzle = makeNozzle();
-    return { stations, conns, nozzle };
+    const prints: Print[] = [cubePrint("hero", "hero", -1, heroSpec, filaments.signal, 15)];
+    products.forEach((p, i) => {
+      prints.push(textPrint(p.slug, i));
+      prints.push(cubePrint(p.slug, p.slug, i, p.spec, filaments[p.filaments[0]], p.infillPct));
+    });
+    prints.push(cubePrint("live", "live", -1, liveSpec, filaments[liveOrders[0].filament], 20));
+    const conns = prints.map(() => buildConn()); // conns[i] runs into seq[i]
+    return { prints, conns, nozzle: makeNozzle() };
   }, []);
 
   useEffect(() => {
     const g = root.current!;
-    scene.stations.forEach((s) => g.add(s.outer));
+    scene.prints.forEach((p) => g.add(p.outer));
     scene.conns.forEach((c) => g.add(c.mesh));
     g.add(scene.nozzle);
     return () => {
-      scene.stations.forEach((s) => {
-        s.strand.dispose();
-        s.mat.dispose();
+      scene.prints.forEach((p) => {
+        p.strand?.dispose();
+        p.mat.dispose();
       });
       scene.conns.forEach((c) => c.mesh.geometry.dispose());
+      document.documentElement.classList.remove("gl-titles");
     };
   }, [scene]);
 
@@ -188,68 +294,63 @@ function Line() {
     liveT: 0,
     liveOrder: 0,
     heat: 0,
-    breaks: [] as { start: number; end: number }[],
+    seq: [] as Print[],
+    u: 1,
   });
 
   useFrame((_, dtRaw) => {
     const dt = Math.min(dtRaw, 1 / 20);
     const s = st.current;
-    const { stations, conns, nozzle } = scene;
+    const { prints, conns, nozzle } = scene;
     const vw = size.width;
     const vh = size.height;
     const u = (2 * CAM_Z * Math.tan(THREE.MathUtils.degToRad(FOV / 2))) / vh;
+    s.u = u;
     const scrollY = window.scrollY;
     camera.position.y = -scrollY * u;
 
-    // --- layout: place every station on its DOM box, and re-route the line between them
     if (s.laidOut !== layoutVersion() || s.vw !== vw || s.vh !== vh) {
       s.laidOut = layoutVersion();
       s.vw = vw;
       s.vh = vh;
-      stations.forEach((st) => {
-        const box = boxes.get(st.id);
-        st.outer.visible = !!box;
-        if (!box) return;
-        st.side = (box.w * u) / 1.95;
-        st.outer.position.set((box.cx - vw / 2) * u, -(box.cy - vh / 2) * u, 0);
-        st.outer.scale.setScalar(st.side);
-        st.outer.updateMatrixWorld(true);
-      });
-      route(stations, conns, u, vw, vh);
-      s.breaks = stations.map((st, k) => {
-        const box = boxes.get(st.id);
-        if (!box || k === 0) return { start: 0, end: 0 };
-        return { start: box.cy - vh * 0.98, end: box.cy - vh * 0.5 };
-      });
-      for (let k = 1; k < s.breaks.length; k++) {
-        const prev = s.breaks[k - 1];
-        const b = s.breaks[k];
-        b.start = Math.max(b.start, prev.end + vh * 0.12);
-        b.end = Math.max(b.end, b.start + vh * 0.25);
-      }
+      layout(prints, conns, s, u, vw, vh);
     }
+    const seq = s.seq;
+    const last = seq.length - 1;
+
+    // titles drift in ahead of the page, more slowly than it scrolls, until they lock into place
+    for (const p of seq) {
+      if (p.kind !== "text") continue;
+      const leadPx = reducedMotion ? 0 : Math.max(0, p.cy - scrollY - TITLE_LOCK * vh) * PARALLAX;
+      p.par = leadPx * u;
+      p.outer.position.y = p.baseY + p.par;
+    }
+    conns.forEach((c, i) => {
+      const a = seq[i - 1];
+      const b = seq[i];
+      c.offA.value.set(0, a?.kind === "text" ? a.par : 0, 0);
+      c.offB.value.set(0, b?.kind === "text" ? b.par : 0, 0);
+    });
 
     // --- where the line should be: the intro by time, then the scroll
-    const ready = store.get().ready;
-    if (ready) s.introT += dt * (scrollY > 30 ? 5 : 1);
+    if (store.get().ready) s.introT += dt * (scrollY > 30 ? 5 : 1);
     const introG = reducedMotion
       ? 2
       : s.introT < INTRO_LEAD
         ? s.introT / INTRO_LEAD
         : 1 + Math.min(1, (s.introT - INTRO_LEAD) / INTRO_PRINT);
-    const last = stations.length - 1;
     let target = introG;
     if (introG >= 2) {
       target = 2 * last + 1;
-      for (let k = 1; k <= last; k++) {
-        const b = s.breaks[k];
-        const prevEnd = s.breaks[k - 1].end;
-        if (scrollY < b.start) {
-          target = 2 * k + THREE.MathUtils.clamp((scrollY - prevEnd) / Math.max(1, b.start - prevEnd), 0, 1);
+      for (let i = 1; i <= last; i++) {
+        const w = seq[i].win;
+        const prevEnd = seq[i - 1].win.end;
+        if (scrollY < w.start) {
+          target = 2 * i + THREE.MathUtils.clamp((scrollY - prevEnd) / Math.max(1, w.start - prevEnd), 0, 1);
           break;
         }
-        if (k < last && scrollY < b.end) {
-          target = 2 * k + 1 + (scrollY - b.start) / (b.end - b.start);
+        if (i < last && scrollY < w.end) {
+          target = 2 * i + 1 + (scrollY - w.start) / (w.end - w.start);
           break;
         }
       }
@@ -262,9 +363,9 @@ function Line() {
 
     // --- the live printer runs on its own clock once the line reaches it
     const liveIdx = 2 * last + 1;
+    const live = seq[last];
     let liveP = 0;
-    const live = stations[last];
-    if (G >= liveIdx - 1e-3) {
+    if (live && G >= liveIdx - 1e-3) {
       s.liveT += dt;
       const cycle = LIVE_PRINT + LIVE_HOLD;
       if (s.liveT > cycle) {
@@ -273,71 +374,77 @@ function Line() {
         const f = filaments[liveOrders[s.liveOrder].filament];
         live.filament = f;
         styleMaterial(live.mat, f);
-        paintConn(conns[last], stations[last - 1].filament.hex, f.hex);
+        paintConn(conns[last], seq[last - 1].filament.hex, f.hex);
       }
       liveP = reducedMotion ? 1 : Math.min(1, s.liveT / LIVE_PRINT);
       // when it's done it sinks into the plate, as if lifted off and shipped
       const out = THREE.MathUtils.smoothstep(s.liveT, cycle - 0.7, cycle);
       live.inner.scale.set(1, Math.max(0.001, 1 - out), 1);
-    } else {
+    } else if (live) {
       s.liveT = 0;
       live.inner.scale.set(1, 1, 1);
     }
     line.live.progress = liveP;
     line.live.order = s.liveOrder;
 
-    // --- draw: stations, connectors, numbers
+    // --- draw the prints, the connectors and the numbers
     const hover = store.get().hover;
     let meters = 0;
     let layers = 0;
-    stations.forEach((st, k) => {
-      const p = k === last ? liveP : THREE.MathUtils.clamp(G - (2 * k + 1), 0, 1);
-      st.strand.set(p, 0.32);
-      const gm = st.ghost.material as THREE.LineDashedMaterial;
-      gm.opacity = 0.3 * (1 - THREE.MathUtils.smoothstep(p, 0.02, 0.4));
-      st.ghost.visible = gm.opacity > 0.005;
-      const want = reducedMotion ? 0 : hover === st.id ? 1.1 : 0.12;
-      st.spinSpeed += (want - st.spinSpeed) * (1 - Math.exp(-dt * 4));
-      st.spin += st.spinSpeed * dt;
-      st.inner.rotation.y = st.spin;
-      line.progress.set(st.id, p);
-      if (k > 0 && k < last) {
-        meters += p * st.meters;
-        layers += p * st.realLayers;
+    seq.forEach((p, i) => {
+      const prog = i === last ? liveP : THREE.MathUtils.clamp(G - (2 * i + 1), 0, 1);
+      p.strand?.set(prog, p.kind === "text" ? p.fontPx * 0.9 : 0.32);
+      if (p.ghost) {
+        const gm = p.ghost.material as THREE.LineDashedMaterial;
+        gm.opacity = (p.kind === "text" ? 0.4 : 0.3) * (1 - THREE.MathUtils.smoothstep(prog, 0.02, p.kind === "text" ? 0.9 : 0.4));
+        p.ghost.visible = gm.opacity > 0.005;
+      }
+      if (p.kind === "cube") {
+        const want = reducedMotion ? 0 : hover === p.id ? 1.1 : 0.12;
+        p.spinSpeed += (want - p.spinSpeed) * (1 - Math.exp(-dt * 4));
+        p.spin += p.spinSpeed * dt;
+        p.inner.rotation.y = p.spin;
+      }
+      line.progress.set(p.id, prog);
+      if (p.kind === "cube" && p.product >= 0) {
+        meters += prog * p.meters;
+        layers += prog * p.realLayers;
       }
     });
-    conns.forEach((c, k) => {
-      const t = THREE.MathUtils.clamp(G - 2 * k, 0, 1);
+    conns.forEach((c, i) => {
+      const t = THREE.MathUtils.clamp(G - 2 * i, 0, 1);
       const segs = Math.floor(t * c.tubular);
       c.mesh.geometry.setDrawRange(0, segs * c.radial * 6);
-      c.mesh.visible = segs > 0;
+      c.mesh.visible = segs > 0 && i < seq.length;
     });
     line.meters = meters;
     line.layer = layers;
 
     // --- the nozzle rides the head of the line
+    if (!seq.length) return;
     const e = Math.min(Math.floor(G), liveIdx);
     const f = G - e;
     if (e % 2 === 1) {
-      const k = (e - 1) / 2;
-      const st = stations[k];
-      _a.copy(st.strand.head);
-      _a.y += st.strand.tp.h * 0.5;
-      st.inner.updateWorldMatrix(true, false);
-      st.inner.localToWorld(_a);
-      st.inner.getWorldQuaternion(_q);
-      nozzle.scale.setScalar(st.side * 0.5);
+      const p = seq[(e - 1) / 2];
+      printHead(p, _a, _q);
+      nozzle.scale.setScalar(nozzleSize(p));
     } else {
-      const k = e / 2;
-      const c = conns[k];
+      const i = e / 2;
+      const c = conns[i];
+      const b = seq[i];
+      const a = seq[i - 1];
+      const k = THREE.MathUtils.smoothstep(f, 0, 1);
       if (c.curve) c.curve.getPointAt(Math.min(1, f), _a);
-      stations[k].inner.getWorldQuaternion(_qb);
-      if (k > 0) {
-        stations[k - 1].inner.getWorldQuaternion(_qa);
+      _o.copy(c.offA.value).lerp(c.offB.value, k);
+      _a.add(_o);
+      if (b.kind === "text") _qb.copy(Q_WRITE);
+      else b.inner.getWorldQuaternion(_qb);
+      if (a) {
+        if (a.kind === "text") _qa.copy(Q_WRITE);
+        else a.inner.getWorldQuaternion(_qa);
         _q.slerpQuaternions(_qa, _qb, THREE.MathUtils.smoothstep(f, 0.1, 0.9));
       } else _q.copy(_qb);
-      const sideA = k > 0 ? stations[k - 1].side : stations[0].side;
-      nozzle.scale.setScalar(THREE.MathUtils.lerp(sideA, stations[k].side, f) * 0.5);
+      nozzle.scale.setScalar(THREE.MathUtils.lerp(a ? nozzleSize(a) : nozzleSize(b), nozzleSize(b), f));
     }
     nozzle.position.copy(_a);
     nozzle.quaternion.copy(_q);
@@ -350,43 +457,223 @@ function Line() {
   return <group ref={root} />;
 }
 
-// Re-route the connectors. The line leaves the top of each piece (on its spin axis, so it
-// stays attached while the piece turns), runs down the piece's outer side, crosses the gap
-// and feeds up into the bottom of the next piece.
-function route(stations: Station[], conns: Conn[], u: number, vw: number, vh: number) {
-  const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
-  stations.forEach((st, k) => {
-    if (!st.outer.visible) return;
-    const sB = st.side;
-    const b = st.outer.localToWorld(V(0, -0.5, 0));
-    const bUp = V(0, 1, 0).applyQuaternion(st.outer.quaternion);
-    const cB = st.outer.position;
-    const outB = Math.sign(cB.x) || (k % 2 ? 1 : -1);
-    let pts: THREE.Vector3[];
-    let sA = sB;
-    if (k === 0) {
-      // the lead-in drops in from above the top-right corner of the screen
-      pts = [V(vw * 0.6 * u, vh * 0.72 * u, -1), V(cB.x + outB * sB * 1.1, cB.y + sB * 0.4, sB * 0.4)];
+// Place every print on its DOM box, put them in page order, work out the scroll range each
+// one prints over, and route the line between them.
+function layout(prints: Print[], conns: Conn[], s: { seq: Print[] }, u: number, vw: number, vh: number) {
+  let titles = 0;
+  for (const p of prints) {
+    const box = boxes.get(p.anchor);
+    p.outer.visible = !!box;
+    if (!box) continue;
+    p.cy = box.cy;
+    if (p.kind === "cube") {
+      p.size = (box.w * u) / 1.95;
+      p.outer.position.set((box.cx - vw / 2) * u, -(box.cy - vh / 2) * u, 0);
+      p.outer.scale.setScalar(p.size);
     } else {
-      const prev = stations[k - 1];
-      sA = prev.side;
-      const a = prev.outer.localToWorld(V(0, 0.5, 0));
-      const aUp = V(0, 1, 0).applyQuaternion(prev.outer.quaternion);
-      const cA = prev.outer.position;
-      const outA = Math.sign(cA.x) || (k % 2 ? -1 : 1);
-      const yA = cA.y - sA * 1.0;
-      const yB = cB.y - sB * 1.0;
-      pts = [
-        a,
-        a.clone().addScaledVector(aUp, sA * 0.32).add(V(outA * sA * 0.22, 0, 0)),
-        V(cA.x + outA * sA * 0.92, cA.y - sA * 0.1, sA * 0.35),
-        V(cA.x + outA * sA * 0.55, yA, sA * 0.6),
-        V((cA.x + cB.x) * 0.25, (yA + yB) * 0.5, (sA + sB) * 0.45),
-      ];
+      if (buildText(p)) titles++;
+      p.size = (p.fontPx || box.h) * u;
+      p.baseY = -(box.cy - box.h / 2 - vh / 2) * u;
+      p.outer.position.set((box.cx - box.w / 2 - vw / 2) * u, p.baseY, 0);
+      p.outer.scale.setScalar(u);
     }
-    pts.push(V(cB.x - outB * sB * 0.15, cB.y - sB * 0.95, sB * 0.3), b.clone().addScaledVector(bUp, -sB * 0.12), b);
-    const radius = st.strand.tp.h * 0.62 * (sA + sB) * 0.5;
-    const from = k === 0 ? st.filament.hex : stations[k - 1].filament.hex;
-    shapeConn(conns[k], pts, radius, from, st.filament.hex);
+    p.outer.updateMatrixWorld(true);
+  }
+  // titles are drawn by the line now, so the DOM copy only stays for screen readers
+  document.documentElement.classList.toggle("gl-titles", titles === products.length);
+
+  // page order: the hero, then each product's name and piece (whichever comes first), then live
+  const hero = prints[0];
+  const live = prints[prints.length - 1];
+  const middle = prints.slice(1, -1);
+  const seq: Print[] = [hero];
+  for (let i = 0; i < products.length; i++) {
+    const pair = middle.filter((p) => p.product === i && p.outer.visible);
+    pair.sort((a, b) => a.cy - b.cy);
+    seq.push(...pair);
+  }
+  if (live.outer.visible) seq.push(live);
+  s.seq = seq;
+
+  // scroll ranges: titles finish as they lock in, pieces when they reach the middle
+  seq.forEach((p, i) => {
+    if (i === 0) return (p.win = { start: 0, end: 0 });
+    const f0 = p.kind === "text" ? 0.98 : 0.92;
+    const f1 = p.kind === "text" ? TITLE_LOCK : 0.5;
+    const prev = seq[i - 1].win;
+    const link = seq[i - 1].product === p.product && p.product >= 0;
+    const start = Math.max(p.cy - f0 * vh, prev.end + vh * (link ? 0.03 : 0.12));
+    const end = Math.max(p.cy - f1 * vh, start + vh * (p.kind === "text" ? 0.16 : 0.22));
+    p.win = { start, end };
   });
+
+  seq.forEach((p, i) => route(conns[i], seq[i - 1], p, u, vw, vh));
+  if (import.meta.env.DEV) (window as unknown as { __seq: unknown }).__seq = seq.map((p) => ({ id: p.id, ...p.win }));
+  for (let i = seq.length; i < conns.length; i++) conns[i].mesh.visible = false;
+}
+
+const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+
+// One connector, from the end of print `a` (or from off-screen) to the start of print `b`.
+function route(c: Conn, a: Print | undefined, b: Print, u: number, vw: number, vh: number) {
+  const pts: THREE.Vector3[] = [];
+  const sB = b.size;
+  const sA = a ? a.size : sB;
+  const avg = (sA + sB) / 2;
+
+  // --- leave print a
+  const style: Route = !a ? "lead" : b.product < 0 ? "eight" : a.product === b.product ? LINKS[b.product % LINKS.length] : ROUTES[b.product % ROUTES.length];
+  if (!a) {
+    pts.push(V(vw * 0.6 * u, vh * 0.72 * u, -1));
+  } else if (a.kind === "cube") {
+    const top = a.outer.localToWorld(V(0, 0.5, 0));
+    const up = V(0, 1, 0).applyQuaternion(a.outer.quaternion);
+    pts.push(top, top.clone().addScaledVector(up, sA * 0.32));
+  } else {
+    let end: THREE.Vector3;
+    if (a.strand) {
+      const tp = a.strand.tp;
+      const o = tp.count * 6 - 3;
+      end = a.inner.localToWorld(V(tp.seg[o], tp.h / 2, tp.seg[o + 2]));
+    } else end = a.outer.position.clone();
+    pts.push(end, end.clone().add(V(sA * 0.25, sA * 0.15, sA * 0.6)));
+  }
+
+  // --- arrive at print b
+  const tail: THREE.Vector3[] = [];
+  let entry: THREE.Vector3;
+  if (b.kind === "cube") {
+    entry = b.outer.localToWorld(V(0, -0.5, 0));
+    const up = V(0, 1, 0).applyQuaternion(b.outer.quaternion);
+    const centre = b.outer.position.clone();
+    const from = pts[pts.length - 1];
+    const side = Math.sign(from.x - centre.x) || 1;
+    tail.push(
+      centre.clone().add(V(side * sB * 0.95, 0, sB * 0.3)),
+      entry.clone().addScaledVector(up, -sB * 0.5).add(V(side * sB * 0.2, 0, 0)),
+      entry.clone().addScaledVector(up, -sB * 0.1),
+      entry,
+    );
+  } else {
+    if (!b.strand) {
+      entry = b.outer.position.clone();
+    } else {
+      const tp = b.strand.tp;
+      entry = b.inner.localToWorld(V(tp.seg[0], tp.h / 2, tp.seg[2]));
+    }
+    tail.push(entry.clone().add(V(-sB * 0.3, sB * 0.25, sB * 0.7)), entry.clone().add(V(0, 0, sB * 0.1)), entry);
+  }
+
+  // --- the run in between, a different shape each time
+  const M0 = pts[pts.length - 1];
+  const M1 = tail[0];
+  const axis = M1.clone().sub(M0);
+  const across = new THREE.Vector3().crossVectors(axis, V(0, 0, 1)).normalize();
+  if (across.lengthSq() < 0.5) across.set(1, 0, 0);
+  const Z = V(0, 0, 1);
+  const along = (t: number) => M0.clone().lerp(M1, t);
+  const mid = along(0.5);
+  const out = Math.sign(M0.x) || 1;
+  switch (style) {
+    case "lead":
+      pts.push(V(entry.x + sB * 1.4 * (Math.sign(entry.x) || 1), entry.y + sB * 0.5, sB * 0.4));
+      break;
+    case "swing": { // a long lazy S, swinging out past the page's edges and back
+      const L = M0.distanceTo(M1);
+      pts.push(
+        M0.clone().add(V(out * avg * 1.1, -L * 0.12, avg * 0.3)),
+        along(0.45).add(V(-out * avg * 2.4, 0, avg * 1.1)),
+        along(0.78).add(V(out * avg * 1.2, 0, avg * 0.5)),
+      );
+      break;
+    }
+    case "coil": { // a spring wound round the path, tipped towards us so every turn reads as a loop
+      const dir = axis.clone().normalize();
+      for (let k = 1; k < 140; k++) {
+        const t = k / 140;
+        const r = avg * 0.5 * Math.min(1, Math.sin(Math.PI * t) * 2.5);
+        const a2 = Math.PI * 2 * 6 * t;
+        pts.push(
+          along(t)
+            .addScaledVector(across, Math.cos(a2) * r)
+            .addScaledVector(dir, Math.sin(a2) * r * 0.7)
+            .addScaledVector(Z, Math.sin(a2) * r * 0.7 + avg * 0.4 * Math.sin(Math.PI * t)),
+        );
+      }
+      break;
+    }
+    case "loop": { // one big loop-the-loop, passing in front of itself
+      const r = avg * 0.62;
+      const C = mid.clone().add(V(0, r * 0.4, avg * 0.5));
+      const bottom = C.clone().add(V(0, -r, 0));
+      pts.push(along(0.28).add(V(0, 0, avg * 0.25)), bottom.clone().add(V(-r * 0.9, r * 0.1, 0)));
+      for (let k = 0; k <= 24; k++) {
+        const th = -Math.PI / 2 + (Math.PI * 2 * k) / 24;
+        pts.push(C.clone().add(V(Math.cos(th) * r, Math.sin(th) * r, (k / 24) * avg * 0.7)));
+      }
+      pts.push(bottom.clone().add(V(r * 0.9, r * 0.1, avg * 0.7)), along(0.78).add(V(0, 0, avg * 0.3)));
+      break;
+    }
+    case "zigzag": { // square steps side to side, like a printer's travel moves
+      const steps = 4;
+      const xl = mid.x - avg * 1.3;
+      const xr = mid.x + avg * 1.3;
+      const e = avg * 0.05; // a whisker of rounding at each corner
+      let x = out > 0 ? xr : xl;
+      pts.push(V(x, M0.y - e, avg * 0.3));
+      for (let k = 1; k <= steps; k++) {
+        const y = M0.y + (M1.y - M0.y) * (k / (steps + 1));
+        pts.push(V(x, y + e, avg * 0.3), V(x + (x === xr ? -e : e), y, avg * 0.3));
+        x = x === xr ? xl : xr;
+        pts.push(V(x + (x === xr ? -e : e), y, avg * 0.3), V(x, y - e, avg * 0.3));
+      }
+      break;
+    }
+    case "wave": // a sine wave down the gap
+      for (let k = 1; k < 90; k++) {
+        const t = k / 90;
+        pts.push(
+          along(t)
+            .addScaledVector(across, Math.sin(Math.PI * 2 * 4 * t) * avg * 1.05 * Math.min(1, Math.sin(Math.PI * t) * 2))
+            .add(V(0, 0, avg * 0.5 * Math.sin(Math.PI * t))),
+        );
+      }
+      break;
+    case "swoop": // a big arc out towards the camera and back
+      pts.push(along(0.15).add(V(-out * avg * 2.2, avg * 0.3, avg * 2)), along(0.5).add(V(out * avg * 1.4, 0, 9)), along(0.85).add(V(-out * avg * 0.4, 0, avg * 1.6)));
+      break;
+    case "eight": { // a figure of eight, crossing in front of itself
+      const a2 = avg * 0.75;
+      const C = mid.clone().add(V(0, 0, avg * 0.6));
+      pts.push(along(0.25));
+      for (let k = 0; k <= 32; k++) {
+        const th = (Math.PI * 2 * k) / 32;
+        pts.push(C.clone().add(V(Math.sin(th) * a2, Math.sin(th) * Math.cos(th) * a2 * 1.3, Math.cos(th) * avg * 0.45)));
+      }
+      pts.push(along(0.75));
+      break;
+    }
+    case "curl": // a little pigtail curl between a name and its piece
+      for (let k = 1; k < 28; k++) {
+        const t = k / 28;
+        const r = avg * 0.16 * Math.sin(Math.PI * t);
+        const a2 = Math.PI * 2 * 1.5 * t;
+        pts.push(along(t).addScaledVector(across, Math.cos(a2) * r).addScaledVector(Z, Math.sin(a2) * r + avg * 0.25));
+      }
+      break;
+    case "hop": // up and over
+      pts.push(mid.clone().add(V(0, avg * 0.6, avg * 0.5)));
+      break;
+    case "drop": // a sagging hang, like slack filament
+      pts.push(mid.clone().add(V(0, -avg * 0.7, avg * 0.3)));
+      break;
+  }
+
+  pts.push(...tail);
+  // drop points that land on top of each other; the curve can't handle zero-length steps
+  const clean = pts.filter((p, k) => k === 0 || p.distanceToSquared(pts[k - 1]) > 1e-8);
+  const beadA = a?.strand ? a.strand.tp.h * (a.kind === "text" ? u : a.size) : 0;
+  const beadB = b.strand ? b.strand.tp.h * (b.kind === "text" ? u : b.size) : 0;
+  const radius = 0.62 * (a ? (beadA + beadB) / 2 : beadB);
+  shapeConn(c, clean, Math.max(radius, 0.01), a ? a.filament.hex : b.filament.hex, b.filament.hex, avg);
 }

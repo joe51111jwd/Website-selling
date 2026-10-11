@@ -18,10 +18,13 @@ export default function Piece({ product: p, index }: { product: Product; index: 
     () =>
       everyFrame(() => {
         const prog = line.progress.get(p.slug) ?? 0;
+        const name = line.progress.get(`t:${p.slug}`) ?? 0;
         if (metres.current) metres.current.textContent = (prog * s.lineM).toFixed(prog < 1 ? 1 : 0);
         if (layers.current) layers.current.textContent = String(Math.round(prog * s.layers));
         root.current?.classList.toggle("is-printed", prog >= 1);
         root.current?.classList.toggle("is-printing", prog > 0 && prog < 1);
+        // the rest of the text comes in once the nozzle has written the name
+        root.current?.classList.toggle("is-named", name >= 0.999);
       }),
     [p.slug, s.lineM, s.layers],
   );
@@ -49,7 +52,9 @@ export default function Piece({ product: p, index }: { product: Product; index: 
           <span className="piece__rule" />
           <span>{infillName[p.spec.infill]} {p.infillPct}% · {p.spec.walls} walls</span>
         </p>
-        <h2 className="piece__name" id={`${p.slug}-name`}>{p.name}</h2>
+        <h2 className="piece__name" id={`${p.slug}-name`} data-station={`t:${p.slug}`}>
+          {p.name}
+        </h2>
         <p className="piece__line">{p.line}</p>
         <dl className="piece__stats mono">
           <div>
