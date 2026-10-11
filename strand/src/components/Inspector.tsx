@@ -34,7 +34,9 @@ export default function Inspector({ slug }: { slug: string }) {
     print.current.printId++;
   }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const f = filaments[filamentId] ?? filaments.bone;
+  // until the reset effect runs, never show a filament the new piece doesn't come in
+  const fId = product?.filaments.includes(filamentId) ? filamentId : (product?.filaments[0] ?? "bone");
+  const f = filaments[fId];
   const size = sizes.find((s) => s.id === sizeId)!;
   const s = product ? stats(product, size.mm, f) : null;
 
@@ -68,7 +70,7 @@ export default function Inspector({ slug }: { slug: string }) {
   };
 
   const pick = (id: string) => {
-    if (id === filamentId) return;
+    if (id === fId) return;
     setFilamentId(id);
     if (filaments[id].finish !== "glow") setLightsOff(false);
     print.current.speed = 0.62;
@@ -195,10 +197,10 @@ export default function Inspector({ slug }: { slug: string }) {
               return (
                 <button
                   key={id}
-                  className={`spool${id === filamentId ? " is-on" : ""}`}
+                  className={`spool${id === fId ? " is-on" : ""}`}
                   style={{ ["--c" as string]: fl.hex }}
                   onClick={() => pick(id)}
-                  aria-pressed={id === filamentId}
+                  aria-pressed={id === fId}
                   aria-label={`${fl.name}, ${fl.material}`}
                 >
                   <span className="spool__reel" aria-hidden="true" />
@@ -232,7 +234,7 @@ export default function Inspector({ slug }: { slug: string }) {
           <button
             className="btn btn--big"
             onClick={() => {
-              addToQueue({ slug: product.slug, filament: filamentId, size: sizeId }, false);
+              addToQueue({ slug: product.slug, filament: fId, size: sizeId }, false);
               setQueued(true);
             }}
           >

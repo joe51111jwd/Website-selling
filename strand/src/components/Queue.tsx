@@ -40,7 +40,12 @@ export default function Queue() {
           <ul className="queue__list">
             {rows.map(({ q, p, f, size, price, min }) => (
               <li key={q.id} className="queue__item">
-                <span className="queue__cube" style={{ ["--c" as string]: f.hex }} aria-hidden="true"><i /><i /><i /></span>
+                <svg className="queue__cube" viewBox="0 0 40 44" style={{ ["--c" as string]: f.hex }} aria-hidden="true">
+                  <path className="t" d="M20 4 36 13 20 22 4 13Z" />
+                  <path className="l" d="M4 13 20 22V40L4 31Z" />
+                  <path className="r" d="M36 13 20 22V40L36 31Z" />
+                  <path className="ln" d="M4 19l16 9 16-9M4 25l16 9 16-9" />
+                </svg>
                 <span className="queue__what">
                   <b>No. {p.no} {p.name}</b>
                   <span className="mono">{f.name} {f.material} · {size.id} {size.mm} mm · {fmtTime(min)}</span>

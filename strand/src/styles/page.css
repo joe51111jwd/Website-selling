@@ -1024,46 +1024,17 @@ main,
   color: var(--ink);
 }
 
-/* a tiny isometric cube in the filament colour */
+/* a tiny isometric cube in the filament colour, with a hint of layer lines */
 .queue__cube {
   grid-area: cube;
-  position: relative;
   width: 40px;
-  height: 40px;
+  height: 44px;
 }
 
-.queue__cube i {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  left: 10px;
-  top: 10px;
-  background: var(--c);
-}
-
-.queue__cube i:nth-child(1) {
-  transform: rotate(-30deg) skewX(30deg) scaleY(0.864) translate(0, -11px);
-  filter: brightness(1.12);
-  transform-origin: center;
-  top: 2px;
-  left: 10px;
-}
-
-.queue__cube i:nth-child(2) {
-  transform: skewY(30deg);
-  left: 1px;
-  top: 16px;
-  width: 19px;
-  filter: brightness(0.92);
-}
-
-.queue__cube i:nth-child(3) {
-  transform: skewY(-30deg);
-  left: 20px;
-  top: 16px;
-  width: 19px;
-  filter: brightness(0.78);
-}
+.queue__cube .t { fill: color-mix(in oklab, var(--c), white 22%); }
+.queue__cube .l { fill: var(--c); }
+.queue__cube .r { fill: color-mix(in oklab, var(--c), black 22%); }
+.queue__cube .ln { fill: none; stroke: rgba(0, 0, 0, 0.12); stroke-width: 0.8; }
 
 .queue__foot {
   padding: 20px 24px 24px;
