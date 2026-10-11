@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer } from "@react-three/drei";
 import { cubeToolpath, type CubeSpec } from "../lib/toolpath";
-import { textKey, textToolpath } from "../lib/textpath";
+import { textKey, textToolpath, type TextOpts } from "../lib/textpath";
 import { filaments, heroSpec, liveOrders, liveSpec, products, sizes, stats, type Filament } from "../content/catalog";
 import { boxes, layoutVersion } from "../lib/layout";
 import { lenis, markDriven, reducedMotion } from "../lib/scroll";
@@ -23,8 +23,8 @@ import { makeNozzle, setNozzleHeat } from "./nozzle";
 const CAM_Z = 20;
 const FOV = 30;
 const TILT = 0.42;
-const INTRO_LEAD = 1.1;
-const INTRO_PRINT = 4.6;
+const INTRO_LEAD = 0.9; // seconds for the line to drop in
+const INTRO_CUBE = 4.2; // seconds to print the hero piece
 const LIVE_PRINT = 13;
 const LIVE_HOLD = 3.2;
 const PARALLAX = 0.42; // how far ahead of the page a title drifts in before it locks into place
@@ -35,12 +35,14 @@ const INK: Filament = { ...filaments.graphite, id: "ink", hex: "#151515" };
 // Route shapes for the runs between products, in order down the page, and for the short hop
 // from a product's name to its piece.
 const ROUTES = ["swing", "coil", "loop", "zigzag", "wave", "swoop", "eight"] as const;
-const LINKS = ["curl", "hop", "drop"] as const;
-type Route = (typeof ROUTES)[number] | (typeof LINKS)[number] | "lead";
+const LINKS = ["curl", "drop", "curl"] as const;
+type Route = (typeof ROUTES)[number] | (typeof LINKS)[number] | "lead" | "hop";
 
 type Print = {
   id: string; // key in line.progress
   kind: "cube" | "text";
+  intro: boolean; // printed on a clock as the page opens (the headline and the hero piece)
+  text: TextOpts | null; // how a text print is laid down
   product: number; // index into products, or -1 for the hero and the live printer
   anchor: string; // data-station of the DOM box it sits on
   outer: THREE.Group;
@@ -69,6 +71,7 @@ type Conn = {
   radial: number;
   offA: { value: THREE.Vector3 };
   offB: { value: THREE.Vector3 };
+  travel: boolean; // a travel move: the nozzle moves without laying a line (between headline rows)
 };
 
 export default function World() {
@@ -125,20 +128,20 @@ function cubePrint(id: string, anchor: string, product: number, spec: CubeSpec, 
   outer.rotation.set(TILT, 0.72, 0);
   const s = stats({ infillPct, spec }, sizes[1].mm, f);
   return {
-    id, kind: "cube", product, anchor, outer, inner, strand, mat, ghost, filament: f, size: 1, fontPx: 0, spin: 0, spinSpeed: 0.1,
+    id, kind: "cube", intro: id === "hero", text: null, product, anchor, outer, inner, strand, mat, ghost, filament: f, size: 1, fontPx: 0, spin: 0, spinSpeed: 0.1,
     meters: s.lineM, realLayers: s.layers, key: "", baseY: 0, par: 0, cy: 0, win: { start: 0, end: 0 },
   };
 }
 
-function textPrint(slug: string, product: number): Print {
+function textPrint(id: string, product: number, f: Filament, text: TextOpts, intro = false): Print {
   const outer = new THREE.Group();
   const inner = new THREE.Group();
   outer.add(inner);
   // the word is printed flat on a bed that faces the camera: bed x -> right, bed z -> down, up -> towards us
   outer.rotation.x = Math.PI / 2;
   return {
-    id: `t:${slug}`, kind: "text", product, anchor: `t:${slug}`, outer, inner, strand: null, mat: filamentMaterial(INK),
-    ghost: null, filament: INK, size: 1, fontPx: 0, spin: 0, spinSpeed: 0, meters: 0, realLayers: 0, key: "", baseY: 0, par: 0, cy: 0,
+    id, kind: "text", intro, text, product, anchor: id, outer, inner, strand: null, mat: filamentMaterial(f),
+    ghost: null, filament: f, size: 1, fontPx: 0, spin: 0, spinSpeed: 0, meters: 0, realLayers: 0, key: "", baseY: 0, par: 0, cy: 0,
     win: { start: 0, end: 0 },
   };
 }
@@ -147,8 +150,8 @@ function textPrint(slug: string, product: number): Print {
 function buildText(p: Print) {
   const el = document.querySelector<HTMLElement>(`[data-station="${p.anchor}"]`);
   if (!el) return false;
-  if (p.strand && textKey(el) === p.key) return true;
-  const built = textToolpath(el);
+  if (p.strand && textKey(el, p.text!) === p.key) return true;
+  const built = textToolpath(el, p.text!);
   if (!built) return false;
   p.key = built.key;
   if (p.strand) {
@@ -191,7 +194,7 @@ function buildConn(): Conn {
   const { m, offA, offB } = connMaterial();
   const mesh = new THREE.Mesh(new THREE.BufferGeometry(), m);
   mesh.frustumCulled = false;
-  return { mesh, curve: null, tubular: 220, radial: 6, offA, offB };
+  return { mesh, curve: null, tubular: 220, radial: 6, offA, offB, travel: false };
 }
 
 const _a = new THREE.Vector3();
@@ -260,9 +263,18 @@ function Line() {
   const root = useRef<THREE.Group>(null);
 
   const scene = useMemo(() => {
-    const prints: Print[] = [cubePrint("hero", "hero", -1, heroSpec, filaments.signal, 15)];
+    // the headline is drawn as outlines, a single strand round every letter; "line." in orange
+    const outline: TextOpts = { perimeters: 1, infill: "none", bead: 0.034 };
+    const prints: Print[] = [
+      textPrint("h:1", -1, INK, outline, true),
+      textPrint("h:2", -1, INK, outline, true),
+      textPrint("h:3", -1, INK, outline, true),
+      textPrint("h:4", -1, filaments.signal, outline, true),
+      cubePrint("hero", "hero", -1, heroSpec, filaments.signal, 15),
+    ];
+    // product names: one layer, a perimeter and the product's own infill pattern inside
     products.forEach((p, i) => {
-      prints.push(textPrint(p.slug, i));
+      prints.push(textPrint(`t:${p.slug}`, i, INK, { perimeters: 1, infill: p.spec.infill, bead: 0.022 }));
       prints.push(cubePrint(p.slug, p.slug, i, p.spec, filaments[p.filaments[0]], p.infillPct));
     });
     prints.push(cubePrint("live", "live", -1, liveSpec, filaments[liveOrders[0].filament], 20));
@@ -295,6 +307,8 @@ function Line() {
     liveOrder: 0,
     heat: 0,
     seq: [] as Print[],
+    introN: 0, // how many prints run on the opening clock
+    introDur: [] as number[], // seconds for each element of the opening (connector, print, ...)
     u: 1,
   });
 
@@ -320,7 +334,7 @@ function Line() {
 
     // titles drift in ahead of the page, more slowly than it scrolls, until they lock into place
     for (const p of seq) {
-      if (p.kind !== "text") continue;
+      if (p.kind !== "text" || p.intro) continue;
       const leadPx = reducedMotion ? 0 : Math.max(0, p.cy - scrollY - TITLE_LOCK * vh) * PARALLAX;
       p.par = leadPx * u;
       p.outer.position.y = p.baseY + p.par;
@@ -334,15 +348,22 @@ function Line() {
 
     // --- where the line should be: the intro by time, then the scroll
     if (store.get().ready) s.introT += dt * (scrollY > 30 ? 5 : 1);
-    const introG = reducedMotion
-      ? 2
-      : s.introT < INTRO_LEAD
-        ? s.introT / INTRO_LEAD
-        : 1 + Math.min(1, (s.introT - INTRO_LEAD) / INTRO_PRINT);
+    const K = s.introN;
+    let introG = 2 * K;
+    if (!reducedMotion) {
+      let t = s.introT;
+      for (let e = 0; e < s.introDur.length; e++) {
+        if (t < s.introDur[e]) {
+          introG = e + t / s.introDur[e];
+          break;
+        }
+        t -= s.introDur[e];
+      }
+    }
     let target = introG;
-    if (introG >= 2) {
+    if (introG >= 2 * K) {
       target = 2 * last + 1;
-      for (let i = 1; i <= last; i++) {
+      for (let i = K; i <= last; i++) {
         const w = seq[i].win;
         const prevEnd = seq[i - 1].win.end;
         if (scrollY < w.start) {
@@ -354,7 +375,7 @@ function Line() {
           break;
         }
       }
-      target = Math.max(2, target);
+      target = Math.max(2 * K, target);
     }
     const prevG = s.G;
     s.G = reducedMotion ? target : s.G + (target - s.G) * (1 - Math.exp(-dt * 6.5));
@@ -415,7 +436,7 @@ function Line() {
       const t = THREE.MathUtils.clamp(G - 2 * i, 0, 1);
       const segs = Math.floor(t * c.tubular);
       c.mesh.geometry.setDrawRange(0, segs * c.radial * 6);
-      c.mesh.visible = segs > 0 && i < seq.length;
+      c.mesh.visible = segs > 0 && i < seq.length && !c.travel;
     });
     line.meters = meters;
     line.layer = layers;
@@ -459,8 +480,16 @@ function Line() {
 
 // Place every print on its DOM box, put them in page order, work out the scroll range each
 // one prints over, and route the line between them.
-function layout(prints: Print[], conns: Conn[], s: { seq: Print[] }, u: number, vw: number, vh: number) {
-  let titles = 0;
+function layout(
+  prints: Print[],
+  conns: Conn[],
+  s: { seq: Print[]; introN: number; introDur: number[] },
+  u: number,
+  vw: number,
+  vh: number,
+) {
+  let built = 0;
+  const texts = prints.filter((p) => p.kind === "text");
   for (const p of prints) {
     const box = boxes.get(p.anchor);
     p.outer.visible = !!box;
@@ -471,7 +500,7 @@ function layout(prints: Print[], conns: Conn[], s: { seq: Print[] }, u: number, 
       p.outer.position.set((box.cx - vw / 2) * u, -(box.cy - vh / 2) * u, 0);
       p.outer.scale.setScalar(p.size);
     } else {
-      if (buildText(p)) titles++;
+      if (buildText(p)) built++;
       p.size = (p.fontPx || box.h) * u;
       p.baseY = -(box.cy - box.h / 2 - vh / 2) * u;
       p.outer.position.set((box.cx - box.w / 2 - vw / 2) * u, p.baseY, 0);
@@ -479,25 +508,35 @@ function layout(prints: Print[], conns: Conn[], s: { seq: Print[] }, u: number, 
     }
     p.outer.updateMatrixWorld(true);
   }
-  // titles are drawn by the line now, so the DOM copy only stays for screen readers
-  document.documentElement.classList.toggle("gl-titles", titles === products.length);
+  // the headline and names are drawn by the line now; the DOM copy stays for screen readers
+  document.documentElement.classList.toggle("gl-titles", built === texts.length);
 
-  // page order: the hero, then each product's name and piece (whichever comes first), then live
-  const hero = prints[0];
-  const live = prints[prints.length - 1];
-  const middle = prints.slice(1, -1);
-  const seq: Print[] = [hero];
+  // order: the opening (headline, then the hero piece), each product's name and piece in page
+  // order, then the live printer
+  const seq: Print[] = prints.filter((p) => p.intro && p.outer.visible);
+  const introN = seq.length;
   for (let i = 0; i < products.length; i++) {
-    const pair = middle.filter((p) => p.product === i && p.outer.visible);
+    const pair = prints.filter((p) => p.product === i && p.outer.visible);
     pair.sort((a, b) => a.cy - b.cy);
     seq.push(...pair);
   }
+  const live = prints[prints.length - 1];
   if (live.outer.visible) seq.push(live);
   s.seq = seq;
+  s.introN = introN;
 
-  // scroll ranges: titles finish as they lock in, pieces when they reach the middle
+  // the opening runs on a clock: a beat to drop in, each line of the headline written at a steady
+  // speed with a quick return between lines, then the hero piece
+  s.introDur = [];
+  for (let i = 0; i < introN; i++) {
+    const p = seq[i];
+    s.introDur.push(i === 0 ? INTRO_LEAD : p.kind === "cube" ? 0.7 : 0.32);
+    s.introDur.push(p.kind === "cube" ? INTRO_CUBE : THREE.MathUtils.clamp((p.strand?.tp.length ?? 600) / 1100, 0.6, 2.2));
+  }
+
+  // scroll ranges: names finish as they lock in, pieces when they reach the middle
   seq.forEach((p, i) => {
-    if (i === 0) return (p.win = { start: 0, end: 0 });
+    if (i < introN) return (p.win = { start: 0, end: 0 });
     const f0 = p.kind === "text" ? 0.98 : 0.92;
     const f1 = p.kind === "text" ? TITLE_LOCK : 0.5;
     const prev = seq[i - 1].win;
@@ -507,7 +546,8 @@ function layout(prints: Print[], conns: Conn[], s: { seq: Print[] }, u: number, 
     p.win = { start, end };
   });
 
-  seq.forEach((p, i) => route(conns[i], seq[i - 1], p, u, vw, vh));
+  const cubes = prints.filter((p) => p.kind === "cube" && p.outer.visible);
+  seq.forEach((p, i) => route(conns[i], seq[i - 1], p, cubes, u, vw, vh));
   if (import.meta.env.DEV) (window as unknown as { __seq: unknown }).__seq = seq.map((p) => ({ id: p.id, ...p.win }));
   for (let i = seq.length; i < conns.length; i++) conns[i].mesh.visible = false;
 }
@@ -515,14 +555,23 @@ function layout(prints: Print[], conns: Conn[], s: { seq: Print[] }, u: number, 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
 // One connector, from the end of print `a` (or from off-screen) to the start of print `b`.
-function route(c: Conn, a: Print | undefined, b: Print, u: number, vw: number, vh: number) {
+function route(c: Conn, a: Print | undefined, b: Print, cubes: Print[], u: number, vw: number, vh: number) {
   const pts: THREE.Vector3[] = [];
   const sB = b.size;
   const sA = a ? a.size : sB;
   const avg = (sA + sB) / 2;
 
   // --- leave print a
-  const style: Route = !a ? "lead" : b.product < 0 ? "eight" : a.product === b.product ? LINKS[b.product % LINKS.length] : ROUTES[b.product % ROUTES.length];
+  const style: Route = !a
+    ? "lead"
+    : b.id === "live"
+      ? "eight"
+      : b.intro
+        ? b.kind === "cube" ? "drop" : "hop" // between the headline's lines, and on to the hero piece
+        : a.product === b.product
+          ? LINKS[b.product % LINKS.length]
+          : ROUTES[b.product % ROUTES.length];
+  const exitN = a ? 2 : 1;
   if (!a) {
     pts.push(V(vw * 0.6 * u, vh * 0.72 * u, -1));
   } else if (a.kind === "cube") {
@@ -536,8 +585,10 @@ function route(c: Conn, a: Print | undefined, b: Print, u: number, vw: number, v
       const o = tp.count * 6 - 3;
       end = a.inner.localToWorld(V(tp.seg[o], tp.h / 2, tp.seg[o + 2]));
     } else end = a.outer.position.clone();
-    pts.push(end, end.clone().add(V(sA * 0.25, sA * 0.15, sA * 0.6)));
+    // leave a word downwards and forwards, so the line never crosses back over it
+    pts.push(end, end.clone().add(V(sA * 0.2, -sA * 0.35, sA * 0.5)));
   }
+  c.travel = !!a && a.intro && b.intro && a.kind === "text" && b.kind === "text";
 
   // --- arrive at print b
   const tail: THREE.Vector3[] = [];
@@ -576,7 +627,7 @@ function route(c: Conn, a: Print | undefined, b: Print, u: number, vw: number, v
   const out = Math.sign(M0.x) || 1;
   switch (style) {
     case "lead":
-      pts.push(V(entry.x + sB * 1.4 * (Math.sign(entry.x) || 1), entry.y + sB * 0.5, sB * 0.4));
+      pts.push(V(entry.x + sB * 0.8, entry.y + sB * 1.3, sB * 0.4));
       break;
     case "swing": { // a long lazy S, swinging out past the page's edges and back
       const L = M0.distanceTo(M1);
@@ -669,6 +720,36 @@ function route(c: Conn, a: Print | undefined, b: Print, u: number, vw: number, v
       break;
   }
 
+  // out of a word, stay below its baseline until clear of it
+  if (a?.kind === "text" && !c.travel) {
+    const below = a.outer.position.y - a.size * 1.05 - sA * 0.12;
+    for (const p of pts.slice(exitN)) p.y = Math.min(p.y, below);
+  }
+
+  // keep the run in front of every piece it passes, so it never cuts through a model: push the
+  // middle of the route forward past the nearest face, stepping out towards us as it leaves
+  const middle = pts.slice(exitN);
+  if (middle.length) {
+    const all = [...pts, ...tail];
+    const minX = Math.min(...all.map((p) => p.x));
+    const maxX = Math.max(...all.map((p) => p.x));
+    const minY = Math.min(...all.map((p) => p.y));
+    const maxY = Math.max(...all.map((p) => p.y));
+    let floor = -Infinity;
+    for (const cb of cubes) {
+      const P = cb.outer.position;
+      if (P.x + cb.size < minX || P.x - cb.size > maxX || P.y + cb.size < minY || P.y - cb.size > maxY) continue;
+      floor = Math.max(floor, P.z + cb.size * 0.9);
+    }
+    if (floor > -Infinity) {
+      const dz = Math.max(0, floor + avg * 0.12 - Math.min(...middle.map((p) => p.z)));
+      if (dz > 0) {
+        for (const p of middle) p.z += dz;
+        const lift = pts[exitN - 1];
+        pts.splice(exitN, 0, lift.clone().add(V(0, a?.kind === "cube" ? sA * 0.12 : 0, dz * 0.85)));
+      }
+    }
+  }
   pts.push(...tail);
   // drop points that land on top of each other; the curve can't handle zero-length steps
   const clean = pts.filter((p, k) => k === 0 || p.distanceToSquared(pts[k - 1]) > 1e-8);

@@ -1,10 +1,17 @@
 import type { Toolpath } from "./toolpath";
 
 // Turns a line of DOM text into a print: the toolpath a slicer would make for that word cut
-// out of a flat sheet. Letter by letter, two perimeters run just inside the outline, then a
-// 45° solid infill fills what's left, so the nozzle looks like it's writing the word.
+// out of a flat sheet, one layer thick. Letter by letter: perimeters just inside the outline,
+// then (optionally) an infill pattern inside them, so the nozzle looks like it's writing.
 //
 // Coordinates are CSS pixels from the element's top-left: x right, z down, y up off the bed.
+
+export type TextInfill = "none" | "grid" | "triangles" | "honeycomb" | "gyroid";
+export type TextOpts = {
+  perimeters: number;
+  infill: TextInfill;
+  bead: number; // bead width as a fraction of the font size
+};
 
 export type TextPrint = {
   tp: Toolpath;
@@ -26,23 +33,24 @@ const STRETCH: Record<string, string> = {
   "150%": "extra-expanded",
 };
 
-// What a title's toolpath depends on; when this is unchanged there's nothing to rebuild.
-export function textKey(el: HTMLElement) {
+// What a print depends on; when this is unchanged there's nothing to rebuild.
+export function textKey(el: HTMLElement, o: TextOpts) {
   const cs = getComputedStyle(el);
-  return `${(el.textContent ?? "").trim()}|${cs.fontFamily}|${cs.fontWeight}|${cs.fontStretch}|${cs.fontSize}|${Math.round(el.getBoundingClientRect().width)}`;
+  return `${(el.textContent ?? "").trim()}|${cs.fontFamily}|${cs.fontWeight}|${cs.fontStretch}|${cs.fontSize}|${Math.round(el.getBoundingClientRect().width)}|${o.perimeters}|${o.infill}|${o.bead}`;
 }
 
-export function textToolpath(el: HTMLElement): TextPrint | null {
+export function textToolpath(el: HTMLElement, o: TextOpts): TextPrint | null {
   const text = (el.textContent ?? "").trim();
   if (!text) return null;
   const cs = getComputedStyle(el);
   const fontPx = parseFloat(cs.fontSize);
   const rect = el.getBoundingClientRect();
-  const key = textKey(el);
+  const key = textKey(el, o);
 
   const R = fontPx < 90 ? 2 : 1.5; // canvas pixels per CSS pixel
   const pad = Math.ceil(fontPx * 0.2);
-  const lineH = parseFloat(cs.lineHeight) || rect.height || fontPx;
+  // an inline element's box is its glyphs' ascent to descent; a block's is its line box
+  const lineH = cs.display === "inline" ? rect.height : parseFloat(cs.lineHeight) || rect.height || fontPx;
   const c = document.createElement("canvas");
   const ctx = c.getContext("2d", { willReadFrequently: true });
   if (!ctx) return null;
@@ -77,13 +85,15 @@ export function textToolpath(el: HTMLElement): TextPrint | null {
   const d = distanceField(alpha, gw, gh);
   for (let i = 0; i < d.length; i++) d[i] /= R;
 
-  const bead = Math.min(4.2, Math.max(2.2, fontPx * 0.034));
+  const bead = Math.max(1.8, fontPx * o.bead);
   const h = bead * 0.62;
   const toCss = (p: P): P => [p[0] / R - pad, p[1] / R - pad];
 
-  const outer = contours(d, gw, gh, bead * 0.5).map((l) => simplify(l, 0.45 * R).map(toCss));
-  const inner = contours(d, gw, gh, bead * 1.5).map((l) => simplify(l, 0.45 * R).map(toCss));
-  const hatch = hatchLines(d, gw, gh, bead * 1.95, bead * R).map((s) => s.map(toCss) as [P, P]);
+  // perimeters, outermost first in the list (printed inside out, like a slicer)
+  const rings: P[][][] = [];
+  for (let k = 0; k < o.perimeters; k++) rings.push(contours(d, gw, gh, bead * (0.5 + k)).map((l) => simplify(l, 0.45 * R).map(toCss)));
+  const outer = rings[0] ?? [];
+  const fill = o.infill === "none" ? [] : infill(d, gw, gh, o.infill, bead * (o.perimeters - 0.5 + 0.45), bead * R).map((l) => l.map(toCss));
 
   // group everything by letter, left to right
   const slot = (x: number) => {
@@ -100,9 +110,9 @@ export function textToolpath(el: HTMLElement): TextPrint | null {
     }
     return (a + b) / 2;
   };
-  const letters = Array.from({ length: text.length }, () => ({ loops: [] as P[][], fill: [] as [P, P][] }));
-  for (const l of [...inner, ...outer]) if (l.length > 2) letters[slot(midX(l))].loops.push(l);
-  for (const s of hatch) letters[slot((s[0][0] + s[1][0]) / 2)].fill.push(s);
+  const letters = Array.from({ length: text.length }, () => ({ loops: [] as P[][], fill: [] as P[][] }));
+  for (const ring of [...rings].reverse()) for (const l of ring) if (l.length > 2) letters[slot(midX(l))].loops.push(l);
+  for (const l of fill) letters[slot(midX(l))].fill.push(l);
 
   const out: number[] = [];
   const y = h / 2;
@@ -123,14 +133,13 @@ export function textToolpath(el: HTMLElement): TextPrint | null {
       for (let i = 0; i < n; i++) seg(loop[(k + i) % n], loop[(k + i + 1) % n]);
       prev = loop[k];
     }
-    // infill: back and forth, joining neighbouring lines along the edge like a slicer does
-    let flip = false;
-    for (const s of L.fill) {
-      const [a, b] = flip ? [s[1], s[0]] : s;
-      if (prev && Math.hypot(a[0] - prev[0], a[1] - prev[1]) < bead * 2.2) seg(prev, a);
-      seg(a, b);
-      prev = b;
-      flip = !flip;
+    // infill: each run printed from whichever end is nearer, joined when they meet at the edge
+    for (const run of L.fill) {
+      let r = run;
+      if (prev && Math.hypot(r[r.length - 1][0] - prev[0], r[r.length - 1][1] - prev[1]) < Math.hypot(r[0][0] - prev[0], r[0][1] - prev[1])) r = [...r].reverse();
+      if (prev && Math.hypot(r[0][0] - prev[0], r[0][1] - prev[1]) < bead * 2.2) seg(prev, r[0]);
+      for (let i = 1; i < r.length; i++) seg(r[i - 1], r[i]);
+      prev = r[r.length - 1];
     }
   }
   if (!out.length) return null;
@@ -140,8 +149,8 @@ export function textToolpath(el: HTMLElement): TextPrint | null {
   const cum = new Float32Array(count);
   let len = 0;
   for (let s = 0; s < count; s++) {
-    const o = s * 6;
-    len += Math.hypot(segs[o + 3] - segs[o], segs[o + 5] - segs[o + 2]);
+    const o6 = s * 6;
+    len += Math.hypot(segs[o6 + 3] - segs[o6], segs[o6 + 5] - segs[o6 + 2]);
     cum[s] = len;
   }
   const ghost: number[] = [];
@@ -156,6 +165,121 @@ export function textToolpath(el: HTMLElement): TextPrint | null {
     key,
     fontPx,
   };
+}
+
+// Infill patterns, laid over the whole word and then cut to the inside of the letters.
+function infill(f: Float32Array, w: number, h: number, kind: TextInfill, level: number, bead: number): P[][] {
+  let lines: P[][] = [];
+  if (kind === "grid") {
+    const s = bead * 3.2;
+    lines = [...parallel(w, h, 45, s), ...parallel(w, h, -45, s)];
+  } else if (kind === "triangles") {
+    const s = bead * 3.6; // three families through one lattice, so they meet in triangles
+    lines = [...parallel(w, h, 0, s), ...parallel(w, h, 60, s), ...parallel(w, h, 120, s)];
+  } else if (kind === "honeycomb") {
+    lines = hexLines(w, h, bead * 2.4);
+  } else if (kind === "gyroid") {
+    lines = waveLines(w, h, bead * 3.4);
+  }
+  const out: P[][] = [];
+  const inside = (x: number, y: number) => {
+    const xi = Math.round(x);
+    const yi = Math.round(y);
+    return xi >= 0 && yi >= 0 && xi < w && yi < h && f[yi * w + xi] > level;
+  };
+  const step = 0.8;
+  for (const line of lines) {
+    let run: P[] = [];
+    const flush = () => {
+      if (run.length > 1) {
+        const a = run[0];
+        const b = run[run.length - 1];
+        let L = 0;
+        for (let i = 1; i < run.length; i++) L += Math.hypot(run[i][0] - run[i - 1][0], run[i][1] - run[i - 1][1]);
+        if (L > bead * 0.9 || Math.hypot(b[0] - a[0], b[1] - a[1]) > bead * 0.9) out.push(simplifyOpen(run, 0.5));
+      }
+      run = [];
+    };
+    for (let k = 1; k < line.length; k++) {
+      const [x0, y0] = line[k - 1];
+      const [x1, y1] = line[k];
+      const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / step));
+      for (let i = k === 1 ? 0 : 1; i <= n; i++) {
+        const x = x0 + ((x1 - x0) * i) / n;
+        const y = y0 + ((y1 - y0) * i) / n;
+        if (inside(x, y)) run.push([x, y]);
+        else flush();
+      }
+    }
+    flush();
+  }
+  return out;
+}
+
+// Parallel lines at `deg`, `s` apart, through a lattice anchored at the origin.
+function parallel(w: number, h: number, deg: number, s: number): P[][] {
+  const a = (deg * Math.PI) / 180;
+  const d: P = [Math.cos(a), Math.sin(a)];
+  const n: P = [-d[1], d[0]];
+  const corners: P[] = [[0, 0], [w, 0], [0, h], [w, h]];
+  const pn = corners.map((c) => c[0] * n[0] + c[1] * n[1]);
+  const pd = corners.map((c) => c[0] * d[0] + c[1] * d[1]);
+  const t0 = Math.min(...pd);
+  const t1 = Math.max(...pd);
+  const out: P[][] = [];
+  for (let c = Math.ceil(Math.min(...pn) / s) * s; c <= Math.max(...pn); c += s) {
+    out.push([
+      [n[0] * c + d[0] * t0, n[1] * c + d[1] * t0],
+      [n[0] * c + d[0] * t1, n[1] * c + d[1] * t1],
+    ]);
+  }
+  return out;
+}
+
+// Honeycomb: zigzag rows that share their flats with the rows beside them.
+function hexLines(w: number, h: number, L: number): P[][] {
+  const dz = (L * Math.sqrt(3)) / 2;
+  const out: P[][] = [];
+  for (let j = -1; j * dz < h + dz; j++) {
+    const even = ((j % 2) + 2) % 2 === 0;
+    const base = even ? j * dz : (j + 1) * dz;
+    const sgn = even ? 1 : -1;
+    const row: P[] = [];
+    for (let x0 = -3 * L; x0 < w + 3 * L; x0 += 3 * L) {
+      row.push([x0, base], [x0 + L, base], [x0 + 1.5 * L, base + sgn * dz], [x0 + 2.5 * L, base + sgn * dz]);
+    }
+    out.push(row);
+  }
+  return out;
+}
+
+// Gyroid-like: wavy rows, each out of phase with the next, so they swell towards each other.
+function waveLines(w: number, h: number, s: number): P[][] {
+  const out: P[][] = [];
+  const P2 = s * 2.4;
+  for (let j = -1; j * s < h + s; j++) {
+    const row: P[] = [];
+    for (let x = -s; x < w + s; x += s * 0.25) row.push([x, j * s + Math.sin((Math.PI * 2 * x) / P2 + (j % 2) * Math.PI) * s * 0.34]);
+    out.push(row);
+  }
+  return out;
+}
+
+// Ramer–Douglas–Peucker on an open polyline.
+function simplifyOpen(pts: P[], eps: number): P[] {
+  if (pts.length < 3) return pts;
+  const [a, b] = [pts[0], pts[pts.length - 1]];
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const Ln = Math.hypot(dx, dy) || 1e-9;
+  let best = -1;
+  let bi = 0;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const dist = Math.abs((pts[i][0] - a[0]) * dy - (pts[i][1] - a[1]) * dx) / Ln;
+    if (dist > best) (best = dist), (bi = i);
+  }
+  if (best <= eps) return [a, b];
+  return [...simplifyOpen(pts.slice(0, bi + 1), eps).slice(0, -1), ...simplifyOpen(pts.slice(bi), eps)];
 }
 
 // Two-pass chamfer distance (in canvas px) from each inside pixel to the nearest outside one.
@@ -282,35 +406,4 @@ function simplify(loop: P[], eps: number): P[] {
   const half = loop.length >> 1;
   const out = [...rdp(loop.slice(0, half + 1)).slice(0, -1), ...rdp([...loop.slice(half), loop[0]]).slice(0, -1)];
   return out.length > 2 ? out : loop;
-}
-
-// Solid infill: 45° lines, `spacing` canvas px apart, wherever the field is above `level`.
-function hatchLines(f: Float32Array, w: number, h: number, level: number, spacing: number): [P, P][] {
-  const out: [P, P][] = [];
-  const at = (x: number, y: number) => {
-    const xi = Math.round(x);
-    const yi = Math.round(y);
-    return xi >= 0 && yi >= 0 && xi < w && yi < h ? f[yi * w + xi] : 0;
-  };
-  // lines x - y = c, walked top to bottom
-  const step = 0.7;
-  let n = 0;
-  for (let c = -h; c < w; c += spacing, n++) {
-    const y0 = Math.max(0, -c);
-    const y1 = Math.min(h - 1, w - 1 - c);
-    let runStart: P | null = null;
-    const runs: [P, P][] = [];
-    for (let y = y0; y <= y1; y += step) {
-      const x = c + y;
-      const inside = at(x, y) > level;
-      if (inside && !runStart) runStart = [x, y];
-      if (!inside && runStart) {
-        if (Math.hypot(x - runStart[0], y - runStart[1]) > spacing * 0.6) runs.push([runStart, [x - step, y - step]]);
-        runStart = null;
-      }
-    }
-    if (n % 2) runs.reverse();
-    out.push(...runs);
-  }
-  return out;
 }

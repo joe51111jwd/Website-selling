@@ -3,7 +3,7 @@
 // The cubes are generated here the way a slicer would: walls (perimeters) from the inside
 // out, then sparse infill, with solid diagonal skins on the bottom and top layers.
 
-export type Infill = "grid" | "gyroid" | "honeycomb";
+export type Infill = "grid" | "triangles" | "gyroid" | "honeycomb";
 
 export type CubeSpec = {
   layers: number; // how many layers the cube is drawn with on screen
@@ -63,6 +63,10 @@ export function cubeToolpath(spec: CubeSpec): Toolpath {
       const s = (w / spec.density) * 0.95;
       for (const l of diagonals(b, s, 1)) line(l.pts, l.join);
       for (const l of diagonals(b, s, -1)) line(l.pts, l.join);
+    } else if (spec.infill === "triangles") {
+      // three families at 60° through one lattice, so every layer is a field of triangles
+      const s = (w / spec.density) * 1.35;
+      for (const deg of [0, 60, 120]) for (const l of family(b, s, (deg * Math.PI) / 180)) line(l, false);
     } else if (spec.infill === "gyroid") {
       for (const l of gyroid(b, (w / spec.density) * 2.1, y)) line(l, false);
     } else {
@@ -109,6 +113,34 @@ function diagonals(b: number, spacing: number, sign: 1 | -1): { pts: P[]; join: 
     const e: P = [ox + d[0] * t1, oz + d[1] * t1];
     res.push({ pts: flip ? [e, a] : [a, e], join: res.length > 0 });
     flip = !flip;
+  }
+  return res;
+}
+
+// Lines at angle `a`, `spacing` apart through a lattice anchored on the centre, clipped to [-b, b]².
+function family(b: number, spacing: number, a: number): P[][] {
+  const d: P = [Math.cos(a), Math.sin(a)];
+  const n: P = [-d[1], d[0]];
+  const ext = b * Math.SQRT2;
+  const res: P[][] = [];
+  for (let c = Math.ceil(-ext / spacing) * spacing; c <= ext; c += spacing) {
+    const o: P = [n[0] * c, n[1] * c];
+    let t0 = -Infinity;
+    let t1 = Infinity;
+    for (const k of [0, 1]) {
+      if (Math.abs(d[k]) < 1e-9) {
+        if (Math.abs(o[k]) > b) t1 = -Infinity;
+        continue;
+      }
+      const ta = (-b - o[k]) / d[k];
+      const tb = (b - o[k]) / d[k];
+      t0 = Math.max(t0, Math.min(ta, tb));
+      t1 = Math.min(t1, Math.max(ta, tb));
+    }
+    if (t1 - t0 < spacing * 0.2) continue;
+    const p0: P = [o[0] + d[0] * t0, o[1] + d[1] * t0];
+    const p1: P = [o[0] + d[0] * t1, o[1] + d[1] * t1];
+    res.push(res.length % 2 ? [p1, p0] : [p0, p1]);
   }
   return res;
 }

@@ -29,9 +29,13 @@ export default function Hero() {
       <div className="hero__copy">
         <p className="kicker mono">3D-printed objects, made to order</p>
         <h1 className="hero__title">
-          <span className="line"><span>Everything</span></span>
-          <span className="line"><span>here is</span></span>
-          <span className="line"><span>one <em>line.</em></span></span>
+          <span className="line"><span data-station="h:1">Everything</span></span>
+          <span className="line"><span data-station="h:2">here is</span></span>
+          <span className="line">
+            <span>
+              <span data-station="h:3">one</span> <em data-station="h:4">line.</em>
+            </span>
+          </span>
         </h1>
         <p className="hero__lede">
           Every piece we sell is drawn by a printer from a single, unbroken strand of plastic, laid down layer on layer,

@@ -3,7 +3,7 @@ import { filaments, fmtTime, sizes, stats, type Product } from "../content/catal
 import { everyFrame, line } from "../lib/line";
 import { addToQueue, openInspector, store } from "../lib/store";
 
-export const infillName = { grid: "Grid", gyroid: "Gyroid", honeycomb: "Honeycomb" } as const;
+export const infillName = { grid: "Grid", triangles: "Triangles", gyroid: "Gyroid", honeycomb: "Honeycomb" } as const;
 
 // One product on the line. The empty box on one side is where the 3D line prints it;
 // the box itself is the button that opens the inspector.

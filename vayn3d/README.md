@@ -33,9 +33,9 @@ Vercel: import the repo with **Root Directory** set to `vayn3d`. It's a Vite pro
 | Piece | File | What it does |
 | --- | --- | --- |
 | Preloader | `src/components/Preloader.tsx` | "Heating nozzle 024 → 215 °C" while fonts load. Shorter on repeat visits. |
-| Hero | `src/components/Hero.tsx` | The line drops in from off-screen and prints the first piece live, with a slicer readout (layer, metres of line). |
+| Hero | `src/components/Hero.tsx` | The line drops in and draws the headline as filament outlines, one strand round every letter ("line." in orange), travelling between rows the way a printer does, then prints the first piece live with a slicer readout (layer, metres of line). |
 | Statement | `src/components/Statement.tsx` | What a printer actually does, with the real line length of a 45 mm cube. |
-| The collection | `src/components/Piece.tsx` | Each product's name drifts in with parallax as a dashed preview and locks into place as the nozzle writes it; then the rest of its text comes in and the piece prints, finished when its frame reaches the middle of the screen. Line and layer counts tick up with the print. Scroll back and it all un-prints. Click the piece to inspect it. |
+| The collection | `src/components/Piece.tsx` | Each product's name drifts in with parallax as a dashed preview and locks into place as the nozzle prints it: one layer, a perimeter and the product's own infill inside (gyroid, honeycomb, grid or triangles). Then the rest of its text comes in and the piece prints, finished when its frame reaches the middle of the screen. Line and layer counts tick up with the print. Scroll back and it all un-prints. Click the piece to inspect it. |
 | Live printer | `src/components/Live.tsx` | The end of the line. A printer on a loop, working through customer orders, with live layer and time-left numbers. |
 | Custom | `src/components/Custom.tsx` | Quote request with a file drop (STL, 3MF, OBJ, STEP, photo). |
 | Footer | `src/components/Footer.tsx` | Total line in the collection, and the logo traced as one line, then filled. |
@@ -60,8 +60,8 @@ Vercel: import the repo with **Root Directory** set to `vayn3d`. It's a Vite pro
 | --- | --- |
 | `src/lib/toolpath.ts` | Generates each cube as a real toolpath, the way a slicer does: walls inside-out, then grid, gyroid or honeycomb infill, with solid diagonal skins on the bottom and top layers. `locate()` maps print progress to a point on the path (one layer at a time, so pieces grow at an even rate). |
 | `src/three/strand.ts` | Renders a toolpath as one `InstancedMesh`: every segment is a flattened cylinder ("bead") of plastic, so a whole piece is one draw call. `set(progress)` shows the line up to the nozzle, with the freshly laid bit glowing hot. |
-| `src/lib/textpath.ts` | Turns a DOM heading into a print: renders it in the page's own font, builds a distance field, traces two perimeters just inside each letter (marching squares) and fills the rest with 45° solid infill, letter by letter. |
-| `src/three/World.tsx` | The fixed WebGL layer behind the page. Each frame it moves the camera with the scroll and places every print (pieces and names) on its DOM box (`data-station="…"`), so CSS controls the layout. A single number, the line's position, is derived from the scroll, and every print, connector and the nozzle are drawn from it. The route shapes between prints are in `route()`. |
+| `src/lib/textpath.ts` | Turns a DOM heading into a one-layer print: renders it in the page's own font, builds a distance field, traces perimeters just inside each letter (marching squares) and lays an infill pattern (grid, triangles, honeycomb, gyroid, or none for outlines) inside them, letter by letter. |
+| `src/three/World.tsx` | The fixed WebGL layer behind the page. Each frame it moves the camera with the scroll and places every print (pieces and names) on its DOM box (`data-station="…"`), so CSS controls the layout. A single number, the line's position, is derived from the scroll, and every print, connector and the nozzle are drawn from it. The route shapes between prints are in `route()`; every route is pushed in front of the pieces it passes, so the line never cuts through a model. |
 | `src/three/nozzle.ts` | The print head, built from primitives (brass nozzle, heater block, heat sink). |
 | `src/lib/layout.ts` | Measures the DOM boxes the line attaches to, again on resize and after fonts load. |
 | `src/lib/scroll.ts` | Lenis smooth scroll, driven from the render loop so the page and the line never drift apart. |
