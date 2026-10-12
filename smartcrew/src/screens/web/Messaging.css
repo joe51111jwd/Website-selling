@@ -1,0 +1,130 @@
+/* W12 Messaging (Gen C shell, layout from the Gen B capture), scoped under .sc. */
+
+.sc .scmsg-page .sc-page-head {
+  height: auto;
+  align-items: flex-start;
+  margin-top: -1.5px;
+  margin-bottom: 31px;
+}
+.sc .scmsg-page .sc-title {
+  font: inherit;
+  letter-spacing: 0;
+}
+.sc .scmsg-head {
+  display: flex;
+  flex-direction: column;
+}
+.sc .scmsg-title {
+  font-size: 23.4px;
+  line-height: 41px;
+  font-weight: 600;
+  letter-spacing: -0.024em;
+  color: #0a0a0a;
+}
+.sc .scmsg-sub {
+  margin-top: -4px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+  color: #6b6b6b;
+  letter-spacing: 0;
+}
+.sc .scmsg-page .scmsg-new {
+  height: 40.5px;
+  padding: 0 12px 0 13px;
+  gap: 7px;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+
+/* Announcements · Crew Messages */
+.sc .scmsg-page .scmsg-tabs {
+  align-self: flex-start;
+  height: 40px;
+  padding: 0 5.75px;
+  gap: 0;
+}
+.sc .scmsg-page .scmsg-tabs .sc-seg-item {
+  height: 28.5px;
+  padding: 0 13px;
+  font-size: 12px;
+  font-weight: 550;
+  color: #4f4f4f;
+}
+.sc .scmsg-page .scmsg-tabs .sc-seg-item.is-active {
+  font-weight: 600;
+  color: #141414;
+}
+
+/* feed */
+.sc .scmsg-feed {
+  margin-top: 12.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sc .scmsg-card {
+  border: 1px solid var(--sc-line);
+  border-radius: var(--sc-r-md);
+  background: #fff;
+  padding: 19px 20px 20px;
+  flex: none;
+}
+.sc .scmsg-card-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.sc .scmsg-well {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #f1f1f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1c1c1c;
+  flex: none;
+}
+.sc .scmsg-card-titles {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sc .scmsg-card-title {
+  font-size: 14.2px;
+  line-height: 18px;
+  font-weight: 700;
+  color: #0c0c0c;
+  letter-spacing: -0.01em;
+}
+.sc .scmsg-meta {
+  font-size: 11.8px;
+  line-height: 16px;
+  color: #7a7a7a;
+  white-space: nowrap;
+}
+.sc .scmsg-dot {
+  margin: 0 7px 0 8px;
+}
+.sc .scmsg-body {
+  margin-top: 15px;
+  padding-left: 1px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #121212;
+}
+.sc .scmsg-attach {
+  margin-top: 14px;
+  height: 236px;
+  border-radius: 6px;
+  background: #f3f3f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sc .scmsg-pdf {
+  width: 92px;
+  height: 114px;
+}

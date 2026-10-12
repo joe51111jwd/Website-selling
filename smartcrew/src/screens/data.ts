@@ -41,7 +41,7 @@ export const TODAY = {
   weekLabel: "Oct 5 - 11",
 } as const;
 
-/** Sidebar red count badges (Workforce = pending day-off requests, Equipment = open service-queue items, Reports = timecards to review). */
+/** Sidebar red count badges (Workforce = pending day-off requests, Equipment = open service-queue items, Reports = timecards to review = timecards.length). */
 export const navBadges = { Workforce: 2, Equipment: 5, Reports: 14 } as const;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -133,7 +133,7 @@ export type Equipment = {
   /** friendly name used in pickers and tables */
   name: string;
   hourRate: number;
-  /** hours logged this season, in minutes */
+  /** hours logged this season, in minutes (Σ over the fleet = dashboard Equipment Hours) */
   minutes: number;
   status: "Active" | "In Shop" | "Inactive";
   purchasePrice: number;
@@ -161,20 +161,20 @@ const eq = (
 ): Equipment => ({ id, year, make, model, category, name, hourRate, minutes, purchasePrice, lastService, nextService, reading, status });
 
 export const equipment: Equipment[] = [
-  eq("1101-MACK-GU713", 2019, "Mack", "Granite GU713", "Dump Truck", "Mack Granite #1101", 115, 24750, 168500, "2026-09-02", "2026-11-02", 148220),
-  eq("1102-MACK-GU713", 2017, "Mack", "Granite GU713", "Dump Truck", "Mack Granite #1102", 115, 26915, 152000, "2026-08-21", "2026-10-21", 211640),
-  eq("1103-MACK-GU713", 2021, "Mack", "Granite GU713", "Dump Truck", "Mack Granite #1103", 115, 21480, 184900, "2026-09-15", "2026-11-15", 96410),
-  eq("BOMAG-BW213", 2016, "Bomag", "BW213 D-5", "Packer", "Bomag BW213 Roller", 95, 13410, 118000, "2026-07-28", "2026-10-28", 4380),
-  eq("CAT-140M-01", 2014, "CAT", "140M", "Grader", "CAT 140M Grader", 150, 17220, 236000, "2026-10-05", "2027-01-05", 9810),
-  eq("CAT-320-01", 2020, "CAT", "320 GC", "Excavator", "CAT 320 Excavator", 165, 29640, 214500, "2026-09-10", "2026-12-10", 5120),
-  eq("CAT-336-01", 2018, "CAT", "336", "Excavator", "CAT 336 Excavator", 195, 25380, 312000, "2026-08-14", "2026-11-14", 7960),
-  eq("CAT-420-01", 2015, "CAT", "420F2", "Backhoe", "CAT 420 Backhoe", 90, 11830, 98500, "2026-06-30", "2026-10-30", 8655),
-  eq("CAT-950M-01", 2017, "CAT", "950M", "Loader", "CAT 950M Loader", 140, 15960, 228000, "2026-09-30", "2026-12-30", 10240),
-  eq("CAT-CP-563", 2012, "CAT", "CP-563", "Packer", "CAT CP-563 Compactor", 110, 12285, 94000, "2026-08-04", "2026-11-04", 6890),
-  eq("CAT-D6-01", 2019, "CAT", "D6", "Dozer", "CAT D6 Dozer", 175, 23490, 341000, "2026-09-18", "2026-12-18", 6215, "In Shop"),
-  eq("KUBOTA-SVL75", 2022, "Kubota", "SVL75-2", "Track Loader", "Kubota SVL75", 85, 18605, 72400, "2026-09-08", "2026-12-08", 2410),
-  eq("TALBERT-55SA", 2016, "Talbert", "55SA", "Trailer", "Talbert Lowboy", 40, 6120, 61000, "2026-05-12", "2027-05-12", 0),
-  eq("CAT-305-01", 2023, "CAT", "305 CR", "Excavator", "CAT 305 Mini Ex", 75, 14370, 79800, "2026-09-22", "2026-12-22", 1305),
+  eq("1101-MACK-GU713", 2019, "Mack", "Granite GU713", "Dump Truck", "Mack Granite #1101", 115, 13633, 168500, "2026-09-02", "2026-11-02", 148220),
+  eq("1102-MACK-GU713", 2017, "Mack", "Granite GU713", "Dump Truck", "Mack Granite #1102", 115, 14830, 152000, "2026-08-21", "2026-10-21", 211640),
+  eq("1103-MACK-GU713", 2021, "Mack", "Granite GU713", "Dump Truck", "Mack Granite #1103", 115, 11835, 184900, "2026-09-15", "2026-11-15", 96410),
+  eq("BOMAG-BW213", 2016, "Bomag", "BW213 D-5", "Packer", "Bomag BW213 Roller", 95, 7390, 118000, "2026-07-28", "2026-10-28", 4380),
+  eq("CAT-140M-01", 2014, "CAT", "140M", "Grader", "CAT 140M Grader", 150, 9485, 236000, "2026-10-05", "2027-01-05", 9810),
+  eq("CAT-320-01", 2020, "CAT", "320 GC", "Excavator", "CAT 320 Excavator", 165, 16330, 214500, "2026-09-10", "2026-12-10", 5120),
+  eq("CAT-336-01", 2018, "CAT", "336", "Excavator", "CAT 336 Excavator", 195, 13985, 312000, "2026-08-14", "2026-11-14", 7960),
+  eq("CAT-420-01", 2015, "CAT", "420F2", "Backhoe", "CAT 420 Backhoe", 90, 6515, 98500, "2026-06-30", "2026-10-30", 8655),
+  eq("CAT-950M-01", 2017, "CAT", "950M", "Loader", "CAT 950M Loader", 140, 8795, 228000, "2026-09-30", "2026-12-30", 10240),
+  eq("CAT-CP-563", 2012, "CAT", "CP-563", "Packer", "CAT CP-563 Compactor", 110, 6770, 94000, "2026-08-04", "2026-11-04", 6890),
+  eq("CAT-D6-01", 2019, "CAT", "D6", "Dozer", "CAT D6 Dozer", 175, 12940, 341000, "2026-09-18", "2026-12-18", 6215, "In Shop"),
+  eq("KUBOTA-SVL75", 2022, "Kubota", "SVL75-2", "Track Loader", "Kubota SVL75", 85, 10250, 72400, "2026-09-08", "2026-12-08", 2410),
+  eq("TALBERT-55SA", 2016, "Talbert", "55SA", "Trailer", "Talbert Lowboy", 40, 3370, 61000, "2026-05-12", "2027-05-12", 0),
+  eq("CAT-305-01", 2023, "CAT", "305 CR", "Excavator", "CAT 305 Mini Ex", 75, 7915, 79800, "2026-09-22", "2026-12-22", 1305),
 ];
 
 export const equipmentById = (id: string) => equipment.find((e) => e.id === id)!;
@@ -625,11 +625,11 @@ export const clockIns: ClockIn[] = [
 ];
 
 export const activityLogs = [
-  { crewId: "c01", time: "9:14 AM", text: "Switched to Pipe Laying on Hwy 9 Culvert Replacement", equipmentId: "CAT-320-01" },
   { crewId: "c04", time: "9:02 AM", text: "Logged load 6 of select fill, Riverside Storm Sewer", equipmentId: "1102-MACK-GU713" },
-  { crewId: "c03", time: "8:47 AM", text: "Submitted DOT inspection for CAT 140M Motor Grader", equipmentId: "CAT-140M-01" },
+  { crewId: "c03", time: "8:47 AM", text: "Submitted DOT inspection for CAT 140M Grader", equipmentId: "CAT-140M-01" },
   { crewId: "c11", time: "8:21 AM", text: "Added field note with 3 photos on Lot 7 Site Prep", equipmentId: null },
   { crewId: "c12", time: "7:58 AM", text: "Started Grading on Maple Ridge Subdivision Ph. 2", equipmentId: "CAT-950M-01" },
+  { crewId: "c01", time: "6:59 AM", text: "Switched to Pipe Laying on Hwy 9 Culvert Replacement", equipmentId: "CAT-320-01" },
 ];
 
 export const fieldNotes = [
@@ -667,16 +667,18 @@ export const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as con
 export const timecards: Timecard[] = [
   tc("c01", [H(9, 12), H(9, 40), H(10, 5), H(9, 18), H(8, 30), H(4, 15), null]),
   tc("c02", [H(9, 5), H(9, 35), H(9, 58), H(9, 10), H(8, 22), H(4, 10), null]),
-  tc("c03", [H(10, 2), H(9, 48), H(10, 15), H(9, 30), H(8, 45), null, null], "Approved"),
+  tc("c03", [H(10, 2), H(9, 48), H(10, 15), H(9, 30), H(8, 45), null, null]),
   tc("c04", [H(10, 30), H(10, 12), H(10, 41), H(10, 5), H(9, 20), null, null]),
   tc("c05", [H(9, 10), H(9, 38), null, H(9, 16), H(8, 28), H(4, 12), null]),
-  tc("c06", [H(9, 12), H(9, 40), H(10, 3), H(9, 18), H(8, 30), H(4, 15), null], "Approved"),
+  tc("c06", [H(9, 5), H(9, 46), H(9, 57), H(9, 24), H(8, 36), H(4, 10), null]),
   tc("c07", [H(10, 22), H(10, 5), H(10, 34), H(9, 58), H(9, 12), null, null]),
   tc("c08", [H(9, 46), H(9, 30), H(9, 52), H(9, 25), H(8, 40), null, null]),
   tc("c09", [H(8, 50), H(9, 4), H(9, 21), H(8, 57), H(8, 10), null, null]),
-  tc("c10", [H(8, 30), H(8, 30), H(8, 45), H(8, 30), H(8), H(3, 30), null], "Approved"),
+  tc("c10", [H(8, 30), H(8, 30), H(8, 45), H(8, 30), H(8), H(3, 30), null]),
   tc("c11", [H(9, 35), H(9, 50), H(10, 8), H(9, 42), H(8, 55), null, null]),
   tc("c12", [H(10, 5), H(9, 52), H(10, 20), H(9, 40), H(8, 50), null, null]),
+  tc("c13", [H(9, 28), H(9, 44), H(10, 2), H(9, 36), H(8, 47), null, null]),
+  tc("c14", [H(10, 10), H(9, 55), H(10, 26), H(9, 48), H(9, 6), null, null]),
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -966,11 +968,11 @@ export const announcements: Announcement[] = [
   },
   {
     id: "an-40",
-    title: "Hwy 9 Lane Closure Thursday",
+    title: "Hwy 9 Lane Closure: Thursday, Oct 8",
     date: "Oct 1, 2026",
     time: "4:30 PM",
     by: "office@cedarridge.example",
-    body: "Southbound lane closed 7 AM to 3 PM for culvert setting. Flaggers report to Marcus at 6:30 AM.",
+    body: "Southbound lane closed 7 AM to 3 PM next Thursday for culvert setting. Flaggers report to Marcus at 6:30 AM.",
   },
   {
     id: "an-39",
@@ -986,9 +988,9 @@ export const announcements: Announcement[] = [
 export type CrewMessage = { id: string; crewId: string; text: string; time: string; mine?: boolean };
 
 export const crewMessages: CrewMessage[] = [
-  { id: "cm-1", crewId: "c01", text: "Second culvert section is set. Need the rip-rap trucks by 7 tomorrow.", time: "9:42 AM" },
-  { id: "cm-2", crewId: "c15", text: "Booked 3 loads from North Star for 7:00, 7:40 and 8:20.", time: "9:51 AM", mine: true },
-  { id: "cm-3", crewId: "c04", text: "Copy. I'll take the first two after the Riverside run.", time: "9:55 AM" },
+  { id: "cm-1", crewId: "c01", text: "Second culvert section is set. Need two loads of #57 stone by 7 tomorrow for bedding.", time: "9:42 AM" },
+  { id: "cm-2", crewId: "c15", text: "Booked 2 loads from North Star for 7:00 and 7:40.", time: "9:51 AM", mine: true },
+  { id: "cm-3", crewId: "c04", text: "Copy. I'll take both after the Riverside run.", time: "9:55 AM" },
   { id: "cm-4", crewId: "c12", text: "Maple Ridge lots 14–22 rough graded. Photos in field notes.", time: "10:08 AM" },
 ];
 
@@ -1041,7 +1043,7 @@ export const weekSummary: { days: SummaryDay[]; total: number; overtime: number;
       date: "2026-10-05", dow: "MON", label: "Oct 5", minutes: H(9, 10), location: "Hwy 9 Culvert Replacement", in: "06:40", out: "15:50",
       tasks: [
         { activity: "Excavation", start: "06:40", end: "11:30", equipment: "CAT 320 Excavator" },
-        { activity: "Pipe Laying", start: "12:00", end: "15:50", equipment: "CAT 320 Excavator" },
+        { activity: "Pipe Laying", start: "11:30", end: "15:50", equipment: "CAT 320 Excavator" },
       ],
     },
     {
@@ -1052,14 +1054,14 @@ export const weekSummary: { days: SummaryDay[]; total: number; overtime: number;
       date: "2026-10-07", dow: "WED", label: "Oct 7", minutes: H(8, 50), location: "Riverside Storm Sewer", in: "06:45", out: "15:35",
       tasks: [
         { activity: "Backfill & Compaction", start: "06:45", end: "12:10", equipment: "CAT CP-563 Compactor" },
-        { activity: "Restoration", start: "12:40", end: "15:35", equipment: null },
+        { activity: "Restoration", start: "12:10", end: "15:35", equipment: null },
       ],
     },
     {
       date: "2026-10-08", dow: "THU", label: "Oct 8", minutes: H(9, 20), location: "Hwy 9 Culvert Replacement", in: "06:40", out: "16:00",
       tasks: [
         { activity: "Pipe Laying", start: "06:40", end: "12:00", equipment: "CAT 320 Excavator" },
-        { activity: "Erosion Control", start: "12:30", end: "16:00", equipment: null },
+        { activity: "Erosion Control", start: "12:00", end: "16:00", equipment: null },
       ],
     },
   ];

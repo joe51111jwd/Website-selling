@@ -1,0 +1,304 @@
+/* S9 replace your apps + final CTA */
+
+.p-template .rp {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  column-gap: 56px;
+  align-items: start;
+  padding-bottom: 56px;
+}
+
+.p-template .rp-cta {
+  margin-top: 26px;
+}
+
+.p-template .rp-ask {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.p-template .rp-chips {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0 14px;
+}
+
+.p-template .rp-chips .chip {
+  flex: 1;
+  min-width: 0;
+  padding: 0 4px;
+}
+
+.p-template .rp-cta .btn {
+  width: 100%;
+}
+
+.p-template .rp-micro {
+  margin-top: 10px;
+  font-size: 13.5px;
+}
+
+.p-template .rp-vis {
+  position: relative;
+}
+
+.p-template .rp-toggle {
+  display: inline-grid;
+  grid-template-columns: auto auto;
+  padding: 3px;
+  border-radius: var(--r-m);
+  background: var(--band);
+  border: 1px solid var(--line);
+}
+
+.p-template .rp-toggle button {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 14.5px;
+  font-weight: 580;
+  color: var(--body);
+  transition:
+    background-color 160ms var(--ease),
+    color 160ms var(--ease),
+    box-shadow 160ms var(--ease);
+}
+
+.p-template .rp-toggle button.is-on {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow:
+    0 1px 2px rgba(59, 51, 43, 0.08),
+    0 4px 12px rgba(59, 51, 43, 0.06);
+}
+
+.p-template .rp-toggle button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.p-template .rp-board {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 214px;
+  column-gap: 96px;
+  margin-top: 16px;
+}
+
+.p-template .rp-rows {
+  border-top: 1px solid var(--line-2);
+  align-self: start;
+}
+
+.p-template .rp-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 1px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line-2);
+  min-height: 66px;
+}
+
+.p-template .rp-cat {
+  font-size: 16px;
+  font-weight: 620;
+  color: var(--ink);
+}
+
+.p-template .rp-names {
+  position: relative;
+  justify-self: start;
+  font-size: 14.5px;
+  color: var(--body);
+  transition: color 300ms var(--ease);
+}
+
+.p-template .rp-strike {
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 54%;
+  height: 1.5px;
+  background: var(--ink-2);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 320ms var(--ease);
+}
+
+.p-template .rp-to {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition:
+    opacity 260ms var(--ease),
+    transform 260ms var(--ease);
+  height: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.p-template .rp-board.is-after .rp-strike {
+  transform: none;
+}
+
+.p-template .rp-board.is-after .rp-names {
+  color: var(--mute);
+}
+
+.p-template .rp-board.is-after .rp-to {
+  opacity: 1;
+  transform: none;
+}
+
+.p-template .rp-row:not(.rp-qb) {
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 16px;
+}
+
+.p-template .rp-row:not(.rp-qb) .rp-cat,
+.p-template .rp-row:not(.rp-qb) .rp-names {
+  grid-column: 1;
+}
+
+.p-template .rp-row:not(.rp-qb) .rp-to {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  height: auto;
+  text-align: right;
+}
+
+.p-template .rp-qb {
+  border-bottom: 0;
+  min-height: 0;
+  padding-top: 12px;
+}
+
+.p-template .rp-qb .rp-cat {
+  font-size: 15px;
+}
+
+.p-template .rp-qb-line {
+  font-size: 14.5px;
+  color: var(--body);
+}
+
+.p-template .rp-shot {
+  position: relative;
+  height: clamp(360px, calc(100svh - var(--hdr) - 180px), 420px);
+}
+
+.p-template .rp-win {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-m);
+  border: 1px solid #e3dad0;
+  box-shadow: var(--shadow-float);
+  filter: grayscale(1);
+  opacity: 0.42;
+  transition:
+    filter 500ms var(--ease),
+    opacity 500ms var(--ease);
+}
+
+.p-template .rp-board.is-after .rp-win {
+  filter: none;
+  opacity: 1;
+}
+
+.p-template .rp-one {
+  position: absolute;
+  left: 50%;
+  bottom: -30px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 13.5px;
+  font-weight: 560;
+  color: var(--ink-2);
+  opacity: 0;
+  transition: opacity 300ms var(--ease) 500ms;
+}
+
+.p-template .rp-board.is-after .rp-one {
+  opacity: 1;
+}
+
+.p-template .rp-lines {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+@media (min-width: 721px) and (max-height: 620px) {
+  .p-template .rp {
+    padding-bottom: 44px;
+  }
+  .p-template .rp-row {
+    min-height: 60px;
+    padding: 9px 0;
+  }
+  .p-template .rp-cta {
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 1180px) and (min-width: 721px) {
+  .p-template .rp-board {
+    grid-template-columns: minmax(0, 1fr) 180px;
+    column-gap: 60px;
+  }
+}
+
+@media (max-width: 720px) {
+  .p-template .rp {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 40px;
+  }
+  .p-template .rp-copy {
+    display: contents;
+  }
+  .p-template .rp-copy .h2 {
+    order: 1;
+  }
+  .p-template .rp-vis {
+    order: 2;
+    margin-top: 18px;
+  }
+  .p-template .rp-cta {
+    order: 3;
+    margin-top: 22px;
+  }
+  .p-template .rp-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .p-template .rp-toggle button {
+    height: 40px;
+  }
+  .p-template .rp-board {
+    display: block;
+    margin-top: 12px;
+  }
+  .p-template .rp-shot,
+  .p-template .rp-lines {
+    display: none;
+  }
+  .p-template .rp-row {
+    min-height: 0;
+    padding: 10px 0;
+  }
+  .p-template .rp-row:not(.rp-qb) .rp-to {
+    white-space: normal;
+    max-width: 150px;
+    font-size: 14px;
+  }
+  .p-template .rp-chips .chip {
+    height: 44px;
+  }
+}

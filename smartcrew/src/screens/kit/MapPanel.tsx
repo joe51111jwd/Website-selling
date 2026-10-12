@@ -218,7 +218,7 @@ export function MapPanel({ width, height, center = { x: 900, y: 460 }, zoom = 0.
             <feDropShadow dx="0" dy={px(1)} stdDeviation={px(1.6)} floodColor="#000" floodOpacity="0.22" />
           </filter>
           <path id={`rv${uid}`} d="M 880 532 C 930 541 980 572 1040 622" />
-          <path id={`wc${uid}`} d="M 708 214 C 680 232 660 242 600 256" />
+          <path id={`wc${uid}`} d="M 548 254 C 610 247 660 236 708 212" />
         </defs>
 
         {/* land */}
@@ -318,7 +318,7 @@ export function MapPanel({ width, height, center = { x: 900, y: 460 }, zoom = 0.
           </textPath>
         </text>
         <text fontSize={px(9)} fontWeight={500} fontStyle="italic" fill={C.waterLabel} stroke="#fff" strokeWidth={px(2.5)} paintOrder="stroke" style={{ fontFamily: "var(--sc-font)" }}>
-          <textPath href={`#wc${uid}`} startOffset="0%">
+          <textPath href={`#wc${uid}`} startOffset="50%" textAnchor="middle">
             Willow Creek
           </textPath>
         </text>

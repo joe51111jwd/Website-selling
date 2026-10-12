@@ -998,14 +998,14 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   align-items: start;
-  padding-top: 12px;
+  padding-top: 10.5px;
   background: #fff;
 }
 .sc .sc-tab {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 9.5px;
   font-size: 12.6px;
   line-height: 15px;
   color: #4d4d4d;

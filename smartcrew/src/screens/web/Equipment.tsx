@@ -1,7 +1,7 @@
-import "./Equipment.css";
 import type { ReactNode } from "react";
 import { WebShell, Icon, Badge, money, hmPad } from "../kit";
 import { equipment, equipmentIdUsage, navBadges } from "../data";
+import "./Equipment.css";
 
 // W5 Equipment list (Gen C), after vercel-module-equipment-management-web.png.
 // The header, tab strip and toolbar are shared with W6 (ServiceQueue.tsx).
@@ -12,7 +12,7 @@ export type EquipmentTab = (typeof EQUIPMENT_TABS)[number];
 // Material glyphs for the row action tiles (the app draws these with Material Icons, not the
 // outline set used elsewhere). Local because the kit icons are stroke-only.
 const MPATH = {
-  edit: "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
+  edit: "M14.06 9.02l.92.92L5.92 19H5v-.92l9.06-9.06M17.66 3c-.25 0-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83a1 1 0 0 0 0-1.41l-2.34-2.34c-.2-.2-.45-.29-.71-.29zm-3.6 3.19L3 17.25V21h3.75L17.81 9.94l-3.75-3.75z",
   delete: "M7 21q-.82 0-1.41-.59T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .82-.59 1.41T17 21H7zM17 6H7v13h10V6zM9 17h2V8H9v9zm4 0h2V8h-2v9z",
 } as const;
 
@@ -48,7 +48,7 @@ export function EquipmentPage({ tab, headExtra, children }: { tab: EquipmentTab;
             </div>
           </div>
           <div className="sce-search">
-            <Icon name="search" size={18} stroke={1.8} />
+            <Icon name="search" size={18} stroke={2} />
             <span>Search</span>
           </div>
           <span className="sce-btn sce-btn--filters">
@@ -104,12 +104,12 @@ export default function Equipment() {
           <div className="sce-td">{hmPad(e.minutes)}</div>
           <div className="sce-td is-act">
             <span className="sce-act">
-              <MIcon name="edit" size={14} />
+              <MIcon name="edit" size={13.5} />
             </span>
             <span className="sce-act sce-act--del">
               <MIcon name="delete" size={13} />
             </span>
-            <Icon name="chevronRight" size={22} stroke={1.8} className="sce-go" />
+            <Icon name="chevronRight" size={22} stroke={1.5} className="sce-go" />
           </div>
         </div>
       ))}

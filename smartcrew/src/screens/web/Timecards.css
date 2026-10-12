@@ -11,11 +11,11 @@
   flex: none;
 }
 .sc.sc-web .sct-title {
-  font-size: 23px;
+  font-size: 23.4px;
   line-height: 28px;
   font-weight: 600;
-  letter-spacing: -0.022em;
-  color: #0d0d0d;
+  letter-spacing: -0.024em;
+  color: #0a0a0a;
   margin: 0 auto 1px 1px;
   white-space: nowrap;
 }

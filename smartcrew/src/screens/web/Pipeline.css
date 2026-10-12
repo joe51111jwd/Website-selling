@@ -1,0 +1,208 @@
+/* W10 Sales Pipeline (Gen C), scoped under .sc. Measured on vercel-module-pipeline-bidding.png (4× PNG). */
+
+/* module title (24 px class) and header row, same as Scheduling */
+.sc .scpipe-page .sc-page-head {
+  margin-top: -1.5px;
+  margin-bottom: 15.5px;
+}
+.sc .scpipe-page .sc-title {
+  font-size: 23.4px;
+  line-height: 30px;
+  font-weight: 600;
+  letter-spacing: -0.024em;
+  color: #0a0a0a;
+}
+.sc .scpipe-page .scpipe-new {
+  height: 40.5px;
+  padding: 0 12px 0 13px;
+  gap: 7px;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+
+/* KPI tiles: bare icon, grey label, value */
+.sc .scpipe-kpis {
+  display: grid;
+  grid-template-columns: 252.75px 252.75px 252.75px 1fr;
+  gap: 11.75px;
+  height: 78px;
+  flex: none;
+}
+.sc .scpipe-kpi {
+  display: flex;
+  align-items: center;
+  background: var(--sc-surface);
+  border-radius: var(--sc-r-md);
+  padding-left: 22px;
+  gap: 21.8px;
+  min-width: 0;
+}
+.sc .scpipe-kpi-icon {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  color: #1c1c1c;
+}
+.sc .scpipe-kpi-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sc .scpipe-kpi-label {
+  font-size: 13px;
+  line-height: 18px;
+  color: #6f6f6f;
+  white-space: nowrap;
+}
+.sc .scpipe-kpi-value {
+  font-size: 13.6px;
+  line-height: 18px;
+  font-weight: 600;
+  color: #0a0a0a;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+
+/* board card */
+.sc .scpipe-board {
+  margin-top: 16.75px;
+  height: 700px;
+  flex: none;
+  border: 1px solid #e9e9e9;
+  border-radius: var(--sc-r-md);
+  padding: 12px 11.75px 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.sc .scpipe-page .scpipe-tabs {
+  align-self: flex-start;
+  height: 40px;
+  padding: 0 5.75px;
+  gap: 0;
+}
+.sc .scpipe-page .scpipe-tabs .sc-seg-item {
+  height: 28.5px;
+  padding: 0 12.3px;
+  font-size: 12px;
+  font-weight: 550;
+  color: #4f4f4f;
+}
+.sc .scpipe-page .scpipe-tabs .sc-seg-item.is-active {
+  font-weight: 600;
+  color: #141414;
+}
+
+/* kanban columns (the row is wider than the card and clips, like the app's horizontal scroll) */
+.sc .scpipe-cols {
+  margin-top: 23px;
+  flex: 1 1 auto;
+  display: flex;
+  gap: 15.75px;
+  min-height: 0;
+  overflow: hidden;
+}
+.sc .scpipe-col {
+  width: 258.25px;
+  flex: none;
+  background: var(--sc-surface);
+  border-radius: 10px 10px 0 0;
+  padding: 0 15.75px;
+}
+.sc .scpipe-col:first-child {
+  width: 266.5px;
+}
+.sc .scpipe-col-head {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 -3.25px;
+}
+.sc .scpipe-col-title {
+  font-size: 13.4px;
+  line-height: 20px;
+  font-weight: 600;
+  color: #141414;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+}
+.sc .scpipe-count {
+  min-width: 21px;
+  height: 21px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.sc .scpipe-count.is-grey {
+  background: #e1e1e1;
+  color: #707070;
+}
+.sc .scpipe-count.is-orange {
+  background: #f4e3d2;
+  color: #f17b05;
+}
+.sc .scpipe-count.is-amber {
+  background: #f6e7d0;
+  color: #f79300;
+}
+.sc .scpipe-count.is-purple {
+  background: #efe0f5;
+  color: #a259c4;
+}
+.sc .scpipe-count.is-green {
+  background: #d5fde2;
+  color: #1f9d55;
+}
+.sc .scpipe-count.is-red {
+  background: var(--sc-red-bg);
+  color: var(--sc-red-ink);
+}
+
+/* deal card */
+.sc .scpipe-card {
+  margin-top: 4px;
+  background: #fff;
+  border: 1px solid #ebebeb;
+  border-radius: 10px;
+  padding: 15px 16px 14.5px;
+}
+.sc .scpipe-card + .scpipe-card {
+  margin-top: 12px;
+}
+.sc .scpipe-card-name {
+  font-size: 13.4px;
+  line-height: 20px;
+  font-weight: 600;
+  color: #141414;
+  letter-spacing: -0.005em;
+}
+.sc .scpipe-card-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #727272;
+}
+.sc .scpipe-card-value {
+  margin-top: 10px;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+  color: var(--sc-money);
+  letter-spacing: -0.005em;
+}
+.sc .scpipe-card-value + .scpipe-card-sub {
+  margin-top: 7px;
+}
+.sc .scpipe-card-note {
+  margin-top: 4.5px;
+  font-size: 12px;
+  line-height: 18px;
+  color: #a3a3a3;
+}

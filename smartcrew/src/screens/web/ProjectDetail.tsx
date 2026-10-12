@@ -1,7 +1,7 @@
-import "./ProjectDetail.css";
 import type { ReactNode } from "react";
 import { WebShell, Icon, type IconName, Kpi, MapPanel, Segmented, Button, money, pct, hm } from "../kit";
 import { featuredProject as P, crewById, type Bucket } from "../data";
+import "./ProjectDetail.css";
 
 // W3 Project detail = real-time job costing. Only the Gen B video build shows this page
 // (frames v050 / v052), so it is rebuilt here in Gen C: the collapsed sidebar and the
@@ -46,29 +46,29 @@ function MIcon({ name, size }: { name: keyof typeof MPATH; size: number }) {
 
 function InfoCell({ icon, label, children }: { icon: IconName; label: string; children: ReactNode }) {
   return (
-    <div className="scp-cell">
+    <div className="scpd-cell">
       <Icon name={icon} size={16} stroke={1.5} />
-      <span className="scp-label">{label}</span>
-      <span className="scp-value">{children}</span>
+      <span className="scpd-label">{label}</span>
+      <span className="scpd-value">{children}</span>
     </div>
   );
 }
 
 function BudgetCard({ title, b }: { title: string; b: Bucket }) {
   return (
-    <div className="scp-bcard">
-      <div className="scp-btitle">{title}</div>
-      <div className="scp-brow">
+    <div className="scpd-bcard">
+      <div className="scpd-btitle">{title}</div>
+      <div className="scpd-brow">
         <span>Budget</span>
-        <span className="scp-bchip">{money(b.budget)}</span>
+        <span className="scpd-bchip">{money(b.budget)}</span>
       </div>
-      <div className="scp-brow">
+      <div className="scpd-brow">
         <span>Spent</span>
-        <span className="scp-bchip">{money(b.spent)}</span>
+        <span className="scpd-bchip">{money(b.spent)}</span>
       </div>
-      <div className="scp-brow scp-brow--net">
+      <div className="scpd-brow scpd-brow--net">
         <span>Net</span>
-        <span className="scp-net">
+        <span className="scpd-net">
           <b>{money(b.net)}</b>
           <i className={b.pct > 100 ? "is-over" : undefined}>{pct(b.pct)}</i>
         </span>
@@ -83,35 +83,35 @@ export default function ProjectDetail() {
   return (
     <WebShell active="Projects" collapsed contentClassName="scp">
       {/* header */}
-      <div className="scp-head">
-        <span className="scp-back">
+      <div className="scpd-head">
+        <span className="scpd-back">
           <Icon name="chevronLeft" size={20} stroke={1.7} />
           Back
         </span>
-        <h1 className="scp-title">{P.name}</h1>
-        <span className="scp-hbtn scp-hbtn--del">
+        <h1 className="scpd-title">{P.name}</h1>
+        <span className="scpd-hbtn scpd-hbtn--del">
           <MIcon name="delete" size={13.5} />
           Delete
         </span>
-        <span className="scp-hbtn">
+        <span className="scpd-hbtn">
           <MIcon name="edit" size={13.5} />
           Edit
         </span>
       </div>
 
       {/* info + money | map */}
-      <div className="scp-top">
-        <div className="scp-left">
-          <div className="scp-info">
-            <div className="scp-irow">
+      <div className="scpd-top">
+        <div className="scpd-left">
+          <div className="scpd-info">
+            <div className="scpd-irow">
               <InfoCell icon="info" label="ID">
                 {P.number}
               </InfoCell>
               <InfoCell icon="target" label="Status">
-                <span className="scp-status">{P.status}</span>
+                <span className="scpd-status">{P.status}</span>
               </InfoCell>
             </div>
-            <div className="scp-irow">
+            <div className="scpd-irow">
               <InfoCell icon="calendar" label="Start date">
                 {P.startDate}
               </InfoCell>
@@ -119,7 +119,7 @@ export default function ProjectDetail() {
                 {P.endDate}
               </InfoCell>
             </div>
-            <div className="scp-irow">
+            <div className="scpd-irow">
               <InfoCell icon="refresh" label="Working days">
                 {P.workingDays.done}/{P.workingDays.total}
               </InfoCell>
@@ -127,18 +127,18 @@ export default function ProjectDetail() {
                 {P.progress}%
               </InfoCell>
             </div>
-            <div className="scp-irow">
+            <div className="scpd-irow">
               <InfoCell icon="briefcase" label="Company">
                 {P.client}
               </InfoCell>
             </div>
-            <div className="scp-irow">
+            <div className="scpd-irow">
               <InfoCell icon="mapPin" label="Location">
                 {P.address}
               </InfoCell>
             </div>
           </div>
-          <div className="scp-kpis">
+          <div className="scpd-kpis">
             <Kpi icon="cash" label="Revenue" value={money(P.revenue)} />
             <Kpi icon="trendingUp" label="Expenses" value={money(P.expenses)} />
             <Kpi icon="dollarCircle" label="Profit" value={money(P.profit)} />
@@ -148,7 +148,7 @@ export default function ProjectDetail() {
       </div>
 
       {/* budget vs spent per bucket */}
-      <div className="scp-budgets">
+      <div className="scpd-budgets">
         <BudgetCard title="Labor" b={P.labor} />
         <BudgetCard title="Materials" b={P.materials} />
         <BudgetCard title="Equipment" b={P.equipment} />
@@ -157,17 +157,17 @@ export default function ProjectDetail() {
       </div>
 
       {/* tabs + labor table */}
-      <div className="scp-card">
-        <div className="scp-toolbar">
+      <div className="scpd-card">
+        <div className="scpd-toolbar">
           <Segmented items={TABS} value="Labor" />
-          <Button icon="filter" className="scp-tbtn">
+          <Button icon="filter" className="scpd-tbtn">
             Filters
           </Button>
-          <Button icon="sort" className="scp-tbtn">
+          <Button icon="sort" className="scpd-tbtn">
             Sort
           </Button>
         </div>
-        <div className="scp-tr scp-tr--head">
+        <div className="scpd-tr scpd-tr--head">
           <div>Employee</div>
           <div>Role</div>
           <div>Total hours</div>
@@ -179,13 +179,13 @@ export default function ProjectDetail() {
           </div>
         </div>
         {laborRows.map((r) => (
-          <div key={r.person.id} className="scp-tr">
-            <div className="scp-emp">
-              <span className="scp-av">{r.person.name[0]}</span>
+          <div key={r.person.id} className="scpd-tr">
+            <div className="scpd-emp">
+              <span className="scpd-av">{r.person.name[0]}</span>
               <span className="sc-trunc">{r.person.name}</span>
             </div>
             <div>
-              <span className="scp-role">{r.person.role}</span>
+              <span className="scpd-role">{r.person.role}</span>
             </div>
             <div>{hm(r.total)}</div>
             <div>{hm(r.regular)}</div>

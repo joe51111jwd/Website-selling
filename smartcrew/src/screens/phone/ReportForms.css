@@ -1,0 +1,141 @@
+/*
+ * M7 Hauling Log + M8 DOT Inspection Report (phone forms). Every rule is scoped under the phone
+ * body class .rf-body (or the footer right after it) so the kit's form controls are only re-tuned on
+ * these two screens. Values measured from the 1560×3376 Vercel mocks mapped onto 402 px.
+ */
+
+.sc .rf-body {
+  padding: 0 21px;
+}
+
+/* header: 41 px grey circles, 20 px ExtraBold-ish title */
+.sc .rf-body .rf-head {
+  height: 52px;
+  margin: 0 0 20.7px;
+  gap: 9.5px;
+}
+.sc .rf-head .rf-circle {
+  width: 40.5px;
+  height: 40.5px;
+  color: #000;
+}
+.sc .rf-head .rf-title {
+  font-size: 20px;
+  line-height: 26px;
+  font-weight: 700;
+  letter-spacing: -0.032em;
+  color: #000;
+  position: relative;
+  top: 1.6px;
+}
+
+/* fields: 14 px label, 8.4 px gap, 45 px box, 22.3 px between fields */
+.sc .rf-body .sc-field {
+  gap: 8.4px;
+  margin-bottom: 22.3px;
+}
+.sc .rf-body .sc-field-label {
+  font-size: 14px;
+  line-height: 17px;
+  font-weight: 460;
+  color: #000;
+}
+.sc .rf-body .sc-input {
+  height: 45px;
+  min-height: 45px;
+  padding: 2.4px 13px 0;
+  gap: 7px;
+  border-radius: 12px;
+  background: #f4f4f4;
+  box-shadow: 0 1px 1.5px rgba(0, 0, 0, 0.045);
+  font-size: 15.7px;
+  color: #000;
+}
+.sc .rf-body .sc-input.is-placeholder {
+  color: #949494;
+}
+.sc .rf-body .sc-input > .sc-icon:first-child {
+  width: 23px;
+  height: 23px;
+  margin-left: -2px;
+  stroke-width: 1.45;
+  color: #979797;
+}
+.sc .rf-body .sc-input > .sc-icon:last-child:not(:first-child) {
+  width: 23px;
+  height: 23px;
+  margin-right: -4.4px;
+  stroke-width: 1.35;
+  color: #999;
+}
+/* date picker button is a little shorter, with 14 px text */
+.sc .rf-body .rf-date {
+  height: 41px;
+  min-height: 41px;
+  font-size: 14px;
+}
+.sc .rf-body .rf-notes {
+  height: 92px;
+  padding-top: 12px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* radio / check tiles: 32 px, 6 px radius, text 31.5 px in */
+.sc .rf-body .rf-field-choice {
+  gap: 14.8px;
+}
+.sc .rf-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12.6px;
+}
+.sc .rf-body .sc-choice {
+  height: 32.5px;
+  padding: 0 8px;
+  gap: 7px;
+  border-radius: 6px;
+  background: #f4f4f4;
+  font-size: 14px;
+  font-weight: 460;
+  color: #000;
+}
+.sc .rf-body .sc-choice-radio {
+  width: 16.5px;
+  height: 16.5px;
+  box-shadow: inset 0 0 0 1px #d4d4d4;
+}
+.sc .rf-body .sc-choice.is-on {
+  background: #1f1f1f;
+  color: #fff;
+}
+.sc .rf-body .sc-choice > .sc-icon {
+  width: 20px;
+  height: 20px;
+  margin: 0 -1.75px;
+  stroke-width: 1.65;
+  flex: none;
+}
+
+/* Cancel / Submit sheet */
+.sc .rf-body + .sc-phone-footer {
+  border-top: 0;
+  border-radius: 20px 20px 0 0;
+  box-shadow:
+    0 -0.5px 0 rgba(0, 0, 0, 0.06),
+    0 -2px 5px rgba(0, 0, 0, 0.035);
+  padding: 16.2px 20.6px 0 20.9px;
+  gap: 11.6px;
+}
+.sc .rf-body + .sc-phone-footer .rf-btn {
+  height: 41px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+  background: #f4f4f4;
+}
+.sc .rf-body + .sc-phone-footer .rf-btn.sc-pbtn--dark {
+  background: #1f1f1f;
+  color: #fff;
+}

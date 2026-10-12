@@ -1,0 +1,340 @@
+/*
+ * M5 Weekly summary (Gen C phone). Scoped under .sc, prefix ps-.
+ * CSS px on the 402×874 phone, measured on vercel-module-labor-payroll-mobile.png (1560 px = 402).
+ */
+
+.sc .ps-title {
+  margin-top: 11.9px;
+  font-size: 23.5px;
+  line-height: 30px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  color: #1b1b1b;
+}
+
+/* ── "This Week" card ────────────────────────────────────────────────────── */
+.sc .ps-week {
+  margin: 29.85px 0.6px 0;
+  border-radius: 11px;
+  background: var(--sc-surface);
+  padding: 11.7px 12.4px 12.3px;
+}
+.sc .ps-week-head {
+  display: flex;
+  align-items: center;
+  gap: 6.5px;
+  height: 22px;
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #181818;
+}
+.sc .ps-week-head .sc-icon {
+  color: #696969;
+  margin-left: -0.4px;
+}
+.sc .ps-stats {
+  margin-top: 11.65px;
+  height: 70.1px;
+  border-radius: 11px;
+  background: #fff;
+  display: flex;
+}
+.sc .ps-stat {
+  position: relative;
+  padding-top: 13.66px;
+  white-space: nowrap;
+}
+.sc .ps-stat:nth-child(1) {
+  width: 110.4px;
+  padding-left: 12.9px;
+}
+.sc .ps-stat:nth-child(2) {
+  width: 114.9px;
+  padding-left: 17.4px;
+}
+.sc .ps-stat:nth-child(3) {
+  flex: 1 1 auto;
+  padding-left: 16.9px;
+}
+.sc .ps-stat + .ps-stat::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12.05px;
+  width: 1px;
+  height: 46px;
+  background: #ebebeb;
+}
+.sc .ps-stat-k {
+  display: block;
+  font-size: 12px;
+  line-height: 15px;
+  letter-spacing: -0.01em;
+  color: #666;
+}
+.sc .ps-stat-v {
+  display: block;
+  margin-top: 7.5px;
+  font-size: 14.5px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #191919;
+}
+.sc .ps-submit {
+  margin-top: 16.5px;
+  height: 49.5px;
+  border-radius: 12px;
+  background: var(--sc-phone-ink);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6.4px;
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+/* ── timeline card ───────────────────────────────────────────────────────── */
+.sc .ps-days {
+  position: relative;
+  margin: 20.65px 0.6px 0;
+  height: 540px;
+  border-radius: 11px;
+  background: var(--sc-surface);
+  padding: 12px 12.4px 0 0;
+}
+.sc .ps-line {
+  position: absolute;
+  left: 18.1px;
+  top: 40px;
+  bottom: 0;
+  width: 1px;
+  background: repeating-linear-gradient(to bottom, #d2d2d2 0 3.6px, transparent 3.6px 8.2px);
+}
+.sc .ps-dot {
+  position: absolute;
+  left: 12.4px;
+  top: 50%;
+  width: 12.4px;
+  height: 12.4px;
+  margin-top: -6.2px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: inset 0 0 0 3.8px #0c0c0c;
+  z-index: 1;
+}
+.sc .ps-day {
+  position: relative;
+  height: 49.5px;
+  margin-bottom: 20.6px;
+  padding-left: 90.7px;
+}
+.sc .ps-day-dow {
+  position: absolute;
+  left: 57.5px;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #0c0c0c;
+}
+.sc .ps-day-pill {
+  height: 100%;
+  border-radius: 12.6px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 7.3px;
+  padding: 0 11.8px 0 11px;
+}
+.sc .ps-day-pill > .sc-icon:first-child {
+  color: #a0a0a0;
+}
+.sc .ps-day-hrs {
+  font-size: 16.5px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #080808;
+}
+.sc .ps-day-chev {
+  margin-left: auto;
+  color: #232323;
+}
+
+/* expanded day */
+.sc .ps-open-head {
+  position: relative;
+  height: 37.1px;
+  display: flex;
+  align-items: center;
+  padding-left: 38.4px;
+  white-space: nowrap;
+}
+.sc .ps-open-head > span:not(.ps-dot) {
+  position: relative;
+  top: -1px;
+}
+.sc .ps-open-dow {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  color: #0c0c0c;
+}
+.sc .ps-open-date {
+  margin-left: 9px;
+  font-size: 14.5px;
+  letter-spacing: -0.02em;
+  color: #696969;
+}
+.sc .ps-open-total {
+  margin-left: auto;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+  color: #696969;
+}
+.sc .ps-open-chev {
+  margin: 0 -0.6px 0 8px;
+  color: #272727;
+}
+.sc .ps-site {
+  margin: 9.55px 0 0 37.1px;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 12.3px 20px;
+}
+.sc .ps-site-head {
+  height: 69.4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-top: 13.8px;
+}
+.sc .ps-site-name {
+  font-size: 14.5px;
+  line-height: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #080808;
+  white-space: nowrap;
+}
+.sc .ps-span {
+  display: flex;
+  align-items: center;
+  gap: 2.6px;
+  margin-top: 6.6px;
+  font-size: 14.5px;
+  line-height: 18px;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+.sc .ps-span .sc-icon {
+  color: #9f9f9f;
+}
+.sc .ps-span-from {
+  color: #9f9f9f;
+}
+.sc .ps-span-to {
+  font-weight: 600;
+  color: #0a0a0a;
+}
+.sc .ps-span--sm {
+  margin-top: 0;
+  gap: 3px;
+  font-size: 12px;
+  line-height: 15px;
+}
+.sc .ps-span--sm .ps-span-from {
+  color: #9d9d9d;
+}
+.sc .ps-span--sm .ps-span-to {
+  font-weight: 500;
+  color: #000;
+}
+.sc .ps-site-btn {
+  width: 33px;
+  height: 33px;
+  margin-top: 4.7px;
+  border-radius: 50%;
+  background: var(--sc-surface);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.sc .ps-site-rule {
+  height: 1px;
+  background: repeating-linear-gradient(to right, #e6e6e6 0 3.6px, transparent 3.6px 8.2px);
+}
+.sc .ps-task {
+  position: relative;
+  padding-top: 12px;
+}
+.sc .ps-task:first-of-type {
+  padding-top: 11.6px;
+}
+.sc .ps-task-row {
+  position: relative;
+  height: 22px;
+  padding-right: 0.8px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.sc .ps-task-check {
+  width: 17px;
+  height: 17px;
+  margin-left: -0.1px;
+  border-radius: 50%;
+  background: #f4f4f4;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.sc .ps-task-name {
+  margin-left: 7.9px;
+  font-size: 14.5px;
+  letter-spacing: -0.03em;
+  color: #000;
+}
+.sc .ps-task-edit {
+  margin-left: auto;
+  margin-right: 6.5px;
+  color: #494949;
+}
+.sc .ps-task-row::after {
+  content: "";
+  position: absolute;
+  left: 8.4px;
+  top: 19px;
+  height: 50px;
+  width: 1px;
+  background: repeating-linear-gradient(to bottom, #e3e3e3 0 3.6px, transparent 3.6px 8.2px);
+}
+.sc .ps-task:last-child .ps-task-row::after {
+  display: none;
+}
+.sc .ps-chip {
+  margin: 7.05px 0 0 24.8px;
+  height: 24.3px;
+  border-radius: 12.15px;
+  background: var(--sc-surface);
+  padding: 0 9px;
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  font-size: 12px;
+  letter-spacing: -0.01em;
+  color: #6a6a6a;
+  white-space: nowrap;
+}
+.sc .ps-chip b {
+  font-weight: 500;
+  color: #000;
+}

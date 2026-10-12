@@ -29,3 +29,13 @@
 .sc .scd-last .sc-icon {
   color: #6a6a6a;
 }
+/* KPI text block: the app sets label → value → "Live" on a tighter 20 px rhythm, a touch lower */
+.sc .scd-kpis .sc-kpi {
+  padding-top: 2px;
+}
+.sc .scd-kpis .sc-kpi-value {
+  margin-top: 2px;
+}
+.sc .scd-kpis .sc-kpi-sub {
+  margin-top: 1.8px;
+}

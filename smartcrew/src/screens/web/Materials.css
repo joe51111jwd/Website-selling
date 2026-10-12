@@ -9,11 +9,11 @@
   justify-content: space-between;
 }
 .sc .scm-title {
-  font-size: 23.6px;
+  font-size: 23.4px;
   line-height: 30px;
   font-weight: 600;
-  letter-spacing: -0.028em;
-  color: #000;
+  letter-spacing: -0.024em;
+  color: #0a0a0a;
   margin-left: 0.5px;
 }
 .sc .scm-period {

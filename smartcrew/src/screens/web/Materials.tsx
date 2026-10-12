@@ -1,7 +1,7 @@
-import "./Materials.css";
 import type { ReactNode } from "react";
 import { WebShell, Icon, money, num, datePad } from "../kit";
 import { materialOrders, materialTotals, projectById, vendorById, type MaterialOrder } from "../data";
+import "./Materials.css";
 
 // W8 Materials → Orders (Gen C), after vercel-module-materials-hauling-web.png.
 // Period is "Month" (not "All" as in the capture) so the KPI totals stay a subset of the

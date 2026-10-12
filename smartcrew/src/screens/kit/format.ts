@@ -111,7 +111,7 @@ export function monthName(iso: string, long = true): string {
   return long ? MONTHS_LONG[m - 1] : MONTHS[m - 1];
 }
 
-/** Initials from a name: "Marcus Bell" → "MB", "Kevin J. Wyatt" → "KW". */
+/** Initials from a name: "Marcus Bell" → "MB", "Luis M. Delgado" → "LD". */
 export function initials(name: string): string {
   const w = name.replace(/[^A-Za-zÀ-ÿ' -]/g, "").split(/\s+/).filter((s) => s.length > 1 || /[A-Z]/.test(s));
   if (w.length === 0) return "?";

@@ -1,6 +1,6 @@
-import "./Scheduling.css";
 import { WebShell, Segmented, Button, Icon } from "../kit";
 import { projectById, scheduleMonth, TODAY } from "../data";
+import "./Scheduling.css";
 
 // W9 Scheduling (Gen C), after vercel-module-scheduling.png: Calendar · Timeline, Month · Week ·
 // Day, "‹ October 2026 ›", "+ Add Schedule", and a Mon-first month grid of blue schedule blocks.
@@ -15,6 +15,7 @@ type Slot = { projectId: string; start: string; end: string; crew: number };
 const T = {
   hwy9: { projectId: "p2417", start: "7:00 AM", end: "3:30 PM", crew: 4 },
   hwy9Set: { projectId: "p2417", start: "6:30 AM", end: "3:00 PM", crew: 6 }, // culvert setting day (lane closure)
+  hwy9Sat: { projectId: "p2417", start: "7:00 AM", end: "11:15 AM", crew: 4 }, // Saturday half day (the pipe crew's Sat Oct 3 timecards)
   maple: { projectId: "p2422", start: "7:00 AM", end: "4:00 PM", crew: 3 },
   river: { projectId: "p2409", start: "6:30 AM", end: "3:00 PM", crew: 2 },
   cr14: { projectId: "p2425", start: "7:00 AM", end: "3:30 PM", crew: 2 },
@@ -30,10 +31,10 @@ const PLAN: Record<number, Slot[]> = {
   // Sep 28 – Oct 4
   0: [T.river, T.hwy9],
   1: [T.hwy9, T.lot7],
-  2: [T.maple, T.cr14],
+  2: [T.cr14, T.oak],
   3: [T.river, T.hwy9],
   4: [T.maple, T.lot7],
-  5: [T.oak],
+  5: [T.hwy9Sat],
   // Oct 5 – 11
   7: [T.hwy9, T.elm],
   8: [T.river, T.maple],
@@ -49,7 +50,7 @@ const PLAN: Record<number, Slot[]> = {
   // Oct 19 – 25
   21: [T.river, T.kessler],
   22: [T.hwy9, T.maple],
-  23: [T.river, T.kessler],
+  23: [T.kessler],
   24: [T.hwy9, T.cr14],
   25: [T.river, T.maple],
   // Oct 26 – Nov 1
@@ -70,9 +71,9 @@ function addDays(iso: string, n: number) {
 /** Small solid person glyph used on the blocks ("👤 4"). */
 function PersonSolid() {
   return (
-    <svg className="scsched-person" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-      <circle cx="6" cy="3.1" r="2.55" fill="currentColor" />
-      <path d="M1.2 11.2c0-2.6 2.15-4.35 4.8-4.35s4.8 1.75 4.8 4.35z" fill="currentColor" />
+    <svg className="scsched-person" width="10" height="11" viewBox="0 0 10 11" aria-hidden="true">
+      <circle cx="5" cy="2.75" r="2.45" fill="currentColor" />
+      <path d="M.35 10.6c0-2.55 2.05-4.25 4.65-4.25s4.65 1.7 4.65 4.25z" fill="currentColor" />
     </svg>
   );
 }
@@ -112,11 +113,11 @@ export default function Scheduling() {
           <Segmented items={["Month", "Week", "Day"]} value="Month" className="scsched-seg" />
           <div className="scsched-nav">
             <span className="scsched-nav-btn">
-              <Icon name="chevronLeft" size={17} stroke={2} />
+              <Icon name="chevronLeft" size={19} stroke={2.3} />
             </span>
             <span className="scsched-nav-label">{scheduleMonth.label}</span>
             <span className="scsched-nav-btn">
-              <Icon name="chevronRight" size={17} stroke={2} />
+              <Icon name="chevronRight" size={19} stroke={2.3} />
             </span>
           </div>
           <Button variant="primary" icon="plus" className="scsched-add">

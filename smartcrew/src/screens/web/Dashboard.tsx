@@ -1,18 +1,18 @@
-import "./Dashboard.css";
 import { WebShell, Select, Kpi, MapPanel, Card, Toolbar, Segmented, Search, Button, Table, PersonCell, Pill, Cell2, Icon, money, hm, dateShort, type MapPin } from "../kit";
 import { dashboard, clockIns, crewById, projectById, equipmentById } from "../data";
+import "./Dashboard.css";
 
 // W1 Dashboard (Gen C): filters, 2×4 KPI grid, crew map, Clock Ins table.
 
 const PINS: MapPin[] = [
-  { x: 738, y: 182, label: "MB" },
-  { x: 766, y: 198, label: "ER" },
+  { x: 712, y: 168, label: "MB" },
+  { x: 774, y: 204, label: "ER" },
   { x: 614, y: 372, label: "KM" },
-  { x: 1205, y: 733, label: "TO" },
+  { x: 1186, y: 719, label: "TO" },
   { x: 1010, y: 324, label: "DH" },
   { x: 884, y: 358, label: "CB" },
   { x: 862, y: 482, label: "WT" },
-  { x: 1112, y: 388, photo: true },
+  { x: 1076, y: 398, photo: true },
 ];
 
 export default function Dashboard() {

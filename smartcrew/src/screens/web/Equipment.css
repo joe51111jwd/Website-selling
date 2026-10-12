@@ -11,11 +11,11 @@
   gap: 12px;
 }
 .sc .sce-title {
-  font-size: 23.6px;
+  font-size: 23.4px;
   line-height: 30px;
   font-weight: 600;
-  letter-spacing: -0.045em;
-  color: #030303;
+  letter-spacing: -0.024em;
+  color: #0a0a0a;
   margin-right: auto;
   margin-left: 0.5px;
   margin-top: -1px;
@@ -83,7 +83,8 @@
 .sc .sce-tab.is-active {
   background: #fff;
   color: #000;
-  font-weight: 510;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .sc .sce-tab .sc-badge {
   min-width: 19px;
@@ -153,7 +154,7 @@
 /* table: equal columns inside an 8.5 px gutter (the app's data table) */
 .sc .sce-tr {
   display: grid;
-  grid-template-columns: repeat(var(--sce-cols, 8), minmax(0, 1fr));
+  grid-template-columns: repeat(8, minmax(0, 1fr));
   align-items: center;
   padding: 0 8.5px;
   min-height: 62px;
@@ -227,27 +228,12 @@
   padding: 0 11.5px;
 }
 
+.sc .sce-q .sce-tr {
+  grid-template-columns: 1.2fr 0.95fr 1fr 0.85fr 1fr;
+}
 .sc .sce-tr--q {
   min-height: 63.5px;
   line-height: 17px;
-  font-size: 13.7px;
-}
-.sc .sce-eq {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  min-width: 0;
-}
-.sc .sce-eq-ic {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--sc-surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #2a2a2a;
-  flex: none;
 }
 .sc .sce-eq-txt {
   min-width: 0;
@@ -255,15 +241,15 @@
   flex-direction: column;
 }
 .sc .sce-eq-name {
-  font-size: 13.7px;
-  line-height: 17px;
+  font-size: 13.5px;
+  line-height: 16px;
   color: #000;
 }
 .sc .sce-eq-sub {
-  font-size: 12px;
-  line-height: 15px;
+  font-size: 11.8px;
+  line-height: 14px;
   color: #6b6b6b;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 .sc .sce-person {
   display: flex;
@@ -272,9 +258,6 @@
   min-width: 0;
 }
 .sc .sce-person .sc-avatar {
-  width: 23.5px;
-  height: 23.5px;
-  font-size: 11.5px;
   font-weight: 600;
   color: #111;
   background: var(--sc-surface);
@@ -282,15 +265,14 @@
 .sc .sce-date {
   display: inline-flex;
   align-items: center;
-  height: 30px;
-  padding: 0 14px;
+  height: 27px;
+  padding: 0 11.5px 0 10.5px;
   border-radius: 999px;
   background: var(--sc-surface);
-  box-shadow: inset 0 0 0 1px #e6e6e6;
-  font-size: 12.3px;
+  box-shadow: inset 0 0 0 1px #e3e3e3;
+  font-size: 12px;
   font-weight: 600;
   color: #000;
-  letter-spacing: -0.005em;
 }
 .sc .sce-urg {
   display: inline-flex;
@@ -303,11 +285,11 @@
 }
 .sc .sce-urg--Low {
   background: var(--sc-green-bg);
-  color: #1fae62;
+  color: var(--sc-green-ink);
 }
 .sc .sce-urg--Medium {
-  background: #fdefdc;
-  color: #e9820c;
+  background: var(--sc-orange-bg);
+  color: var(--sc-orange-ink);
 }
 .sc .sce-urg--High {
   background: var(--sc-red-bg);
@@ -319,11 +301,11 @@
   align-items: center;
   width: 162px;
   height: 26px;
-  padding: 0 10px 0 12.5px;
+  padding: 0 9px 0 9px;
   border-radius: 999px;
   background: #f0f0f0;
   box-shadow: inset 0 0 0 1px #cdcdcd;
-  font-size: 12.8px;
+  font-size: 12.3px;
   color: #6a6a6a;
   text-align: left;
 }
@@ -350,10 +332,10 @@
 .sc .sce-status--Done {
   background: var(--sc-green-bg);
   box-shadow: inset 0 0 0 1px #b4e6c9;
-  color: #1fae62;
+  color: var(--sc-green-ink);
 }
 .sc .sce-status--Done .sc-icon {
-  color: #1fae62;
+  color: var(--sc-green-ink);
 }
 .sc .sce-pager {
   height: 58px;

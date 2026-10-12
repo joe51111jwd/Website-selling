@@ -1,0 +1,430 @@
+/*
+ * Gen C phone clock screens: M1 Home "Ready to clock in?", M2 "Currently working on",
+ * M3 "Select task and project" sheet. Scoped under .sc, prefix pc-.
+ * Positions are CSS px on the 402×874 phone, measured on the 4× Vercel mock (M1), the explainer
+ * video frame v041 (M2) and the live-site select-task fragment (M3).
+ */
+
+/* ── header: "Fri ●  (cam)  Oct 09 / 2026" ─────────────────────────────── */
+.sc .pc-head {
+  /* the mock's day dot samples #2970FF (the dossier's #0859FF is the [VID] build) */
+  --sc-phone-dot: #2970ff;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  margin-top: 10px;
+}
+.sc .pc-head-day {
+  font-size: 40px;
+  line-height: 40px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: #050505;
+  position: relative;
+  top: 0.8px;
+}
+.sc .pc-head-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--sc-phone-dot);
+  margin-left: 10px;
+  flex: none;
+}
+.sc .pc-head-cam {
+  margin-left: auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--sc-surface);
+  color: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.sc .pc-head-date {
+  margin-left: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 16px;
+  line-height: 21px;
+  font-weight: 600;
+  color: #111;
+  position: relative;
+  top: 1px;
+}
+.sc .pc-head-year {
+  color: #929292;
+}
+
+/* ── week strip ──────────────────────────────────────────────────────────── */
+.sc .pc-week {
+  display: flex;
+  gap: 4px;
+  height: 74px;
+  margin-top: 13.5px;
+}
+.sc .pc-tile {
+  flex: 1 1 0;
+  min-width: 0;
+  position: relative;
+  border-radius: 9px;
+  text-align: center;
+}
+.sc .pc-tile.is-locked {
+  background: var(--sc-surface);
+}
+.sc .pc-tile.is-today {
+  background: var(--sc-surface);
+  box-shadow: inset 0 0 0 1.5px #1a1a1a;
+  border-radius: 10px;
+}
+.sc .pc-tile > span {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: block;
+}
+.sc .pc-tile-num {
+  top: 10.9px;
+  font-size: 17px;
+  line-height: 20px;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  color: #9a9a9a;
+}
+.sc .pc-tile-dow {
+  top: 38.3px;
+  font-size: 12.5px;
+  line-height: 16px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: #8e8e8e;
+}
+.sc .pc-tile.is-locked .pc-tile-num,
+.sc .pc-tile.is-locked .pc-tile-dow {
+  color: #969696;
+}
+.sc .pc-tile.is-today .pc-tile-num,
+.sc .pc-tile.is-today .pc-tile-dow {
+  color: #000;
+}
+.sc .pc-tile-mark {
+  top: 55.2px;
+  height: 17px;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+}
+.sc .pc-mark--check {
+  color: var(--sc-phone-check);
+}
+.sc .pc-tile.is-today .pc-mark--check {
+  color: var(--sc-green);
+}
+.sc .pc-mark--miss {
+  color: var(--sc-phone-miss);
+}
+.sc .pc-mark--lock {
+  color: #979797;
+}
+
+/* ── M1: "Ready to clock in?" ────────────────────────────────────────────── */
+.sc .pc-ready {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.sc .pc-ready-q {
+  margin-top: 145px;
+  font-size: 24px;
+  line-height: 29px;
+  font-weight: 620;
+  letter-spacing: -0.042em;
+  color: #0a0a0a;
+  white-space: nowrap;
+}
+.sc .pc-clockin {
+  margin-top: 17.8px;
+  width: 165px;
+  height: 165px;
+  border-radius: 50%;
+  background: var(--sc-phone-ink);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 56.3px;
+}
+.sc .pc-clockin-label {
+  margin-top: 7.3px;
+  font-size: 16.5px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.sc .pc-dayoff {
+  margin-top: 24.8px;
+  width: 177px;
+  height: 49px;
+  border-radius: 12px;
+  background: var(--sc-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7.5px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--sc-phone-ink);
+}
+.sc .pc-dayoff .sc-icon {
+  color: #4a4a4a;
+}
+
+/* ── M2: segmented Today · Entries · Week ────────────────────────────────── */
+.sc .pc-seg {
+  margin-top: 11.8px;
+  height: 37px;
+  border-radius: 999px;
+  background: var(--sc-surface);
+  padding: 3.5px;
+  display: flex;
+}
+.sc .pc-seg > span {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #a8a8a8;
+}
+.sc .pc-seg > span.is-on {
+  background: #fff;
+  color: #0a0a0a;
+}
+
+/* ── M2: "Currently working on" card ─────────────────────────────────────── */
+.sc .pc-work {
+  margin-top: 12.7px;
+  border-radius: 14px;
+  background: var(--sc-surface);
+  padding: 0 19.6px 13.7px;
+}
+.sc .pc-work-title {
+  padding-top: 18.6px;
+  height: 59.8px;
+  font-size: 15.5px;
+  line-height: 19px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: #0a0a0a;
+}
+.sc .pc-task {
+  background: #fff;
+  border-radius: 12px;
+  padding: 0 16.7px;
+  height: 249px;
+}
+.sc .pc-timer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 26px;
+  padding-top: 20px;
+  box-sizing: content-box;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: #0a0a0a;
+  font-variant-numeric: tabular-nums;
+}
+.sc .pc-timer::before {
+  content: "";
+  width: 6.5px;
+  height: 6.5px;
+  border-radius: 50%;
+  background: var(--sc-green);
+  flex: none;
+}
+.sc .pc-rows {
+  margin-top: 25.8px;
+}
+.sc .pc-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  height: 30.4px;
+  white-space: nowrap;
+}
+.sc .pc-row-k {
+  font-size: 13px;
+  color: #8a8a8a;
+  flex: none;
+}
+.sc .pc-row-v {
+  font-size: 15.5px;
+  color: #0a0a0a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.sc .pc-btns {
+  display: flex;
+  gap: 9.6px;
+  margin-top: 20.3px;
+}
+.sc .pc-btn {
+  flex: 1 1 0;
+  height: 50px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--sc-surface);
+  color: #111;
+}
+.sc .pc-btn--dark {
+  background: var(--sc-phone-ink);
+  color: #fff;
+}
+.sc .pc-btn--pink {
+  background: var(--sc-phone-clockout);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  gap: 8px;
+}
+.sc .pc-work-rule {
+  height: 1px;
+  background: var(--sc-line);
+  margin: 20.6px 0 21.5px;
+}
+.sc .pc-total {
+  background: #fff;
+  border-radius: 12px;
+  height: 80.4px;
+  padding: 0 16.7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sc .pc-total-k {
+  display: block;
+  font-size: 13px;
+  line-height: 16px;
+  color: #8a8a8a;
+}
+.sc .pc-total-v {
+  display: block;
+  margin-top: 10px;
+  font-size: 13.5px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #111;
+  font-variant-numeric: tabular-nums;
+}
+.sc .pc-total .pc-btn {
+  flex: none;
+  width: 140px;
+}
+
+/* ── M3: dimmed home + bottom sheet ──────────────────────────────────────── */
+.sc .pc-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.42);
+  z-index: 5;
+}
+.sc .pc-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  background: #fff;
+  border-radius: 22px 22px 0 0;
+  padding: 25.1px 20px 0;
+  height: 452px;
+}
+.sc .pc-sheet .sc-homebar {
+  bottom: 8px;
+}
+.sc .pc-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 24px;
+  margin-bottom: 23.3px;
+}
+.sc .pc-sheet-title {
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #0a0a0a;
+}
+.sc .pc-sheet-x {
+  color: #4a4a4a;
+  margin-right: 1px;
+}
+.sc .pc-sel-label {
+  display: block;
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 500;
+  color: #111;
+  margin-bottom: 6.6px;
+}
+.sc .pc-sel {
+  height: 49px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #e9e9e9, 0 1.5px 2.5px rgba(0, 0, 0, 0.045);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16.3px 0 16.5px;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: #111;
+  margin-bottom: 23.4px;
+  white-space: nowrap;
+}
+.sc .pc-sel .sc-icon {
+  color: #1a1a1a;
+  flex: none;
+}
+.sc .pc-sheet-btns {
+  display: flex;
+  gap: 16.5px;
+  margin-top: 4.6px;
+}
+.sc .pc-sheet-btns > span {
+  flex: 1 1 0;
+  height: 49.5px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+.sc .pc-sheet-cancel {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #e8e8e8, 0 1.5px 2.5px rgba(0, 0, 0, 0.045);
+  color: #111;
+}
+.sc .pc-sheet-start {
+  background: var(--sc-phone-ink);
+  color: #fff;
+}
