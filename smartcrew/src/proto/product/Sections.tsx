@@ -131,7 +131,7 @@ function HeroVisual() {
     const pw = narrow ? Math.round(W * 0.34) : Math.round(Math.min(250, Math.max(196, W * 0.29)));
     const pLeft = narrow ? W - pw - 4 : 0;
     const pTop = narrow ? Math.round(H * 0.24) : Math.round(H * 0.33);
-    const mx = winLeft + (724 - fx) * s;
+    const mx = winLeft + (754 - fx) * s;
     const my = winTop + (428 - fy) * s;
     inner = (
       <>

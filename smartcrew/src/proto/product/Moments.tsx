@@ -10,6 +10,8 @@ import { track } from "./track";
 // screen that does it. No auto-rotation, no hover-only content (PLAYBOOK S5 rule 8).
 
 function resolve(m: Moment, f: Feature): { phone: PhoneView; office: OfficeView } {
+  // a feature with no screen (or one Andrew still has to confirm) never gets a ring on a screen
+  if (f.confirm || f.noScreen) return { phone: { ...m.phone, ring: undefined }, office: { ...m.office, mark: undefined } };
   const fp = f.phone;
   const phone: PhoneView = fp?.id && fp.id !== m.phone.id ? { id: fp.id, y: fp.y ?? 30, ring: fp.ring } : { ...m.phone, ...(fp ?? {}) };
   const fo = f.office;
@@ -25,6 +27,7 @@ export default function Moments({ initial }: { initial: MomentId }) {
   const f = m.features[fi] ?? m.features[0];
   const views = useMemo(() => resolve(m, f), [m, f]);
   const seen = useRef(new Set<string>());
+  const rows = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     const key = `${m.id}:${f.id}`;
@@ -33,13 +36,23 @@ export default function Moments({ initial }: { initial: MomentId }) {
     track("module_view", { module_id: f.id, moment: m.id });
   }, [m.id, f.id]);
 
+  const reduce = useReducedMotion();
   const pick = (id: MomentId) => {
     if (id === mid) return;
     setMid(id);
     setFi(0);
+    // phone: the stage lives inside the opened row; keep that row's heading on screen
+    if (window.matchMedia("(max-width: 760px)").matches) {
+      const i = MOMENTS.findIndex((x) => x.id === id);
+      setTimeout(() => {
+        const el = rows.current[i];
+        if (!el) return;
+        const top = el.getBoundingClientRect().top;
+        if (top < 64 || top > window.innerHeight * 0.4) window.scrollTo({ top: window.scrollY + top - 64, behavior: reduce ? "auto" : "smooth" });
+      }, reduce ? 0 : 280);
+    }
   };
 
-  const rows = useRef<(HTMLButtonElement | null)[]>([]);
   const onKey = (e: KeyboardEvent, i: number) => {
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
     e.preventDefault();
@@ -73,9 +86,20 @@ export default function Moments({ initial }: { initial: MomentId }) {
                     {x.features.length}
                   </span>
                 </button>
-                <div className="pm-body" id={`pm-body-${x.id}`} hidden={!on}>
-                  {on && <MomentBody m={x} fi={fi} setFi={setFi} views={views} />}
-                </div>
+                <AnimatePresence initial={false}>
+                  {on && (
+                    <motion.div
+                      className="pm-body"
+                      id={`pm-body-${x.id}`}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: reduce ? 0 : 0.26, ease: EASE }}
+                    >
+                      <MomentBody m={x} fi={fi} setFi={setFi} views={views} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </li>
             );
           })}
@@ -91,7 +115,7 @@ export default function Moments({ initial }: { initial: MomentId }) {
 function MomentBody({ m, fi, setFi, views }: { m: Moment; fi: number; setFi: (i: number) => void; views: { phone: PhoneView; office: OfficeView } }) {
   const f = m.features[fi] ?? m.features[0];
   return (
-    <motion.div className="pm-open" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
+    <div className="pm-open">
       <p className="pm-outcome">{m.outcome}</p>
       {/* phone layout: the stage sits inside the open moment */}
       <div className="pm-inline-stage">
@@ -111,7 +135,7 @@ function MomentBody({ m, fi, setFi, views }: { m: Moment; fi: number; setFi: (i:
         {f.line}
         {f.confirm && <span className="pp-ph pp-ph-inline">Placeholder for Andrew: confirm this is live before launch</span>}
       </p>
-    </motion.div>
+    </div>
   );
 }
 
@@ -145,7 +169,7 @@ function Stage({ m, views, compact = false }: { m: Moment; views: { phone: Phone
     const oLeft = phoneLeft + phoneW + 56;
     const oTop = pad;
     const oVisW = W - oLeft;
-    const sw = oVisW / 740;
+    const sw = oVisW / (office.w ?? 740);
     const oH = H - oTop - pad;
 
     // office ring: the element the entry lands on, clipped to the visible window
@@ -183,7 +207,6 @@ function Stage({ m, views, compact = false }: { m: Moment; views: { phone: Phone
         <span className="pm-dir" style={{ left: phoneLeft + phoneW + 4, width: 52 }}>
           {m.dir === "up" ? "→" : "←"}
         </span>
-        <span className="pm-demo">Demo account, a 16-person dirt work company. Names and numbers are made up.</span>
       </div>
     );
     inner = (
@@ -221,6 +244,7 @@ function Stage({ m, views, compact = false }: { m: Moment; views: { phone: Phone
       {labels ?? <div className="pm-labels" />}
       <div ref={ref} className="pm-stage">
         {inner}
+        <span className="pm-demo">Demo account, a 16-person dirt work company. Names and numbers are made up.</span>
       </div>
     </div>
   );

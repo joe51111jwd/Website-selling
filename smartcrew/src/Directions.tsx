@@ -12,7 +12,7 @@ export default function Directions({ names }: { names: string[] }) {
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
         <p style={{ color: "#7A6B5D", margin: 0 }}>SmartCrew product page · design directions</p>
         <h1 style={{ fontSize: 32, lineHeight: 1.15, margin: "8px 0 32px", letterSpacing: "-0.02em" }}>Three ways to turn ad clicks into booked calls</h1>
-        {names.map((n) => (
+        {[...names].sort((a, b) => (ABOUT[a]?.title ?? a).localeCompare(ABOUT[b]?.title ?? b)).map((n) => (
           <a key={n} href={`?proto=${n}`} style={{ display: "block", padding: "20px 0", borderTop: "1px solid #EEE5DD", color: "inherit", textDecoration: "none" }}>
             <strong style={{ fontSize: 18 }}>{ABOUT[n]?.title ?? n}</strong>
             <span style={{ display: "block", color: "#67594C" }}>{ABOUT[n]?.line}</span>

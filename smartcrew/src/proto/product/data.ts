@@ -62,7 +62,7 @@ export function readAngle(): Angle {
 
 export type Box = [x: number, y: number, w: number, h: number];
 export type PhoneView = { id: string; y: number; ring?: Box };
-export type OfficeView = { id: string; x: number; y: number; mark?: { b: Box; label: string } };
+export type OfficeView = { id: string; x: number; y: number; w?: number; mark?: { b: Box; label: string } };
 
 export type Feature = {
   id: string; // inventory ID (features/INVENTORY.md)
@@ -70,6 +70,7 @@ export type Feature = {
   line: string; // one plain sentence (GREEN or a faithful paraphrase)
   src: string; // where the line comes from (L, V, V-tab, LV, SS)
   confirm?: boolean; // ⚑ exists only in LV/V copy: Andrew confirms before launch
+  noScreen?: boolean; // no recreated screen shows it: the stage stays on the moment, unmarked
   phone?: Partial<PhoneView>;
   office?: Partial<OfficeView>;
 };
@@ -98,10 +99,10 @@ export const MOMENTS: Moment[] = [
     office: { id: "web-dashboard", x: 345, y: 548, mark: { b: [345, 696, 1050, 62], label: "Marcus Bell · clocked in 6:42 am" } },
     features: [
       { id: "T1", label: "One-tap clock in", line: "Your crew starts and ends the day with one tap.", src: "L", phone: { id: "phone-home", y: 150, ring: [86, 340, 230, 230] } },
-      { id: "T2", label: "GPS auto clock-in (optional)", line: "Turn on GPS auto clock-in and hours log themselves when the crew gets to the job.", src: "L, LV", office: { x: 690, y: 160, mark: { b: [1018, 196, 42, 36], label: "Marcus, on site" } } },
+      { id: "T2", label: "GPS auto clock-in (optional)", line: "Turn on GPS auto clock-in and hours log themselves when the crew gets to the job.", src: "L, LV", office: { x: 860, y: 168, w: 560, mark: { b: [1018, 196, 42, 36], label: "Marcus, on site" } } },
       { id: "T3", label: "Cost codes", line: "Every hour lands on the right job and task, so you see exactly where time and money go.", src: "L", phone: { ring: [21, 612, 360, 56] }, office: { mark: { b: [925, 710, 132, 34], label: "Cost code: Pipe Laying" } } },
       { id: "T4", label: "Machine hours", line: "When the crew picks a machine, its hours go on the job too.", src: "L, V-tab", phone: { ring: [21, 709, 360, 56] }, office: { x: 640, mark: { b: [1083, 710, 176, 34], label: "CAT 320 hours on Hwy 9" } } },
-      { id: "T10", label: "Who’s on site", line: "See who’s clocked in and on which job, without calling around.", src: "L, SS", office: { x: 690, y: 160, mark: { b: [1049, 214, 42, 36], label: "Elena Ruiz, on site" } } },
+      { id: "T10", label: "Who’s on site", line: "See who’s clocked in and on which job, without calling around.", src: "L, SS", office: { x: 860, y: 168, w: 560, mark: { b: [1049, 214, 42, 36], label: "Elena Ruiz, on site" } } },
       { id: "T2c", label: "Missed clock-outs", line: "Forgotten clock-outs get flagged for the office.", src: "V-tab", confirm: true },
     ],
   },
@@ -197,8 +198,8 @@ export const MOMENTS: Moment[] = [
       { id: "T5", label: "Daily timecards", line: "Time is tracked daily and submitted automatically. No more chasing timecards.", src: "L" },
       { id: "M4", label: "QuickBooks payroll", line: "The hours your crew logs go to QuickBooks for payroll, so nobody types them twice.", src: "L (AMBER: mechanics to confirm)" },
       { id: "T11", label: "Overtime", line: "Overtime shows on the crew’s weekly summary before payroll goes out.", src: "SS", phone: { ring: [150, 172, 120, 48] } },
-      { id: "T6", label: "Time-off requests", line: "Your crew asks for days off in the app. The office approves and plans around it.", src: "L", phone: { id: "phone-home", y: 250, ring: [82, 570, 242, 56] } },
-      { id: "T7", label: "Prevailing wage", line: "Activity code hours are tracked by jurisdiction for prevailing wage jobs, with no manual entry.", src: "L" },
+      { id: "T6", label: "Time-off requests", line: "Your crew asks for days off in the app. The office approves and plans around it.", src: "L", phone: { id: "phone-home", y: 250, ring: [82, 570, 242, 56] }, office: { x: 0, mark: { b: [22, 200, 252, 42], label: "2 day-off requests" } } },
+      { id: "T7", label: "Prevailing wage", noScreen: true, line: "Activity code hours are tracked by jurisdiction for prevailing wage jobs, with no manual entry.", src: "L" },
       { id: "T8", label: "Employee profiles", line: "One record for each person on your crew.", src: "V-tab, SS", office: { x: 0, mark: { b: [22, 200, 252, 42], label: "Workforce" } } },
       { id: "T9", label: "Attendance and no-shows", line: "See who’s on site, who’s late and who’s pulling weight. Spot patterns in sick days and no-shows.", src: "L", office: { x: 560, mark: { b: [1074, 368, 41, 33], label: "No hours logged" } } },
     ],

@@ -769,3 +769,15 @@
   z-index: 3;
   border-radius: 10px;
 }
+.p-product .pm-body {
+  overflow: hidden;
+}
+.p-product .pm-stage .pm-demo {
+  position: absolute;
+  right: 18px;
+  bottom: 4px;
+  z-index: 4;
+  font-size: 11.5px;
+  line-height: 1;
+  color: var(--night-cap);
+}

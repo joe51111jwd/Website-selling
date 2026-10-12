@@ -1905,3 +1905,7 @@ html.p-product-root body {
     font-size: 24px;
   }
 }
+.p-product .ph-cap {
+  left: auto;
+  right: var(--gut);
+}
