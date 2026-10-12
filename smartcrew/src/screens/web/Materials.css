@@ -1,0 +1,299 @@
+/* W8 Materials → Orders — scoped under .sc, prefix scm- */
+
+/* header: title + Day / Week / Month / All */
+.sc .scm-head {
+  height: 37.5px;
+  margin-top: -0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sc .scm-title {
+  font-size: 23.6px;
+  line-height: 30px;
+  font-weight: 600;
+  letter-spacing: -0.028em;
+  color: #000;
+  margin-left: 0.5px;
+}
+.sc .scm-period {
+  height: 37.5px;
+  display: flex;
+  align-items: center;
+  padding: 0 5.75px 0 6.6px;
+  background: var(--sc-surface);
+  border-radius: 10px;
+}
+.sc .scm-period > span {
+  height: 26.5px;
+  display: flex;
+  align-items: center;
+  padding: 0 7.95px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #464646;
+}
+.sc .scm-period > span.is-active {
+  background: #fff;
+  color: #000;
+  font-weight: 600;
+}
+
+/* KPI row: four bare-icon cards */
+.sc .scm-kpis {
+  margin-top: 16.5px;
+  height: 74.5px;
+  display: grid;
+  grid-template-columns: 253px 253px 253px 1fr;
+  gap: 11.8px;
+}
+.sc .scm-kpi {
+  display: flex;
+  align-items: center;
+  background: var(--sc-surface);
+  border-radius: 12px;
+  padding-left: 26px;
+  gap: 26.5px;
+  min-width: 0;
+}
+.sc .scm-kpi .sc-icon {
+  color: #141414;
+}
+.sc .scm-kpi-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sc .scm-kpi-label {
+  font-size: 12px;
+  line-height: 15px;
+  color: #646464;
+  white-space: nowrap;
+}
+.sc .scm-kpi-value {
+  font-size: 14px;
+  line-height: 17px;
+  font-weight: 600;
+  color: #000;
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+/* orders card */
+.sc .scm-card {
+  margin-top: 18px;
+  border: 1px solid var(--sc-line);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+.sc .scm-toolbar {
+  height: 64.25px;
+  display: flex;
+  align-items: center;
+  padding: 0 11px 0 11.75px;
+  gap: 8px;
+}
+.sc .scm-tabs {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  background: var(--sc-surface);
+  border-radius: 10px;
+  margin-right: auto;
+  margin-top: 0.5px;
+}
+.sc .scm-tabs > span {
+  height: 27.5px;
+  display: flex;
+  align-items: center;
+  padding: 0 11.35px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #3c3c3c;
+  white-space: nowrap;
+}
+.sc .scm-tabs > span.is-active {
+  background: #fff;
+  color: #000;
+  font-weight: 600;
+}
+.sc .scm-search {
+  width: 255.25px;
+  height: 41px;
+  display: flex;
+  align-items: center;
+  gap: 11.7px;
+  padding-left: 8.8px;
+  background: var(--sc-surface);
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: #9d9d9d;
+}
+.sc .scm-search .sc-icon {
+  color: #666;
+}
+.sc .scm-btn {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9.5px;
+  padding: 0;
+  background: var(--sc-surface);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #000;
+  white-space: nowrap;
+}
+.sc .scm-btn .sc-icon {
+  color: #696969;
+}
+.sc .scm-btn--filters {
+  width: 81px;
+}
+.sc .scm-btn--sort {
+  width: 69px;
+}
+.sc .scm-btn--add {
+  width: 72px;
+  background: #000;
+  color: #fff;
+  font-size: 13.2px;
+  gap: 9px;
+  padding-right: 1px;
+  margin-left: 0.75px;
+}
+.sc .scm-btn--add .sc-icon {
+  color: #fff;
+}
+
+/* table: ten equal columns, Project left, the rest centred */
+.sc .scm-table {
+  display: flex;
+  flex-direction: column;
+}
+.sc .scm-tr {
+  height: 55px;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  align-items: center;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--sc-line);
+  font-size: 14px;
+  line-height: 17px;
+  color: #000;
+}
+.sc .scm-tr:last-child {
+  border-bottom: 0;
+}
+.sc .scm-tr--tall {
+  height: 66px;
+}
+.sc .scm-tr--head {
+  height: 30.5px;
+  background: #f6f6f6;
+  border-bottom: 1px solid var(--sc-line);
+  font-size: 13.75px;
+  font-weight: 600;
+  color: #3d3d3d;
+}
+.sc .scm-td {
+  min-width: 0;
+  text-align: center;
+  white-space: nowrap;
+  padding: 0 6px;
+  display: flex;
+  justify-content: center;
+}
+.sc .scm-td:first-child {
+  justify-content: flex-start;
+  text-align: left;
+  padding: 0 4px 0 7.5px;
+}
+.sc .scm-txt {
+  display: block;
+  max-width: 100%;
+}
+.sc .scm-proj {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.sc .scm-proj--split {
+  padding-left: 7px;
+  gap: 7px;
+}
+.sc .scm-proj .sc-icon {
+  color: #a2a2a2;
+  flex: none;
+}
+.sc .scm-bill {
+  font-size: 12px;
+  font-weight: 650;
+  color: #010101;
+  letter-spacing: -0.01em;
+}
+.sc .scm-bill i {
+  font-style: normal;
+  margin: 0 -0.6px;
+}
+.sc .scm-paid {
+  height: 24.5px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10.5px;
+  border-radius: 999px;
+  background: var(--sc-red-bg);
+  color: #f52e5c;
+  font-size: 12px;
+  font-weight: 500;
+}
+.sc .scm-paid.is-paid {
+  background: var(--sc-green-bg);
+  color: var(--sc-green-ink);
+}
+
+/* row actions: Material glyphs on grey tiles */
+.sc .scm-acts {
+  display: flex;
+  gap: 4px;
+}
+.sc .scm-act {
+  width: 19px;
+  height: 26.75px;
+  border-radius: 5px;
+  background: var(--sc-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #222;
+}
+.sc .scm-acts--big .scm-act {
+  width: 26.5px;
+  height: 37.5px;
+  border-radius: 6px;
+}
+.sc .scm-act--del {
+  color: var(--sc-red);
+}
+
+/* pager */
+.sc .scm-pager {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 22px;
+  padding-right: 26px;
+  padding-bottom: 4px;
+  font-size: 13px;
+  color: #323232;
+}
+.sc .scm-pager .sc-icon {
+  color: #696969;
+}

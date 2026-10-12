@@ -1,0 +1,370 @@
+/* W5 Equipment list + W6 Service Queue (Gen C), scoped under .sc, prefix sce-.
+ * Measured on vercel-module-equipment-management-web.png (5760 px = 4×) and, for the queue
+ * table cells, vercel-module-dot-compliance-web.png (inspections table). */
+
+/* header: title + "14/40 Equipment IDs" chip (+ List View / Board View on the queue) */
+.sc .sce-head {
+  height: 35.5px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sc .sce-title {
+  font-size: 23.6px;
+  line-height: 30px;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  color: #030303;
+  margin-right: auto;
+  margin-left: 0.5px;
+  margin-top: -1px;
+}
+.sc .sce-chip {
+  height: 35.5px;
+  display: flex;
+  align-items: center;
+  padding: 0 12.5px 0 12.75px;
+  border: 1px solid #ebebeb;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: #000;
+  white-space: nowrap;
+}
+
+/* main card */
+.sc .sce-card {
+  margin-top: 15.75px;
+  flex: none;
+  border: 1px solid var(--sc-line);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+/* toolbar: tabs (a scroll strip, clipped flat on the right) · Search · Filters · Sort · + Add */
+.sc .sce-toolbar {
+  height: 64.75px;
+  display: flex;
+  align-items: center;
+  padding: 0 11.5px 0 11.5px;
+  gap: 8px;
+}
+.sc .sce-tabs-clip {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 40px;
+  overflow: hidden;
+  border-radius: 10px 0 0 10px;
+  margin-right: 4px;
+}
+.sc .sce-tabs {
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  background: var(--sc-surface);
+  border-radius: 10px;
+}
+.sc .sce-tab {
+  height: 27.75px;
+  display: flex;
+  align-items: center;
+  gap: 7.5px;
+  padding: 0 11.85px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #3d3d3d;
+  white-space: nowrap;
+}
+.sc .sce-tab.is-active {
+  background: #fff;
+  color: #000;
+  font-weight: 510;
+}
+.sc .sce-tab .sc-badge {
+  min-width: 19px;
+  height: 14.5px;
+  font-size: 9.6px;
+  padding: 0 4.5px;
+}
+.sc .sce-search {
+  width: 254.5px;
+  height: 41px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12.5px;
+  padding-left: 9.6px;
+  background: var(--sc-surface);
+  border-radius: 8px;
+  font-size: 13.6px;
+  color: #9b9b9b;
+}
+.sc .sce-search .sc-icon {
+  color: #676767;
+}
+.sc .sce-btn {
+  height: 41px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9.5px;
+  background: var(--sc-surface);
+  border-radius: 8px;
+  font-size: 11.6px;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+  color: #000;
+  white-space: nowrap;
+}
+.sc .sce-btn .sc-icon {
+  color: #676767;
+}
+.sc .sce-btn--filters {
+  width: 81px;
+  justify-content: flex-start;
+  padding-left: 10.4px;
+  gap: 6.9px;
+}
+.sc .sce-btn--sort {
+  width: 70px;
+  justify-content: flex-start;
+  padding-left: 12.8px;
+  gap: 9.2px;
+}
+.sc .sce-btn--add {
+  width: 72px;
+  background: #000;
+  color: #fff;
+  font-size: 13.4px;
+  letter-spacing: 0;
+  gap: 10px;
+  padding-right: 1px;
+}
+.sc .sce-btn--add .sc-icon {
+  color: #fff;
+}
+
+/* table: equal columns inside an 8.5 px gutter (the app's data table) */
+.sc .sce-tr {
+  display: grid;
+  grid-template-columns: repeat(var(--sce-cols, 8), minmax(0, 1fr));
+  align-items: center;
+  padding: 0 8.5px;
+  min-height: 62px;
+  border-bottom: 1px solid #e9e9e9;
+  font-size: 13.5px;
+  line-height: 14.75px;
+  color: #000;
+}
+.sc .sce-tr--head {
+  min-height: 0;
+  height: 51px;
+  background: var(--sc-surface);
+  font-size: 13.8px;
+  line-height: 17px;
+  font-weight: 500;
+  color: #404040;
+}
+.sc .sce-td {
+  min-width: 0;
+  padding: 0 7.5px;
+  text-align: center;
+  white-space: nowrap;
+}
+.sc .sce-td.is-left {
+  text-align: left;
+}
+.sc .sce-td.is-wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  padding: 12px 7.5px;
+}
+.sc .sce-td.is-act {
+  display: flex;
+  align-items: center;
+  padding: 0 0 0 16.2px;
+}
+
+/* row actions: Material glyphs on grey tiles (edit / red delete) and a bare › */
+.sc .sce-act {
+  width: 29px;
+  height: 41px;
+  border-radius: 8px;
+  background: var(--sc-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #191919;
+  flex: none;
+}
+.sc .sce-act + .sce-act {
+  margin-left: 10.4px;
+}
+.sc .sce-act--del {
+  color: var(--sc-red);
+}
+.sc .sce-go {
+  margin-left: 11.5px;
+  color: #636363;
+}
+
+/* ── W6 Service Queue ─────────────────────────────────────────────────── */
+
+.sc .sce-views {
+  height: 35.5px;
+  padding: 0 4.5px;
+  margin-right: 0;
+}
+.sc .sce-views .sc-seg-item {
+  height: 26.5px;
+  font-size: 12.3px;
+  padding: 0 11.5px;
+}
+
+.sc .sce-tr--q {
+  min-height: 63.5px;
+  line-height: 17px;
+  font-size: 13.7px;
+}
+.sc .sce-eq {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.sc .sce-eq-ic {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--sc-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2a2a2a;
+  flex: none;
+}
+.sc .sce-eq-txt {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sc .sce-eq-name {
+  font-size: 13.7px;
+  line-height: 17px;
+  color: #000;
+}
+.sc .sce-eq-sub {
+  font-size: 12px;
+  line-height: 15px;
+  color: #6b6b6b;
+  margin-top: 2px;
+}
+.sc .sce-person {
+  display: flex;
+  align-items: center;
+  gap: 10.5px;
+  min-width: 0;
+}
+.sc .sce-person .sc-avatar {
+  width: 23.5px;
+  height: 23.5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #111;
+  background: var(--sc-surface);
+}
+.sc .sce-date {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--sc-surface);
+  box-shadow: inset 0 0 0 1px #e6e6e6;
+  font-size: 12.3px;
+  font-weight: 600;
+  color: #000;
+  letter-spacing: -0.005em;
+}
+.sc .sce-urg {
+  display: inline-flex;
+  align-items: center;
+  height: 24.5px;
+  padding: 0 10.5px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.sc .sce-urg--Low {
+  background: var(--sc-green-bg);
+  color: #1fae62;
+}
+.sc .sce-urg--Medium {
+  background: #fdefdc;
+  color: #e9820c;
+}
+.sc .sce-urg--High {
+  background: var(--sc-red-bg);
+  color: #f52e5c;
+}
+/* status dropdown, the inspections "● Pending ▾" select */
+.sc .sce-status {
+  display: inline-flex;
+  align-items: center;
+  width: 162px;
+  height: 26px;
+  padding: 0 10px 0 12.5px;
+  border-radius: 999px;
+  background: #f0f0f0;
+  box-shadow: inset 0 0 0 1px #cdcdcd;
+  font-size: 12.8px;
+  color: #6a6a6a;
+  text-align: left;
+}
+.sc .sce-status-dot {
+  width: 7.5px;
+  height: 7.5px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-right: 9px;
+  flex: none;
+}
+.sc .sce-status .sc-icon {
+  margin-left: auto;
+  color: #6a6a6a;
+}
+.sc .sce-status--Doing {
+  background: var(--sc-blue-bg);
+  box-shadow: inset 0 0 0 1px #b9cff8;
+  color: var(--sc-blue);
+}
+.sc .sce-status--Doing .sc-icon {
+  color: var(--sc-blue);
+}
+.sc .sce-status--Done {
+  background: var(--sc-green-bg);
+  box-shadow: inset 0 0 0 1px #b4e6c9;
+  color: #1fae62;
+}
+.sc .sce-status--Done .sc-icon {
+  color: #1fae62;
+}
+.sc .sce-pager {
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 22px;
+  padding-right: 26px;
+  font-size: 13px;
+  color: #323232;
+}
+.sc .sce-pager .sc-icon {
+  color: #696969;
+}

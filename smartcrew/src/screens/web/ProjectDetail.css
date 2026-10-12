@@ -1,0 +1,303 @@
+/* W3 Project detail · job costing — scoped under .sc, prefix scp- */
+
+/* header: ‹ Back · title ………… Delete · Edit (Gen C equipment-detail metrics) */
+.sc .scp-head {
+  height: 36px;
+  margin-top: 1.25px;
+  display: flex;
+  align-items: center;
+}
+.sc .scp-back {
+  width: 74.25px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 4.5px;
+  padding-left: 7.5px;
+  background: #f4f4f4;
+  border-radius: 8px;
+  font-size: 13.75px;
+  font-weight: 600;
+  color: #000;
+}
+.sc .scp-back .sc-icon {
+  color: #202020;
+}
+.sc .scp-title {
+  margin-left: 14px;
+  margin-right: auto;
+  font-size: 16.5px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #010101;
+  white-space: nowrap;
+}
+.sc .scp-hbtn {
+  width: 69px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10.5px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  font-size: 13.75px;
+  font-weight: 600;
+  color: #000;
+  margin-left: 8px;
+}
+.sc .scp-hbtn--del {
+  width: 85px;
+}
+.sc .scp-hbtn .sc-icon {
+  color: #202020;
+}
+.sc .scp-hbtn--del .sc-icon {
+  color: var(--sc-red);
+}
+
+/* top: info card + Revenue/Expenses/Profit on the left, map on the right */
+.sc .scp-top {
+  margin-top: 18.75px;
+  height: 286px;
+  display: grid;
+  grid-template-columns: 621.5px 621.5px;
+  gap: 16px;
+}
+.sc .scp-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.sc .scp-info {
+  height: 208px;
+  flex: none;
+  background: var(--sc-surface);
+  border-radius: 16px;
+  padding: 4px 17px;
+  display: flex;
+  flex-direction: column;
+}
+.sc .scp-irow {
+  height: 40px;
+  flex: none;
+  display: grid;
+  grid-template-columns: 283px 1fr;
+  align-items: center;
+  border-bottom: 1px solid #e6e6e6;
+}
+.sc .scp-irow:last-child {
+  border-bottom: 0;
+}
+.sc .scp-irow > .scp-cell:only-child {
+  grid-column: 1 / -1;
+}
+.sc .scp-cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-size: 14.5px;
+  line-height: 18px;
+}
+.sc .scp-cell .sc-icon {
+  color: #646464;
+  margin-right: 9px;
+}
+.sc .scp-label {
+  width: 108px;
+  flex: none;
+  color: #676767;
+  white-space: nowrap;
+}
+.sc .scp-irow > .scp-cell:nth-child(2) .scp-label {
+  width: 80px;
+}
+.sc .scp-value {
+  min-width: 0;
+  font-weight: 600;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc .scp-status {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--sc-blue-bg);
+  box-shadow: inset 0 0 0 1px #c5d7fb;
+  color: var(--sc-blue);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.sc .scp-kpis {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.sc .scp-kpis .sc-kpi {
+  padding-left: 13px;
+  gap: 11px;
+}
+.sc .scp-kpis .sc-kpi-value {
+  font-size: 16px;
+  margin-top: 4px;
+}
+
+/* five budget cards */
+.sc .scp-budgets {
+  margin-top: 16px;
+  height: 138px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.sc .scp-bcard {
+  background: var(--sc-surface);
+  border-radius: 14px;
+  padding: 13px 15px 0 16px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sc .scp-btitle {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+  color: #050505;
+  margin-bottom: 7px;
+}
+.sc .scp-brow {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: #3e3e3e;
+}
+.sc .scp-bchip {
+  height: 23px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #ececec;
+  font-size: 12.5px;
+  color: #1a1a1a;
+  margin-right: -2px;
+}
+.sc .scp-brow--net {
+  margin-top: 8px;
+  height: 34px;
+  border-top: 1px solid #e3e3e3;
+}
+.sc .scp-net {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 13px;
+}
+.sc .scp-net b {
+  font-weight: 600;
+  color: #050505;
+}
+.sc .scp-net i {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 12.5px;
+  color: var(--sc-green);
+}
+.sc .scp-net i.is-over {
+  color: var(--sc-red);
+}
+
+/* tabs card + labor table */
+.sc .scp-card {
+  margin-top: 16px;
+  border: 1px solid var(--sc-line);
+  border-radius: 12px 12px 0 0;
+  border-bottom: 0;
+  background: #fff;
+  overflow: hidden;
+  flex: 1 1 auto;
+}
+.sc .scp-toolbar {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 12px;
+}
+.sc .scp-toolbar > .sc-seg {
+  margin-right: auto;
+}
+.sc .scp-tbtn {
+  padding: 0 13px 0 14px;
+}
+.sc .scp-tr {
+  height: 52px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  align-items: center;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--sc-line);
+  font-size: 14px;
+  line-height: 17px;
+  color: #0a0a0a;
+}
+.sc .scp-tr > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.sc .scp-tr > div:first-child {
+  justify-content: flex-start;
+  padding-left: 8px;
+}
+.sc .scp-tr--head {
+  height: 44px;
+  background: #f6f6f6;
+  font-size: 13.75px;
+  font-weight: 600;
+  color: #3d3d3d;
+}
+.sc .scp-tr--head .sc-icon {
+  color: #8a8a8a;
+}
+.sc .scp-emp {
+  gap: 10px !important;
+}
+.sc .scp-av {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #efefef;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  flex: none;
+}
+.sc .scp-role {
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #e6e6e6;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #111;
+}

@@ -25,7 +25,9 @@ export type ModelSpec = {
 };
 
 export const MODELS: Partial<Record<DeviceKind, ModelSpec>> = {
-  // macbook: { url: "models/macbook-pro.glb", screen: "Screen", lid: "Lid", lidRestAngle: 90 },
-  // iphone: { url: "models/iphone.glb", screen: "Screen" },
-  // display: { url: "models/studio-display.glb", screen: "Screen" },
+  // Compressed with: gltf-transform optimize <in> <out> --compress meshopt --texture-compress webp --texture-size 2048
+  macbook: { url: "models/macbook-pro-14.glb", screen: "HlQwFCAPWzetDQy", scale: 10 },
+  iphone: { url: "models/iphone-18-pro-max.glb", screen: "Front_Screen", scale: 10, position: [0, -0.816, 0] },
+  // Apple Pro Display XDR by polyman Studio, CC-BY-4.0: sketchfab.com/3d-models/apple-pro-display-xdr-7e92cfb7c84d41f886c7748be6c567da
+  display: { url: "models/pro-display-xdr.glb", screen: "YZsKmgdmwlRdfBy", scale: 10 },
 };

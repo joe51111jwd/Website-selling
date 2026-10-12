@@ -1,0 +1,31 @@
+/* W1 Dashboard — scoped under .sc */
+.sc .scd-top {
+  display: grid;
+  grid-template-columns: 523px 524px;
+  gap: 12px;
+  height: 373px;
+  flex: none;
+}
+.sc .scd-kpis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(4, 86px);
+  gap: 9px 8px;
+}
+.sc .scd-table {
+  margin-top: 17px;
+  flex: none;
+  height: 400px;
+}
+.sc .scd-sort {
+  padding: 0 13px 0 14px;
+  gap: 7px;
+}
+.sc .scd-last {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sc .scd-last .sc-icon {
+  color: #6a6a6a;
+}

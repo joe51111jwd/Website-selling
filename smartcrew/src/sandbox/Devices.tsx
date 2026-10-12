@@ -26,14 +26,14 @@ export default function Devices() {
       >
         <Suspense fallback={null}>
           <Studio shadowScale={20} />
-          <group position={[-3.4, 0, -1.6]}>
-            <Device kind="display" screen="screens/web-scheduling.webp" />
+          <group position={[-4.6, 0, -2.6]}>
+            <Device kind="display" screen="screens/web-project-detail.webp" />
           </group>
           <group position={[0.6, 0, 0.6]} rotation={[0, -0.18, 0]}>
             <Device kind="macbook" screen="screens/web-dashboard.webp" finish="black" />
           </group>
           <group position={[3.2, 0.749, 1.8]} rotation={[-0.12, -0.45, 0]}>
-            <Device kind="iphone" screen="screens/app-clockin.webp" />
+            <Device kind="iphone" screen="screens/phone-home.webp" />
           </group>
         </Suspense>
         <OrbitControls target={v.target} makeDefault />
