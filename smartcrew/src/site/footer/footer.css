@@ -1,0 +1,200 @@
+/* Footer: the night ground the intro opened on, quiet type, one small moment (the geofence
+   closing round the mark). */
+
+.ftr-scene {
+  background: var(--night);
+  color: var(--ink-night-2);
+}
+
+.ftr {
+  padding-block: clamp(48px, 9svh, 88px) clamp(28px, 5svh, 44px);
+}
+
+.ftr-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 32px 48px;
+  flex-wrap: wrap;
+}
+
+.ftr-brand {
+  max-width: 30rem;
+}
+
+.ftr-logo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+/* the pin inside the intro's geofence, then the name */
+.ftr-mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 62px;
+  margin-left: -8px;
+}
+
+.ftr-mark-svg {
+  height: 30px;
+}
+
+.ftr-word {
+  height: 21px;
+  margin-left: 10px;
+}
+
+.ftr-fence {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ftr-fence-zone {
+  fill: rgb(255 122 1 / 0%);
+  transition: fill 0.9s var(--ease-out) 1.1s;
+}
+
+.ftr-fence-line {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 7;
+  stroke-dasharray: 18 13;
+  stroke-linejoin: round;
+}
+
+.ftr-fence-draw {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 24;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1.3s var(--ease-in-out) 0.2s;
+}
+
+.ftr.is-seen .ftr-fence-draw {
+  stroke-dashoffset: 0;
+}
+
+.ftr.is-seen .ftr-fence-zone {
+  fill: rgb(255 122 1 / 9%);
+}
+
+.ftr-tag {
+  margin-top: 18px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-night-2);
+  max-width: 27rem;
+  text-wrap: pretty;
+}
+
+.ftr-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.ftr a {
+  color: var(--ink-night);
+  text-decoration: none;
+  transition: color var(--dur-2) var(--ease-out);
+}
+
+.ftr-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 560;
+}
+
+.ftr a:hover {
+  color: var(--orange-2);
+}
+
+.ftr-base {
+  margin-top: clamp(32px, 6svh, 56px);
+  padding-top: 20px;
+  border-top: 1px solid var(--line-night);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px 48px;
+  align-items: start;
+}
+
+.ftr-legal {
+  display: flex;
+  align-items: center;
+  gap: 4px 24px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.ftr-legal a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  color: var(--ink-night-2);
+}
+
+.ftr-copy {
+  color: var(--ink-night-3);
+}
+
+.ftr .flag {
+  color: var(--orange-2);
+}
+
+.ftr-notes {
+  justify-self: end;
+  max-width: 44rem;
+  padding-top: 9px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-night-3);
+  text-align: right;
+  text-wrap: pretty;
+}
+
+@media (max-width: 960px) {
+  .ftr-base {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ftr-notes {
+    justify-self: start;
+    text-align: left;
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .ftr {
+    padding-block: 44px calc(var(--sticky-h) + env(safe-area-inset-bottom) + 28px);
+  }
+  .ftr-top {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .ftr-links {
+    align-items: flex-start;
+  }
+  .ftr-legal {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ftr-fence-draw {
+    stroke-dashoffset: 0;
+  }
+}

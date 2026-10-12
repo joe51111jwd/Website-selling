@@ -1,0 +1,258 @@
+/* 6 · Five apps → one. Pinned; transparent where the devices are. */
+
+.apps-grid {
+  position: relative;
+  height: 100%;
+}
+
+/* ── the copy column: headline (its turn, "Or one that does.", lands once all five are in), then
+   the close right under it, the footnote at the foot ── */
+.apps-copy {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--header-h) + clamp(12px, 4.2svh, 40px));
+  bottom: clamp(16px, 4svh, 40px);
+  left: var(--gutter);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: min(36rem, 46%);
+  /* the column overlaps the devices' box: let the loupe and the tiles' push see the pointer */
+  pointer-events: none;
+}
+
+.apps-cta,
+.apps-note,
+.apps-title {
+  pointer-events: auto;
+}
+
+.apps-title {
+  max-width: 12.6em;
+  font-size: clamp(30px, 1.6vw + 1.6svh + 6px, 54px);
+  line-height: 1.04;
+}
+
+.apps-l1 {
+  transition: color 0.7s var(--ease-out);
+}
+
+.is-phase-1 .apps-l1,
+.is-phase-2 .apps-l1 {
+  color: var(--ink-3);
+}
+
+.apps-l2-clip {
+  display: block;
+  overflow: clip;
+  overflow-clip-margin: 0.14em;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+
+.apps-l2 {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* ── the devices' box: under the headline, the full width, so they sit in the middle ── */
+.apps-stage {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  top: calc(var(--header-h) + clamp(92px, 19svh, 150px));
+  bottom: clamp(30px, 6svh, 60px);
+}
+
+/* ── the five tiles: things that float (so: a card and a shadow), text only ── */
+.apps-tiles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.apps-tile {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 13px 18px 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow:
+    0 1px 2px rgb(23 19 15 / 6%),
+    0 14px 34px -10px rgb(23 19 15 / 22%);
+  white-space: nowrap;
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  /* parked off-screen until the first frame places it */
+  transform: translate3d(-9999px, 0, 0);
+}
+
+.apps-tile-kind {
+  font-family: var(--font-display);
+  font-stretch: 106%;
+  font-weight: 660;
+  font-size: 17.5px;
+  line-height: 1.15;
+  letter-spacing: -0.018em;
+  color: var(--ink);
+}
+
+.apps-tile-names {
+  font-size: 13.5px;
+  line-height: 1.3;
+  color: var(--ink-3);
+}
+
+/* ── the close: sub + CTA under the headline once the devices have glided right ── */
+.apps-close {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: clamp(16px, 4.4svh, 40px);
+}
+
+.apps-sub {
+  color: var(--ink);
+  font-weight: 560;
+  font-size: clamp(18px, 0.5vw + 1svh + 6px, 23px);
+  margin-bottom: clamp(12px, 2.4svh, 22px);
+}
+
+.apps-note {
+  margin-top: auto;
+  padding-top: 12px;
+  font-size: 12.5px;
+}
+
+/* phones: lands where a tile goes in (the phone's screen is small, so the spot gets a ping) */
+.apps-pings {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.apps-ping {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+
+.apps-ping::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  top: -9px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--orange);
+  opacity: 0;
+}
+
+.apps-ping.is-on::before {
+  animation: apps-ping 0.75s var(--ease-out) both;
+}
+
+@keyframes apps-ping {
+  0% {
+    opacity: 1;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+/* parked outside the stage's clip (so it doesn't count as on screen) until the close */
+.apps-sticky-mark {
+  position: absolute;
+  left: 0;
+  top: -40px;
+  width: 2px;
+  height: 2px;
+  pointer-events: none;
+}
+
+.apps-sticky-mark.is-on {
+  top: calc(100% - 6px);
+}
+
+@media (max-width: 1100px) {
+  .apps-title {
+    max-width: 11.5em;
+  }
+}
+
+/* ── phones: the tiles stack over the dark phone and drain into it ── */
+@media (max-width: 760px) {
+  .apps-copy {
+    top: calc(var(--header-h) + 10px);
+    right: var(--gutter);
+    max-width: none;
+    align-items: stretch;
+    /* above the sticky bar until the close hides it */
+    bottom: calc(var(--sticky-h) + 6px);
+    transition: bottom 0.4s var(--ease-out);
+  }
+
+  .is-phase-2 .apps-copy {
+    bottom: 14px;
+  }
+
+  .apps-title {
+    max-width: none;
+    font-size: clamp(27px, 7.4vw, 34px);
+  }
+
+  .apps-stage {
+    left: 0;
+    right: 0;
+    top: calc(var(--header-h) + 86px);
+    bottom: calc(var(--sticky-h) + 6px);
+  }
+
+  .apps-tile {
+    width: min(276px, calc(100% - 2 * var(--gutter)));
+    padding: 9px 14px 10px;
+    gap: 1px;
+    border-radius: 12px;
+  }
+
+  .apps-tile-kind {
+    font-size: 15.5px;
+  }
+
+  .apps-tile-names {
+    font-size: 12.5px;
+  }
+
+  .apps-close {
+    margin-top: auto;
+    align-items: stretch;
+  }
+
+  .apps-sub {
+    font-size: 17px;
+    margin-bottom: 12px;
+  }
+
+  .apps-cta .btn {
+    width: 100%;
+  }
+
+  .apps-note {
+    margin-top: 0;
+    padding-top: 10px;
+    font-size: 11.5px;
+  }
+}

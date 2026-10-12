@@ -6,40 +6,118 @@
   display: grid;
   grid-template-columns: minmax(0, 29rem) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "copy stage"
+    "rail stage";
   column-gap: clamp(16px, 3vw, 56px);
   padding-top: var(--header-h);
-  transition: color 0.5s var(--ease-out);
+  color: var(--ink);
+  transition: color 0.6s var(--ease-out);
 }
 
 html[data-ground="dark"] .day-grid {
   color: var(--ink-night);
 }
 
+/* ── the copy ──────────────────────────────────────────────────────────── */
+
 .day-copy {
-  grid-column: 1;
-  grid-row: 1;
+  grid-area: copy;
   align-self: center;
+  padding-top: clamp(8px, 3svh, 32px);
 }
 
-.day-time-wrap {
-  position: relative;
-  height: calc(var(--fs-time) * 0.95);
-  margin-bottom: clamp(10px, 2.4svh, 24px);
-}
-
+/* the odometer */
 .day-time {
+  --wh: 1.06em;
+  position: relative;
+  height: var(--wh);
+  /* the roll happens inside the line: a word rising in never crosses the title */
+  overflow: clip;
+  overflow-clip-margin: 0.16em;
+  margin: 0 0 clamp(10px, 2.2svh, 22px) -0.04em;
+  font-size: var(--fs-time);
+  line-height: var(--wh);
+  white-space: nowrap;
+}
+
+.day-odo-line {
   position: absolute;
   left: 0;
-  bottom: 0;
-  white-space: nowrap;
-  font-size: var(--fs-time);
+  top: 0;
+  display: inline-flex;
+  align-items: baseline;
+  height: var(--wh);
 }
 
-.day-ampm {
-  font-size: 0.32em;
-  letter-spacing: -0.02em;
-  margin-left: 0.14em;
-  font-weight: 650;
+/* wheels, colon and suffix are flex boxes so they share the digits' baseline */
+.day-odo-wheel {
+  position: relative;
+  display: inline-flex;
+  height: var(--wh);
+  overflow: hidden;
+  /* digits passing through fade at the window's edges, like a counter behind glass */
+  -webkit-mask-image: linear-gradient(transparent 0, #000 15%, #000 85%, transparent 100%);
+  mask-image: linear-gradient(transparent 0, #000 15%, #000 85%, transparent 100%);
+}
+
+.day-odo-sizer {
+  visibility: hidden;
+}
+
+.day-odo-strip {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.day-odo-strip > span {
+  display: block;
+  height: var(--wh);
+  text-align: center;
+}
+
+.day-odo-colon {
+  display: inline-flex;
+  margin-inline: -0.02em;
+  transform: translateY(-0.04em);
+}
+
+.day-odo-suffix {
+  position: relative;
+  display: inline-flex;
+  height: 1.25em;
+  margin-left: 0.4em;
+  overflow: hidden;
+  font-size: 0.3em;
+  line-height: 1.25em;
+  letter-spacing: -0.01em;
+  font-weight: 680;
+}
+
+.day-odo-suffix > span {
+  display: inline-block;
+}
+
+.day-odo-word {
+  letter-spacing: -0.05em;
+}
+
+.day-odo-letter {
+  display: inline-block;
+  white-space: pre;
+}
+
+/* the moment */
+.day-text {
+  position: relative;
+  min-height: 15.5rem;
+}
+
+.day-text-in {
+  width: 100%;
 }
 
 .day-title {
@@ -49,52 +127,104 @@ html[data-ground="dark"] .day-grid {
 .day-outcome {
   margin-top: 8px;
   max-width: 26rem;
-}
-
-html[data-ground="dark"] .day-outcome,
-html[data-ground="dark"] .day-features {
-  color: var(--ink-night-2);
+  transition: color 0.6s var(--ease-out);
 }
 
 .day-features {
-  margin-top: clamp(14px, 2.6svh, 26px);
+  margin-top: clamp(12px, 2.4svh, 24px);
   max-width: 27rem;
   font-size: 14px;
   line-height: 1.6;
   color: var(--ink-3);
+  text-wrap: pretty;
+  transition: color 0.6s var(--ease-out);
+}
+
+.day-feature {
+  white-space: nowrap;
+}
+
+.day-dot {
+  white-space: normal;
 }
 
 .day-cta {
-  margin-top: 10px;
+  margin-top: 6px;
+  font-size: 15px;
+}
+
+html[data-ground="dark"] .day-outcome {
+  color: var(--ink-night-2);
+}
+
+html[data-ground="dark"] .day-features {
+  color: var(--ink-night-3);
+}
+
+html[data-ground="dark"] .day-grid .flag {
+  color: var(--orange);
 }
 
 html[data-ground="dark"] .day-cta {
   color: var(--ink-night);
+  text-decoration-color: rgb(244 238 231 / 30%);
 }
 
+html[data-ground="dark"] .day-cta:hover {
+  text-decoration-color: var(--orange);
+}
+
+/* ── the stage ─────────────────────────────────────────────────────────── */
+
 .day-stage {
-  grid-column: 2;
-  grid-row: 1 / span 2;
+  grid-area: stage;
   position: relative;
   margin: 2svh calc(var(--gutter) * -0.5) 3svh 0;
 }
 
-/* the day rail: seven times on a thin line, the current one lit */
+/* the loupe target: a little larger than the anchor, since devices overhang it */
+.day-loupe {
+  position: absolute;
+  inset: -2% -3%;
+}
+
+.day-caption {
+  position: absolute;
+  right: calc(var(--gutter) * 0.5);
+  bottom: -1svh;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--ink-3);
+  opacity: 0.8;
+  pointer-events: none;
+  transition: color 0.6s var(--ease-out);
+}
+
+html[data-ground="dark"] .day-caption {
+  color: var(--ink-night-3);
+}
+
+/* ── the day rail ──────────────────────────────────────────────────────── */
+
 .day-rail {
-  grid-column: 1;
-  grid-row: 2;
+  grid-area: rail;
   padding-bottom: clamp(16px, 3svh, 30px);
   z-index: 1;
 }
 
 .day-rail ol {
   display: flex;
-  gap: 2px;
+  gap: 3px;
 }
 
 .day-rail li {
   flex: 1 1 0;
   min-width: 0;
+}
+
+.day-rail li.day-rail-end {
+  flex: 1.55 1 0;
+  margin-left: 6px;
 }
 
 .day-rail button {
@@ -104,46 +234,43 @@ html[data-ground="dark"] .day-cta {
   gap: 8px;
   width: 100%;
   min-height: 44px;
-  padding-top: 0;
   color: inherit;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.day-rail-dot {
+.day-rail-track {
   position: relative;
   display: block;
   width: 100%;
   height: 3px;
   border-radius: 2px;
-  background: color-mix(in srgb, currentColor 14%, transparent);
+  background: color-mix(in srgb, currentColor 13%, transparent);
   overflow: hidden;
 }
 
-.day-rail-dot::after {
-  content: "";
+.day-rail-fill {
   position: absolute;
   inset: 0;
   background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.5s var(--ease-out);
+  opacity: 0.42;
+  transform-origin: left center;
 }
 
-.day-rail .is-past .day-rail-dot::after {
-  transform: scaleX(1);
-  opacity: 0.45;
-}
-
-.day-rail .is-on .day-rail-dot::after {
-  transform: scaleX(1);
+.day-rail .is-on .day-rail-fill {
   background: var(--orange);
+  opacity: 1;
 }
 
 .day-rail-t {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   opacity: 0.45;
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
   transition: opacity 0.3s;
 }
 
@@ -152,41 +279,112 @@ html[data-ground="dark"] .day-cta {
   opacity: 1;
 }
 
+/* the last stop: a dashed stretch (the geofence) to "Your crew →" */
+.day-rail-end .day-rail-track {
+  height: 2px;
+  margin-top: 0.5px;
+  border-radius: 0;
+  background: repeating-linear-gradient(90deg, currentColor 0 5px, transparent 5px 9px);
+  opacity: 0.4;
+}
+
+.day-rail-end .day-rail-t {
+  opacity: 1;
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.day-rail-arrow {
+  width: 14px;
+  height: 14px;
+  transition: transform var(--dur-2) var(--ease-out);
+}
+
+.day-rail-end button:hover .day-rail-arrow {
+  transform: translateX(3px);
+}
+
+.day-rail-end button:hover .day-rail-track {
+  opacity: 1;
+  color: var(--orange);
+}
+
+/* ── phones: the stage on top, the rail, then the moment ───────────────── */
+
 @media (max-width: 760px) {
   .day-grid {
     display: flex;
     flex-direction: column;
     padding-top: var(--header-h);
+    padding-bottom: calc(var(--sticky-h) + 6px);
   }
   .day-stage {
     order: 1;
-    flex: 0 0 46%;
+    flex: 0 0 auto;
+    height: 43svh;
     margin: 0 calc(var(--gutter) * -1);
   }
-  .day-copy {
-    order: 2;
-    align-self: stretch;
-    flex: 1 1 auto;
-    padding-top: 4px;
+  .day-loupe {
+    display: none;
   }
-  .day-time-wrap {
-    height: calc(clamp(56px, 17vw, 72px) * 0.95);
-    margin-bottom: 8px;
-  }
-  .day-time {
-    font-size: clamp(56px, 17vw, 72px);
-  }
-  .day-features {
+  .day-caption {
     display: none;
   }
   .day-rail {
+    order: 2;
+    padding: 0;
+    margin: -8px 0 -10px;
+  }
+  .day-rail ol {
+    gap: 3px;
+  }
+  .day-rail li.day-rail-end {
+    flex: 0 0 auto;
+    margin-left: 8px;
+  }
+  .day-rail button {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+  .day-rail li:not(.day-rail-end) .day-rail-t {
+    display: none;
+  }
+  .day-rail-end .day-rail-track {
+    display: none;
+  }
+  .day-rail-end .day-rail-t {
+    font-size: 12.5px;
+  }
+  .day-copy {
     order: 3;
-    padding-bottom: calc(var(--sticky-h) + 10px);
+    flex: 1 1 auto;
+    align-self: stretch;
+    padding-top: 4px;
   }
-  .day-rail-t {
-    font-size: 0;
+  .day-time {
+    font-size: clamp(44px, 12.4vw, 60px);
+    margin-bottom: 6px;
   }
-  .day-rail .is-on .day-rail-t {
-    font-size: 11px;
+  .day-text {
+    min-height: 0;
+  }
+  .day-title {
+    font-size: 21px;
+  }
+  .day-outcome {
+    margin-top: 4px;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .day-features {
+    margin-top: 8px;
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+  .day-cta {
+    margin-top: 0;
+    min-height: 36px;
+    font-size: 14px;
   }
 }

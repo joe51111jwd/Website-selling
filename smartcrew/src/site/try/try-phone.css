@@ -1,0 +1,264 @@
+/* 3 · Try it on phones: the page becomes the crew app. */
+
+.try--phone .scene-stage {
+  background: var(--page-ground, var(--ground));
+}
+
+.tp {
+  position: relative;
+  height: 100%;
+  --tp-top: var(--header-h);
+  /* where the app's top edge rests before it rises, as a fraction of its own height */
+  --tp-peek: 0.5;
+}
+
+.tp-intro {
+  position: absolute;
+  inset: var(--tp-top) 0 auto;
+  padding-top: clamp(12px, 2.6svh, 22px);
+  will-change: transform, opacity;
+}
+
+.tp-title {
+  font-size: clamp(30px, 8.6vw, 38px);
+  line-height: 1.02;
+  max-width: 9em;
+}
+
+.tp-prompt {
+  margin-top: 10px;
+  font-size: 16px;
+  max-width: 21rem;
+}
+
+.tp-facts {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+  max-width: 22rem;
+}
+
+.tp-facts li {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+.tp-facts strong {
+  font-weight: 650;
+  color: var(--ink-2);
+}
+
+/* the app: a full-width sheet under the header that rises from the peek to fill the screen */
+.tp-app {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--tp-top);
+  height: calc(100% - var(--tp-top));
+  transform-origin: 50% 0;
+  overflow: hidden;
+  background: #fff;
+  will-change: transform;
+}
+
+.tp-app-shadow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    0 -1px 0 rgb(23 19 15 / 6%),
+    0 -18px 50px rgb(23 19 15 / 14%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* the app's own UI at the visitor's width (the screens are drawn for 402 px; they flex) */
+.tp-ui .tp-sc {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 15px;
+  color: #111;
+  background: #fff;
+}
+
+.tp-ui .tp-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 max(16px, env(safe-area-inset-left)) 0 max(16px, env(safe-area-inset-right));
+  overflow: hidden;
+}
+
+.tp-ui .tp-body > * {
+  flex-shrink: 0;
+}
+
+.tp-ui .pc-head {
+  margin-top: 12px;
+}
+
+/* the ready block sits in the middle of what's left above the tab bar */
+.tp-ui .tp-ready {
+  flex: 1 1 auto;
+  justify-content: center;
+  padding-bottom: 2svh;
+}
+
+.tp-ui .tp-ready .pc-ready-q {
+  margin-top: 0;
+}
+
+.tp-ui .tp-clockin {
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.14s var(--ease-out);
+  border: 0;
+  font: inherit;
+}
+
+.tp-ui .tp-clockin:active,
+.tp-ui .tp-clockin.is-ghost {
+  transform: scale(0.95);
+}
+
+.tp-ui .tp-clockin:focus-visible {
+  outline: 2.5px solid var(--orange);
+  outline-offset: 5px;
+  border-radius: 50%;
+}
+
+/* an invitation: a soft ring breathes out of the circle */
+.tp-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgb(31 31 31 / 35%);
+  opacity: 0;
+  pointer-events: none;
+  animation: tp-invite 2.6s var(--ease-out) 1.2s infinite;
+}
+
+@keyframes tp-invite {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  12% {
+    opacity: 0.9;
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.38);
+  }
+}
+
+.tp-ghost {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 30%);
+  box-shadow: 0 0 0 2px rgb(255 255 255 / 70%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tp-clockin.is-ghost .tp-ghost {
+  animation: tp-ghost 0.9s var(--ease-out) 1 both;
+}
+
+@keyframes tp-ghost {
+  0% {
+    opacity: 0;
+    transform: translate(30px, 60px) scale(1.2);
+  }
+  45% {
+    opacity: 1;
+    transform: none;
+  }
+  70% {
+    opacity: 1;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* "Currently working on": the segmented control is left out so the card fits a phone screen */
+.tp-ui .tp-work {
+  margin-top: 12px;
+}
+
+.tp-ui .tp-clockout {
+  border: 0;
+  cursor: pointer;
+}
+
+.tp-ui .sc-tabbar {
+  height: calc(70px + env(safe-area-inset-bottom));
+  padding-top: 9px;
+}
+
+.tp-ui .sc-homebar {
+  display: none;
+}
+
+/* the page's note over the bottom of the app, after the tap */
+.tp-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  padding: 18px var(--gutter) calc(10px + env(safe-area-inset-bottom));
+  background: var(--ground);
+  border-radius: 22px 22px 0 0;
+  box-shadow:
+    0 -1px 0 rgb(23 19 15 / 6%),
+    0 -20px 44px rgb(23 19 15 / 16%);
+}
+
+.tp-stamp {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--orange-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.tp-done-1 {
+  margin-top: 6px;
+  font-size: 24px;
+}
+
+.tp-done-2 {
+  margin-top: 2px;
+  font-size: 16px;
+  color: var(--ink-2);
+}
+
+.tp-cta {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.tp-again {
+  font-size: 14px;
+  font-weight: 560;
+  color: var(--ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-ring {
+    animation: none;
+  }
+}

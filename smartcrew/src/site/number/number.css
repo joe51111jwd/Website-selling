@@ -1,0 +1,726 @@
+/* 4 · Your number. Desktop: headline across; the crew and the two picks left, the visitor's own
+   number right. Phones: one column, slider + result + CTA in one screen. */
+
+.num .scene-body {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+}
+
+.num-grid-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  grid-template-rows: auto auto;
+  align-content: center;
+  column-gap: clamp(40px, 6vw, 112px);
+  row-gap: clamp(18px, 4.2svh, 44px);
+  width: 100%;
+  padding-top: calc(var(--header-h) + clamp(12px, 3svh, 36px));
+  padding-bottom: clamp(16px, 4svh, 40px);
+}
+
+.num-title {
+  grid-column: 1 / -1;
+  max-width: 18em;
+}
+
+/* ── inputs ─────────────────────────────────────────────────────────────── */
+
+.num-in {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.num-crew-read {
+  --n-size: clamp(44px, 2.6vw + 2.6svh, 76px);
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  height: calc(var(--n-size) * 0.9);
+}
+
+.num-crew-n {
+  font-size: var(--n-size);
+  line-height: 0.9;
+  min-width: 1.2ch;
+}
+
+.num-crew:not(.is-set) .num-crew-n {
+  color: var(--ink-3);
+  opacity: 0.45;
+}
+
+.num-crew-unit {
+  font-size: var(--fs-lead);
+  font-weight: 560;
+  color: var(--ink-2);
+}
+
+.num-crew:not(.is-set) .num-crew-unit {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+/* an arrow after "Drag to your crew size" until it's touched */
+.num-crew:not(.is-set) .num-crew-unit::after {
+  content: "→";
+  display: inline-block;
+  margin-left: 8px;
+  color: var(--orange-ink);
+  animation: num-nudge-arrow 2.4s var(--ease-in-out) 1.2s infinite;
+}
+
+@keyframes num-nudge-arrow {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: translateX(6px);
+  }
+}
+
+.num-crew-area {
+  position: relative;
+  margin-top: clamp(10px, 2svh, 18px);
+  container-type: inline-size;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: grab;
+  border-radius: 10px;
+}
+
+.num-crew.is-drag .num-crew-area {
+  cursor: grabbing;
+}
+
+.num-crew-area:focus-visible {
+  outline: 2.5px solid var(--orange);
+  outline-offset: 8px;
+}
+
+.num-grid {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* the empty slots: survey dots, rippling in column by column the first time */
+.num-slot circle {
+  fill: var(--ink);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.num-crew.is-in .num-slot circle {
+  animation: num-dot 0.6s var(--ease-out) both;
+  animation-delay: calc(var(--c) * 16ms);
+}
+
+@keyframes num-dot {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.22;
+  }
+}
+
+.num-crew.is-in .num-slot.on circle {
+  animation: none;
+  opacity: 0;
+}
+
+/* one hard hat per person, popping in orange and settling to ink */
+.num-slot use {
+  fill: var(--ink);
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transform: translateY(1.5px) scale(0.35);
+  transition:
+    opacity 0.16s var(--ease-out),
+    transform 0.32s var(--ease-spring);
+}
+
+.num-slot.on use {
+  opacity: 1;
+  transform: none;
+  animation: num-hat 0.9s var(--ease-out) both;
+}
+
+@keyframes num-hat {
+  0%,
+  35% {
+    fill: var(--orange);
+  }
+  100% {
+    fill: var(--ink);
+  }
+}
+
+/* the track under the grid, its fill, and the thumb: a knob with a stake up through the crew */
+.num-track {
+  position: relative;
+  height: 30px;
+  margin-top: 6px;
+}
+
+.num-track::before,
+.num-track-fill {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 2px;
+}
+
+.num-track::before {
+  right: 0;
+  background: rgb(23 19 15 / 12%);
+}
+
+.num-track-fill {
+  width: calc(var(--p) * 100%);
+  background: var(--ink);
+}
+
+.num-thumb {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--p) * 100%);
+  width: 0;
+  height: 0;
+}
+
+.num-stake {
+  position: absolute;
+  left: -0.75px;
+  bottom: 0;
+  width: 1.5px;
+  height: calc(100cqw / 6 + 14px);
+  background: var(--orange);
+  border-radius: 1px;
+  opacity: 0;
+  transform-origin: 50% 100%;
+  transform: scaleY(0.6);
+  transition:
+    opacity 0.25s var(--ease-out),
+    transform 0.35s var(--ease-out);
+}
+
+.num-crew.is-set .num-stake {
+  opacity: 1;
+  transform: none;
+}
+
+.num-knob {
+  position: absolute;
+  left: -15px;
+  top: -15px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--ink);
+  box-shadow:
+    0 0 0 3px var(--page-ground, var(--ground)),
+    0 4px 12px rgb(23 19 15 / 25%);
+  transition: transform 0.2s var(--ease-out);
+}
+
+.num-knob svg {
+  width: 15px;
+  height: 10px;
+}
+
+.num-crew-area:hover .num-knob {
+  transform: scale(1.06);
+}
+
+.num-crew.is-drag .num-knob {
+  transform: scale(0.9);
+}
+
+.num-crew:not(.is-set) .num-knob {
+  animation: num-nudge 2.4s var(--ease-in-out) 1.2s infinite;
+}
+
+@keyframes num-nudge {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: translateX(10px);
+  }
+}
+
+/* the picks */
+.num-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px 20px;
+  margin-top: clamp(14px, 2.8svh, 26px);
+}
+
+.num-pick-k {
+  flex: 0 0 15.5rem;
+  font-size: 14.5px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.num-pick-note {
+  display: block;
+  font-size: 13px;
+  font-weight: 450;
+  color: var(--ink-3);
+}
+
+.num-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  position: relative;
+}
+
+.num-chip {
+  min-width: 54px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-size: 16px;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  transition:
+    background-color 0.18s var(--ease-out),
+    border-color 0.18s var(--ease-out),
+    color 0.18s var(--ease-out),
+    transform 0.12s var(--ease-out);
+}
+
+.num-chip:hover {
+  border-color: #cdbfb1;
+  color: var(--ink);
+}
+
+.num-chip:active {
+  transform: scale(0.96);
+}
+
+.num-chip.is-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.num-hint {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 7px;
+  white-space: nowrap;
+}
+
+.num-pick:has(.num-hint) {
+  margin-bottom: 22px;
+}
+
+/* ── the result ─────────────────────────────────────────────────────────── */
+
+.num-out {
+  grid-column: 2;
+  align-self: end;
+  min-width: 0;
+}
+
+.num-big {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.num-odo {
+  font-size: clamp(60px, 4.4vw + 3.4svh, 124px);
+  line-height: 1;
+}
+
+.num-odometer {
+  display: inline-flex;
+  color: var(--ink);
+  transition: color 0.4s var(--ease-out);
+}
+
+.num-odometer:not(.is-on) {
+  color: rgb(23 19 15 / 13%);
+}
+
+.num-cells {
+  display: inline-flex;
+}
+
+.num-wheel {
+  display: inline-block;
+  height: 1em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
+}
+
+.num-strip {
+  display: flex;
+  flex-direction: column;
+  transition: transform 1.25s cubic-bezier(0.16, 0.84, 0.28, 1);
+  will-change: transform;
+}
+
+.num-strip > span,
+.num-sep {
+  display: block;
+  height: 1em;
+  line-height: 1em;
+}
+
+.num-year {
+  font-family: var(--font-display);
+  font-stretch: 104%;
+  font-size: clamp(20px, 1vw + 10px, 26px);
+  font-weight: 640;
+  letter-spacing: -0.02em;
+  color: var(--ink-2);
+}
+
+.num-out:not(.is-on) .num-year {
+  color: var(--ink-3);
+  opacity: 0.6;
+}
+
+.num-week {
+  margin-top: 6px;
+  font-size: var(--fs-lead);
+  font-weight: 560;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.num-out:not(.is-on) .num-week {
+  font-weight: 450;
+  color: var(--ink-3);
+  font-size: 15px;
+}
+
+.num-formula {
+  margin-top: clamp(12px, 2.4svh, 22px);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.num-formula strong {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.num-blank {
+  display: inline-block;
+  min-width: 1.6em;
+  text-align: center;
+  color: var(--ink-3);
+  border-bottom: 1.5px solid var(--line);
+  line-height: 1.2;
+}
+
+.num-days {
+  white-space: nowrap;
+}
+
+.num-days input {
+  width: 3.4ch;
+  padding: 0 1px;
+  border: 0;
+  border-bottom: 1.5px dashed var(--ink-3);
+  border-radius: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.num-days input:hover {
+  border-bottom-color: var(--ink);
+}
+
+.num-days input:focus {
+  outline: none;
+  border-bottom: 1.5px solid var(--orange);
+  background: rgb(255 122 1 / 8%);
+}
+
+.num-framing {
+  margin-top: 10px;
+  max-width: 31rem;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+.num-framing {
+  color: var(--ink-2);
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.5s var(--ease-out) 0.5s,
+    transform 0.5s var(--ease-out) 0.5s;
+}
+
+.num-out.is-on .num-framing {
+  opacity: 1;
+  transform: none;
+}
+
+.num-built {
+  color: var(--ink-3);
+}
+
+.num-cta {
+  margin-top: clamp(16px, 3svh, 28px);
+}
+
+.num-micro {
+  margin-top: 10px;
+  max-width: 28rem;
+}
+
+.num-privacy {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .num-strip {
+    transition: none;
+  }
+  .num-crew:not(.is-set) .num-knob,
+  .num-crew:not(.is-set) .num-crew-unit::after {
+    animation: none;
+  }
+}
+
+/* ── narrower laptops and tablets: the picks stack their label over the chips ─ */
+@media (min-width: 761px) and (max-width: 1180px) {
+  .num-pick {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .num-pick-k {
+    flex: none;
+  }
+  .num-pick:has(.num-hint) {
+    margin-bottom: 0;
+  }
+  .num-hint {
+    position: static;
+    flex-basis: 100%;
+    margin-top: 0;
+  }
+}
+
+/* ── tablets in portrait: one column ─────────────────────────────────────── */
+@media (min-width: 761px) and (max-width: 1000px) {
+  .num-grid-wrap {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 44rem;
+  }
+  .num-out {
+    grid-column: 1;
+  }
+}
+
+/* ── laptops with short screens ─────────────────────────────────────────── */
+@media (min-width: 761px) and (max-height: 640px) {
+  .num-hint {
+    display: none;
+  }
+}
+
+/* ── phones: one column, everything that matters in one screen ──────────── */
+@media (max-width: 760px) {
+  .num-grid-wrap {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0;
+    align-content: start;
+    padding-top: calc(var(--header-h) + 12px);
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .num-title {
+    font-size: clamp(27px, 7.4vw, 34px);
+    max-width: 11em;
+  }
+
+  .num-in {
+    margin-top: 12px;
+  }
+
+  .num-crew-read {
+    --n-size: 40px;
+  }
+
+  .num-crew-unit {
+    font-size: 15.5px;
+  }
+
+  .num-crew-area {
+    margin-top: 8px;
+  }
+
+  .num-track {
+    height: 34px;
+    margin-top: 4px;
+  }
+
+  .num-knob {
+    left: -16px;
+    top: -16px;
+    width: 32px;
+    height: 32px;
+  }
+
+  .num-pick {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .num-pick-k {
+    flex: none;
+    font-size: 13px;
+  }
+
+  .num-chips {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .num-chip {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 40px;
+    padding: 0 6px;
+    font-size: 15px;
+  }
+
+  .num-hint {
+    display: none;
+  }
+
+  .num-pick:has(.num-hint) {
+    margin-bottom: 0;
+  }
+
+  .num-out {
+    grid-column: 1;
+    margin-top: 14px;
+  }
+
+  .num-odo {
+    font-size: 46px;
+  }
+
+  .num-year {
+    font-size: 19px;
+  }
+
+  .num-week {
+    margin-top: 2px;
+    font-size: 15px;
+  }
+
+  .num-formula {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .num-framing {
+    display: none;
+  }
+
+  .num-cta {
+    margin-top: 12px;
+  }
+
+  .num-cta .btn {
+    width: 100%;
+  }
+
+  .num-micro {
+    margin-top: 6px;
+    font-size: 12px;
+  }
+
+  .num-privacy {
+    display: none;
+  }
+}
+
+/* short phones (in-app browsers with tall toolbars): tighten so the CTA stays on screen */
+@media (max-width: 760px) and (max-height: 640px) {
+  .num-grid-wrap {
+    padding-top: calc(var(--header-h) + 8px);
+  }
+  .num-title {
+    font-size: 25px;
+  }
+  .num-in {
+    margin-top: 8px;
+  }
+  .num-crew-read {
+    --n-size: 32px;
+  }
+  .num-track {
+    height: 28px;
+    margin-top: 0;
+  }
+  .num-pick {
+    margin-top: 7px;
+    gap: 4px;
+  }
+  .num-chip {
+    height: 36px;
+  }
+  .num-out {
+    margin-top: 8px;
+  }
+  .num-odo {
+    font-size: 38px;
+  }
+  .num-formula {
+    margin-top: 2px;
+  }
+  .num-cta {
+    margin-top: 8px;
+  }
+  .num-micro {
+    display: none;
+  }
+}

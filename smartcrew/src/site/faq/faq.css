@@ -1,0 +1,235 @@
+/* 8 · FAQ + the close. Laptops: the title and the last CTA on the left, the five questions on the
+   right (one open at a time, so the block keeps its size). Phones: title, questions, close. */
+
+.faq .scene-body {
+  padding-block: calc(var(--header-h) + clamp(16px, 5svh, 56px)) clamp(48px, 10svh, 104px);
+}
+
+.faq-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  column-gap: clamp(32px, 6vw, 112px);
+  align-items: stretch;
+}
+
+.faq-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+  min-height: 100%;
+}
+
+.faq-title {
+  max-width: 9.5em;
+}
+
+.faq-close-line {
+  font-family: var(--font-display);
+  font-stretch: 104%;
+  font-weight: 640;
+  font-size: var(--fs-h3);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  max-width: 17em;
+  text-wrap: balance;
+}
+
+.faq-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 22px;
+  margin-top: clamp(14px, 2.6svh, 22px);
+}
+
+.faq-micro {
+  margin-top: 10px;
+  max-width: 26rem;
+}
+
+/* ── the questions ─────────────────────────────────────────────────────── */
+
+.faq-list {
+  border-top: 1px solid var(--line);
+}
+
+.faq-item {
+  border-bottom: 1px solid var(--line);
+  transition:
+    opacity 0.6s var(--ease-out) calc(var(--i) * 70ms),
+    transform 0.8s var(--ease-out) calc(var(--i) * 70ms);
+}
+
+.faq-grid:not(.is-seen) .faq-item {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.faq-h {
+  font: inherit;
+}
+
+.faq-q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  min-height: clamp(54px, 9.4svh, 66px);
+  padding-block: 10px;
+  text-align: left;
+  font-size: clamp(17px, 0.5vw + 11px, 19px);
+  font-weight: 620;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.faq-q-text {
+  transition: transform var(--dur-2) var(--ease-out);
+}
+
+.faq-q:hover .faq-q-text {
+  transform: translateX(3px);
+}
+
+.faq-q:focus-visible {
+  outline-offset: 2px;
+}
+
+/* a plus in a ring; open, the ring fills and the plus becomes a minus */
+.faq-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid rgb(23 19 15 / 22%);
+  color: var(--ink);
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out);
+}
+
+.faq-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.faq-icon-v {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform var(--dur-2) var(--ease-out);
+}
+
+.faq-q:hover .faq-icon {
+  border-color: rgb(23 19 15 / 45%);
+}
+
+.faq-item.is-open .faq-icon {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--ground);
+}
+
+.faq-item.is-open .faq-icon-v {
+  transform: scaleY(0);
+}
+
+/* height: auto, animated with grid rows */
+.faq-a {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.42s var(--ease-out);
+}
+
+.faq-item.is-open .faq-a {
+  grid-template-rows: 1fr;
+}
+
+.faq-a-in {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.faq-a-text {
+  max-width: 36rem;
+  padding: 0 52px clamp(16px, 2.6svh, 22px) 0;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  text-wrap: pretty;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.3s var(--ease-out),
+    transform 0.42s var(--ease-out);
+}
+
+.faq-item.is-open .faq-a-text {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.08s;
+}
+
+/* ── phones ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  .faq .scene-body {
+    padding-block: calc(var(--header-h) + 16px) 56px;
+  }
+
+  .faq-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .faq-side {
+    display: contents;
+  }
+
+  .faq-title {
+    order: 0;
+    margin-bottom: 18px;
+  }
+
+  .faq-list {
+    order: 1;
+  }
+
+  .faq-close {
+    order: 2;
+    margin-top: 32px;
+  }
+
+  .faq-a-text {
+    padding-right: 8px;
+  }
+
+  .faq-actions .btn {
+    width: 100%;
+  }
+}
+
+/* Andrew, small, beside "Andrew answers on the call" */
+.faq-close-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.faq-face {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--ground-2);
+  box-shadow: 0 0 0 1px rgb(23 19 15 / 8%);
+}

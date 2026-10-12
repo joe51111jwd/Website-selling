@@ -1,14 +1,186 @@
-// 4 · Your number (BRIEF §4): "What's loose time costing you?" Drag the crew size, see the
-// visitor's own number, carry it into the popup (openSignup({ estimate })). STUB: owner fills.
+// 4 · Your number (BRIEF §4, beat 5; OFFER.md §6): "What's loose time costing you?"
+// The visitor drags their crew size (the crew fills in as tiny hard-hat marks), picks the minutes
+// lost per person a day and the hourly cost, and their own number rolls up with the working shown.
+// We only multiply; we never claim SmartCrew saves it. The CTA carries the number into the popup.
 
-import { NUMBER } from "../../content/copy";
+import { useEffect, useRef, useState } from "react";
+import { CALC, FLAG } from "../../content/copy";
+import { sizeFor, type SignupRequest } from "../../signup/contract";
+import { trackCustom } from "../../lib/track";
 import { Scene } from "../scene/Scene";
-import { Stub } from "../ui/Stub";
+import { SceneCta } from "../try/SceneCta";
+import { CrewSlider } from "./CrewSlider";
+import { Odometer } from "./Odometer";
+import { DAYS_DEFAULT, annualCost, money, parseDays, weekly } from "./calc";
+import "./number.css";
+
+function Chips<T extends number>({
+  label,
+  note,
+  after,
+  options,
+  value,
+  format,
+  onPick,
+  name,
+}: {
+  label: string;
+  note?: string;
+  after?: string;
+  options: T[];
+  value: T | null;
+  format: (v: T) => string;
+  onPick: (v: T) => void;
+  name: string;
+}) {
+  return (
+    <div className="num-pick" role="group" aria-label={label}>
+      <p className="num-pick-k">
+        {label}
+        {note && <span className="num-pick-note">{note}</span>}
+      </p>
+      <div className="num-chips">
+        {options.map((o) => (
+          <button
+            key={o}
+            type="button"
+            className={`num-chip${value === o ? " is-on" : ""}`}
+            aria-pressed={value === o}
+            onClick={() => onPick(o)}
+            data-name={name}
+          >
+            {format(o)}
+          </button>
+        ))}
+        {after && <p className="t-micro num-hint">{after}</p>}
+      </div>
+    </div>
+  );
+}
+
+function Calculator() {
+  const [crew, setCrew] = useState<number | null>(null);
+  const [minutes, setMinutes] = useState<number | null>(null);
+  const [rate, setRate] = useState<number | null>(null);
+  const [daysText, setDaysText] = useState(String(DAYS_DEFAULT));
+  const days = parseDays(daysText);
+  const annual = annualCost({ crew, minutes, rate, days });
+  const complete = annual != null;
+
+  // analytics: the first touch, and each time a complete result settles. The figures themselves
+  // are not sent: the page promises "your numbers stay on this screen unless you continue" (they
+  // travel with the lead, via the CTA, only when the visitor continues).
+  const interacted = useRef(false);
+  const touch = (what: string) => {
+    if (interacted.current) return;
+    interacted.current = true;
+    trackCustom("calc_interact", { first: what });
+  };
+  const results = useRef(0);
+  useEffect(() => {
+    if (annual == null) return;
+    const t = window.setTimeout(() => trackCustom("calc_result", { n: ++results.current }), 1200);
+    return () => window.clearTimeout(t);
+  }, [annual]);
+
+  const request = (): SignupRequest => ({
+    intent: "trial",
+    source: "calculator",
+    size: crew ? sizeFor(crew) : undefined,
+    estimate: complete ? { crew: crew!, minutes: minutes!, rate: rate!, days: days!, annual: Math.round(annual!) } : undefined,
+  });
+
+  const blank = <span className="num-blank">–</span>;
+  return (
+    <div className="num-grid-wrap wrap">
+      <h2 className="t-h2 num-title">{CALC.title}</h2>
+
+      <div className="num-in">
+        <CrewSlider value={crew} onChange={setCrew} onFirst={() => touch("crew")} />
+        <Chips
+          name="minutes"
+          label={CALC.minutesLabel}
+          options={CALC.minutes}
+          value={minutes}
+          after={CALC.hint}
+          format={(m) => String(m)}
+          onPick={(m) => {
+            touch("minutes");
+            setMinutes(m);
+          }}
+        />
+        <Chips
+          name="rate"
+          label={CALC.rateLabel}
+          note={CALC.rateNote}
+          options={CALC.rates}
+          value={rate}
+          format={(r) => `$${r}`}
+          onPick={(r) => {
+            touch("rate");
+            setRate(r);
+          }}
+        />
+      </div>
+
+      <div className={`num-out${complete ? " is-on" : ""}`} data-hides-sticky>
+        <p className="num-big">
+          <Odometer value={complete ? annual : null} className="t-time num-odo" label={CALC.year} />
+          <span className="num-year">{CALC.year}</span>
+        </p>
+        <p className="num-week" aria-live="polite">
+          {complete ? CALC.week(money(weekly(annual!))) : CALC.pending}
+        </p>
+        <p className="num-formula t-num">
+          <span>{crew ?? blank} people</span> <span aria-hidden="true">×</span> <span>{minutes ?? blank} min</span>{" "}
+          <span aria-hidden="true">×</span>{" "}
+          <label className="num-days">
+            <input
+              type="text"
+              inputMode="numeric"
+              value={daysText}
+              size={3}
+              maxLength={3}
+              onChange={(e) => {
+                touch("days");
+                setDaysText(e.target.value.replace(/[^\d]/g, "").slice(0, 3));
+              }}
+              onBlur={() => !parseDays(daysText) && setDaysText(String(DAYS_DEFAULT))}
+              aria-label={CALC.daysLabel}
+              title={CALC.daysLabel}
+            />{" "}
+            workdays
+          </label>{" "}
+          <span aria-hidden="true">×</span> <span>{rate ? `$${rate}` : <>${blank}</>}/hr</span>
+          {complete && (
+            <>
+              {" "}
+              <span aria-hidden="true">=</span> <strong>{money(annual!)}</strong>
+            </>
+          )}
+        </p>
+        <p className="num-framing">
+          {CALC.framing} <span className="num-built">{CALC.built}</span>
+        </p>
+        <div className="num-cta">
+          <SceneCta request={request} />
+          <p className="t-micro num-micro">
+            {CALC.ctaMicro}
+            <span className="flag" title="Andrew to confirm">
+              {FLAG}
+            </span>{" "}
+            <span className="num-privacy">{CALC.privacy}</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function YourNumber() {
   return (
-    <Scene id="number" pinnedViewports={1} label="Your number" className="stub-scene">
-      <Stub id="number" title={NUMBER.title} note="Stub: calculator. Devices are hidden here." />
+    <Scene id="number" pinnedViewports={1} label="Your number" className="num">
+      <Calculator />
     </Scene>
   );
 }

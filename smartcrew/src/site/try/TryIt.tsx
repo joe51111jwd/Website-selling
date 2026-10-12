@@ -1,34 +1,40 @@
-// 3 · Try it (BRIEF §3): "Your guys won't fight this one." The iPhone comes forward, centred and
-// large; a real, tappable Clock In button sits over the phone's Clock In circle. STUB: owner fills.
+// 3 · Try it (BRIEF §3, beat 4): "Your guys won't fight this one."
+// Desktop: the 3D iPhone comes forward, centred and large, inside the jobsite's geofence; a real
+// button sits exactly on its Clock In circle. Phones: the section becomes the SmartCrew app on the
+// visitor's own phone. Either way: tap → clocked in, the timer runs → "That's the whole training."
 
-import { useMemo } from "react";
-import { TRY } from "../../content/copy";
+import { lazy, Suspense, useMemo } from "react";
 import { Scene } from "../scene/Scene";
-import { StageAnchor } from "../../three/stage/StageAnchor";
-import type { PoseKey } from "../../three/stage/types";
-import { Stub } from "../ui/Stub";
+import { phone } from "../../three/stage/store";
+import { tryPoses } from "./poses";
+import { TryDesk } from "./TryDesk";
+import "./try.css";
+
+// the phone layout carries the app's own UI kit (Inter, the screens' CSS): only phones load it
+const TryPhone = lazy(() => import("./TryPhone"));
 
 export default function TryIt() {
-  const poses = useMemo<PoseKey[]>(
-    () => [
-      {
-        at: 0,
-        anchor: "try",
-        frame: [3, 2.2],
-        iphone: { x: 0, y: 0, z: 0.5, rx: 0, ry: 0, rz: 0, s: 1.25, screen: "phone-home" },
-        macbook: { show: 0 },
-        float: 0.4,
-        look: 0.5,
-        ease: "inOut",
-      },
-      { at: 1, anchor: "try", iphone: { x: 0, y: 0, z: 0.5, rx: 0, ry: 0, rz: 0, s: 1.25 }, macbook: { show: 0 } },
-    ],
-    [],
-  );
+  // phones: no devices here (the page itself is the phone), so no keys → the Stage hides them
+  const poses = useMemo(() => (phone ? undefined : tryPoses()), []);
   return (
-    <Scene id="try" pinnedViewports={1} poses={poses} label="Try it" className="stub-scene">
-      <Stub id="try" title={TRY.title} note="Stub: the tappable Clock In goes over the phone (anchor “try”)." />
-      <StageAnchor id="try" className="stub-anchor" />
+    <Scene
+      id="try"
+      pinnedViewports={phone ? 2.4 : 1.7}
+      poses={poses}
+      label="Try the crew app"
+      className={phone ? "try try--phone" : "try try--desk"}
+    >
+      {phone ? (
+        // data-hides-sticky: the app fills the screen here, so the phone's sticky CTA bar steps
+        // aside (it must be on an element that exists at first render, hence this wrapper)
+        <div className="try-phone-wrap" data-hides-sticky>
+          <Suspense fallback={null}>
+            <TryPhone />
+          </Suspense>
+        </div>
+      ) : (
+        <TryDesk />
+      )}
     </Scene>
   );
 }
