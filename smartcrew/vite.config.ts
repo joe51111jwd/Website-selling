@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
-// Preview builds (`--mode preview`, `--mode watermark`, `--mode directions`) ask search engines not to
+// Preview builds (`--mode preview`, `--mode watermark`) ask search engines not to
 // index; the watermark build also carries the watermark.
 const noindex: Plugin = {
   name: "noindex",
@@ -11,7 +11,7 @@ const noindex: Plugin = {
 
 export default defineConfig(({ mode }) => ({
   base: "./",
-  plugins: [react(), ...(mode === "watermark" || mode === "directions" || mode === "preview" ? [noindex] : [])],
+  plugins: [react(), ...(mode === "watermark" || mode === "preview" ? [noindex] : [])],
   build: {
     // two pages: the product page, and the "book a call" page the trial form lands on
     rollupOptions: {
