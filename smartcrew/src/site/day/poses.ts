@@ -48,8 +48,8 @@ const SHOTS: Shot[] = [
     iphone: { x: 1.45, y: -0.2, z: 1.1, rx: 3, ry: -20, rz: -2, s: 1.24 },
     macbook: { x: -0.65, y: 0.18, z: -0.7, rx: 14, ry: 26, rz: 0, s: 1 },
     land: {
-      iphone: { x: 1.7, y: -0.25, z: 0.6, rx: 3, ry: -24, rz: -2, s: 1.06 },
-      macbook: { x: -0.3, y: 0.3, z: 0.1, rx: 9, ry: 14, rz: 0, s: 1.1 },
+      iphone: { x: 1.65, y: -0.2, z: 0.6, rx: 3, ry: -24, rz: -2, s: 1.04 },
+      macbook: { x: -0.35, y: 0.38, z: 0.1, rx: 9, ry: 14, rz: 0, s: 1.05 },
     },
   },
 ];

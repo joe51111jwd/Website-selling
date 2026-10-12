@@ -10,7 +10,8 @@
     "build:watermark": "npm run typecheck && vite build --mode watermark",
     "preview": "vite preview",
     "build:directions": "npm run typecheck && vite build --mode directions",
-    "screens": "node tools/render-screens.mjs"
+    "screens": "node tools/render-screens.mjs",
+    "build:preview": "npm run typecheck && vite build --mode preview"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",

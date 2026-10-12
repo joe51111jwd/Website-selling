@@ -18,7 +18,12 @@
         var d = document.documentElement, K = "sc-intro", seen = false, q = location.search;
         try { seen = sessionStorage.getItem(K) === "1"; sessionStorage.setItem(K, "1"); } catch (e) {}
         if (/[?&]intro=1/.test(q)) seen = false;
-        if (/[?&](intro=0|screens?=?|sandbox=|proto=)/.test(q) || seen || matchMedia("(prefers-reduced-motion: reduce)").matches) { d.className += " no-intro"; return; }
+        if (/[?&](intro=0|screens?=?|sandbox=|proto=)/.test(q) || seen || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          d.className += " no-intro";
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m) m.setAttribute("content", "#FBF8F4");
+          return;
+        }
         d.className += " intro-on";
         var I = (window.__intro = { t0: performance.now(), skipped: false, onSkip: null });
         var evs = ["pointerdown", "keydown", "wheel", "touchstart"];

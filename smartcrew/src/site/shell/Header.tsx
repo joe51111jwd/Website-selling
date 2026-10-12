@@ -4,7 +4,7 @@
 // bar at the bottom carries the CTA there.
 
 import { useEffect, useState } from "react";
-import logo from "../assets/logo.svg";
+import { Logo } from "../../brand/Logo";
 import { HEADER } from "../../content/copy";
 import { handleAnchorClick, scrollToY } from "../scroll";
 import { Cta } from "../ui/Cta";
@@ -32,7 +32,7 @@ export function Header() {
             scrollToY(0);
           }}
         >
-          <img src={logo} alt="SmartCrew" width={143} height={20} />
+          <Logo className="site-logo-svg" />
         </a>
         <nav className="site-nav" aria-label="Page">
           {HEADER.nav.map((l) => (

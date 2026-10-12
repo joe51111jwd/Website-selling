@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from "react";
 import { STICKY } from "../../content/copy";
-import { onSignup } from "../../signup/contract";
 import { Cta } from "../ui/Cta";
 import { useHeroCtaGone } from "./heroCta";
 
@@ -22,8 +21,6 @@ export function StickyBar() {
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
-  // step aside while the popup is open (it covers the page anyway)
-  useEffect(() => onSignup(() => setHidden(false)), []);
   const on = gone && !hidden;
   return (
     <div className={`sticky-bar${on ? " is-on" : ""}`} inert={!on}>
