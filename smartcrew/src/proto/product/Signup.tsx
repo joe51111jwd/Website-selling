@@ -200,7 +200,9 @@ export default function Signup({ state, onClose }: { state: SignupState; onClose
 
   const demo = state.intent === "demo";
   const title = resumed && v.company ? `Welcome back. Let’s finish setting up ${v.company}.` : demo ? "Book your demo with Andrew" : "Claim your Founding Member trial";
-  const progress = done ? 3 : step + (step === 0 && sizeSaved ? 0.34 : 0);
+  // the bar moves as fields are completed, and starts a third full when the size came pre-picked
+  const part = step === 0 ? (v.size ? 0.5 : 0) + (v.company.trim().length >= 2 ? 0.5 : 0) : step === 1 ? (v.name.trim().length >= 2 ? 0.5 : 0) + (emailOk(v.email) ? 0.5 : 0) : digits(v.tel).length === 10 ? 0.6 : 0;
+  const progress = done ? 3 : step + Math.max(part, step === 0 && sizeSaved ? 0.34 : 0);
 
   return (
     <AnimatePresence>
@@ -243,7 +245,7 @@ export default function Signup({ state, onClose }: { state: SignupState; onClose
             </h2>
             <p className="ps-sub">Takes less than a minute. Then you pick a time to talk with Andrew.</p>
 
-            <Preview v={v} step={step} />
+            <Preview v={v} step={done ? 2 : step} />
 
             {done ? (
               <div className="ps-done">
@@ -319,7 +321,7 @@ export default function Signup({ state, onClose }: { state: SignupState; onClose
                         <Field id={`${uid}-n`} label="Your name" err={errs.name} ok={ok.name}>
                           <input id={`${uid}-n`} data-field="name" data-first="" name="name" autoComplete="name" autoCapitalize="words" enterKeyHint="next" value={v.name} onChange={(e) => set("name", e.target.value)} onBlur={() => blur("name")} aria-invalid={!!errs.name} aria-describedby={errs.name ? `${uid}-n-e` : undefined} />
                         </Field>
-                        <Field id={`${uid}-e`} label="Email" hint="Any email you check is fine. Gmail works." err={errs.email} ok={ok.email} extra={typo(v.email) && !errs.email ? <TypoFix s={typo(v.email)!} onUse={(s) => set("email", s)} /> : null}>
+                        <Field id={`${uid}-e`} label="Email" hint="Any email you check is fine. Gmail works." err={errs.email} ok={ok.email && !typo(v.email)} extra={typo(v.email) && !errs.email ? <TypoFix s={typo(v.email)!} onUse={(s) => set("email", s)} /> : null}>
                           <input id={`${uid}-e`} data-field="email" type="email" name="email" autoComplete="email" inputMode="email" autoCapitalize="off" spellCheck={false} enterKeyHint="next" value={v.email} onChange={(e) => set("email", e.target.value)} onBlur={() => blur("email")} aria-invalid={!!errs.email} aria-describedby={errs.email ? `${uid}-e-e` : `${uid}-e-h`} />
                         </Field>
                         <div className="ps-row">
@@ -438,7 +440,7 @@ function Preview({ v, step }: { v: Values; step: number }) {
         </span>
         {v.size && <span className="ps-pv-size">{v.size} people</span>}
       </div>
-      <div className="ps-pv-skel">
+      <div className={`ps-pv-skel${step >= 1 ? " is-folded" : ""}`}>
         {["Jobs", "Crew", "Timecards"].map((x) => (
           <span key={x}>
             <i>{x}</i>

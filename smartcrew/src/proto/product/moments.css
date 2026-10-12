@@ -781,3 +781,58 @@
   line-height: 1;
   color: var(--night-cap);
 }
+.p-product .pm-noscreen {
+  display: block;
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--night-cap);
+}
+.p-product .pm-oring {
+  border-radius: 12px;
+}
+.p-product .pm-row::before {
+  border-radius: 0;
+}
+.p-product .pr-card-paper {
+  border-radius: 8px;
+}
+@media (max-width: 760px) {
+  .p-product .pm-head {
+    min-height: 44px;
+  }
+  .p-product .pm-chip {
+    min-height: 32px;
+    font-size: 13px;
+    padding: 4px 9px;
+  }
+  .p-product .pm-chips {
+    margin-top: 10px;
+  }
+  .p-product .pm-cstage .pm-caption {
+    font-size: 11.5px;
+    margin-top: 6px;
+  }
+  .p-product .pm-c-label {
+    margin-bottom: 5px;
+  }
+}
+@media (max-width: 760px) {
+  .p-product .pm-head {
+    min-height: 42px;
+  }
+  .p-product .pm-outcome {
+    font-size: 14px;
+  }
+  .p-product .pm-chip {
+    min-height: 30px;
+  }
+}
+@media (max-width: 760px) {
+  .p-product .pm-line {
+    margin-top: 6px;
+    min-height: 0;
+  }
+  .p-product .pm-open {
+    padding-bottom: 12px;
+  }
+}

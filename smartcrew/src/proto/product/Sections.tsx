@@ -44,7 +44,7 @@ const LOGOS: [string, string, number][] = [
   ["DW Companies", dw, 1.63],
   ["Midwest Erosion Specialists", midwest, 4.03],
 ];
-export function Logos({ area = 1450 }: { area?: number }) {
+export function Logos({ area = 1650 }: { area?: number }) {
   return (
     <div className="pp-logos">
       <span className="pp-logos-k">Used by</span>
@@ -104,17 +104,17 @@ export function Hero({ angle, openSignup, ctaRef }: { angle: Angle; openSignup: 
             <button type="button" className="pp-textlink" onClick={() => openSignup({ intent: "demo", source: "hero" })}>
               or book a demo with Andrew
             </button>
+            <Micro />
           </div>
-          <Micro />
           <Logos />
         </div>
       </div>
-      <HeroVisual />
+      <HeroVisual hours={angle === "timecards" || angle === "payroll"} />
     </section>
   );
 }
 
-function HeroVisual() {
+function HeroVisual({ hours = false }: { hours?: boolean }) {
   const [ref, box] = useBox<HTMLDivElement>();
   const W = box.w;
   const H = box.h;
@@ -135,10 +135,15 @@ function HeroVisual() {
     const my = winTop + (428 - fy) * s;
     inner = (
       <>
-        <Crop id="web-project-detail" x={fx} y={fy} s={s} className="ph-win" style={{ left: winLeft, top: winTop, width: W - winLeft + 60, height: winH }} animate={false} label="SmartCrew office app: job costing for Hwy 9 Culvert Replacement" />
-        {!narrow && <Mark left={mx} top={my} label="Profit on Hwy 9, to date" delay={0} />}
+        {hours ? (
+          // ?angle=timecards|payroll: the timecards report behind the crew's clock-in
+          <Crop id="web-timecards" x={narrow ? 340 : 330} y={narrow ? 150 : 60} s={s} className="ph-win" style={{ left: winLeft, top: winTop, width: W - winLeft + 60, height: winH }} animate={false} label="SmartCrew office app: weekly timecards" />
+        ) : (
+          <Crop id="web-project-detail" x={fx} y={fy} s={s} className="ph-win" style={{ left: winLeft, top: winTop, width: W - winLeft + 60, height: winH }} animate={false} label="SmartCrew office app: job costing for Hwy 9 Culvert Replacement" />
+        )}
+        {!narrow && !hours && <Mark left={mx} top={my} label="Profit on Hwy 9, to date" delay={0} />}
         <div className="ph-phone" style={{ left: pLeft, top: pTop }}>
-          <Phone id={narrow ? "phone-home" : "phone-working"} width={pw} animate={false} />
+          <Phone id={narrow || hours ? "phone-home" : "phone-working"} width={pw} animate={false} />
         </div>
       </>
     );
@@ -301,6 +306,13 @@ export function Offer({ openSignup }: { openSignup: OpenSignup }) {
               </div>
             </div>
           </div>
+          <details className="po-phone-ph">
+            <summary>
+              <Ph>2 offer items waiting for Andrew: why the trial is free, and the guarantee. Tap to read.</Ph>
+            </summary>
+            <p>Why free? We’re setting up our first dirt work companies by hand, and we want them running SmartCrew on real jobs and telling us what to fix.</p>
+            <p>Crew Uses It Guarantee: if your crew isn’t clocking in within your first 30 paid days, we refund that month.</p>
+          </details>
           <div className="po-foot">
             <div className="po-sizes">
               <p className="po-ask-s" id="po-ask">
@@ -360,7 +372,7 @@ export function Founder({ openSignup }: { openSignup: OpenSignup }) {
             <button type="button" className="pp-btn pp-btn-outline" onClick={() => openSignup({ intent: "demo", source: "founder" })}>
               Book a demo with Andrew
             </button>
-            <p className="pa-promise">“I’ll show you exactly how we fit into your operation, or tell you honestly if we don’t.”</p>
+            <p className="pa-promise">“I’ll show you exactly how we fit into your operation—or tell you honestly if we don’t.”</p>
           </div>
         </div>
       </div>

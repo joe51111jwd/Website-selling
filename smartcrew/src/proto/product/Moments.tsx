@@ -134,6 +134,7 @@ function MomentBody({ m, fi, setFi, views }: { m: Moment; fi: number; setFi: (i:
       <p className="pm-line" key={f.id}>
         {f.line}
         {f.confirm && <span className="pp-ph pp-ph-inline">Placeholder for Andrew: confirm this is live before launch</span>}
+        {f.noScreen && <span className="pm-noscreen">Not in these demo screens yet. Andrew can show it on the call.</span>}
       </p>
     </div>
   );
@@ -255,18 +256,20 @@ function CompactStage({ m, views }: { m: Moment; views: { phone: PhoneView; offi
   const [ref, box] = useBox<HTMLDivElement>();
   const { phone, office } = views;
   const W = box.w;
-  const ph = 150;
-  const oh = 176;
+  const ph = 128;
+  const oh = 152;
   let pc = null;
   let oc = null;
   if (W > 0) {
-    const sp = W / 402;
     const r = phone.ring;
+    // zoom out only as far as needed to fit the tapped control in the crop
+    const sp = Math.min(W / 402, r ? (ph - 22) / r[3] : W / 402);
+    const px = sp < W / 402 ? -(W / sp - 402) / 2 : 0;
     const cy = r ? r[1] + r[3] / 2 : phone.y + 120;
     const py = Math.max(0, Math.min(874 - ph / sp, cy - ph / sp / 2));
     pc = (
-      <Crop id={phone.id} x={0} y={py} s={sp} className="pm-c-phone" style={{ height: ph }}>
-        {r && <span className="pp-ring" style={{ left: r[0] * sp - 4, top: (r[1] - py) * sp - 4, width: r[2] * sp + 8, height: r[3] * sp + 8 }} />}
+      <Crop id={phone.id} x={px} y={py} s={sp} className="pm-c-phone" style={{ height: ph }}>
+        {r && <span className="pp-ring" style={{ left: (r[0] - px) * sp - 4, top: (r[1] - py) * sp - 4, width: r[2] * sp + 8, height: r[3] * sp + 8 }} />}
       </Crop>
     );
     const sw = W / 520;

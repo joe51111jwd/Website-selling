@@ -1909,3 +1909,211 @@ html.p-product-root body {
   left: auto;
   right: var(--gut);
 }
+.p-product .pp-logos img {
+  opacity: 0.84;
+}
+@media (max-height: 620px) and (min-width: 761px) {
+  .p-product .po-head {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+  .p-product .po-col {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .p-product .po-list li {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .p-product .po-k2 {
+    margin-top: 8px;
+  }
+  .p-product .po-steps li {
+    padding: 2px 0;
+  }
+  .p-product .po-guar {
+    margin-top: 6px;
+  }
+  .p-product .po-foot {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .p-product .pa-letter {
+    font-size: 15.5px;
+    line-height: 1.48;
+  }
+  .p-product .pa-sign {
+    margin-top: 10px;
+  }
+  .p-product .pa-go {
+    margin-top: 14px;
+  }
+}
+@media (min-width: 761px) {
+  .p-product .po-list li {
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+  .p-product .po-col {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+}
+@media (max-height: 620px) and (min-width: 761px) {
+  .p-product .po-list li {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .p-product .po-col {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+@media (min-width: 761px) {
+  .p-product .po-ask {
+    font-size: clamp(22px, 1.9vw, 27px);
+  }
+  .p-product .po-k2 {
+    margin-top: 10px;
+  }
+  .p-product .po-steps li {
+    padding: 3px 0;
+  }
+}
+.p-product .ph-eyebrow::before {
+  border-radius: 50%;
+}
+.p-product .pa-sign > .pa-name {
+  align-items: flex-start;
+  gap: 0;
+}
+.p-product .ph-ctas .pp-micro {
+  flex-basis: 100%;
+  margin-top: -6px;
+}
+@media (max-width: 760px) {
+  .p-product .ph-ctas .pp-micro {
+    order: 2;
+    margin-top: 10px;
+  }
+  .p-product .ph-ctas .pp-textlink {
+    order: 3;
+    margin-top: 2px;
+  }
+}
+.p-product .po-phone-ph {
+  display: none;
+}
+@media (max-width: 760px) {
+  .p-product .po-why,
+  .p-product .po-guar {
+    display: none;
+  }
+  .p-product .po-phone-ph {
+    display: block;
+    padding: 0 16px 14px;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+  .p-product .po-phone-ph summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  .p-product .po-phone-ph summary::-webkit-details-marker {
+    display: none;
+  }
+  .p-product .po-phone-ph p {
+    margin-top: 8px;
+  }
+  .p-product .po-head {
+    padding-bottom: 14px;
+  }
+  .p-product .po-for {
+    font-size: 15px;
+  }
+  .p-product .po-ask {
+    font-size: 22px;
+  }
+  .p-product .po-price {
+    font-size: 14px;
+  }
+  .p-product .po-steps li {
+    padding: 3px 0;
+    font-size: 14.5px;
+  }
+  .p-product .po-go .pp-micro {
+    font-size: 13px;
+  }
+  /* calculator: one row for the stepper and slider, one-line head */
+  .p-product .pc-crew {
+    grid-template-columns: 44px 48px 44px 1fr;
+    gap: 8px;
+  }
+  .p-product .pc-range {
+    grid-column: auto;
+  }
+  .p-product .pc-crew-n {
+    min-width: 0;
+    font-size: 28px;
+  }
+  .p-product .pc-head-s {
+    font-size: 12px;
+  }
+  .p-product .pc-row {
+    gap: 6px;
+  }
+  .p-product .pc-foot-t {
+    font-size: 13px;
+  }
+}
+@media (max-width: 760px) {
+  .p-product .po,
+  .p-product .pf {
+    padding-top: 32px;
+    padding-bottom: 32px;
+  }
+  .p-product .po-col {
+    padding: 12px 16px;
+  }
+  .p-product .po-head {
+    padding: 16px 16px 12px;
+  }
+  .p-product .po-list li {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  .p-product .po-ask {
+    font-size: 20px;
+  }
+  .p-product .po-foot {
+    padding: 14px 16px;
+  }
+}
+@media (max-width: 760px) {
+  .p-product .po-list li {
+    font-size: 14.5px;
+  }
+  .p-product .po-k2 {
+    margin-top: 10px;
+  }
+  .p-product .po-steps {
+    margin-top: 2px;
+  }
+}
+@media (max-width: 760px) {
+  .p-product .po-foot .pp-sizes-row {
+    margin-top: 8px;
+  }
+  .p-product .po-go {
+    margin-top: 10px;
+  }
+  .p-product .po-go .pp-micro {
+    margin-top: 8px;
+  }
+}
+@media (max-height: 720px) and (min-height: 621px) and (min-width: 761px) {
+  .p-product {
+    --pad: 44px;
+  }
+}
