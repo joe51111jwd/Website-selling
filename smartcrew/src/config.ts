@@ -29,5 +29,3 @@ export const config = {
   email: "hello@smartcrewhq.com",
 };
 
-/** Crew sizes, the same buckets as the current smartcrewhq.com waitlist form. */
-export const CREW_SIZES = ["0-5", "5-15", "15-30", "30-50", "50-100", "100-500", "500+"] as const;

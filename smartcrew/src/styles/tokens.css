@@ -1,0 +1,62 @@
+/* Design tokens for the product page, popup and /book. Andrew's palette (warm off-white ground,
+   near-black ink, orange as a signal), made cinematic. Orange is never body text on light
+   grounds (contrast 2.5:1); use --sc-orange-ink for orange words on light. */
+
+:root {
+  /* ground and ink */
+  --ground: #fbf8f4;
+  --ground-2: #f4eee7;
+  --paper: #ffffff;
+  --night: #14110e;
+  --night-2: #1d1a16;
+  --ink: #17130f;
+  --ink-2: #4a4038;
+  --ink-3: #74665a;
+  --line: #e8dfd5;
+  --line-night: #2e2822;
+
+  /* signal */
+  --orange: #ff7a01;
+  --orange-2: #ffa94a;
+  --orange-ink: #b84f00;
+  --green: #1f9d55;
+  --red: #e5484d;
+
+  /* time of day (the One Day scene tints between these) */
+  --dawn: #eef1f3;
+  --day: #fbf8f4;
+  --dusk: #f6e7d4;
+  --evening: #1d1a16;
+
+  /* type */
+  --font-display: "Archivo Variable", "Archivo", system-ui, sans-serif;
+  --font-text: "Hanken Grotesk Variable", "Hanken Grotesk", system-ui, sans-serif;
+  --display-wdth: 112;
+
+  /* shape and depth */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --shadow-1: 0 1px 2px rgb(23 19 15 / 6%), 0 8px 24px rgb(23 19 15 / 6%);
+  --shadow-2: 0 30px 80px rgb(23 19 15 / 18%);
+
+  /* buttons (Andrew's bevelled dark button) */
+  --btn-dark: #1d1a16;
+  --btn-dark-border: #3b332b;
+  --btn-dark-bevel: inset 0 -4px 4px #0f0d0b, inset 0 4px 4px #3b332b;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* layout */
+  --header-h: 64px;
+  --gutter: clamp(20px, 4vw, 64px);
+  --max: 1312px;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --header-h: 56px;
+  }
+}
