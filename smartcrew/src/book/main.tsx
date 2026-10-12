@@ -1,8 +1,19 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import "@fontsource-variable/archivo/wdth.css";
+import "@fontsource-variable/hanken-grotesk";
+import "../styles/tokens.css";
+import "./book.css";
+import { startTracking } from "../lib/track";
+import { captureAttribution } from "../lib/lead";
+import Book from "./Book";
+
+// /book: the page the trial popup lands on (noindex, see book/index.html).
+captureAttribution();
+startTracking();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <main>Book a call: in progress</main>
+    <Book />
   </StrictMode>,
 );

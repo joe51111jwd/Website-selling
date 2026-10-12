@@ -6,8 +6,19 @@ export const config = {
   calLink: "andrew-drish/15min",
 
   /**
-   * Where the trial form posts its lead (JSON). Any webhook works: Zapier, Make, GoHighLevel,
-   * HubSpot, a Google Apps Script. Empty: the lead is only carried to the booking page.
+   * How long the call is, as every page says it ("a 30-minute call"). The brief and the hero say 30
+   * minutes; ⚑ Andrew's Cal.com link (/15min) opens a 45-minute "SmartCrew Demo" today, so the copy
+   * carries a flag until he sets the event to match and flips callLengthConfirmed. Empty string:
+   * the copy says "a short call".
+   */
+  callLength: "30-minute",
+  callLengthConfirmed: false,
+
+  /**
+   * Where the trial form posts its lead, once per step ("start", "email", "complete"). Sent as a
+   * plain form post (application/x-www-form-urlencoded, no CORS preflight, survives the jump to
+   * /book), which Zapier, Make, GoHighLevel and Google Apps Script all read. Empty: the lead is only
+   * carried to the booking page.
    */
   leadWebhook: "",
 
@@ -25,7 +36,19 @@ export const config = {
    */
   vidalytics: { account: "5_H1Y3QY", explainer: "0IR575Ertss_OqdW", walkthrough: "Lz1Z_A8eimAA04gJ" },
 
+  /**
+   * Andrew's business mobile in E.164 ("+15155550123"), for "Save Andrew's number" after booking.
+   * ⚑ Empty until he picks the number he calls and texts from; the contact card then carries only
+   * his email.
+   */
+  andrewPhone: "",
+
+  privacyUrl: "https://smartcrewhq.com/privacy-policy",
+  termsUrl: "https://smartcrewhq.com/terms-of-service",
+
   loginUrl: "https://smart-crew-app.web.app/",
   email: "hello@smartcrewhq.com",
 };
 
+/** "a 30-minute call" when the length is set, "a short call" until then. */
+export const aCall = () => (config.callLength ? `a ${config.callLength} call` : "a short call");

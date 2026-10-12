@@ -2,6 +2,11 @@ import { StrictMode, lazy, Suspense, type ReactNode } from "react";
 import type React from "react";
 import { createRoot } from "react-dom/client";
 import { installWatermark } from "./lib/watermark";
+import "@fontsource-variable/archivo/wdth.css";
+import "@fontsource-variable/hanken-grotesk/wght.css";
+import "./styles/tokens.css";
+import "./styles/base.css";
+import "./styles/shell.css";
 import App from "./App";
 
 // set in .env.watermark, so only `npm run build:watermark` carries it
@@ -36,6 +41,9 @@ if (import.meta.env.DEV) {
   else if (q.has("screens")) view = <Gallery />;
   else if (q.get("sandbox") === "devices") view = <Devices />;
 }
+
+// the product page's global styles (src/styles/base.css) apply only to the page itself
+if ((view as React.ReactElement).type === App) document.documentElement.classList.add("sc-page");
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

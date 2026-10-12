@@ -1,0 +1,299 @@
+/* Global base for the product page: reset, ground, type primitives, buttons. Scene styles live
+   next to their scenes in src/site/<scene>/; they use these classes and the tokens.
+   Element rules are scoped to html.sc-page (set by main.tsx for the page and /book), so the dev
+   views (?screen=, ?screens, ?sandbox, prototypes) render exactly as before. */
+
+.sc-page *,
+.sc-page *::before,
+.sc-page *::after {
+  box-sizing: border-box;
+}
+
+html.sc-page {
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--ground);
+  color: var(--ink);
+  scroll-padding-top: var(--header-h);
+}
+
+.sc-page body {
+  margin: 0;
+  min-height: 100svh;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  letter-spacing: var(--text-track);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+.sc-page :where(img, svg, video, canvas) {
+  display: block;
+  max-width: 100%;
+}
+
+.sc-page :where(button, input, select, textarea) {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+.sc-page :where(button) {
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+.sc-page :where(a) {
+  color: inherit;
+}
+
+.sc-page :where(h1, h2, h3, h4, p, ul, ol, figure, blockquote) {
+  margin: 0;
+}
+
+.sc-page :where(ul, ol) {
+  padding: 0;
+  list-style: none;
+}
+
+.sc-page :focus-visible {
+  outline: 2.5px solid var(--orange);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.sc-page ::selection {
+  background: var(--orange);
+  color: #fff;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+
+.wrap {
+  width: 100%;
+  max-width: calc(var(--max) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* the page's content sits above the fixed 3D stage; sections stay transparent so the
+   devices show through, and paint their own ground only where devices never go */
+.site {
+  position: relative;
+  z-index: var(--z-content);
+  /* devices and their stills may overhang an anchor; never let that widen the page on phones */
+  overflow-x: clip;
+}
+
+/* ── Type ───────────────────────────────────────────────────────────────── */
+
+/* Display face: Archivo, widened. Headlines, the big times, the money. */
+.t-display,
+.t-hero,
+.t-h2,
+.t-time {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--display-wdth) * 1%);
+  font-weight: var(--display-wght);
+  letter-spacing: var(--display-track);
+  line-height: 0.98;
+  text-wrap: balance;
+  font-kerning: normal;
+}
+
+.t-hero {
+  font-size: var(--fs-hero);
+  line-height: 1.02;
+}
+
+.t-display {
+  font-size: var(--fs-display);
+}
+
+.t-h2 {
+  font-size: var(--fs-h2);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+
+.t-h3 {
+  font-family: var(--font-display);
+  font-stretch: 104%;
+  font-weight: 640;
+  font-size: var(--fs-h3);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+/* the big clock times and money: tabular so digits don't jitter as they change */
+.t-time {
+  font-size: var(--fs-time);
+  font-weight: 720;
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.t-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.t-lead {
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.t-body {
+  font-size: var(--fs-body);
+  line-height: 1.55;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.t-small {
+  font-size: var(--fs-small);
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+.t-micro {
+  font-size: var(--fs-micro);
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+/* the one marker for copy Andrew still has to approve */
+.flag {
+  display: inline-block;
+  margin-left: 0.3em;
+  color: var(--orange-ink);
+  font-weight: 700;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+
+/* Andrew's dark bevelled button: the primary CTA everywhere. */
+.btn {
+  --h: 56px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: var(--h);
+  padding: 0 26px;
+  border-radius: 14px;
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--dur-1) var(--ease-out),
+    background-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-dark {
+  color: #fff;
+  background: var(--btn-dark);
+  border: 1px solid var(--btn-dark-border);
+  box-shadow:
+    var(--btn-dark-bevel),
+    0 1px 1px rgb(23 19 15 / 20%),
+    0 10px 24px -8px rgb(23 19 15 / 45%);
+}
+
+.btn-dark:hover {
+  background: #2a251f;
+}
+
+/* a small orange tick that runs along the arrow on hover: the one place orange sits on a button */
+.btn-arrow {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  transition: transform var(--dur-2) var(--ease-out);
+}
+
+.btn:hover .btn-arrow {
+  transform: translateX(3px);
+}
+
+.btn-sm {
+  --h: 40px;
+  padding: 0 16px;
+  border-radius: 11px;
+  font-size: 14.5px;
+  gap: 8px;
+}
+
+.btn-light {
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgb(23 19 15 / 6%);
+}
+
+.btn-light:hover {
+  border-color: #d8ccbf;
+}
+
+/* quiet text link with an arrow, for secondary actions */
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: rgb(23 19 15 / 25%);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1.5px;
+  transition: text-decoration-color var(--dur-2) var(--ease-out);
+}
+
+.link:hover {
+  text-decoration-color: var(--orange);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-page *,
+  .sc-page *::before,
+  .sc-page *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

@@ -60,3 +60,52 @@
     --header-h: 56px;
   }
 }
+
+/* ── Extensions for the One Day page (added by the lead; names above are unchanged) ── */
+:root {
+  /* type scale (fluid; tuned at 1440×660, 1280×600 and 390×664) */
+  --fs-hero: clamp(38px, 2.2vw + 1.9svh + 10px, 70px);
+  --fs-display: clamp(40px, 3.4vw + 2.4svh, 96px);
+  --fs-time: clamp(64px, 6vw + 4svh, 168px);
+  --fs-h2: clamp(30px, 2.2vw + 1.2svh + 6px, 56px);
+  --fs-h3: clamp(21px, 0.9vw + 12px, 28px);
+  --fs-lead: clamp(16.5px, 0.35vw + 13px, 19px);
+  --fs-body: 16px;
+  --fs-small: 14px;
+  --fs-micro: 13px;
+
+  /* display face settings */
+  --display-wght: 700;
+  --display-track: -0.035em;
+  --text-track: -0.006em;
+
+  /* ink on dark grounds */
+  --ink-night: #f4eee7;
+  --ink-night-2: #b9ab9c;
+  --ink-night-3: #85786b;
+
+  /* motion */
+  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --ease-snap: cubic-bezier(0.7, 0, 0.2, 1);
+  --dur-1: 160ms;
+  --dur-2: 280ms;
+  --dur-3: 560ms;
+
+  /* layers */
+  --z-backdrop: -1;
+  --z-stage: 0;
+  --z-content: 1;
+  --z-header: 50;
+  --z-sticky: 50;
+  --z-popup: 100;
+  --z-intro: 200;
+
+  /* the phone's sticky CTA bar */
+  --sticky-h: 64px;
+}
+
+@media (max-height: 620px) {
+  :root {
+    --fs-hero: clamp(36px, 2vw + 2svh + 6px, 58px);
+  }
+}

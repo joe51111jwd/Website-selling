@@ -1,0 +1,368 @@
+/* The geofence cursor. Everything is prefixed .cur-. The native cursor is hidden only while ours
+   is drawn (html.cur-on), and form fields, iframes and editable text always keep theirs. */
+
+html.cur-on,
+html.cur-on * {
+  cursor: none !important;
+}
+html.cur-on
+  :is(
+    input:not([type="range"], [type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"]),
+    textarea,
+    select,
+    iframe,
+    [contenteditable]:not([contenteditable="false"])
+  ) {
+  cursor: auto !important;
+}
+
+.cur-root {
+  /* light ground (default) */
+  --cur-fg: #17130f;
+  --cur-bg: #fbf8f4;
+  --cur-line: rgb(23 19 15 / 0.74);
+  --cur-signal: #ff7a01;
+  --cur-shadow: 0 22px 44px -14px rgb(23 19 15 / 0.42), 0 3px 10px rgb(23 19 15 / 0.16);
+  --cur-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  contain: strict;
+  opacity: 0;
+  transition: opacity 0.16s linear;
+  font-family: var(--font-text, "Hanken Grotesk Variable", "Hanken Grotesk", system-ui, sans-serif);
+}
+.cur-root[data-tone="dark"] {
+  --cur-fg: #fbf8f4;
+  --cur-bg: #17130f;
+  --cur-line: rgb(251 248 244 / 0.8);
+  --cur-shadow: 0 22px 44px -14px rgb(0 0 0 / 0.6), 0 3px 10px rgb(0 0 0 / 0.3);
+}
+.cur-root[data-visible="1"] {
+  opacity: 1;
+}
+.cur-root[data-mode="hide"] {
+  opacity: 0;
+  transition-duration: 0.08s;
+}
+
+.cur-dot,
+.cur-ring,
+.cur-loupe,
+.cur-ripple {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+
+/* ---- the crew member ------------------------------------------------------------------------ */
+.cur-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--cur-signal);
+  box-shadow: 0 0 0 1.5px var(--cur-bg);
+  transform-origin: 50% 50%;
+  transition: box-shadow 0.2s;
+}
+
+/* ---- the fence ------------------------------------------------------------------------------ */
+.cur-ring {
+  width: 0;
+  height: 0;
+}
+.cur-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+.cur-shape {
+  fill: var(--cur-fg);
+  fill-opacity: 0;
+  stroke: var(--cur-line);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  transition:
+    fill 0.2s,
+    fill-opacity 0.16s,
+    stroke 0.2s,
+    stroke-opacity 0.16s,
+    stroke-width 0.2s;
+}
+
+/* clocked in: the fence closes around the button and turns solid orange */
+.cur-root[data-mode="cta"] .cur-shape {
+  stroke: var(--cur-signal);
+  stroke-width: 1.75;
+}
+.cur-root[data-mode="link"] .cur-shape {
+  stroke: var(--cur-fg);
+}
+.cur-root[data-mode="view"] .cur-shape {
+  fill-opacity: 1;
+  stroke-opacity: 0;
+}
+.cur-root[data-mode="drag"] .cur-shape {
+  stroke: var(--cur-fg);
+  stroke-width: 1.5;
+}
+.cur-root[data-mode="text"] .cur-shape {
+  fill-opacity: 1;
+  stroke-opacity: 0;
+  transition-duration: 0.08s;
+}
+.cur-root[data-mode="loupe"] .cur-shape {
+  stroke: var(--cur-fg);
+  stroke-width: 1;
+  stroke-opacity: 0.9;
+}
+
+/* ---- label inside the disc (view) ---------------------------------------------------------- */
+.cur-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transform: translate(-50%, -50%);
+  color: var(--cur-bg);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.cur-root[data-mode="view"] .cur-label {
+  opacity: 1;
+  transition: opacity 0.18s 0.07s;
+}
+.cur-play {
+  display: none;
+  flex: none;
+  fill: currentColor;
+  margin-right: -1px;
+}
+.cur-root[data-play="1"] .cur-play {
+  display: block;
+}
+
+/* ---- drag: the fence stretches into a pill around the slider thumb, chevrons at its ends ---- */
+.cur-arrow {
+  position: absolute;
+  top: -6px;
+  fill: none;
+  stroke: var(--cur-fg);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transition:
+    opacity 0.12s,
+    translate 0.25s var(--cur-ease);
+}
+.cur-arrow-l {
+  left: -38px;
+}
+.cur-arrow-r {
+  left: 31px;
+}
+.cur-root[data-mode="drag"] .cur-arrow {
+  opacity: 1;
+  transition:
+    opacity 0.18s 0.08s,
+    translate 0.25s var(--cur-ease);
+}
+.cur-root[data-mode="drag"] .cur-arrow-l {
+  animation: cur-nudge-l 1.6s var(--cur-ease) infinite;
+}
+.cur-root[data-mode="drag"] .cur-arrow-r {
+  animation: cur-nudge-r 1.6s var(--cur-ease) infinite;
+}
+.cur-root[data-mode="drag"][data-pressed="1"] .cur-arrow {
+  animation: none;
+}
+.cur-root[data-mode="drag"][data-pressed="1"] .cur-arrow-l {
+  translate: 5px 0;
+}
+.cur-root[data-mode="drag"][data-pressed="1"] .cur-arrow-r {
+  translate: -5px 0;
+}
+@keyframes cur-nudge-l {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: translateX(-2.5px);
+  }
+}
+@keyframes cur-nudge-r {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: translateX(2.5px);
+  }
+}
+
+/* ---- tag on the fence's top-left corner, like a jobsite label on the map -------------------- */
+.cur-tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+.cur-tag-in {
+  position: absolute;
+  left: 0;
+  bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px 5px 7px;
+  border-radius: 7px;
+  background: var(--cur-fg);
+  color: var(--cur-bg);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(3px) scale(0.96);
+  transform-origin: 0 100%;
+  transition:
+    opacity 0.12s,
+    transform 0.2s var(--cur-ease);
+}
+.cur-root[data-tag-side~="bottom"] .cur-tag-in {
+  bottom: auto;
+  top: 7px;
+  transform: translateY(-3px) scale(0.96);
+  transform-origin: 0 0;
+}
+.cur-root[data-tag-side~="right"] .cur-tag-in {
+  left: auto;
+  right: 0;
+  transform-origin: 100% 100%;
+}
+.cur-root[data-tag-side="bottom right"] .cur-tag-in {
+  transform-origin: 100% 0;
+}
+.cur-root[data-tag="1"]:not([data-mode="view"], [data-mode="text"], [data-mode="hide"]) .cur-tag-in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.18s 0.1s,
+    transform 0.3s 0.1s var(--cur-ease);
+}
+.cur-tag-dot {
+  display: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cur-signal);
+}
+.cur-root[data-mode="cta"] .cur-tag-dot {
+  display: block;
+}
+
+/* ---- scroll hint: the visitor hasn't scrolled and the pointer has rested 2 s ---------------- */
+.cur-hint {
+  position: absolute;
+  left: -6px;
+  top: -8px;
+  fill: none;
+  stroke: var(--cur-signal);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.cur-root[data-hint="1"][data-mode="default"] .cur-hint {
+  opacity: 1;
+  transition: opacity 0.3s 0.1s;
+  animation: cur-bob 1.5s var(--cur-ease) infinite;
+}
+@keyframes cur-bob {
+  0%,
+  100% {
+    transform: translateY(-2px);
+  }
+  45% {
+    transform: translateY(3px);
+  }
+}
+
+/* ---- loupe: a round magnifier over the product screens -------------------------------------- */
+.cur-loupe {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #0f0d0b;
+  box-shadow: var(--cur-shadow);
+  transform-origin: 50% 50%;
+  opacity: 0;
+  transition: opacity 0.14s linear;
+}
+.cur-root[data-mode="loupe"] .cur-loupe {
+  opacity: 1;
+  transition-duration: 0.2s;
+}
+.cur-loupe-img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  transform-origin: 0 0;
+}
+
+/* ---- click: the fence pings once, like the jobsite boundary when a truck crosses it --------- */
+.cur-ripple svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  transform-origin: 0 0;
+  opacity: 0;
+}
+.cur-ripple rect {
+  fill: none;
+  stroke: var(--cur-line);
+  stroke-width: 1.25;
+}
+.cur-ripple[data-signal="1"] rect {
+  stroke: var(--cur-signal);
+  stroke-width: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cur-root *,
+  .cur-root *::before {
+    animation: none !important;
+  }
+  .cur-tag-in {
+    transform: none;
+  }
+}
+
+@media print {
+  .cur-root {
+    display: none;
+  }
+}

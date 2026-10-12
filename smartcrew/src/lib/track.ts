@@ -1,6 +1,7 @@
 import { config } from "../config";
 
-// Meta Pixel and GA4, loaded only when their IDs are set in config.ts.
+// Meta Pixel and GA4, loaded only when their IDs are set in config.ts. Every event is also
+// re-dispatched on window as "smartcrew:track" so QA scripts (and a future CAPI relay) can see it.
 
 type Fbq = ((...args: unknown[]) => void) & { queue?: unknown[]; loaded?: boolean; version?: string; callMethod?: (...a: unknown[]) => void; push?: unknown };
 declare global {
@@ -11,6 +12,9 @@ declare global {
     gtag?: (...args: unknown[]) => void;
   }
 }
+
+export type TrackData = Record<string, string | number | boolean | undefined>;
+export type StandardEvent = "Lead" | "Schedule" | "ViewContent" | "InitiateCheckout";
 
 let started = false;
 
@@ -46,8 +50,32 @@ export function startTracking() {
   }
 }
 
-/** A standard Meta event (Lead, Schedule, ViewContent…) mirrored to GA4. */
-export function track(event: "Lead" | "Schedule" | "ViewContent" | "InitiateCheckout", data: Record<string, string> = {}) {
-  window.fbq?.("track", event, data);
-  window.gtag?.("event", event.toLowerCase(), data);
+const clean = (d: TrackData) => Object.fromEntries(Object.entries(d).filter(([, v]) => v !== undefined && v !== ""));
+
+function echo(event: string, data: TrackData, eventID?: string) {
+  try {
+    window.dispatchEvent(new CustomEvent("smartcrew:track", { detail: { event, data, eventID } }));
+  } catch {
+    /* old browsers without CustomEvent constructor */
+  }
+}
+
+/**
+ * A standard Meta event (Lead, Schedule, ViewContent…) mirrored to GA4. Pass `eventID` (the lead id
+ * or the Cal.com booking uid) so a server-side Conversions API event can be deduplicated against it.
+ */
+export function track(event: StandardEvent, data: TrackData = {}, eventID?: string) {
+  const d = clean(data);
+  if (eventID) window.fbq?.("track", event, d, { eventID });
+  else window.fbq?.("track", event, d);
+  window.gtag?.("event", event.toLowerCase(), eventID ? { ...d, event_id: eventID } : d);
+  echo(event, d, eventID);
+}
+
+/** A funnel step that isn't a Meta standard event (popup_open, step_complete…). */
+export function trackCustom(name: string, data: TrackData = {}) {
+  const d = clean(data);
+  window.fbq?.("trackCustom", name, d);
+  window.gtag?.("event", name, d);
+  echo(name, d);
 }

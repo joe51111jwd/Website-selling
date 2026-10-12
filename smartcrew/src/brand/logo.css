@@ -1,0 +1,25 @@
+/* SmartCrew logo (src/brand/Logo.tsx). Sizing + animation plumbing only; colours are fill
+   attributes on .logo-mark / .logo-word, so any rule here or in a parent wins over them.
+   Every selector is wrapped in :where() (zero specificity), so a className on <Logo> always wins,
+   whatever order the stylesheets load in. */
+
+:where(.logo) {
+  display: block;
+  height: 1em;
+  width: auto;
+  overflow: visible;
+  flex: none;
+}
+
+/* Parts scale / rotate about their own centre (the positioning transforms live on wrapper <g>s,
+   so CSS transforms on these never fight the SVG transform attribute). */
+:where(.logo-part, .logo-mark, .logo-word) {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+/* The hat sits on the brim, the chin and the fence hang from the pin's tip: scale them from
+   there. */
+:where(.logo-hat, .logo-jaw, .logo-fence) {
+  transform-origin: 50% 100%;
+}
