@@ -186,7 +186,11 @@ export function registerPoses(scene: string, keys: PoseKey[]) {
   };
 }
 
-const blankDevice = (): DeviceState => ({ show: 0, x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1, lid: 110, screen: null, scroll: 0, ring: null, dim: 0.16 });
+const blankDevice = (): DeviceState => ({ show: 0, x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1, lid: 110, screen: null, scroll: 0, ring: null, dim: 0.16, out: 0 });
+
+/** A device pose that only says where it goes out (and/or its ring): it doesn't show a hidden device. */
+const onlyOut = (p: { out?: number }) =>
+  p.out !== undefined && Object.entries(p).every(([k, v]) => v === undefined || k === "out" || k === "ring");
 
 function buildTimeline() {
   const raw: { scene: string; key: PoseKey; y: number }[] = [];
@@ -202,14 +206,16 @@ function buildTimeline() {
   for (const { scene, key, y } of raw) {
     const devices = {} as Record<DeviceId, DeviceState>;
     for (const id of DEVICE_IDS) {
-      const base: DeviceState = prev ? { ...prev.devices[id], ring: null } : blankDevice();
+      // ring and out are per key; everything else inherits
+      const base: DeviceState = prev ? { ...prev.devices[id], ring: null, out: 0 } : blankDevice();
       const p = key[id];
       devices[id] = p
         ? {
             ...base,
             ...Object.fromEntries(Object.entries(p).filter(([, v]) => v !== undefined)),
-            show: p.show ?? 1, // naming a device in a key shows it
+            show: p.show ?? (onlyOut(p) ? base.show : 1), // naming a device in a key shows it
             ring: p.ring ?? null,
+            out: p.out ?? 0,
           }
         : base;
     }
@@ -227,6 +233,8 @@ function buildTimeline() {
       viewY: key.view?.ry ?? prev?.viewY ?? 0,
       lightKey: key.light?.key ?? prev?.lightKey ?? 1,
       lightWarm: key.light?.warm ?? prev?.lightWarm ?? 0,
+      focus: key.focus ?? null,
+      front: key.front !== undefined ? key.front : (prev?.front ?? null),
       ease: key.ease ?? "inOut",
     };
     out.push(r);
@@ -334,13 +342,21 @@ export type Overlay = {
 export const overlays = new Map<string, Overlay>(); // key `${device}:${slot}`
 
 /**
- * Draw a small canvas on top of a device's screen (a toast, a ticking number): two slots per
- * device. Change `alpha`/`dx`/`dy` with updateOverlay to animate it; redraw the canvas and call
- * updateOverlay(device, slot, {redraw: true}) to re-upload it.
+ * Overlay slots per device, drawn in slot order. 0 and 1 are the hero's (macbook) and Try it's
+ * (iphone); One Day uses 2–5 (two pairs, alternating by moment, so the next moment's "before"
+ * state is in place before its screen fades in).
+ */
+export type OverlaySlot = 0 | 1 | 2 | 3 | 4 | 5;
+export const OVERLAY_SLOTS: OverlaySlot[] = [0, 1, 2, 3, 4, 5];
+
+/**
+ * Draw a small canvas on top of a device's screen (a toast, a ticking number): six slots per
+ * device, drawn in slot order; an overlay fades in and out with the screen it sits on. Change `alpha`/`dx`/`dy` with updateOverlay to animate it; redraw
+ * the canvas and call updateOverlay(device, slot, {redraw: true}) to re-upload it.
  */
 export function setOverlay(
   device: DeviceId,
-  slot: 0 | 1,
+  slot: OverlaySlot,
   o: (Omit<Overlay, "version" | "alpha" | "dx" | "dy"> & Partial<Pick<Overlay, "alpha" | "dx" | "dy">>) | null,
 ) {
   const k = `${device}:${slot}`;
@@ -348,13 +364,45 @@ export function setOverlay(
   else overlays.set(k, { alpha: 1, dx: 0, dy: 0, ...o, version: 1 });
   poke();
 }
-export function updateOverlay(device: DeviceId, slot: 0 | 1, patch: Partial<Pick<Overlay, "alpha" | "dx" | "dy" | "rect">> & { redraw?: boolean }) {
+export function updateOverlay(device: DeviceId, slot: OverlaySlot, patch: Partial<Pick<Overlay, "alpha" | "dx" | "dy" | "rect">> & { redraw?: boolean }) {
   const o = overlays.get(`${device}:${slot}`);
   if (!o) return;
   const { redraw, ...rest } = patch;
   Object.assign(o, rest);
   if (redraw) o.version++;
   poke();
+}
+
+// ─── per-frame hooks (DOM that follows the devices) ──────────────────────────
+/** What a frame hook gets: the frame the devices were just posed for. */
+export type StageFrame = {
+  /** the (spring-smoothed) scroll position the poses were drawn at */
+  y: number;
+  now: number;
+  dt: number;
+  /** viewport size, CSS px */
+  w: number;
+  h: number;
+  /** A point of a device's screen (native px) in viewport CSS px; null while the device isn't drawn. */
+  project(device: DeviceId, px: number, py: number): { x: number; y: number } | null;
+  /** The visible screen's corners TL TR BR BL in viewport CSS px (null while the device isn't drawn). */
+  quad(device: DeviceId): number[] | null;
+  /** Whether the device is drawn this frame. */
+  visible(device: DeviceId): boolean;
+};
+export type FrameHook = (f: StageFrame) => boolean | void;
+export const frameHooks = new Set<FrameHook>();
+
+/**
+ * Run `fn` on every frame the Stage draws, right after the devices are posed (so DOM you move
+ * from it lands on exactly the same frame). Return true to ask for another frame (an animation
+ * is running). The Stage draws on demand (scroll, pointer, springs, float), and only while WebGL
+ * works: give the DOM a sensible position without it.
+ */
+export function onStageFrame(fn: FrameHook) {
+  frameHooks.add(fn);
+  poke();
+  return () => void frameHooks.delete(fn);
 }
 
 // ─── readiness, entrance, fallback ───────────────────────────────────────────

@@ -1,0 +1,46 @@
+/* Header CTA and the phone's sticky bar (the bar's frame lives in src/styles/shell.css). */
+
+/* the header CTA stays out of the way until the hero's own button has scrolled away, and steps
+   aside while a scene's own primary CTA is on screen */
+.hdr-cta {
+  display: inline-flex;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.96);
+  pointer-events: none;
+  transition:
+    opacity 0.3s var(--ease-out),
+    transform 0.4s var(--ease-out);
+}
+
+.site-header.is-cta .hdr-cta {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+@media (max-width: 760px) {
+  .hdr-cta {
+    display: none !important;
+  }
+}
+
+/* phones: one full-width orange button, one thumb away */
+@media (max-width: 760px) {
+  .sticky-bar.sbar {
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    min-height: calc(var(--sticky-h) + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--paper) 90%, transparent);
+  }
+  .sbar-cta.cta {
+    --cta-h: 50px;
+    --cta-fs: 17px;
+    --cta-r: 13px;
+  }
+}
+
+/* the geofence cursor (src/cursor) on the product page: base.css caps every svg at its
+   container's width (max-width: 100%), which collapses the cursor's 1×1 overflow-visible svgs to
+   0 px and stops them drawing. They are sized by their own attributes. */
+.cur-root svg {
+  max-width: none;
+}

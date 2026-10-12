@@ -6,7 +6,7 @@
 import { lazy, Suspense, useMemo } from "react";
 import { Scene } from "../scene/Scene";
 import { phone } from "../../three/stage/store";
-import { tryPoses } from "./poses";
+import { TRY_VIEWPORTS, TRY_VIEWPORTS_PHONE, tryPhonePoses, tryPoses } from "./poses";
 import { TryDesk } from "./TryDesk";
 import "./try.css";
 
@@ -14,12 +14,12 @@ import "./try.css";
 const TryPhone = lazy(() => import("./TryPhone"));
 
 export default function TryIt() {
-  // phones: no devices here (the page itself is the phone), so no keys → the Stage hides them
-  const poses = useMemo(() => (phone ? undefined : tryPoses()), []);
+  // phones: no devices here (the page itself is the phone): they lift out as the app rises
+  const poses = useMemo(() => (phone ? tryPhonePoses() : tryPoses()), []);
   return (
     <Scene
       id="try"
-      pinnedViewports={phone ? 2.4 : 1.7}
+      pinnedViewports={phone ? TRY_VIEWPORTS_PHONE : TRY_VIEWPORTS}
       poses={poses}
       label="Try the crew app"
       className={phone ? "try try--phone" : "try try--desk"}

@@ -50,8 +50,8 @@
   color: var(--ink);
 }
 
-/* the instruction on its own line, after a short orange tick (the scene's one signal besides
-   the fence) */
+/* the instruction on its own line, after a short ink tick (orange is kept for the CTA and the
+   fence) */
 .try-prompt strong::before {
   content: "";
   display: inline-block;
@@ -59,7 +59,7 @@
   height: 3px;
   margin: 0 10px 0.3em 0;
   border-radius: 2px;
-  background: var(--orange);
+  background: var(--ink);
   vertical-align: middle;
 }
 

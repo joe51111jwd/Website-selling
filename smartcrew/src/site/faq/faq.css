@@ -1,27 +1,41 @@
-/* 8 · FAQ + the close. Laptops: the title and the last CTA on the left, the five questions on the
-   right (one open at a time, so the block keeps its size). Phones: title, questions, close. */
+/* 8 · FAQ + the close. Laptops: the title and the five questions on the left (one open at a
+   time, so the block keeps its size); on the right the close: the devices back in the hero's
+   composition, Andrew's last line and the last CTA. Phones: title, questions, close. */
 
+/* just clear of the header (the nav's FAQ link lands the section's top at the top of the
+   viewport), and no more: the offer's CTA sits right above */
 .faq .scene-body {
-  padding-block: calc(var(--header-h) + clamp(16px, 5svh, 56px)) clamp(48px, 10svh, 104px);
+  padding-block: calc(var(--header-h) + clamp(4px, 1.2svh, 16px)) clamp(28px, 6svh, 64px);
 }
 
 .faq-grid {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  column-gap: clamp(32px, 6vw, 112px);
-  align-items: stretch;
-}
-
-.faq-side {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 32px;
-  min-height: 100%;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  column-gap: clamp(32px, 5vw, 96px);
+  align-items: start;
 }
 
 .faq-title {
-  max-width: 9.5em;
+  max-width: 13em;
+  margin-bottom: clamp(14px, 3svh, 28px);
+}
+
+/* the close */
+.faq-close {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.faq-stage-box {
+  position: relative;
+  width: 100%;
+  height: clamp(200px, 38svh, 340px);
+}
+
+.faq-stage {
+  position: absolute;
+  inset: 0;
 }
 
 .faq-close-line {
@@ -40,11 +54,11 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 22px;
-  margin-top: clamp(14px, 2.6svh, 22px);
+  margin-top: clamp(12px, 2.2svh, 20px);
 }
 
 .faq-micro {
-  margin-top: 10px;
+  margin-top: 8px;
   max-width: 26rem;
 }
 
@@ -76,7 +90,7 @@
   justify-content: space-between;
   gap: 20px;
   width: 100%;
-  min-height: clamp(54px, 9.4svh, 66px);
+  min-height: clamp(50px, 8.6svh, 62px);
   padding-block: 10px;
   text-align: left;
   font-size: clamp(17px, 0.5vw + 11px, 19px);
@@ -183,36 +197,34 @@
 
 @media (max-width: 760px) {
   .faq .scene-body {
-    padding-block: calc(var(--header-h) + 16px) 56px;
+    padding-block: calc(var(--header-h) + 12px) calc(var(--sticky-h) + 24px);
   }
 
   .faq-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .faq-side {
-    display: contents;
-  }
-
   .faq-title {
-    order: 0;
-    margin-bottom: 18px;
-  }
-
-  .faq-list {
-    order: 1;
+    margin-bottom: 14px;
   }
 
   .faq-close {
-    order: 2;
-    margin-top: 32px;
+    margin-top: 20px;
+  }
+
+  .faq-stage-box {
+    height: clamp(170px, 30svh, 230px);
   }
 
   .faq-a-text {
     padding-right: 8px;
   }
 
-  .faq-actions .btn {
+  .faq-actions {
+    width: 100%;
+  }
+
+  .faq-actions .cta {
     width: 100%;
   }
 }
@@ -226,8 +238,8 @@
 
 .faq-face {
   flex: none;
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
   background: var(--ground-2);

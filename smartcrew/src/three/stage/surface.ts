@@ -32,11 +32,23 @@ uniform float uPing;
 uniform float uDim;
 uniform vec3 uRingColor;
 uniform sampler2D uOv0;
-uniform sampler2D uOv1;
 uniform vec4 uOv0Rect;
-uniform vec4 uOv1Rect;
 uniform float uOv0A;
+uniform sampler2D uOv1;
+uniform vec4 uOv1Rect;
 uniform float uOv1A;
+uniform sampler2D uOv2;
+uniform vec4 uOv2Rect;
+uniform float uOv2A;
+uniform sampler2D uOv3;
+uniform vec4 uOv3Rect;
+uniform float uOv3A;
+uniform sampler2D uOv4;
+uniform vec4 uOv4Rect;
+uniform float uOv4A;
+uniform sampler2D uOv5;
+uniform vec4 uOv5Rect;
+uniform float uOv5A;
 uniform float uPower;
 uniform vec3 uOff;
 
@@ -61,13 +73,34 @@ const MAIN = /* glsl */ `
   suv = mix(suv, 1.0 - suv, uFlip);
   vec3 ca = uHasA > 0.5 ? scSample(uTexA, uWinA, uSizeA, suv) : uOff;
   vec3 cb = uHasB > 0.5 ? scSample(uTexB, uWinB, uSizeB, suv) : uOff;
-  vec3 col = mix(ca, cb, uMix);
   vec2 px = suv * uWinB.xy + uWinB.zw;
 
-  vec4 o0 = scOverlay(uOv0, uOv0Rect, px);
-  col = mix(col, o0.rgb, o0.a * uOv0A);
-  vec4 o1 = scOverlay(uOv1, uOv1Rect, px);
-  col = mix(col, o1.rgb, o1.a * uOv1A);
+  // overlays belong to the incoming screen: they fade in with it, never over the outgoing one
+  if (uOv0A > 0.001) {
+    vec4 o0 = scOverlay(uOv0, uOv0Rect, px);
+    cb = mix(cb, o0.rgb, o0.a * uOv0A);
+  }
+  if (uOv1A > 0.001) {
+    vec4 o1 = scOverlay(uOv1, uOv1Rect, px);
+    cb = mix(cb, o1.rgb, o1.a * uOv1A);
+  }
+  if (uOv2A > 0.001) {
+    vec4 o2 = scOverlay(uOv2, uOv2Rect, px);
+    cb = mix(cb, o2.rgb, o2.a * uOv2A);
+  }
+  if (uOv3A > 0.001) {
+    vec4 o3 = scOverlay(uOv3, uOv3Rect, px);
+    cb = mix(cb, o3.rgb, o3.a * uOv3A);
+  }
+  if (uOv4A > 0.001) {
+    vec4 o4 = scOverlay(uOv4, uOv4Rect, px);
+    cb = mix(cb, o4.rgb, o4.a * uOv4A);
+  }
+  if (uOv5A > 0.001) {
+    vec4 o5 = scOverlay(uOv5, uOv5Rect, px);
+    cb = mix(cb, o5.rgb, o5.a * uOv5A);
+  }
+  vec3 col = mix(ca, cb, uMix);
 
   if (uRingA > 0.001) {
     vec2 c = uRing.xy + uRing.zw * 0.5;
@@ -184,11 +217,23 @@ export class ScreenSurface {
       uDim: { value: 0.16 },
       uRingColor: { value: new THREE.Color("#ff7a01") },
       uOv0: { value: BLANK },
-      uOv1: { value: BLANK },
       uOv0Rect: { value: new THREE.Vector4(0, 0, 1, 1) },
-      uOv1Rect: { value: new THREE.Vector4(0, 0, 1, 1) },
       uOv0A: { value: 0 },
+      uOv1: { value: BLANK },
+      uOv1Rect: { value: new THREE.Vector4(0, 0, 1, 1) },
       uOv1A: { value: 0 },
+      uOv2: { value: BLANK },
+      uOv2Rect: { value: new THREE.Vector4(0, 0, 1, 1) },
+      uOv2A: { value: 0 },
+      uOv3: { value: BLANK },
+      uOv3Rect: { value: new THREE.Vector4(0, 0, 1, 1) },
+      uOv3A: { value: 0 },
+      uOv4: { value: BLANK },
+      uOv4Rect: { value: new THREE.Vector4(0, 0, 1, 1) },
+      uOv4A: { value: 0 },
+      uOv5: { value: BLANK },
+      uOv5Rect: { value: new THREE.Vector4(0, 0, 1, 1) },
+      uOv5A: { value: 0 },
       uPower: { value: 1 },
       uOff: { value: new THREE.Color("#050506") },
     };
@@ -207,7 +252,7 @@ export class ScreenSurface {
       Object.assign(sh.uniforms, this.u);
       sh.fragmentShader = sh.fragmentShader.replace("#include <common>", `#include <common>\n${DECL}`).replace("#include <emissivemap_fragment>", MAIN);
     };
-    m.customProgramCacheKey = () => "sc-screen-v1";
+    m.customProgramCacheKey = () => "sc-screen-v3";
     this.material = m;
   }
 
@@ -235,6 +280,14 @@ export class ScreenSurface {
   }
   fadeStart = 0;
 
+  /** The part of the current image on screen, native px [x, y, w, h], and the image's native size. */
+  visibleWindow(): { win: [number, number, number, number]; w: number; h: number } | null {
+    const t = this.cur.tex;
+    if (!t) return null;
+    const v = this.window(t, new THREE.Vector4());
+    return { win: [v.z, v.w, v.x, v.y], w: t.w, h: t.h };
+  }
+
   /** Native px → a point in the screen mesh's local space. */
   pxToLocal(px: number, py: number, out: THREE.Vector3) {
     const t = this.cur.tex ?? this.prev.tex;
@@ -251,7 +304,7 @@ export class ScreenSurface {
     return [win.z + win.x / 2, win.w + win.y / 2];
   }
 
-  setOverlay(slot: 0 | 1, tex: THREE.Texture | null, rect: Box, alpha: number, dx: number, dy: number) {
+  setOverlay(slot: number, tex: THREE.Texture | null, rect: Box, alpha: number, dx: number, dy: number) {
     this.u[`uOv${slot}`].value = tex ?? BLANK;
     (this.u[`uOv${slot}Rect`].value as THREE.Vector4).set(rect[0] + dx, rect[1] + dy, rect[2], rect[3]);
     this.u[`uOv${slot}A`].value = tex ? alpha : 0;
@@ -263,8 +316,10 @@ export class ScreenSurface {
     // crossfade
     const dur = reduced ? 1 : 380;
     const f = Math.min(1, (now - this.fadeStart) / dur);
-    this.fade = this.cur.tex ? 1 - Math.pow(1 - f, 2) : 0;
-    if (this.cur.tex && f < 1) busy = true;
+    // a screen set to null is a target too: the old image fades to the screen's "off" colour
+    const off = this.cur.id === null;
+    this.fade = this.cur.tex || off ? 1 - Math.pow(1 - f, 2) : 0;
+    if ((this.cur.tex || off) && f < 1) busy = true;
     const a = this.prev.tex;
     const b = this.cur.tex;
     const u = this.u;
@@ -280,10 +335,10 @@ export class ScreenSurface {
       this.window(a, u.uWinA.value as THREE.Vector4);
       (u.uSizeA.value as THREE.Vector2).set(a.w, a.h);
     } else u.uHasA.value = 0;
-    // waiting for B to load: keep showing A
-    u.uMix.value = b ? this.fade : 0;
+    // waiting for B to load: keep showing A (turning off: fade A to the off colour)
+    u.uMix.value = b || off ? this.fade : 0;
     if (!b && this.cur.id && a) u.uMix.value = 0;
-    if (b && f >= 1) this.prev = { id: null, tex: null };
+    if ((b || off) && f >= 1) this.prev = { id: null, tex: null };
 
     // ring: fades in with one ping where it appears; glides when it moves to another row
     const target = ring ? 1 : 0;

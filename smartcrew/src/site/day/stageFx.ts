@@ -1,26 +1,21 @@
-// One Day's effects on the shared Stage, loaded lazily (it pulls three.js, already in the Stage's
-// chunk). Two jobs, both done in the Stage's own render (scene.onBeforeRender), so they land on
-// exactly the frame the devices are drawn:
+// One Day's light on the shared Stage, loaded lazily (it pulls three.js, already in the Stage's
+// chunk). It runs on the Stage's own frames (onStageFrame), so it lands on exactly the frame the
+// devices are drawn:
 //
-//  1. THE LIGHT FOLLOWS THE CLOCK. The Stage's key light becomes the sun: low and cool from the
+//  THE LIGHT FOLLOWS THE CLOCK. The Stage's key light becomes the sun: low and cool from the
 //     left at dawn, high and white mid-morning, low and amber from the right at 5 PM; on Friday
 //     night the sun is gone and the Stage's warm light becomes a desk lamp over the laptop. The
 //     environment's reflections turn with the sun and dim at night, and the laptop's contact
 //     shadow stretches away from the light. Outside the scene everything blends back to the
 //     Stage's own values (nothing is left changed: the Stage re-sets intensities every frame,
 //     and positions, colours and the shadow are restored here).
-//  2. THE LOUPE. Each device's projected screen corners go to the cursor (writeLoupeQuad), with
-//     the image the screen is showing, so the loupe reads the real UI on both devices.
 //
-// The Stage has no light API beyond { key, warm } intensities; see the result notes for the
-// small Stage change that would make this a pose field instead.
+// (The cursor's loupe over the screens is the Stage's own job now: src/three/stage/loupe.ts.)
 
 import * as THREE from "three";
-import { rig, type RigDevice } from "../../three/stage/devices";
-import { poke, reducedMotion, sceneOnScreen, sceneProgress } from "../../three/stage/store";
-import { writeLoupeQuad } from "../../cursor/loupe";
+import { rig } from "../../three/stage/devices";
+import { onStageFrame, poke, sceneProgress } from "../../three/stage/store";
 import { dayClock, dayPresence } from "./clock";
-import { loupeSrcFor } from "./life";
 
 /** The light at each moment (index = moment). az: degrees from the front, + = from the viewer's
  * right; el: degrees above the horizon; key: sun intensity; env: reflections; rot: how far the
@@ -41,21 +36,7 @@ const SUN: Sun[] = [
 const D2R = Math.PI / 180;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-type Spring = { x: number; v: number };
-/** Same critically damped spring as the Stage's scroll smoothing (omega 11), so the light moves with the devices. */
-function spring(s: Spring, to: number, dt: number, omega: number) {
-  const x = s.x - to;
-  const e = Math.exp(-omega * dt);
-  const nx = (x + (s.v + omega * x) * dt) * e;
-  s.v = (s.v - omega * (s.v + omega * x) * dt) * e;
-  s.x = nx + to;
-}
-
-export type LoupeTargets = { macbook: HTMLElement | null; iphone: HTMLElement | null };
-
-const FINE = typeof window !== "undefined" && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-
-export function startStageFx(loupe: LoupeTargets): () => void {
+export function startStageFx(): () => void {
   let stop = () => {};
   let gone = false;
   // the devices load asynchronously; wait until both are in the scene
@@ -65,7 +46,7 @@ export function startStageFx(loupe: LoupeTargets): () => void {
     const scene = mb?.group.parent?.parent;
     if (!mb || !ip || !(scene instanceof THREE.Scene)) return;
     window.clearInterval(wait);
-    if (!gone) stop = install(scene, loupe);
+    if (!gone) stop = install(scene);
   }, 200);
   return () => {
     gone = true;
@@ -74,7 +55,7 @@ export function startStageFx(loupe: LoupeTargets): () => void {
   };
 }
 
-function install(scene: THREE.Scene, loupe: LoupeTargets) {
+function install(scene: THREE.Scene) {
   // the Stage's two lights: the white key (directional) and the warm kicker (point)
   let key: THREE.DirectionalLight | null = null;
   let warm: THREE.PointLight | null = null;
@@ -115,49 +96,15 @@ function install(scene: THREE.Scene, loupe: LoupeTargets) {
   }
   const white = new THREE.Color(1, 1, 1);
   const lampColor = new THREE.Color("#ffad5c");
-  const tmp = {
-    c: new THREE.Color(),
-    dir: new THREE.Vector3(),
-    v: new THREE.Vector3(),
-    q: new THREE.Quaternion(),
-    corners: [0, 0, 0, 0, 0, 0, 0, 0],
-    size: new THREE.Vector2(),
-  };
-  const smoothY: Spring = { x: window.scrollY, v: 0 };
-  let last = performance.now();
+  const tmp = { c: new THREE.Color(), dir: new THREE.Vector3(), v: new THREE.Vector3(), q: new THREE.Quaternion() };
   let lastW = -1;
 
-  let prevHook = scene.onBeforeRender;
-  const hook: THREE.Object3D["onBeforeRender"] = (renderer, sc, camera, geometry, material, group) => {
-    prevHook.call(scene, renderer, sc, camera, geometry, material, group);
-    const now = performance.now();
-    const dt = Math.min((now - last) / 1000, 1 / 20);
-    last = now;
-    const vh = window.innerHeight;
-    const sy = window.scrollY;
-    if (reducedMotion || Math.abs(sy - smoothY.x) > vh * 3) {
-      smoothY.x = sy;
-      smoothY.v = 0;
-    } else {
-      spring(smoothY, sy, dt, 11);
-      if (Math.abs(smoothY.x - sy) > 0.5 || Math.abs(smoothY.v) > 1) poke();
-      else smoothY.x = sy;
-    }
-    const y = smoothY.x;
-    const w = dayPresence(y, vh);
-    if (w > 0 || lastW !== 0) applyLight(w, dayClock(sceneProgress("day", y)));
+  // on the Stage's frames, at the scroll position the poses were drawn at
+  const off = onStageFrame((f) => {
+    const w = dayPresence(f.y, f.h);
+    if (w > 0 || lastW !== 0) applyLight(w, dayClock(sceneProgress("day", f.y)));
     lastW = w;
-    if (FINE) writeLoupe(renderer, camera, sceneOnScreen("day", sy, vh));
-  };
-  scene.onBeforeRender = hook;
-  // if something else takes over the scene's hook later, chain onto it again (otherwise the
-  // lights would stay wherever the last frame left them)
-  const watchdog = window.setInterval(() => {
-    if (scene.onBeforeRender === hook) return;
-    prevHook = scene.onBeforeRender;
-    scene.onBeforeRender = hook;
-    poke();
-  }, 1000);
+  });
 
   function applyLight(w: number, clock: number) {
     const i = Math.max(0, Math.min(SUN.length - 1, Math.floor(clock)));
@@ -220,53 +167,8 @@ function install(scene: THREE.Scene, loupe: LoupeTargets) {
     }
   }
 
-  // ── loupe ────────────────────────────────────────────────────────────────
-  const loupeOff = new Set<HTMLElement>();
-  function clearLoupe(el: HTMLElement | null) {
-    if (!el || loupeOff.has(el)) return;
-    el.setAttribute("data-loupe-src", "");
-    el.removeAttribute("data-loupe-quad");
-    loupeOff.add(el);
-  }
-  function writeLoupe(renderer: THREE.WebGLRenderer, camera: THREE.Camera, on: boolean) {
-    renderer.getSize(tmp.size);
-    for (const id of ["macbook", "iphone"] as const) {
-      const el = loupe[id];
-      const d = rig.get(id);
-      if (!el || !d) continue;
-      if (!on || !d.group.visible || !d.surface.cur.id || !d.surface.cur.tex) {
-        clearLoupe(el);
-        continue;
-      }
-      const src = loupeSrcFor(d.surface.cur.id);
-      if (!src) {
-        clearLoupe(el);
-        continue;
-      }
-      loupeOff.delete(el);
-      if (el.getAttribute("data-loupe-src") !== src) el.setAttribute("data-loupe-src", src);
-      const crop = cropOf(d);
-      if (el.getAttribute("data-loupe-crop") !== crop) el.setAttribute("data-loupe-crop", crop);
-      const { o, u, v } = d.surface.plane;
-      const c = tmp.corners;
-      const pts = [
-        [0, 0],
-        [1, 0],
-        [1, 1],
-        [0, 1],
-      ];
-      pts.forEach(([s, t], k) => {
-        tmp.v.copy(o).addScaledVector(u, s).addScaledVector(v, t).applyMatrix4(d.screenMesh.matrixWorld).project(camera);
-        c[k * 2] = ((tmp.v.x + 1) / 2) * tmp.size.x;
-        c[k * 2 + 1] = ((1 - tmp.v.y) / 2) * tmp.size.y;
-      });
-      writeLoupeQuad(el, c);
-    }
-  }
-
   return () => {
-    window.clearInterval(watchdog);
-    if (scene.onBeforeRender === hook) scene.onBeforeRender = prevHook;
+    off();
     if (K) {
       K.position.copy(orig.keyPos);
       K.color.copy(orig.keyColor);
@@ -285,27 +187,6 @@ function install(scene: THREE.Scene, loupe: LoupeTargets) {
       shadow.scale.copy(sh.scale);
       shadowMat.opacity = sh.opacity;
     }
-    clearLoupe(loupe.macbook);
-    clearLoupe(loupe.iphone);
     poke();
   };
-}
-
-/** The part of the screen image the device actually shows (mirrors ScreenSurface's window). */
-function cropOf(d: RigDevice) {
-  const t = d.surface.cur.tex!;
-  const sa = d.surface.plane.aspect;
-  let x = 0,
-    y = 0,
-    w = t.w,
-    h = t.h;
-  if (d.surface.fit === "cover" && t.w / t.h > sa) {
-    w = t.h * sa;
-    x = (t.w - w) / 2;
-  } else {
-    h = t.w / sa;
-    y = Math.min(d.surface.scroll, Math.max(0, t.h - h));
-  }
-  const r = (n: number) => Math.round(n * 1e4) / 1e4;
-  return `${r(x / t.w)},${r(y / t.h)},${r(w / t.w)},${r(h / t.h)}`;
 }

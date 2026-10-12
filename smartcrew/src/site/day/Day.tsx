@@ -1,49 +1,47 @@
-// 2 · One Day. A pinned scene: seven moments of one workday at Cedar Ridge Earthworks, one
-// screen of scroll each. Left (top on phones): the time rolling like an odometer, what happens,
-// what it means for the office, and the features it carries as one quiet line. Right: the Stage
-// plays the moment: the phone acts, an orange pulse crosses, the laptop's row lights up, each
-// moment in its own shot. The light follows the clock: the 3D sun moves and warms with the time
-// and the page ground tints with it, dawn to Friday night. The rail jumps between moments; its
-// last stop opens the popup.
+// 2 · One Day. A pinned scene: seven moments of one workday at Cedar Ridge Earthworks, 0.9 of a
+// screen of scroll each. Skim it and you get the story from four things per moment: the big time
+// (rolling like an odometer), a headline of six words or fewer, ONE big state label on the phone
+// ("Clocked in") and ONE on the office laptop ("Marcus · on site 6:42"). Read it and you see the
+// cause and the effect on the real UI: a finger lands on the phone's button, the screen changes,
+// an orange pulse crosses, the office screen updates in place (row slides in, number ticks, pill
+// flips), the camera pushes in on it, and the update card shows that exact row, crisp, with a
+// leader line to it. The light follows the clock; the rail jumps between moments.
+//
+// The 3D choreography is ./poses.ts, the screen animations and the triggers ./life.ts, both from
+// ./script.ts. This file is the DOM: copy, labels, card, touch ripple, leader lines, rail.
 
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import { MOMENTS, type Moment } from "../../content/moments";
-import { DAY_UI, FLAG } from "../../content/copy";
+import { DAY2, DAY2_UI, DAY_UI, FLAG } from "../../content/copy";
 import { Scene, stepOf, useSceneProgress } from "../scene/Scene";
 import { StageAnchor } from "../../three/stage/StageAnchor";
-import { onStageChange, onStatus, phone, sceneProgress, status } from "../../three/stage/store";
+import { onStageChange, onStatus, phone, reducedMotion, sceneProgress, status } from "../../three/stage/store";
+import type { StageFrame } from "../../three/stage/store";
 import { openSignup } from "../../signup/contract";
 import { Arrow, InlineCta } from "../ui/Cta";
 import { scrollToScene } from "../scroll";
-import { DAY_STEPS, JUMP, beat, dayClock, dayPresence, groundAt, luminance } from "./clock";
-import { dayFrame, dayPoses } from "./poses";
-import { startDayLife } from "./life";
+import { DAY_STEPS, JUMP, PER_MOMENT, beat, dayClock, dayPresence, groundAt, luminance } from "./clock";
+import { dayFrame, dayPoses, markOf, tapOf } from "./poses";
+import { SCRIPT } from "./script";
+import { dayLive, onDayFrame, startDayLife, type DayLive } from "./life";
 import { Odometer } from "./Odometer";
 import "./day.css";
 
+const UpdateCardBody = lazy(() => import("./UpdateCard"));
+
 const ease = [0.22, 1, 0.36, 1] as const;
 
-/** Margin the poster stills were rendered with (scratchpad design/v2/day/posters.cjs): as much
- * as fits inside the viewport they're shot in (the phone's stage is full-bleed). */
+/** Margin the poster stills were rendered with. */
 const POSTER_PAD = phone ? 0 : 0.04;
 
 /** The two moments that end on a peak get the one-tap way to the popup. */
 const PEAKS = new Set<Moment["id"]>(["profit", "payroll"]);
 
 /**
- * The scene's state from the scroll position: the current moment (React state, changes seven
- * times), and the page ground following the clock (written straight to the DOM). It also
- * re-syncs whenever the Stage re-measures the layout, so a page that loads or reloads mid-scene
- * (scroll restoration, a resize, a scene above changing height) shows the right moment at once,
- * not only after the next scroll.
- *
- * Ground: blends from and back to the page's own ground at either end; on a dark ground the
- * header, the Day copy and the cursor switch to light ink. The tint is painted by the shell's
- * fixed .backdrop (z-index -1), which the body's own opaque background covers (negative z-index
- * paints below in-flow backgrounds); while the Day owns the ground the body goes transparent so
- * the backdrop shows. (Shell fix for the lead: base.css `.sc-page body { background:
- * transparent }`; html keeps var(--ground).)
+ * The scene's step from the scroll position (React state, changes seven times), and the page
+ * ground following the clock (written straight to the DOM). Re-syncs whenever the Stage
+ * re-measures, so a page that loads mid-scene shows the right moment at once.
  */
 function useDaySync(grid: RefObject<HTMLDivElement | null>) {
   const { scrollY } = useScroll();
@@ -103,21 +101,19 @@ function useDaySync(grid: RefObject<HTMLDivElement | null>) {
   return step;
 }
 
-/**
- * Once the Stage is up: draw the two live screens (Monday on the phone, the QuickBooks toast)
- * and load the light + loupe effects (three.js, already in the Stage's chunk by then).
- */
-function useDayFx(mac: RefObject<HTMLSpanElement | null>, ph: RefObject<HTMLSpanElement | null>) {
+/** The live layer (taps, office updates) and the light, once the Stage is up; the DOM state at once. */
+function useDayLife() {
   useEffect(() => {
     let gone = false;
     let stopFx = () => {};
-    let stopLife = () => {};
+    const stopLife = startDayLife();
+    // the update card's chunk (the app kit) loads while the visitor is still on the hero
+    const idle = window.setTimeout(() => void import("./UpdateCard"), 1200);
     const go = () => {
       if (gone) return;
-      stopLife = startDayLife();
       import("./stageFx")
         .then((m) => {
-          if (!gone) stopFx = m.startStageFx({ macbook: mac.current, iphone: ph.current });
+          if (!gone) stopFx = m.startStageFx();
         })
         .catch((e) => console.warn("[day] stage effects failed", e));
     };
@@ -131,11 +127,13 @@ function useDayFx(mac: RefObject<HTMLSpanElement | null>, ph: RefObject<HTMLSpan
       });
     return () => {
       gone = true;
+      window.clearTimeout(idle);
       off();
       stopFx();
       stopLife();
     };
-  }, [mac, ph]);
+  }, []);
+  return useSyncExternalStore(dayLive.subscribe, dayLive.get, dayLive.get);
 }
 
 /** Direction of the last step change: forward in time (1) or back (-1). */
@@ -169,13 +167,13 @@ function Features({ m }: { m: Moment }) {
 
 const textVariants = {
   enter: { opacity: 1 },
-  show: { opacity: 1, transition: { staggerChildren: 0.055, delayChildren: 0.06 } },
-  exit: { opacity: 0, transition: { duration: 0.22 } },
+  show: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.04 } },
+  exit: { opacity: 0, transition: { duration: 0.2 } },
 };
 const lineVariants = {
-  enter: (dir: number) => ({ opacity: 0, y: dir > 0 ? 16 : -16 }),
-  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease } },
-  exit: (dir: number) => ({ opacity: 0, y: dir > 0 ? -10 : 10, transition: { duration: 0.22, ease } }),
+  enter: (dir: number) => ({ opacity: 0, y: dir > 0 ? 18 : -18 }),
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease } },
+  exit: (dir: number) => ({ opacity: 0, y: dir > 0 ? -12 : 12, transition: { duration: 0.2, ease } }),
 };
 
 function MomentText({ m, dir }: { m: Moment; dir: number }) {
@@ -183,12 +181,9 @@ function MomentText({ m, dir }: { m: Moment; dir: number }) {
     <div className="day-text">
       <AnimatePresence mode="popLayout" initial={false} custom={dir}>
         <motion.div key={m.id} className="day-text-in" variants={textVariants} initial="enter" animate="show" exit="exit" custom={dir}>
-          <motion.h3 className="t-h3 day-title" variants={lineVariants} custom={dir}>
-            {m.title}
+          <motion.h3 className="day-title" variants={lineVariants} custom={dir}>
+            {DAY2[m.id].headline}
           </motion.h3>
-          <motion.p className="t-lead day-outcome" variants={lineVariants} custom={dir} data-cursor="text">
-            {m.outcome}
-          </motion.p>
           <motion.p className="day-features" variants={lineVariants} custom={dir}>
             <Features m={m} />
           </motion.p>
@@ -220,7 +215,7 @@ function Rail({ step }: { step: number }) {
               type="button"
               onClick={() => scrollToScene("day", beat(i, JUMP))}
               aria-current={i === step ? "step" : undefined}
-              aria-label={`${m.when}: ${m.title}`}
+              aria-label={`${m.when}: ${DAY2[m.id].headline}`}
               data-cursor="view"
               data-cursor-label={DAY_UI.short[m.id]}
             >
@@ -234,13 +229,7 @@ function Rail({ step }: { step: number }) {
           </li>
         ))}
         <li className="day-rail-end">
-          <button
-            type="button"
-            onClick={() => openSignup({ intent: "trial", source: "day-rail" })}
-            aria-label={DAY_UI.crewAria}
-            data-cursor="cta"
-            data-cursor-magnet="3"
-          >
+          <button type="button" onClick={() => openSignup({ intent: "trial", source: "day-rail" })} aria-label={DAY_UI.crewAria} data-cursor="cta" data-cursor-magnet="3">
             <span className="day-rail-track" aria-hidden="true" />
             <span className="day-rail-t">
               {DAY_UI.crew}
@@ -253,13 +242,145 @@ function Rail({ step }: { step: number }) {
   );
 }
 
+// ─── the office: its big state label + the update card ─────────────────────────
+function OfficeCard({ st, cardRef }: { st: DayLive; cardRef: RefObject<HTMLDivElement | null> }) {
+  const m = MOMENTS[st.i];
+  const copy = DAY2[m.id];
+  return (
+    <div className="day-office" ref={cardRef} data-on={st.officeLabel ? "1" : "0"}>
+      <AnimatePresence initial={false}>
+        {st.officeLabel && (
+          <motion.div
+            key={m.id}
+            className="day-office-in"
+            initial={reducedMotion ? false : { opacity: 0, y: 14, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease } }}
+            exit={{ opacity: 0, y: -8, transition: { duration: 0.2 } }}
+          >
+            <p className="day-tag day-tag--office">
+              <span className="day-tag-dot" aria-hidden="true" />
+              <span className="sr-only">{DAY2_UI.officeSr} </span>
+              {copy.office}
+            </p>
+            <div className="day-card" data-cursor="text">
+              <p className="day-card-where">{copy.where}</p>
+              <Suspense fallback={<div className="day-card-wait" />}>
+                <UpdateCardBody id={m.id} />
+              </Suspense>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── the annotation layer: touch ripple, the phone's label, leader lines ───────
+const PHONE_W = 402;
+
+function Annotations({ st, cardRef }: { st: DayLive; cardRef: RefObject<HTMLDivElement | null> }) {
+  const touch = useRef<HTMLDivElement>(null);
+  const chip = useRef<HTMLDivElement>(null);
+  const svg = useRef<SVGSVGElement>(null);
+  const lineP = useRef<SVGLineElement>(null);
+  const haloP = useRef<SVGLineElement>(null);
+  const haloO = useRef<SVGPolylineElement>(null);
+  const dotP = useRef<SVGCircleElement>(null);
+  const lineO = useRef<SVGPolylineElement>(null);
+  const dotO = useRef<SVGCircleElement>(null);
+  const ringO = useRef<SVGCircleElement>(null);
+  const m = MOMENTS[st.i];
+  const up = SCRIPT[st.i].dir === "up";
+
+  useEffect(() => {
+    const set = (el: Element | null, attrs: Record<string, string | number>) => {
+      if (!el) return;
+      for (const k in attrs) {
+        const v = String(attrs[k]);
+        if (el.getAttribute(k) !== v) el.setAttribute(k, v);
+      }
+    };
+    const place = (el: HTMLElement | null, x: number, y: number) => {
+      if (!el) return;
+      const t = `translate3d(${Math.round(x * 10) / 10}px, ${Math.round(y * 10) / 10}px, 0)`;
+      if (el.style.transform !== t) el.style.transform = t;
+    };
+    return onDayFrame((f: StageFrame, s: DayLive) => {
+      const i = s.i;
+      const sc = SCRIPT[i];
+      const tap = tapOf(i);
+      // the touch ripple sits on the button that gets tapped
+      if (tap) {
+        const p = f.project(tap.device, tap.px[0], tap.px[1]);
+        if (p) place(touch.current, p.x, p.y);
+      }
+      // the phone's label: beside the phone, level with where its screen shows the new state
+      const [ax, ay] = sc.phone.mark;
+      const edge = f.project("iphone", PHONE_W, ay);
+      const from = f.project("iphone", ax, ay);
+      const c = chip.current;
+      if (edge && from && c) {
+        const w = c.offsetWidth;
+        const h = c.offsetHeight;
+        let x = edge.x + (phone ? 10 : 22);
+        if (x + w > f.w - 8) x = Math.max(8, f.w - 8 - w);
+        const y = Math.max(phone ? 60 : 72, Math.min(f.h - h - 8, edge.y - h / 2));
+        place(c, x, y);
+        set(lineP.current, { x1: from.x, y1: from.y, x2: x, y2: y + h / 2 });
+        set(haloP.current, { x1: from.x, y1: from.y, x2: x, y2: y + h / 2 });
+        set(dotP.current, { cx: from.x, cy: from.y });
+      }
+      // the office leader: from the card to the spot that changed
+      const mk = markOf(i);
+      const to = f.project("macbook", mk[0], mk[1]);
+      const card = cardRef.current?.querySelector<HTMLElement>(".day-card");
+      if (to && card) {
+        const r = card.getBoundingClientRect();
+        const below = to.y > r.bottom;
+        const sx = Math.max(r.left + 28, Math.min(r.right - 28, to.x));
+        const sy = below ? r.bottom : r.top;
+        const ex = to.x;
+        const ey = to.y;
+        const pts = `${sx},${sy} ${sx},${sy + (below ? 1 : -1) * Math.min(18, Math.abs(ey - sy) / 2)} ${ex},${ey}`;
+        set(lineO.current, { points: pts });
+        set(haloO.current, { points: pts });
+        set(dotO.current, { cx: ex, cy: ey });
+        set(ringO.current, { cx: ex, cy: ey });
+        svg.current?.style.setProperty("--o", "1");
+      } else svg.current?.style.setProperty("--o", "0");
+    });
+  }, [cardRef]);
+
+  return (
+    <div className="day-ann" aria-hidden="true">
+      <svg ref={svg} className="day-ann-svg" data-phone={st.phoneLabel ? "1" : "0"} data-office={st.officeLabel ? "1" : "0"}>
+        <line ref={haloP} className="day-lead day-lead-halo day-lead--phone" />
+        <line ref={lineP} className="day-lead day-lead--phone" />
+        <circle ref={dotP} className="day-lead-dot day-lead--phone" r="3.5" />
+        <polyline ref={haloO} className="day-lead day-lead-halo day-lead--office" fill="none" />
+        <polyline ref={lineO} className="day-lead day-lead--office" fill="none" />
+        <circle ref={ringO} className="day-lead-ring day-lead--office" r="9" />
+        <circle ref={dotO} className="day-lead-dot day-lead--office" r="3.5" />
+      </svg>
+      <div ref={touch} className="day-touch">
+        {st.tapped && <span key={`${st.i}-${st.tapCount}`} className={`day-touch-in${up ? "" : " is-click"}`} />}
+      </div>
+      <div ref={chip} className="day-chip" data-on={st.phoneLabel ? "1" : "0"}>
+        <p className="day-tag day-tag--phone">
+          <span className="day-tag-dot" />
+          {DAY2[m.id].phone}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function DayStage() {
   const grid = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const step = useDaySync(grid);
+  const st = useDayLife();
   const dir = useStepDir(step);
-  const loupeMac = useRef<HTMLSpanElement>(null);
-  const loupePhone = useRef<HTMLSpanElement>(null);
-  useDayFx(loupeMac, loupePhone);
   const m = MOMENTS[step];
   const frame = dayFrame();
   return (
@@ -267,28 +388,16 @@ function DayStage() {
       <div className="day-copy" aria-live="polite">
         <Odometer value={m.when} step={step} className="t-time day-time" />
         <MomentText m={m} dir={dir} />
+        <p className="sr-only">
+          {DAY2_UI.phoneSr} {DAY2[m.id].phone}. {DAY2_UI.officeSr} {DAY2[m.id].office}.
+        </p>
       </div>
-      <StageAnchor
-        id="day"
-        className="day-stage"
-        poster={{ src: `renders/day-${m.id}${phone ? "-phone" : ""}.webp`, frame, pad: POSTER_PAD, alt: `${m.when}: ${m.title}` }}
-      >
-        {/* the cursor's loupe over both screens; stageFx writes each screen's corners every frame */}
-        <div className="day-loupe" data-cursor="loupe">
-          <span ref={loupeMac} hidden data-loupe-src="" data-loupe-space="viewport" data-loupe-dpr="2" data-cursor-label={DAY_UI.office} />
-          <span
-            ref={loupePhone}
-            hidden
-            data-loupe-src=""
-            data-loupe-space="viewport"
-            data-loupe-dpr="3"
-            data-loupe-size="168"
-            data-cursor-label={DAY_UI.crewApp}
-          />
-        </div>
+      <StageAnchor id="day" className="day-stage" poster={{ src: `renders/day-${m.id}${phone ? "-phone" : ""}.webp`, frame, pad: POSTER_PAD, alt: `${m.when}: ${DAY2[m.id].headline}` }}>
+        <OfficeCard st={st} cardRef={cardRef} />
         <p className="day-caption">{DAY_UI.caption}</p>
       </StageAnchor>
       <Rail step={step} />
+      <Annotations st={st} cardRef={cardRef} />
     </div>
   );
 }
@@ -296,7 +405,7 @@ function DayStage() {
 export default function Day() {
   const poses = useMemo(dayPoses, []);
   return (
-    <Scene id="day" pinnedViewports={DAY_STEPS + 1} poses={poses} label={DAY_UI.rail} className="day">
+    <Scene id="day" pinnedViewports={DAY_STEPS * PER_MOMENT + 1} poses={poses} label={DAY_UI.rail} className="day">
       <DayStage />
     </Scene>
   );

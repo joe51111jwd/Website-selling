@@ -12,25 +12,37 @@ export const DAY_STEPS = MOMENTS.length;
 export const beat = (i: number, phase: number) => stepAt(i, DAY_STEPS, phase);
 
 /**
- * The beats inside each moment, as fractions of its share of the scroll (one screen each).
- * The camera move from one moment to the next runs from `leave` to the next moment's `arrive`
- * (about a quarter of a screen), and the time, the light and the ground change during it.
+ * The beats inside each moment, as fractions of its share of the scroll (0.9 of a screen each).
+ * Something changes on every beat, so no ~100 px of scroll is ever dead:
+ *
+ *   0.00 ─ moment boundary: mid-way through the camera move; the time rolls, the headline swaps
+ *   0.08 arrive  the shot settles; the sending screen shows the button, ringed
+ *   0.14 tap     a finger lands on the button: touch ripple, the button depresses
+ *   0.17 shown   the sending screen changes state; its big state label appears
+ *   0.22 send    the orange pulse leaves the button …
+ *   0.42 land    … and lands: the office screen updates (row slides in · number ticks · pill flips)
+ *   0.46 card    the update card and the office's state label appear, leader line to the row
+ *   0.58 push    the camera has pushed in on the changed spot of the office screen
+ *   0.82 leave   the hold ends (the shot keeps drifting); the move to the next moment starts
+ *
+ * Office → field (5:30 PM) runs the same beats the other way: the click is on the laptop.
  */
 export const B = {
-  /** the devices have settled into the moment's shot; the sending screen shows the action + ring */
-  arrive: 0.1,
-  /** the orange pulse leaves the sending screen */
-  send: 0.3,
-  /** the pulse lands; the receiving screen switches to the result, ring on the exact row */
-  land: 0.56,
-  /** push-in: the receiving device comes forward (Friday: the QuickBooks toast) */
-  push: 0.74,
-  /** the hold ends; the camera starts moving to the next moment */
-  leave: 0.88,
+  arrive: 0.08,
+  tap: 0.14,
+  shown: 0.17,
+  send: 0.22,
+  land: 0.42,
+  card: 0.46,
+  push: 0.58,
+  leave: 0.82,
 } as const;
 
-/** Where the rail jumps to: just before the pulse leaves, so the visitor sees it travel. */
-export const JUMP = 0.2;
+/** Screens of scroll per moment. */
+export const PER_MOMENT = 0.9;
+
+/** Where the rail jumps to: the shot has settled, the tap is about to land. */
+export const JUMP = 0.1;
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 export const smooth = (t: number) => {
@@ -75,7 +87,7 @@ const GROUND: [Tone, Tone, number][] = [
   ["dawn", "dawn", 0], // 6:42 AM
   ["dawn", "day", 0.45], // 6:55 AM, the sun is up
   ["day", "day", 0], // 9:20 AM
-  ["day", "dusk", 0.55], // 4:13 PM
+  ["day", "dusk", 0.55], // 4:12 PM
   ["dusk", "dusk", 0], // 5:00 PM
   ["dusk", "orange", 0.08], // 5:30 PM, the last of the sun
   ["evening", "evening", 0], // Friday night

@@ -17,8 +17,11 @@ export {
   sceneOnScreen,
   sceneY,
   scheduleMeasure,
+  onStageFrame,
   reducedMotion,
   coarse,
   phone,
 } from "./store";
-export type { Box, DeviceId, DevicePose, Pose, PoseKey, PulseSpec, Ease, EaseName } from "./types";
+export type { StageFrame, FrameHook, OverlaySlot } from "./store";
+export { exitKeys, returnKeys, type ExitOptions } from "./recipes";
+export type { Box, DeviceId, DevicePose, FocusSpec, Pose, PoseKey, PulseSpec, Ease, EaseName } from "./types";

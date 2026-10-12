@@ -15,6 +15,13 @@
   will-change: transform, opacity;
 }
 
+/* Katie rises into the lower part of the screen as Phil lifts out of the upper part, so the
+   join into Five apps (whose headline sits at the top of its screen) has no empty band */
+.proof-katie {
+  align-self: end;
+  margin-bottom: clamp(20px, 8svh, 84px);
+}
+
 /* the quote in the display face, a little lighter than the headlines: it's someone talking */
 .proof-quote p {
   font-family: var(--font-display);
@@ -85,10 +92,11 @@
   pointer-events: none;
 }
 
+/* ink, not orange: orange is kept for the CTA and the geofence signals */
 .proof-mark path {
   fill: none;
-  stroke: var(--orange);
-  stroke-width: 6;
+  stroke: var(--ink);
+  stroke-width: 4.5;
   stroke-linecap: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;

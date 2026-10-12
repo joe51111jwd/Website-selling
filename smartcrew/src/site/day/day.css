@@ -1,15 +1,15 @@
-/* 2 · One Day */
+/* 2 · One Day (round 2) */
 
 .day-grid {
   position: relative;
   height: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 29rem) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 25.5rem) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) auto;
   grid-template-areas:
     "copy stage"
     "rail stage";
-  column-gap: clamp(16px, 3vw, 56px);
+  column-gap: clamp(16px, 2.6vw, 48px);
   padding-top: var(--header-h);
   color: var(--ink);
   transition: color 0.6s var(--ease-out);
@@ -19,12 +19,14 @@ html[data-ground="dark"] .day-grid {
   color: var(--ink-night);
 }
 
-/* ── the copy ──────────────────────────────────────────────────────────── */
+/* ── the copy: time, headline, the quiet feature line ──────────────────── */
 
 .day-copy {
   grid-area: copy;
-  align-self: center;
-  padding-top: clamp(8px, 3svh, 32px);
+  align-self: start;
+  padding-top: clamp(14px, 5svh, 52px);
+  position: relative;
+  z-index: 3;
 }
 
 /* the odometer */
@@ -32,11 +34,10 @@ html[data-ground="dark"] .day-grid {
   --wh: 1.06em;
   position: relative;
   height: var(--wh);
-  /* the roll happens inside the line: a word rising in never crosses the title */
   overflow: clip;
   overflow-clip-margin: 0.16em;
-  margin: 0 0 clamp(10px, 2.2svh, 22px) -0.04em;
-  font-size: var(--fs-time);
+  margin: 0 0 clamp(8px, 1.8svh, 18px) -0.04em;
+  font-size: clamp(64px, 5.4vw + 3.4svh, 150px);
   line-height: var(--wh);
   white-space: nowrap;
 }
@@ -50,13 +51,11 @@ html[data-ground="dark"] .day-grid {
   height: var(--wh);
 }
 
-/* wheels, colon and suffix are flex boxes so they share the digits' baseline */
 .day-odo-wheel {
   position: relative;
   display: inline-flex;
   height: var(--wh);
   overflow: hidden;
-  /* digits passing through fade at the window's edges, like a counter behind glass */
   -webkit-mask-image: linear-gradient(transparent 0, #000 15%, #000 85%, transparent 100%);
   mask-image: linear-gradient(transparent 0, #000 15%, #000 85%, transparent 100%);
 }
@@ -113,7 +112,7 @@ html[data-ground="dark"] .day-grid {
 /* the moment */
 .day-text {
   position: relative;
-  min-height: 15.5rem;
+  min-height: 9rem;
 }
 
 .day-text-in {
@@ -121,20 +120,21 @@ html[data-ground="dark"] .day-grid {
 }
 
 .day-title {
-  font-size: clamp(22px, 1.1vw + 12px, 30px);
-}
-
-.day-outcome {
-  margin-top: 8px;
-  max-width: 26rem;
-  transition: color 0.6s var(--ease-out);
+  font-family: var(--font-display);
+  font-stretch: calc(var(--display-wdth) * 1%);
+  font-weight: 700;
+  font-size: clamp(28px, 1.6vw + 1.6svh + 2px, 44px);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  max-width: 11.5em;
+  text-wrap: balance;
 }
 
 .day-features {
-  margin-top: clamp(12px, 2.4svh, 24px);
-  max-width: 27rem;
-  font-size: 14px;
-  line-height: 1.6;
+  margin-top: clamp(10px, 2svh, 20px);
+  max-width: 24rem;
+  font-size: 13.5px;
+  line-height: 1.55;
   color: var(--ink-3);
   text-wrap: pretty;
   transition: color 0.6s var(--ease-out);
@@ -149,12 +149,8 @@ html[data-ground="dark"] .day-grid {
 }
 
 .day-cta {
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: 15px;
-}
-
-html[data-ground="dark"] .day-outcome {
-  color: var(--ink-night-2);
 }
 
 html[data-ground="dark"] .day-features {
@@ -179,19 +175,13 @@ html[data-ground="dark"] .day-cta:hover {
 .day-stage {
   grid-area: stage;
   position: relative;
-  margin: 2svh calc(var(--gutter) * -0.5) 3svh 0;
-}
-
-/* the loupe target: a little larger than the anchor, since devices overhang it */
-.day-loupe {
-  position: absolute;
-  inset: -2% -3%;
+  margin: 0 calc(var(--gutter) * -1) 0 0;
 }
 
 .day-caption {
   position: absolute;
-  right: calc(var(--gutter) * 0.5);
-  bottom: -1svh;
+  right: var(--gutter);
+  bottom: 10px;
   font-size: 12px;
   line-height: 1.3;
   color: var(--ink-3);
@@ -204,12 +194,258 @@ html[data-ground="dark"] .day-caption {
   color: var(--ink-night-3);
 }
 
+/* ── the big state labels: jobsite tags, dark on the day ground, light at night ── */
+
+.day-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  margin: 0;
+  padding: 0.36em 0.72em 0.4em 0.56em;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--ground);
+  font-family: var(--font-display);
+  font-stretch: calc(var(--display-wdth) * 1%);
+  font-weight: 650;
+  font-size: clamp(19px, 0.8vw + 1.4svh, 27px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 10px 30px rgb(23 19 15 / 22%);
+}
+
+.day-tag-dot {
+  width: 0.36em;
+  height: 0.36em;
+  flex: none;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 0 0.16em rgb(255 122 1 / 28%);
+}
+
+html[data-ground="dark"] .day-tag {
+  background: var(--ink-night);
+  color: var(--ink);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 40%);
+}
+
+/* ── the office: its label + the update card, top right of the stage ───── */
+
+.day-office {
+  position: absolute;
+  top: clamp(10px, 2.4svh, 26px);
+  right: calc(var(--gutter) * 0.75);
+  width: min(600px, 74%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.day-office-in {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  transform-origin: 50% 100%;
+}
+
+.day-card {
+  width: 100%;
+  margin: 0;
+  padding: 13px 18px 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgb(23 19 15 / 7%);
+  box-shadow: 0 1px 2px rgb(23 19 15 / 8%), 0 24px 60px rgb(23 19 15 / 18%);
+  pointer-events: auto;
+}
+
+.day-card-where {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--ink-3);
+}
+
+.day-card-wait {
+  height: 40px;
+}
+
+/* ── the annotation layer: touch ripple, the phone's label, leader lines ── */
+
+.day-ann {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.day-ann-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  opacity: var(--o, 1);
+}
+
+.day-lead {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out);
+}
+
+.day-lead-dot {
+  fill: var(--orange);
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out);
+}
+
+.day-lead-ring {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out);
+}
+
+.day-ann-svg[data-phone="1"] .day-lead--phone,
+.day-ann-svg[data-office="1"] .day-lead--office {
+  opacity: 1;
+}
+
+.day-ann-svg[data-office="1"] .day-lead.day-lead--office {
+  transition-delay: 0.18s;
+}
+
+/* leaders run over the app's white UI and over the ground: ink with a light halo reads on both */
+.day-lead-halo {
+  stroke: rgb(255 255 255 / 78%);
+  stroke-width: 5;
+}
+
+html[data-ground="dark"] .day-lead:not(.day-lead-halo) {
+  stroke: var(--ink);
+}
+
+/* the phone's label */
+.day-chip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+
+.day-chip > .day-tag {
+  opacity: 0;
+  transform: translateX(-10px) scale(0.94);
+  transform-origin: 0 50%;
+  transition:
+    opacity 0.25s var(--ease-out),
+    transform 0.45s var(--ease-spring);
+}
+
+.day-chip[data-on="1"] > .day-tag {
+  opacity: 1;
+  transform: none;
+}
+
+/* the finger: a pad that presses, then a ripple out of it */
+.day-touch {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  will-change: transform;
+}
+
+.day-touch-in {
+  position: absolute;
+  left: -26px;
+  top: -26px;
+  width: 52px;
+  height: 52px;
+}
+
+.day-touch-in::before,
+.day-touch-in::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.day-touch-in::before {
+  background: rgb(23 19 15 / 26%);
+  box-shadow:
+    0 0 0 2px rgb(255 255 255 / 70%),
+    0 6px 16px rgb(23 19 15 / 25%);
+  animation: day-press 0.7s var(--ease-out) both;
+}
+
+.day-touch-in::after {
+  border: 2px solid var(--orange);
+  animation: day-ripple 0.85s 0.1s var(--ease-out) both;
+}
+
+/* office → field: a pointer click, smaller */
+.day-touch-in.is-click {
+  transform: scale(0.7);
+}
+
+@keyframes day-press {
+  0% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(0.86);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.94);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes day-ripple {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .day-touch-in::before,
+  .day-touch-in::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 /* ── the day rail ──────────────────────────────────────────────────────── */
 
 .day-rail {
   grid-area: rail;
-  padding-bottom: clamp(16px, 3svh, 30px);
-  z-index: 1;
+  padding-bottom: clamp(14px, 3svh, 28px);
+  z-index: 3;
 }
 
 .day-rail ol {
@@ -279,7 +515,6 @@ html[data-ground="dark"] .day-caption {
   opacity: 1;
 }
 
-/* the last stop: a dashed stretch (the geofence) to "Your crew →" */
 .day-rail-end .day-rail-track {
   height: 2px;
   margin-top: 0.5px;
@@ -309,31 +544,86 @@ html[data-ground="dark"] .day-caption {
   color: var(--orange);
 }
 
-/* ── phones: the stage on top, the rail, then the moment ───────────────── */
+/* ── phones: time + headline, the stage, the update card, the rail ─────── */
 
 @media (max-width: 760px) {
   .day-grid {
     display: flex;
     flex-direction: column;
     padding-top: var(--header-h);
-    padding-bottom: calc(var(--sticky-h) + 6px);
+    padding-bottom: calc(var(--sticky-h) + 4px);
+  }
+  .day-copy {
+    order: 1;
+    flex: none;
+    padding-top: 8px;
+  }
+  /* the copy band keeps its ground: devices that rise behind it fade out under the words */
+  .day-copy::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: calc(var(--header-h) * -1);
+    bottom: -18px;
+    left: calc(var(--gutter) * -1);
+    right: calc(var(--gutter) * -1);
+    background: linear-gradient(180deg, var(--page-ground, var(--ground)) calc(100% - 26px), transparent);
+    pointer-events: none;
+  }
+  .day-time {
+    font-size: clamp(42px, 12vw, 56px);
+    margin: 0 0 4px -0.04em;
+  }
+  .day-text {
+    min-height: 0;
+  }
+  .day-title {
+    font-size: clamp(20px, 5.6vw, 24px);
+    line-height: 1.08;
+    max-width: none;
+  }
+  .day-features {
+    display: none;
+  }
+  .day-cta {
+    margin-top: 2px;
+    min-height: 32px;
+    font-size: 13.5px;
   }
   .day-stage {
-    order: 1;
-    flex: 0 0 auto;
-    height: 43svh;
-    margin: 0 calc(var(--gutter) * -1);
+    order: 2;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 4px calc(var(--gutter) * -1) 0;
   }
-  .day-loupe {
-    display: none;
+  .day-office {
+    top: auto;
+    bottom: 0;
+    left: var(--gutter);
+    right: var(--gutter);
+    width: auto;
+  }
+  .day-office-in {
+    gap: 7px;
+  }
+  .day-card {
+    padding: 10px 13px 12px;
+    border-radius: 14px;
+  }
+  .day-card-where {
+    margin-bottom: 7px;
   }
   .day-caption {
     display: none;
   }
+  .day-tag {
+    gap: 8px;
+    font-size: 17px;
+    box-shadow: 0 6px 18px rgb(23 19 15 / 22%);
+  }
   .day-rail {
-    order: 2;
-    padding: 0;
-    margin: -8px 0 -10px;
+    order: 3;
+    padding: 6px 0 0;
   }
   .day-rail ol {
     gap: 3px;
@@ -346,6 +636,7 @@ html[data-ground="dark"] .day-caption {
     flex-direction: row;
     align-items: center;
     gap: 6px;
+    min-height: 28px;
   }
   .day-rail li:not(.day-rail-end) .day-rail-t {
     display: none;
@@ -353,38 +644,10 @@ html[data-ground="dark"] .day-caption {
   .day-rail-end .day-rail-track {
     display: none;
   }
-  .day-rail-end .day-rail-t {
-    font-size: 12.5px;
-  }
-  .day-copy {
-    order: 3;
-    flex: 1 1 auto;
-    align-self: stretch;
-    padding-top: 4px;
-  }
-  .day-time {
-    font-size: clamp(44px, 12.4vw, 60px);
-    margin-bottom: 6px;
-  }
-  .day-text {
-    min-height: 0;
-  }
-  .day-title {
-    font-size: 21px;
-  }
-  .day-outcome {
-    margin-top: 4px;
-    font-size: 16px;
-    line-height: 1.4;
-  }
-  .day-features {
-    margin-top: 8px;
-    font-size: 12.5px;
-    line-height: 1.45;
-  }
-  .day-cta {
-    margin-top: 0;
-    min-height: 36px;
-    font-size: 14px;
+  .day-touch-in {
+    left: -20px;
+    top: -20px;
+    width: 40px;
+    height: 40px;
   }
 }

@@ -1,4 +1,4 @@
-// 6 · Five apps → one (BRIEF §6, beat 7), pinned 2.5 screens. The devices sit dark in the middle
+// 6 · Five apps → one (BRIEF §6, beat 7), pinned 1.8 screens (2.0 on phones). The devices sit dark in the middle
 // while five app tiles (text only, no competitor logos) drift around them; the cursor shoves them
 // about. Scrolling, each is pulled into the phone or the laptop like a magnet and vanishes into the
 // exact place on the screen that replaces it; the screens wake up on one SmartCrew, the phone's
@@ -12,7 +12,7 @@ import { APPS, APPS_SCENE } from "../../content/copy";
 import { Scene, useScene } from "../scene/Scene";
 import { StageAnchor, phone } from "../../three/stage";
 import { Cta } from "../ui/Cta";
-import { CLOSE_AT, PAYOFF_AT, SHOTS, appsPoses } from "./poses";
+import { APPS_VIEWPORTS, CLOSE_AT, PAYOFF_AT, SHOTS, appsPoses } from "./poses";
 import { runTiles } from "./tiles";
 import "./apps.css";
 
@@ -37,7 +37,6 @@ function AppsStage() {
   const root = useRef<HTMLDivElement>(null);
   const tiles = useRef<(HTMLLIElement | null)[]>([]);
   const pings = useRef<(HTMLSpanElement | null)[]>([]);
-  const cta = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = root.current!;
@@ -59,12 +58,6 @@ function AppsStage() {
       },
     });
   }, [id, progress]);
-
-  // the cursor: the shared <Cta> has no attribute pass-through, so tag its button here
-  useEffect(() => {
-    const b = cta.current?.querySelector("button");
-    b?.setAttribute("data-cursor", "cta");
-  }, []);
 
   const show = (on: boolean, d = 0) => ({
     initial: false as const,
@@ -92,8 +85,8 @@ function AppsStage() {
           <motion.p className="t-lead apps-sub" {...show(phase >= 2)}>
             {APPS_SCENE.sub}
           </motion.p>
-          <motion.div className="apps-cta" ref={cta} {...show(phase >= 2, 0.08)} inert={phase < 2}>
-            <Cta source="apps" />
+          <motion.div className="apps-cta" {...show(phase >= 2, 0.08)} inert={phase < 2}>
+            <Cta source="apps" size="lg" />
           </motion.div>
         </div>
         <p className="t-micro apps-note">{APPS_SCENE.footnote}</p>
@@ -149,7 +142,7 @@ function AppsStage() {
 export default function FiveApps() {
   const poses = useMemo(appsPoses, []);
   return (
-    <Scene id="apps" pinnedViewports={2.5} poses={poses} label={APPS_SCENE.label} className="apps">
+    <Scene id="apps" pinnedViewports={APPS_VIEWPORTS} poses={poses} label={APPS_SCENE.label} className="apps">
       <AppsStage />
     </Scene>
   );

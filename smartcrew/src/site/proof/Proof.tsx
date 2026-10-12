@@ -1,9 +1,9 @@
-// 5 · Proof (BRIEF §5, beat 6: "Proof lands on a number"). Pinned for one screen of scroll, one
-// quote per screen, nothing else on it: Phil Drish's quote set large and typographic, its
+// 5 · Proof (BRIEF §5, beat 6: "Proof lands on a number"). Pinned for 0.35 screen of scroll, one
+// quote at a time, nothing else on it: Phil Drish's quote set large and typographic, its
 // "~$150k" rolling up like an odometer as it enters, a survey-paint stroke landing under it, his
 // name, company and the family disclosure ⚑. Scrolling on, Phil's quote lifts away and Katie's
-// takes the screen. No devices here (they wait, hidden, where Five apps will show them), no logos
-// (they are in the hero), no CTA (PLAYBOOK S2).
+// takes the screen. No devices here (they wait off stage to the right and glide in with Five apps),
+// no logos (they are in the hero), no CTA (PLAYBOOK S2).
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useTransform } from "motion/react";
@@ -11,11 +11,12 @@ import { FLAG, PROOF } from "../../content/copy";
 import { Scene, useSceneProgress } from "../scene/Scene";
 import { reducedMotion } from "../../three/stage";
 import type { PoseKey } from "../../three/stage";
-import { appsHiddenPose } from "../apps/poses";
+import { appsOffstagePose } from "../apps/poses";
 import { Odometer } from "./Odometer";
 import "./proof.css";
 
 const P = PROOF.phil;
+const PROOF_VIEWPORTS = 1.35;
 const K = PROOF.katie;
 
 function Flag({ title = PROOF.flagTitle }: { title?: string }) {
@@ -52,8 +53,8 @@ function useRollOnEnter() {
 function Phil() {
   const progress = useSceneProgress();
   // scrolling on, Phil's quote lifts away and dims to make room for Katie's
-  const y = useTransform(progress, [0.34, 0.56], ["0svh", reducedMotion ? "0svh" : "-7svh"]);
-  const opacity = useTransform(progress, [0.34, 0.5], [1, 0]);
+  const y = useTransform(progress, [0.16, 0.48], ["0svh", reducedMotion ? "0svh" : "-7svh"]);
+  const opacity = useTransform(progress, [0.16, 0.42], [1, 0]);
   const pointerEvents = useTransform(opacity, (o) => (o < 0.5 ? "none" : "auto"));
   const { ref, on } = useRollOnEnter();
   const full = `${P.before} ${P.figure.prefix}${P.figure.digits}${P.figure.suffix} ${P.figureRest} ${P.after}`;
@@ -99,8 +100,8 @@ function Phil() {
 
 function Katie() {
   const progress = useSceneProgress();
-  const y = useTransform(progress, [0.44, 0.66], [reducedMotion ? "0svh" : "7svh", "0svh"]);
-  const opacity = useTransform(progress, [0.46, 0.62], [0, 1]);
+  const y = useTransform(progress, [0.34, 0.68], [reducedMotion ? "0svh" : "7svh", "0svh"]);
+  const opacity = useTransform(progress, [0.36, 0.6], [0, 1]);
   // both quotes stay readable to screen readers; only the one on screen takes the pointer
   const pointerEvents = useTransform(opacity, (o) => (o < 0.5 ? "none" : "auto"));
   return (
@@ -125,10 +126,11 @@ function Katie() {
 }
 
 export default function Proof() {
-  // no devices on this screen; they wait, hidden, in Five apps' first pose so they only grow in there
-  const poses = useMemo<PoseKey[]>(() => [appsHiddenPose(0, "out"), appsHiddenPose(1)], []);
+  // no devices on this screen: they wait off stage, right of Five apps' first shot, and are let
+  // in (still out of frame) as Katie's quote settles, so they glide in as Five apps comes up
+  const poses = useMemo<PoseKey[]>(() => [appsOffstagePose(0, 0, "out"), appsOffstagePose(0.7, 0), appsOffstagePose(0.85, 1)], []);
   return (
-    <Scene id="proof" pinnedViewports={2} poses={poses} label={PROOF.label} className="proof">
+    <Scene id="proof" pinnedViewports={PROOF_VIEWPORTS} poses={poses} label={PROOF.label} className="proof">
       <div className="proof-grid wrap">
         <Phil />
         <Katie />

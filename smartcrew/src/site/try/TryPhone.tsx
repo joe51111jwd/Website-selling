@@ -17,7 +17,7 @@ import "./try-phone.css";
 const ease = [0.22, 1, 0.36, 1] as const;
 
 /** Scene progress where the app starts rising and where it fills the screen. */
-const RISE: [number, number] = [0.04, 0.4];
+const RISE: [number, number] = [0.04, 0.52];
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 export default function TryPhone() {

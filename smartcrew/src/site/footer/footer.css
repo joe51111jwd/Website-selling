@@ -7,7 +7,7 @@
 }
 
 .ftr {
-  padding-block: clamp(48px, 9svh, 88px) clamp(28px, 5svh, 44px);
+  padding-block: clamp(40px, 7svh, 72px) clamp(24px, 4.4svh, 40px);
 }
 
 .ftr-top {
@@ -179,11 +179,14 @@
 
 @media (max-width: 760px) {
   .ftr {
-    padding-block: 44px calc(var(--sticky-h) + env(safe-area-inset-bottom) + 28px);
+    padding-block: 32px calc(var(--sticky-h) + env(safe-area-inset-bottom) + 16px);
   }
   .ftr-top {
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
+  }
+  .ftr-base {
+    margin-top: 24px;
   }
   .ftr-links {
     align-items: flex-start;

@@ -1,0 +1,1368 @@
+/* 2b · The spec sheet (src/site/specsheet/SpecSheet.tsx). One screen: the title, the sheet (or an
+   open section, or the wall of all tools) and the CTA. Ruled like an equipment spec sheet: a heavy
+   ink rule on top, hairlines between sections, a double rule over the total. Tabular figures.
+   Orange only on the CTA and the signals (the ring on the live screen, the selected tool's dot). */
+
+.spec {
+  /* No devices here, so the section is paper: it slides up over the end of One Day (Friday night)
+     and the devices glide out behind its edge instead of passing under the copy. Same colour as
+     the page ground, so once One Day's tint has blended back there is no seam. */
+  position: relative;
+  background: var(--ground);
+  --spec-pad-r: 14px;
+  --spec-colgap: clamp(16px, 2.2vw, 36px);
+  --spec-count-w: 8.25rem;
+  --spec-chev-w: 1.25rem;
+}
+
+.spec .scene-body {
+  display: flex;
+  min-height: 100svh;
+}
+
+.spec-in {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  row-gap: clamp(10px, 2.3svh, 22px);
+  width: 100%;
+  height: 100svh;
+  max-height: 900px;
+  margin-block: auto;
+  padding-top: calc(var(--header-h) + clamp(8px, 2.4svh, 24px));
+  padding-bottom: clamp(12px, 2.8svh, 26px);
+}
+
+/* ── title ─────────────────────────────────────────────────────────────── */
+
+.spec-title {
+  font-size: min(var(--fs-h2), 3.35vw);
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.spec-title-a {
+  color: var(--ink-3);
+}
+
+/* ── the views share the body; each fills it ───────────────────────────── */
+
+.spec-body {
+  position: relative;
+  min-height: 0;
+}
+
+.spec-view {
+  position: absolute;
+  inset: 0;
+}
+
+/* ── collapsed: the sheet ──────────────────────────────────────────────── */
+
+.spec-sheet {
+  display: grid;
+  /* rule · key specs (or the phone's one-line version) · the six sections · the total */
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.spec-rule-heavy {
+  display: block;
+  height: 3px;
+  background: var(--ink);
+  transform-origin: 0 50%;
+}
+
+.spec-keys {
+  display: grid;
+  grid-template-columns: auto repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.spec-plate {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: clamp(8px, 1.6svh, 13px) clamp(20px, 2.4vw, 34px) clamp(8px, 1.6svh, 13px) 0;
+}
+
+.spec-plate-mark {
+  height: 30px;
+}
+
+.spec-plate strong {
+  display: block;
+  font-family: var(--font-display);
+  font-stretch: 108%;
+  font-size: 17px;
+  font-weight: 720;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.spec-plate strong + span {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--ink-3);
+}
+
+.spec-key {
+  min-width: 0;
+  padding: clamp(8px, 1.6svh, 13px) 0 clamp(8px, 1.6svh, 13px) clamp(14px, 1.6vw, 24px);
+  border-left: 1px solid var(--line);
+}
+
+.spec-key dt {
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--ink-3);
+}
+
+.spec-key dd {
+  margin: 0;
+  font-size: clamp(15px, 0.5vw + 9px, 17.5px);
+  font-weight: 640;
+  line-height: 1.3;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spec-keys-short {
+  display: none;
+}
+
+/* the six sections */
+.spec-rows {
+  display: grid;
+  grid-template-rows: repeat(6, minmax(0, 1fr));
+  min-height: 0;
+}
+
+.spec-row-li {
+  position: relative;
+  display: flex;
+  min-height: 0;
+}
+
+.spec-rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--line);
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+.spec-row-li:last-child .spec-rule {
+  display: none;
+}
+
+.spec-row {
+  position: relative;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 21.5rem) minmax(0, 1fr) var(--spec-count-w) var(--spec-chev-w);
+  align-items: center;
+  column-gap: var(--spec-colgap);
+  min-height: 0;
+  padding: 0 var(--spec-pad-r) 0 0;
+  color: var(--ink);
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* hover / focus band, a touch wider than the column */
+.spec-row::before {
+  content: "";
+  position: absolute;
+  inset: 3px -14px;
+  border-radius: 12px;
+  background: var(--ground-2);
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease-out);
+  z-index: -1;
+}
+
+.spec-row:hover::before,
+.spec-row:focus-visible::before {
+  opacity: 1;
+}
+
+.spec-row:focus-visible {
+  outline: none;
+}
+
+.spec-row:focus-visible::before {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
+.spec-row:active::before {
+  background: #ede4d9;
+}
+
+.spec-row-head {
+  min-width: 0;
+}
+
+.spec-row-name {
+  display: block;
+  width: fit-content;
+  font-family: var(--font-display);
+  font-stretch: 108%;
+  font-size: clamp(19px, 0.8vw + 1.1svh + 3px, 25px);
+  font-weight: 690;
+  line-height: 1.08;
+  letter-spacing: -0.024em;
+  white-space: nowrap;
+}
+
+.spec-row-out {
+  display: block;
+  margin-top: 3px;
+  font-size: clamp(13.5px, 0.25vw + 10.5px, 15px);
+  line-height: 1.3;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spec-row-tools {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+  font-size: clamp(15px, 0.3vw + 11px, 17px);
+  line-height: 1.35;
+}
+
+.spec-row-top {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.spec-dot {
+  color: var(--ink-3);
+}
+
+.spec-short {
+  display: none;
+}
+
+.spec-row-more {
+  flex: none;
+  order: 2;
+  white-space: nowrap;
+  font-size: 0.9em;
+  color: var(--ink-3);
+  transition: color var(--dur-2) var(--ease-out);
+}
+
+.spec-lead {
+  order: 3;
+  flex: 1 1 24px;
+  min-width: 24px;
+  align-self: center;
+  height: 0;
+  margin: 2px 4px 0 6px;
+  border-bottom: 2px dotted #e2d8cc;
+}
+
+.spec-row:hover .spec-row-more {
+  color: var(--ink);
+}
+
+.spec-row-count {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 7px;
+  font-family: var(--font-display);
+  font-stretch: 104%;
+  font-size: clamp(30px, 1.4vw + 2svh + 2px, 46px);
+  font-weight: 720;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.spec-unit {
+  font-family: var(--font-text);
+  font-stretch: 100%;
+  font-size: 13px;
+  font-weight: 520;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--ink-3);
+  padding-bottom: 0.18em;
+}
+
+.spec-chev {
+  width: 20px;
+  height: 20px;
+  color: var(--ink-3);
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out);
+}
+
+.spec-row:hover .spec-chev,
+.spec-row:focus-visible .spec-chev {
+  transform: translateX(3px);
+  color: var(--ink);
+}
+
+/* the floating look at a section's real screen while you point at it (desktop, mouse only) */
+.spec-peek {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 5;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgb(23 19 15 / 6%),
+    0 24px 50px -18px rgb(23 19 15 / 38%);
+  pointer-events: none;
+  transform-origin: 35% 50%;
+}
+
+/* the total: a double rule, "Show everything" on the left, the sum under the counts */
+.spec-total {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto var(--spec-chev-w);
+  align-items: center;
+  column-gap: var(--spec-colgap);
+  padding: clamp(6px, 1.2svh, 10px) var(--spec-pad-r) 0 0;
+  border-top: 3px double var(--ink);
+}
+
+.spec-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: start;
+  min-height: 44px;
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: rgb(23 19 15 / 28%);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 5px;
+  transition: text-decoration-color var(--dur-2) var(--ease-out);
+}
+
+.spec-all:hover {
+  text-decoration-color: var(--ink);
+}
+
+.spec-glyph {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  transition: transform var(--dur-2) var(--ease-spring);
+}
+
+.spec-all:hover .spec-glyph {
+  transform: rotate(90deg);
+}
+
+.spec-total-n {
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  font-family: var(--font-display);
+  font-stretch: 104%;
+  font-size: clamp(34px, 1.8vw + 2.4svh + 2px, 54px);
+  font-weight: 740;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.spec-total-k {
+  font-family: var(--font-text);
+  font-stretch: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--ink-3);
+  padding-bottom: 0.3em;
+  margin-right: 4px;
+}
+
+/* the rolling digits */
+.roll {
+  display: inline-flex;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.roll-digits {
+  display: inline-flex;
+}
+
+.roll-col {
+  display: inline-block;
+  height: 1em;
+  overflow: hidden;
+}
+
+.roll-strip {
+  display: block;
+}
+
+.roll-strip > span {
+  display: block;
+  height: 1em;
+  line-height: 1em;
+  text-align: center;
+}
+
+/* ── open: index · tools · live screen ─────────────────────────────────── */
+
+.spec-detail {
+  display: grid;
+  grid-template-columns: minmax(12rem, 14.5rem) minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: clamp(22px, 2.8vw, 46px);
+  border-top: 3px solid var(--ink);
+}
+
+.spec-index {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.spec-index ul {
+  min-height: 0;
+}
+
+.spec-ix-li {
+  border-bottom: 1px solid var(--line);
+}
+
+.spec-ix {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name count"
+    "out out";
+  align-items: center;
+  column-gap: 12px;
+  width: 100%;
+  padding: clamp(6px, 1.25svh, 10px) 10px clamp(6px, 1.25svh, 10px) 14px;
+  color: var(--ink-2);
+  text-align: left;
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out);
+}
+
+.spec-ix:hover {
+  color: var(--ink);
+  background: var(--ground-2);
+}
+
+.spec-ix-name {
+  grid-area: name;
+  width: fit-content;
+  font-family: var(--font-display);
+  font-stretch: 106%;
+  font-size: 16px;
+  font-weight: 640;
+  line-height: 1.15;
+  letter-spacing: -0.016em;
+  white-space: nowrap;
+}
+
+.spec-ix-count {
+  grid-area: count;
+  font-family: var(--font-display);
+  font-stretch: 104%;
+  font-size: 19px;
+  font-weight: 720;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink-3);
+}
+
+.spec-ix-out {
+  grid-area: out;
+  display: block;
+  text-wrap: pretty;
+  overflow: hidden;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+
+.spec-ix-li.is-on .spec-ix {
+  color: var(--ink);
+  background: var(--paper);
+  cursor: default;
+}
+
+.spec-ix-li.is-on .spec-ix::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--ink);
+}
+
+.spec-ix-li.is-on .spec-ix-name {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.spec-ix-li.is-on .spec-ix-count {
+  color: var(--ink);
+  font-size: 22px;
+}
+
+.spec-ix-li.is-on .spec-ix-out {
+  padding-top: 3px;
+}
+
+.spec-ix-all {
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 15px;
+}
+
+/* the tools */
+.spec-list {
+  position: relative;
+  min-height: 0;
+  overflow-y: auto;
+  /* when it scrolls, the last row fades out to say there's more */
+  --fade: 0px;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--fade)), transparent);
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+.spec-list.has-more {
+  --fade: 44px;
+}
+
+.spec-tools {
+  min-height: 100%;
+}
+
+.spec-tool-li {
+  border-bottom: 1px solid var(--line);
+}
+
+.spec-tool {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name side"
+    "line line";
+  column-gap: 14px;
+  row-gap: 1px;
+  width: 100%;
+  padding: clamp(4px, 0.8svh, 10px) 12px clamp(4px, 0.8svh, 10px) 14px;
+  text-align: left;
+  color: var(--ink);
+  transition: background-color var(--dur-2) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.spec-tool:hover {
+  background: var(--ground-2);
+}
+
+.spec-tool-li.is-on .spec-tool {
+  background: var(--paper);
+  box-shadow: inset 3px 0 0 var(--ink);
+}
+
+.spec-tool:focus-visible {
+  outline-offset: -3px;
+}
+
+.spec-tool-name {
+  grid-area: name;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-size: clamp(15px, 0.3vw + 11.5px, 16.5px);
+  font-weight: 660;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+/* the selected tool's dot: the same signal as the ring on the screen */
+.spec-tool-dot {
+  flex: none;
+  width: 0;
+  height: 8px;
+  margin-right: 0;
+  border-radius: 50%;
+  background: var(--orange);
+  transform: scale(0);
+  transition:
+    width var(--dur-2) var(--ease-out),
+    margin-right var(--dur-2) var(--ease-out),
+    transform var(--dur-2) var(--ease-spring);
+}
+
+.spec-tool-li.is-on .spec-tool-dot {
+  width: 8px;
+  margin-right: 9px;
+  transform: scale(1);
+}
+
+.spec-tool-side {
+  grid-area: side;
+  align-self: center;
+  font-size: 12.5px;
+  font-weight: 520;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.spec-tool-line {
+  grid-area: line;
+  font-size: clamp(13.5px, 0.15vw + 11.5px, 14.5px);
+  line-height: 1.36;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.spec-flag {
+  margin-left: 0.35em;
+  font-size: 0.92em;
+}
+
+/* the live screen */
+.spec-preview {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+}
+
+.spec-preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: clamp(38px, 6.5svh, 48px);
+}
+
+.spec-preview-cap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 620;
+  color: var(--ink-2);
+}
+
+.spec-dev {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
+.spec-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 12px 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: 13.5px;
+  font-weight: 620;
+  color: var(--ink);
+  transition:
+    border-color var(--dur-2) var(--ease-out),
+    background-color var(--dur-2) var(--ease-out);
+}
+
+.spec-close:hover {
+  border-color: #d6c9bb;
+  background: var(--ground);
+}
+
+.spec-close svg {
+  width: 13px;
+  height: 13px;
+}
+
+.spec-preview-frame {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  transition: background-color var(--dur-3) var(--ease-out);
+  /* a crisp edge and a little lift: the one thing in this section that floats */
+  box-shadow: 0 1px 2px rgb(23 19 15 / 5%), 0 18px 40px -24px rgb(23 19 15 / 28%);
+}
+
+.spec-preview-frame[data-kind="phone"] {
+  background: var(--ground-2);
+}
+
+.spec-preview-note {
+  padding-top: 8px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
+/* the snippet itself (./Snippet.tsx) */
+.spec-snip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* a crop, not a cut: the edges soften into the frame */
+  mask-image:
+    linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent),
+    linear-gradient(to bottom, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+
+.spec-snip-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.spec-snip-screen {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #fff;
+}
+
+.spec-snip-screen[data-kind="phone"] {
+  border-radius: 56px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 2px rgb(23 19 15 / 10%),
+    0 40px 80px -30px rgb(23 19 15 / 35%);
+}
+
+.spec-snip-ring {
+  position: absolute;
+  border: calc(2.25px * var(--k)) solid var(--orange);
+  border-radius: calc(10px * var(--k));
+  box-shadow: 0 0 0 calc(5px * var(--k)) rgb(255 122 1 / 14%);
+  pointer-events: none;
+}
+
+.spec-snip-ping {
+  position: absolute;
+  inset: calc(-2.25px * var(--k));
+  border-radius: inherit;
+  animation: spec-ping 1.15s var(--ease-out) 0.3s 1 both;
+}
+
+@keyframes spec-ping {
+  0% {
+    box-shadow: 0 0 0 0 rgb(255 122 1 / 55%);
+  }
+  100% {
+    box-shadow: 0 0 0 calc(18px * var(--k)) rgb(255 122 1 / 0%);
+  }
+}
+
+.spec-snip-tag {
+  position: absolute;
+  padding: 6px 10px 6px 9px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--ink-night);
+  font-family: var(--font-text);
+  font-size: 13px;
+  font-weight: 620;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px -6px rgb(23 19 15 / 45%);
+}
+
+.spec-snip-tag::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 7px 1px 0;
+  border-radius: 50%;
+  background: var(--orange);
+  vertical-align: middle;
+}
+
+/* ── the wall: every tool at once ──────────────────────────────────────── */
+
+.spec-wall {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border-top: 3px solid var(--ink);
+}
+
+.spec-wall-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: clamp(42px, 7svh, 54px);
+}
+
+.spec-wall-title {
+  font-family: var(--font-display);
+  font-stretch: 106%;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.spec-wall-grid {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+.spec-wall-flow {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  column-gap: clamp(14px, 1.6vw, 26px);
+  align-content: start;
+}
+
+.spec-wall-col {
+  min-width: 0;
+}
+
+.spec-wall-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0 7px;
+  margin: 0 0 4px;
+  border-bottom: 2px solid var(--ink);
+  font-family: var(--font-display);
+  font-stretch: 104%;
+  font-size: 15.5px;
+  font-weight: 690;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+.spec-wall-n {
+  font-size: 19px;
+  font-weight: 720;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.spec-wall-tool {
+  display: flex;
+  align-items: baseline;
+  width: 100%;
+  min-height: clamp(30px, 5.7svh, 40px);
+  padding: 4px 6px 4px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: clamp(14px, 0.25vw + 11px, 15.5px);
+  font-weight: 540;
+  line-height: 1.25;
+  text-align: left;
+  color: var(--ink);
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    padding var(--dur-2) var(--ease-out);
+}
+
+.spec-wall-tool:hover,
+.spec-wall-tool.is-hot {
+  background: var(--ground-2);
+  padding-left: 6px;
+}
+
+.spec-wall-tool:focus-visible {
+  outline-offset: -2px;
+}
+
+.spec-wall-read {
+  display: block;
+  min-height: 46px;
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.spec-wall-read strong {
+  color: var(--ink);
+  font-weight: 680;
+  margin-right: 10px;
+}
+
+.spec-wall-side {
+  margin-left: 10px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.spec-wall-hint {
+  color: var(--ink-3);
+}
+
+/* ── the CTA ───────────────────────────────────────────────────────────── */
+
+.spec-foot {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.8vw, 26px);
+  min-height: 60px;
+}
+
+.spec-micro {
+  max-width: 24rem;
+  margin-left: auto;
+  text-align: right;
+}
+
+/* ── laptops that are short (1280×600) ─────────────────────────────────── */
+
+@media (max-height: 640px) and (min-width: 761px) {
+  .spec-plate-mark {
+    height: 26px;
+  }
+  .spec-tool {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+  .spec-tool-name {
+    font-size: 15px;
+  }
+  .spec-tool-line {
+    font-size: 13.5px;
+    line-height: 1.3;
+  }
+  .spec-wall-tool {
+    min-height: 30px;
+  }
+  .spec-key dt,
+  .spec-plate strong + span {
+    font-size: 12px;
+  }
+}
+
+/* ── tablets ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 1099px) and (min-width: 761px) {
+  .spec {
+    --spec-count-w: 6.75rem;
+  }
+  .spec-row {
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) var(--spec-count-w) var(--spec-chev-w);
+  }
+  .spec-keys {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .spec-plate {
+    display: none;
+  }
+  .spec-key:first-of-type {
+    border-left: 0;
+    padding-left: 0;
+  }
+  .spec-detail {
+    grid-template-columns: minmax(10.5rem, 13rem) minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .spec-wall-flow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    row-gap: 18px;
+  }
+  .spec-micro {
+    display: none;
+  }
+}
+
+/* ── phones (390×664): copy, sheet, CTA; panels scroll inside ──────────── */
+
+@media (max-width: 760px) {
+  .spec-in {
+    row-gap: 10px;
+    max-height: none;
+    padding-top: calc(var(--header-h) + 10px);
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .spec-title {
+    font-size: clamp(25px, 7vw, 30px);
+    line-height: 1.04;
+  }
+
+  .spec-title-a {
+    display: block;
+    margin-bottom: 3px;
+    font-family: var(--font-text);
+    font-stretch: 100%;
+    font-size: 14px;
+    font-weight: 560;
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+  }
+
+  .spec-keys {
+    display: none;
+  }
+
+  .spec-keys-short {
+    display: block;
+    padding: 6px 0 5px;
+    border-bottom: 1px solid var(--line);
+    font-size: 12.5px;
+    line-height: 1.35;
+    color: var(--ink-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .spec-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "head count"
+      "tools tools";
+    align-content: center;
+    row-gap: 3px;
+    column-gap: 12px;
+    padding: 0;
+  }
+
+  .spec-row::before {
+    inset: 1px -10px;
+    border-radius: 10px;
+  }
+
+  .spec-row-head {
+    grid-area: head;
+  }
+
+  .spec-row-name {
+    font-size: 17.5px;
+  }
+
+  .spec-row-out {
+    margin-top: 1px;
+    font-size: 13.5px;
+  }
+
+  .spec-row-tools {
+    grid-area: tools;
+    gap: 8px;
+    font-size: 13.5px;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+
+  .spec-row-more {
+    font-size: 13px;
+  }
+
+  .spec-lead {
+    display: none;
+  }
+
+  .spec-row-tool:has(.spec-short) .spec-full {
+    display: none;
+  }
+
+  .spec-short {
+    display: inline;
+  }
+
+  .spec-row-count {
+    grid-area: count;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 30px;
+  }
+
+  .spec-row-count .spec-unit {
+    font-size: 11.5px;
+    padding: 0;
+  }
+
+  .spec-chev {
+    display: none;
+  }
+
+  .spec-total {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 2px 0 0;
+  }
+
+  .spec-total > :last-child {
+    grid-column: 2;
+  }
+
+  .spec-all {
+    min-height: 40px;
+    font-size: 15px;
+  }
+
+  .spec-total-n {
+    font-size: 32px;
+    gap: 7px;
+  }
+
+  .spec-total-k {
+    font-size: 12px;
+  }
+
+  /* open section */
+  .spec-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .spec-dhead {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 10px;
+    padding: 8px 0 9px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .spec-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    min-height: 44px;
+    padding: 0 12px 0 6px;
+    margin-left: -6px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--paper);
+    font-size: 14px;
+    font-weight: 640;
+    color: var(--ink);
+  }
+
+  .spec-back-chev {
+    width: 18px;
+    height: 18px;
+    transform: scaleX(-1);
+  }
+
+  .spec-dhead-t {
+    min-width: 0;
+  }
+
+  .spec-dhead-name {
+    display: block;
+    width: fit-content;
+    font-family: var(--font-display);
+    font-stretch: 106%;
+    font-size: 19px;
+    font-weight: 710;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+
+  .spec-dhead-out {
+    display: block;
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--ink-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .spec-dhead-count {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    font-family: var(--font-display);
+    font-stretch: 104%;
+    font-size: 30px;
+    font-weight: 720;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .spec-dhead-count .spec-unit {
+    font-size: 11.5px;
+    padding: 0;
+  }
+
+  .spec-list {
+    overscroll-behavior: auto;
+  }
+
+  .spec-tool {
+    grid-template-columns: minmax(0, 1fr) auto 18px;
+    grid-template-areas:
+      "name side chev"
+      "line line chev";
+    padding: 10px 2px 10px 0;
+  }
+
+  .spec-tool:hover {
+    background: none;
+  }
+
+  .spec-tool-li.is-on .spec-tool {
+    background: none;
+    box-shadow: none;
+  }
+
+  .spec-tool-chev {
+    grid-area: chev;
+    align-self: center;
+    width: 18px;
+    height: 18px;
+    color: var(--ink-3);
+    transform: rotate(90deg);
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  .spec-tool-li.is-on .spec-tool-chev {
+    transform: rotate(-90deg);
+    color: var(--ink);
+  }
+
+  .spec-tool-name {
+    font-size: 15.5px;
+  }
+
+  .spec-tool-line {
+    font-size: 13.5px;
+  }
+
+  .spec-tool-snip {
+    overflow: hidden;
+  }
+
+  .spec-tool-frame {
+    position: relative;
+    height: clamp(200px, 36svh, 250px);
+    margin: 0 0 6px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--ground-2);
+  }
+
+  .spec-tool-snip .spec-preview-note {
+    padding: 0 0 12px;
+  }
+
+  .spec-next {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 52px;
+    font-size: 15px;
+    color: var(--ink-2);
+  }
+
+  .spec-next strong {
+    color: var(--ink);
+    font-weight: 680;
+  }
+
+  .spec-next .spec-chev {
+    display: block;
+  }
+
+  /* the wall */
+  .spec-wall-bar {
+    min-height: 48px;
+  }
+
+  /* two balanced columns that the sections flow through, no ragged gaps */
+  .spec-wall-grid {
+    overscroll-behavior: auto;
+  }
+
+  .spec-wall-flow {
+    display: block;
+    columns: 2;
+    column-gap: 16px;
+  }
+
+  .spec-wall-col {
+    break-inside: avoid;
+    padding-bottom: 14px;
+  }
+
+  .spec-wall-tool {
+    min-height: 38px;
+    font-size: 14px;
+  }
+
+  .spec-wall-read {
+    min-height: 0;
+    padding-top: 8px;
+    font-size: 13px;
+  }
+
+  /* the CTA with its quiet partner beside it */
+  .spec-foot {
+    gap: 14px;
+    min-height: 0;
+  }
+
+  .spec-cta {
+    flex: none;
+  }
+
+  .spec-demo {
+    max-width: 9.5rem;
+    min-height: 0;
+    font-size: 13.5px;
+    line-height: 1.3;
+    text-align: left;
+  }
+
+  .spec-micro {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spec-snip-ping {
+    animation: none;
+  }
+}

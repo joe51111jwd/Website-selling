@@ -34,6 +34,27 @@ export type DevicePose = {
   ring?: Box | null;
   /** How much the rest of the screen dims while a ring is up (0..1, default 0.16). */
   dim?: number;
+  /**
+   * Leave the frame deliberately instead of shrinking away: -1 = glided out past the left edge of
+   * the viewport (turning as it goes), +1 = past the right edge, 0 = in place. Fractions are part
+   * way. NOT inherited (like `ring`): a key that doesn't set it means 0, so the next scene's first
+   * key brings the device back in. See exitKeys() / API.md "Round 2".
+   */
+  out?: number;
+};
+
+/**
+ * Push in on one spot of a device's screen: the device is scaled `zoom`× about that spot and the
+ * spot is carried to `to` (fractions of the anchor box, default the centre). The other devices
+ * keep their poses. Not inherited; blends in and out between keys.
+ */
+export type FocusSpec = {
+  device: DeviceId;
+  /** the spot, native px of the device's screen */
+  px: [number, number];
+  zoom: number;
+  /** where the spot lands, as fractions of the anchor box (default [0.5, 0.5]) */
+  to?: [number, number];
 };
 
 export type PulseSpec = {
@@ -64,6 +85,13 @@ export type Pose = {
   view?: { rx?: number; ry?: number };
   /** Lighting: key 0..2 (1 = default), warm 0..1 (a warmer kicker for dusk). Inherits. */
   light?: { key?: number; warm?: number };
+  /** Push in on a spot of one device's screen (see FocusSpec). Not inherited. */
+  focus?: FocusSpec | null;
+  /**
+   * Draw this device in front of the others whatever its depth (it is moved along the camera
+   * rays and scaled to match, so it looks identical but can't be cut by a closer laptop). Inherits.
+   */
+  front?: DeviceId | null;
 };
 
 export type EaseName = "linear" | "in" | "out" | "inOut" | "snap" | "hold";
@@ -92,6 +120,7 @@ export type DeviceState = {
   scroll: number;
   ring: Box | null;
   dim: number;
+  out: number;
 };
 
 export type ResolvedKey = {
@@ -109,5 +138,7 @@ export type ResolvedKey = {
   viewY: number;
   lightKey: number;
   lightWarm: number;
+  focus: FocusSpec | null;
+  front: DeviceId | null;
   ease: Ease;
 };

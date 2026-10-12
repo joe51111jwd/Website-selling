@@ -3,6 +3,7 @@
 // what it costs you (one call). The receipt is signed; the CTA sits directly under it.
 
 import { useRef } from "react";
+import type { PoseKey } from "../../three/stage";
 import { motion, useScroll, useTransform } from "motion/react";
 import { ANDREW, CTA } from "../../content/copy";
 import { reducedMotion } from "../../three/stage";
@@ -10,11 +11,17 @@ import { Scene } from "../scene/Scene";
 import { Receipt } from "./Receipt";
 import { useSeen } from "./useSeen";
 import { DemoButton, TrialButton } from "./Actions";
+import { playCue } from "../ui/cue";
 import "./offer.css";
+
+const OFFER_POSES: PoseKey[] = [{ at: 0, macbook: { show: 0 }, iphone: { show: 0 }, display: { show: 0 }, ease: "out" }];
 
 export default function Offer() {
   return (
-    <Scene id="offer" pinnedViewports={1} label="Andrew and the offer" className="offer">
+    // natural height, tight to its content (BRIEF round 2 §7): no empty band above or below it.
+    // No devices here: Five apps glided them out as this scene came up; one key keeps them out
+    // (not the default hide pair, whose last key would land after the FAQ has brought them back)
+    <Scene id="offer" pinnedViewports={0} poses={OFFER_POSES} label="Andrew and the offer" className="offer">
       <OfferBody />
     </Scene>
   );
@@ -31,13 +38,14 @@ function OfferBody() {
   // the title and story enter once, the first time they're seen
   const seen = useSeen(grid);
 
-  // once the slip is signed, the button below it gets one quiet "clocked in" ping
+  // once the slip is signed, the button below it gets its one "clocked in" cue: the geofence
+  // draws round it and closes (the same cue every primary CTA plays once, held back until now)
+  const cued = useRef(false);
   const ping = () => {
     const b = cta.current;
-    if (!b || reducedMotion) return;
-    b.classList.remove("is-ping");
-    void b.offsetWidth;
-    b.classList.add("is-ping");
+    if (!b || reducedMotion || cued.current) return;
+    cued.current = true;
+    playCue(b);
   };
 
   const [no1, no2, just] = splitTitle(ANDREW.title);
@@ -82,7 +90,7 @@ function OfferBody() {
       <div className="offer-deal">
         <Receipt onSigned={ping} />
         <div className="offer-actions" data-hides-sticky>
-          <TrialButton ref={cta} source="offer" cursorLabel="Clocked in · {time}" className="offer-cta" />
+          <TrialButton ref={cta} source="offer" cursorLabel="Clocked in · {time}" className="offer-cta" size="lg" block cue={false} />
         </div>
       </div>
     </div>

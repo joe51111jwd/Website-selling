@@ -7,7 +7,7 @@ import Signup from "./signup/Signup";
 import { Header } from "./site/shell/Header";
 import { StickyBar } from "./site/shell/StickyBar";
 import { startIntro, onIntroPhase, getIntroPhase } from "./site/intro/intro";
-import { startSmoothScroll } from "./site/scroll";
+import { lockScroll, startSmoothScroll } from "./site/scroll";
 import { startTracking } from "./lib/track";
 import Hero from "./site/hero/Hero";
 import Day from "./site/day/Day";
@@ -18,6 +18,7 @@ import FiveApps from "./site/apps/FiveApps";
 import Offer from "./site/offer/Offer";
 import Faq from "./site/faq/Faq";
 import Footer from "./site/footer/Footer";
+import Cursor from "./cursor/Cursor";
 
 // three.js and the models load in their own chunk, in parallel with the page (the intro and the
 // posters cover the wait)
@@ -31,9 +32,13 @@ export default function App() {
     let stop = () => {};
     if (getIntroPhase() === "done") stop = startSmoothScroll();
     const off = onIntroPhase((p) => p === "done" && (stop = startSmoothScroll()));
+    // the trial popup: smooth scroll stops underneath it while it's open
+    const onPopup = (e: Event) => lockScroll(!!(e as CustomEvent<{ open: boolean }>).detail?.open);
+    window.addEventListener("smartcrew:signup-state", onPopup);
     return () => {
       off();
       stop();
+      window.removeEventListener("smartcrew:signup-state", onPopup);
     };
   }, []);
 
@@ -58,6 +63,8 @@ export default function App() {
       </main>
       <StickyBar />
       <Signup />
+      {/* the geofence cursor: mounts only for a mouse or trackpad (fine pointer), portals to <body> */}
+      <Cursor />
     </MotionConfig>
   );
 }

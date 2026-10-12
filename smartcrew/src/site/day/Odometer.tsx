@@ -1,5 +1,5 @@
 // The big clock: times roll like an odometer, digit by digit (forward in time the wheels turn
-// up, scrolling back they turn down; 9:20 → 4:13 runs the hour wheel round through 0). A change
+// up, scrolling back they turn down; 9:20 → 4:12 runs the hour wheel round through 0). A change
 // to a word ("Friday") rolls the whole line instead, letter by letter. Tabular figures, so the
 // wheels never change width.
 

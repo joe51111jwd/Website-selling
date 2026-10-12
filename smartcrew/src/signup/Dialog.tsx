@@ -403,6 +403,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
             <motion.div
               ref={panel}
               className={`su-dialog${kb ? " is-kb" : ""}`}
+              data-cursor-tone="light"
               role="dialog"
               aria-modal="true"
               aria-labelledby={`${ids}-title`}
@@ -664,7 +665,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
                           {sysError}
                         </p>
                       )}
-                      <button type="submit" className={`su-btn${saving ? " is-saving" : ""}`} disabled={saving} aria-busy={saving}>
+                      <button type="submit" className={`su-btn${saving ? " is-saving" : ""}`} disabled={saving} aria-busy={saving} data-cursor="cta">
                         {saving ? (
                           <>
                             <span className="su-spin" aria-hidden="true" />

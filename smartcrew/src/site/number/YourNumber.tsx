@@ -159,7 +159,7 @@ function Calculator() {
             </>
           )}
         </p>
-        <p className="num-framing">
+        <p className="num-framing" data-cursor="text">
           {CALC.framing} <span className="num-built">{CALC.built}</span>
         </p>
         <div className="num-cta">
@@ -179,7 +179,9 @@ function Calculator() {
 
 export default function YourNumber() {
   return (
-    <Scene id="number" pinnedViewports={1} label="Your number" className="num">
+    // desktop: natural height, tight to the calculator (no empty band); phones keep one full
+    // screen (slider, result and CTA in one view), set in number.css
+    <Scene id="number" pinnedViewports={0} label="Your number" className="num">
       <Calculator />
     </Scene>
   );

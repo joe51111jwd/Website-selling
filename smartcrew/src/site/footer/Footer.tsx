@@ -31,7 +31,8 @@ export default function Footer() {
   const xdr = useXdrInUse();
 
   return (
-    <Scene id="footer" pinnedViewports={0} label="Footer" className="ftr-scene">
+    // stage="keep": the devices the close brought back simply scroll away under the footer
+    <Scene id="footer" pinnedViewports={0} stage="keep" label="Footer" className="ftr-scene">
       <footer
         className={`ftr${seen ? " is-seen" : ""}`}
         ref={root}
@@ -83,7 +84,7 @@ export default function Footer() {
                   decorative
                 />
               </a>
-              <p className="ftr-tag">{FOOTER_SCENE.tagline}</p>
+              <p className="ftr-tag" data-cursor="text">{FOOTER_SCENE.tagline}</p>
             </div>
             <ul className="ftr-links">
               <li>
@@ -124,7 +125,7 @@ export default function Footer() {
               </li>
               <li className="ftr-copy">{FOOTER_SCENE.copyright}</li>
             </ul>
-            <p className="ftr-notes">
+            <p className="ftr-notes" data-cursor="text">
               {FOOTER_SCENE.demo} {FOOTER_SCENE.trademarks}
               {xdr && <> {FOOTER_SCENE.xdr}</>}
             </p>

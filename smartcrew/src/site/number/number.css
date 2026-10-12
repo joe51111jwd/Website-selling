@@ -2,9 +2,14 @@
    number right. Phones: one column, slider + result + CTA in one screen. */
 
 .num .scene-body {
-  min-height: 100vh;
-  min-height: 100svh;
   display: flex;
+}
+
+@media (max-width: 760px) {
+  .num .scene-body {
+    min-height: 100vh;
+    min-height: 100svh;
+  }
 }
 
 .num-grid-wrap {
@@ -15,8 +20,8 @@
   column-gap: clamp(40px, 6vw, 112px);
   row-gap: clamp(18px, 4.2svh, 44px);
   width: 100%;
-  padding-top: calc(var(--header-h) + clamp(12px, 3svh, 36px));
-  padding-bottom: clamp(16px, 4svh, 40px);
+  padding-top: calc(var(--header-h) + clamp(8px, 2svh, 24px));
+  padding-bottom: clamp(16px, 3.4svh, 36px);
 }
 
 .num-title {
@@ -66,7 +71,7 @@
   content: "→";
   display: inline-block;
   margin-left: 8px;
-  color: var(--orange-ink);
+  color: var(--ink);
   animation: num-nudge-arrow 2.4s var(--ease-in-out) 1.2s infinite;
 }
 
@@ -204,7 +209,7 @@
   bottom: 0;
   width: 1.5px;
   height: calc(100cqw / 6 + 14px);
-  background: var(--orange);
+  background: var(--ink);
   border-radius: 1px;
   opacity: 0;
   transform-origin: 50% 100%;
@@ -669,7 +674,7 @@
     margin-top: 12px;
   }
 
-  .num-cta .btn {
+  .num-cta .cta {
     width: 100%;
   }
 

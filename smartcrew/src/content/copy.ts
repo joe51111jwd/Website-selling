@@ -426,3 +426,145 @@ export const FOOTER_SCENE = {
   xdr: FOOTER.xdrCredit,
   copyright: "© 2026 SmartCrew",
 };
+
+// ─── 2b · Spec sheet: "That was one day. Here's everything it does." ─────────────────────────────
+// Owner: specsheet (src/site/specsheet). Append-only block. The 38 tools, their names and one-line
+// explanations live in moments.ts (GREEN lines); this block only groups them into six spec-sheet
+// sections and names those. Outcomes are GREEN lines or plain paraphrases: time [L "Timecards That
+// Log Themselves"], costing [L "Real-time profit metrics on every job, every day."], payroll [V-tab
+// "…to payroll without the Friday scramble."], equipment [L "repairs and shop work orders… DOT and
+// safety records all digitized"], materials [V-tab "lets crews log usage and upload receipts", L
+// "hauling logs"], office [V-tab "Assign crews…" + L "Use real job data to create sharper… bids"].
+// Key specs: SIZE (hero), "Web Platform" + "Mobile App" [V], "QuickBooks integration for payroll"
+// [L, AMBER: no sync wording], "fully set up within a few days" [L FAQ].
+export const SPEC = {
+  label: "Everything SmartCrew does",
+  kicker: "That was one day.",
+  title: "Here’s everything it does.",
+  plate: { name: "SmartCrew", sub: "Spec sheet" },
+  specs: [
+    { k: "Built for", v: `Dirt work, ${T.SIZE} employees` },
+    { k: "Runs on", v: "Crew app + office web app" },
+    { k: "Payroll", v: "QuickBooks integration" },
+    { k: "Setup", v: "A few days" },
+  ],
+  /** Phones: the key specs as one line. */
+  specsShort: "Crew app + office web app · QuickBooks integration for payroll",
+  /** The six sections, in the order a contractor cares; `tools` are moments.ts feature ids, the first three are the face-value "top 3". */
+  categories: [
+    { id: "time", name: "Time & crew", outcome: "Timecards that log themselves.", tools: ["T1", "T2", "T3", "T4", "T10", "T9", "T2c"] },
+    { id: "costing", name: "Job costing", outcome: "Every job’s profit, every day.", tools: ["M1", "M2", "M5", "M3", "M7", "M6"] },
+    { id: "payroll", name: "Payroll", outcome: "Payroll without the Friday scramble.", tools: ["M4", "T5", "T11", "T6", "T7", "T8"] },
+    { id: "equipment", name: "Equipment & safety", outcome: "Repairs, DOT logs and safety on record.", tools: ["E3", "E2", "E4", "E1", "E5", "E6", "E7"] },
+    { id: "materials", name: "Materials & hauling", outcome: "Loads and receipts logged to the job.", tools: ["H3", "H2", "H1", "H5", "H4"] },
+    { id: "office", name: "Office & sales", outcome: "Plan crews and bid on real numbers.", tools: ["S1", "C3", "G1", "G2", "C2", "C1", "G3"] },
+  ] as { id: string; name: string; outcome: string; tools: string[] }[],
+  /** Phones only: shorter names for the face-value "top 3" line, so all three fit on one line. */
+  short: { T2: "GPS clock-in", M2: "Change orders", M5: "Dashboard", H2: "Receipts", H1: "Deliveries", S1: "Scheduling" } as Record<string, string>,
+  more: (n: number) => `+${n} more`,
+  tools: (n: number) => `${n} tools`,
+  total: "Total",
+  all: "Show everything",
+  allTitle: (n: number) => `All ${n} tools`,
+  allHint: "Point at any tool to read what it does. Click to see it.",
+  allHintTouch: "Tap any tool to see it.",
+  close: "Close",
+  back: "All",
+  next: "Next",
+  side: { field: "Field", office: "Office", both: "Field + office" },
+  app: { phone: "Crew app", web: "Office web app" },
+  /** Short names of the recreated screens, for the preview's caption. */
+  screen: {
+    "web-dashboard": "Dashboard",
+    "web-projects": "Projects",
+    "web-project-detail": "Job detail",
+    "web-timecards": "Reports",
+    "web-equipment": "Equipment",
+    "web-service-queue": "Service queue",
+    "web-materials": "Materials",
+    "web-scheduling": "Scheduling",
+    "web-pipeline": "Sales pipeline",
+    "web-messaging": "Messaging",
+    "phone-home": "Home",
+    "phone-working": "Working",
+    "phone-select-task": "Select task",
+    "phone-summary": "Weekly summary",
+    "phone-reports": "Reports",
+    "phone-hauling": "Hauling log",
+    "phone-dot": "DOT inspection",
+  } as Record<string, string>,
+  caption: "Demo account. Names and numbers are made up.",
+  flagTitle: "Andrew to confirm",
+  /** ⚑ tools have no screen of their own yet: the preview shows the closest one, unmarked. */
+  closest: "Closest screen",
+  view: "See it",
+};
+
+// ─── 0 · Intro + 1 · Hero, round 2 (owner: intro2; index.html, src/site/intro, src/site/hero) ─
+// The intro's three notifications are plain HTML in index.html so they paint before any JS
+// (built from scratchpad design/v2/lead/scripts/index.template.html); keep the strings there in
+// sync with these. All of it is the demo account's data (the hero shows the demo caption).
+export const INTRO2 = {
+  job: "Hwy 9 Culvert",
+  pit: "Hollis pit",
+  notes: {
+    clockin: { time: "6:42 AM", title: "Marcus Bell clocked in", meta: "Hwy 9 Culvert · Pipe Laying", initials: "MB" },
+    load: { time: "9:20 AM", title: "Load #14 logged", meta: "12 yd³ select fill · Hollis pit" },
+    profit: { time: "5:00 PM", title: "+$4,120 today", meta: "Hwy 9 Culvert · job profit" },
+  },
+};
+
+export const HERO2 = {
+  /** The laptop's profit card: it ticks up by the day's profit when it lands (from + 4,120 = to,
+   * the number web-project-detail shows). */
+  profit: { label: "Profit", job: "Hwy 9 Culvert", from: 53611.75, to: 57731.75, delta: "+$4,120 today" },
+  /** Phones: a shorter sub so the devices, the headline and the CTA share the first screen
+   * (plain paraphrases of each angle's sub). */
+  subShort: {
+    profit: "GPS fills in your crew’s timecards. You see each job’s profit daily, in time to fix it.",
+    overbudget: "Hours, machine time and materials roll into a profit number for every job, daily.",
+    timecards: "Hours log themselves when your crew gets to the job, on the right cost code.",
+    payroll: "Hours log themselves at the job, ready for QuickBooks payroll.",
+    replace: "GPS fills in your crew’s timecards. You see each job’s profit daily, in time to fix it.",
+  } as Record<Angle, string>,
+  caption: "Demo account. Names and numbers are made up.",
+};
+
+// ─── 2 · One Day, round 2: the skimmable layer (Day owner's block, src/site/day) ─────────────
+// Per moment: a headline of six words or fewer, ONE big state label on each device, and where
+// in the app the update card's row comes from. Plain paraphrases of GREEN lines (TRUTH.md:
+// clock-in, DOT pre-trips, hauling tickets, repair requests, daily job profit, scheduling,
+// timecards → payroll). QuickBooks: AMBER wording only ("ready for QuickBooks", never "sync").
+// All names and numbers are the demo company's (caption: DAY_UI.caption).
+export const DAY2: Record<MomentId, { headline: string; phone: string; office: string; where: string }> = {
+  clockin: { headline: "Clock-in hits the office.", phone: "Clocked in", office: "Marcus · on site 6:42", where: "Dashboard · Clock Ins" },
+  pretrip: { headline: "The pre-trip files itself.", phone: "Pre-trip passed", office: "Truck 1102 · inspection on file", where: "Equipment · Mack Granite #1102 · Inspections" },
+  load: { headline: "Every load lands on the job.", phone: "Load #14 logged", office: "+12 yd³ on Riverside", where: "Materials · Hauling" },
+  leak: { headline: "A leak becomes a work order.", phone: "Leak reported", office: "Work order · CAT D6", where: "Equipment · Service Queue" },
+  profit: { headline: "Profit on every job, today.", phone: "Clocked out", office: "+$4,120 today", where: "Projects · Hwy 9 Culvert Replacement" },
+  plan: { headline: "Monday's plan, on their phones.", phone: "Monday's plan", office: "Pipe crew · Mon 7:00 AM", where: "Scheduling · October 2026" },
+  payroll: { headline: "Payroll without the Friday scramble.", phone: "Timecard submitted", office: "Payroll report ready for QuickBooks", where: "Reports · Timecards" },
+};
+
+/** One Day UI bits for round 2 (screen-reader text for the labels; the update card's tag). */
+export const DAY2_UI = {
+  phoneSr: "On the crew's phone:",
+  officeSr: "In the office:",
+  /** the profit card's line under the number */
+  profitSub: "+$4,120.00 today",
+};
+
+// ─── Integrate (round 2): shell, CTAs, logos (owner: integrate; append-only block) ──────────────
+/**
+ * The contractor logos traced to one-ink SVG (scratchpad design/v2/r2-integrate/trace_logos.py),
+ * kept only where the trace is faithful to the mono raster (IoU ≥ 0.97, checked by overlay): JCR,
+ * DW (its grey shovel knocked out of the ink block) and Midwest (the grey disc becomes ink, the
+ * globe and leaves knocked out). Drish, Rieke and Fireball stay raster (texture, chrome gradient
+ * and fine illustration don't survive one-ink tracing). Same aspect ratios as LOGOS. Use
+ * `LOGO_VECTORS[l.name] ?? l.src`.
+ */
+export const LOGO_VECTORS: Record<string, string> = {
+  "JCR Excavating": "logos/jcr.svg",
+  "DW Companies": "logos/dw.svg",
+  "Midwest Erosion Specialists": "logos/midwest.svg",
+};

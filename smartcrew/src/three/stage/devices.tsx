@@ -17,6 +17,8 @@ export type RigDevice = {
   screenMesh: THREE.Mesh;
   /** model size in device units (1 = 10 cm), after re-centring */
   size: THREE.Vector3;
+  /** everything the device draws (model + contact shadow) in its group's own space */
+  box: THREE.Box3;
 };
 
 /** Devices that have loaded, keyed by id. The driver reads this every frame. */
@@ -95,7 +97,9 @@ export function StageDevice({ id }: { id: DeviceId }) {
       sh.renderOrder = -1;
       group.add(sh);
     }
-    return { group, surface, screenMesh: screenMesh as THREE.Mesh, size };
+    group.updateMatrixWorld(true);
+    const local = new THREE.Box3().setFromObject(group, true);
+    return { group, surface, screenMesh: screenMesh as THREE.Mesh, size, box: local };
   }, [scene, spec]);
 
   useLayoutEffect(() => {

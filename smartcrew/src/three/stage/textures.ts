@@ -58,9 +58,11 @@ function finish(tex: THREE.Texture) {
   return tex;
 }
 
-function nativeSize(id: string, iw: number, ih: number) {
-  if (id.startsWith("web-")) return NATIVE.web;
-  if (id.startsWith("phone-")) return NATIVE.phone;
+/** Native CSS px of a screen: by id, or by a file's name ("renders/day-s/web-hauling.webp" is a web screen shot at 2x). */
+export function nativeSize(id: string, iw: number, ih: number) {
+  const name = id.split("/").pop() ?? id;
+  if (name.startsWith("web-")) return NATIVE.web;
+  if (name.startsWith("phone-")) return NATIVE.phone;
   return { w: iw, h: ih };
 }
 
@@ -73,7 +75,7 @@ export function loadScreen(id: string): Promise<ScreenTex | null> {
     return hit.promise;
   }
   // phones show the laptop small: a 1920-wide web screen is plenty and saves ~45% memory
-  const maxW = phone && id.startsWith("web-") ? 1920 : 4096;
+  const maxW = phone && (id.split("/").pop() ?? id).startsWith("web-") ? 1920 : 4096;
   const entry: Entry = { tex: null, used: performance.now(), promise: Promise.resolve(null) };
   entry.promise = decode(screenUrl(id), maxW)
     .then((img) => {

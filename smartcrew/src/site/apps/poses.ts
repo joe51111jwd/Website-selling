@@ -12,6 +12,10 @@
 //
 // Phones: the same beats, every tile goes into the phone (the laptop waits behind it), and the
 // devices lift to make room for the copy at the bottom.
+//
+// The devices never just appear or vanish (BRIEF round 2 §6): they wait off stage to the right
+// during Proof, glide in turning to face you as this scene comes up, and once the close has had its
+// beat they glide out past the right edge, turning away, as Andrew + the offer comes up.
 
 import { phone, registerLiveScreen, type Box, type DevicePose, type Ease, type PoseKey } from "../../three/stage";
 
@@ -123,16 +127,26 @@ function ensureOffScreens() {
   }
 }
 
-/** Devices hidden in the opening pose (the Proof scene before this uses it, so they grow in place). */
-export function appsHiddenPose(at: number, ease?: Ease): PoseKey {
+/** How many screens the scene takes. */
+export const APPS_VIEWPORTS = phone ? 2.0 : 1.8;
+
+/** Scene progress for a point `vh` screens past the end of the pin (the exit runs there). */
+const past = (vh: number) => 1 + vh / (APPS_VIEWPORTS - 1);
+
+/**
+ * The devices waiting off stage, past the right edge of the viewport (the Stage's `out`), in the
+ * opening shot with screens off. Proof, the scene before, uses it: `show` 0 = hidden there,
+ * 1 = there but still out of frame, ready to glide in as this scene comes up.
+ */
+export function appsOffstagePose(at: number, show: 0 | 1, ease?: Ease): PoseKey {
   ensureOffScreens();
   const o = SHOTS.open;
   return {
     at,
     anchor: ANCHOR,
     frame: o.frame,
-    macbook: { ...o.macbook, show: 0, screen: OFF.macbook },
-    iphone: { ...o.iphone, show: 0, screen: OFF.iphone },
+    macbook: { ...o.macbook, show: phone ? 0 : show, out: 1, screen: OFF.macbook },
+    iphone: { ...o.iphone, show, out: 1, screen: OFF.iphone },
     display: { show: 0 },
     float: 0.2,
     look: 0.4,
@@ -198,6 +212,13 @@ export function appsPoses(): PoseKey[] {
     macbook: { ...close.macbook, ring: R.clockRow, dim: DIM },
     iphone: { ...close.iphone },
   });
+  // the exit, as Andrew + the offer comes up: a beat, then out past the right edge, turning away
+  // (the laptop first, the phone a moment later), hidden once out of frame. `out` isn't inherited,
+  // so it is restated on every key until the device is hidden.
+  keys.push({ at: past(0.16), macbook: { ...close.macbook }, iphone: { ...close.iphone } });
+  keys.push({ at: past(0.56), macbook: { ...close.macbook, out: 1 }, iphone: { ...close.iphone, out: 0.25 }, ease: "in" });
+  keys.push({ at: past(0.68), macbook: { show: 0, out: 1 }, iphone: { ...close.iphone, out: 1 }, ease: "in" });
+  keys.push({ at: past(0.76), macbook: { show: 0 }, iphone: { show: 0, out: 1 } });
   return keys;
 }
 

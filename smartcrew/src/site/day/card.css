@@ -1,0 +1,254 @@
+/* The update card's body (./UpdateCard.tsx): the app's own rows, re-laid out for a card and set
+ * at 14 px or more. Scoped under .sc.ddc (the app CSS is scoped under .sc). */
+
+.sc.ddc {
+  overflow: visible;
+  background: transparent;
+  font-size: 15px;
+  line-height: 1.3;
+  isolation: auto;
+}
+
+/* every row: a grid, no table borders */
+.sc.ddc .ddc-row,
+.sc.ddc .sce-tr,
+.sc.ddc .dds-haul-tr {
+  display: grid;
+  align-items: center;
+  column-gap: 16px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 15px;
+  line-height: 19px;
+  color: #000;
+}
+.sc.ddc .sce-td {
+  padding: 0;
+}
+.sc.ddc .sc-cell-sub,
+.sc.ddc .sce-eq-sub {
+  font-size: 14px;
+  line-height: 18px;
+  color: #666;
+}
+.sc.ddc .sce-eq-name {
+  font-size: 15.5px;
+  font-weight: 560;
+}
+.sc.ddc .sce-person {
+  gap: 9px;
+  font-size: 15px;
+}
+.sc.ddc .sc-avatar {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 13.5px !important;
+}
+.sc.ddc .sce-date {
+  font-size: 14px;
+  height: 30px;
+  padding: 0 12px;
+}
+.sc.ddc .sce-urg,
+.sc.ddc .sc-pill {
+  font-size: 14px;
+  height: 28px;
+  padding: 0 12px;
+}
+.sc.ddc .sce-status {
+  font-size: 14px;
+  height: 30px;
+  width: auto;
+  min-width: 0;
+  gap: 7px;
+  padding: 0 10px 0 12px;
+}
+
+/* clock-in: person · status · project · time */
+.sc.ddc .ddc-clockin {
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+}
+.sc.ddc .ddc-clockin .sc-cell-person {
+  gap: 10px;
+}
+.sc.ddc .ddc-clockin > :last-child {
+  text-align: right;
+  font-weight: 600;
+}
+
+/* inspection: operator · date · checklist · reading · status (no maintenance) */
+.sc.ddc .ddc-insp {
+  grid-template-columns: auto auto auto auto auto;
+  justify-content: space-between;
+}
+.sc.ddc .ddc-insp > .sce-td:nth-child(5) {
+  display: none;
+}
+
+/* hauling: ticket · time · truck · project · type · material · qty · from */
+.sc.ddc .ddc-haul {
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  white-space: nowrap;
+}
+.sc.ddc .ddc-haul > :nth-child(3),
+.sc.ddc .ddc-haul > :nth-child(8) {
+  display: none;
+}
+.sc.ddc .ddc-haul .dds-haul-ticket {
+  font-weight: 700;
+}
+.sc.ddc .dds-haul-type {
+  font-size: 14px;
+  height: 28px;
+  padding: 0 11px;
+}
+.sc.ddc .dds-haul-qty {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* service queue: equipment + issue · who · updated · urgency · status */
+.sc.ddc .ddc-queue {
+  grid-template-columns: minmax(0, 1.4fr) auto auto auto;
+}
+.sc.ddc .ddc-queue > .sce-td:nth-child(3) {
+  display: none;
+}
+
+/* profit KPI */
+.sc.ddc .ddc-profit .sc-kpi {
+  height: 76px;
+  padding: 0 16px;
+  gap: 14px;
+  background: #f5f5f5;
+}
+.sc.ddc .ddc-profit .sc-kpi-well {
+  width: 46px;
+  height: 46px;
+}
+.sc.ddc .ddc-profit .sc-kpi-label {
+  font-size: 14px;
+  line-height: 18px;
+}
+.sc.ddc .ddc-profit .sc-kpi-value {
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 650;
+}
+.sc.ddc .ddc-up {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #148a49;
+}
+
+/* the calendar block */
+.sc.ddc .ddc-plan {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.sc.ddc .ddc-plan-day {
+  font-size: 15px;
+  font-weight: 650;
+  color: #111;
+  white-space: nowrap;
+}
+.sc.ddc .ddc-block {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  border-radius: 9px;
+  background: var(--sc-blue);
+  color: #fff;
+}
+.sc.ddc .ddc-block-l1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 650;
+}
+.sc.ddc .ddc-block-crew {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.sc.ddc .ddc-block-l2 {
+  font-size: 15px;
+}
+
+/* toast */
+.sc.ddc .dds-toast {
+  box-shadow: none;
+  border: 0;
+  padding: 0;
+}
+.sc.ddc .dds-toast-txt b {
+  font-size: 16px;
+}
+.sc.ddc .dds-toast-txt span {
+  font-size: 14px;
+}
+
+/* phones: two lines per row */
+@media (max-width: 760px) {
+  .sc.ddc,
+  .sc.ddc .ddc-row,
+  .sc.ddc .sce-tr,
+  .sc.ddc .dds-haul-tr {
+    font-size: 14px;
+    line-height: 18px;
+    column-gap: 10px;
+    row-gap: 6px;
+  }
+  .sc.ddc .ddc-clockin {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .sc.ddc .ddc-clockin > :nth-child(3) {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+  .sc.ddc .ddc-clockin > :last-child {
+    display: none;
+  }
+  .sc.ddc .ddc-insp {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .sc.ddc .ddc-insp > .sce-td:nth-child(3),
+  .sc.ddc .ddc-insp > .sce-td:nth-child(4) {
+    display: none;
+  }
+  .sc.ddc .ddc-haul {
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+  }
+  .sc.ddc .ddc-haul > :nth-child(5) {
+    display: none;
+  }
+  .sc.ddc .ddc-queue {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .sc.ddc .ddc-queue > .sce-td:nth-child(2),
+  .sc.ddc .ddc-queue > .sce-td:nth-child(4) {
+    display: none;
+  }
+  .sc.ddc .sce-date {
+    height: 28px;
+    padding: 0 9px;
+    font-size: 14px;
+  }
+  .sc.ddc .ddc-profit .sc-kpi {
+    height: auto;
+    padding: 10px 14px;
+  }
+  .sc.ddc .ddc-profit .sc-kpi-value {
+    font-size: 21px;
+  }
+  .sc.ddc .ddc-plan-day {
+    display: none;
+  }
+}

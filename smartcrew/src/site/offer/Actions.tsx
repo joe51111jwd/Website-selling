@@ -1,13 +1,10 @@
-// The offer's and the close's call-to-action row. Same look and the same openSignup() contract as
-// src/site/ui/Cta.tsx, plus the geofence cursor's attributes (src/cursor: data-cursor="cta"
-// closes the fence around the button and shows the "Clocked in · {time}" tag). Cta.tsx doesn't
-// forward data-* attributes, and a wrapper can't carry them (the cursor resolves the nearest
-// button first), so these two buttons live here.
+// The offer's and the close's call-to-action row: the shared orange <Cta> (src/site/ui/Cta.tsx),
+// with the geofence cursor's tag, and the quiet ink demo link beside it.
 
-import { forwardRef, type ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { openSignup } from "../../signup/contract";
 import { CTA } from "../../content/copy";
-import { Arrow } from "../ui/Cta";
+import { Arrow, Cta, type CtaSize } from "../ui/Cta";
 
 type TrialProps = {
   source: string;
@@ -15,23 +12,16 @@ type TrialProps = {
   /** The cursor tag once the fence closes; omit for a plain solid fence. */
   cursorLabel?: string;
   className?: string;
+  size?: CtaSize;
+  block?: boolean;
+  /** The one-time geofence cue on first view (default true; the offer plays it once the slip is signed). */
+  cue?: boolean;
+  ref?: Ref<HTMLButtonElement>;
 };
 
-export const TrialButton = forwardRef<HTMLButtonElement, TrialProps>(function TrialButton({ source, label, cursorLabel, className }, ref) {
-  return (
-    <button
-      ref={ref}
-      type="button"
-      className={`btn btn-dark${className ? ` ${className}` : ""}`}
-      data-cursor="cta"
-      data-cursor-label={cursorLabel}
-      onClick={() => openSignup({ intent: "trial", source })}
-    >
-      {label ?? CTA.primary}
-      <Arrow />
-    </button>
-  );
-});
+export function TrialButton({ source, label, cursorLabel, className, size = "lg", block, cue, ref }: TrialProps) {
+  return <Cta ref={ref} source={source} label={label} cursorLabel={cursorLabel} className={className} size={size} block={block} cue={cue} />;
+}
 
 /** The quiet secondary (same popup, intent=demo). `arrow` for a standalone link. */
 export function DemoButton({ source, label = CTA.demoLink, arrow, className }: { source: string; label?: ReactNode; arrow?: boolean; className?: string }) {

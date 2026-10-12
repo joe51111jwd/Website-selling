@@ -8,14 +8,17 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
-import { StageDevice, preloadDevices, rig, onRig } from "./devices";
+import { StageDevice, preloadDevices, rig, onRig, type RigDevice } from "./devices";
 import { Comet } from "./pulse";
 import { getScreen, initTextures, loadScreen, pinScreens } from "./textures";
+import { StageLoupe } from "./loupe";
 import {
   anchorRect,
   coarse,
   devicesInUse,
   easeFn,
+  frameHooks,
+  OVERLAY_SLOTS,
   getTimeline,
   onStageChange,
   onStatus,
@@ -33,8 +36,9 @@ import {
   timedPulses,
   watchLayout,
   type Rect,
+  type StageFrame,
 } from "./store";
-import { DEVICE_IDS, type DeviceId, type DeviceState, type ResolvedKey } from "./types";
+import { DEVICE_IDS, type DeviceId, type DeviceState, type FocusSpec, type ResolvedKey } from "./types";
 
 export const CAM_Z = 26;
 export const FOV = 22;
@@ -150,7 +154,8 @@ function springU(s: Spring, to: number, dt: number, k: number, c: number) {
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const D2R = Math.PI / 180;
-const NUMERIC = ["show", "x", "y", "z", "rx", "ry", "rz", "s"] as const;
+const NUMERIC = ["show", "x", "y", "z", "rx", "ry", "rz", "s", "out"] as const;
+const HALF_FOV = Math.tan((FOV * D2R) / 2);
 
 type Live = {
   smoothY: Spring;
@@ -230,12 +235,19 @@ function Driver() {
       b: new THREE.Vector3(),
       st: {} as Record<DeviceId, DeviceState>,
       euler: new THREE.Euler(),
+      p: new THREE.Vector3(),
+      t: new THREE.Vector3(),
+      g: new THREE.Vector3(),
+      c: new THREE.Vector3(),
     }),
     [],
   );
+  const loupe = useMemo(() => new StageLoupe(), []);
+  useEffect(() => () => loupe.dispose(), [loupe]);
 
   useFrame((state, rawDt) => {
     const L = live.current;
+    const camera = state.camera;
     const now = performance.now();
     const dt = Math.min(rawDt, 1 / 20);
     let busy = false;
@@ -345,16 +357,18 @@ function Driver() {
         d.surface.show(screenId, tex, now, reducedMotion);
       } else d.surface.show(null, null, now, reducedMotion);
       // overlays for this device
-      for (const slot of [0, 1] as const) {
+      for (const slot of OVERLAY_SLOTS) {
         const o = overlays.get(`${id}:${slot}`);
         if (o && (!o.screen || o.screen === d.surface.cur.id) && (!o.scene || sceneOnScreen(o.scene, sy, H))) {
           const tex = overlayTex(o.canvas, o.version);
           d.surface.setOverlay(slot, tex, o.rect, o.alpha, o.dx, o.dy);
         } else d.surface.setOverlay(slot, null, [0, 0, 1, 1], 0, 0, 0);
       }
-      // nothing shows until the intro opens (it covers the page anyway)
+      // nothing shows until the intro opens (it covers the page anyway); a device that has
+      // glided all the way out of the viewport (out = ±1) isn't drawn either
       const show = Math.max(0, Math.min(1, s.show)) * (rev || reducedMotion ? 1 : 0);
-      const vis = show > 0.002;
+      const outAmt = Math.min(1, Math.abs(s.out));
+      const vis = show > 0.002 && outAmt < 0.999;
       d.group.visible = vis;
       if (vis) anyVisible = true;
 
@@ -366,6 +380,7 @@ function Driver() {
         d.group.position.set(s.x * kk, (s.y + fy - e * 1.6) * kk, (s.z - e * 1.2) * kk);
         d.group.rotation.set((s.rx + e * 24) * D2R, (s.ry - e * 18 * (id === "iphone" ? -1 : 1)) * D2R, (s.rz + frz + e * 4) * D2R);
         d.group.scale.setScalar(Math.max(sc, 1e-4));
+        if (outAmt > 0) placeOut(d, s.out, outAmt, comp, W, H);
       }
 
       if (vis && d.surface.update(now, dt, ring, a.dim, reducedMotion)) busy = true;
@@ -383,6 +398,72 @@ function Driver() {
     }
 
     comp.updateMatrixWorld(true);
+
+    // push-in: a device scaled about one spot of its screen, the spot carried to a point of the
+    // anchor box (blends in and out between keys)
+    let focused = false;
+    for (const id of DEVICE_IDS) {
+      const fa = A.focus?.device === id ? A.focus : null;
+      const fb = B !== A && B.focus?.device === id ? B.focus : null;
+      if (!fa && !fb) continue;
+      const d = rig.get(id);
+      if (!d || !d.group.visible) continue;
+      const w = B === A ? (fa ? 1 : 0) : lerp(fa ? 1 : 0, fb ? 1 : 0, te);
+      if (w <= 0.0005) continue;
+      const f0 = (fa ?? fb) as FocusSpec;
+      const f1 = (fb ?? fa) as FocusSpec;
+      const k = B === A ? 0 : te;
+      const zoom = lerp(1, lerp(f0.zoom, f1.zoom, k), w);
+      const to0 = f0.to ?? [0.5, 0.5];
+      const to1 = f1.to ?? [0.5, 0.5];
+      const ra = kA ? tmp.ra : tmp.rb;
+      const rb = kB ? tmp.rb : tmp.ra;
+      const rx = lerp(ra.x, rb.x, te), ry = lerp(ra.y, rb.y, te), rw = lerp(ra.w, rb.w, te), rh = lerp(ra.h, rb.h, te);
+      const tx = rx + lerp(to0[0], to1[0], k) * rw;
+      const ty = ry + lerp(to0[1], to1[1], k) * rh;
+      tmp.t.set((tx - W / 2) * u, (H / 2 - ty) * u, 0);
+      comp.worldToLocal(tmp.t);
+      d.surface.pxToLocal(lerp(f0.px[0], f1.px[0], k), lerp(f0.px[1], f1.px[1], k), tmp.p);
+      d.screenMesh.localToWorld(tmp.p);
+      comp.worldToLocal(tmp.p);
+      // G' = lerp(P, T, w) − zoom·(P − G)
+      tmp.g.copy(tmp.p).sub(d.group.position).multiplyScalar(zoom);
+      d.group.position.lerpVectors(tmp.p, tmp.t, w).sub(tmp.g);
+      d.group.scale.multiplyScalar(zoom);
+      focused = true;
+    }
+    if (focused) comp.updateMatrixWorld(true);
+
+    // one device drawn in front of the others: slid along the camera rays (scaled about the
+    // camera), so it looks exactly the same but sits nearer than anything it overlaps
+    const front = A.front ? rig.get(A.front) : undefined;
+    if (front && front.group.visible) {
+      let near = Infinity;
+      rig.forEach((d) => {
+        if (d === front || !d.group.visible) return;
+        near = Math.min(near, boxDepth(d, true));
+      });
+      const far = boxDepth(front, false);
+      if (near < Infinity && far > near - 0.05) {
+        const a = Math.max(0.05, (near - 0.05) / far);
+        tmp.c.set(0, 0, CAM_Z);
+        front.group.getWorldPosition(tmp.g);
+        tmp.g.sub(tmp.c).multiplyScalar(a).add(tmp.c);
+        comp.worldToLocal(tmp.g);
+        front.group.position.copy(tmp.g);
+        front.group.scale.multiplyScalar(a);
+        front.group.updateMatrixWorld(true);
+      }
+    }
+
+    // DOM that follows the devices (labels, leader lines, touch marks) and the cursor's loupe
+    if (frameHooks.size) {
+      const frame = frameInfo(camera, W, H, y, now, dt);
+      frameHooks.forEach((fn) => {
+        if (fn(frame)) busy = true;
+      });
+    }
+    loupe.update(camera, W, H);
 
     // pulses: scroll-driven (from keys) and timed (pulse())
     const pxScale = state.gl.domElement.height / (2 * Math.tan((FOV * D2R) / 2));
@@ -428,6 +509,78 @@ function Driver() {
   });
 
   return null;
+}
+
+// ─── helpers for out / front / frame hooks ───────────────────────────────────
+const V = new THREE.Vector3();
+const V2 = new THREE.Vector3();
+
+/**
+ * Glide a device out past the left (out < 0) or right (out > 0) edge of the viewport, turning
+ * as it goes: at |out| = 1 its whole box is just outside the viewport at its depth.
+ */
+function placeOut(d: RigDevice, out: number, m: number, comp: THREE.Group, W: number, H: number) {
+  const sign = Math.sign(out);
+  const g = d.group;
+  const sc = g.scale.x;
+  const sz = d.box.getSize(V2);
+  const r = 0.5 * Math.hypot(sz.x, sz.y) * sc;
+  const z = comp.position.z + g.position.z;
+  const halfW = (CAM_Z - z) * HALF_FOV * (W / H);
+  const edge = sign * (halfW + r * 1.08) - comp.position.x;
+  const ease = m * m * (3 - 2 * m);
+  g.position.x = lerp(g.position.x, edge, m);
+  g.position.y += r * 0.12 * ease;
+  g.rotation.y += sign * 34 * D2R * ease;
+  g.rotation.z -= sign * 5 * D2R * ease;
+}
+
+/** Nearest (near = true) or farthest distance from the camera plane of a device's box. */
+function boxDepth(d: RigDevice, near: boolean) {
+  const b = d.box;
+  let out = near ? Infinity : -Infinity;
+  for (let i = 0; i < 8; i++) {
+    V.set(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).applyMatrix4(d.group.matrixWorld);
+    const dist = CAM_Z - V.z;
+    out = near ? Math.min(out, dist) : Math.max(out, dist);
+  }
+  return out;
+}
+
+const FRAME_V = new THREE.Vector3();
+function frameInfo(camera: THREE.Camera, W: number, H: number, y: number, now: number, dt: number): StageFrame {
+  const toView = (v: THREE.Vector3) => {
+    v.project(camera);
+    return { x: ((v.x + 1) / 2) * W, y: ((1 - v.y) / 2) * H };
+  };
+  return {
+    y,
+    now,
+    dt,
+    w: W,
+    h: H,
+    visible: (id) => !!rig.get(id)?.group.visible,
+    project(id, px, py) {
+      const d = rig.get(id);
+      if (!d || !d.group.visible) return null;
+      d.surface.pxToLocal(px, py, FRAME_V);
+      d.screenMesh.localToWorld(FRAME_V);
+      return toView(FRAME_V);
+    },
+    quad(id) {
+      const d = rig.get(id);
+      if (!d || !d.group.visible) return null;
+      const { o, u, v } = d.surface.plane;
+      const q: number[] = [];
+      for (const [a, b] of [[0, 0], [1, 0], [1, 1], [0, 1]]) {
+        FRAME_V.copy(o).addScaledVector(u, a).addScaledVector(v, b);
+        d.screenMesh.localToWorld(FRAME_V);
+        const p = toView(FRAME_V);
+        q.push(p.x, p.y);
+      }
+      return q;
+    },
+  };
 }
 
 const ovCache = new WeakMap<HTMLCanvasElement, { tex: THREE.CanvasTexture; version: number }>();

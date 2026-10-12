@@ -1,7 +1,7 @@
 // The header: logo, two quiet links and the primary CTA. Transparent over the hero, solid once
-// the page scrolls. The CTA steps forward (dark) once the hero's own button has scrolled away,
-// so two primary buttons are never on screen together. Phones show the logo only; the sticky
-// bar at the bottom carries the CTA there.
+// the page scrolls. The CTA steps in once the hero's own button has scrolled away, and steps aside
+// again whenever a scene's own primary CTA is on screen, so two orange buttons are never on screen
+// together. Phones show the logo only; the sticky bar at the bottom carries the CTA there.
 
 import { useEffect, useState } from "react";
 import { Logo } from "../../brand/Logo";
@@ -9,10 +9,14 @@ import { HEADER } from "../../content/copy";
 import { handleAnchorClick, scrollToY } from "../scroll";
 import { Cta } from "../ui/Cta";
 import { useHeroCtaGone } from "./heroCta";
+import { usePrimaryInView } from "./primaryCta";
+import "./shell.css";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
-  const ctaOn = useHeroCtaGone();
+  const heroGone = useHeroCtaGone();
+  const sceneCta = usePrimaryInView();
+  const ctaOn = heroGone && !sceneCta;
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 12);
     on();
@@ -41,7 +45,9 @@ export function Header() {
             </a>
           ))}
         </nav>
-        <Cta source="header" small label={HEADER.cta} className="site-header-cta" />
+        <span className="hdr-cta" inert={!ctaOn}>
+          <Cta source="header" size="sm" label={HEADER.cta} primary={false} />
+        </span>
       </div>
     </header>
   );

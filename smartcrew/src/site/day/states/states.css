@@ -1,0 +1,453 @@
+/* One Day state screens (./phone.tsx, ./web.tsx) and the rows the update cards reuse (./rows.tsx).
+ * Scoped under .sc like the rest of the recreated app, prefix dds-. Values follow the app's own
+ * sheets (pc-sheet), forms (rf-*) and tables (sce-*). */
+
+/* ── phone: success sheet over a dimmed form ───────────────────────────── */
+.sc.dds-sent,
+.sc.dds-sum {
+  position: relative;
+  width: 402px;
+  height: 874px;
+}
+.sc .dds-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  background: #fff;
+  border-radius: 22px 22px 0 0;
+  padding: 30px 20px 0;
+  height: 452px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.sc .dds-sheet .sc-homebar {
+  bottom: 8px;
+}
+.sc .dds-sheet-ok {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: #e7f9ef;
+  color: #18a957;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.sc .dds-sheet-title {
+  margin-top: 16px;
+  font-size: 25px;
+  line-height: 30px;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  color: #050505;
+}
+.sc .dds-sheet-sub {
+  margin-top: 5px;
+  font-size: 15px;
+  line-height: 20px;
+  color: #6b6b6b;
+}
+.sc .dds-sheet-rows,
+.sc .dds-plan-card {
+  margin-top: 20px;
+  align-self: stretch;
+  background: var(--sc-surface);
+  border-radius: 16px;
+  padding: 2px 16px;
+}
+.sc .dds-sheet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 42px;
+  font-size: 14px;
+  color: #6b6b6b;
+}
+.sc .dds-sheet-row + .dds-sheet-row {
+  border-top: 1px solid #e6e6e6;
+}
+.sc .dds-sheet-row b {
+  font-weight: 560;
+  font-size: 14.5px;
+  color: #111;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc .dds-sheet-done {
+  margin-top: auto;
+  margin-bottom: 44px;
+  align-self: stretch;
+  height: 50px;
+  border-radius: 999px;
+  background: var(--sc-phone-ink);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* plan: Monday's job */
+.sc .dds-sheet--plan {
+  align-items: stretch;
+  padding-top: 26px;
+  height: 470px;
+}
+.sc .dds-plan-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  line-height: 24px;
+  letter-spacing: -0.015em;
+  color: #0a0a0a;
+}
+.sc .dds-plan-head b {
+  font-weight: 700;
+}
+.sc .dds-plan-x {
+  margin-left: auto;
+  color: #5a5a5a;
+}
+.sc .dds-plan-sub {
+  margin-top: 6px;
+  font-size: 14.5px;
+  color: #6b6b6b;
+}
+.sc .dds-plan-card {
+  margin-top: 16px;
+}
+
+/* the weekly summary, submitted: the button turns into its done state */
+.sc .dds-sum-done {
+  position: absolute;
+  left: 33px;
+  top: 258px;
+  width: 336px;
+  height: 49.5px;
+  border-radius: 12px;
+  background: #e7f9ef;
+  color: #148a49;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  z-index: 3;
+}
+
+/* three choices in a row (urgency) */
+.sc .rf-choices.dds-choices-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* clocked out */
+.sc .dds-out {
+  margin-top: 12.7px;
+  border-radius: 14px;
+  background: var(--sc-surface);
+  padding: 16px 18px 6px;
+}
+.sc .dds-out-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sc .dds-out-head > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13.5px;
+  color: #6b6b6b;
+}
+.sc .dds-out-head b {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #050505;
+}
+.sc .dds-ok {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e7f9ef;
+  color: #18a957;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.sc .dds-out-total {
+  margin-top: 16px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 12px;
+  padding: 13px 14px;
+  font-size: 14px;
+  color: #6b6b6b;
+}
+.sc .dds-out-total b {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #050505;
+}
+.sc .dds-out-rule {
+  height: 1px;
+  background: #e4e4e4;
+  margin: 14px 0 4px;
+}
+.sc .dds-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+}
+.sc .dds-entry + .dds-entry {
+  border-top: 1px solid #e9e9e9;
+}
+.sc .dds-entry-check {
+  margin-top: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #111;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.sc .dds-entry-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  color: #6b6b6b;
+}
+.sc .dds-entry-main > b {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+}
+.sc .dds-entry-eq b {
+  color: #111;
+  font-weight: 560;
+}
+.sc .dds-entry-h {
+  margin-left: auto;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+}
+
+/* ── web: equipment detail → Inspections ───────────────────────────────── */
+.sc .dds-eqd {
+  display: flex;
+  flex-direction: column;
+}
+.sc .dds-eqd-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 42px;
+}
+.sc .dds-back,
+.sc .dds-eqd-btn {
+  height: 41px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px 0 11px;
+  border-radius: 8px;
+  background: var(--sc-surface);
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+}
+.sc .dds-eqd-ico {
+  margin-left: 4px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #dcdcdc;
+  color: #2b2b2b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sc .dds-eqd-name {
+  display: flex;
+  flex-direction: column;
+  margin-right: auto;
+}
+.sc .dds-eqd-name b {
+  font-size: 17px;
+  line-height: 20px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+.sc .dds-eqd-name span {
+  font-size: 12.5px;
+  color: #6b6b6b;
+}
+.sc .dds-eqd-btn--del .sc-icon {
+  color: var(--sc-red);
+}
+.sc .dds-eqd-cards {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.3fr;
+  gap: 16px;
+}
+.sc .dds-eqd-card {
+  background: var(--sc-surface);
+  border-radius: 12px;
+  padding: 6px 16px;
+}
+.sc .dds-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 39px;
+  font-size: 14px;
+  color: #555;
+}
+.sc .dds-info + .dds-info {
+  border-top: 1px solid #e6e6e6;
+}
+.sc .dds-info .sc-icon {
+  color: #707070;
+}
+.sc .dds-info-k {
+  width: 112px;
+}
+.sc .dds-info-v {
+  color: #000;
+  font-weight: 600;
+}
+.sc .dds-eqd-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  font-size: 14px;
+  color: #6b6b6b;
+}
+.sc .dds-eqd-notes b {
+  color: #000;
+  font-weight: 600;
+}
+.sc .dds-eqd-table {
+  margin-top: 16px;
+}
+.sc .sce-tr.dds-insp-tr {
+  grid-template-columns: 1.25fr 1.45fr 0.8fr 0.8fr 0.9fr 1.1fr;
+}
+
+/* ── web: Materials → Hauling ──────────────────────────────────────────── */
+.sc .dds-haul-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.sc .dds-haul-tr {
+  display: grid;
+  grid-template-columns: 62px 82px 1.2fr 1.6fr 82px 1.1fr 82px 1.3fr;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 0 16px;
+  border-bottom: 1px solid #e9e9e9;
+  font-size: 13.5px;
+  color: #000;
+  white-space: nowrap;
+}
+.sc .dds-haul-tr--head {
+  min-height: 0;
+  height: 46px;
+  background: var(--sc-surface);
+  font-size: 13.8px;
+  font-weight: 500;
+  color: #404040;
+}
+.sc .dds-haul-ticket {
+  font-weight: 650;
+}
+.sc .dds-haul-qty {
+  font-weight: 600;
+}
+.sc .dds-haul-type {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 560;
+}
+.sc .dds-haul-type--Import {
+  background: var(--sc-blue-bg);
+  color: var(--sc-blue-ink);
+}
+.sc .dds-haul-type--Export {
+  background: var(--sc-orange-bg);
+  color: var(--sc-orange-ink);
+}
+.sc .dds-muted {
+  color: #6b6b6b;
+}
+
+/* ── a toast in the app's style ────────────────────────────────────────── */
+.sc .dds-toast {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 16px;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgba(17, 17, 17, 0.12);
+}
+.sc .dds-toast-ok {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e8f6ee;
+  color: #1f9d55;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.sc .dds-toast-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  font-size: 13px;
+  color: #6b6b6b;
+}
+.sc .dds-toast-txt b {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+}
+.sc .dds-toast-time {
+  align-self: flex-start;
+  margin-left: auto;
+  font-size: 12px;
+  color: #9a9a9a;
+}
