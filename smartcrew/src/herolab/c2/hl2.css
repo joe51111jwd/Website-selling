@@ -1,0 +1,975 @@
+/* Herolab c2 · The Work-Zone Board. Static CSS = the FINAL frame (the sign parked on phase 2);
+   the timeline (./index.tsx build) only supplies "from" states. Every selector is .hl2-prefixed.
+   Phones (.is-phone): transform/opacity only, no filters, no blur, no backdrop-filter. */
+
+.hl2 {
+  --ground: #fbf8f4;
+  --ink: #17130f;
+  --ink-2: #4a4038;
+  --ink-3: #74665a;
+  --orange: #ff7a01;
+  --night: #14110e;
+  /* the sign */
+  --face: #14110e;
+  --frame-c: #2a241e;
+  --led: #ffd8a3;
+  --led-hot: #fff6e8;
+  --led-off: #2a231c;
+  --gut: clamp(20px, 4vw, 64px);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.hl2 *,
+.hl2 *::before,
+.hl2 *::after {
+  box-sizing: border-box;
+}
+
+.hl2 p,
+.hl2 h1,
+.hl2 ul {
+  margin: 0;
+}
+
+/* ── the day ground: the intro's map, faint, veiled behind the copy ─────────────────── */
+
+.hl2-ground,
+.hl2-daymap,
+.hl2-night,
+.hl2-nightmap,
+.hl2-veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hl2-ground {
+  z-index: 0;
+  overflow: hidden;
+}
+
+.hl2-drift {
+  position: absolute;
+  inset: -16px;
+}
+
+.hl2-map {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  max-width: none;
+  overflow: visible;
+  transform-origin: 0 0;
+}
+
+.hl2-topo path {
+  fill: none;
+  stroke: rgb(23 19 15 / 7.5%);
+  stroke-width: 1.1;
+  vector-effect: non-scaling-stroke;
+}
+
+.hl2-topo .mj {
+  stroke: rgb(23 19 15 / 12%);
+}
+
+/* the copy column stays clean; the contours live at the edges */
+.hl2-veil {
+  background: radial-gradient(ellipse 40% 58% at 50% 62%, var(--ground) 0%, rgb(251 248 244 / 88%) 52%, rgb(251 248 244 / 0%) 100%);
+}
+
+/* ── header ─────────────────────────────────────────────────────────────────────────── */
+
+.hl2-head,
+.hl2-ilogo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--hh);
+}
+
+.hl2-head {
+  z-index: 6;
+}
+
+.hl2-head-in {
+  height: 100%;
+  max-width: calc(1312px + 2 * var(--gut));
+  margin: 0 auto;
+  padding: 0 var(--gut);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hl2-logo {
+  display: block;
+  line-height: 0;
+}
+
+.hl2-logo-svg {
+  display: block;
+  height: 23px;
+  width: auto;
+}
+
+.hl2-nav {
+  display: flex;
+  gap: 32px;
+}
+
+.hl2-nav a {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.hl2-nav a:hover {
+  color: var(--ink);
+}
+
+/* ── the sign ───────────────────────────────────────────────────────────────────────── */
+
+.hl2-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.hl2-board {
+  position: absolute;
+  z-index: 3;
+  border-radius: 6px;
+  /* the frame: a 3 px moulded rim, a hair lighter on top */
+  background: linear-gradient(180deg, #3a3129 0%, var(--frame-c) 22%, #221d18 100%);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 55%),
+    0 1px 2px rgb(23 19 15 / 22%),
+    0 22px 36px -22px rgb(23 19 15 / 55%);
+  transform-origin: 50% 0;
+}
+
+.hl2-board-in {
+  position: absolute;
+  inset: var(--frame);
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--face);
+}
+
+.hl2-face {
+  position: absolute;
+  inset: 0;
+  /* matte: lit from above, a little darker at the foot */
+  background:
+    radial-gradient(ellipse 70% 120% at 50% -30%, rgb(255 236 210 / 4%), rgb(255 236 210 / 0%) 70%),
+    linear-gradient(180deg, #181410 0%, var(--face) 45%, #110e0b 100%);
+}
+
+.hl2-face-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  overflow: visible;
+}
+
+.hl2-off {
+  fill: var(--led-off);
+}
+
+.hl2-off-hi {
+  fill: rgb(255 236 210 / 3.5%);
+}
+
+.hl2-lit,
+.hl2-glow,
+.hl2-hot,
+.hl2-ink {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.hl2-lit {
+  stroke: var(--led);
+  stroke-width: 0.72;
+}
+
+/* the glow: the same dots, wider and faint (no blur filter: one more static stroke) */
+.hl2-glow {
+  stroke: var(--led);
+  stroke-width: 1.32;
+  opacity: 0.12;
+}
+
+/* each LED's hot centre */
+.hl2-hot {
+  stroke: var(--led-hot);
+  stroke-width: 0.3;
+  opacity: 0.6;
+}
+
+.hl2-ink {
+  stroke: var(--ink);
+  stroke-width: 0.72;
+}
+
+/* a phase face: a clipping wrapper + its counter-moving content (both transforms) */
+.hl2-wipe,
+.hl2-wipe-in {
+  position: absolute;
+  inset: 0;
+}
+
+.hl2-wipe {
+  overflow: hidden;
+}
+
+.hl2-wipe.is-idle {
+  transform: translateX(-101%);
+}
+
+.hl2-wipe.is-idle > .hl2-wipe-in {
+  transform: translateX(101%);
+}
+
+.hl2-bolt {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #6b5e51 0%, #3a3129 55%, #1d1814 100%);
+  box-shadow: 0 0.5px 0 rgb(255 255 255 / 6%);
+  z-index: 1000;
+}
+
+.hl2-bolt.is-tl {
+  left: 6px;
+  top: 6px;
+}
+
+.hl2-bolt.is-tr {
+  right: 6px;
+  top: 6px;
+}
+
+.hl2-bolt.is-bl {
+  left: 6px;
+  bottom: 6px;
+}
+
+.hl2-bolt.is-br {
+  right: 6px;
+  bottom: 6px;
+}
+
+.hl2-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.hl2-demo {
+  position: absolute;
+  z-index: 4;
+  width: 186px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--ink-3);
+}
+
+/* the sign's 6:42 AM, lifted out for the hand-off (hidden until the page scrolls) */
+.hl2-fly {
+  position: absolute;
+  z-index: 8;
+  visibility: hidden;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.hl2-fly svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+
+.hl2-fly-ink,
+.hl2-fly-type {
+  opacity: 0;
+}
+
+/* One Day's time face (the harness stub and the page's .day time use the same setting) */
+.hl2-fly-type {
+  position: absolute;
+  left: 0;
+  font-family: var(--font-display);
+  font-stretch: 75%;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-feature-settings: "tnum" 1, "lnum" 1, "case" 1;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+/* ── the copy ───────────────────────────────────────────────────────────────────────── */
+
+.hl2-stack {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  top: var(--stack);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--gut);
+  text-align: center;
+  /* phones: its top padding lies over the sign; only the copy itself takes pointers */
+  pointer-events: none;
+}
+
+.hl2-stack > * {
+  pointer-events: auto;
+}
+
+.hl2-eyebrow {
+  font-size: max(13px, calc(14.5px * var(--s)));
+  font-weight: 560;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.hl2-h1 {
+  margin-top: calc(5px * var(--s)) !important;
+  font-family: var(--font-display);
+  font-stretch: 96%;
+  font-weight: 700;
+  font-size: calc(66px * var(--s) * var(--h1-scale));
+  line-height: 1;
+  letter-spacing: -0.012em;
+  word-spacing: 0.04em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.hl2-line {
+  display: block;
+  overflow: hidden;
+  padding: 0 0.06em 0.12em;
+  margin-bottom: -0.12em;
+}
+
+.hl2-line-in {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.hl2-sub {
+  margin-top: calc(10px * var(--s)) !important;
+  max-width: calc(700px * var(--s));
+  font-size: max(16px, calc(17px * var(--s)));
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.hl2-act {
+  position: relative;
+  margin-top: calc(15px * var(--s));
+}
+
+.hl2-ctawrap {
+  position: relative;
+}
+
+/* the primary CTA (src/site/ui/cta.css, xl): safety orange, ink label, a keycap lip */
+.hl2-cta {
+  --lip: 4px;
+  --lift: 0px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+  height: max(60px, calc(62px * var(--s)));
+  padding: 0 calc(40px * var(--s));
+  border: 0;
+  border-radius: 16px;
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: max(19px, calc(20.5px * var(--s)));
+  font-weight: 740;
+  line-height: 1;
+  letter-spacing: -0.012em;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 16%) 0%, rgb(255 255 255 / 0%) 46%, rgb(120 46 0 / 6%) 100%),
+    var(--orange);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 45%),
+    inset 0 -1px 0 rgb(110 44 0 / 18%),
+    0 var(--lip) 0 #c95b00,
+    0 calc(var(--lip) + 1px) 2px rgb(80 32 0 / 30%),
+    0 calc(var(--lip) + 12px) 26px -12px rgb(150 62 0 / 55%);
+  transform: translateY(calc(-1 * var(--lift)));
+  transition:
+    transform 170ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 170ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hl2-cta-arrow {
+  width: 1.06em;
+  height: 1.06em;
+  flex: none;
+  margin-right: -0.15em;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .hl2-cta:hover {
+    --lift: 1.5px;
+    filter: brightness(1.04) saturate(1.04);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 50%),
+      inset 0 -1px 0 rgb(110 44 0 / 18%),
+      0 calc(var(--lip) + 1.5px) 0 #c95b00,
+      0 calc(var(--lip) + 3px) 3px rgb(80 32 0 / 26%),
+      0 calc(var(--lip) + 18px) 32px -12px rgb(150 62 0 / 60%);
+  }
+  .hl2-cta:hover .hl2-cta-arrow {
+    transform: translateX(3px);
+  }
+}
+
+/* pressed: the cap sinks onto its lip */
+.hl2-cta:active {
+  --lift: calc(-1 * var(--lip) + 1px);
+  filter: brightness(0.98);
+  box-shadow:
+    inset 0 1px 2px rgb(110 44 0 / 22%),
+    inset 0 -1px 0 rgb(110 44 0 / 10%),
+    0 1px 0 #c95b00,
+    0 2px 2px rgb(80 32 0 / 26%),
+    0 8px 16px -10px rgb(150 62 0 / 45%);
+  transition-duration: 70ms;
+}
+
+.hl2-cta:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
+}
+
+/* the CTA's geofence (geometry from build()) */
+.hl2-ring {
+  position: absolute;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hl2-ring-dash,
+.hl2-ring-solid {
+  fill: none;
+  stroke: var(--orange);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  opacity: 0;
+}
+
+.hl2-ring-dash {
+  stroke-width: 1.8;
+  stroke-dasharray: 7 5;
+}
+
+.hl2-ring-solid {
+  stroke-width: 2.2;
+}
+
+.hl2-ring-draw {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 8;
+  stroke-dasharray: 100 100;
+  stroke-dashoffset: 0;
+}
+
+.hl2-link {
+  position: absolute;
+  left: calc(100% + 26px * var(--s));
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--font-text);
+  font-size: max(15px, calc(16px * var(--s)));
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: rgb(23 19 15 / 35%);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  transition: text-decoration-color 0.2s;
+}
+
+.hl2-link:hover {
+  text-decoration-color: var(--ink);
+}
+
+.hl2-micro {
+  margin-top: calc(13px * var(--s)) !important;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
+/* ── foot: who uses it + the open loop ──────────────────────────────────────────────── */
+
+.hl2-foot {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  bottom: calc(10px * var(--s));
+  max-width: calc(1312px + 2 * var(--gut));
+  margin: 0 auto;
+  padding: 0 var(--gut);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 30px;
+}
+
+.hl2-used {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.hl2-used-k {
+  font-size: 13px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.hl2-used ul {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.6vw, 24px);
+  padding: 0;
+  list-style: none;
+}
+
+.hl2-used img {
+  display: block;
+  height: max(18px, calc(21px * var(--s)));
+  width: auto;
+  opacity: 0.6;
+}
+
+.hl2-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.hl2-cue svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hl2-cue:hover span {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+
+/* ── the intro's last frame (night) ─────────────────────────────────────────────────── */
+
+.hl2-night {
+  z-index: 20;
+  background: var(--night);
+  transform-origin: 0 0;
+}
+
+.hl2-nightmap {
+  overflow: hidden;
+}
+
+.hl2-night .hl2-topo path {
+  stroke: rgb(244 238 231 / 11%);
+}
+
+.hl2-night .hl2-topo .mj {
+  stroke: rgb(244 238 231 / 20%);
+}
+
+.hl2-road {
+  fill: none;
+  stroke: rgb(244 238 231 / 30%);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.hl2-road-c {
+  fill: none;
+  stroke: var(--night);
+  stroke-width: 1.4;
+  stroke-dasharray: 10 12;
+}
+
+.hl2-haul {
+  fill: none;
+  stroke: rgb(244 238 231 / 50%);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 9;
+}
+
+.hl2-pit ellipse {
+  fill: none;
+  stroke: rgb(244 238 231 / 42%);
+  stroke-width: 1.5;
+}
+
+.hl2-pin {
+  fill: #f4eee7;
+}
+
+.hl2-zone {
+  fill: var(--orange);
+  fill-opacity: 0.08;
+}
+
+.hl2-fence {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.hl2-mlabel {
+  font: 600 13px/1 "SC Inter", "Inter Variable", Inter, system-ui, sans-serif;
+  fill: #f4eee7;
+  letter-spacing: 0.01em;
+}
+
+.hl2-mlabel.is-sm {
+  fill: #b9ab9c;
+  font-weight: 550;
+}
+
+.hl2-truck {
+  fill: #f4eee7;
+}
+
+.hl2-truck-ring {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 3;
+}
+
+.hl2-truck-t {
+  font: 650 11px/1 "SC Inter", "Inter Variable", Inter, system-ui, sans-serif;
+  fill: var(--night);
+  letter-spacing: 0.02em;
+}
+
+.hl2-ilogo {
+  z-index: 22;
+  pointer-events: none;
+}
+
+.hl2-notes {
+  position: absolute;
+  inset: 0;
+  z-index: 24;
+  pointer-events: none;
+}
+
+/* the intro's own notification card (index.html .sc-note) */
+.hl2-note {
+  position: absolute;
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  padding: 11px 14px 11px 12px;
+  border-radius: 16px;
+  background: #fff;
+  color: #111;
+  text-align: left;
+  font: 450 13px/1.3 "SC Inter", "Inter Variable", Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  letter-spacing: -0.006em;
+  box-shadow:
+    0 0 0 1px rgb(17 17 17 / 6%),
+    0 16px 34px -14px rgb(17 17 17 / 42%);
+  transform-origin: 50% 50%;
+}
+
+.hl2-note-av,
+.hl2-note-ic {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f2f2f2;
+  color: #2b2b2b;
+  display: grid;
+  place-items: center;
+  font-weight: 620;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+
+.hl2-note-av::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #24c56f;
+  box-shadow: 0 0 0 2.5px #fff;
+}
+
+.hl2-note-ic svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hl2-note-tx {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hl2-note-tx b {
+  font-weight: 620;
+  font-size: 15px;
+  line-height: 1.25;
+  color: #111;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hl2-note-tx > span {
+  font-size: 13px;
+  color: #686868;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hl2-note-time {
+  align-self: start;
+  margin-top: 1px;
+  font-size: 13px;
+  font-weight: 520;
+  color: #7c7c7c;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hl2-note.is-money .hl2-note-tx b {
+  color: #18874a;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* the sequence is over: the night layer is gone (removed from the DOM by React too) */
+.hl2.is-done .hl2-night,
+.hl2.is-done .hl2-notes,
+.hl2.is-done .hl2-ilogo,
+.hl2.is-landed .hl2-night,
+.hl2.is-landed .hl2-notes,
+.hl2.is-landed .hl2-ilogo {
+  display: none;
+}
+
+/* ── phones ─────────────────────────────────────────────────────────────────────────── */
+
+.hl2.is-phone {
+  --gut: 16px;
+}
+
+.is-phone .hl2-logo-svg {
+  height: 21px;
+}
+
+.is-phone .hl2-board {
+  border-radius: 6px;
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 55%),
+    0 10px 18px -12px rgb(23 19 15 / 50%);
+}
+
+.is-phone .hl2-bolt {
+  width: 3.5px;
+  height: 3.5px;
+}
+
+.is-phone .hl2-bolt.is-tl,
+.is-phone .hl2-bolt.is-bl {
+  left: 5px;
+}
+
+.is-phone .hl2-bolt.is-tr,
+.is-phone .hl2-bolt.is-br {
+  right: 5px;
+}
+
+.is-phone .hl2-bolt.is-tl,
+.is-phone .hl2-bolt.is-tr {
+  top: 5px;
+}
+
+.is-phone .hl2-bolt.is-bl,
+.is-phone .hl2-bolt.is-br {
+  bottom: 5px;
+}
+
+.is-phone .hl2-stack {
+  position: relative;
+  top: 0;
+  padding-top: var(--stack);
+}
+
+.is-phone .hl2-eyebrow {
+  font-size: 13.5px;
+}
+
+.is-phone .hl2-h1 {
+  margin-top: 8px !important;
+  font-size: calc(40px * var(--s) * var(--h1-scale));
+  line-height: 1.02;
+}
+
+.is-phone .hl2-sub {
+  margin-top: 12px !important;
+  font-size: 15px;
+  line-height: 1.45;
+  max-width: 360px;
+}
+
+.is-phone .hl2-act {
+  align-self: stretch;
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.is-phone .hl2-ctawrap {
+  align-self: stretch;
+}
+
+.is-phone .hl2-cta {
+  display: flex;
+  width: 100%;
+  height: 56px;
+  padding: 0 20px;
+  font-size: 19px;
+  border-radius: 15px;
+}
+
+.is-phone .hl2-link {
+  position: static;
+  height: auto;
+  margin-top: 12px;
+  font-size: 15.5px;
+  min-height: 24px;
+}
+
+.is-phone .hl2-micro {
+  margin-top: 8px !important;
+  font-size: 12.5px;
+  max-width: 300px;
+}
+
+.is-phone .hl2-demo {
+  position: static;
+  width: auto;
+  margin-top: 8px;
+  font-size: 11.5px;
+}
+
+.is-phone .hl2-foot {
+  position: relative;
+  bottom: auto;
+  height: auto;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  padding-top: 28px;
+  padding-bottom: 28px;
+}
+
+.is-phone .hl2-used {
+  width: 100%;
+}
+
+.is-phone .hl2-used-k {
+  display: none;
+}
+
+.is-phone .hl2-used ul {
+  width: 100%;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.is-phone .hl2-used img {
+  height: 18px;
+}
+
+/* ── reduced motion: phase 2, still ─────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .hl2-cta,
+  .hl2-cta-arrow {
+    transition: none;
+  }
+}

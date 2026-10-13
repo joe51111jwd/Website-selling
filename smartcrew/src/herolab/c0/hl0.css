@@ -36,7 +36,7 @@
   margin: 0;
 }
 
-.hl0 :where(button) {
+.hl0 :where(button:not(.cta)) {
   font: inherit;
   color: inherit;
   background: none;
@@ -50,7 +50,7 @@
 .hl0-topo {
   position: absolute;
   inset: -12px;
-  z-index: 0;
+  z-index: 2;
   pointer-events: none;
 }
 
@@ -126,7 +126,7 @@
 
 .hl0-copy {
   position: absolute;
-  z-index: 2;
+  z-index: 4;
   left: 0;
   right: 0;
   top: var(--copy-top, 76px);
@@ -178,8 +178,8 @@
 .hl0-line {
   display: block;
   overflow: hidden;
-  padding: 0.14em 0.3em 0.2em;
-  margin: -0.14em -0.3em -0.2em;
+  padding: 0.12em 0.3em 0.1em;
+  margin: -0.12em -0.3em -0.1em;
 }
 
 .hl0-line--fence {
@@ -217,9 +217,7 @@
   margin-top: var(--gap-cta, 22px);
   display: flex;
   align-items: center;
-  gap: 26px;
-  /* the pair is centred as a group: the link's width is mirrored on the left */
-  padding-left: var(--act-pad, 0px);
+  gap: 50px;
 }
 
 .hl0-cta-wrap {
@@ -254,8 +252,12 @@
   text-decoration-color: var(--ink);
 }
 
+.hl0-nw {
+  white-space: nowrap;
+}
+
 .hl0-micro {
-  margin-top: 12px;
+  margin-top: 20px;
   font-size: 13.5px;
   line-height: 1.3;
   color: var(--ink-3);
@@ -265,7 +267,7 @@
 
 .hl0-foot {
   position: absolute;
-  z-index: 2;
+  z-index: 4;
   left: 0;
   right: 0;
   bottom: clamp(14px, 3svh, 22px);
@@ -320,6 +322,64 @@
   width: 16px;
   height: 16px;
 }
+
+/* the job chip: the tag's compact form (phones; desktops too narrow for the tag) */
+.hl0-chip {
+  margin-top: 14px;
+  pointer-events: auto;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 10px;
+  border-radius: 99px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 12%),
+    0 6px 14px -10px rgb(23 19 15 / 40%);
+  font-size: 14px;
+  font-weight: 560;
+  line-height: 1;
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hl0-chip-glyph {
+  width: 15px;
+  height: 13px;
+  flex: none;
+}
+
+.hl0-chip-glyph path {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 1.6;
+  stroke-dasharray: 3 2;
+  stroke-linejoin: round;
+}
+
+.hl0-chip-win {
+  height: 28px;
+  overflow: hidden;
+}
+
+.hl0-chip-strip {
+  display: grid;
+}
+
+.hl0-chip-row {
+  display: block;
+  height: 28px;
+  line-height: 28px;
+  white-space: nowrap;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+.hl0-chip-row b {
+  font-weight: 650;
+}
+
 
 /* ── the effects layer: fence, crew, the flag, the CTA's ring ───────────────────────── */
 
@@ -618,10 +678,10 @@
   position: absolute;
   left: 0;
   top: 0;
+  width: calc(var(--flag-w, 214px) - 18px);
   font-size: 12px;
-  line-height: 1.3;
+  line-height: 1.35;
   color: var(--ink-3);
-  white-space: nowrap;
   opacity: 0;
 }
 
@@ -649,6 +709,13 @@
 .hl0-ring-s {
   opacity: 0;
   transform-origin: var(--ox, 50%) var(--oy, 50%);
+  transition: opacity 0.3s var(--ease-out);
+}
+
+/* the cursor on the button: its fence closes solid, like the words' fence when you step inside */
+.hl0.is-settled.is-cta .hl0-ring-s {
+  opacity: 1;
+  transition-duration: 0.18s;
 }
 
 /* ── the night: a stand-in for the intro's last frame (index.html), so the hand-off can be seen ── */
@@ -656,7 +723,8 @@
 .hl0-night {
   position: absolute;
   inset: 0;
-  z-index: 5;
+  z-index: 1;
+  overflow: hidden;
   pointer-events: none;
   display: none;
 }
@@ -697,6 +765,21 @@
   fill: var(--orange);
   fill-opacity: 0.09;
   stroke: none;
+}
+
+/* the day breaks over the jobsite: one soft disc of the day ground, scaled up from the fence
+   (transform only; will-change keeps its raster small, the gradient upscales cleanly) */
+.hl0-dawn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  /* a warm rim, like first light */
+  background: radial-gradient(closest-side, var(--ground) 0%, var(--ground) 52%, #f4e3cd 70%, rgb(240 214 182 / 0.55) 84%, rgb(240 214 182 / 0) 100%);
+  transform: scale(0);
+  will-change: transform;
 }
 
 .hl0-night-label {
@@ -883,52 +966,6 @@
 
   .hl0-chip {
     margin-top: 12px;
-    height: 28px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 12px 0 10px;
-    border-radius: 99px;
-    background: #fff;
-    box-shadow:
-      0 0 0 1px rgb(23 19 15 / 12%),
-      0 6px 14px -10px rgb(23 19 15 / 40%);
-    font-size: 14px;
-    font-weight: 560;
-    line-height: 1;
-    color: var(--ink);
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .hl0-chip-glyph {
-    width: 15px;
-    height: 13px;
-    flex: none;
-  }
-
-  .hl0-chip-glyph path {
-    fill: none;
-    stroke: var(--orange);
-    stroke-width: 1.6;
-    stroke-dasharray: 3 2;
-    stroke-linejoin: round;
-  }
-
-  .hl0-chip-win {
-    height: 28px;
-    overflow: hidden;
-  }
-
-  .hl0-chip-row {
-    height: 28px;
-    line-height: 28px;
-    white-space: nowrap;
-    text-align: left;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .hl0-chip-row b {
-    font-weight: 650;
   }
 
   .hl0-sub {
@@ -1025,9 +1062,13 @@
 }
 
 @media (min-width: 761px) {
-  .hl0-chip,
-  .hl0-phone-note {
+  .hl0:not(.no-flag) :is(.hl0-chip, .hl0-phone-note) {
     display: none;
+  }
+  .hl0-phone-note {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--ink-3);
   }
 }
 

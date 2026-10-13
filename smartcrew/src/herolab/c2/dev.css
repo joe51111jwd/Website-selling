@@ -1,0 +1,172 @@
+/* Harness only (dev.html): page reset + the One Day stub below the hero. */
+
+body {
+  margin: 0;
+  font-family: var(--font-text);
+  color: #17130f;
+}
+
+/* desktop: the hero sits in a sticky stage; One Day's first time waits under it */
+.dev-stage {
+  height: 190vh;
+  background: #fbf8f4;
+}
+
+.dev-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: #fbf8f4;
+}
+
+.dev-day {
+  position: absolute;
+  left: max(64px, 6vw);
+  top: 20%;
+  max-width: 440px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.dev-time {
+  font-family: var(--font-display);
+  font-stretch: 75%;
+  font-weight: 700;
+  font-size: clamp(72px, 6.6vw + 4.6svh, 184px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-feature-settings: "tnum" 1, "lnum" 1, "case" 1;
+  white-space: nowrap;
+  opacity: 0;
+}
+
+.dev-title {
+  margin: 18px 0 0;
+  font-family: var(--font-display);
+  font-stretch: 96%;
+  font-weight: 700;
+  font-size: 34px;
+  line-height: 1.05;
+  opacity: 0;
+}
+
+.dev-out {
+  margin: 10px 0 0;
+  font-size: 17px;
+  color: #4a4038;
+  opacity: 0;
+}
+
+.dev-note {
+  margin: 22px 0 0;
+  font-size: 12px;
+  color: #74665a;
+  opacity: 0;
+}
+
+.dev-phone {
+  position: absolute;
+  left: 60%;
+  top: 12%;
+  width: 230px;
+  aspect-ratio: 9 / 19.5;
+  padding: 9px;
+  border-radius: 40px;
+  background: #121110;
+  box-shadow:
+    inset 0 0 0 1.5px #3a3632,
+    0 40px 60px -30px rgb(23 19 15 / 45%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dev-phone img,
+.dev-pphone img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 31px;
+}
+
+.dev-after {
+  height: 10vh;
+}
+
+/* phones */
+.dev-pstage {
+  background: #fbf8f4;
+}
+
+.dev-pday {
+  padding: 32px 20px 80px;
+  min-height: 100svh;
+}
+
+.dev-ptime {
+  font-family: var(--font-display);
+  font-stretch: 75%;
+  font-weight: 700;
+  font-size: 96px;
+  line-height: 0.9;
+  font-feature-settings: "tnum" 1, "lnum" 1, "case" 1;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dev-ptitle {
+  margin: 10px 0 18px;
+  font-family: var(--font-display);
+  font-stretch: 96%;
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.05;
+  opacity: 0;
+  transition: opacity 0.5s ease-out 0.15s;
+}
+
+.dev-pphone {
+  width: 62%;
+  margin: 0 auto;
+  aspect-ratio: 9 / 19.5;
+  padding: 8px;
+  border-radius: 36px;
+  background: #121110;
+  box-shadow: inset 0 0 0 1.5px #3a3632;
+  transform: translateY(80px);
+  opacity: 0;
+  transition:
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s,
+    opacity 0.4s ease-out 0.2s;
+}
+
+.dev-pcard {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgb(23 19 15 / 8%);
+  font-size: 15px;
+  transform: translateY(20px);
+  opacity: 0;
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.5s,
+    opacity 0.4s ease-out 0.5s;
+}
+
+.dev-pstage .dev-note {
+  opacity: 1;
+}
+
+.is-in .dev-ptime,
+.is-in .dev-ptitle,
+.is-in .dev-pphone,
+.is-in .dev-pcard {
+  opacity: 1;
+  transform: none;
+}

@@ -94,10 +94,22 @@ export type Design = {
 };
 
 export const DESIGN_DESK: Design = { W: 1440, H: 660, field: [12, 60, 1428, 396], hex: [520, 236], k: 0.675 };
-export const DESIGN_PHONE: Design = { W: 390, H: 664, field: [8, 52, 382, 262], hex: [96, 174], k: 0.45 };
+export const DESIGN_PHONE: Design = { W: 390, H: 664, field: [8, 52, 382, 262], hex: [88, 186], k: 0.4 };
 
 const toWorld = (d: Design) => (p: Pt): Pt => [HEX_C[0] + (p[0] - d.hex[0]) / d.k, HEX_C[1] + (p[1] - d.hex[1]) / d.k];
 const D = toWorld(DESIGN_DESK);
+/** A culvert across the highway at c (design px): two pipe walls and the headwalls. */
+function culvert(f: (p: Pt) => Pt, c: Pt, half: number): Pt[][] {
+  const u: Pt = [0.854, -0.519]; // along the road
+  const n: Pt = [0.519, 0.854]; // across it
+  const at = (s: number, o: number): Pt => [c[0] + n[0] * s + u[0] * o, c[1] + n[1] * s + u[1] * o];
+  return [
+    [at(-half, -2.6), at(half, -2.6)],
+    [at(-half, 2.6), at(half, 2.6)],
+    [at(-half, -7), at(-half, 7)],
+    [at(half, -7), at(half, 7)],
+  ].map((l) => poly(f, l as Pt[]));
+}
 const P = toWorld(DESIGN_PHONE);
 const poly = (f: (p: Pt) => Pt, pts: Pt[]) => pts.map(f);
 
@@ -113,8 +125,8 @@ export type JobPlace = {
   /** the spot: the small triangle sits here (world); the label stack beside it */
   spot: Pt;
   side: Side;
-  /** the leader note's end (world), if the job carries one */
-  note?: Pt;
+  /** the leader note: from a point on the fence (world) down to its end; the text sits left of the end */
+  note?: { from: Pt; to: Pt };
   /** inner linework (lot lines, the sewer run…), world polylines */
   detail: Pt[][];
   /** manholes and such: small circles, world */
@@ -137,7 +149,7 @@ export const SCENE_DESK: Scene = {
     // County Rd 14, north–south across the field
     { kind: "double", pts: poly(D, [[905, 40], [922, 140], [938, 240], [944, 330], [940, 420]]) },
     // the river along Riverside Ave
-    { kind: "river", pts: poly(D, [[1300, 40], [1286, 110], [1252, 170], [1232, 236], [1248, 300], [1286, 352], [1300, 420]]) },
+    { kind: "river", pts: poly(D, [[1384, 40], [1368, 110], [1330, 170], [1306, 236], [1322, 300], [1362, 352], [1380, 420]]) },
   ],
   jobs: [
     {
@@ -162,15 +174,15 @@ export const SCENE_DESK: Scene = {
       crew: [MB_AT, D([500, 262]), D([566, 274])],
       spot: D([620, 214]),
       side: "r",
-      // the culvert under the highway: a short pipe run across it
-      detail: [poly(D, [[488, 220], [552, 270]])],
+      // the culvert under the highway: a pipe across it with a headwall at each end
+      detail: culvert(D, [520, 236], 30),
     },
     {
       id: "county",
       fence: poly(D, [[908, 112], [952, 106], [968, 316], [922, 322]]),
       crew: poly(D, [[930, 168], [946, 272]]),
-      spot: D([962, 132]),
-      side: "r",
+      spot: D([906, 150]),
+      side: "l",
       detail: [],
     },
     {
@@ -179,43 +191,45 @@ export const SCENE_DESK: Scene = {
       crew: poly(D, [[1146, 252], [1190, 236]]),
       spot: D([1112, 218]),
       side: "l",
-      note: D([1238, 330]),
+      note: { from: D([1170, 289]), to: D([1170, 338]) },
       detail: [poly(D, [[1124, 262], [1158, 252], [1214, 240]])],
       dots: poly(D, [[1124, 262], [1158, 252], [1214, 240]]),
     },
   ],
 };
 
-/** Phone: three jobs. Hwy 9 large on the left, Maple Ridge top right, Riverside bottom right. */
+/** Phone: three jobs. Hwy 9 large on the left, Riverside (red) top right, Maple Ridge bottom right;
+ * the highway runs between them, so every label sits clear of it. */
 export const SCENE_PHONE: Scene = {
   pit: PIT_PORT,
   haul: HAUL_PORT,
-  lines: [{ kind: "river", pts: poly(P, [[382, 150], [352, 168], [318, 178], [296, 200], [290, 240], [300, 270]]) }],
+  lines: [],
   jobs: [
     {
       id: "hwy9",
       fence: HEX,
-      crew: [MB_AT, P([82, 188]), P([116, 200])],
-      spot: P([44, 116]),
+      crew: [MB_AT, P([70, 200]), P([104, 210])],
+      spot: P([24, 100]),
       side: "r",
-      detail: [poly(P, [[66, 160], [104, 194]])],
+      detail: culvert(P, [88, 186], 18),
+    },
+    {
+      // the red one top right, so the 5:00 PM line sets it last (its number sits furthest right)
+      id: "river",
+      fence: poly(P, [[318, 62], [372, 58], [376, 102], [322, 108]]),
+      crew: poly(P, [[338, 92], [360, 80]]),
+      spot: P([370, 150]),
+      side: "l",
+      detail: [poly(P, [[326, 96], [346, 88], [368, 78]])],
+      dots: poly(P, [[326, 96], [346, 88], [368, 78]]),
     },
     {
       id: "maple",
-      fence: poly(P, [[300, 64], [366, 62], [370, 108], [302, 110]]),
-      crew: poly(P, [[322, 90], [348, 80]]),
-      spot: P([292, 72]),
+      fence: poly(P, [[318, 194], [372, 192], [374, 238], [320, 240]]),
+      crew: poly(P, [[336, 226], [358, 212]]),
+      spot: P([308, 222]),
       side: "l",
-      detail: [poly(P, [[304, 92], [368, 90]]), poly(P, [[324, 64], [324, 91]]), poly(P, [[346, 63], [346, 90]])],
-    },
-    {
-      id: "river",
-      fence: poly(P, [[310, 196], [362, 190], [368, 238], [314, 244]]),
-      crew: poly(P, [[328, 222], [350, 212]]),
-      spot: P([300, 202]),
-      side: "l",
-      detail: [poly(P, [[318, 230], [338, 222], [360, 214]])],
-      dots: poly(P, [[318, 230], [338, 222], [360, 214]]),
+      detail: [poly(P, [[320, 220], [373, 218]]), poly(P, [[338, 193], [338, 219]]), poly(P, [[356, 193], [356, 218]])],
     },
   ],
 };

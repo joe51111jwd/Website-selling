@@ -10,10 +10,19 @@ import { toScreen, type Layout } from "./layout";
 
 type Spring = { v: number; x: number; t: number };
 const spring = (x: number): Spring => ({ v: 0, x, t: x });
+/** Semi-implicit Euler in fixed 4 ms substeps: stable for any frame time (a stalled frame, a
+ * throttled tab) and any stiffness used here. Returns whether it is still moving. */
 function stepSpring(s: Spring, dt: number, k = 520, c = 46) {
-  const a = k * (s.t - s.x) - c * s.v;
-  s.v += a * dt;
-  s.x += s.v * dt;
+  const H = 1 / 250;
+  for (let t = 0; t < dt - 1e-6; t += H) {
+    const h = Math.min(H, dt - t);
+    s.v += (k * (s.t - s.x) - c * s.v) * h;
+    s.x += s.v * h;
+  }
+  if (!Number.isFinite(s.x)) {
+    s.x = s.t;
+    s.v = 0;
+  }
   return Math.abs(s.t - s.x) > 0.05 || Math.abs(s.v) > 0.05;
 }
 
@@ -50,7 +59,12 @@ export function attachCursor(root: HTMLElement, L: Layout): () => void {
   const dot = root.querySelector<HTMLElement>("[data-cur-dot]")!;
   const cta = root.querySelector<HTMLElement>(".hl1-cta")!;
   if (!field || !reticle || !ringSvg || !dot) return () => {};
-  root.classList.add("has-cursor");
+  // state lives in data-* attributes: React owns the root's className and rewrites it on render
+  const flag = (k: string, on: boolean) => {
+    if (on) root.dataset[k] = "1";
+    else delete root.dataset[k];
+  };
+  root.dataset.hascur = "1";
   const hours = root.dataset.angle === "timecards" || root.dataset.angle === "payroll";
 
   const F = L.field;
@@ -100,7 +114,7 @@ export function attachCursor(root: HTMLElement, L: Layout): () => void {
       const fpy = py - F.y;
       let best: (typeof jobs)[number] | null = null;
       for (const j of jobs) {
-        const sb = j.spot?.getBoundingClientRect();
+        const sb = j.spot?.querySelector(".hl1-stack")?.getBoundingClientRect();
         const rb = root.getBoundingClientRect();
         const overSpot = sb && px >= sb.left - rb.left - 8 && px <= sb.right - rb.left + 8 && py >= sb.top - rb.top - 8 && py <= sb.bottom - rb.top + 8;
         if (overSpot || inside([fpx, fpy], j.fence) || distToPoly([fpx, fpy], j.fence) < 16) best = j;
@@ -117,7 +131,7 @@ export function attachCursor(root: HTMLElement, L: Layout): () => void {
           tag.textContent = `${job.name} · ${job.crew.length} on site · ${job.hours.toFixed(1)} h${hours ? "" : ` · ${money}`}`;
           tag.classList.toggle("is-red", !hours && job.profit < 0);
         }
-        root.classList.toggle("is-snap", !!hot);
+        flag("snap", !!hot);
       }
       if (hot) {
         rx.t = hot.c[0];
@@ -150,7 +164,7 @@ export function attachCursor(root: HTMLElement, L: Layout): () => void {
   }
 
   function frame(now: number) {
-    const dt = Math.min(0.032, (now - (last || now)) / 1000 || 0.016);
+    const dt = Math.min(0.05, (now - (last || now)) / 1000 || 0.016);
     last = now;
     let moving = false;
     moving = stepSpring(rx, dt, hot ? 300 : 900, hot ? 30 : 60) || moving;
@@ -210,23 +224,26 @@ export function attachCursor(root: HTMLElement, L: Layout): () => void {
         hot.svg?.classList.remove("is-hot");
         hot.spot?.classList.remove("is-hot");
         hot = null;
-        root.classList.remove("is-snap");
+        flag("snap", false);
       }
     }
-    root.classList.toggle("is-link", !overCta && !!t.closest?.("a, button"));
+    flag("link", !overCta && !!t.closest?.("a, button"));
     retarget();
     kick();
   };
-  const onLeave = () => {
+  const onLeave = (e: PointerEvent) => {
+    // only a real exit (removing a hovered child can fire boundary events)
+    const rb = root.getBoundingClientRect();
+    if (e.clientX > rb.left && e.clientX < rb.right && e.clientY > rb.top && e.clientY < rb.bottom) return;
     mode = "none";
     root.dataset.cur = "none";
     hot?.svg?.classList.remove("is-hot");
     hot?.spot?.classList.remove("is-hot");
     hot = null;
-    root.classList.remove("is-snap");
+    flag("snap", false);
   };
-  const onDown = () => root.classList.add("is-down");
-  const onUp = () => root.classList.remove("is-down");
+  const onDown = () => flag("down", true);
+  const onUp = () => flag("down", false);
   root.addEventListener("pointermove", onMove);
   root.addEventListener("pointerleave", onLeave);
   root.addEventListener("pointerdown", onDown);
@@ -238,6 +255,6 @@ export function attachCursor(root: HTMLElement, L: Layout): () => void {
     root.removeEventListener("pointerleave", onLeave);
     root.removeEventListener("pointerdown", onDown);
     window.removeEventListener("pointerup", onUp);
-    root.classList.remove("has-cursor", "is-snap", "is-link", "is-down");
+    for (const k of ["hascur", "snap", "link", "down", "cur"]) delete root.dataset[k];
   };
 }

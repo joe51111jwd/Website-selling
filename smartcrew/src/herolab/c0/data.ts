@@ -8,7 +8,9 @@ import { ANGLES, CTA, HERO, LOGOS, LOGO_VECTORS, type Angle } from "../../conten
 export { CTA, HERO, LOGOS, LOGO_VECTORS };
 export type { Angle };
 
-/** One headline line. `fence` marks the phrase the geofence stakes itself round. */
+/** One headline line. `fence` marks the phrase the geofence stakes itself round. A fenced phrase
+ * that ends the sentence drops its full stop on screen (the fence closes it; the H1's aria-label
+ * keeps the whole sentence). */
 export type Line = { pre?: string; fence?: string; post?: string };
 
 export type Tone = "pos" | "neg" | "ink";
@@ -57,8 +59,8 @@ export const HEROES: Record<Angle, AngleHero> = {
   timecards: {
     h1: ANGLES.timecards.h1,
     sub: ANGLES.timecards.sub,
-    desk: [L("Stop chasing"), L(undefined, "timecards", ".")],
-    phone: [L("Stop"), L("chasing"), L(undefined, "timecards", ".")],
+    desk: [L("Stop chasing"), L(undefined, "timecards")],
+    phone: [L("Stop"), L("chasing"), L(undefined, "timecards")],
     flag: [
       { job: "Elena Ruiz · Pipe Laying", state: "7.5 h · Hwy 9", tone: "ink" },
       { job: "Jake Lindqvist · Backfill", state: "8.0 h · Hwy 9", tone: "ink" },
@@ -70,8 +72,8 @@ export const HEROES: Record<Angle, AngleHero> = {
   payroll: {
     h1: ANGLES.payroll.h1,
     sub: ANGLES.payroll.sub,
-    desk: [L("Payroll without the"), L(undefined, "Friday scramble", ".")],
-    phone: [L("Payroll"), L("without the"), L(undefined, "Friday scramble", ".")],
+    desk: [L("Payroll without the"), L(undefined, "Friday scramble")],
+    phone: [L("Payroll"), L("without the"), L(undefined, "Friday scramble")],
     flag: [
       { job: "Week of Oct 5 · 16 crew", state: "612.5 h logged", tone: "ink" },
       { job: "Week of Oct 5 · 16 crew", state: "Every hour coded", tone: "ink" },
@@ -82,8 +84,8 @@ export const HEROES: Record<Angle, AngleHero> = {
   replace: {
     h1: ANGLES.replace.h1,
     sub: ANGLES.replace.sub,
-    desk: [L("Replace your time app,"), L("your spreadsheets and the"), L(undefined, "group texts", ".")],
-    phone: [L("Replace your"), L("time app, your"), L("spreadsheets"), L("and the"), L(undefined, "group texts", ".")],
+    desk: [L("Replace your time app,"), L("your spreadsheets and the"), L(undefined, "group texts")],
+    phone: [L("Replace your"), L("time app, your"), L("spreadsheets"), L("and the"), L(undefined, "group texts")],
     flag: PROFIT,
     chip: PROFIT_CHIP,
   },
@@ -111,7 +113,7 @@ export const COPY = {
   eyebrow: HERO.eyebrow,
   cta: CTA.primary,
   demo: CTA.demoLink,
-  micro: "Founding Member trial · starts with a 30-minute call with Andrew · no contract",
+  micro: ["Founding Member trial · starts with a ", "30-minute call", " with Andrew · no contract"] as const,
   demoNote: "Demo account. Names and numbers are made up.",
   cue: HERO.cue,
   usedBy: HERO.usedBy,

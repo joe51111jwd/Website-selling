@@ -109,7 +109,7 @@ export default function HeroFence({ intro }: { intro?: boolean }) {
             ))}
           </span>
         </h1>
-        {phone && (
+        {(
           <button type="button" className="hl0-chip" aria-label={`${hero.chip[hero.chip.length - 1]} (demo account)`}>
             <svg className="hl0-chip-glyph" viewBox="0 0 15 13" aria-hidden="true">
               <path d="M1 6.5 4 1.2h7L14 6.5 11 11.8H4Z" />
@@ -147,8 +147,12 @@ export default function HeroFence({ intro }: { intro?: boolean }) {
             {COPY.demo}
           </button>
         </div>
-        <p className="hl0-micro">{COPY.micro}</p>
-        {phone && <p className="hl0-phone-note">{COPY.demoNote}</p>}
+        <p className="hl0-micro">
+          {COPY.micro[0]}
+          <span className="hl0-nw">{COPY.micro[1]}</span>
+          {COPY.micro[2]}
+        </p>
+        <p className="hl0-phone-note">{COPY.demoNote}</p>
       </div>
 
       <div className="hl0-foot">
@@ -189,6 +193,7 @@ export default function HeroFence({ intro }: { intro?: boolean }) {
             <polygon className="zone" />
           </svg>
         </div>
+        <div className="hl0-dawn" />
         <span className="hl0-night-label">{COPY.site}</span>
         <span className="hl0-night-logo">
           <Logo tone="white" decorative />

@@ -57,7 +57,7 @@ export function computeLayout(W: number, H: number): Layout {
     field = { x: inset, y: inset + stripH, w: W - 2 * inset, h: tbTop - 8 - (inset + stripH) };
     tb = { x: inset, y: tbTop, w: W - 2 * inset, h: tbH };
     const cw = Math.round(clamp(0.2125 * W - 2, 250, 380));
-    const bw = Math.round(clamp(0.2 * W + 44, 250, 400));
+    const bw = Math.round(clamp(0.2 * W + 64, 270, 420));
     cells = [W - inset - cw - bw, W - inset - cw];
   }
 

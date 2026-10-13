@@ -11,11 +11,12 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Logo } from "../../brand/Logo";
-import { HEX, HEX_C, JOBS, MB_AT, ROAD, type JobId, type JobPlace, type NoteId, type Pt } from "./geometry";
+import { HEX, JOBS, MB_AT, ROAD, type JobId, type JobPlace, type NoteId, type Pt } from "./geometry";
 import { computeLayout, toIntro, toScreen, type Layout } from "./layout";
 import { TOPO_EVEN, TOPO_EXTENT, TOPO_MAJOR, TOPO_ODD } from "./contours";
 import { EASE, progressAt, timeAtProgress, timeline, type Timeline, type Track } from "./timeline";
 import { attachCursor } from "./cursor";
+import { offset, samplePath, smooth, toPoints } from "./paths";
 import "./sheet.css";
 
 // ─── copy (src/content/copy.ts ANGLES; line breaks set by hand for each layout) ──────────────
@@ -42,7 +43,7 @@ const COPY: Record<Angle, Copy> = {
   payroll: { h1: ["Payroll without the", "Friday scramble."], h1Phone: ["Payroll without", "the Friday", "scramble."], sub: SUB_HOURS, mode: "hours" },
   replace: {
     h1: ["Replace your time app,", "your spreadsheets and", "the group texts."],
-    h1Phone: ["Replace your time", "app, your spread­", "sheets and the", "group texts."],
+    h1Phone: ["Replace your", "time app, your", "spreadsheets and", "the group texts."],
     h1Scale: 0.64,
     h1PhoneScale: 0.8,
     sub: SUB_GPS,
@@ -144,12 +145,11 @@ function NorthArrow() {
 function ScaleBar() {
   return (
     <svg className="hl1-scale" viewBox="0 0 64 16" aria-hidden="true">
-      <rect x="0.5" y="1.5" width="15" height="3" className="f" />
-      <rect x="15.5" y="1.5" width="15" height="3" />
-      <rect x="30.5" y="1.5" width="30" height="3" className="f" />
+      <rect x="0.5" y="1.5" width="16" height="3" className="f" />
+      <rect x="16.5" y="1.5" width="16" height="3" />
+      <rect x="32.5" y="1.5" width="31" height="3" className="f" />
       <text x="0.5" y="14">0</text>
-      <text x="30.5" y="14" textAnchor="middle">250</text>
-      <text x="61" y="14" textAnchor="end">500 ft</text>
+      <text x="63.5" y="14" textAnchor="end">500 ft</text>
     </svg>
   );
 }
@@ -173,7 +173,7 @@ export default function HeroSheet({ angle = "profit", intro = true, hold = 700, 
   const copy = COPY[angle];
   const root = useRef<HTMLElement>(null);
   const tl = useRef<Timeline | null>(null);
-  const [phase, setPhase] = useState<"night" | "run" | "done">(intro && !prefersReduced() ? "night" : "done");
+  const [phase, setPhase] = useState<"night" | "run" | "done">(() => (prefersReduced() ? "done" : intro ? "night" : "run"));
   const ran = useRef(false);
 
   // the first three seconds: built once the fonts are in (the numbers are measured), then played
@@ -184,7 +184,9 @@ export default function HeroSheet({ angle = "profit", intro = true, hold = 700, 
     const go = () => {
       if (cancelled || !root.current) return;
       ran.current = true;
+      const b0 = performance.now();
       const t = build(root.current, L, { intro, angle, lead: hold });
+      (window as unknown as { __hl1BuildMs: number }).__hl1BuildMs = performance.now() - b0;
       tl.current = t;
       setPhase("run");
       expose(t, L);
@@ -229,6 +231,11 @@ export default function HeroSheet({ angle = "profit", intro = true, hold = 700, 
   const topoT = `translate(${g0[0].toFixed(2)} ${g0[1].toFixed(2)}) scale(${L.k.toFixed(5)})`;
   const hex = HEX.map(inField);
   const places = L.scene.jobs;
+  // roads as two hairlines either side of the centreline (field px)
+  const roads = [
+    { kind: "hwy", half: L.phone ? 3 : 3.5, pts: samplePath(ROAD, 16).map(inField) },
+    ...L.scene.lines.filter((l) => l.kind === "double").map((l) => ({ kind: "county", half: 2.5, pts: smooth(l.pts.map(inField), 10) })),
+  ];
   const value = (id: JobId) => (copy.mode === "money" ? fmtMoney(JOBS[id].profit) : fmtHours(JOBS[id].hours));
 
   // ── the night map, in intro screen px ──
@@ -304,14 +311,11 @@ export default function HeroSheet({ angle = "profit", intro = true, hold = 700, 
           </svg>
           <svg className="hl1-plan" width={F.w} height={F.h} aria-hidden="true">
             <g transform={topoT}>
-              {L.scene.lines.map((l, i) => (
-                <g key={i} className={`hl1-line--${l.kind}`}>
-                  <polyline className="o" points={pts(l.pts)} />
-                  <polyline className="i" points={pts(l.pts)} />
-                </g>
-              ))}
-              <path className="hl1-road-o" d={ROAD} />
-              <path className="hl1-road-i" d={ROAD} />
+              {L.scene.lines
+                .filter((l) => l.kind === "river")
+                .map((l, i) => (
+                  <polyline key={i} className="hl1-creek" points={pts(smooth(l.pts, 8))} />
+                ))}
               {L.scene.haul && <path className="hl1-haul" d={L.scene.haul} />}
               {L.scene.pit && (
                 <g className="hl1-pit" transform={`translate(${L.scene.pit[0]} ${L.scene.pit[1]}) rotate(-16)`}>
@@ -330,6 +334,12 @@ export default function HeroSheet({ angle = "profit", intro = true, hold = 700, 
                   </g>
                 ))}
             </g>
+            {roads.map((r, i) => (
+              <g key={i} className={`hl1-road hl1-road--${r.kind}`}>
+                <polyline points={toPoints(offset(r.pts, r.half))} />
+                <polyline points={toPoints(offset(r.pts, -r.half))} />
+              </g>
+            ))}
             <polygon className="hl1-fence" points={pts(hex)} data-fence="hwy9" />
           </svg>
           {places
@@ -352,7 +362,7 @@ export default function HeroSheet({ angle = "profit", intro = true, hold = 700, 
               );
             })}
           {places.map((p) => (
-            <Spot key={p.id} place={p} at={inField} label={value(p.id)} red={copy.mode === "money" && JOBS[p.id].profit < 0} big={copy.big === p.id} small={!!copy.big && copy.big !== p.id} />
+            <Spot key={p.id} place={p} at={inField} label={value(p.id)} unit={copy.mode === "money" ? "profit today" : "on site today"} red={copy.mode === "money" && JOBS[p.id].profit < 0} big={copy.big === p.id} small={!!copy.big && copy.big !== p.id} />
           ))}
           {places
             .filter((p) => p.note && copy.mode === "money")
@@ -429,7 +439,7 @@ function JobSvg({ place, at, F }: { place: JobPlace; at: (p: Pt) => Pt; F: { w: 
   );
 }
 
-function Spot({ place, at, label, red, big, small }: { place: JobPlace; at: (p: Pt) => Pt; label: string; red: boolean; big?: boolean; small?: boolean }) {
+function Spot({ place, at, label, unit, red, big, small }: { place: JobPlace; at: (p: Pt) => Pt; label: string; unit: string; red: boolean; big?: boolean; small?: boolean }) {
   const s = at(place.spot);
   const job = JOBS[place.id];
   return (
@@ -445,7 +455,7 @@ function Spot({ place, at, label, red, big, small }: { place: JobPlace; at: (p: 
           </span>
           <Odo text={label} red={red} />
           <span className="hl1-today" data-today>
-            today
+            {unit}
           </span>
           <span className="hl1-sr">
             {job.full}: {label} today
@@ -458,15 +468,18 @@ function Spot({ place, at, label, red, big, small }: { place: JobPlace; at: (p: 
 
 function Note({ place, at, phone }: { place: JobPlace; at: (p: Pt) => Pt; phone: boolean }) {
   if (phone || !place.note) return null;
-  const a = at(centroid(place.fence));
-  const b = at(place.note);
+  const a = at(place.note.from);
+  const b = at(place.note.to);
   const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
   const ang = (Math.atan2(b[1] - a[1], b[0] - a[0]) * 180) / Math.PI;
   return (
     <>
       <i className="hl1-leader" data-leader style={{ left: a[0], top: a[1], width: len, transform: `rotate(${ang}deg)` }} />
-      <span className="hl1-note-t" data-notet style={{ left: b[0] + 6, top: b[1] }}>
-        {JOBS[place.id].note}
+      <i className="hl1-leader-end" data-leader-end style={{ left: b[0], top: b[1] }} />
+      <span className="hl1-note-t" data-notet style={{ right: `calc(100% - ${b[0] - 7}px)`, top: b[1] }}>
+        {JOBS[place.id].note!.split(". ").map((l, i, a) => (
+          <span key={i}>{i < a.length - 1 ? `${l}.` : l}</span>
+        ))}
       </span>
     </>
   );
@@ -703,10 +716,10 @@ function build(root: HTMLElement, L: Layout, o: BuildOpts): Timeline {
       add(el, [{ transform: `translate(${a[0] - b[0]}px, ${a[1] - b[1]}px)` }, { transform: "translate(0px, 0px)" }], 0, CAM, EASE.cam);
     }
     // night → (a warm beat) → paper
-    add(q("[data-a=warm]"), [{ opacity: 0 }, { opacity: 1 }], 0, P ? 300 : 380, EASE.inOut, true);
-    add(q("[data-a=paper]"), [{ opacity: 0 }, { opacity: 1 }], P ? 140 : 180, P ? 440 : 520, EASE.inOut);
+    add(q("[data-a=warm]"), [{ opacity: 0 }, { opacity: 1 }], 0, P ? 240 : 280, EASE.inOut, true);
+    add(q("[data-a=paper]"), [{ opacity: 0 }, { opacity: 1 }], P ? 110 : 130, P ? 400 : 460, EASE.inOut);
     // the day drawing fades up under it
-    add(cam, [{ opacity: 0 }, { opacity: 1 }], P ? 200 : 260, P ? 420 : 460, EASE.out);
+    add(cam, [{ opacity: 0 }, { opacity: 1 }], P ? 160 : 200, P ? 420 : 460, EASE.out);
 
     // ── the intro's cards collapse into the drawing ──
     const mb = toScreen(L, MB_AT);
@@ -763,6 +776,7 @@ function build(root: HTMLElement, L: Layout, o: BuildOpts): Timeline {
   const hw = q("[data-spot=hwy9]");
   if (hw) {
     add(hw.querySelector(".hl1-num"), [{ opacity: 0, transform: "scale(0.86)" }, { opacity: 1, transform: "scale(1)" }], o.intro ? 430 : 500, 380, EASE.out);
+    add(hw.querySelector(".hl1-tri"), [{ opacity: 0 }, { opacity: 1 }], o.intro ? 430 : 500, 260, EASE.out);
     add(hw.querySelector("[data-jname]"), [{ opacity: 0 }, { opacity: 1 }], o.intro ? 520 : 560, 360, EASE.out);
     add(hw.querySelector("[data-today]"), [{ opacity: 0 }, { opacity: 1 }], o.intro ? 560 : 600, 360, EASE.out);
   }
@@ -775,6 +789,7 @@ function build(root: HTMLElement, L: Layout, o: BuildOpts): Timeline {
       const at = (o.intro ? (P ? 330 : 380) : 300) + i * (P ? 110 : 120);
       add(el, [{ opacity: 0, transform: "scale(0.92)" }, { opacity: 1, transform: "scale(1)" }], at, 440, EASE.out);
       add(q(`[data-spot=${el.dataset.job}] [data-jname]`), [{ opacity: 0 }, { opacity: 1 }], at + 120, 380, EASE.out);
+      add(q(`[data-spot=${el.dataset.job}] .hl1-tri`), [{ opacity: 0 }, { opacity: 1 }], at + 80, 300, EASE.out);
     });
 
   // ── the sheet's rules draw (scale on 1 px elements), border first ──
@@ -795,7 +810,7 @@ function build(root: HTMLElement, L: Layout, o: BuildOpts): Timeline {
   const RETRACT = 150;
   if (sweep) {
     add(sweep, [{ transform: `translateX(${xs}px)` }, { transform: `translateX(${xe}px)` }], SW_AT, SW_DUR, EASE.sweep, true);
-    add(sweep, [{ opacity: 0 }, { opacity: 1 }], SW_AT, 120, "linear");
+    add(sweep, [{ opacity: 0 }, { opacity: 1 }], SW_AT, 120, "linear", true);
   }
   const line = q("[data-a=sweep-line]");
   const tag = q("[data-a=sweep-tag]");
@@ -836,8 +851,10 @@ function build(root: HTMLElement, L: Layout, o: BuildOpts): Timeline {
     if (JOBS[id].profit < 0 && o.angle !== "timecards" && o.angle !== "payroll") {
       // the only red: one ring off its fence, then the note
       const pulse = q("[data-pulse]");
-      add(pulse, [{ opacity: 0.9, transform: "scale(1)" }, { opacity: 0, transform: "scale(1.22)" }], end - 260, 760, EASE.out, false);
-      add(q("[data-leader]"), [{ transform: q("[data-leader]")!.style.transform + " scaleX(0)" }, { transform: q("[data-leader]")!.style.transform + " scaleX(1)" }], end - 120, 320, EASE.out);
+      add(pulse, [{ opacity: 0, transform: "scale(1)" }, { opacity: 0.95, transform: "scale(1.02)", offset: 0.08 }, { opacity: 0, transform: "scale(1.24)" }], end - 280, 820, EASE.out, false);
+      const leader = q("[data-leader]");
+      if (leader) add(leader, [{ transform: leader.style.transform + " scaleX(0)" }, { transform: leader.style.transform + " scaleX(1)" }], end - 120, 320, EASE.out);
+      add(q("[data-leader-end]"), [{ opacity: 0 }, { opacity: 1 }], end + 160, 200, EASE.out);
       add(q("[data-notet]"), [{ opacity: 0, transform: "translateX(-6px)" }, { opacity: 1, transform: "translateX(0px)" }], end + 60, 380, EASE.out);
       lastSet = Math.max(lastSet, end);
     }

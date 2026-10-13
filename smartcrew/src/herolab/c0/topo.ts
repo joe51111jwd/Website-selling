@@ -154,7 +154,8 @@ export function makeField(o: TopoInput) {
 
 // ── marching squares ──────────────────────────────────────────────────────────────────
 
-export function contours(o: TopoInput): TopoOut {
+/** The generator does the work in slices (one grid row, one contour level per slice). */
+export function* contoursGen(o: TopoInput): Generator<void, TopoOut, void> {
   const f = makeField(o);
   const s = o.step;
   // one cell of margin past every edge, so lines run off the page instead of ending at it
@@ -163,15 +164,16 @@ export function contours(o: TopoInput): TopoOut {
   const x0 = -s;
   const y0 = -s;
   const v = new Float32Array(nx * ny);
-  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) v[j * nx + i] = f(x0 + i * s, y0 + j * s);
-
+  for (let j = 0; j < ny; j++) {
+    for (let i = 0; i < nx; i++) v[j * nx + i] = f(x0 + i * s, y0 + j * s);
+    yield;
+  }
   const levels = o.levels ?? 14;
   const major = o.major ?? 4;
   let minor = "";
   let maj = "";
   for (let k = 1; k <= levels; k++) {
-    const lv = -k;
-    const lines = trace(v, nx, ny, lv, x0, y0, s);
+    const lines = trace(v, nx, ny, -k, x0, y0, s);
     let d = "";
     for (const pl of lines) {
       const simp = rdp(pl.pts, 0.45);
@@ -181,8 +183,40 @@ export function contours(o: TopoInput): TopoOut {
     }
     if (k % major === 0) maj += d;
     else minor += d;
+    yield;
   }
   return { minor, major: maj, field: f };
+}
+
+/** All at once (blocking). */
+export function contours(o: TopoInput): TopoOut {
+  const g = contoursGen(o);
+  for (;;) {
+    const r = g.next();
+    if (r.done) return r.value;
+  }
+}
+
+/** In ~`budget` ms slices between frames, so it never makes a long task (phones at 4x CPU). */
+export function contoursAsync(o: TopoInput, budget = 6): { done: Promise<TopoOut>; cancel: () => void } {
+  let dead = false;
+  const ch = new MessageChannel();
+  const done = new Promise<TopoOut>((resolve) => {
+    const g = contoursGen(o);
+    const run = () => {
+      if (dead) return;
+      const t = performance.now();
+      for (;;) {
+        const r = g.next();
+        if (r.done) return resolve(r.value);
+        if (performance.now() - t > budget) break;
+      }
+      ch.port2.postMessage(0);
+    };
+    ch.port1.onmessage = run;
+    run();
+  });
+  return { done, cancel: () => ((dead = true), ch.port1.close()) };
 }
 
 type Poly = { pts: Pt[]; closed: boolean };
