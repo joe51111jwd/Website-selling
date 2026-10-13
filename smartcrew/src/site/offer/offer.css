@@ -124,6 +124,15 @@
   align-items: center;
   gap: 2px;
   margin-top: clamp(12px, 2.4svh, 22px);
+  transition: filter 0.2s var(--ease-out);
+}
+
+/* slid up under the frosted header: out of sight, so the FAQ's close CTA can take over (Offer.tsx).
+   A filter, not `opacity`: the button still counts as on screen for primaryCta.ts, so the header's
+   own CTA doesn't flash in between the two. */
+.offer-actions.is-under {
+  filter: opacity(0);
+  pointer-events: none;
 }
 
 .offer-cta {

@@ -1,235 +1,224 @@
-// 1 · Hero. Copy on the left (phones: on top); on the right the real MacBook and iPhone (the
-// Stage, fitted into the "hero" anchor) with the hook readable on the laptop: the clock-in toast
-// lands and the job's profit ticks up (crisp DOM cards that follow the laptop, ./cards.ts). After
-// the intro those two cards ARE the intro's notifications, glided onto the laptop. The ad's angle
-// (?angle=) picks the headline. Phones: the headline, the devices with the toast, and the CTA
-// all share the first screen; the sub shortens.
+// 1 · Hero: "Fence the Words" (scratchpad design/v2/herolab/HERO_SPEC.md). The type is the hero:
+// a centred, giant headline on the warm jobsite ground. The intro's geofence re-stakes itself
+// round the ad angle's key phrase ("every job"), the Hwy 9 crew walk in along its band and clock
+// in on the headline, a flagging-tape tag tied to the fence reads that job's profit today (phones
+// and narrow laptops: a job chip under the headline), and the orange "Get my free trial" sits
+// alone on the axis underneath, with its own fence closing once, the "clocked in" moment. No
+// devices in the first screen: the Stage parks them below the fold for One Day.
+//
+// React renders the copy and the empty layers; ./fence/engine.ts measures the set type, builds the
+// ground, the fence and the crew, takes over the intro's last frame (./fence/handoff.ts) and plays
+// the first seconds. Desktop and phones share this component: phones get their own line breaks,
+// copy (HERO_PHONE) and a light, transform/opacity-only engine path.
 
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
-import { ANGLES, CTA, HERO, HERO2, INTRO2, LOGOS, LOGO_VECTORS, readAngle } from "../../content/copy";
+import { useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties } from "react";
+import { ANGLES, HERO, HERO_JOBS, HERO_PHONE, LOGOS, LOGO_VECTORS, readAngle } from "../../content/copy";
 import { Scene } from "../scene/Scene";
-import { StageAnchor } from "../../three/stage/StageAnchor";
-import { phone, reducedMotion, reveal } from "../../three/stage/store";
+import { reducedMotion, reveal } from "../../three/stage/store";
 import type { PoseKey } from "../../three/stage/types";
 import { Cta, DemoLink } from "../ui/Cta";
 import { watchHeroCta } from "../shell/heroCta";
-import { introRan, useIntroPhase } from "../intro/intro";
-import { startTopo } from "../intro/topo";
+import { getIntroPhase, introRan } from "../intro/intro";
 import { scrollToScene } from "../scroll";
-import { HERO_FRAME, money, mountCards } from "./cards";
-import { runHeroLife } from "./screenLife";
-import { Dollar, HERO_EASE, Words } from "./parts";
-import HeroPhone from "./HeroPhone";
 import { usePhoneLite } from "../phone";
-import "./hero.css";
+import { mountFence, type FenceMode } from "./fence/engine";
+import "./fence/fence.css";
 
-const ease = HERO_EASE;
+/**
+ * `hero-park`: the Stage's pose under the hero. The MacBook and the iPhone wait below the fold in
+ * One Day's own frame (its anchor sits one screen down), tilted back and still (no float, no
+ * look-around, so the Stage idles while the hero is at rest), on the screens One Day opens with.
+ * As the page scrolls they rise into One Day's first shot (its clock-in key).
+ */
+export const HERO_PARK: PoseKey[] = [
+  {
+    at: 0,
+    anchor: "day",
+    frame: [5.3, 3.4],
+    iphone: { x: -1.25, y: -0.95, z: 0.5, rx: 34, ry: 16, rz: 2, s: 1.32, screen: "phone-home" },
+    macbook: { x: 0.95, y: -0.55, z: -1.3, rx: 42, ry: -24, rz: 0, s: 0.98, screen: "web-dashboard" },
+    display: { show: 0 },
+    float: 0,
+    look: 0,
+    view: { rx: 0, ry: 0 },
+  },
+];
 
-/** The hero's pose: laptop three-quarter, the phone leaning in front of it. */
-export function heroPoses(laptop: string): PoseKey[] {
-  if (phone)
-    return [
-      {
-        at: 0,
-        anchor: "hero",
-        frame: HERO_FRAME,
-        macbook: { x: -0.42, y: 0.12, z: -0.4, rx: 12, ry: -20, rz: 0, s: 1, screen: laptop },
-        iphone: { x: 1.62, y: -0.3, z: 1.0, rx: 5, ry: -16, rz: -3, s: 1.04, screen: "phone-working" },
-        float: 1,
-        look: 1,
-      },
-    ];
-  return [
-    {
-      at: 0,
-      anchor: "hero",
-      frame: HERO_FRAME,
-      macbook: { x: -0.32, y: 0.16, z: -0.5, rx: 14, ry: -26, rz: 0, s: 1, screen: laptop },
-      iphone: { x: 1.3, y: -0.32, z: 1.5, rx: 5, ry: -20, rz: -3.5, s: 1.06, screen: "phone-working" },
-      float: 1,
-      look: 1,
-    },
-  ];
+type Line = { pre: string; fence: string | null; post: string };
+
+/** Split each line round the fenced phrase; a fenced phrase that ends the sentence drops its full stop (on screen only). */
+function splitLines(lines: string[], fence: string): Line[] {
+  return lines.map((l, i) => {
+    const at = l.indexOf(fence);
+    if (at < 0) return { pre: l, fence: null, post: "" };
+    let post = l.slice(at + fence.length);
+    if (i === lines.length - 1 && /^[.!?]$/.test(post)) post = "";
+    return { pre: l.slice(0, at), fence, post };
+  });
 }
 
-/** The two live cards on the laptop (markup = the intro's notifications in index.html). */
-function HeroCards({ laptop }: { laptop: string }) {
-  const layer = useRef<HTMLDivElement>(null);
-  const toast = useRef<HTMLDivElement>(null);
-  const profit = useRef<HTMLDivElement>(null);
-  const value = useRef<HTMLElement>(null);
-  const leader = useRef<SVGSVGElement>(null);
-  const n = INTRO2.notes.clockin;
-  const withLeader = laptop === "web-project-detail";
-  useEffect(
-    () => mountCards({ layer: layer.current!, toast: toast.current!, profit: profit.current!, value: value.current!, leader: leader.current }, introRan),
-    [],
-  );
-  return (
-    <div className="hero-cards" ref={layer} aria-hidden="true">
-      {withLeader && (
-        <svg className="hero-leader" ref={leader}>
-          <line />
-          <circle r="4.5" />
-        </svg>
-      )}
-      <div className="sc-note hero-card hero-toast" ref={toast}>
-        <span className="sc-note-av">{n.initials}</span>
-        <span className="sc-note-tx">
-          <b>{n.title}</b>
-          <span>{n.meta}</span>
-        </span>
-        <span className="sc-note-time">{n.time}</span>
-      </div>
-      <div className="sc-kpi hero-card hero-profit" ref={profit}>
-        <span className="sc-note-ic">
-          <Dollar />
-        </span>
-        <span className="sc-kpi-tx">
-          <span className="sc-kpi-l">
-            {HERO2.profit.label} · {HERO2.profit.job}
-          </span>
-          <b className="sc-kpi-v" ref={value}>
-            {money(HERO2.profit.from)}
-          </b>
-        </span>
-        <span className="sc-kpi-d">{HERO2.profit.delta}</span>
-      </div>
-    </div>
-  );
-}
+const Arrow = () => (
+  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M8 2.5v10.2M3.8 8.6 8 12.8l4.2-4.2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
-/** Phones get the light 2D hero (./HeroPhone.tsx); everything else the 3D one. */
 export default function Hero() {
-  return usePhoneLite() ? <HeroPhone /> : <HeroDesk />;
-}
-
-function HeroDesk() {
+  const lite = usePhoneLite();
   const angle = useMemo(readAngle, []);
   const copy = ANGLES[angle];
-  const poses = useMemo(() => heroPoses(copy.laptop), [copy.laptop]);
-  const phase = useIntroPhase();
-  const play = phase !== "playing";
-  // (after the intro, intro.ts flips the phase once the ground has warmed: the copy builds then)
-  const cta = useRef<HTMLDivElement>(null);
-  const head = useRef<HTMLDivElement>(null);
+  const lines = useMemo(() => splitLines(lite ? copy.lines.phone : copy.lines.desk, copy.fence), [lite, copy]);
+  const root = useRef<HTMLDivElement>(null);
   const act = useRef<HTMLDivElement>(null);
-  const stage = useRef<HTMLDivElement>(null);
+  const rows = [...HERO_JOBS.rows, HERO_JOBS.rows[0]];
 
-  useEffect(() => watchHeroCta(cta.current), []);
-  // without an intro (second visit, reduced motion) the devices come in as the page opens
+  // the header's CTA and the phone's sticky bar appear once this button has scrolled away
+  useEffect(() => watchHeroCta(act.current), [lite]);
+  // without an intro (second visit, reduced motion) the devices' entrance starts now (parked below the fold)
   useEffect(() => {
-    if (play) reveal();
-  }, [play]);
-  useEffect(() => runHeroLife(copy.laptop), [copy.laptop]);
-  // the map under the hero: drifts with the cursor, fades as the page scrolls on
-  useEffect(() => (phase === "done" ? startTopo() : undefined), [phase]);
-
-  // phones: the devices take whatever the first screen has left between the headline and the CTA
-  useLayoutEffect(() => {
-    if (!phone) return;
-    const fit = () => {
-      const h = head.current?.offsetHeight ?? 0;
-      const a = act.current?.offsetHeight ?? 0;
-      const header = 56 + 10;
-      const room = window.innerHeight - header - h - a - 26;
-      stage.current?.style.setProperty("height", `${Math.round(Math.min(330, Math.max(200, room)))}px`);
-    };
-    fit();
-    const ro = new ResizeObserver(fit);
-    if (head.current) ro.observe(head.current);
-    if (act.current) ro.observe(act.current);
-    window.addEventListener("resize", fit);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", fit);
-    };
+    if (!introRan || getIntroPhase() === "done") reveal();
   }, []);
-
-  // as the page scrolls on, the copy lifts and fades while the devices fly into One Day
-  const { scrollY } = useScroll();
-  // (phones scroll through a taller hero, so there the copy simply scrolls away)
-  const still = reducedMotion || phone;
-  const exitY = useTransform(scrollY, [0, 520], [0, still ? 0 : -70]);
-  const exitO = useTransform(scrollY, [80, 480], [1, still ? 1 : 0]);
-
-  const fade = (d: number) => ({
-    initial: false as const,
-    animate: play ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 },
-    transition: { duration: 0.8, ease, delay: d },
-  });
+  useLayoutEffect(() => {
+    const mode: FenceMode = reducedMotion ? "reduced" : introRan ? "intro" : "plain";
+    return mountFence(root.current!, { phone: lite, mode, debug: false });
+  }, [lite]);
 
   return (
-    <Scene id="top" pinnedViewports={1} poses={poses} label="SmartCrew" className="hero">
-      <div className="hero-grid wrap">
-        <motion.div className="hero-head" ref={head} style={{ y: exitY, opacity: exitO }}>
-          <motion.p className="hero-eyebrow" {...fade(0.05)}>
-            {HERO.eyebrow}
-          </motion.p>
-          <h1 className="t-hero hero-h1">
-            <Words text={copy.h1} delay={0.1} play={play} />
-          </h1>
-          <motion.p className="t-lead hero-sub" {...fade(0.42)}>
-            <span className="hero-sub-full">{copy.sub}</span>
-            <span className="hero-sub-short">{HERO2.subShort[angle]}</span>
-          </motion.p>
-        </motion.div>
-        <div className="hero-stage-wrap" ref={stage}>
-          <StageAnchor
-            id="hero"
-            className="hero-stage"
-            poster={{
-              src: phone ? "renders/hero-phone.webp" : "renders/hero.webp",
-              frame: HERO_FRAME,
-              // phones: the stage is full-bleed, so the still is the frame itself (no margin)
-              pad: phone ? 0 : 0.12,
-              alt: "SmartCrew on a MacBook and an iPhone",
-            }}
-          >
-            <HeroCards laptop={copy.laptop} />
-          </StageAnchor>
-          {/* the demo-account note lives in the footer (and under One Day): here it sat on the laptop */}
+    <Scene id="top" pinnedViewports={1} poses={lite ? undefined : HERO_PARK} stage={lite ? "keep" : "hide"} label="SmartCrew" className="hero hf">
+      <div className={`hf-root${lite ? " hf--phone" : ""}`} ref={root}>
+        <div className="hf-ground" aria-hidden="true">
+          <div className="hf-ground-drift">
+            <svg>
+              <path className="mi" />
+              <path className="ma" />
+            </svg>
+          </div>
         </div>
-        <motion.div className="hero-act" ref={act} style={{ y: exitY, opacity: exitO }}>
-          <motion.div className="hero-actions" ref={cta} data-hero-cta {...fade(0.55)}>
-            <Cta source="hero" id="hero-cta" size="xl" className="hero-cta" />
-            <DemoLink source="hero" />
-          </motion.div>
-          <motion.p className="t-micro hero-micro" {...fade(0.62)}>
-            {CTA.micro}
-          </motion.p>
-        </motion.div>
-        <motion.div className="hero-foot" style={{ opacity: exitO }}>
-          <motion.div className="hero-foot-in" {...fade(0.8)}>
-            <div className="hero-logos">
-              <span className="hero-logos-k">{HERO.usedBy}</span>
-              <ul>
-                {LOGOS.map((l) => {
-                  const h = Math.round(Math.sqrt(1900 / l.aspect));
-                  return (
-                    <li key={l.name}>
-                      <img
-                        // vector where a faithful trace exists (crisp at any size), raster otherwise
-                        src={import.meta.env.BASE_URL + (LOGO_VECTORS[l.name] ?? l.src)}
-                        alt={l.name}
-                        width={Math.round(h * l.aspect)}
-                        height={h}
-                        style={{ ["--h" as string]: `${h}px` }}
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-            <button type="button" className="hero-cue" onClick={() => scrollToScene("day")}>
-              <span>{HERO.cue}</span>
-              <span className="hero-cue-line" aria-hidden="true">
-                <span />
+
+        <div className="hf-copy">
+          {!lite && <p className="hf-eyebrow">{HERO.eyebrow}</p>}
+          <h1 className="hf-h1">
+            <span className="sr-only">{copy.h1}</span>
+            <span className="hf-h1-v" aria-hidden="true">
+              {lines.map((l, i) => (
+                <span className={`hf-line${l.fence ? " hf-line--fence" : ""}`} key={i}>
+                  <span className="hf-line-in">
+                    {l.pre}
+                    {l.fence && <span className="hf-fenced">{l.fence}</span>}
+                    {l.post}
+                    <i className="hf-base" />
+                  </span>
+                </span>
+              ))}
+            </span>
+          </h1>
+          {/* the job chip (phones, narrow laptops): the tag's compact form; tap it to roll to the next job */}
+          <span className="hf-chip" aria-hidden="true">
+            <i className="hf-chip-plate" />
+            <span className="hf-chip-face">
+              <svg className="hf-chip-glyph" viewBox="0 0 15 13">
+                <path d="M1 6.5 4 1.2h7L14 6.5 11 11.8H4Z" />
+              </svg>
+              <span className="hf-chip-win">
+                <span className="hf-chip-strip">
+                  {rows.map((r, i) => (
+                    <span className="hf-chip-row" key={i}>
+                      {r.job} · <b data-tone={r.tone}>{r.today}</b>
+                    </span>
+                  ))}
+                </span>
               </span>
-            </button>
-          </motion.div>
-        </motion.div>
+            </span>
+          </span>
+          <p className="hf-sub">{lite ? HERO_PHONE.sub[angle] : copy.sub}</p>
+          <div className="hf-act" ref={act} data-hero-cta>
+            <span className="hf-cta-wrap">
+              <Cta source="hero" id="hero-cta" size="xl" className="hf-cta" cue={false} block={lite} data-cursor-magnet={6} />
+            </span>
+            <DemoLink source="hero" className="hf-demo" />
+          </div>
+          <p className="hf-micro">{lite ? HERO_PHONE.micro : HERO.micro}</p>
+        </div>
+
+        <div className="hf-foot">
+          <div className="hf-logos">
+            <span className="hf-logos-k">{HERO.usedBy}</span>
+            <ul>
+              {LOGOS.map((l) => {
+                const h = Math.round(Math.sqrt(1900 / l.aspect));
+                return (
+                  <li key={l.name}>
+                    <img
+                      // vector where a faithful trace exists (crisp at any size), raster otherwise
+                      src={import.meta.env.BASE_URL + (LOGO_VECTORS[l.name] ?? l.src)}
+                      alt={l.name}
+                      width={Math.round(h * l.aspect)}
+                      height={h}
+                      style={{ "--h": `${h}px` } as CSSProperties}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <button type="button" className="hf-cue" data-cursor="link" onClick={() => scrollToScene("day")}>
+            <span>{HERO.cue}</span>
+            <Arrow />
+          </button>
+        </div>
+
+        {/* the jobsite on the headline: fence, crew, the tag, the button's own fence (decoration) */}
+        <div className="hf-fx" aria-hidden="true">
+          <div className="hf-svgl hf-tape" />
+          <div className="hf-svgl hf-ring" />
+          <div className="hf-svgl hf-ring-s" />
+          <div className="hf-svgl hf-ring-p" />
+          <div className="hf-svgl hf-nfence" />
+          <div className="hf-svgl hf-fence" />
+          <div className="hf-svgl hf-pulse" />
+          {!lite && (
+            <>
+              {HERO_JOBS.crew.map((c) => (
+                <span className="hf-stamp" data-id={c.id} key={c.id}>
+                  {c.time}
+                </span>
+              ))}
+              <div className="hf-tag" data-cursor="link">
+                <i className="hf-tag-plate" />
+                <div className="hf-tag-bgw">
+                  <div className="hf-tag-shadow" />
+                  <svg className="hf-tag-bg" />
+                </div>
+                <div className="hf-tag-face">
+                  <div className="hf-tag-win">
+                    <div className="hf-tag-strip">
+                      {rows.map((r, i) => (
+                        <div className="hf-tag-row" key={i}>
+                          <span className="hf-tag-job">{r.job}</span>
+                          <span className="hf-tag-state" data-tone={r.tone}>
+                            {r.today}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="hf-tag-note">{HERO_JOBS.note}</p>
+            </>
+          )}
+          {HERO_JOBS.crew.map((c) => (
+            <div className="hf-mk" data-id={c.id} key={c.id}>
+              <span className="hf-mk-i">{c.initials}</span>
+              <span className="hf-mk-t">{c.time}</span>
+              <i className="hf-mk-ring" />
+              <i className="hf-mk-dot" />
+            </div>
+          ))}
+        </div>
+
+        {/* the intro's last frame, rebuilt here on the frame the hero takes over (./fence/engine.ts) */}
+        <div className="hf-night" aria-hidden="true" />
       </div>
     </Scene>
   );

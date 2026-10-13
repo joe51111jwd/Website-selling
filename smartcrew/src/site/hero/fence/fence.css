@@ -1,0 +1,864 @@
+/* 1 · Hero: "Fence the Words" (src/site/hero/Hero.tsx, ./engine.ts). Every selector is .hf-
+   prefixed; the orange button is the page's .cta (src/site/ui/cta.css). PHONE MODE: max-width
+   760px (transform and opacity only, no filters, no backdrop-filter, no animated shadows). */
+
+.hf-root {
+  --g: clamp(20px, 4vw, 64px);
+  --fs: min(92px, 6.4vw);
+  --green-ink: #18874a;
+  --red-ink: #cf3a3f;
+  --gap-h1: clamp(8px, 2.2svh, 18px);
+  --gap-sub: clamp(12px, 3svh, 24px);
+  --gap-cta: clamp(16px, 3.4svh, 26px);
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 540px;
+  overflow: clip;
+  color: var(--ink);
+  isolation: isolate;
+}
+
+/* before the first layout (fonts loading) nothing shows; while the intro plays, the hero waits
+   under it until it takes over the intro's last frame */
+.hf-root:not(.is-laid) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx),
+html.intro-on .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx) {
+  visibility: hidden;
+}
+
+/* ── the ground: the copy is a landform, the contours flow round it ─────────────────── */
+
+.hf-ground {
+  position: absolute;
+  inset: -12px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.hf-ground svg {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  display: block;
+  max-width: none;
+  overflow: visible;
+}
+
+.hf-ground path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 0.75;
+  stroke-linejoin: round;
+}
+
+.hf-ground .mi {
+  stroke-opacity: 0.085;
+}
+
+.hf-ground .ma {
+  stroke-opacity: 0.13;
+  stroke-width: 0.9;
+}
+
+/* ── the copy column, on the axis ───────────────────────────────────────────────────── */
+
+.hf-copy {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  top: var(--copy-top, 76px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--g);
+  text-align: center;
+  pointer-events: none;
+}
+
+.hf-copy > * {
+  pointer-events: auto;
+}
+
+.hf-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 560;
+  line-height: 1.2;
+  color: var(--ink-2);
+}
+
+.hf-eyebrow::before {
+  content: "";
+  flex: none;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--orange);
+}
+
+.hf-h1 {
+  margin-top: var(--gap-h1);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-stretch: 96%;
+  font-size: var(--fs);
+  line-height: 0.98;
+  letter-spacing: -0.012em;
+  word-spacing: 0.04em;
+  font-kerning: normal;
+  color: var(--ink);
+}
+
+.hf-h1-v {
+  display: block;
+}
+
+/* each line clips its own reveal; the padding/margin pair widens the clip past the glyphs */
+.hf-line {
+  display: block;
+  overflow: hidden;
+  padding: 0.12em 0.3em 0.1em;
+  margin: -0.12em -0.3em -0.1em;
+}
+
+/* the fenced line: its leading opens so the fence keeps clear of the lines either side */
+.hf-line--fence {
+  margin-top: calc(var(--fl-mt, 0px) - 0.12em);
+  margin-bottom: calc(var(--fl-mb, 0px) - 0.1em);
+}
+
+/* while the words grow out of the intro's map label, their line doesn't clip */
+.hf-root.is-intro .hf-line--fence {
+  overflow: visible;
+}
+
+.hf-line-in {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.hf-fenced {
+  position: relative;
+  display: inline-block;
+}
+
+.hf-base {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  vertical-align: baseline;
+}
+
+.hf-sub {
+  margin-top: var(--gap-sub);
+  max-width: 34.5em;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-wrap: balance;
+}
+
+/* the button sits ON the axis; the demo link hangs to the right of its fence and never moves it */
+.hf-act {
+  position: relative;
+  margin-top: var(--gap-cta);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hf-cta-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.hf-root .hf-cta {
+  --cta-h: 64px;
+  --cta-px: 40px;
+  --cta-fs: 20px;
+  min-width: 300px;
+}
+
+.hf-root .hf-demo {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(100% + 54px);
+  margin: auto 0;
+  height: 44px;
+  font-size: 16px;
+  font-weight: 560;
+  white-space: nowrap;
+}
+
+.hf-micro {
+  margin-top: clamp(12px, 2.4svh, 18px);
+  font-size: 13.5px;
+  line-height: 1.3;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+/* the job chip: the tag's compact form (phones; laptops too narrow for the tag) */
+.hf-chip {
+  position: relative;
+  margin-top: 14px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px 0 10px;
+  border-radius: 99px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 12%),
+    0 6px 14px -10px rgb(23 19 15 / 40%);
+  font-size: 14px;
+  font-weight: 560;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hf-chip.is-flying {
+  background: transparent;
+  box-shadow: none;
+}
+
+.hf-chip-plate {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 99px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 12%),
+    0 6px 14px -10px rgb(23 19 15 / 40%);
+  opacity: 0;
+  transform-origin: 50% 50%;
+}
+
+.hf-chip-face {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hf-chip-glyph {
+  flex: none;
+  width: 15px;
+  height: 13px;
+}
+
+.hf-chip-glyph path {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 1.6;
+  stroke-dasharray: 3 2;
+  stroke-linejoin: round;
+}
+
+.hf-chip-win {
+  height: 28px;
+  overflow: hidden;
+}
+
+.hf-chip-strip {
+  display: grid;
+}
+
+.hf-chip-row {
+  display: block;
+  height: 28px;
+  line-height: 28px;
+  white-space: nowrap;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+.hf-chip-row b {
+  font-weight: 650;
+}
+
+@media (min-width: 761px) {
+  .hf-root:not(.no-tag) .hf-chip {
+    display: none;
+  }
+}
+
+/* ── the foot: proof and the open loop ──────────────────────────────────────────────── */
+
+.hf-foot {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  bottom: clamp(14px, 3svh, 22px);
+  max-width: calc(var(--max) + var(--g) * 2);
+  margin: 0 auto;
+  padding: 0 var(--g);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.hf-logos {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.hf-logos-k {
+  font-size: 13px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.hf-logos ul {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.8vw, 26px);
+}
+
+.hf-logos img {
+  height: calc(var(--h) * 0.8);
+  width: auto;
+  opacity: 0.6;
+}
+
+.hf-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.hf-cue svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── the jobsite on the headline: fence, crew, the tag, the button's own fence ─────── */
+
+.hf-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.hf-svgl {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+
+.hf-svgl svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  max-width: none;
+  overflow: visible;
+}
+
+.hf-fence-line {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+  stroke-dasharray: 10 7;
+  transition: stroke-dasharray 0.32s var(--ease-out);
+}
+
+.hf-fence-fill {
+  fill: var(--orange);
+  fill-opacity: 0;
+  transition: fill-opacity 0.4s var(--ease-out);
+}
+
+/* the cursor stepped inside: the fence closes solid */
+.hf-fence.is-on .hf-fence-line {
+  stroke-dasharray: 17 0;
+}
+
+.hf-fence.is-on .hf-fence-fill {
+  fill-opacity: 0.045;
+}
+
+/* during the hand-off the engine draws the fence frame by frame: no CSS easing in between */
+.hf-root.is-intro :is(.hf-fence-line, .hf-fence-fill) {
+  transition: none;
+}
+
+.hf-pulse {
+  opacity: 0;
+}
+
+.hf-pulse-line {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+}
+
+/* survey stakes: a solid orange dot with a ground-coloured halo */
+.hf-stake {
+  fill: var(--orange);
+  stroke: var(--ground);
+  stroke-width: 4;
+  paint-order: stroke;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.hf-stake-hit {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+  cursor: grab;
+  touch-action: none;
+}
+
+/* the intro's fence, re-staked by transform on phones (./engine.ts) */
+.hf-nfence-line {
+  fill: none;
+  stroke: var(--orange);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.hf-nfence-zone {
+  fill: var(--orange);
+  stroke: none;
+}
+
+/* the tape from the fence's top-right stake to the tag */
+.hf-tape-line {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+  stroke-linecap: round;
+}
+
+.hf-tape-knot {
+  fill: var(--orange);
+}
+
+/* the crew's markers */
+.hf-mk {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 0 1.5px var(--ink),
+    0 2px 6px -2px rgb(23 19 15 / 35%);
+  display: grid;
+  place-items: center;
+  font: 650 10.5px/1 var(--font-text);
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  transform: translate(-100px, -100px);
+}
+
+.hf-mk > span {
+  grid-area: 1 / 1;
+}
+
+.hf-mk-t {
+  opacity: 0;
+  font-family: var(--font-display);
+  font-stretch: 75%;
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* clocked in: the app's green status dot */
+.hf-mk-dot {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #24c56f;
+  box-shadow: 0 0 0 2px #fff;
+  opacity: 0;
+}
+
+/* the crossing flash: the marker's ring goes orange for a beat */
+.hf-mk-ring {
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2.5px var(--orange);
+  opacity: 0;
+}
+
+/* Marcus wears the intro's night marker for the first frames of the hand-off */
+.hf-mk-night {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  max-width: none;
+  overflow: visible;
+}
+
+.hf-stamp {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--font-display);
+  font-stretch: 75%;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings:
+    "tnum" 1,
+    "lnum" 1,
+    "case" 1;
+  color: var(--ink-2);
+  white-space: nowrap;
+  opacity: 0;
+}
+
+/* the tag: a hang tag tied to the fence's top-right stake */
+.hf-tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--tag-w, 214px);
+  height: 62px;
+  transform-origin: 50% 50%;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.hf-tag-plate {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgb(17 17 17 / 6%),
+    0 16px 34px -14px rgb(17 17 17 / 42%);
+  opacity: 0;
+  transform-origin: 50% 50%;
+}
+
+.hf-tag-bgw {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.hf-tag-bg {
+  position: absolute;
+  inset: 0;
+  max-width: none;
+  overflow: visible;
+}
+
+.hf-tag-bg path {
+  fill: #fff;
+  stroke: rgb(23 19 15 / 16%);
+  stroke-width: 1;
+}
+
+.hf-tag-bg circle {
+  fill: var(--ground);
+  stroke: rgb(23 19 15 / 30%);
+  stroke-width: 1;
+}
+
+.hf-tag-shadow {
+  position: absolute;
+  inset: 4px 2px -2px 10px;
+  border-radius: 10px;
+  box-shadow: 0 14px 28px -16px rgb(23 19 15 / 45%);
+}
+
+.hf-flying-card {
+  z-index: 2;
+}
+
+.hf-tag-face {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+.hf-tag-win {
+  position: absolute;
+  left: 30px;
+  right: 12px;
+  top: 8px;
+  height: 46px;
+  overflow: hidden;
+}
+
+.hf-tag-row {
+  height: 46px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.hf-tag-job {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ink-2);
+}
+
+.hf-tag-state {
+  font-family: var(--font-display);
+  font-stretch: 88%;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.08;
+  letter-spacing: -0.004em;
+  font-variant-numeric: tabular-nums;
+}
+
+.hf-root [data-tone="pos"] {
+  color: var(--green-ink);
+}
+
+.hf-root [data-tone="neg"] {
+  color: var(--red-ink);
+}
+
+/* the demo note: one quiet line under the tag */
+.hf-tag-note {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 12px;
+  line-height: 1.3;
+  color: rgb(23 19 15 / 55%);
+  white-space: nowrap;
+  opacity: 0;
+}
+
+/* the button's own fence: draws round it once, closes, pings, lets go; redraws solid on hover */
+.hf-ring-line {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-dasharray: 10 7;
+}
+
+.hf-ring-solid {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+}
+
+.hf-ring,
+.hf-ring-p {
+  opacity: 0;
+}
+
+.hf-ring-s {
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+}
+
+.hf-root.is-cta .hf-ring-s {
+  opacity: 1;
+  transition-duration: 0.18s;
+}
+
+/* ── the night: the intro's last frame, rebuilt by the engine on the frame it takes over ── */
+
+.hf-night {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hf-night:empty {
+  display: none;
+}
+
+.hf-night-ground {
+  position: absolute;
+  inset: 0;
+  background: var(--night);
+}
+
+.hf-night-map {
+  position: absolute;
+  inset: 0;
+}
+
+/* the day breaks from the jobsite: one ≤ 400 px gradient, scaled by transform only. It starts
+   large (already reaching the nearest edge), accelerates out, and carries a warm rim */
+.hf-dawn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--ground) 0%, var(--ground) 80%, #f1dfc6 89%, rgb(241 223 198 / 0) 100%);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.hf-night-label {
+  position: absolute;
+  inset: 0;
+}
+
+.hf-night-label svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  max-width: none;
+  overflow: visible;
+}
+
+/* ── PHONE MODE ─────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  .hf-root {
+    --g: 16px;
+    --fs: 54px;
+    height: auto;
+    min-height: 100svh;
+  }
+
+  .hf-copy {
+    position: relative;
+    top: auto;
+    padding-top: calc(var(--header-h) + 10px);
+  }
+
+  .hf-h1 {
+    margin-top: 0;
+  }
+
+  .hf-chip {
+    margin-top: 12px;
+  }
+
+  .hf-sub {
+    margin-top: 12px;
+    max-width: 24em;
+    font-size: 15px;
+    line-height: 1.42;
+  }
+
+  .hf-act {
+    margin-top: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .hf-cta-wrap {
+    display: flex;
+    width: 100%;
+  }
+
+  .hf-root .hf-cta {
+    --cta-h: 56px;
+    --cta-px: 20px;
+    --cta-lip: 3px;
+    --cta-fs: 19px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .hf-root .hf-demo {
+    position: static;
+    align-self: center;
+    height: auto;
+    min-height: 40px;
+    margin-top: 4px;
+    font-size: 15.5px;
+  }
+
+  .hf-micro {
+    margin-top: 2px;
+    font-size: 13px;
+  }
+
+  .hf-foot {
+    position: relative;
+    bottom: auto;
+    margin-top: 16px;
+    padding-bottom: 14px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .hf-logos-k {
+    display: none;
+  }
+
+  .hf-logos,
+  .hf-logos ul {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .hf-logos img {
+    height: calc(var(--h) * 0.62);
+  }
+
+  .hf-cue {
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .hf-mk {
+    box-shadow: 0 0 0 1.5px var(--ink);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hf-fence-line,
+  .hf-fence-fill,
+  .hf-ring-s {
+    transition: none;
+  }
+}

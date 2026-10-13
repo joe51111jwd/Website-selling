@@ -32,9 +32,6 @@
 /* the primary CTA label speaks in the display voice, like a stamped plate (src/site/ui/cta.css .cta) */
 :root .cta { font-family: var(--font-display); font-stretch: calc(var(--wdth-sub) * 1%); font-weight: 700; letter-spacing: 0; }
 
-/* Finlandica sets ~5% wider than Hanken: the hero sub left "fix it." alone on a third line */
-:root .hero-sub { max-width: 33.5rem; }
-
 /* src/book/book.css:88 (was 112%, -0.026em) */
 :root .bk-h1 { font-stretch: calc(var(--wdth-head) * 1%); letter-spacing: var(--track-head); word-spacing: var(--display-word); }
 

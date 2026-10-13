@@ -14,8 +14,6 @@
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/finlandica-text-var.latin.woff2" />
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/special-gothic-figures-w104.woff2" />
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2" />
-    <!-- PHONE MODE: the hero's still of the devices (no WebGL on phones; scratchpad design/v2/phone/PHONE.md) -->
-    <link rel="preload" as="image" href="/renders/phone-hero-2x.webp" imagesrcset="/renders/phone-hero-2x.webp 780w, /renders/phone-hero.webp 1170w" imagesizes="100vw" media="(max-width: 760px)" fetchpriority="high" />
     <script>
       // Intro gate, before first paint: once per session, never with reduced motion. Any input
       // skips it (even before the app's JS arrives). ?intro=1 forces it, ?intro=0 turns it off.
@@ -44,9 +42,12 @@
     <style>
       /* First paint, no JS needed: the intro (BRIEF ROUND 2 §5). The jobsite map at night; three
          real SmartCrew notifications land at their places (6:42 clock-in at the geofence, 9:20 load
-         at the pit, 5:00 PM profit at the job). Then src/site/intro/intro.ts pulls the camera back,
-         warms the ground to day and glides the notifications onto the hero's laptop. The map stays
-         as the hero's faint ground (#topo, under the 3D); the notifications live in #intro, on top. */
+         at the pit, 5:00 PM profit at the job). Then src/site/intro/intro.ts freezes this last frame
+         and the hero (src/site/hero/fence) takes it over on one frame: it moves the map and the
+         notifications into its own night layer and plays the move into the day (the camera pushes
+         in, the dawn spreads from the fence, the fence re-stakes itself round the headline).
+         #intro is removed and #topo retired for the session at that frame: by day the hero's own
+         contours are the ground. */
       /* the app's own face, for the notifications (they're SmartCrew UI) */
       @font-face {
         font-family: "SC Inter";
@@ -72,7 +73,7 @@
       @media (max-aspect-ratio: 1/1) {
         #topo, #intro { --fx: 1060; --fy: 547; --z: 1.15; }
       }
-      html.intro-on #topo, html.sc-page #topo { display: block; }
+      html.intro-on #topo { display: block; }
       html.intro-on #intro { display: block; }
       #topo { z-index: 0; contain: strict; }
       html.intro-on #topo { background: #14110e; }
@@ -183,47 +184,26 @@
       @media (hover: none) { .i-skip-k { display: none; } .i-skip-t { display: inline; } }
       @media (max-aspect-ratio: 1/1) { .i-skip { bottom: auto; top: 22px; } }
 
-      /* the page waits under the map until the camera pulls back */
+      /* the page waits under the map until the hero takes over (it fades the header in) */
       html.intro-on .site-header { opacity: 0; }
-      /* the still waits under the map (painted, so its image is decoded before it's needed);
-         intro.ts brings it up if the 3D isn't ready */
-      html.intro-on .hero .stage-poster { opacity: 0.001; }
-      /* the 3D warms up (first draws) hidden under the map; intro.ts fades it in as the ground warms */
+      /* the 3D warms up (first draws) hidden under the map, parked below the fold by the hero */
       html.intro-on .stage { opacity: 0; }
-      /* the 3D arrived after the hand-over: hold the still until the devices have settled */
-      html.hero-hold .stage { opacity: 0; }
-      html.hero-hold .hero .stage-poster { opacity: 1; }
       html.sc-page .stage { transition: opacity 0.45s ease-out; }
 
-      /* skipped before the app's JS arrived: just fade to the day */
+      /* skipped before the app's JS arrived (or the hero wasn't ready): just fade to the day */
       html.intro-skip #intro { opacity: 0; transition: opacity 0.3s ease; }
       html.intro-skip #topo { background: #fbf8f4; transition: background-color 0.35s ease; }
       html.intro-skip .t-places { opacity: 0; transition: opacity 0.2s ease; }
 
-      /* ── by day: the same map is the hero's faint ground, behind the devices ── */
-      html.no-intro #topo, #topo.is-day { --fx: 800; --fy: 500; --z: 1.06; background: transparent; --topo-line: rgb(23 19 15 / 0.075); --topo-major: rgb(23 19 15 / 0.12); }
-      html.no-intro #topo .t-places, #topo.is-day .t-places { display: none; }
-      html.no-intro #topo .t-topo, #topo.is-day .t-topo { animation: none; opacity: 1; transform: none; }
-      .t-veil { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse 44% 66% at 70% 50%, rgb(251 248 244 / 0) 0%, rgb(251 248 244 / 0.1) 42%, #fbf8f4 96%); }
-      @media (max-aspect-ratio: 1/1) { .t-veil { background: radial-gradient(ellipse 92% 34% at 50% 58%, rgb(251 248 244 / 0) 0%, rgb(251 248 244 / 0.15) 45%, #fbf8f4 100%); } }
-      html.no-intro #topo .t-veil, #topo.is-day .t-veil { opacity: 1; }
-      html.no-intro #topo { animation: t-in 0.8s ease-out both; }
-
       /* PHONE MODE (≤ 760 px; src/site/phone.ts): the same story, light. The contours hold still (an
-         animated SVG group repaints the whole map every frame), the day keeps a plain ground (no
-         fixed full-screen map under the page), and the hero's still waits under the map. The
-         sequence plays 1.4× faster (the script after #intro), ≤ 2.5 s with the hand-over. */
+         animated SVG group repaints the whole map every frame). The sequence plays 1.4× faster (the
+         script after #intro), ≤ 2.5 s with the hand-over (transform and opacity only). */
       @media (max-width: 760px) {
         .t-topo { animation: t-fade 0.6s ease-out forwards; }
-        html.no-intro #topo, #topo.is-day { display: none !important; }
-        html.intro-on .hph-still { opacity: 0.001; }
-        html.intro-on .hero--phone .hero-foot, html.intro-on .hero--phone .hph-caption { opacity: 0; }
-        .hero--phone .hero-foot, .hero--phone .hph-caption { transition: opacity 0.5s ease-out 0.5s; }
       }
 
       @keyframes t-fade { to { opacity: 1; } }
       @keyframes t-out { to { opacity: 0; } }
-      @keyframes t-in { from { opacity: 0; } }
       @keyframes t-drift { from { transform: translate(0, 0); } to { transform: translate(-16px, -9px); } }
       @keyframes t-zone { 0% { fill-opacity: 0; } 35% { fill-opacity: 0.22; } 100% { fill-opacity: 0.08; } }
       @keyframes t-close { from { opacity: 1; stroke-dasharray: 14.8 8.9; } to { opacity: 1; stroke-dasharray: 23.7 0; } }
@@ -269,7 +249,6 @@
           </g>
         </g>
       </svg>
-      <div class="t-veil"></div>
     </div>
     <div id="root"></div>
     <div id="intro" aria-hidden="true">

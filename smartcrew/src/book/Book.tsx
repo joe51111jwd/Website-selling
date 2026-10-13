@@ -7,6 +7,7 @@ import { Flag } from "../signup/Flag";
 import { mountCal, mountVidalytics } from "./embeds";
 import { downloadIcs, downloadVcf, googleUrl, when } from "./calendar";
 import { Logo } from "../brand/Logo";
+import { Setup } from "./Setup";
 import faceUrl from "../signup/assets/andrew-face.webp";
 import bustUrl from "../signup/assets/andrew-bust.webp";
 
@@ -16,7 +17,7 @@ import bustUrl from "../signup/assets/andrew-bust.webp";
 // calendar turns into the ticket for the call.
 
 const LITE = typeof window !== "undefined" && window.matchMedia("(pointer: coarse), (max-width: 760px)").matches;
-/** Phones: the calendar (the last step) comes first; Andrew's video is one tap-to-open row above it. */
+/** Phones: a compact band (headline, Andrew's video) so his calendar starts in the first screen. */
 const PHONE = typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches;
 const blur = (px: number): { filter?: string } => (LITE ? {} : { filter: `blur(${px}px)` });
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -52,31 +53,29 @@ export default function Book() {
     track("ViewContent", { content_name: "Book a call", intent: lead?.intent ?? "direct" }, lead?.lead_id ? `${lead.lead_id}-book` : undefined);
   }, [lead]);
 
-  // Andrew's video after first paint, so the headline and calendar come first. Phones: after the
-  // calendar has loaded (or 2 s), so the player's scripts don't compete with the booking for the
-  // main thread; the poster (Andrew, a play mark) holds the spot meanwhile.
+  // Andrew's video after first paint, so the headline and calendar come first. Touch screens:
+  // after the calendar has loaded (phones: a beat later still), so the player's scripts don't
+  // compete with the booking for the main thread; the poster (Andrew, a play mark) holds the spot
+  // meanwhile, and a tap on it loads the player at once.
   const video = useRef(false);
+  const [vidOn, setVidOn] = useState(false);
   const mountVideo = () => {
     if (video.current) return;
     video.current = true;
+    setVidOn(true);
     mountVidalytics(config.vidalytics.walkthrough, () => setVideoFailed(true));
   };
-  // phones: the video stays a row until he opens it (its player loads then, not before)
-  const [vidOpen, setVidOpen] = useState(!PHONE);
   useEffect(() => {
-    if (PHONE) return;
-    const id = window.setTimeout(mountVideo, LITE && !booking ? 2000 : 60);
+    const id = window.setTimeout(mountVideo, PHONE && !booking ? 4000 : LITE && !booking ? 2000 : 60);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
-    if (!PHONE && LITE && cal !== "loading") mountVideo();
+    if (!LITE || cal === "loading") return;
+    const id = window.setTimeout(mountVideo, PHONE ? 1200 : 0);
+    return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cal]);
-  useEffect(() => {
-    if (PHONE && vidOpen) mountVideo();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vidOpen]);
 
   // Andrew's calendar, prefilled; a failure falls back to a plain link and email
   useEffect(() => {
@@ -160,26 +159,10 @@ export default function Book() {
             </motion.p>
           )}
 
-          {PHONE && !vidOpen && (
-            <button type="button" className="bk-vrow" onClick={() => setVidOpen(true)} aria-expanded={false} aria-controls="bk-video">
-              <span className="bk-vrow-thumb" aria-hidden="true">
-                <img src={bustUrl} alt="" />
-                <span className="bk-vrow-play">
-                  <svg width="12" height="12" viewBox="0 0 18 18">
-                    <path d="M5 3.2v11.6L14.6 9z" fill="currentColor" />
-                  </svg>
-                </span>
-              </span>
-              <span className="bk-vrow-tx">
-                <b>Watch Andrew’s walkthrough</b>
-                <span>Andrew Drish, founder, shows SmartCrew</span>
-              </span>
-            </button>
-          )}
           <motion.figure
             id="bk-video"
-            hidden={!vidOpen}
             className="bk-video"
+            data-testid="book-video"
             initial={{ opacity: 0, y: reduce ? 0 : 18, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 120, damping: 20, delay: 0.18 }}
@@ -198,6 +181,9 @@ export default function Book() {
                 )}
               </div>
               <div id={`vidalytics_embed_${config.vidalytics.walkthrough}`} className="bk-vid" />
+              {!vidOn && (
+                <button type="button" className="bk-poster-go" onClick={mountVideo} aria-label="Play Andrew’s walkthrough" />
+              )}
             </div>
             <figcaption className="bk-cap">
               <img src={faceUrl} alt="" width={26} height={26} />
@@ -238,7 +224,7 @@ export default function Book() {
                     <Flag note="Andrew to confirm he opens the call with the visitor's own estimate" />
                   </p>
                 )}
-                <div className={`bk-cal is-${cal}`}>
+                <div className={`bk-cal is-${cal}`} data-testid="book-cal">
                   <div ref={calRef} className="bk-cal-embed" />
                   <AnimatePresence>{cal === "loading" && <CalSkeleton key="skel" />}</AnimatePresence>
                   {cal === "failed" && <CalFallback />}
@@ -265,6 +251,8 @@ export default function Book() {
               <li>No contracts. Cancel anytime.</li>
             </ul>
           </div>
+
+          <Setup compact={PHONE} />
         </div>
 
         <footer className="bk-foot">

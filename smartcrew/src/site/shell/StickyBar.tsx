@@ -39,7 +39,7 @@ export function StickyBar() {
   }, []);
   const on = gone && !hidden && !sceneCta;
   return (
-    <div className={`sticky-bar sbar${on ? " is-on" : ""}`} inert={!on}>
+    <div className={`sticky-bar sbar${on ? " is-on" : ""}`} inert={!on} data-testid="sticky-bar">
       <Cta source="sticky" label={STICKY.cta} block primary={false} aria-describedby={desc} className="sbar-cta" />
       <span id={desc} className="sr-only">
         {STICKY.title}. {STICKY.sub}.

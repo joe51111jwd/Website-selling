@@ -2,7 +2,7 @@
 // letter, and his offer as a receipt that prints as it comes into view: everything you get, and
 // what it costs you (one call). The receipt is signed; the CTA sits directly under it.
 
-import { useRef } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { exitKeys } from "../../three/stage";
 import { motion, useScroll, useTransform } from "motion/react";
 import { ANDREW, CTA } from "../../content/copy";
@@ -39,6 +39,8 @@ function OfferDesk() {
 function OfferBody() {
   const grid = useRef<HTMLDivElement>(null);
   const cta = useRef<HTMLButtonElement>(null);
+  const actions = useRef<HTMLDivElement>(null);
+  const under = useUnderHeader(actions);
 
   // Andrew rises out of the ground as the scene arrives (scroll-linked, small)
   const { scrollYProgress } = useScroll({ target: grid, offset: ["start end", "start 0.15"] });
@@ -98,7 +100,7 @@ function OfferBody() {
 
       <div className="offer-deal">
         <Receipt onSigned={ping} />
-        <div className="offer-actions" data-hides-sticky>
+        <div className={`offer-actions${under ? " is-under" : ""}`} ref={actions} data-hides-sticky>
           <TrialButton ref={cta} source="offer" cursorLabel="Clocked in · {time}" className="offer-cta" size="lg" block cue={false} />
         </div>
       </div>
@@ -110,4 +112,25 @@ function OfferBody() {
 function splitTitle(t: string): [string, string, string] {
   const parts = t.match(/[^.]+\./g)?.map((s) => s.trim()) ?? [t];
   return [parts[0] ?? t, parts[1] ?? "", parts.slice(2).join(" ")];
+}
+
+/**
+ * True once the element's top has slid up under the fixed header. The header is frosted (see-
+ * through), and the FAQ's close CTA comes in as soon as this one is under it (primaryCta.ts), so
+ * this one fades out there: two orange buttons never show at once, not even through the glass.
+ */
+function useUnderHeader(ref: RefObject<HTMLElement | null>) {
+  const [under, setUnder] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const h = Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 64);
+    const io = new IntersectionObserver(([e]) => setUnder(e.boundingClientRect.top < h - 1), {
+      rootMargin: `-${h}px 0px 0px 0px`,
+      threshold: [0, 0.25, 0.5, 0.75, 1],
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref]);
+  return under;
 }

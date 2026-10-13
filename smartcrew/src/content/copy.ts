@@ -62,36 +62,62 @@ export const INTRO = {
 // ─── Hero (BRIEF §1, OFFER §4) and ?angle= message match (PLAYBOOK §2.0.5) ──
 export type Angle = "profit" | "overbudget" | "timecards" | "payroll" | "replace";
 
-export const ANGLES: Record<Angle, { h1: string; sub: string; moment: MomentId; laptop: "web-project-detail" | "web-timecards" }> = {
+/**
+ * Per angle: the H1, the desktop sub, and the hero's fence (src/site/hero/fence): `fence` is the
+ * exact substring of `h1` the geofence stakes itself round; `lines` are the explicit line breaks
+ * (desktop, phone) so the fenced phrase sits alone on its line (or mid-line with room for the
+ * stakes). `lines.x.join(" ")` must equal `h1`. A fenced phrase that ends the sentence drops its
+ * full stop on screen only (the screen-reader text is the whole sentence).
+ */
+export type AngleCopy = {
+  h1: string;
+  sub: string;
+  moment: MomentId;
+  laptop: "web-project-detail" | "web-timecards";
+  fence: string;
+  lines: { desk: string[]; phone: string[] };
+};
+
+export const ANGLES: Record<Angle, AngleCopy> = {
   profit: {
     h1: "See what every job is making, every day.",
     sub: "GPS fills in your crew’s timecards and tags every hour to the right job. You see each job’s profit daily, in time to fix it.",
     moment: "profit",
     laptop: "web-project-detail",
+    fence: "every job",
+    lines: { desk: ["See what", "every job", "is making, every day."], phone: ["See what", "every job", "is making,", "every day."] },
   },
   overbudget: {
     h1: "Know which jobs are losing money before it’s too late.",
     sub: "SmartCrew rolls your crew’s hours, machine time and materials into a profit number for every job, updated daily.",
     moment: "profit",
     laptop: "web-project-detail",
+    fence: "losing money",
+    lines: { desk: ["Know which jobs are", "losing money", "before it’s too late."], phone: ["Know which", "jobs are", "losing money", "before it’s", "too late."] },
   },
   timecards: {
     h1: "Stop chasing timecards.",
     sub: "Hours log themselves when your crew gets to the job, tagged to the right cost code and ready for QuickBooks payroll.",
     moment: "clockin",
     laptop: "web-timecards",
+    fence: "timecards",
+    lines: { desk: ["Stop chasing", "timecards."], phone: ["Stop", "chasing", "timecards."] },
   },
   payroll: {
     h1: "Payroll without the Friday scramble.",
     sub: "Hours log themselves when your crew gets to the job, tagged to the right cost code and ready for QuickBooks payroll.",
     moment: "payroll",
     laptop: "web-timecards",
+    fence: "Friday scramble",
+    lines: { desk: ["Payroll without the", "Friday scramble."], phone: ["Payroll", "without the", "Friday scramble."] },
   },
   replace: {
     h1: "Replace your time app, your spreadsheets and the group texts.",
     sub: "GPS fills in your crew’s timecards and tags every hour to the right job. You see each job’s profit daily, in time to fix it.",
     moment: "profit",
     laptop: "web-project-detail",
+    fence: "group texts",
+    lines: { desk: ["Replace your time app,", "your spreadsheets and the", "group texts."], phone: ["Replace your", "time app, your", "spreadsheets", "and the", "group texts."] },
   },
 };
 
@@ -108,6 +134,8 @@ export const HERO = {
   eyebrow: `For dirt work contractors with ${T.SIZE} employees`,
   usedBy: "Used by",
   cue: `Watch a day at ${T.COMPANY}`,
+  /** Desktop, one line under the hero's button (phones: HERO_PHONE.micro). */
+  micro: `${T.PROGRAM} · starts with a ${T.N}-minute call with Andrew · no\u00a0contract`,
 };
 
 /** The six contractors on the live site ("Used by", AMBER: Andrew confirms permission). Aspect = w/h of the file. */
@@ -279,11 +307,6 @@ export const DAY_UI = {
   /** quiet caption under the devices (PLAYBOOK §8.1 rule 2) */
   caption: "Demo account. Names and numbers are made up.",
 };
-
-// ─── 7 · Andrew + the offer · 8 · FAQ + close · footer ─────────────────────────────────────────
-// Owner: offer_faq_footer (src/site/offer, src/site/faq, src/site/footer). Appended block: the
-// OFFER / FAQ_TITLE / FOOTER starters above are left as they were. Sources in brackets
-// (research/features/TRUTH.md): L = smartcrewhq.com, V = Vercel mockup.
 
 export const ANDREW = {
   name: "Andrew Drish",
@@ -488,6 +511,41 @@ export const HERO2 = {
   } as Record<Angle, string>,
   caption: "Demo account. Names and numbers are made up.",
 };
+
+/**
+ * The hero's jobsite (src/site/hero/fence): the ONE source for the flagging-tape tag (desktop) and
+ * the job chip (phones, narrow laptops), and for the crew who clock in on the headline. Demo data
+ * of the Cedar Ridge Earthworks account (src/screens/data.ts):
+ * - rows: the jobs' short names; Hwy 9 Culvert's number is the canonical one (= the intro's
+ *   5:00 PM notification, HERO2.profit.delta and One Day's 5:00 PM moment). The tag rolls once
+ *   through the rows and parks back on the first.
+ * - crew: today's clock-ins on Hwy 9 Culvert (data.ts `clockIns`, project p2417): Marcus Bell
+ *   (the intro's truck, already on the fence), then Elena Ruiz and Jake Lindqvist walk in. The
+ *   dev build checks this against data.ts (src/site/hero/fence/engine.ts).
+ */
+export const HERO_JOBS = {
+  rows: [
+    { job: "Hwy 9 Culvert", today: "+$4,120 today", tone: "pos" },
+    { job: "Maple Ridge Ph. 2", today: "+$2,310 today", tone: "pos" },
+    { job: "Elm St Sewer", today: "−$860 today", tone: "neg" },
+  ],
+  crew: [
+    { id: "mb", crewId: "c01", initials: "MB", time: "6:42" },
+    { id: "er", crewId: "c02", initials: "ER", time: "6:38" },
+    { id: "jl", crewId: "c05", initials: "JL", time: "6:44" },
+  ],
+  /** under the tag (desktop, one line) */
+  note: HERO2.caption,
+} as const satisfies {
+  rows: readonly { job: string; today: string; tone: "pos" | "neg" }[];
+  crew: readonly { id: string; crewId: string; initials: string; time: string }[];
+  note: string;
+};
+
+// ─── 7 · Andrew + the offer · 8 · FAQ + close · footer ─────────────────────────────────────────
+// Owner: offer_faq_footer (src/site/offer, src/site/faq, src/site/footer). Appended block: the
+// OFFER / FAQ_TITLE / FOOTER starters above are left as they were. Sources in brackets
+// (research/features/TRUTH.md): L = smartcrewhq.com, V = Vercel mockup.
 
 // ─── 1 · Hero, PHONE MODE (round 3: one idea, ≤ 40 words above the button) ─────────────────
 // Who it's for rides in the sub (no separate eyebrow line); the demo note lives in the footer;
