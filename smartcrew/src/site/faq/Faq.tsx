@@ -1,12 +1,15 @@
 // 8 · FAQ + the close (BRIEF §8, PLAYBOOK S8; round 2 §6). Five questions, one open at a time,
 // answers that start with the fact; beside them the page's close: the devices come back (they
 // glide in from the right as this scene comes up, in the hero's own composition, so the page
-// bookends with the product) over Andrew's last line and the last orange CTA.
+// bookends with the product: the Stage's returnKeys) over Andrew's last line and the last orange
+// CTA. That CTA waits (hidden) while the offer's CTA above it is still on screen, so two orange
+// buttons never show together (src/site/shell/primaryCta.ts usePrimaryElsewhere).
 
 import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ANDREW, ANGLES, CTA, FAQ_CLOSE, FAQ_TITLE, FAQS, FLAG, readAngle } from "../../content/copy";
 import { trackCustom } from "../../lib/track";
-import { StageAnchor, phone, type PoseKey } from "../../three/stage";
+import { StageAnchor, phone, returnKeys, type PoseKey } from "../../three/stage";
+import { usePrimaryElsewhere } from "../shell/primaryCta";
 import { Scene } from "../scene/Scene";
 import { DemoButton, TrialButton } from "../offer/Actions";
 import { useSeen } from "../offer/useSeen";
@@ -75,24 +78,18 @@ export default function Faq() {
   const root = useRef<HTMLDivElement>(null);
   const anchor = useRef<HTMLDivElement>(null);
   const spot = useAnchorSpot(root, anchor);
-  // the return: off stage right while the offer is up; let in (still out of frame) as the anchor
-  // comes up from below; glided into the hero's shot by the time its centre is at 62 % of the
-  // viewport; held to the end of the page
+  // the return (Stage returnKeys, from the right, where Five apps sent them): out of frame while
+  // the offer is up; gliding in as the anchor comes up from below; in the hero's shot by the time
+  // the anchor's centre is at 62 % of the viewport; held to the end of the page. Offsets are in
+  // screens from this section's top (returnKeys' units); the glide never starts before the
+  // offer's own "keep them out" keys (src/site/offer/Offer.tsx, 0.2 screen before its top).
   const poses = useMemo<PoseKey[] | undefined>(() => {
     if (!spot) return undefined;
     const pose = closePose();
-    const at = (vhFromTop: number) => spot.c - vhFromTop * spot.vh; // anchor centre at vhFromTop of the viewport
-    const outKey = (show: number) => ({
-      ...pose,
-      macbook: { ...pose.macbook, show, out: 1 },
-      iphone: { ...pose.iphone, show, out: 1 },
-    });
-    return [
-      { ...outKey(0), at: at(1.45) },
-      { ...outKey(1), at: at(1.3), ease: "linear" },
-      { ...pose, at: at(0.62), ease: "out" },
-      { ...pose, at: Math.max(1, at(0.62) + 0.01) },
-    ];
+    const cVh = spot.c / spot.vh; // the anchor's centre, in screens below this section's top
+    const end = cVh - 0.62;
+    const start = Math.max(end - 0.68, -0.85);
+    return [...returnKeys(pose, { side: 1, start, end }), { ...pose, at: Math.max(1, spot.c - 0.62 * spot.vh + 0.01) }];
   }, [spot]);
   return (
     <Scene id="faq" pinnedViewports={0} poses={poses} stage="keep" label={FAQ_TITLE} className="faq">
@@ -105,6 +102,9 @@ function FaqBody({ root, anchor }: { root: React.RefObject<HTMLDivElement | null
   const [open, setOpen] = useState(0);
   const base = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const seen = useSeen(root, 0.25);
+  // the last CTA waits while the offer's is still on screen (one orange button at a time)
+  const close = useRef<HTMLDivElement>(null);
+  const held = usePrimaryElsewhere(close);
 
   const toggle = (i: number) => {
     setOpen((o) => (o === i ? -1 : i));
@@ -152,7 +152,7 @@ function FaqBody({ root, anchor }: { root: React.RefObject<HTMLDivElement | null
       </div>
 
       {/* the close: the product back on screen, Andrew's last line, the last CTA */}
-      <div className="faq-close">
+      <div className="faq-close" ref={close} data-cta-held={held}>
         <div ref={anchor} className="faq-stage-box">
           <StageAnchor id="faq" className="faq-stage" />
         </div>

@@ -22,8 +22,12 @@ type View = { rx: number; ry: number };
 type Shot = { view: View; act: { iphone: DevicePose; macbook: DevicePose }; push: { iphone: DevicePose; macbook: DevicePose; view?: View } };
 
 // Desktop: the stage is the right ~60% of the screen, header to bottom. One frame for every
-// moment so the moves read as one camera.
-const F: [number, number] = [5, 3.4];
+// moment so the moves read as one camera. It is a touch wider than the 1440×660 stage box needs
+// (there the height decides the fit): on narrower laptops (1280×600, 1366×768) the width decides
+// it, so the devices step down a few % and the pushed-in laptop keeps clear of the copy column.
+const F: [number, number] = [5.3, 3.4];
+/** The frame the poster stills (public/renders/day-*.webp) were rendered with. */
+const F_POSTER: [number, number] = [5, 3.4];
 
 const P_ACT: DevicePose = { x: -1.25, y: -0.12, z: 0.9, rx: 3, ry: 16, rz: 2, s: 1.32 };
 const M_ACT: DevicePose = { x: 0.95, y: 0.3, z: -0.9, rx: 11, ry: -24, rz: 0, s: 0.98 };
@@ -94,6 +98,7 @@ const PHONE_SHOTS: Shot[] = SHOTS.map((s, i) =>
 );
 
 export const dayFrame = () => (isPhone ? PF : F);
+export const dayPosterFrame = () => (isPhone ? PF : F_POSTER);
 
 /** A small dolly during a hold, so the shot breathes instead of stopping dead. */
 const drift = (p: DevicePose, dz: number, dry = 0): DevicePose => ({ ...p, z: (p.z ?? 0) + dz, ry: (p.ry ?? 0) + dry });
@@ -168,11 +173,13 @@ export function dayPoses(): PoseKey[] {
         focus: actFocus ? focusOf(s, 0.5) : null,
       });
     }
-    // ACT: settled, the button ringed
+    // ACT: settled, the button ringed. The very first one is the move from the hero: on phones it
+    // is linear, so the devices glide straight from the hero's spot to this one (an eased blend
+    // first rides up with the hero, then drops back down behind its CTA and copy)
     keys.push({
       ...base,
       at: at(B.arrive),
-      ease: left ? "out" : "inOut",
+      ease: left ? "out" : isPhone ? "linear" : "inOut",
       view: shot.view,
       iphone: { ...act.iphone, ...before.iphone, ring: phoneTapRing },
       macbook: { ...act.macbook, ...before.macbook, ring: up ? null : s.laptop.tap ?? null },

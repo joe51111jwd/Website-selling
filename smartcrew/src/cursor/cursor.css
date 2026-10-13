@@ -32,7 +32,7 @@ html.cur-on
   contain: strict;
   opacity: 0;
   transition: opacity 0.16s linear;
-  font-family: var(--font-text, "Hanken Grotesk Variable", "Hanken Grotesk", system-ui, sans-serif);
+  font-family: var(--font-text, "SmartCrew Text", system-ui, sans-serif);
 }
 .cur-root[data-tone="dark"] {
   --cur-fg: #fbf8f4;

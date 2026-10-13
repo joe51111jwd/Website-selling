@@ -3,11 +3,11 @@
 import { StrictMode, Suspense, lazy, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { MotionConfig } from "motion/react";
-import "@fontsource-variable/archivo/wdth.css";
-import "@fontsource-variable/hanken-grotesk/wght.css";
+import "../../../styles/fonts.css";
 import "../../../styles/tokens.css";
 import "../../../styles/base.css";
 import "../../../styles/shell.css";
+import "../../../styles/type-roles.css";
 import { Scene } from "../../scene/Scene";
 import { StageAnchor } from "../../../three/stage/StageAnchor";
 import { reveal } from "../../../three/stage/store";

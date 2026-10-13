@@ -33,7 +33,10 @@ export type ExitOptions = {
   /**
    * exitKeys only: the devices are already out when this scene starts (the scene before used
    * exitKeys too): keep them out all the way, no glide. Without it, its first key (which names
-   * no device, so out = 0) would bring them back in.
+   * no device, so out = 0) would bring them back in. With `hold`, `start` is where the first
+   * "out" key sits (default −1: one screen before this scene's top) and `end`, if given, puts the
+   * last one at that offset instead of at this scene's end (for a natural-height scene whose end
+   * would otherwise land after the next scene's return keys).
    */
   hold?: boolean;
 };
@@ -55,9 +58,13 @@ function sideOf(opts: ExitOptions, id: DeviceId, x?: number): Side {
  * out (not drawn) through the scene. Pass to <Scene poses={…}> (memoize it).
  */
 export function exitKeys(opts: ExitOptions = {}): PoseKey[] {
-  const { start = -0.8, end = -0.1, devices = ALL, ease = "in", hold = false } = opts;
+  const { devices = ALL, ease = "in", hold = false } = opts;
   const out = (k: number) => Object.fromEntries(devices.map((id) => [id, { out: sideOf(opts, id) * k }])) as Partial<Record<DeviceId, { out: number }>>;
-  if (hold) return [{ at: 0, offset: -1, ease: "linear", ...out(1) }, { at: 1, ease: "linear", ...out(1) }];
+  if (hold) {
+    const last: PoseKey = opts.end === undefined ? { at: 1, ease: "linear", ...out(1) } : { at: 0, offset: opts.end, ease: "linear", ...out(1) };
+    return [{ at: 0, offset: opts.start ?? -1, ease: "linear", ...out(1) }, last];
+  }
+  const { start = -0.8, end = -0.1 } = opts;
   return [
     // a key that names no device: everything holds as it was (out = 0)
     { at: 0, offset: start, ease: "linear" },

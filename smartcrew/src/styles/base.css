@@ -1,4 +1,4 @@
-/* Global base for the product page: reset, ground, type primitives, buttons. Scene styles live
+/* Global base for the product page: reset, ground, type primitives, links. Scene styles live
    next to their scenes in src/site/<scene>/; they use these classes and the tokens.
    Element rules are scoped to html.sc-page (set by main.tsx for the page and /book), so the dev
    views (?screen=, ?screens, ?sandbox, prototypes) render exactly as before. */
@@ -107,7 +107,16 @@ html.sc-page {
 
 /* ── Type ───────────────────────────────────────────────────────────────── */
 
-/* Display face: Archivo, widened. Headlines, the big times, the money. */
+/* Display face: Special Gothic, by role (tokens.css "Type"): headlines at wdth 96, state labels at
+   88, instruments (times, timers, money totals) at 75. Text face: Finlandica Text with Special
+   Gothic's figures (fonts.css). */
+.sc-page body {
+  font-weight: var(--text-wght);
+  letter-spacing: var(--text-track);
+  font-synthesis: none; /* no faux bold or faux italic: we ship no italics */
+  font-kerning: normal;
+}
+
 .t-display,
 .t-hero,
 .t-h2,
@@ -116,9 +125,14 @@ html.sc-page {
   font-stretch: calc(var(--display-wdth) * 1%);
   font-weight: var(--display-wght);
   letter-spacing: var(--display-track);
+  word-spacing: var(--display-word);
   line-height: 0.98;
   text-wrap: balance;
   font-kerning: normal;
+}
+
+.t-display {
+  font-size: var(--fs-display);
 }
 
 .t-hero {
@@ -126,38 +140,48 @@ html.sc-page {
   line-height: 1.02;
 }
 
-.t-display {
-  font-size: var(--fs-display);
-}
-
 .t-h2 {
   font-size: var(--fs-h2);
   line-height: 1.04;
-  letter-spacing: -0.03em;
+  letter-spacing: var(--track-head);
 }
 
 .t-h3 {
   font-family: var(--font-display);
-  font-stretch: 104%;
-  font-weight: 640;
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: var(--sub-wght);
   font-size: var(--fs-h3);
   line-height: 1.15;
-  letter-spacing: -0.02em;
+  letter-spacing: var(--track-sub);
 }
 
-/* the big clock times and money: tabular so digits don't jitter as they change */
+/* the big clock times and money: condensed, tabular, the colon centred on the figures */
 .t-time {
   font-size: var(--fs-time);
-  font-weight: 720;
+  font-stretch: calc(var(--wdth-time) * 1%);
+  font-weight: var(--time-wght);
   line-height: 0.9;
-  letter-spacing: -0.045em;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
+  letter-spacing: var(--track-time);
+  word-spacing: 0;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: var(--num-time);
 }
 
 .t-num {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: var(--num-tabular);
+}
+
+/* caps labels: ONLY spec-sheet column heads and receipt section heads (never section eyebrows) */
+.t-label {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-label) * 1%);
+  font-weight: var(--label-wght);
+  font-size: var(--fs-label);
+  line-height: 1.2;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-feature-settings: "case" 1;
 }
 
 .t-lead {
@@ -194,51 +218,10 @@ html.sc-page {
   font-weight: 700;
 }
 
-/* ── Buttons ────────────────────────────────────────────────────────────── */
+/* ── Links ──────────────────────────────────────────────────────────────── */
 
-/* Andrew's dark bevelled button: the primary CTA everywhere. */
-.btn {
-  --h: 56px;
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-height: var(--h);
-  padding: 0 26px;
-  border-radius: 14px;
-  font-family: var(--font-text);
-  font-size: 17px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  text-decoration: none;
-  white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    transform var(--dur-1) var(--ease-out),
-    background-color var(--dur-2) var(--ease-out),
-    box-shadow var(--dur-2) var(--ease-out);
-}
-
-.btn:active {
-  transform: scale(0.98);
-}
-
-.btn-dark {
-  color: #fff;
-  background: var(--btn-dark);
-  border: 1px solid var(--btn-dark-border);
-  box-shadow:
-    var(--btn-dark-bevel),
-    0 1px 1px rgb(23 19 15 / 20%),
-    0 10px 24px -8px rgb(23 19 15 / 45%);
-}
-
-.btn-dark:hover {
-  background: #2a251f;
-}
-
-/* a small orange tick that runs along the arrow on hover: the one place orange sits on a button */
+/* The primary CTA is the orange <Cta> (src/site/ui/Cta.tsx + cta.css); everything secondary is an
+   ink text link. The arrow these links (and the inline CTAs) carry: */
 .btn-arrow {
   display: inline-block;
   width: 18px;
@@ -246,27 +229,8 @@ html.sc-page {
   transition: transform var(--dur-2) var(--ease-out);
 }
 
-.btn:hover .btn-arrow {
+.link:hover .btn-arrow {
   transform: translateX(3px);
-}
-
-.btn-sm {
-  --h: 40px;
-  padding: 0 16px;
-  border-radius: 11px;
-  font-size: 14.5px;
-  gap: 8px;
-}
-
-.btn-light {
-  color: var(--ink);
-  background: var(--paper);
-  border: 1px solid var(--line);
-  box-shadow: 0 1px 2px rgb(23 19 15 / 6%);
-}
-
-.btn-light:hover {
-  border-color: #d8ccbf;
 }
 
 /* quiet text link with an arrow, for secondary actions */

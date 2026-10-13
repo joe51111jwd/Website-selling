@@ -1,5 +1,4 @@
-import "@fontsource-variable/archivo/wdth.css";
-import "@fontsource-variable/hanken-grotesk";
+import "../styles/fonts.css";
 import "../styles/tokens.css";
 import "./demo.css";
 import { useEffect, useRef, useState, type PointerEvent as RPointerEvent } from "react";

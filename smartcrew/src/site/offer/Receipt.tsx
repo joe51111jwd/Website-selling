@@ -4,7 +4,10 @@
 // How the print works: the paper sits in its final place in the layout (so nothing around it
 // moves), inside a box clipped at its bottom edge, the slot. Before printing it is translated down
 // fully into the slot; then it rises one row at a time, like a thermal printer feeding paper, until
-// the bottom edge clears the slot. Then the slot fades, the slip settles, and the signature is
+// the bottom edge clears the slot. Phones, where the slip sits under the story and is scrolled
+// into from the top: the same feed seen from the paper's side. The paper stays put and the
+// printer's lip travels down it row by row (clip and lip follow --printed), so the slip fills from
+// the top as you scroll into it instead of leaving its top blank until the last row is fed. Then the slot fades, the slip settles, and the signature is
 // written in with a mask. Without JS, with reduced motion or without IntersectionObserver the
 // receipt is simply there, printed and signed.
 
@@ -95,9 +98,8 @@ export function Receipt({ onSigned, onPrint }: { onSigned?: () => void; onPrint?
         setPhase("printing");
         void print();
       },
-      // phones scroll through the empty slip on the way down, so start a little before the slot
-      // shows and let the paper come up from the bottom edge
-      { threshold: 1, rootMargin: phone ? "0px 0px 14% 0px" : "0px 0px -6% 0px" },
+      // phones: the lip starts at the top of the slip, so start just before it scrolls into view
+      { threshold: 1, rootMargin: phone ? "0px 0px 10% 0px" : "0px 0px -6% 0px" },
     );
     io.observe(slot.current);
     return () => io.disconnect();
@@ -118,6 +120,32 @@ export function Receipt({ onSigned, onPrint }: { onSigned?: () => void; onPrint?
     }));
     // a thermal printer: short, quick feeds, one printed row at a time
     const feed = [0.3, 0.75, 0.25, 1] as const;
+    if (phone) {
+      // the lip travels down the paper (see the header): --printed is how much of it is out
+      const box = el.closest<HTMLElement>(".rcpt");
+      const set = (v: number) => box?.style.setProperty("--printed", `${v.toFixed(1)}px`);
+      let at = 0;
+      for (const r of rows) {
+        if (!alive.current) return;
+        if (r.pause) await wait(r.pause);
+        const to = Math.min(H, r.bottom + 3);
+        const dur = r.fast ? 0.03 : Math.min(0.075, 0.024 + (to - at) * 0.0016);
+        await animate(at, to, { duration: dur, ease: feed, onUpdate: set });
+        at = to;
+        await wait(r.fast ? 4 : 8);
+      }
+      if (!alive.current) return;
+      await animate(at, H + 12, { duration: 0.2, ease: feed, onUpdate: set });
+      if (!alive.current) return;
+      setPhase("torn");
+      box?.style.removeProperty("--printed");
+      await animate(el, { y: [0, -7, 0], rotate: [0, -1.6, -0.9] }, { duration: 0.55, ease: [0.22, 1, 0.36, 1] });
+      if (!alive.current) return;
+      setPhase("signed");
+      await wait(900);
+      if (alive.current) onSigned?.();
+      return;
+    }
     let from = H + 12;
     for (const r of rows) {
       if (!alive.current) return;

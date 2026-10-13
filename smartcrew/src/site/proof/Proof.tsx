@@ -2,16 +2,16 @@
 // quote at a time, nothing else on it: Phil Drish's quote set large and typographic, its
 // "~$150k" rolling up like an odometer as it enters, a survey-paint stroke landing under it, his
 // name, company and the family disclosure ⚑. Scrolling on, Phil's quote lifts away and Katie's
-// takes the screen. No devices here (they wait off stage to the right and glide in with Five apps),
-// no logos (they are in the hero), no CTA (PLAYBOOK S2).
+// takes the screen. No devices here (Try it sent them out; they stay out, and Five apps brings them
+// back from the right with the Stage's returnKeys), no logos (they are in the hero), no CTA
+// (PLAYBOOK S2).
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useTransform } from "motion/react";
 import { FLAG, PROOF } from "../../content/copy";
 import { Scene, useSceneProgress } from "../scene/Scene";
 import { reducedMotion } from "../../three/stage";
-import type { PoseKey } from "../../three/stage";
-import { appsOffstagePose } from "../apps/poses";
+import { exitKeys } from "../../three/stage";
 import { Odometer } from "./Odometer";
 import "./proof.css";
 
@@ -125,10 +125,11 @@ function Katie() {
   );
 }
 
+/** No devices on this screen: they are already out (Try it's exit) and stay out. */
+const PROOF_POSES = exitKeys({ hold: true, side: 1, start: 0 });
+
 export default function Proof() {
-  // no devices on this screen: they wait off stage, right of Five apps' first shot, and are let
-  // in (still out of frame) as Katie's quote settles, so they glide in as Five apps comes up
-  const poses = useMemo<PoseKey[]>(() => [appsOffstagePose(0, 0, "out"), appsOffstagePose(0.7, 0), appsOffstagePose(0.85, 1)], []);
+  const poses = PROOF_POSES;
   return (
     <Scene id="proof" pinnedViewports={PROOF_VIEWPORTS} poses={poses} label={PROOF.label} className="proof">
       <div className="proof-grid wrap">

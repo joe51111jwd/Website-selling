@@ -66,9 +66,9 @@ body {
   padding: 4px 0;
   border-radius: 6px;
 }
-.bk-logo img {
+.bk-logo-svg {
   display: block;
-  height: 20px;
+  height: 22px;
   width: auto;
 }
 
@@ -759,8 +759,8 @@ body {
   .bk-brand {
     height: 24px;
   }
-  .bk-logo img {
-    height: 17px;
+  .bk-logo-svg {
+    height: 19px;
   }
   .bk-intro {
     padding-top: 18px;

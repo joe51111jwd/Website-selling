@@ -28,10 +28,7 @@
   --dusk: #f6e7d4;
   --evening: #1d1a16;
 
-  /* type */
-  --font-display: "Archivo Variable", "Archivo", system-ui, sans-serif;
-  --font-text: "Hanken Grotesk Variable", "Hanken Grotesk", system-ui, sans-serif;
-  --display-wdth: 112;
+  /* type: see the type block at the end of this file */
 
   /* shape and depth */
   --r-sm: 10px;
@@ -40,7 +37,8 @@
   --shadow-1: 0 1px 2px rgb(23 19 15 / 6%), 0 8px 24px rgb(23 19 15 / 6%);
   --shadow-2: 0 30px 80px rgb(23 19 15 / 18%);
 
-  /* buttons (Andrew's bevelled dark button) */
+  /* Andrew's bevelled dark button: retired as the page's primary (that is the orange <Cta>);
+     still the dark surface of /book's add-to-calendar button and the popup's selected size chip */
   --btn-dark: #1d1a16;
   --btn-dark-border: #3b332b;
   --btn-dark-bevel: inset 0 -4px 4px #0f0d0b, inset 0 4px 4px #3b332b;
@@ -63,22 +61,6 @@
 
 /* ── Extensions for the One Day page (added by the lead; names above are unchanged) ── */
 :root {
-  /* type scale (fluid; tuned at 1440×660, 1280×600 and 390×664) */
-  --fs-hero: clamp(38px, 2.2vw + 1.9svh + 10px, 70px);
-  --fs-display: clamp(40px, 3.4vw + 2.4svh, 96px);
-  --fs-time: clamp(64px, 6vw + 4svh, 168px);
-  --fs-h2: clamp(30px, 2.2vw + 1.2svh + 6px, 56px);
-  --fs-h3: clamp(21px, 0.9vw + 12px, 28px);
-  --fs-lead: clamp(16.5px, 0.35vw + 13px, 19px);
-  --fs-body: 16px;
-  --fs-small: 14px;
-  --fs-micro: 13px;
-
-  /* display face settings */
-  --display-wght: 700;
-  --display-track: -0.035em;
-  --text-track: -0.006em;
-
   /* ink on dark grounds */
   --ink-night: #f4eee7;
   --ink-night-2: #b9ab9c;
@@ -104,8 +86,62 @@
   --sticky-h: 64px;
 }
 
+/* ── Type: Special Gothic (display, instruments) + Finlandica Text (reading, UI). See src/styles/fonts.css ── */
+:root {
+  /* families: "SmartCrew Text" is Finlandica Text with Special Gothic's figures (fonts.css),
+     so every digit on the page has one voice and 0 never reads as O */
+  --font-display: "SmartCrew Display", "SmartCrew Display Fallback", "SmartCrew Display Fallback R", system-ui, sans-serif;
+  --font-text: "SmartCrew Text", "SmartCrew Text Fallback", "SmartCrew Text Fallback R", system-ui, sans-serif;
+
+  /* Special Gothic widths by role (wdth axis; the shipped file covers 75–110) */
+  --wdth-head: 96; /* H1, H2, moment titles: an American gothic, not a squeezed poster */
+  --wdth-sub: 100; /* h3, row names, small titles, the CTA label */
+  --wdth-quote: 100; /* Phil's quote */
+  --wdth-state: 88; /* big state labels: "Clocked in", "+$4,120 today", "Load #14 logged" */
+  --wdth-time: 75; /* instruments only: clock times, timers, odometers, counts, money totals */
+  --wdth-label: 108; /* caps labels, ONLY on the receipt and the spec sheet */
+  --display-wdth: var(--wdth-head); /* old name, still read by base.css and day.css */
+
+  /* weights (Special Gothic 400–700, Finlandica Text 400–700 in the shipped files) */
+  --display-wght: 700;
+  --sub-wght: 650;
+  --time-wght: 700;
+  --label-wght: 600;
+  --text-wght: 400;
+
+  /* tracking: light. Heavy negative tracking is itself an AI-template tell */
+  --display-track: -0.012em;
+  --track-head: -0.012em;
+  --track-sub: -0.006em;
+  --track-quote: -0.008em;
+  --track-state: -0.004em;
+  --track-time: -0.01em; /* the colon already sits tight; do not go tighter */
+  --track-label: 0.06em;
+  --display-word: 0.04em; /* Special Gothic's space is narrow (0.188em at 700): "every job" ran together */
+  --text-track: 0em;
+
+  /* figures */
+  --num-tabular: "tnum" 1, "lnum" 1;
+  --num-time: "tnum" 1, "lnum" 1, "case" 1; /* "case" lifts the colon to the figures' centre */
+
+  /* type scale. Special Gothic at wdth 96 sets 18% narrower than Archivo at 112 (measured on
+     the page copy), so headlines and times go up a step at the same line length. Finlandica
+     Text sets 5% wider than Hanken with a bigger x-height (0.535 vs 0.493), so the reading
+     sizes stay put and still read larger. */
+  --fs-hero: clamp(40px, 2.4vw + 2.1svh + 10px, 76px);
+  --fs-display: clamp(42px, 3.6vw + 2.6svh, 104px);
+  --fs-time: clamp(72px, 6.6vw + 4.6svh, 184px);
+  --fs-h2: clamp(31px, 2.4vw + 1.3svh + 6px, 60px);
+  --fs-h3: clamp(21px, 0.9vw + 12px, 28px);
+  --fs-lead: clamp(16.5px, 0.35vw + 13px, 19px);
+  --fs-body: 16px;
+  --fs-small: 14px;
+  --fs-micro: 13px;
+  --fs-label: 12.5px; /* caps labels never smaller: Special Gothic caps are 0.71em tall */
+}
+
 @media (max-height: 620px) {
   :root {
-    --fs-hero: clamp(36px, 2vw + 2svh + 6px, 58px);
+    --fs-hero: clamp(38px, 2.2vw + 2.2svh + 6px, 64px);
   }
 }

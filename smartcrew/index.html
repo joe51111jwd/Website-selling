@@ -10,7 +10,9 @@
     <meta property="og:description" content="Watch one day at a 16-person dirt crew run itself: timecards, job costs, equipment, hauling, DOT and payroll in one app your crew will use." />
     <meta property="og:type" content="website" />
     <link rel="icon" type="image/svg+xml" href="/src/site/assets/mark.svg" />
-    <link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/special-gothic-var.latin.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/finlandica-text-var.latin.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/special-gothic-figures-w104.woff2" />
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2" />
     <script>
       // Intro gate, before first paint: once per session, never with reduced motion. Any input
@@ -19,7 +21,7 @@
         var d = document.documentElement, K = "sc-intro", seen = false, q = location.search;
         try { seen = sessionStorage.getItem(K) === "1"; sessionStorage.setItem(K, "1"); } catch (e) {}
         if (/[?&]intro=1/.test(q)) seen = false;
-        if (/[?&](intro=0|screens?=?|sandbox=|proto=)/.test(q) || seen || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        if (/[?&](intro=0|screens?=?|sandbox=|cursor-demo)/.test(q) || seen || matchMedia("(prefers-reduced-motion: reduce)").matches) {
           d.className += " no-intro";
           var m = document.querySelector('meta[name="theme-color"]');
           if (m) m.setAttribute("content", "#FBF8F4");
@@ -43,15 +45,6 @@
          at the pit, 5:00 PM profit at the job). Then src/site/intro/intro.ts pulls the camera back,
          warms the ground to day and glides the notifications onto the hero's laptop. The map stays
          as the hero's faint ground (#topo, under the 3D); the notifications live in #intro, on top. */
-      @font-face {
-        font-family: "Archivo Variable";
-        font-style: normal;
-        font-display: swap;
-        font-weight: 100 900;
-        font-stretch: 62% 125%;
-        src: url(/node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2) format("woff2-variations");
-        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-      }
       /* the app's own face, for the notifications (they're SmartCrew UI) */
       @font-face {
         font-family: "SC Inter";
@@ -183,7 +176,7 @@
       .i-head-in { box-sizing: border-box; height: 100%; max-width: calc(1312px + 2 * clamp(20px, 4vw, 64px)); margin: 0 auto; padding: 0 clamp(20px, 4vw, 64px); display: flex; align-items: center; }
       .i-logo { display: block; height: 23px; width: auto; max-width: none; opacity: 0; animation: t-fade 0.5s 0.1s ease-out forwards; }
       @media (max-width: 760px) { .i-head { height: 56px; } .i-logo { height: 21px; } }
-      .i-skip { position: absolute; right: clamp(20px, 4vw, 64px); bottom: 22px; font: 500 13px/1 "Hanken Grotesk Variable", system-ui, sans-serif; color: #85786b; opacity: 0; animation: t-fade 0.4s 0.9s forwards; }
+      .i-skip { position: absolute; right: clamp(20px, 4vw, 64px); bottom: 22px; font: 500 13px/1 "SmartCrew Text", system-ui, sans-serif; color: #85786b; opacity: 0; animation: t-fade 0.4s 0.9s forwards; }
       .i-skip-t { display: none; }
       @media (hover: none) { .i-skip-k { display: none; } .i-skip-t { display: inline; } }
       @media (max-aspect-ratio: 1/1) { .i-skip { bottom: auto; top: 22px; } }

@@ -1,16 +1,16 @@
-// 2 · One Day. A pinned scene: seven moments of one workday at Cedar Ridge Earthworks, 0.9 of a
-// screen of scroll each. Skim it and you get the story from four things per moment: the big time
-// (rolling like an odometer), a headline of six words or fewer, ONE big state label on the phone
-// ("Clocked in") and ONE on the office laptop ("Marcus · on site 6:42"). Read it and you see the
-// cause and the effect on the real UI: a finger lands on the phone's button, the screen changes,
-// an orange pulse crosses, the office screen updates in place (row slides in, number ticks, pill
-// flips), the camera pushes in on it, and the update card shows that exact row, crisp, with a
-// leader line to it. The light follows the clock; the rail jumps between moments.
+// 2 · One Day. A pinned scene: seven moments of one workday at Cedar Ridge Earthworks, 0.76 of a
+// screen of scroll each (./clock.ts PER_MOMENT). Skim it and you get the story from four things
+// per moment: the big time (rolling like an odometer), a headline of six words or fewer, ONE big
+// state label on the phone ("Clocked in") and ONE on the office laptop ("Marcus · on site 6:42").
+// Read it and you see the cause and the effect on the real UI: a finger lands on the phone's
+// button, the screen changes, an orange pulse crosses, the office screen updates in place (row
+// slides in, number ticks, pill flips), the camera pushes in on it, and the update card shows
+// that exact row, crisp, with a leader line to it. The light follows the clock; the rail jumps between moments.
 //
 // The 3D choreography is ./poses.ts, the screen animations and the triggers ./life.ts, both from
 // ./script.ts. This file is the DOM: copy, labels, card, touch ripple, leader lines, rail.
 
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore, type RefObject } from "react";
+import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import { MOMENTS, type Moment } from "../../content/moments";
 import { DAY2, DAY2_UI, DAY_UI, FLAG } from "../../content/copy";
@@ -22,7 +22,7 @@ import { openSignup } from "../../signup/contract";
 import { Arrow, InlineCta } from "../ui/Cta";
 import { scrollToScene } from "../scroll";
 import { DAY_STEPS, JUMP, PER_MOMENT, beat, dayClock, dayPresence, groundAt, luminance } from "./clock";
-import { dayFrame, dayPoses, markOf, tapOf } from "./poses";
+import { dayPosterFrame, dayPoses, markOf, tapOf } from "./poses";
 import { SCRIPT } from "./script";
 import { dayLive, onDayFrame, startDayLife, type DayLive } from "./life";
 import { Odometer } from "./Odometer";
@@ -144,22 +144,27 @@ function useStepDir(step: number) {
 }
 
 function Features({ m }: { m: Moment }) {
+  const last = m.features.length - 1;
   return (
     <>
       {m.features.map((f, k) => (
-        <span key={f.id} className="day-feature">
-          {k > 0 && (
-            <span className="day-dot" aria-hidden="true">
-              {" · "}
-            </span>
-          )}
-          {f.label}
-          {f.confirm && (
-            <span className="flag" title="Andrew to confirm">
-              {FLAG}
-            </span>
-          )}
-        </span>
+        <Fragment key={f.id}>
+          {k > 0 && " "}
+          {/* the middot is glued to the end of the label before it, so a line never starts with one */}
+          <span className="day-feature">
+            {f.label}
+            {f.confirm && (
+              <span className="flag" title="Andrew to confirm">
+                {FLAG}
+              </span>
+            )}
+            {k < last && (
+              <span className="day-dot" aria-hidden="true">
+                {"\u00a0·"}
+              </span>
+            )}
+          </span>
+        </Fragment>
       ))}
     </>
   );
@@ -403,7 +408,7 @@ function DayStage() {
   const st = useDayLife();
   const dir = useStepDir(step);
   const m = MOMENTS[step];
-  const frame = dayFrame();
+  const frame = dayPosterFrame();
   return (
     <div className="day-grid wrap" ref={grid} data-cursor-tone="light">
       <div className="day-copy" aria-live="polite">

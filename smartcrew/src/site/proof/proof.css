@@ -67,7 +67,7 @@
   align-items: flex-start;
   font-size: clamp(74px, 8.4vw + 7.6svh, 210px);
   line-height: 1;
-  letter-spacing: -0.05em;
+  letter-spacing: var(--track-time);
   /* the tilde and the dollar sit a touch tighter to the digits */
   margin-left: -0.04em;
 }
@@ -186,7 +186,8 @@
   font-size: clamp(28px, 1.9vw + 2.6svh + 2px, 64px);
   font-weight: 620;
   line-height: 1.08;
-  letter-spacing: -0.03em;
+  letter-spacing: var(--track-quote);
+  word-spacing: var(--display-word);
 }
 
 @media (max-width: 760px) {

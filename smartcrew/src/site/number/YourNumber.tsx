@@ -8,6 +8,7 @@ import { CALC, FLAG } from "../../content/copy";
 import { sizeFor, type SignupRequest } from "../../signup/contract";
 import { trackCustom } from "../../lib/track";
 import { Scene } from "../scene/Scene";
+import { exitKeys } from "../../three/stage";
 import { SceneCta } from "../try/SceneCta";
 import { CrewSlider } from "./CrewSlider";
 import { Odometer } from "./Odometer";
@@ -177,11 +178,14 @@ function Calculator() {
   );
 }
 
+/** No devices here: Try it glided the phone out past the right edge; they stay out (never a shrink). */
+const NUMBER_POSES = exitKeys({ hold: true, side: 1, start: 0 });
+
 export default function YourNumber() {
   return (
     // desktop: natural height, tight to the calculator (no empty band); phones keep one full
     // screen (slider, result and CTA in one view), set in number.css
-    <Scene id="number" pinnedViewports={0} label="Your number" className="num">
+    <Scene id="number" pinnedViewports={0} poses={NUMBER_POSES} label="Your number" className="num">
       <Calculator />
     </Scene>
   );

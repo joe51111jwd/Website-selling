@@ -132,10 +132,12 @@ html[data-ground="dark"] .day-grid {
 
 .day-features {
   margin-top: clamp(10px, 2svh, 20px);
-  max-width: 24rem;
+  /* 22rem: the longest line (Friday) stays clear of the pushed-in laptop at 1440×660 */
+  max-width: 22rem;
   font-size: 13.5px;
   line-height: 1.55;
-  color: var(--ink-3);
+  /* a step darker than --ink-3: ≥ 4.8:1 on every time-of-day ground, 5:30 PM's amber included */
+  color: #685b50;
   text-wrap: pretty;
   transition: color 0.6s var(--ease-out);
 }
@@ -154,7 +156,7 @@ html[data-ground="dark"] .day-grid {
 }
 
 html[data-ground="dark"] .day-features {
-  color: var(--ink-night-3);
+  color: #a09385; /* 5.8:1 on the Friday night ground (--ink-night-3 is 4.0:1) */
 }
 
 html[data-ground="dark"] .day-grid .flag {
@@ -509,7 +511,8 @@ html[data-ground="dark"] .day-lead:not(.day-lead-halo) {
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
-  opacity: 0.45;
+  /* the times still to come: quieter, but text (≥ 5:1 on every ground; .45 was ~2.9:1) */
+  opacity: 0.66;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
   transition: opacity 0.3s;

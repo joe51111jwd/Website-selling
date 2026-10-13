@@ -7,7 +7,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
-import { ANGLES, CTA, HERO, HERO2, INTRO2, LOGOS, readAngle } from "../../content/copy";
+import { ANGLES, CTA, HERO, HERO2, INTRO2, LOGOS, LOGO_VECTORS, readAngle } from "../../content/copy";
 import { Scene } from "../scene/Scene";
 import { StageAnchor } from "../../three/stage/StageAnchor";
 import { phone, reducedMotion, reveal } from "../../three/stage/store";
@@ -236,7 +236,8 @@ export default function Hero() {
                   return (
                     <li key={l.name}>
                       <img
-                        src={import.meta.env.BASE_URL + l.src}
+                        // vector where a faithful trace exists (crisp at any size), raster otherwise
+                        src={import.meta.env.BASE_URL + (LOGO_VECTORS[l.name] ?? l.src)}
                         alt={l.name}
                         width={Math.round(h * l.aspect)}
                         height={h}

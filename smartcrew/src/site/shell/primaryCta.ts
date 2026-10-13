@@ -2,10 +2,17 @@
 // phone's sticky bar step aside while one is, so two primary buttons are never on screen together.
 // Every <Cta> registers itself (src/site/ui/Cta.tsx) unless it is the header's or the bar's.
 //
-// "On screen" = inside the viewport below the header, not inside an [inert] subtree, and actually
-// visible (a scene may keep its CTA mounted at opacity 0 until its beat). An IntersectionObserver
-// keeps the candidates cheap; a short poll covers CTAs that fade in without a scroll (Try it's
-// "That's the whole training." appears on a tap).
+// "On screen" = any part of it inside the viewport, not inside an [inert] subtree, and actually
+// visible (a scene may keep its CTA mounted at opacity 0 until its beat). Any part, not most of
+// it: the header's button hides the moment a scene's button peeks in at the bottom, and the
+// phone's bar (which covers the bottom 64 px) slides away before the scene's button can show
+// above it. An IntersectionObserver keeps the candidates cheap; a short poll covers CTAs that fade
+// in without a scroll (Try it's "That's the whole training." appears on a tap).
+//
+// Two scene CTAs can't be on screen together either: a CTA inside a container marked with
+// usePrimaryElsewhere() (the FAQ's close) waits, hidden, while another scene's CTA is on screen
+// (the offer's, right above it), and counts as "on screen" for the header and the bar meanwhile,
+// so neither flashes in during the hand-over.
 
 import { useSyncExternalStore } from "react";
 
@@ -13,21 +20,24 @@ const els = new Set<HTMLElement>();
 const near = new Set<HTMLElement>();
 const subs = new Set<() => void>();
 let inView = false;
+/** The CTAs actually showing right now (for usePrimaryElsewhere). */
+let shown: HTMLElement[] = [];
+const shownSubs = new Set<() => void>();
+/** Marks a container whose CTA waits while another scene's CTA is on screen. */
+const HELD = "data-cta-held";
 let io: IntersectionObserver | null = null;
 let poll = 0;
 let raf = 0;
 let listening = false;
 
-function headerH() {
-  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 64;
-}
-
-function visible(el: HTMLElement, top: number, bottom: number) {
+function onScreen(el: HTMLElement, top: number, bottom: number) {
   if (!el.isConnected || el.closest("[inert]")) return false;
   const r = el.getBoundingClientRect();
   if (!r.width || !r.height) return false;
-  // most of it between the header and the bottom edge
-  if (r.top + r.height * 0.5 < top || r.bottom - r.height * 0.5 > bottom) return false;
+  return r.bottom > top && r.top < bottom;
+}
+
+function opaque(el: HTMLElement) {
   if (typeof el.checkVisibility === "function" && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return false;
   // fading in or out: count it from half opacity (walks up a few levels only)
   let n: HTMLElement | null = el;
@@ -35,15 +45,34 @@ function visible(el: HTMLElement, top: number, bottom: number) {
   return true;
 }
 
+function headerH() {
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 64;
+}
+
 function check() {
   raf = 0;
-  const top = headerH();
   const bottom = window.innerHeight;
+  const under = headerH();
   let next = false;
-  for (const el of near) if (visible(el, top, bottom)) next = true;
+  const now: HTMLElement[] = [];
+  for (const el of near) {
+    if (!onScreen(el, 0, bottom)) continue;
+    if (opaque(el)) {
+      next = true;
+      // a button sliding away under the frosted header no longer holds another one back
+      if (el.getBoundingClientRect().bottom > under) now.push(el);
+    }
+    // waiting for its turn, or fading in after it: still a scene CTA on screen as far as the
+    // header and the bar go (so neither flashes in during the hand-over)
+    else if (el.closest(`[${HELD}]`)) next = true;
+  }
   if (next !== inView) {
     inView = next;
     subs.forEach((f) => f());
+  }
+  if (now.length !== shown.length || now.some((e, i) => e !== shown[i])) {
+    shown = now;
+    shownSubs.forEach((f) => f());
   }
 }
 
@@ -96,6 +125,22 @@ export function usePrimaryInView() {
   return useSyncExternalStore(
     (f) => (subs.add(f), () => void subs.delete(f)),
     () => inView,
+    () => false,
+  );
+}
+
+/**
+ * True while a scene CTA outside `container` is showing. Put the result on the container as
+ * data-cta-held={held} (and hide it in CSS): its own CTA then waits for the other one to leave
+ * the screen, so two orange buttons never show together.
+ */
+export function usePrimaryElsewhere(container: { current: HTMLElement | null }) {
+  return useSyncExternalStore(
+    (f) => (shownSubs.add(f), () => void shownSubs.delete(f)),
+    () => {
+      const c = container.current;
+      return shown.some((el) => !c || !c.contains(el));
+    },
     () => false,
   );
 }

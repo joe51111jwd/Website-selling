@@ -157,26 +157,8 @@ html[data-ground="dark"] .site-nav a:hover {
   color: var(--ink-night);
 }
 
-/* the header CTA stays quiet until the hero's own button has scrolled away */
-.site-header-cta.btn-dark {
-  transition:
-    opacity 0.35s var(--ease-out),
-    transform 0.35s var(--ease-out),
-    background-color 0.2s;
-  opacity: 0;
-  transform: translateY(-6px);
-  pointer-events: none;
-}
-
-.site-header.is-cta .site-header-cta {
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
-
 @media (max-width: 760px) {
-  .site-nav,
-  .site-header-cta {
+  .site-nav {
     display: none !important;
   }
   .site-logo-svg {
@@ -214,85 +196,4 @@ html[data-ground="dark"] .site-nav a:hover {
   .sticky-bar.is-on {
     transform: none;
   }
-  .sticky-bar-text {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    flex: 1;
-    font-size: 12.5px;
-    line-height: 1.3;
-    color: var(--ink-2);
-    white-space: nowrap;
-  }
-  .sticky-bar-text > * {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .sticky-bar-text strong {
-    color: var(--ink);
-    font-weight: 650;
-    font-size: 14px;
-  }
-  .sticky-bar-cta.btn {
-    --h: 48px;
-    padding: 0 16px;
-    font-size: 15px;
-    border-radius: 12px;
-  }
-  .sticky-bar-cta .btn-arrow {
-    display: none;
-  }
-}
-
-/* ── scene stubs (until each scene is built) ────────────────────────────── */
-
-.stub-scene .scene-body {
-  min-height: inherit;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-block: calc(var(--header-h) + 24px) 40px;
-}
-
-.stub-scene.stub-natural .scene-body {
-  min-height: 60svh;
-}
-
-.stub-scene .scene-stage {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-top: var(--header-h);
-}
-
-.stub {
-  padding-block: 24px;
-}
-
-.stub-id {
-  font-size: 13px;
-  color: var(--ink-3);
-  margin-bottom: 10px;
-}
-
-.stub-title {
-  max-width: 18em;
-}
-
-.stub-note {
-  margin-top: 12px;
-  max-width: 40rem;
-}
-
-.stub-anchor {
-  flex: 1;
-  min-height: 240px;
-  margin-inline: var(--gutter);
-}
-
-.stub-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 24px;
-  padding-block: 40px;
 }

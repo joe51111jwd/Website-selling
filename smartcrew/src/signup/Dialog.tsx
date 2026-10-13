@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent, type InputHTMLAttributes, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { AnimatePresence, motion, useReducedMotion, type Transition } from "motion/react";
-import "@fontsource-variable/archivo/wdth.css";
-import "@fontsource-variable/hanken-grotesk";
 import "../styles/tokens.css";
 import "./signup.css";
 import { SIZES, openSignup, type Estimate, type Intent, type SignupRequest, type Size } from "./contract";

@@ -29,7 +29,8 @@ export const CTA = {
   demo: "Book a demo with Andrew",
   demoLink: "or book a demo with Andrew",
   /** Under the primary button in the hero, the offer and the final CTA. */
-  micro: `${T.PROGRAM}. Starts with a ${T.N}-minute call with Andrew. No contract, cancel anytime.`,
+  // (a no-break space keeps "No contract" together: a line never ends on a lone "No")
+  micro: `${T.PROGRAM}. Starts with a ${T.N}-minute call with Andrew. No\u00a0contract, cancel anytime.`,
   /** One-tap links at the peaks of the One Day scene (profit and payroll moments). */
   inline: "Want this for your crew? Get my free trial",
 };
@@ -50,12 +51,11 @@ export const STICKY = {
   cta: "Get my free trial",
 };
 
-// ─── Intro, "Clock in" (BRIEF §0) ───────────────────────────────────────────
-// The intro's first frame is plain HTML in index.html; keep these strings in sync with it.
+// ─── Intro (BRIEF round 2 §5) ─────────────────────────────────────────────────
+// The intro is plain HTML in index.html (its notifications: INTRO2 below). The jobsite's name, which
+// Try it's geofence tag repeats:
 export const INTRO = {
   site: "Hwy 9 Culvert",
-  time: "6:42 AM",
-  line: "Marcus just clocked in. Nobody touched a timecard.",
 };
 
 // ─── Hero (BRIEF §1, OFFER §4) and ?angle= message match (PLAYBOOK §2.0.5) ──
@@ -107,12 +107,6 @@ export const HERO = {
   eyebrow: `For dirt work contractors with ${T.SIZE} employees`,
   usedBy: "Used by",
   cue: `Watch a day at ${T.COMPANY}`,
-  /** The laptop's live toast and the job it lands on (Hwy 9 Culvert Replacement, #2417 on the screens). */
-  toast: { name: "Marcus Bell", title: "Marcus Bell clocked in", meta: "6:42 AM · Hwy 9 Culvert · Pipe Laying" },
-  /** The profit card on web-project-detail reads $57,731.75; the hero ticks it up to this. */
-  profitFrom: 57731.75,
-  profitTo: 58412.4,
-  caption: "Demo account. Names and numbers are made up.",
 };
 
 /** The six contractors on the live site ("Used by", AMBER: Andrew confirms permission). Aspect = w/h of the file. */
@@ -126,18 +120,9 @@ export const LOGOS: { name: string; src: string; aspect: number }[] = [
 ];
 
 // ─── Scene headlines (starting points from the brief; scene owners refine) ──
-export const DAY = {
-  title: `One day at ${T.COMPANY}`,
-  sub: `A ${T.CREW}-person dirt crew, from the first clock-in to Friday payroll.`,
-};
-
 export const TRY = {
   title: "Your guys won’t fight this one.",
   done: "That’s the whole training.",
-  facts: [
-    "It runs in the background without draining batteries or being shut down by accident.",
-    "No data is shared, so your crew doesn’t have to worry about privacy.",
-  ],
 };
 
 export const NUMBER = {
@@ -159,21 +144,12 @@ export const APPS = {
 
 export const OFFER = {
   andrew: "No sales team. No BDR. Just Andrew.",
-  get: [
-    "The full SmartCrew system",
-    "Set up with you in a few days, tailored to how you work",
-    "Your crew live without training",
-    "Andrew on your call",
-    "Real humans for support",
-    "No contract, cancel anytime",
-  ],
-  costs: `One ${T.N}-minute call.`,
 };
 
 export const FAQ_TITLE = "Questions contractors ask Andrew";
 
 export const FOOTER = {
-  trademarks: "Trademarks belong to their owners.",
+  /** CC-BY-4.0 credit, shown in the footer only if a scene ever shows the XDR (none does today). */
   xdrCredit: "Apple Pro Display XDR model by polyman Studio, CC-BY-4.0.",
 };
 

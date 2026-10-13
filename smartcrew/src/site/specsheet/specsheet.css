@@ -899,8 +899,9 @@
 
 .spec-wall-n {
   font-size: 19px;
-  font-weight: 720;
-  letter-spacing: -0.03em;
+  font-weight: 700;
+  font-stretch: calc(var(--wdth-time) * 1%);
+  letter-spacing: var(--track-time);
   font-variant-numeric: tabular-nums;
 }
 

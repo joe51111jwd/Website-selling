@@ -85,7 +85,8 @@ function AppsStage() {
           <motion.p className="t-lead apps-sub" {...show(phase >= 2)}>
             {APPS_SCENE.sub}
           </motion.p>
-          <motion.div className="apps-cta" {...show(phase >= 2, 0.08)} inert={phase < 2}>
+          {/* phones: a beat later, once the sticky bar has slid away (one orange button at a time) */}
+          <motion.div className="apps-cta" {...show(phase >= 2, phone ? 0.42 : 0.08)} inert={phase < 2}>
             <Cta source="apps" size="lg" />
           </motion.div>
         </div>

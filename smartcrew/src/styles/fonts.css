@@ -1,0 +1,111 @@
+/* SmartCrew web fonts → src/styles/fonts.css. The files live in public/fonts/ (served at /fonts/).
+   Both families are SIL Open Font License 1.1 with no Reserved Font Name; the licences ship next to
+   the files: public/fonts/OFL-SpecialGothic.txt, public/fonts/OFL-FinlandicaText.txt.
+
+   SmartCrew Display = Special Gothic v1.011 (Alistair McCready), variable: wdth 75–110, wght 400–700
+   SmartCrew Text    = Finlandica Text v3.103 (Helsinki Type Studio), variable: wght 400–700,
+                       with its ten digits from Special Gothic at wdth 104 (Finlandica's zero is as
+                       wide and round as its capital O, so "5–100" read "5–1OO" and "$7,500" "$7,5OO").
+   Rebuilt from the upstream TTFs by type/ship/tools/build_fonts.py (subset + axis limits; U+202F and
+   U+2009, which Intl date/time formatting emits, are mapped to the space glyphs).
+
+   Coverage: Basic Latin, Latin-1 (accents for names), dashes, quotes, bullet, ellipsis, ← ↑ → ↓ ↔,
+   minus, ≈ ≠ ≤ ≥, €, ™. NOT in either font: ✓ (U+2713) and ⚑ (U+2691): draw them as inline SVG.
+   src is plain format("woff2"): a tech(variations) hint makes older iOS WebKit drop the whole rule. */
+
+/* ── Display: Special Gothic ─────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "SmartCrew Display";
+  src: url(/fonts/special-gothic-var.latin.woff2) format("woff2");
+  font-weight: 400 700;
+  font-stretch: 75% 110%; /* without this range the condensed times silently render at 100% */
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2009, U+2013-2014,
+    U+2018-201A, U+201C-201E, U+2022, U+2026, U+202F, U+2030, U+2032-2033, U+2039-203A, U+2044, U+20AC,
+    U+2122, U+2190-2195, U+2212, U+2248, U+2260, U+2264-2265, U+25CF;
+}
+
+/* ── Text: Finlandica Text ───────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "SmartCrew Text";
+  src: url(/fonts/finlandica-text-var.latin.woff2) format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020-007E, U+00A0-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2009, U+2013-2014,
+    U+2018-201A, U+201C-201E, U+2022, U+2026, U+202F, U+2030, U+2032-2033, U+2039-203A, U+2044, U+20AC,
+    U+2122, U+2190-2195, U+2212, U+2248, U+2260, U+2264-2265, U+25CF;
+}
+
+/* …and its figures, from Special Gothic. Declared AFTER the face above (the last declared face
+   wins for the digits) and with EXACTLY the same weight/style/stretch descriptors: if they
+   differ, Chrome drops the Finlandica face and sets the words in a fallback font. */
+@font-face {
+  font-family: "SmartCrew Text";
+  src: url(/fonts/special-gothic-figures-w104.woff2) format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0030-0039;
+}
+
+/* ── Metric-matched fallbacks (no layout jump when the fonts swap in) ───────────────────
+   Measured in Chromium on the page's own copy: width ratio → size-adjust; the fonts' ascent and
+   descent (Special Gothic 1005/295, Finlandica Text 950/250 per 1000) divided by it.
+   Display is matched at the headline setting (wdth 96, wght 700); Arial for iOS/macOS/Windows,
+   Roboto for Android (a missing local() font is skipped, so each stack falls through). */
+@font-face {
+  font-family: "SmartCrew Display Fallback";
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"), local("LiberationSans-Bold"), local("Arimo Bold");
+  font-weight: 400 700;
+  size-adjust: 90.25%;
+  ascent-override: 111.36%;
+  descent-override: 32.69%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "SmartCrew Display Fallback R";
+  src: local("Roboto Bold"), local("Roboto-Bold");
+  font-weight: 400 700;
+  size-adjust: 95.96%;
+  ascent-override: 104.73%;
+  descent-override: 30.74%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "SmartCrew Text Fallback";
+  src: local("Arial"), local("ArialMT"), local("Liberation Sans"), local("LiberationSans"), local("Arimo");
+  font-weight: 400 549;
+  size-adjust: 105.45%;
+  ascent-override: 90.09%;
+  descent-override: 23.71%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "SmartCrew Text Fallback";
+  src: local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"), local("LiberationSans-Bold"), local("Arimo Bold");
+  font-weight: 550 700;
+  size-adjust: 103.41%;
+  ascent-override: 91.87%;
+  descent-override: 24.18%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "SmartCrew Text Fallback R";
+  src: local("Roboto"), local("Roboto-Regular");
+  font-weight: 400 549;
+  size-adjust: 106.18%;
+  ascent-override: 89.47%;
+  descent-override: 23.54%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "SmartCrew Text Fallback R";
+  src: local("Roboto Bold"), local("Roboto-Bold");
+  font-weight: 550 700;
+  size-adjust: 109.95%;
+  ascent-override: 86.4%;
+  descent-override: 22.74%;
+  line-gap-override: 0%;
+}

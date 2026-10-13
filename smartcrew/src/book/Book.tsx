@@ -6,7 +6,7 @@ import { track, trackCustom } from "../lib/track";
 import { Flag } from "../signup/Flag";
 import { mountCal, mountVidalytics } from "./embeds";
 import { downloadIcs, downloadVcf, googleUrl, when } from "./calendar";
-import logoWhite from "../signup/assets/logo-white.svg";
+import { Logo } from "../brand/Logo";
 import faceUrl from "../signup/assets/andrew-face.webp";
 import bustUrl from "../signup/assets/andrew-bust.webp";
 
@@ -112,7 +112,7 @@ export default function Book() {
       <section className="bk-dark">
         <header className="bk-brand">
           <a href="../" className="bk-logo" aria-label="SmartCrew, back to the product page">
-            <img src={logoWhite} alt="SmartCrew" width={143} height={20} />
+            <Logo tone="white" decorative className="bk-logo-svg" />
           </a>
         </header>
 

@@ -13,11 +13,12 @@
 // Phones: the same beats, every tile goes into the phone (the laptop waits behind it), and the
 // devices lift to make room for the copy at the bottom.
 //
-// The devices never just appear or vanish (BRIEF round 2 §6): they wait off stage to the right
-// during Proof, glide in turning to face you as this scene comes up, and once the close has had its
-// beat they glide out past the right edge, turning away, as Andrew + the offer comes up.
+// The devices never just appear or vanish (BRIEF round 2 §6): they are out of frame during Proof
+// (its exitKeys), glide in from the right turning to face you as this scene comes up (returnKeys),
+// and once the close has had its beat they glide out past the right edge, turning away (the laptop
+// first, the phone a moment later), as Andrew + the offer comes up.
 
-import { phone, registerLiveScreen, type Box, type DevicePose, type Ease, type PoseKey } from "../../three/stage";
+import { phone, registerLiveScreen, returnKeys, type Box, type DevicePose, type PoseKey } from "../../three/stage";
 
 export type Target = {
   device: "macbook" | "iphone";
@@ -133,48 +134,29 @@ export const APPS_VIEWPORTS = phone ? 2.0 : 1.8;
 /** Scene progress for a point `vh` screens past the end of the pin (the exit runs there). */
 const past = (vh: number) => 1 + vh / (APPS_VIEWPORTS - 1);
 
-/**
- * The devices waiting off stage, past the right edge of the viewport (the Stage's `out`), in the
- * opening shot with screens off. Proof, the scene before, uses it: `show` 0 = hidden there,
- * 1 = there but still out of frame, ready to glide in as this scene comes up.
- */
-export function appsOffstagePose(at: number, show: 0 | 1, ease?: Ease): PoseKey {
-  ensureOffScreens();
-  const o = SHOTS.open;
-  return {
-    at,
-    anchor: ANCHOR,
-    frame: o.frame,
-    macbook: { ...o.macbook, show: phone ? 0 : show, out: 1, screen: OFF.macbook },
-    iphone: { ...o.iphone, show, out: 1, screen: OFF.iphone },
-    display: { show: 0 },
-    float: 0.2,
-    look: 0.4,
-    view: { rx: 0, ry: 0 },
-    light: { key: 1, warm: 0 },
-    ease,
-  };
-}
-
 const SCREEN = { macbook: "web-dashboard", iphone: "phone-working" } as const;
 
 export function appsPoses(): PoseKey[] {
   ensureOffScreens();
   const { open, close } = SHOTS;
+  // the opening shot, screens off. Phones: the phone alone at first (the tiles stack over it); the
+  // laptop joins for the close
+  const first: Omit<PoseKey, "at"> = {
+    anchor: ANCHOR,
+    frame: open.frame,
+    macbook: { ...open.macbook, screen: OFF.macbook, show: phone ? 0 : 1 },
+    iphone: { ...open.iphone, screen: OFF.iphone },
+    display: { show: 0 },
+    float: 0.2,
+    look: 0.4,
+    view: { rx: 0, ry: 0 },
+    light: { key: 1, warm: 0 },
+  };
   const keys: PoseKey[] = [
-    {
-      at: 0,
-      anchor: ANCHOR,
-      frame: open.frame,
-      // phones: the phone alone at first (the tiles stack over it); the laptop joins for the close
-      macbook: { ...open.macbook, screen: OFF.macbook, show: phone ? 0 : 1 },
-      iphone: { ...open.iphone, screen: OFF.iphone },
-      float: 0.2,
-      look: 0.4,
-      view: { rx: 0, ry: 0 },
-      light: { key: 1, warm: 0 },
-      ease: "out",
-    },
+    // they come back from the right (where Try it sent the phone) as this scene rises under
+    // Katie's quote, and settle as it reaches the top
+    ...returnKeys(first, { side: 1, start: -0.95, end: -0.02, devices: ["macbook", "iphone"] }),
+    { ...first, at: 0, ease: "out" },
   ];
   // each landing: the device it enters wakes up (first time) and pings a ring on the spot
   const on = { macbook: false, iphone: false };

@@ -23,7 +23,7 @@ import { AnimatePresence, LayoutGroup, motion, useInView, type Variants } from "
 import { CTA, SPEC } from "../../content/copy";
 import { Logo } from "../../brand/Logo";
 import { Scene } from "../scene/Scene";
-import { reducedMotion, type PoseKey } from "../../three/stage";
+import { exitKeys, reducedMotion } from "../../three/stage";
 import { Cta, DemoLink } from "../ui/Cta";
 import { playCue } from "../ui/cue";
 import { CATEGORIES, TOOL_COUNT, screensOf, type Category, type Tool } from "./data";
@@ -121,14 +121,13 @@ const captionFor = (t: Tool) => `${SPEC.app[t.shot.kind]} · ${SPEC.screen[t.sho
 // ─── the scene ───────────────────────────────────────────────────────────────
 
 /**
- * The devices' exit. The first key is already "out", so the move is the scroll from One Day's last
- * key to this section's top (the sheet rising): a glide and a turn, never a vanish (BRIEF round 2
- * §6). `out` isn't inherited, so the next scene's first key brings them back on its own.
+ * The devices' exit (the Stage's exitKeys): over the scroll from One Day's last key to this
+ * section's top (the sheet rising), the laptop glides out past the left edge and the phone past
+ * the right, turning: never a vanish (BRIEF round 2 §6). Try it brings the phone back from the
+ * right (its returnKeys). The recipe's last key (at: 1) is dropped: this one-screen scene isn't
+ * pinned, so that key would sit exactly on Try it's first key and turn its glide into a pop.
  */
-const EXIT: PoseKey[] = [
-  { at: 0, ease: "in", macbook: { out: -1 }, iphone: { out: 1 }, display: { show: 0 } },
-  { at: 1, ease: "linear", macbook: { out: -1 }, iphone: { out: 1 }, display: { show: 0 } },
-];
+const EXIT = exitKeys({ start: -0.98, end: 0, side: { macbook: -1, iphone: 1, display: 1 } }).slice(0, 2);
 
 export default function SpecSheet() {
   return (

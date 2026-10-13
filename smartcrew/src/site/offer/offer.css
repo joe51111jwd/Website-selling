@@ -485,4 +485,23 @@
   .rcpt {
     --rcpt-fs: 13.25px;
   }
+
+  /* the feed seen from the paper's side (Receipt.tsx): the paper stays put, the lip travels down
+     it as each row prints, and only what is printed shows above the lip */
+  .rcpt[data-phase="idle"] .rcpt-paper,
+  .rcpt[data-phase="printing"] .rcpt-paper {
+    transform: none;
+  }
+
+  .rcpt[data-phase="idle"] .rcpt-feed,
+  .rcpt[data-phase="printing"] .rcpt-feed {
+    clip-path: inset(-120px -120px calc(100% - var(--printed, 0px)) -120px);
+  }
+
+  .rcpt[data-phase="idle"] .rcpt-slot,
+  .rcpt[data-phase="printing"] .rcpt-slot {
+    top: calc(var(--printed, 0px) - 6px);
+    bottom: auto;
+    transition: none;
+  }
 }

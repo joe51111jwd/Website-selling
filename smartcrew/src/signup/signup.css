@@ -202,8 +202,9 @@
 }
 .su-label {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 2px 8px;
   padding: 0;
   margin: 0 0 8px;
   font-size: 14.5px;
@@ -214,6 +215,8 @@
 .su-label-hint {
   font-weight: 400;
   color: var(--ink-3);
+  /* on a phone it drops under the question whole, rather than squeezing into a column beside it */
+  white-space: nowrap;
 }
 .su-label-hint::before {
   content: "·";

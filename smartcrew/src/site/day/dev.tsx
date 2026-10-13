@@ -2,11 +2,11 @@
 import { lazy, StrictMode, Suspense, useEffect, useMemo } from "react";
 import { createRoot } from "react-dom/client";
 import { MotionConfig } from "motion/react";
-import "@fontsource-variable/archivo/wdth.css";
-import "@fontsource-variable/hanken-grotesk/wght.css";
+import "../../styles/fonts.css";
 import "../../styles/tokens.css";
 import "../../styles/base.css";
 import "../../styles/shell.css";
+import "../../styles/type-roles.css";
 import { Header } from "../shell/Header";
 import { StickyBar } from "../shell/StickyBar";
 import Cursor from "../../cursor/Cursor";

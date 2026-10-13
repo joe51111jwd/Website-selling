@@ -127,7 +127,7 @@ export const SCRIPT: Script[] = [
         cells: Array.from({ length: 8 }, (_, i) => [1250, 294.3 + i * 60.75, 110, 60.75] as Box),
         toast: [1018, 70, 404, 100],
       },
-      focus: { px: [1150, 330], zoom: 1.75, to: [0.74, 0.62] },
+      focus: { px: [1150, 330], zoom: 1.75, to: [0.77, 0.62] },
       mark: [1304, 325],
     },
   },

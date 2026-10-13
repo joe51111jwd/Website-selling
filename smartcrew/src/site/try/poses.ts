@@ -1,14 +1,16 @@
-// 3 · Try it, choreography. The scroll from One Day into this scene is the move: the laptop
-// glides out past the left edge, turning away (it never just shrinks), while the iPhone turns
-// square to camera, centred and large, showing "Ready to clock in?". While the scene is pinned the
-// phone holds that pose (no roll, a little float), so the real <button> drawn over its Clock In
-// circle stays exactly on it. As Your number comes up, the phone leaves the same way: up with the
-// page and out past the right edge, turning.
+// 3 · Try it, choreography. The spec sheet before this scene has already glided the devices out
+// (laptop past the left edge, phone past the right, src/site/specsheet/SpecSheet.tsx). The scroll
+// from the spec sheet into this scene brings the iPhone back alone: it glides in from the right,
+// turning square to camera, centred and large, showing "Ready to clock in?"; the laptop stays out
+// (`out: -1`) until it is hidden. While the scene is pinned the phone holds that pose (no roll, a
+// little float), so the real <button> drawn over its Clock In circle stays exactly on it. As Your
+// number comes up, the phone leaves the way it came: up with the page and out past the right edge.
 //
-// Phones: no 3D here (the page itself becomes the app); the devices glide up and out of frame as
-// the app's sheet rises over them.
+// Phones: no 3D here (the page itself becomes the app); the devices are already out of frame
+// (the spec sheet sent them) and stay out.
 
 import type { PoseKey } from "../../three/stage/types";
+import { returnKeys } from "../../three/stage/recipes";
 
 /** The frame the phone is fitted into (device units). Width covers the geofence drawn round it. */
 export const TRY_FRAME: [number, number] = [1.8, 2.2];
@@ -17,8 +19,9 @@ export const TRY_FRAME: [number, number] = [1.8, 2.2];
 export const TRY_FLOAT = 0.3;
 export const TRY_LOOK = 0.18;
 
-/** How many screens the scene takes (desktop: a short hold for the tap). */
-export const TRY_VIEWPORTS = 1.3;
+/** How many screens the scene takes (desktop: a short hold for the tap, 0.2 screen; the phone
+ *  demos itself after a few seconds anyway, so the hold needn't be long). */
+export const TRY_VIEWPORTS = 1.2;
 export const TRY_VIEWPORTS_PHONE = 1.8;
 
 const phoneAt = { x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1 };
@@ -27,20 +30,22 @@ const phoneAt = { x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1 };
 const past = (vh: number) => 1 + vh / (TRY_VIEWPORTS - 1);
 
 export function tryPoses(): PoseKey[] {
+  const first: Omit<PoseKey, "at"> = {
+    anchor: "try",
+    frame: TRY_FRAME,
+    iphone: { ...phoneAt, screen: "phone-home" },
+    // the laptop stays out past the left edge (the Stage's `out`), where the spec sheet sent it
+    macbook: { s: 0.6, out: -1 },
+    float: TRY_FLOAT,
+    look: TRY_LOOK,
+    view: { rx: 0, ry: 0 },
+    light: { key: 1, warm: 0 },
+  };
   return [
-    {
-      at: 0,
-      anchor: "try",
-      frame: TRY_FRAME,
-      iphone: { ...phoneAt, screen: "phone-home" },
-      // the laptop glides out past the left edge, turning (the Stage's `out`), as the phone arrives
-      macbook: { s: 0.6, out: -1 },
-      float: TRY_FLOAT,
-      look: TRY_LOOK,
-      view: { rx: 0, ry: 0 },
-      light: { key: 1, warm: 0 },
-      ease: "inOut",
-    },
+    // the phone comes back from the right as this scene rises (riding its anchor up from below),
+    // square to camera by the time the scene reaches the top
+    ...returnKeys(first, { side: 1, start: -0.6, end: -0.02, devices: ["iphone"] }),
+    { ...first, at: 0, ease: "inOut" },
     // out of frame: now it can go (`out` isn't inherited, so it is restated until hidden)
     { at: 0.2, macbook: { show: 0, out: -1 }, iphone: { ...phoneAt } },
     { at: 1, iphone: { ...phoneAt }, macbook: { show: 0 } },
@@ -51,7 +56,7 @@ export function tryPoses(): PoseKey[] {
   ];
 }
 
-/** Phones: the devices glide out of frame (laptop left, phone right) as the app's sheet rises. */
+/** Phones: the devices stay out of frame (laptop left, phone right) while the app fills the screen. */
 export function tryPhonePoses(): PoseKey[] {
   return [
     { at: 0, macbook: { out: -1 }, iphone: { out: 1 }, ease: "in" },

@@ -3,7 +3,7 @@
 // what it costs you (one call). The receipt is signed; the CTA sits directly under it.
 
 import { useRef } from "react";
-import type { PoseKey } from "../../three/stage";
+import { exitKeys } from "../../three/stage";
 import { motion, useScroll, useTransform } from "motion/react";
 import { ANDREW, CTA } from "../../content/copy";
 import { reducedMotion } from "../../three/stage";
@@ -14,13 +14,15 @@ import { DemoButton, TrialButton } from "./Actions";
 import { playCue } from "../ui/cue";
 import "./offer.css";
 
-const OFFER_POSES: PoseKey[] = [{ at: 0, macbook: { show: 0 }, iphone: { show: 0 }, display: { show: 0 }, ease: "out" }];
+// No devices here: Five apps glides them out past the right edge as this scene comes up (its exit
+// ends 0.24 screen before this scene's top). These keys keep them out (the Stage's `out`, never a
+// shrink in place). Both sit just after that exit and well before the FAQ's return keys: a key at
+// this natural-height scene's end would land after the FAQ has started bringing them back.
+const OFFER_POSES = exitKeys({ hold: true, side: 1, start: -0.2, end: -0.18 });
 
 export default function Offer() {
   return (
-    // natural height, tight to its content (BRIEF round 2 §7): no empty band above or below it.
-    // No devices here: Five apps glided them out as this scene came up; one key keeps them out
-    // (not the default hide pair, whose last key would land after the FAQ has brought them back)
+    // natural height, tight to its content (BRIEF round 2 §7): no empty band above or below it
     <Scene id="offer" pinnedViewports={0} poses={OFFER_POSES} label="Andrew and the offer" className="offer">
       <OfferBody />
     </Scene>

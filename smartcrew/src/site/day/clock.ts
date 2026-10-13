@@ -12,7 +12,8 @@ export const DAY_STEPS = MOMENTS.length;
 export const beat = (i: number, phase: number) => stepAt(i, DAY_STEPS, phase);
 
 /**
- * The beats inside each moment, as fractions of its share of the scroll (0.9 of a screen each).
+ * The beats inside each moment, as fractions of its share of the scroll (0.76 of a screen each,
+ * ≈500 px at 660 px tall: no stretch of more than ~130 px without a change).
  * Something changes on every beat, so no ~100 px of scroll is ever dead:
  *
  *   0.00 ─ moment boundary: mid-way through the camera move; the time rolls, the headline swaps
@@ -38,8 +39,11 @@ export const B = {
   leave: 0.82,
 } as const;
 
-/** Screens of scroll per moment. */
-export const PER_MOMENT = 0.9;
+/**
+ * Screens of scroll per moment. 0.76 → the scene is 7 × 0.76 + 1 = 6.32 screens (was 0.9 → 7.3):
+ * the beats keep their order and spacing, the holds and moves are just shorter.
+ */
+export const PER_MOMENT = 0.76;
 
 /** Where the rail jumps to: the shot has settled, the tap is about to land. */
 export const JUMP = 0.1;

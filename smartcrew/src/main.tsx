@@ -2,11 +2,11 @@ import { StrictMode, lazy, Suspense, type ReactNode } from "react";
 import type React from "react";
 import { createRoot } from "react-dom/client";
 import { installWatermark } from "./lib/watermark";
-import "@fontsource-variable/archivo/wdth.css";
-import "@fontsource-variable/hanken-grotesk/wght.css";
+import "./styles/fonts.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/shell.css";
+import "./styles/type-roles.css";
 import App from "./App";
 
 // set in .env.watermark, so only `npm run build:watermark` carries it

@@ -57,6 +57,21 @@
   margin-top: clamp(12px, 2.2svh, 20px);
 }
 
+/* the hand-over: while the offer's orange button is still on screen this one waits, then rises in */
+.faq-actions,
+.faq-micro {
+  transition:
+    opacity 0.45s var(--ease-out),
+    translate 0.45s var(--ease-out);
+}
+
+.faq-close[data-cta-held="true"] :is(.faq-actions, .faq-micro) {
+  opacity: 0;
+  translate: 0 10px;
+  pointer-events: none;
+  transition-duration: 0.2s;
+}
+
 .faq-micro {
   margin-top: 8px;
   max-width: 26rem;
