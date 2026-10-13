@@ -92,6 +92,7 @@ All copy lives in `src/content/copy.ts`: the tokens `T.SIZE`, `T.N` and `T.PROGR
 |---|---|
 | `index.html` | The page shell: font preloads and the first paint. |
 | `src/site/hero/` | The hero ("Fence the Words"): `Hero.tsx`, the fence engine and its CSS in `fence/`. |
+| `src/site/ready.ts` | Two first-screen signals the hero sets: ready (the 3D's entrance starts after it) and done (phones mount the later scenes after it). |
 | `src/App.tsx` | The page shell: backdrop, the lazy 3D Stage (never on phones), header, scenes, sticky bar, popup, cursor. |
 | `src/site/<scene>/` | One folder per scene. Each phone version sits beside its desktop one (`*Phone.tsx`). |
 | `src/site/ui/Cta.tsx` | The orange `<Cta>` and the ink `DemoLink` / `InlineCta`. They all call `openSignup()` (`src/signup/contract.ts`). |

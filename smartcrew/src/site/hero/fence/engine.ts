@@ -244,13 +244,15 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     root.style.setProperty("--fl-mb", `${l.mb.toFixed(1)}px`);
   }
 
-  /** The block's limits: desktop, from the top band to the logos row; phone, the button's bottom. */
+  /** The block's limits: desktop, from the top band to the logos row; phone, the button's bottom and the scroll cue's. */
   function overflow() {
     const R = root.getBoundingClientRect();
     if (phone) {
       const vis = Math.min(window.innerHeight, 900);
-      const limit = Math.min(500, vis - 150);
-      return q(".hf-cta-wrap")!.getBoundingClientRect().bottom - R.top - limit;
+      const cta = q(".hf-cta-wrap")!.getBoundingClientRect().bottom - R.top;
+      const cue = q(".hf-cue")!.getBoundingClientRect().bottom - R.top;
+      // the button by 500 px, and the scroll cue fully on screen (never straddling the fold)
+      return Math.max(cta - Math.min(500, vis - 150), cue - (vis - 2));
     }
     return 70 + q(".hf-copy")!.offsetHeight - copyLimit(R);
   }

@@ -8,7 +8,7 @@ import { MotionConfig } from "motion/react";
 import Signup from "./signup/Signup";
 import { Header } from "./site/shell/Header";
 import { StickyBar } from "./site/shell/StickyBar";
-import { onPageReady, useFirstScreenDone } from "./site/ready";
+import { onPageReady, useFirstScreenDone, usePageReady } from "./site/ready";
 import { lockScroll, startSmoothScroll } from "./site/scroll";
 import { forceStage3d, isPhone, onPhoneChange, phoneAtLoad, stageAllowed, usePhone } from "./site/phone";
 import { setStageMounted, watchLayout } from "./three/stage/store";
@@ -28,8 +28,8 @@ const Cursor = lazy(() => import("./cursor/Cursor"));
 /**
  * The scenes after One Day, in page order, each in its own chunk (with its CSS and its phone
  * version), so the first screen's JS is only the hero and One Day: less to download and evaluate
- * at boot on a phone. Desktop starts fetching all of them at once, in parallel with the first
- * render; phones fetch and mount them one by one once the first screen is done
+ * at boot. They are fetched and mounted one by one in idle time after the first screen (desktop:
+ * once it has landed; phones: once it is done), never in the middle of the hero's entrance
  * (useLateScenes, src/site/ready.ts).
  */
 type SceneModule = { default: ComponentType };
@@ -48,7 +48,6 @@ const LATER_SCENES = [
   lateScene(() => import("./site/faq/Faq")),
   lateScene(() => import("./site/footer/Footer")),
 ];
-if (!phoneAtLoad) LATER_SCENES.forEach((sc) => void sc.get());
 
 const LATER: ComponentType[] = LATER_SCENES.map((sc) => memo(sc.C));
 // App re-renders when the first screen is done; the scenes subscribe to what they need
@@ -75,22 +74,30 @@ function useDayOnPhone() {
 }
 
 /**
- * PHONE MODE: the scenes after One Day mount one by one in idle time, as low-priority transitions
- * (React renders them in 5 ms slices), once the first screen is done (src/site/ready.ts: the
- * hero's entrance has played out, or the visitor has started scrolling), so none of their mounts
- * lands in the middle of the entrance as a long task. They are seven screens of One Day further
- * down, all in within ~2 s. A #hash on load mounts them at once. Desktop mounts everything at
- * once.
+ * The scenes after One Day mount after the first screen, as low-priority transitions (React
+ * renders them in 5 ms slices; each chunk's stylesheet restyles the page as it lands), so none of
+ * it lands in the middle of the hero's entrance as a long task:
+ * - desktop: all at once (their chunks in parallel) once the first screen has landed (READY: the
+ *   hero's button is in place), so the header's FAQ link and the 3D Stage's later keys are there
+ *   within a second or two;
+ * - phones: one by one in idle time once the first screen is done (DONE: the entrance has played
+ *   out, or the visitor has started scrolling); they are seven screens of One Day further down,
+ *   all in within ~2 s.
+ * A #hash on load mounts them at once.
  */
 function useLateScenes() {
-  const [n, setN] = useState(() => (!phoneAtLoad || hashOnLoad ? LATER.length : 0));
-  const go = useFirstScreenDone();
+  const [n, setN] = useState(() => (hashOnLoad ? LATER.length : 0));
+  const ready = usePageReady();
+  const done = useFirstScreenDone();
+  useEffect(() => {
+    if (!phoneAtLoad && ready && n < LATER.length) startTransition(() => setN(LATER.length));
+  }, [ready, n]);
   useEffect(() => {
     // scenes that came in late may carry markers the shell looks for (data-hides-sticky)
     window.dispatchEvent(new Event("sc:scenes"));
-    // one at a time: its chunk (JS + CSS: adding a stylesheet restyles the page) in idle time,
-    // then its mount as a transition in the next idle moment, then the next scene
-    if (n >= LATER.length || !go) return;
+    // phones, one at a time: its chunk (JS + CSS: adding a stylesheet restyles the page) in idle
+    // time, then its mount as a transition in the next idle moment, then the next scene
+    if (n >= LATER.length || !phoneAtLoad || !done) return;
     let id = 0;
     let dead = false;
     const mount = () => (id = idle(() => !dead && startTransition(() => setN((k) => Math.min(LATER.length, k + 1)))));
@@ -109,7 +116,7 @@ function useLateScenes() {
       cancelAnimationFrame(raf);
       cancelIdle(id);
     };
-  }, [n, go]);
+  }, [n, done]);
   return n;
 }
 

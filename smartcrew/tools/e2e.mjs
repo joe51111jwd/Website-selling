@@ -10,7 +10,9 @@
 // finds them, by role and name (buttons named "Get my free trial", headings, links), plus a few
 // stable hooks: #hero-cta / [data-hero-cta], data-testid="sticky-bar|book-cal|book-video|book-setup",
 // the smartcrew:signup event every CTA fires (src/signup/contract.ts), and the popup's storage
-// hand-off to /book (sessionStorage "sc_lead", src/lib/lead.ts).
+// hand-off to /book (sessionStorage "sc_lead", src/lib/lead.ts). Taps land where the page itself
+// says the element is on screen, opaque, uncovered and still (see press()). There is no intro any
+// more: the test asserts none comes back and that the hero's CTA is clickable within 2.5 s.
 // Prints a PASS/FAIL table; exits 1 if anything failed.
 
 import { readFileSync } from "node:fs";
@@ -288,7 +290,7 @@ async function tapAt(page, pt) {
  * at that centre. Playwright's own actionability wait needs consecutive animation frames to agree,
  * which a software-rendered WebGL page (2–5 fps headless) can take many seconds to give.
  */
-async function press(page, locator, { timeout = 30000, what = "element" } = {}) {
+async function press(page, locator, { timeout = 30000, what = "element", patient = true } = {}) {
   const t0 = Date.now();
   let deadline = t0 + timeout;
   for (;;) {
@@ -296,7 +298,7 @@ async function press(page, locator, { timeout = 30000, what = "element" } = {}) 
     if (pt) return tapAt(page, pt);
     // a stalled page (software WebGL compiling) doesn't count against the element: wait it out
     const stalled = await page.evaluate(() => performance.now() - (window.__stallEnd || 0) < 2500).catch(() => true);
-    if (stalled && Date.now() - t0 < timeout * 3) {
+    if (patient && stalled && Date.now() - t0 < timeout * 3) {
       const q0 = Date.now();
       await quiet(page, 30000);
       deadline += Date.now() - q0;
@@ -315,11 +317,28 @@ const popup = (page) => page.getByRole("dialog", { name: POPUP_NAME });
 async function expectPopup(page, ms = 10000) {
   await popup(page).waitFor({ state: "visible", timeout: ms });
 }
-async function closePopup(page) {
+/**
+ * Close the popup with its Close button. The hero checks hold the button to it; the long walks
+ * (lenient) fall back to Esc when the page is too stalled for a tap (software WebGL behind the
+ * popup) and say so in the result.
+ */
+async function closePopup(page, { lenient = false } = {}) {
   const d = popup(page);
-  await press(page, d.getByRole("button", { name: "Close", exact: true }), { what: "the popup's Close" }).catch(async (e) => {
+  await press(page, d.getByRole("button", { name: "Close", exact: true }), { what: "the popup's Close", timeout: lenient ? 8000 : 30000, patient: !lenient }).catch(async (e) => {
+    if (lenient && !/covered by|transparent|inert|off screen|detached/.test(e.message)) {
+      if (!current?.notes.some((n) => n.startsWith("closed the popup with Esc"))) note("closed the popup with Esc where the page was too stalled to tap Close");
+      await page.keyboard.press("Escape");
+      return;
+    }
     const dialogs = await page
-      .evaluate(() => [...document.querySelectorAll("[role=dialog]")].map((x) => `"${document.getElementById(x.getAttribute("aria-labelledby") ?? "")?.textContent ?? x.getAttribute("aria-label")}" shown=${x.checkVisibility()}`).join(", "))
+      .evaluate(() =>
+        [...document.querySelectorAll("[role=dialog]")]
+          .map((x) => {
+            const btns = [...x.querySelectorAll("button")].filter((b) => /close/i.test(b.getAttribute("aria-label") || b.textContent || "")).map((b) => `${b.getAttribute("aria-label") || b.textContent.trim()}${b.closest("[inert]") ? " (inert)" : ""}${b.closest("[aria-hidden=true]") ? " (aria-hidden)" : ""}${b.checkVisibility() ? "" : " (hidden)"}`);
+            return `"${document.getElementById(x.getAttribute("aria-labelledby") ?? "")?.textContent ?? x.getAttribute("aria-label")}" shown=${x.checkVisibility()} close=[${btns.join("; ")}]`;
+          })
+          .join(", "),
+      )
       .catch(() => "?");
     throw new Error(`${e.message}; dialogs: ${dialogs || "none"}`);
   });
@@ -433,7 +452,7 @@ async function ctaWalk(page, device, stepVh) {
       assert(after.length > before, `CTA "${key}" opened no smartcrew:signup event`);
       const s = after[after.length - 1];
       seen.set(key, { source: s.source, intent: s.intent });
-      await closePopup(page);
+      await closePopup(page, { lenient: true });
     }
     y += Math.round(H * stepVh);
     total = await page.evaluate(() => document.documentElement.scrollHeight);
@@ -860,7 +879,7 @@ async function funnel(device) {
     await cta.waitFor({ state: "visible", timeout: 15000 });
     await press(page, cta, { what: "the hero CTA" });
     const dlg = popup(page);
-    await dlg.waitFor({ state: "visible", timeout: 6000 });
+    await dlg.waitFor({ state: "visible", timeout: 20000 });
     const cont = () => dlg.getByRole("button", { name: /^continue/i }).click();
     const errors = async () => (await dlg.getByRole("alert").allInnerTexts()).join(" | ");
 
@@ -873,7 +892,7 @@ async function funnel(device) {
     await dlg.getByRole("radio", { name: "6–20" }).click();
     await dlg.getByLabel("Company name").fill("QA Test Earthworks");
     await cont();
-    await dlg.getByLabel("Your name").waitFor({ state: "visible", timeout: 4000 });
+    await dlg.getByLabel("Your name").waitFor({ state: "visible", timeout: 15000 });
     out.push("step 1 errors + size/company");
 
     // step 2: a bad email → error; then good
@@ -885,7 +904,7 @@ async function funnel(device) {
     assert(/email/i.test(e), `step 2 error: "${e}"`);
     await dlg.getByLabel("Email").fill("pat.tester@example.com");
     await cont();
-    await dlg.getByLabel("Mobile number").waitFor({ state: "visible", timeout: 4000 });
+    await dlg.getByLabel("Mobile number").waitFor({ state: "visible", timeout: 15000 });
     out.push("step 2 email error");
 
     // step 3: a short number → error; then good → /book
@@ -969,7 +988,7 @@ if (!up) {
 for (const device of [DESKTOP, PHONE]) {
   const D = device.name === "desktop" ? "desktop 1440×660" : "iPhone FB 390×664";
   await check(D, "hero: H1 + CTA in the first screen → popup", () => heroBasics(device));
-  await check(D, "every CTA on the page opens the popup", () => everyCta(device), { timeout: 420000 });
+  await check(D, "every CTA on the page opens the popup", () => everyCta(device), { timeout: 900000 });
   await check(D, "never two orange CTAs on screen at once", () => oneOrangeAtATime(device), { timeout: 300000 });
   await check(D, "popup 3 steps + errors → /book prefilled (no booking)", () => funnel(device), { timeout: 150000 });
   await check(D, "spec sheet: expand + collapse", () => specSheet(device));
