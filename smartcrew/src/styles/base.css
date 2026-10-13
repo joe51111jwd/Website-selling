@@ -210,12 +210,24 @@ html.sc-page {
   color: var(--ink-3);
 }
 
+/* phones: the small print people actually read (the call, no contract) at ≥ 14 px */
+@media (max-width: 760px) {
+  .t-micro {
+    font-size: 14px;
+  }
+}
+
 /* the one marker for copy Andrew still has to approve */
 .flag {
   display: inline-block;
   margin-left: 0.3em;
   color: var(--orange-ink);
   font-weight: 700;
+}
+
+/* …shown only on review builds (src/lib/flags.ts sets html.show-flags): the ad build hides them */
+html:not(.show-flags) :is(.flag, .sc-flag, .rcpt-flag-mark, [data-review-only]) {
+  display: none !important;
 }
 
 /* ── Links ──────────────────────────────────────────────────────────────── */

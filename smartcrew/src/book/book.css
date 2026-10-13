@@ -103,6 +103,11 @@ body {
   line-height: 1.5;
   color: rgb(255 255 255 / 70%);
 }
+/* ⚑ markers: review builds only (src/lib/flags.ts) */
+html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
+  display: none !important;
+}
+
 .bk .sc-flag {
   display: inline-block;
   margin-left: 3px;
@@ -857,6 +862,78 @@ body {
   }
   .bk-foot {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+  }
+  /* the last step first: Andrew's video is one row (tap to open it), so the month grid shows
+     above the fold */
+  .bk-video[hidden] {
+    display: none;
+  }
+  .bk-vrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 56px;
+    margin-top: 14px;
+    padding: 8px 12px 8px 8px;
+    border: 0;
+    border-radius: 12px;
+    background: rgb(255 255 255 / 8%);
+    color: #fff;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bk-vrow:active {
+    background: rgb(255 255 255 / 12%);
+  }
+  .bk-vrow-thumb {
+    position: relative;
+    flex: none;
+    width: 72px;
+    height: 44px;
+    overflow: hidden;
+    border-radius: 8px;
+    background:
+      radial-gradient(70% 90% at 75% 100%, rgb(255 122 1 / 30%), transparent 60%),
+      linear-gradient(160deg, #2a241e, #120f0c);
+  }
+  .bk-vrow-thumb img {
+    position: absolute;
+    right: 2px;
+    bottom: 0;
+    height: 92%;
+    width: auto;
+  }
+  .bk-vrow-play {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    margin-top: -12px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 92%);
+    color: var(--ink);
+  }
+  .bk-vrow-play svg {
+    margin-left: 2px;
+  }
+  .bk-vrow-tx {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+  }
+  .bk-vrow-tx b {
+    font-size: 15px;
+    font-weight: 620;
+  }
+  .bk-vrow-tx span {
+    font-size: 13px;
+    color: rgb(255 255 255 / 62%);
   }
 }
 

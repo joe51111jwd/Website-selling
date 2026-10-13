@@ -7,6 +7,7 @@ import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/shell.css";
 import "./styles/type-roles.css";
+import "./lib/flags";
 import App from "./App";
 
 // set in .env.watermark, so only `npm run build:watermark` carries it

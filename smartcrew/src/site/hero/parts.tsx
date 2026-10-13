@@ -5,7 +5,8 @@ import { motion } from "motion/react";
 export const HERO_EASE = [0.22, 1, 0.36, 1] as const;
 const ease = HERO_EASE;
 
-export function Words({ text, delay, play }: { text: string; delay: number; play: boolean }) {
+/** `quick`: the visitor skipped the intro: the headline snaps in (≈ 0.3 s), it doesn't perform. */
+export function Words({ text, delay, play, quick = false }: { text: string; delay: number; play: boolean; quick?: boolean }) {
   return (
     <>
       {text.split(" ").map((w, i) => (
@@ -15,7 +16,7 @@ export function Words({ text, delay, play }: { text: string; delay: number; play
               className="hero-word"
               initial={false}
               animate={play ? { y: "0%", opacity: 1 } : { y: "105%", opacity: 0 }}
-              transition={{ duration: 0.9, ease, delay: delay + i * 0.055 }}
+              transition={quick ? { duration: 0.3, ease, delay: i * 0.015 } : { duration: 0.9, ease, delay: delay + i * 0.055 }}
             >
               {w}
             </motion.span>

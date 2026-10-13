@@ -4,6 +4,7 @@
 // hasn't approved is marked with FLAG (⚑) and shown visibly on the page.
 
 import type { MomentId } from "./moments";
+import { SHOW_FLAGS } from "../lib/flags";
 
 /** Visible marker for copy Andrew must confirm before launch. */
 export const FLAG = "⚑";
@@ -326,7 +327,7 @@ export const RECEIPT = {
    * PLAYBOOK §3.4 proposals, shown only as visibly flagged placeholders until Andrew approves
    * (P4 founding rate, P1 reason why, P2 capacity, P3 guarantee). false hides every one of them.
    */
-  showProposals: true,
+  showProposals: SHOW_FLAGS,
   proposalItem: "Founding rate, locked while you stay",
   proposalWhy: "Why it’s free: [Andrew’s reason]",
   proposalNotes: ["[N] new setups a month", "Guarantee: [name + terms]"],
@@ -486,6 +487,26 @@ export const HERO2 = {
     replace: "GPS fills in your crew’s timecards. You see each job’s profit daily, in time to fix it.",
   } as Record<Angle, string>,
   caption: "Demo account. Names and numbers are made up.",
+};
+
+// ─── 1 · Hero, PHONE MODE (round 3: one idea, ≤ 40 words above the button) ─────────────────
+// Who it's for rides in the sub (no separate eyebrow line); the demo note lives in the footer;
+// the small print is one line. Plain paraphrases of each angle's sub (GREEN, TRUTH.md).
+export const HERO_PHONE = {
+  sub: {
+    profit: "For dirt work contractors: GPS fills in timecards, so you see every job’s profit daily.",
+    overbudget: "For dirt work contractors: hours, machine time and materials roll into every job’s profit, daily.",
+    timecards: "For dirt work contractors: hours log themselves at the job, on the right cost code.",
+    payroll: "For dirt work contractors: hours log themselves at the job, ready for QuickBooks payroll.",
+    replace: "For dirt work contractors: GPS fills in timecards, so you see every job’s profit daily.",
+  } as Record<Angle, string>,
+  micro: `Starts with a ${T.N}-min call with Andrew. No\u00a0contract.`,
+  /** ?angle= message match: the one card on the devices says what the ad said (demo data: the
+   * profit moment's clock-out, 10h 18m; this week's payroll report, 14 timecards). */
+  cards: {
+    timecards: { label: "Timecard · Marcus Bell", value: "10h 18m", delta: "Filled in by GPS" },
+    payroll: { label: "Payroll · Oct 5 – 9", value: "14 timecards", delta: "Ready for QuickBooks" },
+  } as Partial<Record<Angle, { label: string; value: string; delta: string }>>,
 };
 
 // ─── 2 · One Day, round 2: the skimmable layer (Day owner's block, src/site/day) ─────────────

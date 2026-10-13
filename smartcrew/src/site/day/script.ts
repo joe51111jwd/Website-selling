@@ -25,7 +25,8 @@ export type Script = {
   id: MomentId;
   /** up = field → office (the phone acts); down = office → field (the laptop acts) */
   dir: "up" | "down";
-  /** `mark`: where the phone's state shows on its "after" screen (its label's leader lands there) */
+  /** `mark`: where the phone's state shows on its "after" screen (its label's leader lands there;
+   * at the sheet's right edge, level with the state line, so the dot never sits on its words) */
   phone: { before: string; after: string; tap?: Box; mark: [number, number] };
   laptop: {
     before: string;
@@ -40,6 +41,9 @@ export type Script = {
 };
 
 const S = stateScreen;
+
+/** The sent sheet's state line ("Load #14 logged"…): its row, at the sheet's right edge (native px). */
+const MARK_SHEET: [number, number] = [378, 545];
 
 export const SCRIPT: Script[] = [
   {
@@ -57,7 +61,7 @@ export const SCRIPT: Script[] = [
   {
     id: "pretrip",
     dir: "up",
-    phone: { before: S("phone-d-dot"), after: S("phone-d-dot-sent"), tap: [207, 777.2, 174.5, 41], mark: [201, 545] },
+    phone: { before: S("phone-d-dot"), after: S("phone-d-dot-sent"), tap: [207, 777.2, 174.5, 41], mark: MARK_SHEET },
     laptop: {
       before: S("web-d-inspections"),
       after: S("web-d-inspections"),
@@ -69,7 +73,7 @@ export const SCRIPT: Script[] = [
   {
     id: "load",
     dir: "up",
-    phone: { before: S("phone-d-hauling"), after: S("phone-d-load-sent"), tap: [207, 777.2, 174.5, 41], mark: [201, 545] },
+    phone: { before: S("phone-d-hauling"), after: S("phone-d-load-sent"), tap: [207, 777.2, 174.5, 41], mark: MARK_SHEET },
     laptop: {
       before: S("web-d-hauling"),
       after: S("web-d-hauling"),
@@ -81,7 +85,7 @@ export const SCRIPT: Script[] = [
   {
     id: "leak",
     dir: "up",
-    phone: { before: S("phone-d-service"), after: S("phone-d-service-sent"), tap: [207, 777.2, 174.5, 41], mark: [201, 545] },
+    phone: { before: S("phone-d-service"), after: S("phone-d-service-sent"), tap: [207, 777.2, 174.5, 41], mark: MARK_SHEET },
     laptop: {
       before: S("web-d-queue"),
       after: S("web-d-queue"),

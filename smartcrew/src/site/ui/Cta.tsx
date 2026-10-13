@@ -13,6 +13,7 @@ import { CTA } from "../../content/copy";
 import { reducedMotion } from "../../three/stage";
 import { watchPrimary } from "../shell/primaryCta";
 import { playCue } from "./cue";
+import { isPhone } from "../phone";
 import "./cta.css";
 
 export function Arrow({ className = "btn-arrow" }: { className?: string }) {
@@ -82,10 +83,13 @@ export function Cta({
   // a scene's own primary CTA on screen hides the header's and the sticky bar's
   useEffect(() => (primary && el.current ? watchPrimary(el.current) : undefined), [primary]);
 
-  // the one-time cue, the first time the button is fully on screen and actually visible
+  // the one-time cue, the first time the button is fully on screen and actually visible. Phones:
+  // one calm cue per page, not one per button: only the hero's button and the sticky bar's first
+  // appearance get it (the in-scene buttons sit still)
   useEffect(() => {
     const b = el.current;
     if (!cue || !b || reducedMotion || typeof IntersectionObserver === "undefined") return;
+    if (isPhone() && source !== "hero" && source !== "sticky") return;
     let cancel: (() => void) | null = null;
     let poll = 0;
     let done = false;
@@ -116,7 +120,7 @@ export function Cta({
       window.clearInterval(poll);
       cancel?.();
     };
-  }, [cue]);
+  }, [cue, source]);
 
   const setRef = (n: HTMLButtonElement | null) => {
     el.current = n;

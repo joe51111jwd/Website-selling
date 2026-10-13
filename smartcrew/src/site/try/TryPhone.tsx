@@ -56,7 +56,8 @@ export default function TryPhone() {
   }, [clock.on]);
 
   return (
-    <div ref={ref} className={`tp${arrived ? " is-in" : ""}${clock.on ? " is-on" : ""}`}>
+    // the rise plays once the staged build is complete (never in the same frame as a build step)
+    <div ref={ref} className={`tp${arrived && stage >= 4 ? " is-in" : ""}${clock.on ? " is-on" : ""}`}>
       {/* the line before the tap, and after it (crossfaded in place, no layout change) */}
       <div className="tp-head wrap">
         <div className="tp-swap">
@@ -94,8 +95,9 @@ export default function TryPhone() {
             {TRY_IT.site} · {TRY_IT.clocked.replace("{time}", stamp)}
           </p>
           <Cta source="try" size="lg" className="tp-cta" />
+          {/* he clocked in himself: just "Clock out"; the self demo did it: his turn */}
           <button type="button" className="link tp-again" onClick={clock.clockOut}>
-            {TRY_IT.again}
+            {clock.by === "visitor" ? TRY_IT.clockOut : TRY_IT.again}
           </button>
         </div>
       )}

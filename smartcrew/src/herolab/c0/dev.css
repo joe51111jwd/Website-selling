@@ -1,0 +1,13 @@
+/* dev harness only */
+html.hl0-dark-first body {
+  background: #14110e;
+}
+.hl0-dev-next {
+  height: 80vh;
+  display: grid;
+  place-items: center;
+  background: var(--ground);
+  border-top: 1px solid var(--line);
+  font: 600 15px/1 var(--font-text);
+  color: var(--ink-3);
+}

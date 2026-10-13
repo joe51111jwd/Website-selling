@@ -46,6 +46,10 @@ let lastTracked = 0;
 let follow = 0;
 let readySince = 0;
 let onProfit: ((v: number, flash: number) => void) | null = null;
+/** Phones (the still): the clock-in toast lands, is read, then steps aside (one card on the
+ * devices, not two). `profitTicks` false: the profit slot carries an ?angle= card (timecards,
+ * payroll) that neither ticks nor receives the intro's profit notification. */
+const still = { toastFades: false, profitTicks: true };
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 // one formatter (toLocaleString builds a new one per call: costly at 60 fps on a phone)
@@ -99,6 +103,7 @@ function place(spots: Record<CardId, { x: number; y: number }> | null, sy: numbe
 
 /** The card's box in the viewport (the intro glides its notification onto it). */
 export function cardTarget(id: CardId): DOMRect | null {
+  if (id === "profit" && !still.profitTicks) return null;
   const el = els?.[id];
   if (!el) return null;
   const r = el.getBoundingClientRect();
@@ -110,7 +115,12 @@ function show(id: CardId, how: "land" | "pop" | "still") {
   if (!el || shown[id]) return;
   shown[id] = true;
   el.classList.add("is-in", `is-${how}`);
-  if (id === "profit") tick(how === "still" ? -1 : how === "land" ? 120 : 160);
+  if (id === "profit" && still.profitTicks) tick(how === "still" ? -1 : how === "land" ? 120 : 160);
+  if (id === "toast" && still.toastFades)
+    later(how === "still" ? 0 : 2600, () => {
+      el.classList.remove("is-pop", "is-land", "is-still");
+      el.classList.add("is-gone");
+    });
 }
 
 /** The intro landed its notification here: show the card in the same frame. */
@@ -257,10 +267,12 @@ export function mountCards(e: Els, fromIntro: boolean) {
  * by CSS (src/site/hero/hero-phone.css, from STILL_PCT); nothing tracks anything per frame. Same
  * entrance and intro hand-over (cardTarget / landCard / introFinished) as on desktop.
  */
-export function mountStillCards(e: Omit<Els, "leader">, fromIntro: boolean) {
+export function mountStillCards(e: Omit<Els, "leader">, fromIntro: boolean, opts: { profitTicks?: boolean } = {}) {
   els = { ...e, leader: null };
   shown.toast = shown.profit = false;
-  e.value.textContent = money(HERO2.profit.from);
+  still.toastFades = true;
+  still.profitTicks = opts.profitTicks ?? true;
+  if (still.profitTicks) e.value.textContent = money(HERO2.profit.from);
   if (!fromIntro) entrance(false);
   return () => {
     cancelAnimationFrame(tickRaf);
@@ -269,6 +281,8 @@ export function mountStillCards(e: Omit<Els, "leader">, fromIntro: boolean) {
     stops.forEach((f) => f());
     stops.length = 0;
     els = null;
+    still.toastFades = false;
+    still.profitTicks = true;
   };
 }
 

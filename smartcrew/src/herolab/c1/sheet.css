@@ -1,0 +1,1375 @@
+/* Herolab c1 · "Today's Sheet". Every selector is .hl1-prefixed. Static styles are the FINAL frame;
+   the first three seconds are Web Animations layered on top (./index.tsx build()). */
+
+.hl1 {
+  --paper: #fbf8f4;
+  --ink: #17130f;
+  --ink-2: #4a4038;
+  --ink-3: #74665a;
+  --ink-55: rgb(23 19 15 / 55%);
+  --orange: #ff7a01;
+  --orange-ink: #b84f00;
+  --red: #d2362c;
+  --night: #14110e;
+  --num: calc(44px * var(--q, 1));
+  --h1: clamp(52px, min(5vw, 10.9vh), 104px);
+  --cta-h: clamp(56px, 2.5vw + 28px, 72px);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: 16px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  isolation: isolate;
+  contain: layout paint;
+}
+
+.hl1 *,
+.hl1 *::before,
+.hl1 *::after {
+  box-sizing: border-box;
+}
+
+.hl1 svg {
+  display: block;
+  max-width: none;
+}
+
+.hl1 a {
+  color: inherit;
+}
+
+/* ── night: the intro's last frame ─────────────────────────────────────────── */
+
+.hl1-ground,
+.hl1-warm,
+.hl1-paper {
+  position: absolute;
+  inset: 0;
+}
+
+.hl1-ground {
+  background: var(--night);
+}
+
+.hl1-warm {
+  /* the ground warms through sunrise, not a grey crossfade */
+  background: radial-gradient(ellipse 80% 70% at 40% 45%, #a77d5a 0%, #8a6448 100%);
+  opacity: 0;
+}
+
+.hl1-paper {
+  background: var(--paper);
+}
+
+.hl1-night {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+
+.hl1.is-night .hl1-night,
+.hl1.is-run .hl1-night {
+  will-change: transform;
+}
+
+.hl1-nmap {
+  position: absolute;
+  overflow: visible;
+}
+
+.hl1-ntopo path {
+  fill: none;
+  stroke: rgb(244 238 231 / 11%);
+  stroke-width: 1.1;
+  vector-effect: non-scaling-stroke;
+}
+
+.hl1-ntopo .mj {
+  stroke: rgb(244 238 231 / 20%);
+}
+
+.hl1-nroad {
+  fill: none;
+  stroke: rgb(244 238 231 / 30%);
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.hl1-nroad-c {
+  fill: none;
+  stroke: var(--night);
+  stroke-width: 1.4;
+  stroke-dasharray: 10 12;
+}
+
+.hl1-nhaul {
+  fill: none;
+  stroke: rgb(244 238 231 / 50%);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 9;
+}
+
+.hl1-npit ellipse {
+  fill: none;
+  stroke: rgb(244 238 231 / 42%);
+  stroke-width: 1.5;
+}
+
+.hl1-npit .pin {
+  fill: #f4eee7;
+}
+
+.hl1-npit text,
+.hl1-nlabel {
+  font: 600 13px/1 "Inter Variable", Inter, system-ui, sans-serif;
+  fill: #f4eee7;
+  letter-spacing: 0.01em;
+}
+
+.hl1-npit text {
+  fill: #b9ab9c;
+  font-weight: 550;
+}
+
+.hl1-nzone {
+  fill: var(--orange);
+  fill-opacity: 0.08;
+}
+
+.hl1-nfence {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.hl1-ntruck-r {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 3;
+}
+
+.hl1-ntruck {
+  fill: #f4eee7;
+}
+
+.hl1-ntruck-t {
+  font: 650 11px/1 "Inter Variable", Inter, system-ui, sans-serif;
+  fill: var(--night);
+  letter-spacing: 0.02em;
+}
+
+/* the intro's notifications (index.html .sc-note, same face) */
+.hl1-notes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hl1-nhead {
+  position: absolute;
+  height: 23px;
+  margin-top: -11.5px;
+  opacity: 0;
+}
+
+.hl1-nlogo {
+  height: 23px;
+  width: auto;
+}
+
+.hl1.is-night .hl1-nhead,
+.hl1.is-run .hl1-nhead {
+  opacity: 1;
+}
+
+.hl1-note {
+  position: absolute;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+  min-height: 64px;
+  padding: 11px 14px 11px 12px;
+  border-radius: 16px;
+  background: #fff;
+  color: #111;
+  font: 450 13px/1.3 "Inter Variable", Inter, system-ui, sans-serif;
+  letter-spacing: -0.006em;
+  box-shadow:
+    0 0 0 1px rgb(17 17 17 / 6%),
+    0 16px 34px -14px rgb(17 17 17 / 42%);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.hl1.is-night .hl1-note {
+  opacity: 1;
+}
+
+.hl1-note-av,
+.hl1-note-ic {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f2f2f2;
+  color: #2b2b2b;
+  display: grid;
+  place-items: center;
+  font-weight: 620;
+  font-size: 13px;
+}
+
+.hl1-note-av::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #24c56f;
+  box-shadow: 0 0 0 2.5px #fff;
+}
+
+.hl1-note-ic svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hl1-note-tx {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hl1-note-tx b {
+  font-weight: 620;
+  font-size: 15px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.hl1-note-tx > span {
+  color: #686868;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hl1-note-time {
+  align-self: start;
+  margin-top: 1px;
+  font-weight: 520;
+  color: #7c7c7c;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.hl1-note.is-money b {
+  color: #18874a;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── the drawing field ─────────────────────────────────────────────────────── */
+
+.hl1-field {
+  position: absolute;
+  overflow: hidden;
+}
+
+.hl1-cam,
+.hl1-marks {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+
+.hl1.is-run .hl1-cam {
+  will-change: transform, opacity;
+}
+
+.hl1-topo,
+.hl1-plan,
+.hl1-job,
+.hl1-pulse {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+
+.hl1-topo path {
+  fill: none;
+  stroke: rgb(23 19 15 / 9%);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.hl1-topo .mj {
+  stroke: rgb(23 19 15 / 16%);
+}
+
+/* the highway: a double hairline (an ink stroke with a paper stroke inside it) */
+.hl1-road-o,
+.hl1-road-i,
+.hl1-plan polyline {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+}
+
+.hl1-road-o {
+  stroke: rgb(23 19 15 / 52%);
+  stroke-width: 7;
+}
+
+.hl1-road-i {
+  stroke: var(--paper);
+  stroke-width: 5;
+}
+
+.hl1-line--double .o {
+  stroke: rgb(23 19 15 / 40%);
+  stroke-width: 5;
+}
+
+.hl1-line--double .i {
+  stroke: var(--paper);
+  stroke-width: 3;
+}
+
+/* the creek: a drainage linetype */
+.hl1-line--river .o {
+  stroke: rgb(23 19 15 / 34%);
+  stroke-width: 1.1;
+  stroke-dasharray: 14 3 2 3;
+}
+
+.hl1-line--river .i {
+  display: none;
+}
+
+.hl1-haul {
+  fill: none;
+  stroke: rgb(23 19 15 / 48%);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-dasharray: 0.1 6;
+  vector-effect: non-scaling-stroke;
+}
+
+.hl1-pit ellipse {
+  fill: none;
+  stroke: rgb(23 19 15 / 40%);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.hl1-culvert {
+  stroke: rgb(23 19 15 / 60%) !important;
+  stroke-width: 1.3 !important;
+}
+
+.hl1-fence {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+  stroke-linejoin: round;
+  transition: stroke-width 0.2s var(--ease-out);
+}
+
+.hl1-fence.is-hot,
+.hl1-job.is-hot .hl1-fence {
+  stroke-width: 2.2;
+  animation: hl1-crawl 0.9s linear infinite;
+}
+
+@keyframes hl1-crawl {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+.hl1-detail {
+  fill: none;
+  stroke: rgb(23 19 15 / 24%);
+  stroke-width: 1;
+}
+
+.hl1-mh {
+  fill: var(--paper);
+  stroke: rgb(23 19 15 / 55%);
+  stroke-width: 1;
+}
+
+.hl1-crew {
+  fill: var(--ink);
+}
+
+.hl1-job {
+  transform-box: view-box;
+}
+
+.hl1.is-run .hl1-job {
+  will-change: transform, opacity;
+}
+
+/* ── marks: spot elevations ────────────────────────────────────────────────── */
+
+.hl1-rider {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.hl1-dot {
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.hl1-spot {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.hl1-tri {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  overflow: visible;
+}
+
+.hl1-tri .o {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+}
+
+.hl1-tri .f {
+  fill: var(--ink);
+}
+
+.hl1-stack {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+  top: calc(-1 * (17px + 3px + var(--n) * 0.5));
+  --n: var(--num);
+}
+
+.is-r > .hl1-stack {
+  left: 11px;
+  align-items: flex-start;
+}
+
+.is-l > .hl1-stack {
+  right: 11px;
+  align-items: flex-end;
+}
+
+.hl1-spot.is-big {
+  --num: calc(60px * var(--q, 1));
+}
+
+.hl1-spot.is-small {
+  --num: calc(36px * var(--q, 1));
+}
+
+.hl1-spot.is-big .hl1-stack,
+.hl1-spot.is-small .hl1-stack {
+  --n: var(--num);
+}
+
+.hl1-jname {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 17px;
+  color: var(--ink);
+  letter-spacing: 0.002em;
+}
+
+.hl1-num {
+  display: flex;
+  margin-top: 3px;
+  height: 1em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-stretch: 75%;
+  font-size: var(--num);
+  line-height: 1;
+  letter-spacing: -0.004em;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  color: var(--ink);
+}
+
+.hl1-num.is-red {
+  color: var(--red);
+}
+
+.hl1-ch,
+.hl1-col {
+  display: block;
+  height: 1em;
+}
+
+.hl1-col {
+  overflow: hidden;
+}
+
+.hl1-roll {
+  display: flex;
+  flex-direction: column;
+  transform: translateY(-85.7143%);
+}
+
+.hl1-roll > span {
+  display: block;
+  height: 1em;
+}
+
+.hl1-today {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 14px;
+  color: var(--ink-3);
+}
+
+.hl1-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.hl1-leader {
+  position: absolute;
+  height: 1px;
+  background: rgb(23 19 15 / 55%);
+  transform-origin: 0 50%;
+}
+
+.hl1-note-t {
+  position: absolute;
+  margin-top: -9px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.hl1-pulse {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hl1-pulse polygon {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+/* ── the 5:00 PM line ──────────────────────────────────────────────────────── */
+
+.hl1-sweep {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hl1-sweep-line {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: var(--ink);
+  transform-origin: 50% 0;
+}
+
+.hl1-sweep-tag {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  padding: 4px 7px 4px 8px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-stretch: 88%;
+  font-weight: 650;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  font-feature-settings: "tnum" 1, "lnum" 1, "case" 1;
+  white-space: nowrap;
+}
+
+/* ── the sheet: rules, top strip ───────────────────────────────────────────── */
+
+.hl1-rules {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hl1-rule {
+  position: absolute;
+  display: block;
+  background: var(--ink);
+}
+
+.hl1-rule.h {
+  height: 1px;
+  transform-origin: 0 50%;
+}
+
+.hl1-rule.h.is-r {
+  transform-origin: 100% 50%;
+}
+
+.hl1-rule.v {
+  width: 1px;
+  transform-origin: 50% 0;
+}
+
+.hl1-rule.v.is-b {
+  transform-origin: 50% 100%;
+}
+
+.hl1-ticks {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.hl1-ticks path {
+  fill: none;
+  stroke: rgb(23 19 15 / 50%);
+  stroke-width: 1;
+}
+
+.hl1-top {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.hl1-firm {
+  display: block;
+  padding: 6px 0;
+}
+
+.hl1-logo {
+  height: 22px;
+  width: auto;
+}
+
+.hl1-nav {
+  display: flex;
+  gap: 30px;
+}
+
+.hl1-nav a {
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.hl1-nav a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+
+/* ── the title block ───────────────────────────────────────────────────────── */
+
+.hl1-tb {
+  position: absolute;
+  display: grid;
+}
+
+.hl1-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 14px 16px 12px;
+}
+
+.hl1-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  min-height: 15px;
+}
+
+.hl1-label {
+  font-family: var(--font-display);
+  font-stretch: 108%;
+  font-weight: 600;
+  font-size: 12.5px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-55);
+  white-space: nowrap;
+}
+
+.hl1-eyebrow {
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink-2);
+}
+
+.hl1-h1 {
+  margin: auto 0 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-stretch: 96%;
+  font-size: calc(var(--h1) * var(--h1-scale, 1));
+  line-height: 1;
+  letter-spacing: -0.012em;
+  word-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.hl1-h1-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+
+.hl1-h1-in {
+  display: block;
+  white-space: nowrap;
+}
+
+.hl1-used {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 16px;
+  height: 22px;
+}
+
+.hl1-used ul {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.6vw, 26px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hl1-used img {
+  display: block;
+  height: 22px;
+  width: auto;
+  opacity: 0.62;
+}
+
+.hl1-row--b {
+  justify-content: space-between;
+}
+
+.hl1-sheetno {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: -6px;
+  font-family: var(--font-display);
+  font-stretch: 108%;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-55);
+}
+
+.hl1-north {
+  width: 15px;
+  height: 21px;
+  overflow: visible;
+}
+
+.hl1-north circle {
+  fill: none;
+  stroke: var(--ink-55);
+  stroke-width: 1;
+}
+
+.hl1-north .f {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.hl1-north .h {
+  fill: var(--ink);
+}
+
+.hl1-north text {
+  font: 700 7px/1 var(--font-display);
+  fill: var(--ink);
+}
+
+.hl1-scale {
+  width: 52px;
+  height: 13px;
+  overflow: visible;
+}
+
+.hl1-scale rect {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+
+.hl1-scale .f {
+  fill: var(--ink);
+}
+
+.hl1-scale text {
+  font: 600 7px/1 var(--font-display);
+  fill: var(--ink-55);
+  letter-spacing: 0.02em;
+}
+
+.hl1-sub {
+  max-width: 300px;
+  margin: 14px 0 0;
+  font-size: 16px;
+  line-height: 1.42;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.hl1-demo {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--ink-3);
+}
+
+.hl1-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.hl1-cue svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hl1-cue:hover span,
+.hl1-cue:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+
+.hl1-row--c {
+  justify-content: space-between;
+}
+
+.hl1-stampdate {
+  font-size: 12px;
+  line-height: 1;
+  color: var(--ink-3);
+  font-feature-settings: "tnum" 1;
+}
+
+.hl1-ctawrap {
+  position: relative;
+  margin-top: 18px;
+}
+
+/* the CTA (src/site/ui/cta.css, the page's primary): solid safety orange, ink label, a keycap
+   lip that lifts on hover and sinks on press */
+.hl1-cta {
+  --lip: 4px;
+  --lift: 0px;
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: var(--cta-h);
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 16px;
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: clamp(18.5px, 0.5vw + 13.5px, 22px);
+  font-weight: 740;
+  line-height: 1;
+  letter-spacing: -0.012em;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 16%) 0%, rgb(255 255 255 / 0%) 46%, rgb(120 46 0 / 6%) 100%),
+    var(--orange);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 45%),
+    inset 0 -1px 0 rgb(110 44 0 / 18%),
+    0 var(--lip) 0 #c95b00,
+    0 calc(var(--lip) + 1px) 2px rgb(80 32 0 / 30%),
+    0 calc(var(--lip) + 12px) 26px -12px rgb(150 62 0 / 55%);
+  transform: translateY(calc(-1 * var(--lift)));
+  transition:
+    transform 170ms var(--ease-out),
+    box-shadow 170ms var(--ease-out),
+    filter 220ms var(--ease-out);
+}
+
+.hl1-cta-arrow {
+  width: 1.06em;
+  height: 1.06em;
+  flex: none;
+  margin-right: -0.15em;
+  transition: transform 260ms var(--ease-out);
+}
+
+@media (hover: hover) {
+  .hl1-cta:hover {
+    --lift: 1.5px;
+    filter: brightness(1.04) saturate(1.04);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 50%),
+      inset 0 -1px 0 rgb(110 44 0 / 18%),
+      0 calc(var(--lip) + 1.5px) 0 #c95b00,
+      0 calc(var(--lip) + 3px) 3px rgb(80 32 0 / 26%),
+      0 calc(var(--lip) + 18px) 32px -12px rgb(150 62 0 / 60%);
+  }
+  .hl1-cta:hover .hl1-cta-arrow {
+    transform: translateX(3px);
+  }
+}
+
+.hl1-cta:active {
+  --lift: calc(-1 * var(--lip) + 1px);
+  filter: brightness(0.98);
+  box-shadow:
+    inset 0 1px 2px rgb(110 44 0 / 22%),
+    inset 0 -1px 0 rgb(110 44 0 / 10%),
+    0 1px 0 #c95b00,
+    0 2px 2px rgb(80 32 0 / 26%),
+    0 8px 16px -10px rgb(150 62 0 / 45%);
+  transition-duration: 70ms;
+}
+
+.hl1-cta:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 5px;
+}
+
+/* the geofence that closes round it once */
+.hl1-ring {
+  position: absolute;
+  left: -7px;
+  top: -7px;
+  width: calc(100% + 14px);
+  height: calc(100% + 14px + 4px);
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.hl1-ring path {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hl1-drop {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 0;
+  background: var(--ink);
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+}
+
+.hl1-link {
+  align-self: flex-start;
+  margin-top: 16px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 550;
+  line-height: 1.2;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: rgb(23 19 15 / 45%);
+  cursor: pointer;
+}
+
+.hl1-link:hover {
+  text-decoration-color: var(--ink);
+}
+
+.hl1-micro {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+/* ── 1280×600 and other short laptops ── */
+@media (min-width: 761px) and (max-height: 630px) {
+  .hl1-cell {
+    padding: 12px 14px 10px;
+  }
+  .hl1-sub {
+    margin-top: 10px;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  .hl1-ctawrap {
+    margin-top: 16px;
+  }
+  .hl1-link {
+    margin-top: 13px;
+  }
+  .hl1-micro {
+    margin-top: 9px;
+    font-size: 12.5px;
+  }
+  .hl1-used {
+    margin-top: 14px;
+  }
+}
+
+/* ── the desktop cursor ────────────────────────────────────────────────────── */
+
+.hl1.has-cursor,
+.hl1.has-cursor * {
+  cursor: none !important;
+}
+
+.hl1-cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 20;
+  transition: opacity 0.15s;
+}
+
+.hl1:not(.has-cursor) .hl1-cursor,
+.hl1[data-cur="none"] .hl1-cursor,
+.hl1[data-cur="field"] .hl1-cursor {
+  opacity: 0;
+}
+
+.hl1-cur-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+
+.hl1-cur-ring rect {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3.2;
+  transition: stroke-width 0.2s;
+}
+
+.hl1[data-cur="cta"] .hl1-cur-ring rect {
+  stroke-dasharray: none;
+  stroke-width: 2;
+}
+
+.hl1.is-link .hl1-cur-ring {
+  opacity: 0.55;
+}
+
+.hl1-cur-dot {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+  transition: opacity 0.15s;
+}
+
+.hl1[data-cur="cta"] .hl1-cur-dot {
+  background: var(--ink);
+}
+
+.hl1.is-down .hl1-cur-dot {
+  scale: 0.7;
+}
+
+.hl1-reticle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.hl1[data-cur="field"] .hl1-reticle {
+  opacity: 1;
+}
+
+.hl1-reticle svg {
+  position: absolute;
+  left: -40px;
+  top: -40px;
+  width: 80px;
+  height: 80px;
+  overflow: visible;
+}
+
+.hl1-reticle g,
+.hl1-reticle circle,
+.hl1-reticle path {
+  transform: scale(var(--rs, 1));
+}
+
+.hl1-reticle circle,
+.hl1-reticle path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.hl1-reticle .c {
+  stroke: rgb(23 19 15 / 70%);
+}
+
+.hl1-tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 6px 10px 6px 10px;
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 13px;
+  line-height: 14px;
+  font-weight: 550;
+  white-space: nowrap;
+  font-feature-settings: "tnum" 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s;
+}
+
+.hl1.is-snap .hl1-tag {
+  opacity: 1;
+}
+
+/* ── PHONE (≤ 760 px): the sheet in portrait ───────────────────────────────── */
+
+.hl1.is-phone {
+  --num: calc(30px * var(--q, 1));
+  --h1: 40px;
+  --cta-h: 56px;
+  min-height: 100svh;
+  padding-bottom: 8px;
+}
+
+.hl1.is-phone .hl1-tb {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.hl1.is-phone .hl1-cell {
+  display: contents;
+}
+
+.hl1.is-phone .hl1-row--a {
+  order: 1;
+  gap: 8px;
+  padding: 10px 12px 0;
+  align-items: center;
+}
+
+.hl1.is-phone .hl1-eyebrow {
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.hl1.is-phone .hl1-h1 {
+  order: 2;
+  margin: 8px 12px 0;
+  font-size: calc(40px * var(--h1-scale, 1));
+  line-height: 1.02;
+}
+
+.hl1.is-phone .hl1-sub {
+  order: 3;
+  max-width: none;
+  margin: 12px 12px 0;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.hl1.is-phone .hl1-ctawrap {
+  order: 4;
+  margin: 15px 12px 0;
+}
+
+.hl1.is-phone .hl1-cta {
+  font-size: 19px;
+  border-radius: 15px;
+}
+
+.hl1.is-phone .hl1-ring {
+  transform-origin: 50% 50%;
+}
+
+.hl1.is-phone .hl1-link {
+  order: 5;
+  margin: 12px 12px 0;
+  align-self: flex-start;
+}
+
+.hl1.is-phone .hl1-micro {
+  order: 6;
+  margin: 18px 12px 0;
+}
+
+.hl1.is-phone .hl1-demo {
+  order: 7;
+  margin: 8px 12px 0;
+}
+
+.hl1.is-phone .hl1-used {
+  order: 8;
+  margin: 22px 12px 0;
+  height: auto;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.hl1.is-phone .hl1-used ul {
+  flex-wrap: wrap;
+  gap: 14px 20px;
+}
+
+.hl1.is-phone .hl1-used img {
+  height: 20px;
+}
+
+.hl1.is-phone .hl1-cue {
+  order: 9;
+  margin: 22px 12px 14px;
+}
+
+.hl1.is-phone .hl1-row--b,
+.hl1.is-phone .hl1-row--c {
+  display: none;
+}
+
+.hl1.is-phone .hl1-logo {
+  height: 20px;
+}
+
+.hl1.is-phone .hl1-top {
+  padding: 0 12px;
+}
+
+.hl1.is-phone .hl1-jname {
+  font-size: 12.5px;
+  line-height: 15px;
+}
+
+.hl1.is-phone .hl1-stack {
+  top: calc(-1 * (15px + 2px + var(--n) * 0.5));
+}
+
+.hl1.is-phone .hl1-num {
+  margin-top: 2px;
+}
+
+.hl1.is-phone .hl1-today {
+  margin-top: 2px;
+  font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hl1-cta,
+  .hl1-cta-arrow,
+  .hl1-fence {
+    transition: none;
+    animation: none !important;
+  }
+}

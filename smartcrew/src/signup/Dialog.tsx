@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent, type InputHTMLAttributes, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import { startTransition, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent, type InputHTMLAttributes, type KeyboardEvent, type ReactNode, type RefObject } from "react";
 import { AnimatePresence, motion, useReducedMotion, type Transition } from "motion/react";
 import "../styles/tokens.css";
 import "./signup.css";
@@ -189,6 +189,20 @@ export default function Dialog({ req, opener, onClose }: Props) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, opener]);
+
+  // phones: the tap renders only the sheet's shell (header + preview strip); the form follows a
+  // frame later as a transition, while the sheet is already sliding up on the compositor (it starts
+  // below the screen, so nothing is missing on screen). Halves the work inside the tap.
+  const [bodyOn, setBodyOn] = useState(false);
+  useEffect(() => {
+    if (!open) {
+      setBodyOn(false);
+      return;
+    }
+    const raf = requestAnimationFrame(() => startTransition(() => setBodyOn(true)));
+    return () => cancelAnimationFrame(raf);
+  }, [open]);
+  const bodyNow = !phone || reduce || bodyOn;
 
   // the resume pill (laptops): after closing halfway, a quiet way back in
   useEffect(() => {
@@ -496,6 +510,8 @@ export default function Dialog({ req, opener, onClose }: Props) {
               </aside>
 
               <form className="su-body" noValidate onSubmit={submit} data-step={step}>
+                {bodyNow && (
+                <>
                 <div className="su-scroll">
                   <AnimatePresence mode="wait" initial={false} custom={dir}>
                     <motion.div
@@ -634,12 +650,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
                           id={`${ids}-tel`}
                           field="phone"
                           label="Mobile number"
-                          hint={
-                            <>
-                              Andrew texts your call reminder here.
-                              <Flag note="Andrew to confirm who sends reminders and from what number" />
-                            </>
-                          }
+                          hint="For your call with Andrew."
                           value={d.phone}
                           error={errors.phone}
                           ok={ok.phone}
@@ -656,12 +667,13 @@ export default function Dialog({ req, opener, onClose }: Props) {
                             </svg>
                           </span>
                           <span>
-                            Text me reminders about my call <span className="su-opt">(optional)</span>
+                            Text me call reminders from SmartCrew <span className="su-opt">(optional)</span>
                           </span>
                         </label>
+                        {/* the consent terms, one quiet line under the opt-in (the box says who and why) */}
                         <p className="su-fine">
-                          By checking this, you agree to get call reminders by text from SmartCrew at this number. About 3 messages per booking. Msg &amp; data rates may apply. Reply STOP to opt out.
-                          <Flag note="SMS consent wording: counsel to review" />
+                          About 3 texts per booking. Msg &amp; data rates may apply. Reply STOP to opt out.
+                          <Flag note="SMS consent wording: Andrew/counsel to confirm (sender number, frequency)" />
                         </p>
                       </div>
                     )}
@@ -742,6 +754,8 @@ export default function Dialog({ req, opener, onClose }: Props) {
                       )}
                     </div>
                 </div>
+                </>
+                )}
               </form>
 
               <button type="button" className="su-close" onClick={close} aria-label="Close">

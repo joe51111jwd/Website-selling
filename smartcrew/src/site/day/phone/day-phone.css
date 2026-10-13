@@ -2,6 +2,14 @@
    headline, a big phone, and the office card that slides up beneath it. Everything that moves
    moves by transform/opacity; offscreen moments skip rendering (content-visibility). */
 
+/* One moment = exactly the window between the header and the sticky bar, so the moments tile
+   with no blank band between them (12 px of each moment's own ground either side), and a gentle
+   native snap (proximity: never fights a flick) settles each one in that window. html already
+   carries scroll-padding-top: var(--header-h) (base.css), so the snap lands under the header. */
+html.is-phone {
+  scroll-snap-type: y proximity;
+}
+
 .dph-m {
   --dph-ink: var(--ink);
   --dph-ink-2: var(--ink-2);
@@ -9,17 +17,23 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  height: 100svh;
-  min-height: 540px;
-  max-height: 940px;
-  padding: calc(var(--header-h) + clamp(8px, 2svh, 16px)) var(--gutter) calc(var(--sticky-h) + env(safe-area-inset-bottom) + 8px);
+  height: calc(100vh - var(--header-h) - var(--sticky-h));
+  height: calc(100svh - var(--header-h) - var(--sticky-h) - env(safe-area-inset-bottom));
+  min-height: 430px;
+  max-height: 820px;
+  padding: clamp(10px, 1.8svh, 14px) var(--gutter) clamp(10px, 1.8svh, 14px);
   overflow: hidden;
   color: var(--dph-ink);
   /* this moment's light, easing into the next one's across the bottom of the screen */
   background: linear-gradient(to bottom, var(--g) 0%, var(--g) 74%, var(--g2) 100%);
   content-visibility: auto;
-  contain-intrinsic-size: auto 664px;
+  contain-intrinsic-size: auto 544px;
+  scroll-snap-align: start;
+}
+
+/* laid out ahead of arrival, in idle time (src/site/phone/warmAhead.ts) */
+.dph-m[data-warm] {
+  content-visibility: visible;
 }
 
 .dph-m.is-dark {
@@ -63,59 +77,31 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
-  padding-bottom: 1px;
+  gap: 0;
+  padding-bottom: 0;
 }
 
+/* one quiet counter: "3 / 7" */
 .dph-count {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
+  line-height: 1.2;
   color: var(--dph-ink-3);
 }
 
-.dph-bar {
-  display: flex;
-  gap: 3px;
-}
-
-.dph-bar i {
-  width: 7px;
-  height: 3px;
-  border-radius: 2px;
-  background: currentColor;
-  opacity: 0.35;
-}
-
-.dph-bar i.is-on {
-  background: var(--orange);
-  opacity: 1;
-}
-
+/* "+N more here": a 44 px target, the text sits low in it */
 .dph-more {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  min-height: 32px;
-  margin-right: -4px;
-  padding: 0 4px;
-  font-size: 13.5px;
+  min-height: 44px;
+  margin: -6px -8px -8px 0;
+  padding: 0 8px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--dph-ink-2);
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
   text-underline-offset: 3px;
-}
-
-.dph-more svg {
-  width: 13px;
-  height: 13px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
 }
 
 .dph-head {
@@ -238,47 +224,95 @@
   height: 40px;
 }
 
-/* ── "+N more here": the moment's other tools, on demand ── */
+/* ── "+N more here": the moment's other tools, in a bottom sheet over a dimmed page ── */
+.dph-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  contain: layout paint style;
+}
+
+.dph-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(23 19 15 / 44%);
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+  touch-action: none;
+}
+
+.dph-sheet-root.is-up .dph-scrim {
+  opacity: 1;
+}
+
 .dph-sheet {
   position: absolute;
-  z-index: 3;
-  left: var(--gutter);
-  right: var(--gutter);
-  top: calc(var(--header-h) + 76px);
-  max-height: calc(100% - var(--header-h) - 76px - var(--sticky-h) - 16px);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 78svh;
   overflow: auto;
-  padding: 14px 16px 6px;
-  border-radius: 16px;
+  overscroll-behavior: contain;
+  padding: 6px var(--gutter) calc(14px + env(safe-area-inset-bottom));
+  border-radius: 18px 18px 0 0;
   background: var(--paper);
   color: var(--ink);
-  box-shadow:
-    0 0 0 1px rgb(23 19 15 / 7%),
-    0 16px 30px -14px rgb(23 19 15 / 35%);
-  animation: dph-sheet 0.32s var(--ease-out) both;
+  transform: translate3d(0, 102%, 0);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 
-.dph-sheet[hidden] {
-  display: none;
+.dph-sheet-root.is-up .dph-sheet {
+  transform: none;
 }
 
-@keyframes dph-sheet {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
+.dph-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* the grab handle */
+.dph-sheet-head::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  margin-left: -18px;
+  border-radius: 2px;
+  background: rgb(23 19 15 / 16%);
 }
 
 .dph-sheet-t {
-  font-size: 13px;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: var(--display-wght);
+  font-size: 19px;
+  letter-spacing: var(--track-state);
+  color: var(--ink);
+}
+
+.dph-sheet-x {
+  min-height: 44px;
+  margin-right: -8px;
+  padding: 0 8px;
+  font-size: 15px;
   font-weight: 600;
-  color: var(--ink-3);
-  margin-bottom: 6px;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
+  text-underline-offset: 3px;
 }
 
 .dph-sheet li {
   display: grid;
-  gap: 1px;
-  padding: 8px 0 9px;
+  gap: 2px;
+  padding: 11px 0 12px;
   border-top: 1px solid var(--line);
 }
 
@@ -287,28 +321,29 @@
 }
 
 .dph-sheet b {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 650;
 }
 
 .dph-sheet li span {
-  font-size: 14px;
-  line-height: 1.4;
+  font-size: 15px;
+  line-height: 1.42;
   color: var(--ink-2);
 }
 
 .dph-caption {
   position: relative;
-  padding: 0 var(--gutter) 10px;
-  margin-top: -6px;
-  font-size: 11.5px;
+  padding: 2px var(--gutter) 10px;
+  font-size: 13px;
   color: var(--ink-3);
   text-align: right;
   background: var(--ground);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dph-card {
+  .dph-card,
+  .dph-scrim,
+  .dph-sheet {
     transition: none;
   }
   .dph-m.is-card .dph-card-dot::after {
@@ -345,10 +380,6 @@
   line-height: 26px;
 }
 
-/* the toast is its own state line (Friday) */
-.dph-m[data-moment="payroll"] .dph-card-state {
-  display: none;
-}
 
 /* office → field (5:30 PM): the plan comes down from the office, above the phone, so the
    phone's own sheet (bottom of its screen) stays in view */

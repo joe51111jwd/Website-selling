@@ -16,6 +16,8 @@ import bustUrl from "../signup/assets/andrew-bust.webp";
 // calendar turns into the ticket for the call.
 
 const LITE = typeof window !== "undefined" && window.matchMedia("(pointer: coarse), (max-width: 760px)").matches;
+/** Phones: the calendar (the last step) comes first; Andrew's video is one tap-to-open row above it. */
+const PHONE = typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches;
 const blur = (px: number): { filter?: string } => (LITE ? {} : { filter: `blur(${px}px)` });
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -59,15 +61,22 @@ export default function Book() {
     video.current = true;
     mountVidalytics(config.vidalytics.walkthrough, () => setVideoFailed(true));
   };
+  // phones: the video stays a row until he opens it (its player loads then, not before)
+  const [vidOpen, setVidOpen] = useState(!PHONE);
   useEffect(() => {
+    if (PHONE) return;
     const id = window.setTimeout(mountVideo, LITE && !booking ? 2000 : 60);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
-    if (LITE && cal !== "loading") mountVideo();
+    if (!PHONE && LITE && cal !== "loading") mountVideo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cal]);
+  useEffect(() => {
+    if (PHONE && vidOpen) mountVideo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vidOpen]);
 
   // Andrew's calendar, prefilled; a failure falls back to a plain link and email
   useEffect(() => {
@@ -151,7 +160,25 @@ export default function Book() {
             </motion.p>
           )}
 
+          {PHONE && !vidOpen && (
+            <button type="button" className="bk-vrow" onClick={() => setVidOpen(true)} aria-expanded={false} aria-controls="bk-video">
+              <span className="bk-vrow-thumb" aria-hidden="true">
+                <img src={bustUrl} alt="" />
+                <span className="bk-vrow-play">
+                  <svg width="12" height="12" viewBox="0 0 18 18">
+                    <path d="M5 3.2v11.6L14.6 9z" fill="currentColor" />
+                  </svg>
+                </span>
+              </span>
+              <span className="bk-vrow-tx">
+                <b>Watch Andrew’s walkthrough</b>
+                <span>Andrew Drish, founder, shows SmartCrew</span>
+              </span>
+            </button>
+          )}
           <motion.figure
+            id="bk-video"
+            hidden={!vidOpen}
             className="bk-video"
             initial={{ opacity: 0, y: reduce ? 0 : 18, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

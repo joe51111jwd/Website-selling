@@ -7,7 +7,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties } from "react";
 import { motion } from "motion/react";
-import { ANGLES, CTA, HERO, HERO2, INTRO2, LOGOS, LOGO_VECTORS, readAngle } from "../../content/copy";
+import { ANGLES, HERO, HERO2, HERO_PHONE, INTRO2, LOGOS, LOGO_VECTORS, readAngle, type Angle } from "../../content/copy";
 import { Scene } from "../scene/Scene";
 import { reveal } from "../../three/stage/store";
 import { Cta, DemoLink } from "../ui/Cta";
@@ -27,13 +27,18 @@ export const PHONE_HERO_STILL = {
   aspect: 4.6 / 3.05,
 };
 
-function StillCards() {
+function StillCards({ angle }: { angle: Angle }) {
   const toast = useRef<HTMLDivElement>(null);
   const profit = useRef<HTMLDivElement>(null);
   const value = useRef<HTMLElement>(null);
   const layer = useRef<HTMLDivElement>(null);
   const n = INTRO2.notes.clockin;
-  useEffect(() => mountStillCards({ layer: layer.current!, toast: toast.current!, profit: profit.current!, value: value.current! }, introRan), []);
+  // ?angle=timecards / payroll: the one card that stays says what the ad said
+  const alt = HERO_PHONE.cards[angle];
+  useEffect(
+    () => mountStillCards({ layer: layer.current!, toast: toast.current!, profit: profit.current!, value: value.current! }, introRan, { profitTicks: !alt }),
+    [alt],
+  );
   const at = (id: "toast" | "profit") => ({ ["--x" as string]: `${STILL_PCT[id].x}%`, ["--y" as string]: `${STILL_PCT[id].y}%` }) as CSSProperties;
   return (
     <div className="hph-cards" ref={layer} aria-hidden="true">
@@ -45,21 +50,25 @@ function StillCards() {
         </span>
         <span className="sc-note-time">{n.time}</span>
       </div>
-      <div className="sc-kpi hero-card hero-profit hph-card hph-profit" ref={profit} style={at("profit")}>
-        <span className="sc-note-ic">
-          <Dollar />
-        </span>
+      <div className={`sc-kpi hero-card hero-profit hph-card hph-profit${alt ? " hph-alt" : ""}`} ref={profit} style={at("profit")}>
+        <span className="sc-note-ic">{alt ? <Check /> : <Dollar />}</span>
         <span className="sc-kpi-tx">
-          <span className="sc-kpi-l">
-            {HERO2.profit.label} · {HERO2.profit.job}
-          </span>
+          <span className="sc-kpi-l">{alt ? alt.label : `${HERO2.profit.label} · ${HERO2.profit.job}`}</span>
           <b className="sc-kpi-v" ref={value}>
-            {money(HERO2.profit.from)}
+            {alt ? alt.value : money(HERO2.profit.from)}
           </b>
         </span>
-        <span className="sc-kpi-d">{HERO2.profit.delta}</span>
+        <span className="sc-kpi-d">{alt ? alt.delta : HERO2.profit.delta}</span>
       </div>
     </div>
+  );
+}
+
+function Check() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+      <path d="M4.2 9.4 7.5 12.6 13.8 5.6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -110,24 +119,24 @@ export default function HeroPhone() {
     };
   }, []);
 
+  // the visitor tapped through the intro: the hero snaps to its end state (the orange button is
+  // fully there ≈ 0.3 s after the tap) instead of building over a second
+  const quick = play && typeof window !== "undefined" && !!window.__intro?.skipped;
   const fade = (d: number) => ({
     initial: false as const,
     animate: play ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 },
-    transition: { duration: 0.7, ease: HERO_EASE, delay: d },
+    transition: quick ? { duration: 0.2, ease: HERO_EASE, delay: 0 } : { duration: 0.7, ease: HERO_EASE, delay: d },
   });
 
   return (
     <Scene id="top" pinnedViewports={1} stage="keep" label="SmartCrew" className="hero hero--phone">
       <div className="hero-grid wrap">
         <div className="hero-head" ref={head}>
-          <motion.p className="hero-eyebrow" {...fade(0.05)}>
-            {HERO.eyebrow}
-          </motion.p>
           <h1 className="t-hero hero-h1">
-            <Words text={copy.h1} delay={0.08} play={play} />
+            <Words text={copy.h1} delay={0.05} play={play} quick={quick} />
           </h1>
-          <motion.p className="t-lead hero-sub" {...fade(0.36)}>
-            {HERO2.subShort[angle]}
+          <motion.p className="t-lead hero-sub" {...fade(0.32)}>
+            {HERO_PHONE.sub[angle]}
           </motion.p>
         </div>
         <div className="hero-stage-wrap hph-wrap" ref={stage}>
@@ -142,17 +151,16 @@ export default function HeroPhone() {
               fetchPriority="high"
               draggable={false}
             />
-            <StillCards />
+            <StillCards angle={angle} />
           </div>
-          <p className="hero-caption hph-caption">{HERO2.caption}</p>
         </div>
         <div className="hero-act" ref={act}>
           <motion.div className="hero-actions" ref={cta} data-hero-cta {...fade(0.48)}>
             <Cta source="hero" id="hero-cta" size="xl" block className="hero-cta" />
             <DemoLink source="hero" />
           </motion.div>
-          <motion.p className="t-micro hero-micro" {...fade(0.56)}>
-            {CTA.micro}
+          <motion.p className="t-micro hero-micro hph-micro" {...fade(0.56)}>
+            {HERO_PHONE.micro}
           </motion.p>
         </div>
         <div className="hero-foot">

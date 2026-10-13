@@ -7,7 +7,8 @@
 // Skim it and you still get the story: the big time and a headline of six words or fewer.
 // Each moment's ground follows the clock (dawn → day → amber → Friday night), as static CSS.
 
-import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { createPortal } from "react-dom";
 import { MOMENTS, type Moment, type MomentId } from "../../../content/moments";
 import { DAY2, DAY_UI, FLAG } from "../../../content/copy";
 import { Scene } from "../../scene/Scene";
@@ -25,6 +26,8 @@ const COPY = {
   more: (n: number) => `+${n} more here`,
   moreTitle: (when: string) => `Also at ${when}`,
   close: "Close",
+  /** Friday's bold result (AMBER: "ready for QuickBooks", never "sent"/"synced": TRUTH.md). */
+  payrollState: "Ready for QuickBooks",
 };
 
 /** Each moment's ground, from the time-of-day tokens (the desktop's light follows the same clock). */
@@ -63,17 +66,54 @@ function Time({ when }: { when: string }) {
   );
 }
 
+/** "+N more here": the moment's other tools, in a bottom sheet over a dimmed page (a tap outside,
+ * the Close button or Escape closes it). Portalled to <body>: the moment itself skips rendering
+ * offscreen (content-visibility), which would clip and re-anchor a fixed sheet inside it. */
 function More({ m, open, setOpen }: { m: Moment; open: boolean; setOpen: (v: boolean) => void }) {
   const id = useId();
   const rest = m.features.slice(1);
   if (!rest.length) return null;
   return (
     <>
-      <button type="button" className="dph-more" aria-expanded={open} aria-controls={id} onClick={() => setOpen(!open)}>
-        {open ? COPY.close : COPY.more(rest.length)}
+      <button type="button" className="dph-more" aria-expanded={open} aria-controls={id} aria-haspopup="dialog" onClick={() => setOpen(true)}>
+        {COPY.more(rest.length)}
       </button>
-      <div className="dph-sheet" id={id} hidden={!open}>
-        <p className="dph-sheet-t">{COPY.moreTitle(m.when)}</p>
+      {open && createPortal(<MoreSheet id={id} m={m} rest={rest} onClose={() => setOpen(false)} />, document.body)}
+    </>
+  );
+}
+
+function MoreSheet({ id, m, rest, onClose }: { id: string; m: Moment; rest: Moment["features"]; onClose: () => void }) {
+  const panel = useRef<HTMLDivElement>(null);
+  const [up, setUp] = useState(false);
+  useEffect(() => {
+    const back = document.activeElement as HTMLElement | null;
+    // next frame: the sheet slides up from its start position (a CSS transition)
+    const raf = requestAnimationFrame(() => setUp(true));
+    panel.current?.querySelector<HTMLElement>(".dph-sheet-x")?.focus({ preventScroll: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      back?.focus?.({ preventScroll: true });
+    };
+  }, []);
+  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      onClose();
+    }
+  };
+  return (
+    <div className={`dph-sheet-root${up ? " is-up" : ""}`} role="dialog" aria-modal="true" aria-labelledby={`${id}-t`} onKeyDown={onKey}>
+      <div className="dph-scrim" onClick={onClose} aria-hidden="true" />
+      <div className="dph-sheet" id={id} ref={panel}>
+        <div className="dph-sheet-head">
+          <p className="dph-sheet-t" id={`${id}-t`}>
+            {COPY.moreTitle(m.when)}
+          </p>
+          <button type="button" className="dph-sheet-x" onClick={onClose}>
+            {COPY.close}
+          </button>
+        </div>
         <ul>
           {rest.map((f) => (
             <li key={f.id}>
@@ -90,7 +130,7 @@ function More({ m, open, setOpen }: { m: Moment; open: boolean; setOpen: (v: boo
           ))}
         </ul>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -132,15 +172,8 @@ function MomentScreen({ m, i, next }: { m: Moment; i: number; next: Moment | nul
       <div className="dph-top">
         <Time when={m.when} />
         <div className="dph-side">
-          <p className="dph-count" aria-label={`Moment ${i + 1} of ${MOMENTS.length}`}>
-            <span className="dph-bar" aria-hidden="true">
-              {MOMENTS.map((x, k) => (
-                <i key={x.id} className={k <= i ? "is-on" : undefined} />
-              ))}
-            </span>
-            <span className="t-num">
-              {i + 1} / {MOMENTS.length}
-            </span>
+          <p className="dph-count t-num" aria-label={`Moment ${i + 1} of ${MOMENTS.length}`}>
+            {i + 1} / {MOMENTS.length}
           </p>
           <More m={m} open={open} setOpen={setOpen} />
         </div>
@@ -163,10 +196,10 @@ function MomentScreen({ m, i, next }: { m: Moment; i: number; next: Moment | nul
             <span className="dph-card-dot" aria-hidden="true" />
             {up ? COPY.office : COPY.fromOffice}
           </p>
-          <p className="dph-card-state">{copy.office}</p>
+          <p className="dph-card-state">{m.id === "payroll" ? COPY.payrollState : copy.office}</p>
           <div className="dph-card-row">
             <Suspense fallback={<div className="dph-card-wait" />}>
-              <UpdateCardBody id={m.id} />
+              <UpdateCardBody id={m.id} phone />
             </Suspense>
           </div>
         </div>
@@ -215,13 +248,14 @@ function useHeaderGround(root: React.RefObject<HTMLDivElement | null>) {
         header?.style.removeProperty("--page-ground");
       }
     };
-    // a band the height of the header at the top of the viewport
+    // a thin band just under the header: the moment that fills the window right now (moments
+    // start under the header and snap there)
     const io = new IntersectionObserver(
       (es) => {
         es.forEach((e) => (e.isIntersecting ? under.add(e.target) : under.delete(e.target)));
         apply();
       },
-      { rootMargin: "0px 0px -92% 0px" },
+      { rootMargin: "-60px 0px -84% 0px" },
     );
     el.querySelectorAll(".dph-m").forEach((s) => io.observe(s));
     return () => {

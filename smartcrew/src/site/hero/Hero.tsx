@@ -153,8 +153,6 @@ function HeroDesk() {
   const still = reducedMotion || phone;
   const exitY = useTransform(scrollY, [0, 520], [0, still ? 0 : -70]);
   const exitO = useTransform(scrollY, [80, 480], [1, still ? 1 : 0]);
-  // the demo caption goes with the laptop's cards (the devices start to travel at once)
-  const captionO = useTransform(scrollY, [20, 180], [1, reducedMotion ? 1 : 0]);
 
   const fade = (d: number) => ({
     initial: false as const,
@@ -191,9 +189,7 @@ function HeroDesk() {
           >
             <HeroCards laptop={copy.laptop} />
           </StageAnchor>
-          <motion.div className="hero-caption" style={{ opacity: captionO }}>
-            <motion.p {...fade(0.9)}>{HERO2.caption}</motion.p>
-          </motion.div>
+          {/* the demo-account note lives in the footer (and under One Day): here it sat on the laptop */}
         </div>
         <motion.div className="hero-act" ref={act} style={{ y: exitY, opacity: exitO }}>
           <motion.div className="hero-actions" ref={cta} data-hero-cta {...fade(0.55)}>

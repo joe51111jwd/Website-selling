@@ -248,53 +248,28 @@ function Tilt({ children, reduce }: { children: ReactNode; reduce: boolean }) {
   );
 }
 
-/** Phones: the same idea as one app top bar on the dark strip above the form. */
+/** Phones: the same idea as ONE line of the app's top bar on the dark strip above the form
+ * ("Hart Excavating · 6–20 crew", tagged as a preview). One count only on a phone: the header's
+ * "Step x of 3" (no second progress ring here). */
 function Compact({ draft, focus, hidden }: Props) {
-  const reduce = useReducedMotion() ?? false;
-  const { company, first, done, count } = useFacts(draft);
-  const sub = [draft.size ? `${draft.size} crew members` : null, done.admin ? `Admin ${first}` : null].filter(Boolean).join(" · ");
+  const company = draft.company.trim();
   return (
     // while the keyboard is up the strip steps out at once (animating its height would lay the
     // sheet out every frame while the keyboard itself is moving); it fades back in after
     <div className={`su-pvc${hidden ? " is-hidden" : ""}`}>
       <div className="su-pvc-in">
-        <p className="su-pv-label">
-          <span className="su-pv-live" aria-hidden="true" />
-          Preview of your SmartCrew
-        </p>
-        <div className="su-pvc-bar" data-pulse="company crew admin mobile call" aria-hidden="true">
+        <div className="su-pvc-bar" data-pulse="company crew admin mobile call" aria-label="Preview of your SmartCrew">
           <img src={markUrl} alt="" className="su-pvc-mark" />
-          <div className="su-pvc-text">
+          <p className="su-pvc-text">
             <b>
               {company || <span className="su-pvc-ph">Your company</span>}
               <Caret on={focus === "company"} />
             </b>
-            <span>
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.span key={sub || "none"} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22 }}>
-                  {sub || "Crew size and admin come next"}
-                </motion.span>
-              </AnimatePresence>
-            </span>
-          </div>
-          <span className="su-pvc-ring" aria-label={`${count} of 5 set up`}>
-            <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
-              <circle cx="17" cy="17" r="14" fill="none" stroke="#ececec" strokeWidth="3" />
-              <motion.circle
-                cx="17"
-                cy="17"
-                r="14"
-                fill="none"
-                stroke="var(--orange)"
-                strokeWidth="3"
-                strokeLinecap="round"
-                transform="rotate(-90 17 17)"
-                initial={false}
-                animate={{ pathLength: Math.max(0.02, count / 5) }}
-                transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 120, damping: 20 }}
-              />
-            </svg>
-            <i>{count}/5</i>
+            {draft.size && <span className="su-pvc-size">{`\u00a0· ${draft.size} crew`}</span>}
+          </p>
+          <span className="su-pvc-tag">
+            <span className="su-pv-live" aria-hidden="true" />
+            Preview
           </span>
         </div>
       </div>

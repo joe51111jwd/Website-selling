@@ -4,6 +4,7 @@ import "../styles/fonts.css";
 import "../styles/tokens.css";
 import "./book.css";
 import "../styles/type-roles.css";
+import "../lib/flags";
 import { startTracking } from "../lib/track";
 import { captureAttribution } from "../lib/lead";
 import Book from "./Book";

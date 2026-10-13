@@ -54,7 +54,10 @@ function PlanBlock() {
   );
 }
 
-export default function UpdateCardBody({ id }: { id: MomentId }) {
+/** Phones show this week's report (the crew phone just submitted Oct 5–9), its state line above it. */
+const PAYROLL_PHONE = { title: "Payroll report · Oct 5 – 9", meta: "14 timecards approved" };
+
+export default function UpdateCardBody({ id, phone = false }: { id: MomentId; phone?: boolean }) {
   return (
     <div className="sc ddc">
       {id === "clockin" && <ClockInRow />}
@@ -63,7 +66,12 @@ export default function UpdateCardBody({ id }: { id: MomentId }) {
       {id === "leak" && <QueueTr r={DAY_DATA.leak} className="ddc-queue" />}
       {id === "profit" && <ProfitCard />}
       {id === "plan" && <PlanBlock />}
-      {id === "payroll" && <Toast title={DAY_DATA.payroll.title} meta={DAY_DATA.payroll.meta} time={DAY_DATA.payroll.time} />}
+      {id === "payroll" &&
+        (phone ? (
+          <Toast title={PAYROLL_PHONE.title} meta={PAYROLL_PHONE.meta} time={DAY_DATA.payroll.time} />
+        ) : (
+          <Toast title={DAY_DATA.payroll.title} meta={DAY_DATA.payroll.meta} time={DAY_DATA.payroll.time} />
+        ))}
     </div>
   );
 }

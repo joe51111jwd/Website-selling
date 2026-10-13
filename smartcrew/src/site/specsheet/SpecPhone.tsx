@@ -171,10 +171,18 @@ function CatSheet({ id, onPick, onClose }: { id: string | null; onPick: (id: str
   const [shown, setShown] = useState<string | null>(id);
   const [up, setUp] = useState(false);
 
+  // the page stays put under the sheet; the lock is released only by the sheet that took it
+  const holds = useRef(false);
+  const hold = (on: boolean) => {
+    if (holds.current === on) return;
+    holds.current = on;
+    lockScroll(on);
+  };
+
   useEffect(() => {
     if (id) {
       setShown(id);
-      lockScroll(true);
+      hold(true);
       // next frame: slide up (the panel mounts below the screen first)
       let r2 = 0;
       const r = requestAnimationFrame(() => (r2 = requestAnimationFrame(() => setUp(true))));
@@ -184,12 +192,12 @@ function CatSheet({ id, onPick, onClose }: { id: string | null; onPick: (id: str
       };
     }
     setUp(false);
-    lockScroll(false);
+    hold(false);
     const t = window.setTimeout(() => setShown(null), reduce ? 0 : 380);
     return () => window.clearTimeout(t);
   }, [id]);
 
-  useEffect(() => () => lockScroll(false), []);
+  useEffect(() => () => hold(false), []);
 
   if (!shown) return null;
   const cat = CATEGORIES.find((c) => c.id === shown) ?? CATEGORIES[0];
@@ -325,7 +333,8 @@ function camFor(shot: ShotT, fw: number, fh: number): Cam {
   if (shot.kind === "phone") {
     // the crew's screen full width (legible), cropped round the spot
     const s = fw / W;
-    const cy = F[1] + F[3] / 2;
+    // a little above the spot's centre: a button's label usually sits over it
+    const cy = F[1] + F[3] / 2 - 20;
     return { s, x: 0, y: clamp(fh / 2 - cy * s, fh - H * s, 0) };
   }
   // the office screen: as close as the spot allows; a spot wider than the frame starts at its left

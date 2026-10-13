@@ -402,6 +402,11 @@ html .site > .scene.spp[data-warm] {
   border: 1px solid var(--line);
 }
 
+/* the crew's screen is cropped full width: a little taller, so a button and its label both fit */
+.spps-shot[data-kind="phone"] .spps-frame {
+  height: clamp(196px, 36svh, 260px);
+}
+
 .spps-img {
   position: absolute;
   left: 0;
@@ -526,18 +531,41 @@ html .site > .scene.spp[data-warm] {
   }
 }
 
-/* short phones: the six sections a step tighter */
+/* short phones: the six sections a step tighter, so the CTA still lands on the screen */
 @media (max-height: 640px) {
+  .spp-in {
+    padding-top: calc(var(--header-h) + 8px);
+  }
+  .spp-title {
+    font-size: 26px;
+  }
+  .spp-kicker {
+    font-size: 14.5px;
+    margin-bottom: 2px;
+  }
+  .spp-rule-heavy {
+    margin-top: 8px;
+  }
   .spp-row {
-    min-height: 52px;
+    min-height: 0;
+    padding: 6px 0;
   }
   .spp-name {
-    font-size: 18px;
+    font-size: 17.5px;
   }
   .spp-out {
     font-size: 13.5px;
   }
   .spp-n {
-    font-size: 36px;
+    font-size: 34px;
+  }
+  .spp-total {
+    margin-top: 4px;
+  }
+  .spp-total-n {
+    font-size: 40px;
+  }
+  .spp-cta.cta {
+    margin-top: 10px;
   }
 }

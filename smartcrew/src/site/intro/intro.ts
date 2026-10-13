@@ -177,13 +177,15 @@ function themeDay() {
 
 /** Pause every CSS animation and SMIL animation of the intro at `ms` (debug seeking). */
 function seekCss(ui: HTMLElement, topo: HTMLElement, ms: number) {
-  document.getAnimations().forEach((a) => {
-    const target = (a.effect as KeyframeEffect | null)?.target as Element | null;
-    if (target && (ui.contains(target) || topo.contains(target))) {
-      a.pause();
-      a.currentTime = ms;
-    }
+  introAnimations(ui, topo).forEach((a) => {
+    a.pause();
+    a.currentTime = ms;
   });
+}
+
+/** The intro's CSS and SMIL-free animations: the map's and the notifications' (not the page's). */
+function introAnimations(ui: HTMLElement, topo: HTMLElement): Animation[] {
+  return [...topo.getAnimations({ subtree: true }), ...ui.getAnimations({ subtree: true })];
 }
 
 /** Leave the map in its day state: the hero's faint ground (index.html `#topo.is-day`). */
@@ -245,11 +247,10 @@ function begin(ui: HTMLElement, topo: HTMLElement, lite = false): (t: number) =>
   const veil = topo.querySelector<HTMLElement>(".t-veil");
   const lines = topo.querySelector<SVGGElement>(".t-topo");
 
-  // freeze everything mid-flight (a skip can land anywhere in the sequence)
-  document.getAnimations().forEach((a) => {
-    const target = (a.effect as KeyframeEffect | null)?.target as Element | null;
-    if (target && (topo.contains(target) || ui.contains(target))) a.pause();
-  });
+  // freeze everything mid-flight (a skip can land anywhere in the sequence). Only the intro's own
+  // animations: document.getAnimations() would bring the style of the whole page up to date first
+  // (One Day is already mounted under it on phones), a long task right as the move starts
+  introAnimations(ui, topo).forEach((a) => a.pause());
 
   // the camera, as the CSS left it
   const W = topo.clientWidth || window.innerWidth;

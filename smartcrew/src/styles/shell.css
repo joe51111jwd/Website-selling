@@ -228,4 +228,8 @@ html[data-ground="dark"] .site-nav a:hover {
     contain-intrinsic-size: auto 100vh;
     contain-intrinsic-size: auto 100svh;
   }
+  /* laid out ahead of arrival, in idle time (src/site/phone/warmAhead.ts) */
+  html .site > .scene[data-warm]:not(.hero) {
+    content-visibility: visible;
+  }
 }

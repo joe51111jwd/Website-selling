@@ -13,14 +13,12 @@
   padding: calc(var(--header-h) + 12px) var(--gutter) calc(var(--sticky-h) + env(safe-area-inset-bottom) + 18px);
 }
 
-/* Phil: his screen, the figure in the middle of it. A little under a full screen, so when it is
-   in view Katie's quote is still just below the fold (one quote per screen) and the scroll from
-   one to the other has no empty band. */
+/* Phil: the figure is the focal point; the block is as tall as its words (no centring in a
+   screen-tall box: that left ~100 px of blank above him), and Katie follows ~48 px later. */
 .prfp-phil {
-  min-height: 86vh;
-  min-height: 86svh;
-  max-height: 780px;
-  padding-bottom: 20px;
+  justify-content: flex-start;
+  padding-top: clamp(28px, 5svh, 40px);
+  padding-bottom: 24px;
 }
 
 .prfp-quote p {
@@ -140,8 +138,8 @@
 
 /* Katie: her one sentence, big; as tall as it is (no dead band around it) */
 .prfp-katie {
-  padding-top: 12px;
-  padding-bottom: 30px;
+  padding-top: 24px;
+  padding-bottom: 36px;
 }
 
 .prfp-katie-text {

@@ -399,3 +399,110 @@ html .site > .scene.num--phone[data-warm] {
     font-size: 42px;
   }
 }
+
+/* ── the guide: until his number is there, the result's place says what to set next (nothing is
+      pre-selected), and the input it means carries an orange marker. Two inputs in, the hours his
+      crew is paid for show as a real number of his own; the third rolls it into dollars. ── */
+.nph-big--guide {
+  min-height: clamp(44px, 12.4vw, 52px);
+  align-items: center;
+}
+
+.nph-guide {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: 640;
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: var(--track-sub);
+  color: var(--ink);
+  animation: nph-guide-in 0.42s var(--ease-out) both;
+}
+
+.nph-guide-up {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--orange-ink);
+  animation: nph-guide-nudge 1.2s 0.4s var(--ease-out) 2;
+}
+
+@keyframes nph-guide-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes nph-guide-nudge {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: translateY(-4px);
+  }
+}
+
+.nph-hrs {
+  font-variant-numeric: tabular-nums;
+  animation: nph-guide-in 0.42s var(--ease-out) both;
+}
+
+.nph-next {
+  font-weight: 620;
+  color: var(--ink);
+}
+
+/* the input to set next: an orange dot before its label, that pings once */
+.nph-pick-k {
+  position: relative;
+}
+
+.nph-pick.is-next .nph-pick-k::before,
+.nph-pick.is-next .nph-pick-k::after {
+  content: "";
+  position: absolute;
+  left: -13px;
+  top: 0.45em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orange);
+}
+
+/* the ping: a ring that grows and fades (transform + opacity) */
+.nph-pick.is-next .nph-pick-k::after {
+  background: none;
+  border: 1.5px solid var(--orange);
+  opacity: 0;
+  animation: nph-ping-dot 0.9s var(--ease-out) 2;
+}
+
+@keyframes nph-ping-dot {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3);
+  }
+}
+
+.nph-pick.is-next .nph-chip {
+  border-color: color-mix(in srgb, var(--orange) 55%, var(--line));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nph-guide,
+  .nph-guide-up,
+  .nph-hrs,
+  .nph-pick.is-next .nph-pick-k::after {
+    animation: none;
+  }
+}
