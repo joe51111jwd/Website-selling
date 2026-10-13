@@ -73,8 +73,10 @@ export default function Day() {
 
 function DayDesk() {
   const player = getRidePlayer();
-  // the Stage plays One Day on the film's clock: its keys are in ms of the film
-  useEffect(() => registerPoses("day", ridePoses(), { clock: player.sceneClock }), [player]);
+  // the Stage plays One Day on the film's clock: its keys are in ms of the film. The scene sits in
+  // the scroll timeline at its top and again three quarters of a screen earlier (where the ride
+  // starts), so while the page glides in, the devices wait below the fold with One Day's stage
+  useEffect(() => registerPoses("day", ridePoses(), { clock: player.sceneClock, portal: [-0.75, 0] }), [player]);
   return (
     <Scene id="day" pinnedViewports={1} stage="keep" label={DAY_UI.rail} className="day day--ride">
       <DayStage player={player} />
@@ -410,7 +412,16 @@ const Annotations = memo(function Annotations({ p, stageRef }: { p: Player; stag
       const t = `translate3d(${Math.round(x * 10) / 10}px, ${Math.round(y * 10) / 10}px, 0)`;
       if (e.style.transform !== t) e.style.transform = t;
     };
+    let shown = "";
     return onStageFrame((f: StageFrame) => {
+      // the layer is One Day's: it fades as the scene scrolls away (the devices glide off with it)
+      const w = dayPresence(f.y, f.h);
+      const o = w >= 0.98 ? "" : w.toFixed(3);
+      if (o !== shown) {
+        el.style.opacity = o;
+        shown = o;
+      }
+      if (w <= 0) return false;
       const t = p.time();
       const k = R.moments.findIndex((m) => m.end > t);
       const cur = k < 0 ? R.moments.length - 1 : k;
@@ -432,6 +443,8 @@ const Annotations = memo(function Annotations({ p, stageRef }: { p: Player; stag
         const [ax, ay] = sc.phone.mark;
         const edge = f.project("iphone", PHONE_W, ay);
         const from = f.project("iphone", ax, ay);
+        // a phone that has glided out of the frame takes its label with it
+        if (chip) chip.style.visibility = edge ? "" : "hidden";
         if (edge && from && chip) {
           let x = edge.x + 22;
           if (x + cw > f.w - 8) x = Math.max(8, f.w - 8 - cw);

@@ -57,6 +57,8 @@ const LATER: ComponentType[] = LATER_SCENES.map((sc) => memo(sc.C));
 const Hero = memo(HeroScene);
 const Day = memo(DayScene);
 const hashOnLoad = typeof location !== "undefined" && location.hash.length > 1 ? location.hash.slice(1) : "";
+/** lab only: ?t0Solo renders the header and the hero alone (to measure the hero's own cost) */
+const SOLO = typeof location !== "undefined" && /[?&]t0Solo\b/.test(location.search);
 
 const idle = (f: () => void) =>
   typeof window.requestIdleCallback === "function" ? window.requestIdleCallback(f, { timeout: 600 }) : window.setTimeout(f, 160);
@@ -225,8 +227,8 @@ export default function DevApp() {
       <Header />
       <main className="site">
         <Hero />
-        {dayOn && <Day />}
-        {LATER.slice(0, later).map((S, i) => (
+        {dayOn && !SOLO && <Day />}
+        {LATER.slice(0, SOLO ? 0 : later).map((S, i) => (
           // each scene loads on its own: a scene still on its way never blanks the page
           <Suspense key={i} fallback={null}>
             <S />
