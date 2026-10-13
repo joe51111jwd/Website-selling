@@ -981,6 +981,10 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   .bk-foot {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
   }
+  /* the © on its own line, the three links together on the next (none left alone on a line) */
+  .bk-foot > span:first-child {
+    flex-basis: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

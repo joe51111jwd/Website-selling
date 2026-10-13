@@ -1,4 +1,4 @@
-// The jobsite's geofence around the 3D phone (the intro's "Hwy 9 Culvert" fence, now around the
+// The jobsite's geofence around the 3D phone (the hero's "Hwy 9 Culvert" fence, now around the
 // visitor's phone). It draws itself when the phone arrives, its dashes creep like the cursor's;
 // on clock-in the dashes close into a solid orange line and ping once: clocked in.
 // Drawn in the frame's px (k px per device unit), clear of the phone body (0.79 × 1.63 units).

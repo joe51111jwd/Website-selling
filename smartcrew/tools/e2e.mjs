@@ -44,7 +44,9 @@ const norm = (s) => (s ?? "").toLowerCase().replace(/[^a-z0-9$]/g, "");
 // ─── devices ────────────────────────────────────────────────────────────────────────────────
 const FB_UA =
   "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/22A3354 [FBAN/FBIOS;FBAV/480.0.0.0;FBBV/0;FBDV/iPhone16,2;FBMD/iPhone;FBSN/iOS;FBSV/18.0;FBSS/3;FBCR/;FBID/phone;FBLC/en_US;FBOP/5]";
-const DESKTOP = { name: "desktop", ctx: { viewport: { width: 1440, height: 660 }, deviceScaleFactor: 2 }, settle: 900 };
+// DPR 1 on the laptop: headless WebGL is software-rendered, and 4× the pixels only makes every
+// frame (and so every scroll-driven beat and every in-page call) slower
+const DESKTOP = { name: "desktop", ctx: { viewport: { width: 1440, height: 660 }, deviceScaleFactor: 1 }, settle: 900 };
 const PHONE = {
   name: "phone",
   ctx: { viewport: { width: 390, height: 664 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: FB_UA },
@@ -102,6 +104,7 @@ async function browser(kind = "gl") {
 }
 
 const problems = []; // { where, kind, text, url, thirdParty }
+const touchCtx = new WeakMap(); // context → taps (phone) or clicks (laptop)
 const requested = { desktop: [], phone: [] };
 
 function hostOf(u) {
@@ -120,9 +123,16 @@ async function newContext(device, { kind = "gl", reducedMotion, init } = {}) {
   await ctx.addInitScript(() => {
     window.__signups = [];
     window.addEventListener("smartcrew:signup", (e) => window.__signups.push(e.detail));
+    // when the main thread last came out of a stall of a second or more (headless software WebGL
+    // parsing the models and compiling shaders): the laptop checks wait for a quiet page first
+    window.__stallEnd = 0;
+    try {
+      new PerformanceObserver((l) => l.getEntries().forEach((e) => e.duration > 1000 && (window.__stallEnd = Math.max(window.__stallEnd, e.startTime + e.duration)))).observe({ type: "longtask", buffered: true });
+    } catch {}
   });
   if (init) await ctx.addInitScript(init.fn, init.arg);
   ctx.on("page", (p) => watch(p, device.name));
+  touchCtx.set(ctx, !!device.ctx.hasTouch);
   return ctx;
 }
 
@@ -150,7 +160,7 @@ function watch(page, where) {
 // ─── page helpers ───────────────────────────────────────────────────────────────────────────
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function open(ctx, path = "/?intro=0") {
+async function open(ctx, path = "/") {
   const page = await ctx.newPage();
   await page.goto(BASE + path, { waitUntil: "domcontentloaded", timeout: 60000 });
   return page;
@@ -160,6 +170,26 @@ async function open(ctx, path = "/?intro=0") {
 async function waitScenes(page, ms = 30000) {
   await page.waitForSelector("#footer", { state: "attached", timeout: ms });
   await wait(600);
+  // laptops: the 3D has drawn (or fallen back to its stills) and the page has stopped stalling
+  if (!touchCtx.get(page.context())) {
+    await page.waitForSelector("html.stage-ready, html.stage-fallback", { state: "attached", timeout: 60000 }).catch(() => note("the 3D never reported ready"));
+    await quiet(page);
+  }
+}
+
+/**
+ * Wait until the main thread has gone 1.5 s without a stall of a second or more. Headless WebGL
+ * is software-rendered: parsing the models, compiling shaders and uploading textures can block the
+ * page for several seconds (a GPU does it in a blink), and a tap sent meanwhile lands late.
+ */
+async function quiet(page, max = 60000) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < max) {
+    const since = await page.evaluate(() => performance.now() - (window.__stallEnd || 0)).catch(() => 0);
+    if (since > 1500) return;
+    await wait(300);
+  }
+  note("the page never went quiet (main-thread stalls)");
 }
 
 async function scrollTo(page, y, settle) {
@@ -203,21 +233,97 @@ const VISIBLE_FN = `(el) => {
 }`;
 
 async function isVisible(locator) {
-  const h = await locator.elementHandle({ timeout: 500 }).catch(() => null);
+  // a generous timeout: a software-rendered WebGL frame can hold the main thread for a second or two
+  const h = await locator.elementHandle({ timeout: 5000 }).catch(() => null);
   if (!h) return false;
   return h.evaluate(new Function(`return (${VISIBLE_FN})`)()).catch(() => false);
+}
+
+/** In-page: why an element can't be tapped (for the error message). */
+const WHY_FN = `(el) => {
+  if (performance.now() - (window.__stallEnd || 0) < 3000) return "the page was stalled (main thread blocked for seconds)";
+  if (!el.isConnected) return "detached";
+  if (el.closest("[inert]")) return "inert";
+  const r = el.getBoundingClientRect();
+  const top = Math.max(r.top, 0), bot = Math.min(r.bottom, innerHeight), left = Math.max(r.left, 0), right = Math.min(r.right, innerWidth);
+  if (bot - top < 8 || right - left < 8) return "off screen (" + Math.round(r.top) + "–" + Math.round(r.bottom) + " px)";
+  let o = 1;
+  for (let e = el; e && e !== document.documentElement; e = e.parentElement) o *= parseFloat(getComputedStyle(e).opacity);
+  if (o < 0.6) return "transparent (opacity " + o.toFixed(2) + ")";
+  const at = document.elementFromPoint((left + right) / 2, (top + bot) / 2);
+  if (at && at !== el && !el.contains(at)) return "covered by " + at.tagName.toLowerCase() + "." + [...at.classList].slice(0, 2).join(".") + (at.parentElement ? " in " + at.parentElement.tagName.toLowerCase() + "." + [...at.parentElement.classList].slice(0, 2).join(".") : "");
+  return "not shown";
+}`;
+
+/** Where to tap the element now: the centre of its on-screen part, if it is tappable there. */
+async function pointOf(locator) {
+  const h = await locator.elementHandle({ timeout: 5000 }).catch(() => null);
+  if (!h) return null;
+  return h
+    .evaluate((el, vis) => {
+      if (!new Function(`return (${vis})`)()(el)) return null;
+      const r = el.getBoundingClientRect();
+      return [(Math.max(r.left, 0) + Math.min(r.right, innerWidth)) / 2, (Math.max(r.top, 0) + Math.min(r.bottom, innerHeight)) / 2];
+    }, VISIBLE_FN)
+    .catch(() => null);
+}
+
+/** Two looks at a point 120 ms apart: tap only once it holds still (a sheet sliding up, a beat moving in). */
+async function settledPoint(get) {
+  const a = await get();
+  if (!a) return null;
+  await wait(120);
+  const b = await get();
+  return b && Math.abs(a[0] - b[0]) < 1 && Math.abs(a[1] - b[1]) < 1 ? b : null;
+}
+
+async function tapAt(page, pt) {
+  if (touchCtx.get(page.context())) await page.touchscreen.tap(pt[0], pt[1]);
+  else await page.mouse.click(pt[0], pt[1]);
+}
+
+/**
+ * Tap (phone) or click (laptop) an element the way a visitor does: once the page itself reports it
+ * on screen, opaque, not inert and uncovered at its centre (elementFromPoint), and holding still,
+ * at that centre. Playwright's own actionability wait needs consecutive animation frames to agree,
+ * which a software-rendered WebGL page (2–5 fps headless) can take many seconds to give.
+ */
+async function press(page, locator, { timeout = 30000, what = "element" } = {}) {
+  const t0 = Date.now();
+  let deadline = t0 + timeout;
+  for (;;) {
+    const pt = await settledPoint(() => pointOf(locator));
+    if (pt) return tapAt(page, pt);
+    // a stalled page (software WebGL compiling) doesn't count against the element: wait it out
+    const stalled = await page.evaluate(() => performance.now() - (window.__stallEnd || 0) < 2500).catch(() => true);
+    if (stalled && Date.now() - t0 < timeout * 3) {
+      const q0 = Date.now();
+      await quiet(page, 30000);
+      deadline += Date.now() - q0;
+    }
+    if (Date.now() > deadline) {
+      const why = await locator.evaluate(new Function(`return (${WHY_FN})`)(), null, { timeout: 8000 }).catch((e) => `not found (${String(e?.message ?? e).split("\n")[0].slice(0, 80)})`);
+      throw new Error(`${what} can't be tapped: ${why}`);
+    }
+    await wait(100);
+  }
 }
 
 const POPUP_NAME = /set up your smartcrew|book your demo with andrew|who.s setting|where can andrew/i;
 const popup = (page) => page.getByRole("dialog", { name: POPUP_NAME });
 
-async function expectPopup(page, ms = 6000) {
+async function expectPopup(page, ms = 10000) {
   await popup(page).waitFor({ state: "visible", timeout: ms });
 }
 async function closePopup(page) {
   const d = popup(page);
-  await d.getByRole("button", { name: "Close", exact: true }).click({ timeout: 4000 });
-  await d.waitFor({ state: "hidden", timeout: 6000 });
+  await press(page, d.getByRole("button", { name: "Close", exact: true }), { what: "the popup's Close" }).catch(async (e) => {
+    const dialogs = await page
+      .evaluate(() => [...document.querySelectorAll("[role=dialog]")].map((x) => `"${document.getElementById(x.getAttribute("aria-labelledby") ?? "")?.textContent ?? x.getAttribute("aria-label")}" shown=${x.checkVisibility()}`).join(", "))
+      .catch(() => "?");
+    throw new Error(`${e.message}; dialogs: ${dialogs || "none"}`);
+  });
+  await d.waitFor({ state: "hidden", timeout: 10000 });
   await wait(250);
 }
 
@@ -242,23 +348,33 @@ async function heroCta(page) {
 // ─── the CTA walk: scroll the whole page like a visitor, click every CTA met, check the popup ──
 const CTA_TEXT = /get my free trial|book a demo with andrew|set up smartcrew for your crew/i;
 
-/** In-page: tag the visible CTAs not clicked yet; count the ones on screen still waiting for their beat. */
-const SCAN_FN = `({ re, vis, done }) => {
-  const isVis = new Function("return (" + vis + ")")();
+/**
+ * In-page: every CTA button with its key (zone|name|n: the section or test id it sits in, its
+ * name, and which of the same-named buttons in that section it is). Keys, not element handles:
+ * a scene may re-render a button between two looks (One Day swaps its inline CTA per moment).
+ */
+const CTA_LIB = `(re) => {
   const rx = new RegExp(re, "i");
   const nameOf = (b) => (b.getAttribute("aria-label") || b.textContent || "").trim().replace(/\\s+/g, " ");
   const all = [...document.querySelectorAll("button")].filter((b) => rx.test(nameOf(b)));
-  const found = [];
-  let waiting = 0;
-  for (const b of all) {
+  return all.map((b) => {
     const zone = b.closest("[data-testid]")?.getAttribute("data-testid") || b.closest("section[id]")?.id || (b.closest("header") ? "header" : "page");
     const name = nameOf(b);
     const sec = b.closest("section[id]")?.id ?? "";
     const twins = all.filter((x) => (x.closest("section[id]")?.id ?? "") === sec && nameOf(x) === name);
-    const key = zone + "|" + name + "|" + twins.indexOf(b);
+    return { b, zone, name, key: zone + "|" + name + "|" + twins.indexOf(b) };
+  });
+}`;
+
+/** In-page: the visible CTAs not clicked yet; how many on screen are still waiting for their beat. */
+const SCAN_FN = `({ re, vis, lib, done }) => {
+  const isVis = new Function("return (" + vis + ")")();
+  const ctas = new Function("return (" + lib + ")")()(re);
+  const found = [];
+  let waiting = 0;
+  for (const { b, zone, key } of ctas) {
     if (done.includes(key)) continue;
     if (isVis(b)) {
-      b.setAttribute("data-e2e-cta", key);
       found.push(key);
       continue;
     }
@@ -271,27 +387,45 @@ const SCAN_FN = `({ re, vis, done }) => {
   return { found, waiting };
 }`;
 
+/** In-page: where to tap the CTA with this key now (or a same-named one in its zone), if it's tappable. */
+const POINT_FN = `({ re, vis, lib, key }) => {
+  const isVis = new Function("return (" + vis + ")")();
+  const ctas = new Function("return (" + lib + ")")()(re);
+  const [zone, name] = key.split("|");
+  const hit = ctas.find((c) => c.key === key && isVis(c.b)) || ctas.find((c) => c.zone === zone && c.name === name && isVis(c.b));
+  if (!hit) return null;
+  const r = hit.b.getBoundingClientRect();
+  return [(Math.max(r.left, 0) + Math.min(r.right, innerWidth)) / 2, (Math.max(r.top, 0) + Math.min(r.bottom, innerHeight)) / 2];
+}`;
+
 async function ctaWalk(page, device, stepVh) {
   const H = device.ctx.viewport.height;
   const seen = new Map(); // key → { source, intent }
-  const scan = (a) => page.evaluate(([fn, arg]) => new Function(`return (${fn})`)()(arg), [SCAN_FN, a]);
+  const run = (fn, a) => page.evaluate(([f, arg]) => new Function(`return (${f})`)()(arg), [fn, { re: CTA_TEXT.source, vis: VISIBLE_FN, lib: CTA_LIB, ...a }]);
   let y = 0;
   let total = await page.evaluate(() => document.documentElement.scrollHeight);
   while (y <= total) {
     await scrollTo(page, y, device.settle);
-    let { found, waiting } = await scan({ re: CTA_TEXT.source, vis: VISIBLE_FN, done: [...seen.keys()] });
+    let { found, waiting } = await run(SCAN_FN, { done: [...seen.keys()] });
     // a CTA that comes in on its scene's beat (Five apps, the FAQ close after the offer's leaves)
     for (let t = 0; !found.length && waiting && t < 12; t++) {
       await wait(400);
-      ({ found, waiting } = await scan({ re: CTA_TEXT.source, vis: VISIBLE_FN, done: [...seen.keys()] }));
+      ({ found, waiting } = await run(SCAN_FN, { done: [...seen.keys()] }));
     }
     if (DEBUG) console.log(`    walk y=${y} scrollY=${await page.evaluate(() => Math.round(scrollY))} new=${found.join(", ")}${waiting ? ` waiting=${waiting}` : ""}`);
     for (const key of found) {
       const before = (await signups(page)).length;
-      const loc = page.locator(`[data-e2e-cta="${key.replace(/"/g, '\\"')}"]`);
-      // still there and visible (a beat may have moved on)?
-      if (!(await isVisible(loc))) continue;
-      await loc.click({ timeout: 4000 });
+      // still there and tappable (a beat may have moved on)? give it a moment
+      let pt = null;
+      for (let t0 = Date.now(); !pt && Date.now() - t0 < 4000; ) {
+        pt = await settledPoint(() => run(POINT_FN, { key }));
+        if (!pt) await wait(150);
+      }
+      if (!pt) {
+        if (DEBUG) console.log(`    skipped ${key}: no longer tappable`);
+        continue;
+      }
+      await tapAt(page, pt);
       await expectPopup(page).catch(() => {
         throw new Error(`CTA "${key}" did not open the popup`);
       });
@@ -300,7 +434,6 @@ async function ctaWalk(page, device, stepVh) {
       const s = after[after.length - 1];
       seen.set(key, { source: s.source, intent: s.intent });
       await closePopup(page);
-      await page.evaluate((k) => document.querySelector(`[data-e2e-cta="${k}"]`)?.removeAttribute("data-e2e-cta"), key);
     }
     y += Math.round(H * stepVh);
     total = await page.evaluate(() => document.documentElement.scrollHeight);
@@ -318,11 +451,9 @@ async function heroBasics(device) {
     assert(norm(text) === norm(ANGLES.profit), `H1 "${text}" is not ANGLES.profit`);
     const cta = await heroCta(page);
     await cta.waitFor({ state: "visible", timeout: 10000 });
-    await wait(800);
+    await press(page, cta, { what: "the hero CTA" });
     const box = await cta.boundingBox();
     assert(box && box.y + box.height <= device.ctx.viewport.height, "hero CTA is below the first screen");
-    assert(await isVisible(cta), "hero CTA is covered or transparent");
-    await cta.click();
     await expectPopup(page);
     const s = (await signups(page)).pop();
     assert(s?.source === "hero" && s?.intent === "trial", `hero CTA sent ${JSON.stringify(s)}`);
@@ -345,7 +476,7 @@ async function everyCta(device) {
     const need =
       device.name === "phone"
         ? ["hero", "sticky", "specsheet", "apps", "offer", "faq", "faq(demo)"]
-        : ["hero", "header", "specsheet", "apps", "offer", "offer(demo)", "faq", "faq(demo)"];
+        : ["hero", "header", "day-rail", "day-profit", "specsheet", "apps", "offer", "offer(demo)", "faq", "faq(demo)"];
     const missing = need.filter((n) => !sources.includes(n));
     assert(!missing.length, `never met (or never opened the popup): ${missing.join(", ")}; met: ${sources.join(", ")}`);
     return `${seen.size} CTAs clicked: ${sources.join(", ")}`;
@@ -353,6 +484,20 @@ async function everyCta(device) {
     await ctx.close();
   }
 }
+
+/** In-page: where the orange (primary) buttons on screen are. */
+const ORANGE_FN = `({ vis }) => {
+  const isVis = new Function("return (" + vis + ")")();
+  // orange = a button whose own face is safety orange (the ink text links don't count)
+  const orange = (b) => {
+    const m = getComputedStyle(b).backgroundColor.match(/\\d+(\\.\\d+)?/g);
+    return !!m && +m[0] > 230 && +m[1] > 80 && +m[1] < 170 && +m[2] < 70 && (m[3] === undefined || +m[3] > 0.5);
+  };
+  return [...document.querySelectorAll("button")]
+    .filter(orange)
+    .filter(isVis)
+    .map((b) => b.closest("[data-testid]")?.getAttribute("data-testid") || b.closest("section[id]")?.id || (b.closest("header") ? "header" : "?"));
+}`;
 
 async function oneOrangeAtATime(device) {
   // never two primary (orange) buttons on screen at once, sampled through the whole page
@@ -365,22 +510,17 @@ async function oneOrangeAtATime(device) {
     const bad = [];
     for (let y = 0; y <= total; y += Math.round(H * 0.25)) {
       await scrollTo(page, y, device.settle + 300);
-      const vis = await page.evaluate(
-        ({ vis }) => {
-          const isVis = new Function(`return (${vis})`)();
-          // orange = a button whose own face is safety orange (the ink text links don't count)
-          const orange = (b) => {
-            const m = getComputedStyle(b).backgroundColor.match(/\d+(\.\d+)?/g);
-            return !!m && +m[0] > 230 && +m[1] > 80 && +m[1] < 170 && +m[2] < 70 && (m[3] === undefined || +m[3] > 0.5);
-          };
-          return [...document.querySelectorAll("button")]
-            .filter(orange)
-            .filter(isVis)
-            .map((b) => b.closest("[data-testid]")?.getAttribute("data-testid") || b.closest("section[id]")?.id || (b.closest("header") ? "header" : "?"));
-        },
-        { vis: VISIBLE_FN },
-      );
-      if (vis.length > 1) bad.push(`y=${y}: ${vis.join(" + ")}`);
+      const vis = await page.evaluate(new Function(`return (${ORANGE_FN})`)(), { vis: VISIBLE_FN });
+      // two at once: the header's and the bar's step-aside runs on the next animation frame, which
+      // headless software WebGL can hold back for a second or two; a real overlap is still there
+      // after a quiet beat
+      if (vis.length > 1) {
+        await quiet(page, 10000);
+        await wait(800);
+        const again = await page.evaluate(new Function(`return (${ORANGE_FN})`)(), { vis: VISIBLE_FN });
+        if (again.length > 1) bad.push(`y=${y}: ${again.join(" + ")}`);
+        else note(`y=${y}: ${vis.join(" + ")} for a moment`);
+      }
     }
     assert(!bad.length, `two orange CTAs at once: ${bad.slice(0, 4).join(" | ")}`);
     return `sampled every ${Math.round(H * 0.25)} px`;
@@ -402,7 +542,7 @@ async function headerLinks(device) {
         ["How it works", "day"],
       ]) {
         await scrollTo(page, 0, 300);
-        await banner.getByRole("link", { name, exact: true }).click();
+        await press(page, banner.getByRole("link", { name, exact: true }), { what: `the header's "${name}" link` });
         await wait(2600);
         const top = await page.evaluate((i) => document.getElementById(i)?.getBoundingClientRect().top ?? 9999, id);
         assert(Math.abs(top) < 140, `"${name}" left #${id} at ${Math.round(top)} px`);
@@ -429,12 +569,12 @@ async function specSheet(device) {
     await wait(900);
     const row = sec.getByRole("button", { name: /^time & crew/i }).first();
     await row.waitFor({ state: "visible", timeout: 8000 });
-    await row.click();
+    await press(page, row, { what: "the Time & crew row" });
     const panel = device.name === "phone" ? page.getByRole("dialog", { name: /time & crew/i }) : page.getByRole("region", { name: /^time & crew$/i });
     await panel.waitFor({ state: "visible", timeout: 5000 });
     const tools = await panel.innerText();
     assert(/clock/i.test(tools), "the expanded section lists no tools");
-    await page.getByRole("button", { name: /^close time & crew$/i }).first().click();
+    await press(page, page.getByRole("button", { name: /^close time & crew$/i }).first(), { what: "the section's close button" });
     await panel.waitFor({ state: "hidden", timeout: 5000 });
     await sec.getByRole("button", { name: /^time & crew/i }).first().waitFor({ state: "visible", timeout: 5000 });
     return "opens on a section and closes back to the sheet";
@@ -450,32 +590,30 @@ async function tryIt(device) {
     await waitScenes(page);
     const sec = page.locator("section#try");
     const clockIn = sec.getByRole("button", { name: /^clock in$/i }).first();
-    // find the beat where the tap target is live
+    // "Clock out and try it yourself" under the phone (TRY_IT.again), not the app's own Clock Out
+    const again = sec.getByRole("button", { name: /try it yourself|again/i }).first();
+    // find the beat where the phone is live (Clock In, or Clock out once it has demoed itself)
     let ready = false;
     for (const p of [0.35, 0.5, 0.2, 0.65, 0.05, 0.8]) {
       await scrollSection(page, "#try", p, device.settle + 500);
-      if ((await isVisible(clockIn)) && (await clockIn.isEnabled())) {
+      if ((await isVisible(clockIn)) || (await isVisible(again))) {
         ready = true;
         break;
       }
-      // it may have demoed itself already: clock out and try again
-      const again = sec.getByRole("button", { name: /clock out|again/i }).first();
-      if (await isVisible(again)) {
-        await again.click().catch(() => {});
-        await wait(700);
-        if ((await isVisible(clockIn)) && (await clockIn.isEnabled())) {
-          ready = true;
-          break;
-        }
-      }
     }
-    assert(ready, "never found a live Clock In button");
-    await clockIn.click();
-    await sec.getByText(/that.s the whole training/i).first().waitFor({ state: "attached", timeout: 5000 });
+    assert(ready, "never found the live phone (Clock In or Clock out)");
+    // the scene demos itself once, 4 s after it settles untouched (src/site/try/clock.ts): let it,
+    // then clock out (that marks it touched), so the clock-in below is the visitor's own tap
+    for (const t0 = Date.now(); Date.now() - t0 < 7000 && !(await isVisible(again)); ) await wait(300);
+    if (await isVisible(again)) {
+      await press(page, again, { what: "Clock out" });
+      await wait(700);
+    }
+    await press(page, clockIn, { what: "Clock In" });
+    await sec.getByText(/that.s the whole training/i).first().waitFor({ state: "attached", timeout: 8000 });
     const cta = sec.getByRole("button", { name: /get my free trial/i }).first();
     await cta.waitFor({ state: "visible", timeout: 5000 });
-    await wait(700);
-    await cta.click();
+    await press(page, cta, { what: "Try it's CTA" });
     await expectPopup(page);
     const s = (await signups(page)).pop();
     assert(s?.source === "try", `Try it CTA sent ${JSON.stringify(s)}`);
@@ -501,13 +639,18 @@ async function yourNumber(device) {
     for (let i = 0; i < 8; i++) await page.keyboard.press("ArrowRight"); // 18
     const now = await slider.getAttribute("aria-valuenow");
     assert(now === "18", `slider at ${now}, expected 18`);
-    await sec.getByRole("group", { name: /minutes lost/i }).getByRole("button", { name: "15", exact: true }).click();
-    await sec.getByRole("group", { name: /hourly/i }).getByRole("button", { name: "$45", exact: true }).click();
+    for (const [group, value] of [
+      [/minutes lost/i, "15"],
+      [/hourly/i, "$45"],
+    ]) {
+      const b = sec.getByRole("group", { name: group }).getByRole("button", { name: value, exact: true });
+      await b.scrollIntoViewIfNeeded();
+      await press(page, b, { what: `the ${value} pick` });
+    }
     const expected = (18 * 15 * 250 * 45) / 60; // crew × minutes × 250 workdays × $/hr ÷ 60
     const cta = sec.getByRole("button", { name: /get my free trial/i }).first();
     await cta.scrollIntoViewIfNeeded();
-    await wait(900);
-    await cta.click();
+    await press(page, cta, { what: "the calculator's CTA" });
     await expectPopup(page);
     const s = (await signups(page)).pop();
     assert(s?.source === "calculator", `calculator CTA sent source ${s?.source}`);
@@ -536,13 +679,13 @@ async function faq(device) {
     assert(n >= 3, `only ${n} questions`);
     assert((await qs.nth(0).getAttribute("aria-expanded")) === "true", "the first answer isn't open by default");
     await qs.nth(1).scrollIntoViewIfNeeded();
-    await qs.nth(1).click();
+    await press(page, qs.nth(1), { what: "the second question" });
     await wait(400);
     assert((await qs.nth(1).getAttribute("aria-expanded")) === "true", "a question didn't open");
     assert((await qs.nth(0).getAttribute("aria-expanded")) === "false", "two answers open at once");
     const region = page.locator(`#${await qs.nth(1).getAttribute("aria-controls")}`);
     assert((await region.innerText()).trim().length > 20, "the opened answer is empty");
-    await qs.nth(1).click();
+    await press(page, qs.nth(1), { what: "the second question" });
     await wait(400);
     assert((await qs.nth(1).getAttribute("aria-expanded")) === "false", "a question didn't close");
     return `${n} questions, one open at a time`;
@@ -557,7 +700,7 @@ async function angles(device) {
   try {
     assert(Object.keys(ANGLES).length === 5, `read ${Object.keys(ANGLES).length} angles from copy.ts`);
     for (const [angle, h1Text] of Object.entries(ANGLES)) {
-      const page = await open(ctx, `/?intro=0&angle=${angle}`);
+      const page = await open(ctx, `/?angle=${angle}`);
       const got = await h1Name(page);
       assert(norm(got) === norm(h1Text), `?angle=${angle}: H1 "${got}" ≠ "${h1Text}"`);
       out.push(angle);
@@ -569,75 +712,112 @@ async function angles(device) {
   }
 }
 
-async function intro(device) {
+/** In-page: an intro or opening overlay still up (the old intro is gone: there must be none). */
+const OVERLAY_FN = `() => {
   const out = [];
-  // a first visit plays it; a key press (laptop) or a tap (phone) skips it
-  for (const how of device.name === "phone" ? ["tap"] : ["key", "click"]) {
+  const html = document.documentElement;
+  for (const c of ["intro-on", "intro-skip"]) if (html.classList.contains(c)) out.push("html." + c);
+  const vw = innerWidth, vh = innerHeight, area = vw * vh;
+  const big = (el) => {
+    const r = el.getBoundingClientRect();
+    const w = Math.min(r.right, vw) - Math.max(r.left, 0), h = Math.min(r.bottom, vh) - Math.max(r.top, 0);
+    return w > 0 && h > 0 && w * h > area * 0.3;
+  };
+  const shown = (el) => (!el.checkVisibility || el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) && parseFloat(getComputedStyle(el).opacity) > 0.05;
+  const name = (el) => el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") + (el.classList.length ? "." + [...el.classList].slice(0, 2).join(".") : "");
+  // the old intro's layers, or any fixed layer named like an intro, an opening or a splash,
+  // still covering the screen
+  for (const el of document.querySelectorAll('#intro, #topo, [id*="intro" i], [class*="intro" i], [class*="splash" i], [class*="opening" i], [class*="preload" i]'))
+    if (el !== html && el !== document.body && (el.id === "intro" || el.id === "topo" || getComputedStyle(el).position === "fixed") && shown(el) && big(el)) out.push(name(el));
+  // whatever answers a tap at five points of the first screen: never a fixed full-screen layer
+  // (the header is fixed but small; the backdrop and the 3D canvas take no pointer events)
+  for (const [x, y] of [[0.5, 0.5], [0.25, 0.3], [0.75, 0.3], [0.25, 0.75], [0.75, 0.75]]) {
+    for (let e = document.elementFromPoint(vw * x, vh * y); e && e !== html && e !== document.body; e = e.parentElement) {
+      if (getComputedStyle(e).position === "fixed" && big(e) && !e.closest("header")) {
+        out.push(name(e) + " (answers taps at " + x + "," + y + ")");
+        break;
+      }
+    }
+  }
+  return [...new Set(out)];
+}`;
+
+/**
+ * The old intro (a night map with notifications) is gone. A first visit straight from the ad
+ * (fresh session, no query) shows no overlay, and the hero's orange CTA is on screen, uncovered,
+ * opaque and clickable within 2.5 s of load: of navigation start on a build; of the load event on
+ * the dev server (whose unbundled modules alone take seconds to fetch). The machine running the
+ * test may be busy, which only ever adds time, so the best of three fresh loads counts.
+ */
+async function noIntroCtaFast(device) {
+  const LIMIT = 2500;
+  const runs = [];
+  let lastOverlay = [];
+  let clicked = false;
+  for (let i = 0; i < 3; i++) {
     const ctx = await newContext(device);
     try {
-      const page = await open(ctx, "/");
-      await page.waitForSelector("html.intro-on", { timeout: 3000 });
-      assert(await page.locator("#intro").count(), "no #intro on a first visit");
-      await wait(500);
-      const t0 = Date.now();
-      if (how === "key") await page.keyboard.press("Space");
-      else if (how === "click") await page.mouse.click(700, 330);
-      else await page.touchscreen.tap(195, 330);
-      await page.waitForFunction(() => !document.getElementById("intro") || getComputedStyle(document.getElementById("intro")).display === "none" || +getComputedStyle(document.getElementById("intro")).opacity < 0.05, null, { timeout: 4000 });
-      const cta = await heroCta(page);
-      await cta.waitFor({ state: "visible", timeout: 4000 });
-      out.push(`${how} skip ${Date.now() - t0} ms`);
-      // the second page view in the session: no intro
-      await page.goto(BASE + "/", { waitUntil: "domcontentloaded" });
-      await wait(400);
-      assert(await page.evaluate(() => document.documentElement.classList.contains("no-intro")), "the intro played twice in one session");
+      const page = await ctx.newPage();
+      await page.goto(BASE + "/", { waitUntil: "commit", timeout: 60000 });
+      const ready = await page
+        .waitForFunction(
+          ([vis]) => {
+            const isVis = new Function(`return (${vis})`)();
+            const b = document.getElementById("hero-cta") || document.querySelector("[data-hero-cta] button");
+            return b && isVis(b) ? Math.round(performance.now()) : false;
+          },
+          [VISIBLE_FN],
+          { timeout: 15000, polling: 40 },
+        )
+        .then((h) => h.jsonValue())
+        .catch(() => null);
+      const nav = await page.evaluate(() => {
+        const n = performance.getEntriesByType("navigation")[0];
+        return { load: Math.round(n?.loadEventStart || n?.domContentLoadedEventEnd || 0), dev: !!document.querySelector('script[src*="/@vite/client"]') };
+      });
+      const overlayNow = await page.evaluate((fn) => new Function(`return (${fn})`)()(), OVERLAY_FN);
+      // and still none a beat later (nothing comes in over the hero after it's up)
+      await wait(Math.max(0, 2600 - (ready ?? 0)) + 300);
+      const overlayLater = await page.evaluate((fn) => new Function(`return (${fn})`)()(), OVERLAY_FN);
+      lastOverlay = [...new Set([...overlayNow, ...overlayLater])];
+      assert(!lastOverlay.length, `an intro/opening overlay is up: ${lastOverlay.join(", ")}`);
+      const from = nav.dev ? nav.load : 0;
+      runs.push({ ms: ready == null ? Infinity : ready - from, abs: ready, dev: nav.dev, load: nav.load });
+      if (!clicked && ready != null) {
+        // the CTA really works (clicked the way a visitor would)
+        const cta = await heroCta(page);
+        await press(page, cta, { what: "the hero CTA" });
+        await expectPopup(page);
+        await closePopup(page);
+        clicked = true;
+      }
+      if (runs[runs.length - 1].ms <= LIMIT) break;
     } finally {
       await ctx.close();
     }
   }
-  // ?intro=0 never shows it
-  const ctx = await newContext(device);
-  try {
-    const page = await open(ctx, "/?intro=0");
-    await wait(300);
-    const on = await page.evaluate(() => document.documentElement.classList.contains("intro-on"));
-    assert(!on, "?intro=0 still played the intro");
-    out.push("?intro=0 off", "2nd visit off");
-  } finally {
-    await ctx.close();
-  }
-  return out.join("; ");
-}
-
-async function introPlaysThrough(device) {
-  const ctx = await newContext(device);
-  try {
-    const page = await open(ctx, "/");
-    await page.waitForSelector("html.intro-on", { timeout: 3000 });
-    const t0 = Date.now();
-    await page.waitForFunction(() => !document.getElementById("intro"), null, { timeout: 9000 });
-    const cta = await heroCta(page);
-    await cta.waitFor({ state: "visible", timeout: 5000 });
-    return `hands over to the hero by itself after ${Date.now() - t0} ms`;
-  } finally {
-    await ctx.close();
-  }
+  const best = runs.reduce((a, b) => (b.ms < a.ms ? b : a));
+  const from = best.dev ? "after the load event (dev server)" : "after navigation start";
+  const all = runs.map((r) => (r.ms === Infinity ? "never" : `${r.ms} ms`)).join(", ");
+  assert(best.ms <= LIMIT, `hero CTA clickable only ${best.ms === Infinity ? "never (15 s)" : `${best.ms} ms`} ${from} (tries: ${all})`);
+  return `no overlay; CTA clickable ${best.ms} ms ${from}${best.dev ? ` (${best.abs} ms after navigation start)` : ""}; tries: ${all}`;
 }
 
 async function reducedMotion(device) {
   const ctx = await newContext(device, { reducedMotion: "reduce" });
   try {
     const page = await open(ctx, "/");
-    await wait(300);
-    assert(!(await page.evaluate(() => document.documentElement.classList.contains("intro-on"))), "the intro played with reduced motion");
     const h1 = page.getByRole("heading", { level: 1 }).first();
     await h1.waitFor({ state: "visible", timeout: 8000 });
     const cta = await heroCta(page);
     await cta.waitFor({ state: "visible", timeout: 5000 });
-    await cta.click();
+    const overlay = await page.evaluate((fn) => new Function(`return (${fn})`)()(), OVERLAY_FN);
+    assert(!overlay.length, `an overlay is up: ${overlay.join(", ")}`);
+    assert(norm(await h1Name(page)) === norm(ANGLES.profit), "the H1 isn't the profit angle's");
+    await press(page, cta, { what: "the hero CTA" });
     await expectPopup(page);
     await closePopup(page);
-    return "no intro, hero and popup work";
+    return "hero in its end state, no overlay, popup works";
   } finally {
     await ctx.close();
   }
@@ -659,7 +839,7 @@ async function noWebgl() {
     assert(state.fallback, "html.stage-fallback was not set without WebGL");
     assert(state.posters > 0, "no poster still stands in for the 3D");
     const cta = await heroCta(page);
-    await cta.click();
+    await press(page, cta, { what: "the hero CTA" });
     await expectPopup(page);
     await closePopup(page);
     await waitScenes(page);
@@ -678,8 +858,7 @@ async function funnel(device) {
   try {
     const cta = await heroCta(page);
     await cta.waitFor({ state: "visible", timeout: 15000 });
-    await wait(600);
-    await cta.click();
+    await press(page, cta, { what: "the hero CTA" });
     const dlg = popup(page);
     await dlg.waitFor({ state: "visible", timeout: 6000 });
     const cont = () => dlg.getByRole("button", { name: /^continue/i }).click();
@@ -799,11 +978,8 @@ for (const device of [DESKTOP, PHONE]) {
   await check(D, "FAQ toggles", () => faq(device));
   await check(D, "header links + Log in href", () => headerLinks(device));
   await check(D, "?angle= variants render their own H1", () => angles(device));
-  await check(D, "intro: skip by input, ?intro=0, once per session", () => intro(device));
-  if (device.name === "desktop") {
-    await check(D, "intro plays through on its own", () => introPlaysThrough(device));
-    await check(D, "no WebGL: posters stand in, page still converts", () => noWebgl(), { timeout: 150000 });
-  }
+  await check(D, "no intro overlay; hero CTA clickable ≤ 2.5 s", () => noIntroCtaFast(device), { timeout: 150000 });
+  if (device.name === "desktop") await check(D, "no WebGL: posters stand in, page still converts", () => noWebgl(), { timeout: 150000 });
   await check(D, "prefers-reduced-motion", () => reducedMotion(device));
   await check(D, "zero console errors / failed requests", async () => consoleClean(device.name));
 }

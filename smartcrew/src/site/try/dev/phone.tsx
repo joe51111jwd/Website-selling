@@ -32,7 +32,7 @@ function Plain({ id, title }: { id: string; title: string }) {
 
 function Harness() {
   useEffect(() => {
-    document.documentElement.classList.add("sc-page", "no-intro");
+    document.documentElement.classList.add("sc-page");
     const off = onSignup((r) => console.log("[phone dev] openSignup", JSON.stringify(r)));
     const at = new URLSearchParams(location.search).get("at");
     const t = at ? window.setTimeout(() => document.getElementById(at)?.scrollIntoView({ behavior: "instant" as ScrollBehavior }), 300) : 0;

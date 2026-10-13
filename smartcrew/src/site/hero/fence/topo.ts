@@ -2,7 +2,7 @@
 // from the signed distance to the measured text boxes (and the fences), plus a seeded fBm terrain
 // further out; marching squares turns it into iso-lines, which are joined, simplified and smoothed
 // (Catmull-Rom → cubic Béziers) into two static SVG paths (minor + index contours). Built once per
-// layout, in slices of ≤ 8 ms (never a long task, phones at 4× CPU included).
+// layout, in slices of ≤ 5 ms (never a long task, phones at 4× CPU included).
 
 export type Rect = { x: number; y: number; w: number; h: number; r?: number };
 export type Pt = [number, number];
@@ -179,8 +179,8 @@ export function* contoursGen(o: TopoInput): Generator<void, TopoOut, void> {
     let d = "";
     let n = 0;
     for (const pl of lines) {
-      if (++n % 24 === 0) yield;
-      const simp = rdp(pl.pts, o.eps ?? 0.45);
+      if (++n % 12 === 0) yield;
+      const simp = yield* rdp(pl.pts, o.eps ?? 0.45);
       if (simp.length < 3 && !pl.closed) continue;
       if (pl.closed && length(simp) < s * 7) continue; // specks
       d += curve(simp, pl.closed);
@@ -198,7 +198,7 @@ export function* contoursGen(o: TopoInput): Generator<void, TopoOut, void> {
  * (requestIdleCallback was tried: on a busy first screen it hands out 1–3 ms a frame and the
  * ground took seconds to arrive; Safari doesn't have it either.)
  */
-export function contoursSliced(o: TopoInput, budget = 7): { done: Promise<TopoOut>; cancel: () => void } {
+export function contoursSliced(o: TopoInput, budget = 5): { done: Promise<TopoOut>; cancel: () => void } {
   let dead = false;
   const ch = new MessageChannel();
   const done = new Promise<TopoOut>((resolve) => {
@@ -263,7 +263,7 @@ function* trace(v: Float32Array, nx: number, ny: number, lv: number, x0: number,
     (adj.get(b) ?? adj.set(b, []).get(b)!).push(a);
   };
   for (let j = 0; j < ny - 1; j++) {
-    if (j % 16 === 15) yield;
+    if (j % 8 === 7) yield;
     for (let i = 0; i < nx - 1; i++) {
       const tl = at(i, j) > lv ? 1 : 0;
       const tr = at(i + 1, j) > lv ? 1 : 0;
@@ -317,8 +317,19 @@ function* trace(v: Float32Array, nx: number, ny: number, lv: number, x0: number,
     }
   };
   // open chains first (start from their ends), then loops
-  for (const [e, nb] of adj) if (nb.length === 1 && !seen.has(e)) out.push(walk(e));
-  for (const e of adj.keys()) if (!seen.has(e)) out.push(walk(e));
+  let w = 0;
+  for (const [e, nb] of adj) {
+    if (nb.length === 1 && !seen.has(e)) {
+      out.push(walk(e));
+      if (++w % 32 === 0) yield;
+    }
+  }
+  for (const e of adj.keys()) {
+    if (!seen.has(e)) {
+      out.push(walk(e));
+      if (++w % 32 === 0) yield;
+    }
+  }
   return out;
 }
 
@@ -330,8 +341,11 @@ function length(p: Pt[]) {
   return l;
 }
 
-function rdp(p: Pt[], eps: number): Pt[] {
+/** Ramer–Douglas–Peucker, iterative; yields every few thousand point tests (a long contour's
+ * simplification is the biggest single piece of work on a phone). */
+function* rdp(p: Pt[], eps: number): Generator<void, Pt[], void> {
   if (p.length < 3) return p;
+  let ops = 0;
   const keep = new Uint8Array(p.length);
   keep[0] = keep[p.length - 1] = 1;
   const st: [number, number][] = [[0, p.length - 1]];
@@ -350,6 +364,11 @@ function rdp(p: Pt[], eps: number): Pt[] {
         md = d;
         mi = i;
       }
+    }
+    ops += b - a;
+    if (ops > 2500) {
+      ops = 0;
+      yield;
     }
     if (md > eps && mi > 0) {
       keep[mi] = 1;

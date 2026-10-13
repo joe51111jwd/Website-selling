@@ -391,8 +391,7 @@ html.is-phone {
 .dph-m[data-moment="plan"].is-card .dph-card {
   transform: translate(-50%, 0);
 }
-/* no card in a card: the KPI sits straight on the update card (the intro's .sc-kpi card style
-   in index.html shares the class name: undo it here) */
+/* no card in a card: the KPI sits straight on the update card */
 .dph-card .sc.ddc .ddc-profit .sc-kpi {
   display: flex;
   align-items: center;

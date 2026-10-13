@@ -325,7 +325,7 @@ function Driver() {
     const float = lerp(A.float, B.float, te) * (reducedMotion ? 0 : 1);
     let anyVisible = false;
 
-    // entrance: devices rise and turn into place once the intro opens
+    // entrance: devices rise and turn into place once revealed (after the hero's first screen)
     const rev = status.revealed;
     const sinceReveal = rev ? now - status.revealAt : -1;
 
@@ -375,7 +375,7 @@ function Driver() {
           d.surface.setOverlay(slot, tex, o.rect, o.alpha, o.dx, o.dy);
         } else d.surface.setOverlay(slot, null, [0, 0, 1, 1], 0, 0, 0);
       }
-      // nothing shows until the intro opens (it covers the page anyway); a device that has
+      // nothing shows until revealed (the hero parks them below the fold); a device that has
       // glided all the way out of the viewport (out = ±1) isn't drawn either
       const show = Math.max(0, Math.min(1, s.show)) * (rev || reducedMotion ? 1 : 0);
       const outAmt = Math.min(1, Math.abs(s.out));

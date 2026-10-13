@@ -12,23 +12,22 @@ Facebook ad ──► /  (product page) ──► popup "Set up your SmartCrew" 
   message match   (every scene)         name + email, mobile             calendar, prefilled; product details
 ```
 
-The page, in order:
+The page, in order (no intro: the page opens on the hero, its orange CTA clickable within 2.5 s):
 
-1. **Intro.** A night jobsite map with three real notifications. It plays once per session, lasts at most 3 s and is skipped by any input.
-2. **Hero.** "Fence the Words": the headline's key phrase is fenced by the geofence, and the orange CTA sits on the axis under it.
-3. **One Day.** Seven moments from 6:42 AM to Friday payroll. On laptops they play on a 3D MacBook and iPhone; on phones, on a 2D phone frame.
-4. **Spec sheet.** All 38 tools in six groups.
-5. **Try it.** The visitor taps Clock In.
-6. **Your number.** A calculator; its estimate rides into the popup.
-7. **Proof.**
-8. **Five apps → one.**
-9. **Andrew's offer.** His story and a signed receipt.
-10. **FAQ and the close**, then the footer.
+1. **Hero.** "Fence the Words": a giant centred headline, an orange dashed geofence staked round its key phrase, crew clocking in on the fence, and the orange CTA centred under it.
+2. **One Day.** Seven moments from 6:42 AM to Friday payroll. On laptops they play on a 3D MacBook and iPhone; on phones, on a 2D phone frame.
+3. **Spec sheet.** All 38 tools in six groups.
+4. **Try it.** The visitor taps Clock In.
+5. **Your number.** A calculator; its estimate rides into the popup.
+6. **Proof.**
+7. **Five apps → one.**
+8. **Andrew's offer.** His story and a signed receipt.
+9. **FAQ and the close**, then the footer.
 
 Rules the page keeps:
 
 - Every scene is one tap from the popup.
-- Only one orange button is on screen at a time. The header CTA (laptops) and the sticky bottom bar (phones) step aside whenever a scene's own CTA is showing (`src/site/shell/primaryCta.ts`).
+- Only one orange button is on screen at a time. The header CTA (laptops) and the sticky bottom bar (phones) step aside whenever a scene's own CTA is showing (`src/site/shell/primaryCta.ts`), and the FAQ's close waits until the offer's button has left.
 - Phones (≤ 760 px) never load three.js or a `.glb`. They use transform and opacity animations only, and each one triggers once.
 
 ## Run, build, deploy
@@ -78,8 +77,6 @@ All copy lives in `src/content/copy.ts`: the tokens `T.SIZE`, `T.N` and `T.PROGR
 
 | URL | What it does |
 |---|---|
-| `/?intro=0`, `/?intro=1` | Skip or force the intro. It plays once per session (`sessionStorage` key `sc-intro`) and never with reduced motion. |
-| `/?intro=1&introDebug` | Hold the intro. `window.__introSeek(ms)` renders any frame. |
 | `/?angle=profit\|overbudget\|timecards\|payroll\|replace` | The hero H1, sub and fenced phrase that match the ad. |
 | **`?review`** | **Shows every ⚑ marker and every unapproved proposal on a built page.** It sticks for the session, so the popup and `/book` show them too. The dev server always shows them, and so does a build made with `VITE_SHOW_FLAGS=1`. The ad build hides them. |
 | `/?nocursor` · `/?stageHQ` · `/?daySlow=8` | No custom cursor · full-resolution 3D · One Day at 8× slower. |
@@ -93,14 +90,15 @@ All copy lives in `src/content/copy.ts`: the tokens `T.SIZE`, `T.N` and `T.PROGR
 
 | Path | What |
 |---|---|
-| `index.html`, `src/site/intro/` | The intro's first frame (plain HTML, CSS and SVG, so the Facebook browser paints before any JS) and its hand-over. |
+| `index.html` | The page shell: font preloads and the first paint. |
+| `src/site/hero/` | The hero ("Fence the Words"): `Hero.tsx`, the fence engine and its CSS in `fence/`. |
 | `src/App.tsx` | The page shell: backdrop, the lazy 3D Stage (never on phones), header, scenes, sticky bar, popup, cursor. |
 | `src/site/<scene>/` | One folder per scene. Each phone version sits beside its desktop one (`*Phone.tsx`). |
 | `src/site/ui/Cta.tsx` | The orange `<Cta>` and the ink `DemoLink` / `InlineCta`. They all call `openSignup()` (`src/signup/contract.ts`). |
 | `src/site/shell/` | Header, phone sticky bar, and the "one orange button" rule. |
 | `src/three/` | The Stage: one canvas, `StageAnchor`, pose keys. Import from `src/three/stage` only. |
 | `src/signup/` | The popup. It saves each step, then hands the lead to `/book` in `sessionStorage` (`sc_lead`), never in the URL. |
-| `src/book/` | `/book`: headline, Andrew's video, Cal.com inline (prefilled), what the call covers, and "What you're setting up" (the spec sheet's data, imported). |
+| `src/book/` | `/book`: headline, Andrew's video, Cal.com inline (prefilled), what the call covers, and "What you're setting up" (`Setup.tsx`: the spec sheet's six groups and the five apps, read from the page's own data, so it never says more than the page). On phones the calendar starts inside the first screen, under the video. |
 | `src/lib/` | `lead.ts` (validation, attribution, webhook), `track.ts` (Pixel/GA4 events), `flags.ts` (⚑ on/off). |
 
 ## The end-to-end test
@@ -108,10 +106,11 @@ All copy lives in `src/content/copy.ts`: the tokens `T.SIZE`, `T.N` and `T.PROGR
 ```bash
 npm run e2e                                  # against http://127.0.0.1:5310
 node tools/e2e.mjs http://127.0.0.1:4173     # against `npm run preview`
-node tools/e2e.mjs --only=phone              # run only the checks whose name contains "phone"
+node tools/e2e.mjs --only=iphone             # only the checks whose label contains "iphone"
+E2E_DEBUG=1 npm run e2e                      # also log every scroll step of the CTA walk
 ```
 
-It runs Playwright as a 1440 × 660 laptop and as an iPhone in the Facebook in-app browser (390 × 664, touch, DPR 3, FBAN/FBIOS user agent), and checks:
+It runs Playwright as a 1440 × 660 laptop (mouse, DPR 1 to keep software WebGL bearable) and as an iPhone in the Facebook in-app browser (390 × 664, touch, DPR 3, FBAN/FBIOS user agent), and checks:
 
 - every CTA met while scrolling opens the popup;
 - never two orange CTAs on screen at once;
@@ -119,19 +118,19 @@ It runs Playwright as a 1440 × 660 laptop and as an iPhone in the Facebook in-a
 - `/book`: the H1, Andrew's video container, Cal.com mounted with name and email prefilled (**it never picks a time**), the calendar high on the first screen, the product details;
 - spec sheet expand and collapse, the Try it tap, the calculator's estimate in the popup, the FAQ toggles, the header links and Log in;
 - each `?angle=` H1 (read from `copy.ts`);
-- intro skip, `?intro=0`, once per session;
-- reduced motion, and a no-WebGL laptop (poster stills);
+- no intro or opening overlay, and the hero's CTA uncovered and clickable within 2.5 s (of navigation start on a build, of the load event on the dev server; best of three fresh loads, since a busy machine only adds time);
+- reduced motion, and a no-WebGL laptop (`--disable-webgl --disable-gpu`: poster stills, and the page still converts);
 - zero console errors or failed requests;
 - phones never request three.js or `.glb`;
 - no tracking requests on previews.
 
-Third-party noise is ignored and listed at the end of the run: the Cal.com and Vidalytics iframes, headless Chromium's missing video codecs, and requests cancelled by navigation. The run prints a PASS/FAIL table and exits 1 on any failure. A full run takes a few minutes, because headless WebGL is software-rendered.
+Stable hooks only: roles and accessible names, `id="hero-cta"` / `[data-hero-cta]`, and `data-testid` on the sticky bar and `/book` (`book-cal`, `book-video`, `book-setup`). Third-party noise is ignored and listed at the end of the run: the Cal.com and Vidalytics iframes, headless Chromium's missing video codecs, requests cancelled by navigation, and the dev server's HMR socket. The run prints a PASS/FAIL table and exits 1 on any failure. A full run takes 10–15 minutes, because headless WebGL is software-rendered (2–5 fps). Taps go to the element's centre once the page itself reports it on screen, opaque, not inert and uncovered there, so a covered or hidden button fails with what covers it. The laptop checks first wait for the 3D to report ready and for the page to stop stalling (software WebGL can block it for seconds while it compiles), and an overlap of two orange buttons only counts if it is still there after a quiet beat.
 
 ## Andrew's to-do before launch (every ⚑)
 
 Open any build with `?review` to see each one in place.
 
-1. **Call length.** The copy says "a 30-minute call". His Cal.com link (`andrew-drish/15min`) opens a **45-minute** "SmartCrew Demo". He sets the event to 30 min, or gives the real length. Then update `config.callLength` and `T.N`, and set `config.callLengthConfirmed: true`. That clears the ⚑ in the hero, popup, receipt and `/book`.
+1. **Call length.** The copy says "a 30-minute call" (hero, spec sheet, receipt, FAQ, popup, `/book`). His Cal.com link (`andrew-drish/15min`) opens a **45-minute** "SmartCrew Demo". He sets the event to 30 min, or gives the real length. Then update `config.callLength` and `T.N`, and set `config.callLengthConfirmed: true`. That clears the ⚑ in the popup and on `/book`.
 2. **Program name and size range, matching his ads.** The page says "Founding Member trial" and "5–100 employees". His live ads say "private beta" and "5–50". He picks one name and one range (`T.PROGRAM`, `T.SIZE`), and the ads change to match.
 3. **Testimonials.**
    - Phil Drish (~$150k per YEAR): approve the family disclosure, "Drish Construction is Andrew's family's dirt work company, where SmartCrew started." The FTC endorsement guides require it.
@@ -142,12 +141,12 @@ Open any build with `?review` to see each one in place.
 6. **His signature.** The receipt's signature is traced from the 277 × 73 image on smartcrewhq.com. He OKs its use, or sends a clean scan.
 7. **Privacy policy and terms.** `config.privacyUrl` and `config.termsUrl` point at live pages that predate this flow (SMS consent, the trial). Update them, or give new URLs.
 8. **SMS consent wording** in the popup's step 3 ("About 3 texts per booking. Msg & data rates may apply. Reply STOP to opt out."). This needs counsel's review, a 10DLC-registered sender number, and a decision on who sends.
-9. **Cal.com reminders.** Turn them on for booking, 24 h before and 1 h before (US SMS reminders need Cal's Teams plan). Set `config.andrewPhone` so "Save Andrew's number" appears after booking.
+9. **Cal.com reminders and his number.** Turn reminders on for booking, 24 h before and 1 h before (US SMS reminders need Cal's Teams plan). Pick the public number he calls and texts from and set `config.andrewPhone`, so "Save Andrew's number" appears after booking.
 10. **In his own words:**
     - FAQ "Why a call?" (its answer is flagged);
     - the receipt's "Why it's free";
     - the `/book` "On the call" lines;
-    - that he opens the call with the visitor's own estimate (the calculator and `/book` say so).
+    - that he goes over the visitor's own estimate on the call (the calculator's "Andrew will go over your number with you on the call." and `/book` say so).
 11. **The receipt's proposals** (shown on review builds only): a founding rate locked while they stay, a capacity cap ("[N] new setups a month"), and a guarantee (name plus terms).
 12. **Features seen only in mockups** (`confirm: true` in `moments.ts`): missed clock-out flags, JSAs and toolbox talks, fuel records, won bid → job. He confirms they are live, or they come off. The spec sheet and One Day recount themselves.
 13. **QuickBooks.** Until he says how it works, the page says only "QuickBooks integration for payroll" and "ready for QuickBooks". It never says "sync".

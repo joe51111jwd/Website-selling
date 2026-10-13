@@ -17,7 +17,7 @@ import Hero from "../hero/Hero";
 import Day from "./Day";
 import { StageAnchor, exitKeys, returnKeys } from "../../three/stage";
 
-document.documentElement.classList.add("sc-page", "no-intro");
+document.documentElement.classList.add("sc-page");
 const Stage = lazy(() => import("../../three/stage/Stage"));
 
 /** A scene the devices leave (Stage exitKeys): they glide and turn out of the viewport. */

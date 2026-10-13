@@ -52,9 +52,8 @@ export const STICKY = {
   cta: "Get my free trial",
 };
 
-// ─── Intro (BRIEF round 2 §5) ─────────────────────────────────────────────────
-// The intro is plain HTML in index.html (its notifications: INTRO2 below). The jobsite's name, which
-// Try it's geofence tag repeats:
+// ─── The demo jobsite ───────────────────────────────────────────────────────
+// The hero's fenced job (HERO_JOBS below) and Try it's geofence tag repeat its name:
 export const INTRO = {
   site: "Hwy 9 Culvert",
 };
@@ -66,7 +65,8 @@ export type Angle = "profit" | "overbudget" | "timecards" | "payroll" | "replace
  * Per angle: the H1, the desktop sub, and the hero's fence (src/site/hero/fence): `fence` is the
  * exact substring of `h1` the geofence stakes itself round; `lines` are the explicit line breaks
  * (desktop, phone) so the fenced phrase sits alone on its line (or mid-line with room for the
- * stakes). `lines.x.join(" ")` must equal `h1`. A fenced phrase that ends the sentence drops its
+ * stakes; a long phrase may run over two lines on a phone, fenced as one). `lines.x.join(" ")`
+ * must equal `h1`. A fenced phrase that ends the sentence drops its
  * full stop on screen only (the screen-reader text is the whole sentence).
  */
 export type AngleCopy = {
@@ -109,7 +109,7 @@ export const ANGLES: Record<Angle, AngleCopy> = {
     moment: "payroll",
     laptop: "web-timecards",
     fence: "Friday scramble",
-    lines: { desk: ["Payroll without the", "Friday scramble."], phone: ["Payroll", "without the", "Friday scramble."] },
+    lines: { desk: ["Payroll without the", "Friday scramble."], phone: ["Payroll", "without the", "Friday", "scramble."] },
   },
   replace: {
     h1: "Replace your time app, your spreadsheets and the group texts.",
@@ -200,7 +200,7 @@ export const TRY_IT = {
     { lead: "It runs in the background", rest: "without draining batteries or being shut down by accident." },
     { lead: "No data is shared,", rest: "so your crew doesn’t have to worry about privacy." },
   ],
-  /** The jobsite's geofence tag (same job as the intro and the phone screen). */
+  /** The jobsite's geofence tag (same job as the hero's tag and the phone screen). */
   site: INTRO.site,
   /** Tag once clocked in; {time} = the visitor's local time. */
   clocked: "Clocked in · {time}",
@@ -482,33 +482,8 @@ export const SPEC = {
   view: "See it",
 };
 
-// ─── 0 · Intro + 1 · Hero, round 2 (owner: intro2; index.html, src/site/intro, src/site/hero) ─
-// The intro's three notifications are plain HTML in index.html so they paint before any JS
-// (built from scratchpad design/v2/lead/scripts/index.template.html); keep the strings there in
-// sync with these. All of it is the demo account's data (the hero shows the demo caption).
-export const INTRO2 = {
-  job: "Hwy 9 Culvert",
-  pit: "Hollis pit",
-  notes: {
-    clockin: { time: "6:42 AM", title: "Marcus Bell clocked in", meta: "Hwy 9 Culvert · Pipe Laying", initials: "MB" },
-    load: { time: "9:20 AM", title: "Load #14 logged", meta: "12 yd³ select fill · Hollis pit" },
-    profit: { time: "5:00 PM", title: "+$4,120 today", meta: "Hwy 9 Culvert · job profit" },
-  },
-};
-
+// ─── 1 · Hero (src/site/hero): the demo account's caption ────────────────────────────────────
 export const HERO2 = {
-  /** The laptop's profit card: it ticks up by the day's profit when it lands (from + 4,120 = to,
-   * the number web-project-detail shows). */
-  profit: { label: "Profit", job: "Hwy 9 Culvert", from: 53611.75, to: 57731.75, delta: "+$4,120 today" },
-  /** Phones: a shorter sub so the devices, the headline and the CTA share the first screen
-   * (plain paraphrases of each angle's sub). */
-  subShort: {
-    profit: "GPS fills in your crew’s timecards. You see each job’s profit daily, in time to fix it.",
-    overbudget: "Hours, machine time and materials roll into a profit number for every job, daily.",
-    timecards: "Hours log themselves when your crew gets to the job, on the right cost code.",
-    payroll: "Hours log themselves at the job, ready for QuickBooks payroll.",
-    replace: "GPS fills in your crew’s timecards. You see each job’s profit daily, in time to fix it.",
-  } as Record<Angle, string>,
   caption: "Demo account. Names and numbers are made up.",
 };
 
@@ -516,11 +491,11 @@ export const HERO2 = {
  * The hero's jobsite (src/site/hero/fence): the ONE source for the flagging-tape tag (desktop) and
  * the job chip (phones, narrow laptops), and for the crew who clock in on the headline. Demo data
  * of the Cedar Ridge Earthworks account (src/screens/data.ts):
- * - rows: the jobs' short names; Hwy 9 Culvert's number is the canonical one (= the intro's
- *   5:00 PM notification, HERO2.profit.delta and One Day's 5:00 PM moment). The tag rolls once
- *   through the rows and parks back on the first.
+ * - rows: the jobs' short names; Hwy 9 Culvert's number is the canonical one (= One Day's 5:00 PM
+ *   moment, src/site/day/states/data.ts). The tag rolls once through the rows and parks back on
+ *   the first.
  * - crew: today's clock-ins on Hwy 9 Culvert (data.ts `clockIns`, project p2417): Marcus Bell
- *   (the intro's truck, already on the fence), then Elena Ruiz and Jake Lindqvist walk in. The
+ *   (already on the fence), then Elena Ruiz and Jake Lindqvist walk in. The
  *   dev build checks this against data.ts (src/site/hero/fence/engine.ts).
  */
 export const HERO_JOBS = {

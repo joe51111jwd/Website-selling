@@ -235,7 +235,7 @@
   opacity: 1;
 }
 
-/* the jobsite tag pinned at the fence's first corner, like the intro's "Hwy 9 Culvert" */
+/* the jobsite tag pinned at the fence's first corner: "Hwy 9 Culvert", the hero's fenced job */
 .try-tag {
   position: absolute;
   transform: translate(-100%, -50%) translate(-12px, 9px);

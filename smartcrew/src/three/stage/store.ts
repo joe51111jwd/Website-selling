@@ -474,7 +474,7 @@ export function setStageMounted(on: boolean) {
   }
   emitStatus();
 }
-/** Start the devices' entrance (the intro calls this as it opens; without an intro, the hero does). */
+/** Start the devices' entrance (the hero calls this once the first screen has landed; the devices are parked below the fold). */
 export function reveal() {
   if (status.revealed) return;
   status.revealed = true;

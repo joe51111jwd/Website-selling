@@ -1,15 +1,16 @@
 // 1 · Hero: "Fence the Words" (scratchpad design/v2/herolab/HERO_SPEC.md). The type is the hero:
-// a centred, giant headline on the warm jobsite ground. The intro's geofence re-stakes itself
-// round the ad angle's key phrase ("every job"), the Hwy 9 crew walk in along its band and clock
-// in on the headline, a flagging-tape tag tied to the fence reads that job's profit today (phones
-// and narrow laptops: a job chip under the headline), and the orange "Get my free trial" sits
-// alone on the axis underneath, with its own fence closing once, the "clocked in" moment. No
-// devices in the first screen: the Stage parks them below the fold for One Day.
+// a centred, giant headline on the warm jobsite ground. A geofence is staked round the ad angle's
+// key phrase ("every job"), the Hwy 9 crew walk in along its band and clock in on the headline, a
+// flagging-tape tag tied to the fence reads that job's profit today (phones and narrow laptops: a
+// job chip under the headline), and the orange "Get my free trial" sits alone on the axis
+// underneath, with its own fence closing once, the "clocked in" moment. No devices in the first
+// screen: the Stage parks them below the fold for One Day.
 //
 // React renders the copy and the empty layers; ./fence/engine.ts measures the set type, builds the
-// ground, the fence and the crew, takes over the intro's last frame (./fence/handoff.ts) and plays
-// the first seconds. Desktop and phones share this component: phones get their own line breaks,
-// copy (HERO_PHONE) and a light, transform/opacity-only engine path.
+// ground, the fence and the crew, and plays the entrance (every visit). An opening can hand it
+// pieces it has already delivered and keep it hidden until then (./fence/opening.ts). Desktop and
+// phones share this component: phones get their own line breaks, copy (HERO_PHONE) and a light,
+// transform/opacity-only engine path.
 
 import { useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties } from "react";
 import { ANGLES, HERO, HERO_JOBS, HERO_PHONE, LOGOS, LOGO_VECTORS, readAngle } from "../../content/copy";
@@ -18,10 +19,10 @@ import { reducedMotion, reveal } from "../../three/stage/store";
 import type { PoseKey } from "../../three/stage/types";
 import { Cta, DemoLink } from "../ui/Cta";
 import { watchHeroCta } from "../shell/heroCta";
-import { getIntroPhase, introRan } from "../intro/intro";
+import { onPageReady } from "../ready";
 import { scrollToScene } from "../scroll";
 import { usePhoneLite } from "../phone";
-import { mountFence, type FenceMode } from "./fence/engine";
+import { mountFence } from "./fence/engine";
 import "./fence/fence.css";
 
 /**
@@ -44,17 +45,37 @@ export const HERO_PARK: PoseKey[] = [
   },
 ];
 
-type Line = { pre: string; fence: string | null; post: string };
+type Line = { pre: string; fence: string | null; post: string; first: boolean; last: boolean };
 
-/** Split each line round the fenced phrase; a fenced phrase that ends the sentence drops its full stop (on screen only). */
+/**
+ * Split each line round the fenced phrase. The phrase may run over two or more lines (a long one on
+ * a phone: "Friday / scramble"): each line gets its part, and the fence is staked round them all.
+ * A fenced phrase that ends the sentence drops its full stop (on screen only).
+ */
 function splitLines(lines: string[], fence: string): Line[] {
-  return lines.map((l, i) => {
-    const at = l.indexOf(fence);
-    if (at < 0) return { pre: l, fence: null, post: "" };
-    let post = l.slice(at + fence.length);
-    if (i === lines.length - 1 && /^[.!?]$/.test(post)) post = "";
-    return { pre: l.slice(0, at), fence, post };
+  const joined = lines.join(" ");
+  const at = joined.indexOf(fence);
+  const end = at + fence.length;
+  let o = 0;
+  const out = lines.map((l, i) => {
+    const s = Math.max(at, o);
+    const e = Math.min(end, o + l.length);
+    const line: Line = { pre: l, fence: null, post: "", first: false, last: false };
+    if (at >= 0 && e > s) {
+      line.pre = l.slice(0, s - o);
+      line.fence = l.slice(s - o, e - o);
+      line.post = l.slice(e - o);
+      if (i === lines.length - 1 && /^[.!?]$/.test(line.post)) line.post = "";
+    }
+    o += l.length + 1;
+    return line;
   });
+  const fenced = out.filter((l) => l.fence);
+  if (fenced.length) {
+    fenced[0].first = true;
+    fenced[fenced.length - 1].last = true;
+  }
+  return out;
 }
 
 const Arrow = () => (
@@ -74,14 +95,10 @@ export default function Hero() {
 
   // the header's CTA and the phone's sticky bar appear once this button has scrolled away
   useEffect(() => watchHeroCta(act.current), [lite]);
-  // without an intro (second visit, reduced motion) the devices' entrance starts now (parked below the fold)
-  useEffect(() => {
-    if (!introRan || getIntroPhase() === "done") reveal();
-  }, []);
-  useLayoutEffect(() => {
-    const mode: FenceMode = reducedMotion ? "reduced" : introRan ? "intro" : "plain";
-    return mountFence(root.current!, { phone: lite, mode, debug: false });
-  }, [lite]);
+  // the 3D devices' entrance (parked below the fold) waits until the first screen has landed, so
+  // their first draws never compete with the headline's entrance
+  useEffect(() => onPageReady(reveal), []);
+  useLayoutEffect(() => mountFence(root.current!, { phone: lite, reduced: reducedMotion }), [lite]);
 
   return (
     <Scene id="top" pinnedViewports={1} poses={lite ? undefined : HERO_PARK} stage={lite ? "keep" : "hide"} label="SmartCrew" className="hero hf">
@@ -101,7 +118,7 @@ export default function Hero() {
             <span className="sr-only">{copy.h1}</span>
             <span className="hf-h1-v" aria-hidden="true">
               {lines.map((l, i) => (
-                <span className={`hf-line${l.fence ? " hf-line--fence" : ""}`} key={i}>
+                <span className={`hf-line${l.fence ? " hf-line--fence" : ""}${l.first ? " is-first" : ""}${l.last ? " is-last" : ""}`} key={i}>
                   <span className="hf-line-in">
                     {l.pre}
                     {l.fence && <span className="hf-fenced">{l.fence}</span>}
@@ -114,7 +131,6 @@ export default function Hero() {
           </h1>
           {/* the job chip (phones, narrow laptops): the tag's compact form; tap it to roll to the next job */}
           <span className="hf-chip" aria-hidden="true">
-            <i className="hf-chip-plate" />
             <span className="hf-chip-face">
               <svg className="hf-chip-glyph" viewBox="0 0 15 13">
                 <path d="M1 6.5 4 1.2h7L14 6.5 11 11.8H4Z" />
@@ -173,7 +189,6 @@ export default function Hero() {
           <div className="hf-svgl hf-ring" />
           <div className="hf-svgl hf-ring-s" />
           <div className="hf-svgl hf-ring-p" />
-          <div className="hf-svgl hf-nfence" />
           <div className="hf-svgl hf-fence" />
           <div className="hf-svgl hf-pulse" />
           {!lite && (
@@ -184,7 +199,6 @@ export default function Hero() {
                 </span>
               ))}
               <div className="hf-tag" data-cursor="link">
-                <i className="hf-tag-plate" />
                 <div className="hf-tag-bgw">
                   <div className="hf-tag-shadow" />
                   <svg className="hf-tag-bg" />
@@ -216,9 +230,6 @@ export default function Hero() {
             </div>
           ))}
         </div>
-
-        {/* the intro's last frame, rebuilt here on the frame the hero takes over (./fence/engine.ts) */}
-        <div className="hf-night" aria-hidden="true" />
       </div>
     </Scene>
   );

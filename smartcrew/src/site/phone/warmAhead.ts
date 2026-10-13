@@ -6,7 +6,7 @@
 // skip off for it (shell.css / day-phone.css): its first layout happens while the visitor is
 // still reading the screen above; then it goes back to being skipped while off screen, its layout
 // cached. Scenes that build themselves in pieces (Try it, Your number,
-// the spec sheet: ../try/warm.ts) do their own. Started by App once the intro has handed over.
+// the spec sheet: ../try/warm.ts) do their own. Started by App once the first screen has landed (src/site/ready.ts).
 
 const SEL = ".dph-m, .site > .scene:not(.hero):not(.day)";
 

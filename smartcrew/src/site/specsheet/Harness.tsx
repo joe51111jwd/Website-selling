@@ -27,7 +27,7 @@ const Hero = lazy(() => import("../hero/Hero"));
 const Day = lazy(() => import("../day/Day"));
 const TryIt = lazy(() => import("../try/TryIt"));
 
-document.documentElement.classList.add("sc-page", "no-intro");
+document.documentElement.classList.add("sc-page");
 const q = new URLSearchParams(location.search);
 const full = q.has("full");
 

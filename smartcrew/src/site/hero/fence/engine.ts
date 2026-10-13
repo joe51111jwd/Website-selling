@@ -1,32 +1,30 @@
 // The hero's engine ("Fence the Words", HERO_SPEC): measure the set type, build the ground and the
-// fence, take over the intro's last frame, play the first seconds.
+// fence, play the entrance.
 //
 // React renders the copy and empty layers (../Hero.tsx). Once the fonts are in, this measures the
 // real glyph boxes, fits the headline to the screen, opens the leading round the fenced line so
 // the fence keeps clear of its neighbours, stakes the geofence round the angle's phrase and lays
 // out the crew, the tag and the button's own fence. Layout writes every element's REST state as
-// inline style (so a resize, reduced motion or the end of the timeline all show the same frame);
-// the timeline then plays WAAPI animations over it (fill: both), dropped once everything has
-// landed. PHONE MODE: transform and opacity only, timers instead of rAF (zero rAF after the
-// hand-off), no per-frame JS. Desktop adds three short rAF pieces only: the fence's stakes
-// springing onto the words (≤ 1.25 s), the ground drifting with the cursor (only while it moves)
-// and a dragged stake springing back.
+// inline style (so a resize, reduced motion or the end of the entrance all show the same frame);
+// the entrance then plays WAAPI animations over it (fill: both), dropped once everything has
+// landed. The entrance (HERO_SPEC §5B) plays on every visit; an opening can hand it pieces it has
+// already delivered and start it part-way (./opening.ts). PHONE MODE: transform and opacity only,
+// timers instead of rAF (zero rAF in the entrance), no per-frame JS. Desktop adds two short rAF
+// pieces, both input-driven: the ground drifting with the cursor (only while it moves) and a
+// dragged stake springing back.
 
 import { HERO_JOBS } from "../../../content/copy";
-import { getIntroPhase } from "../../intro/intro";
-import { onHeroHandoff, onSkipHandoff, type Frozen, type HandoffReq } from "./handoff";
+import { markFirstScreenDone, markPageReady } from "../../ready";
+import { OPENING_WAIT, heroEntered, heroEnter, openingOn, registerHero, type Box as TBox, type CrewId, type HeroEnterOpts, type HeroTargets, type PieceMode } from "./opening";
 import { contoursSliced, type Rect, type TopoInput } from "./topo";
-import { SPRING, Walk, bbox, centroid, hexFence, inside, polyPath, polyPoints, springFrames, walkEaseInv, walkFrames, type Box, type Pt } from "./geom";
+import { SPRING, Walk, hexFence, inside, polyPath, polyPoints, springFrames, walkEaseInv, walkFrames, type Box, type Pt } from "./geom";
 
 const NS = "http://www.w3.org/2000/svg";
 const EO = "cubic-bezier(0.22, 1, 0.36, 1)";
 const EIO = "cubic-bezier(0.65, 0, 0.35, 1)";
 const EPOP = "cubic-bezier(0.34, 1.5, 0.64, 1)";
-/** the dawn: it starts large and accelerates out (HERO_SPEC §5A) */
-const EDAWN = "cubic-bezier(0.5, 0, 0.75, 0)";
 
-export type FenceMode = "intro" | "plain" | "reduced";
-export type FenceOpts = { phone: boolean; mode: FenceMode; debug: boolean };
+export type FenceOpts = { phone: boolean; reduced: boolean };
 
 /** Headline leading (× font size). */
 const LH = 0.98;
@@ -36,124 +34,75 @@ const TAG_ROW = 46;
 const CHIP_ROW = 28;
 /** Stake dot radius (orange part): the leading rule keeps the dots clear of the next line too. */
 const STAKE_R = 3;
+/** The page is ready (src/site/ready.ts) once the button has landed: this long after it starts. */
+const CTA_LANDED = 400;
 
 type Geom = { clear: [number, number]; point: number; inset: number; jitter: number; gap: number; side: number };
 /** desktop: the fenced line keeps room each side for the point, a marker and a clock-in time */
 const DESK: Geom = { clear: [16, 12], point: 46, inset: 9, jitter: 1, gap: 10, side: 16 + 46 + 12 + 36 + 8 };
 const PHONE: Geom = { clear: [12, 8], point: 40, inset: 6, jitter: 0.5, gap: 8, side: 12 + 40 + 4 };
 
-// ── a tiny timeline: WAAPI animations, a few desktop rAF functions and timers on one clock ──
+// ── a tiny timeline: WAAPI animations and one-off timers on one clock (never a frame loop) ──
 
-type Fn = { at: number; dur: number; f: (p: number) => void };
 type Cb = { at: number; f: () => void; done: boolean };
 
 class Timeline {
   anims: Animation[] = [];
-  private fns: Fn[] = [];
   private cbs: Cb[] = [];
   private timers: number[] = [];
-  private raf = 0;
-  private vBase = 0;
-  private tBase = 0;
-  private rate = 1;
   private stopped = false;
-  private playing = false;
 
-  add(el: Element | null | undefined, kf: Keyframe[], at: number, dur: number, easing = EO, fill: FillMode = "both") {
+  /**
+   * An animation `at` ms in. Default fill "backwards": it holds its first frame until it starts and
+   * drops out when it ends, onto the inline rest state (the same frame). Dropping out matters: the
+   * browser repaints the element then, which is when Largest Contentful Paint can see it (a
+   * composited fade never repaints on its own, so a headline or sub that stayed under a finished
+   * fill-forwards animation would be reported seconds late).
+   */
+  add(el: Element | null | undefined, kf: Keyframe[], at: number, dur: number, easing = EO, fill: FillMode = "backwards") {
     if (!el) return null;
     const a = el.animate(kf, { delay: at, duration: Math.max(1, dur), easing, fill });
-    if (this.playing && this.rate !== 1) a.updatePlaybackRate(this.rate);
     this.anims.push(a);
     return a;
-  }
-  /** a per-frame function (desktop only): f(p) for p 0..1 over [at, at + dur] */
-  fn(at: number, dur: number, f: (p: number) => void) {
-    this.fns.push({ at, dur, f });
   }
   /** a one-off at `at` ms (a timer, never a frame loop) */
   at(at: number, f: () => void) {
     this.cbs.push({ at, f, done: false });
   }
-  private v() {
-    return this.vBase + (performance.now() - this.tBase) * this.rate;
+  private run(cb: Cb) {
+    if (this.stopped || cb.done) return;
+    cb.done = true;
+    cb.f();
   }
-  private schedule() {
+  /** start `from` ms in (everything before has landed), at `rate` × speed */
+  play(from = 0, rate = 1) {
+    if (from > 0 || rate !== 1) {
+      for (const a of this.anims) {
+        a.currentTime = from;
+        if (rate !== 1) a.updatePlaybackRate(rate);
+      }
+    }
+    // what is already past runs now, in order; the rest on timers
+    const cbs = [...this.cbs].sort((a, b) => a.at - b.at);
+    for (const cb of cbs) if (cb.at <= from) this.run(cb);
+    for (const cb of cbs) if (!cb.done) this.timers.push(window.setTimeout(() => this.run(cb), (cb.at - from) / rate));
+  }
+  /** render the frame at `ms` (captures, ?heroDebug): animations paused there, timers up to it */
+  seek(ms: number) {
     this.timers.forEach((t) => clearTimeout(t));
     this.timers = [];
-    const v = this.v();
-    for (const cb of this.cbs) {
-      if (cb.done) continue;
-      this.timers.push(
-        window.setTimeout(
-          () => {
-            if (this.stopped || cb.done) return;
-            cb.done = true;
-            cb.f();
-          },
-          Math.max(0, (cb.at - v) / this.rate),
-        ),
-      );
-    }
-  }
-  private loop = () => {
-    this.raf = 0;
-    if (this.stopped) return;
-    const v = this.v();
-    let busy = false;
-    for (const fn of this.fns) {
-      if (v >= fn.at && v <= fn.at + fn.dur + 60) fn.f(Math.min(1, (v - fn.at) / fn.dur));
-      if (v < fn.at + fn.dur + 60) busy = true;
-    }
-    if (busy) this.raf = requestAnimationFrame(this.loop);
-  };
-  play() {
-    this.playing = true;
-    this.tBase = performance.now();
-    this.vBase = 0;
-    // the functions' first frame now (the stakes where the intro left them)
-    for (const fn of this.fns) fn.f(0);
-    this.schedule();
-    if (this.fns.length) this.raf = requestAnimationFrame(this.loop);
-  }
-  /** speed the rest up (a skip during the move) */
-  speed(k: number) {
-    if (!this.playing || this.stopped) return;
-    this.vBase = this.v();
-    this.tBase = performance.now();
-    this.rate = k;
-    this.anims.forEach((a) => a.updatePlaybackRate(k));
-    this.schedule();
-  }
-  /** render the frame at `ms` (debug captures): animations paused there, functions and timers up to it */
-  seek(ms: number) {
-    this.stopped = true;
-    cancelAnimationFrame(this.raf);
-    this.timers.forEach((t) => clearTimeout(t));
     for (const a of this.anims) {
       a.pause();
       a.currentTime = ms;
     }
-    for (const fn of this.fns) fn.f(Math.max(0, Math.min(1, (ms - fn.at) / fn.dur)));
-    for (const cb of [...this.cbs].sort((a, b) => a.at - b.at)) {
-      if (!cb.done && cb.at <= ms) {
-        cb.done = true;
-        cb.f();
-      }
-    }
+    for (const cb of [...this.cbs].sort((a, b) => a.at - b.at)) if (cb.at <= ms) this.run(cb);
   }
-  /** run everything that is still to come, at once (a resize mid-move) */
+  /** run everything that is still to come, at once (a resize mid-entrance) */
   flush() {
-    for (const cb of [...this.cbs].sort((a, b) => a.at - b.at)) {
-      if (!cb.done) {
-        cb.done = true;
-        cb.f();
-      }
-    }
-    for (const fn of this.fns) fn.f(1);
+    for (const cb of [...this.cbs].sort((a, b) => a.at - b.at)) this.run(cb);
   }
   cancel() {
     this.stopped = true;
-    cancelAnimationFrame(this.raf);
     this.timers.forEach((t) => clearTimeout(t));
     this.timers = [];
     for (const a of this.anims) a.cancel();
@@ -164,7 +113,6 @@ class Timeline {
     let last = 0;
     for (const a of this.anims) last = Math.max(last, Number(a.effect?.getComputedTiming().endTime ?? 0));
     for (const cb of this.cbs) last = Math.max(last, cb.at);
-    for (const fn of this.fns) last = Math.max(last, fn.at + fn.dur);
     return last;
   }
 }
@@ -183,11 +131,12 @@ function svgEl<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<strin
   return e;
 }
 
-function div(cls: string, parent?: Element) {
-  const d = document.createElement("div");
-  d.className = cls;
-  parent?.appendChild(d);
-  return d;
+/** The smallest box round two boxes (the second may be missing). */
+function union(a: TBox, b: TBox | null): TBox {
+  if (!b) return a;
+  const x = Math.min(a.x, b.x);
+  const y = Math.min(a.y, b.y);
+  return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
 }
 
 const DISPLAY = '"SmartCrew Display"';
@@ -209,9 +158,10 @@ function fontsReady(ms: number): Promise<boolean> {
 
 const fontsIn = () => !document.fonts || (document.fonts.check(`700 96px ${DISPLAY}`, "See what") && document.fonts.check(`400 16px ${TEXT}`, "GPS"));
 
+/** ?heroDebug: build the entrance paused; window.__hero.seek(ms) renders any frame (captures). */
+const DEBUG = typeof location !== "undefined" && /[?&]heroDebug\b/.test(location.search);
+
 let uid = 0;
-/** The intro plays once per page view: a remount (crossing 760 px, StrictMode) never replays it. */
-let introUsed = false;
 
 // ── the engine ──────────────────────────────────────────────────────────────────────────
 
@@ -221,7 +171,7 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
   const qa = <T extends Element = HTMLElement>(s: string) => [...root.querySelectorAll(s)] as T[];
   const phone = o.phone;
   const P = phone ? PHONE : DESK;
-  const reduced = o.mode === "reduced";
+  const reduced = o.reduced;
   const crew = HERO_JOBS.crew.filter((c) => !phone || c.id !== "jl");
   const tagRows = HERO_JOBS.rows.length + 1; // the strip parks back on the first row
   let alive = true;
@@ -231,8 +181,9 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
   let tagIdx = tagRows - 1;
   let chipIdx = tagRows - 1;
   let rolling = true;
-  let busy = false; // a choreography is running
-  let endMove: (() => void) | null = null; // finishes a running hand-off at once
+  let busy = false; // the entrance is running
+  let started = false; // this engine has entered (or shown its rest state)
+  let landed: (() => void) | null = null; // resolves the entrance's promise
   const ctx = document.createElement("canvas").getContext("2d")!;
   const ink = (s: string, fs: number) => {
     ctx.font = `700 ${fs}px ${DISPLAY}, sans-serif`;
@@ -259,14 +210,30 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     const lines = qa(".hf-line-in");
     const fi = lines.findIndex((l) => l.querySelector(".hf-fenced"));
     if (fi < 0) return { mt: 0, mb: 0 };
+    let li = fi;
+    while (li + 1 < lines.length && lines[li + 1].querySelector(".hf-fenced")) li++;
     const lh = LH * fs;
-    const f = ink(q(".hf-fenced")!.textContent || "", fs);
+    const fTop = ink(lines[fi].querySelector(".hf-fenced")!.textContent || "", fs);
+    const fBot = ink(lines[li].querySelector(".hf-fenced")!.textContent || "", fs);
     const reach = P.clear[1] + 1.5 * P.jitter + STAKE_R;
     const prev = fi > 0 ? ink(lines[fi - 1].textContent || "", fs) : null;
-    const next = fi < lines.length - 1 ? ink(lines[fi + 1].textContent || "", fs) : null;
+    const next = li < lines.length - 1 ? ink(lines[li + 1].textContent || "", fs) : null;
+    let mb = 0;
+    if (next) mb = Math.max(0, Math.max(0, fBot.desc) + reach + P.gap + next.asc - lh);
+    else {
+      // the fenced phrase ends the headline: the fence keeps clear of what follows (the job chip,
+      // or the sub) by a little more than the gap between lines
+      const ln = lines[li];
+      const cur = parseFloat(getComputedStyle(ln).fontSize) || fs;
+      const below = ((ln.getBoundingClientRect().bottom - ln.querySelector(".hf-base")!.getBoundingClientRect().top) / cur) * fs;
+      const chip = q(".hf-chip")!;
+      const after = getComputedStyle(chip).display !== "none" ? chip : q(".hf-sub")!;
+      const gapAfter = parseFloat(getComputedStyle(after).marginTop) || 0;
+      mb = Math.max(0, Math.max(0, fBot.desc) + reach + P.gap + 4 - below - gapAfter);
+    }
     return {
-      mt: prev ? Math.max(0, f.asc + reach + P.gap + Math.max(0, prev.desc) - lh) : 0,
-      mb: next ? Math.max(0, Math.max(0, f.desc) + reach + P.gap + next.asc - lh) : 0,
+      mt: prev ? Math.max(0, fTop.asc + reach + P.gap + Math.max(0, prev.desc) - lh) : 0,
+      mb,
     };
   }
 
@@ -338,11 +305,15 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     const fs = parseFloat(getComputedStyle(h1).fontSize);
 
     const lineBoxes: Rect[] = [];
+    // the fenced phrase: one line, or a run of lines (fenceLine … fenceLast)
     let fenceLine = -1;
-    let wordBox: Box = { x0: 0, y0: 0, x1: 0, y1: 0 };
+    let fenceLast = -1;
+    const wordBox: Box = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
     const lineInfo: { x0: number; x1: number; top: number; bot: number; base: number }[] = [];
+    const lineRects: TBox[] = [];
     qa(".hf-line-in").forEach((ln, i) => {
       const r = rel(ln.getBoundingClientRect());
+      lineRects.push({ x: r.x, y: r.y, w: r.w, h: r.h });
       const base = rel(ln.querySelector(".hf-base")!.getBoundingClientRect()).y;
       const m = ink(ln.textContent || "", fs);
       const top = base - m.asc;
@@ -351,15 +322,17 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
       lineBoxes.push({ x: r.x - 6, y: top - 4, w: r.w + 12, h: bot - top + 8, r: 12 });
       const fz = ln.querySelector(".hf-fenced");
       if (fz) {
-        fenceLine = i;
+        if (fenceLine < 0) fenceLine = i;
+        fenceLast = i;
         const fr = rel(fz.getBoundingClientRect());
         const fm = ink(fz.textContent || "", fs);
-        wordBox = { x0: fr.x + 1, x1: fr.x + fr.w - 1, y0: base - fm.asc, y1: base + fm.desc };
+        wordBox.x0 = Math.min(wordBox.x0, fr.x + 1);
+        wordBox.x1 = Math.max(wordBox.x1, fr.x + fr.w - 1);
+        wordBox.y0 = Math.min(wordBox.y0, base - fm.asc);
+        wordBox.y1 = Math.max(wordBox.y1, base + fm.desc);
       }
     });
-    const fencedEl = q(".hf-fenced")!;
-    const wr = rel(fencedEl.getBoundingClientRect());
-    const words = { x: wr.x, y: wr.y, w: wr.w, h: wr.h };
+
 
     // the fence round the words
     const fence = hexFence(wordBox, { clear: P.clear, point: P.point, inset: P.inset, jitter: P.jitter });
@@ -368,7 +341,7 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     const cr = wordBox.x1 + P.clear[0];
     const wordC: Pt = [(wordBox.x0 + wordBox.x1) / 2, yc];
 
-    // the crew: parked inside the fence's points (MB on the right: he crossed in the intro)
+    // the crew: parked inside the fence's points (MB on the right: he is already on site)
     const T: Record<string, Pt> = phone ? { mb: [cr + 12, yc], er: [cl - 12, yc], jl: [cl - 12, yc] } : { mb: [cr + 7, yc], er: [cl - 4, yc - 14], jl: [cl - 4, yc + 15] };
     // they walk in from the left edge, along the band of the fenced line (clear of the other lines)
     const walks: Record<string, Walk> = phone
@@ -423,6 +396,7 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
 
     // ── desktop: the clock-in times, the tag and its tape ──
     const stampPos: Record<string, Pt> = {};
+    let stampBox: TBox | null = null;
     let tag: { x: number; y: number; w: number; h: number } | null = null;
     if (!phone) {
       for (const c of crew) {
@@ -430,6 +404,7 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
         const w = s.offsetWidth;
         const left = c.id !== "mb";
         stampPos[c.id] = [left ? fence[0][0] - 12 - w : fence[3][0] + 12, T[c.id][1] - 7.5];
+        if (c.id === "mb") stampBox = { x: stampPos.mb[0], y: stampPos.mb[1], w, h: s.offsetHeight };
       }
       // the tag: in the right margin, beside the line above the fence, tied to the top-right stake
       const tg = q(".hf-tag")!;
@@ -527,7 +502,27 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     topoSvg.setAttribute("height", String(H));
     topoSvg.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
-    return { W, H, vis, fs, fence, wordBox, words, yc, cl, cr, wordC, T, walks, ring, ringC, ctaBox, stampPos, tag, chip, line, fill, stakes, pulse, mask, maskPath, ringLine, rmask, ringMaskPath, topoIn, fenceLine, lineInfo };
+    // the headline's biggest line (by area): the page's Largest Contentful Paint (entrance)
+    let lcpLine = 0;
+    lineRects.forEach((r, i) => r.w * r.h > lineRects[lcpLine].w * lineRects[lcpLine].h && (lcpLine = i));
+
+    // the boxes an opening flies its pieces to (./opening.ts), at rest
+    const boxOfEl = (el: Element | null): TBox | null => {
+      if (!el || !(el as HTMLElement).offsetParent) return null;
+      const b = rel(el.getBoundingClientRect());
+      return { x: b.x, y: b.y, w: b.w, h: b.h };
+    };
+    const boxes = {
+      lines: lineRects,
+      eyebrow: phone ? null : boxOfEl(q(".hf-eyebrow")),
+      sub: boxOfEl(q(".hf-sub"))!,
+      cta: { x: cb.x, y: cb.y, w: cb.w, h: cb.h },
+      ctaRow: union(boxOfEl(q(".hf-cta-wrap"))!, boxOfEl(q(".hf-demo"))),
+      micro: boxOfEl(q(".hf-micro"))!,
+      stamp: stampBox as TBox | null,
+    };
+
+    return { W, H, vis, fs, fence, wordBox, yc, cl, cr, wordC, T, walks, ring, ringC, ctaBox, stampPos, tag, chip, line, fill, stakes, pulse, mask, maskPath, ringLine, rmask, ringMaskPath, topoIn, fenceLine, fenceLast, lineInfo, boxes, lcpLine };
   }
 
   // the contours: built in ≤ 7 ms slices, never a long task
@@ -546,7 +541,7 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
       svg.querySelector(".ma")!.setAttribute("d", t.major);
       timing.topo = performance.now() - t0;
       timing.topoBytes = t.minor.length + t.major.length;
-      // the lines arrived after the ground faded in: let them come up rather than pop
+      // the lines arrived after the ground came up: let them come up rather than pop
       if (late && !reduced) svg.animate(op(0, 1), { duration: 600, easing: "ease-out" });
     });
   }
@@ -560,7 +555,6 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
       m.style.display = show ? "" : "none";
       m.style.transform = tr(p[0] - 13, p[1] - 13);
       (m.querySelector(".hf-mk-dot") as HTMLElement).style.opacity = "1";
-      m.querySelector(".hf-mk-night")?.remove();
       const s = q(`.hf-stamp[data-id="${c.id}"]`);
       if (s && g.stampPos[c.id]) {
         s.style.transform = tr(g.stampPos[c.id][0], g.stampPos[c.id][1]);
@@ -584,14 +578,9 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     for (const el of qa(".hf-ring, .hf-ring-s, .hf-ring-p")) el.style.opacity = "";
     g.line.removeAttribute("mask");
     g.ringLine.removeAttribute("mask");
-    g.line.style.removeProperty("stroke-dasharray");
-    g.line.style.removeProperty("stroke-width");
-    g.fill.style.removeProperty("fill-opacity");
-    q(".hf-nfence")!.textContent = "";
-    root.classList.remove("is-flying");
   }
 
-  // ── 4 · the first seconds ──
+  // ── 4 · the entrance ──
 
   /** A crew member walks in along the fenced line's band and clocks in on the headline. */
   function walkIn(g: Geo, cid: string, at: number, dur: number) {
@@ -614,7 +603,7 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
   }
 
   /** The tag (or chip) rolls once through the jobs and parks back on Hwy 9 (one row every 1.1 s, the red one held 1.4 s). */
-  function rollOnce(at: number, k = 1) {
+  function rollOnce(at: number) {
     const roll = (el: Element | null, rowH: number) => {
       if (!el) return;
       const kf: Keyframe[] = [{ transform: "translateY(0px)", offset: 0, easing: EIO }];
@@ -627,8 +616,8 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
         marks.push([t, i + 1]);
       }
       for (const [mt, idx] of marks) kf.push({ transform: `translateY(${-rowH * idx}px)`, offset: mt / t, easing: EIO });
-      tl.add(el, kf, at, t * k, "linear");
-      return t * k;
+      tl.add(el, kf, at, t, "linear");
+      return t;
     };
     const d = roll(q(".hf-tag-strip"), TAG_ROW) ?? 0;
     roll(q(".hf-chip-strip"), CHIP_ROW);
@@ -636,35 +625,39 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
   }
 
   /** The button lands: opacity, and a 14 px rise on a spring with a touch of overshoot. */
-  function ctaIn(at: number, k: number) {
+  function ctaIn(at: number) {
     const w = q(".hf-cta-wrap");
-    tl.add(w, op(0, 1), at, 260 * k, "linear");
-    tl.add(w, springFrames(0.56, (s) => ({ transform: `translateY(${(14 * (1 - s)).toFixed(2)}px)` })), at, 560 * k, "linear");
+    tl.add(w, op(0, 1), at, 260, "linear");
+    tl.add(w, springFrames(0.56, (s) => ({ transform: `translateY(${(14 * (1 - s)).toFixed(2)}px)` })), at, 560, "linear");
   }
 
   /** The button's own fence: draws round it, closes solid, pings once, lets go. */
-  function ctaFence(g: Geo, r0: number, k: number) {
+  function ctaFence(g: Geo, r0: number) {
     const ring = q(".hf-ring")!;
     const solid = q(".hf-ring-s")!;
     const ping = q(".hf-ring-p")!;
-    const closeAt = r0 + 600 * k;
+    const draw = phone ? 510 : 600;
+    const closeAt = r0 + draw;
     if (phone) {
-      tl.add(ring, [{ opacity: 0, transform: "scale(0.96)" }, { opacity: 1, transform: "none" }], r0, 600 * k, EO);
+      tl.add(ring, [{ opacity: 0, transform: "scale(0.96)" }, { opacity: 1, transform: "none" }], r0, draw, EO, "both");
     } else {
       g.ringLine.setAttribute("mask", `url(#${id}-rm)`);
-      tl.add(ring, op(0, 1), r0, 120, "linear");
-      tl.add(ring, [{ transform: "scale(1.045)" }, { transform: "none" }], r0, 600 * k, EIO);
-      tl.add(g.ringMaskPath, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], r0, 600 * k, EIO);
+      tl.add(ring, op(0, 1), r0, 120, "linear", "both");
+      tl.add(ring, [{ transform: "scale(1.045)" }, { transform: "none" }], r0, draw, EIO);
+      tl.add(g.ringMaskPath, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], r0, draw, EIO);
       tl.at(closeAt + 20, () => g.ringLine.removeAttribute("mask"));
     }
     // closed: solid, one ping out, then it releases (gone by +1.2 s): at rest one fence, round the words
-    tl.add(solid, op(0, 1), closeAt, 140, "ease-out");
-    tl.add(ping, [{ opacity: 0.9, transform: "scale(1)" }, { opacity: 0, transform: "scale(1.16)" }], closeAt, 600 * k, "ease-out", "forwards");
+    tl.add(solid, op(0, 1), closeAt, 140, "ease-out", "both");
+    // (phones: the full-width button's fence already reaches the screen's edges, so it pings outward
+    // top and bottom only and never runs off the screen)
+    const pingTo = phone ? "scale(1.012, 1.32)" : "scale(1.16)";
+    tl.add(ping, [{ opacity: 0.9, transform: "scale(1)" }, { opacity: 0, transform: pingTo }], closeAt, 600, "ease-out", "forwards");
     // (fill forwards: before they start, the earlier animations decide)
-    tl.add(ring, op(1, 0), closeAt + 600 * k, 600 * k, "ease-in", "forwards");
-    tl.add(solid, op(1, 0), closeAt + 600 * k, 600 * k, "ease-in", "forwards");
+    tl.add(ring, op(1, 0), closeAt + 600, 600, "ease-in", "forwards");
+    tl.add(solid, op(1, 0), closeAt + 600, 600, "ease-in", "forwards");
     // hand the ring back to CSS (hover / focus), once it has let go
-    tl.at(closeAt + 1220 * k, () => {
+    tl.at(closeAt + 1220, () => {
       for (const a of tl.anims) {
         const t = (a.effect as KeyframeEffect | null)?.target;
         if (t === ring || t === solid || t === ping) a.cancel();
@@ -676,59 +669,106 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     return tl.add(el, [{ opacity: 0, transform: `translateY(${dy}px)` }, { opacity: 1, transform: "none" }], at, dur, EO);
   }
 
-  /** B · no intro (second visit): the jobsite stakes itself out on the words. */
-  function playPlain(g: Geo) {
-    busy = true;
+  /**
+   * The entrance (HERO_SPEC §5B): the headline masks in, the jobsite stakes itself out on the
+   * words, Marcus stands on the fence, the button lands, the crew walk in and clock in, the
+   * button's own fence closes once, the tag rolls once. Pieces an opening already delivered
+   * ("given") show at rest from the first frame; `at` starts it part-way.
+   */
+  function entrance(g: Geo, eo: HeroEnterOpts): Promise<void> {
+    started = true;
+    const done = new Promise<void>((r) => (landed = r));
     root.classList.add("is-live");
+    if (reduced) {
+      // the final frame only (§5C): nothing moves; interactions still work, without tweening
+      settle();
+      markPageReady();
+      return done;
+    }
+    busy = true;
     const A = tl.add.bind(tl);
-    const lineIns = qa(".hf-line-in");
-    const ground = q(".hf-ground")!;
-    ground.style.transformOrigin = `${g.wordC[0].toFixed(1)}px ${g.wordC[1].toFixed(1)}px`;
-    A(ground, [{ opacity: 0, transform: "scale(1.03)" }, { opacity: 1, transform: "none" }], 0, 900, EO);
-    if (!phone) fadeUp(q(".hf-eyebrow"), 40, 560, 8);
-    lineIns.forEach((ln, i) => {
-      const d = Math.abs(i - g.fenceLine);
-      A(ln, [{ transform: `translateY(${i < g.fenceLine ? -112 : 112}%)` }, { transform: "none" }], d * 90, 560, EO);
+    const m = (v: PieceMode | undefined, d: PieceMode = "play") => (v ?? d) === "play";
+    const mk = (cid: string) => m(typeof eo.markers === "string" ? eo.markers : eo.markers?.[cid as CrewId]);
+    const h1 = m(eo.h1);
+    const words = m(eo.words, eo.h1);
+    const fence = m(eo.fence);
+    const tag = m(eo.tag);
+    const sub = m(eo.sub);
+    const cta = m(eo.cta);
+
+    if (m(eo.ground)) {
+      const ground = q(".hf-ground")!;
+      ground.style.transformOrigin = `${g.wordC[0].toFixed(1)}px ${g.wordC[1].toFixed(1)}px`;
+      A(ground, [{ opacity: 0, transform: "scale(1.03)" }, { opacity: 1, transform: "none" }], 0, 900, EO);
+    }
+    if (!phone && h1) fadeUp(q(".hf-eyebrow"), 40, 560, 8);
+    // once every line has landed, the biggest line's box is rebuilt in place (.is-set: display
+    // flow-root, which looks the same). Largest Contentful Paint files each text block once, at its
+    // first paint; a line that first painted half-way into its slot would count at that size, so
+    // the headline's biggest line is filed again, whole, the moment it lands (the page's LCP)
+    const lcpLine = qa(".hf-line")[g.lcpLine];
+    lcpLine?.classList.remove("is-set");
+    let lineEnd = 0;
+    // the sentence closes in on the jobsite: lines above drop in, the fenced line and those below rise
+    qa(".hf-line-in").forEach((ln, i) => {
+      const inFence = i >= g.fenceLine && i <= g.fenceLast;
+      if (!(inFence ? words : h1)) return;
+      const d = i < g.fenceLine ? g.fenceLine - i : i > g.fenceLast ? i - g.fenceLast : i - g.fenceLine;
+      A(ln, [{ transform: `translateY(${i < g.fenceLine ? -122 : 122}%)` }, { transform: "none" }], d * 70, 540, EO);
+      lineEnd = Math.max(lineEnd, d * 70 + 540);
     });
-    if (phone) {
-      A(q(".hf-fence"), [{ opacity: 0, transform: "scale(1.035)" }, { opacity: 1, transform: "none" }], 300, 520, EO);
-    } else {
-      g.line.setAttribute("mask", `url(#${id}-fm)`);
-      A(g.maskPath, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], 300, 600, EIO);
-      tl.at(920, () => g.line.removeAttribute("mask"));
-      g.stakes.forEach((s, i) => A(s.dot, [{ transform: "scale(0)" }, { transform: "none" }], 560 + i * 34, 360, EPOP));
+    tl.at(lineEnd + 30, () => lcpLine?.classList.add("is-set"));
+    if (fence) {
+      if (phone) {
+        // transform and opacity only on phones (no stroke-dashoffset)
+        A(q(".hf-fence"), [{ opacity: 0, transform: "scale(1.035)" }, { opacity: 1, transform: "none" }], 300, 520, EO);
+      } else {
+        g.line.setAttribute("mask", `url(#${id}-fm)`);
+        A(g.maskPath, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], 300, 600, EIO);
+        tl.at(920, () => g.line.removeAttribute("mask"));
+        g.stakes.forEach((s, i) => A(s.dot, [{ transform: "scale(0)" }, { transform: "none" }], 560 + i * 34, 360, EPOP));
+      }
     }
     // Marcus is already on site
-    const mb = q('.hf-mk[data-id="mb"]');
-    A(mb, op(0, 1), 420, 360, "ease-out");
-    if (!phone) A(q('.hf-stamp[data-id="mb"]'), [{ opacity: 0 }, { opacity: 1 }], 700, 420, EO);
-    fadeUp(q(".hf-sub"), 400, 600, 10);
-    if (phone || !g.tag) fadeUp(q(".hf-chip"), 520, 520, 6);
-    ctaIn(600, 1);
-    fadeUp(q(".hf-demo"), 720, 480, 6);
-    fadeUp(q(".hf-micro"), 800, 480, 6);
-    A(q(".hf-foot"), op(0, 1), 900, 600, "ease-out");
-    if (g.tag) {
+    if (mk("mb")) A(q('.hf-mk[data-id="mb"]'), op(0, 1), 420, 360, "ease-out");
+    if (!phone && m(eo.stamp, mk("mb") ? "play" : "given")) A(q('.hf-stamp[data-id="mb"]'), [{ opacity: 0 }, { opacity: 1 }], 700, 420, EO);
+    if (sub) {
+      fadeUp(q(".hf-sub"), 400, 600, 10);
+      fadeUp(q(".hf-micro"), 800, 480, 6);
+    }
+    if ((phone || !g.tag) && tag) fadeUp(q(".hf-chip"), 520, 520, 6);
+    if (cta) {
+      ctaIn(600);
+      fadeUp(q(".hf-demo"), 720, 480, 6);
+    }
+    if (m(eo.foot)) A(q(".hf-foot"), op(0, 1), 900, 600, "ease-out");
+    if (g.tag && tag) {
       const tg = q(".hf-tag")!;
       tg.style.transformOrigin = "0 50%";
       A(tg, [{ opacity: 0, transform: `${tr(g.tag.x - 10, g.tag.y)} scale(0.94)` }, { opacity: 1, transform: tr(g.tag.x, g.tag.y) }], 980, 520, EO);
       A(q(".hf-tape"), op(0, 1), 900, 360, "ease-out");
       A(q(".hf-tag-note"), op(0, 1), 1150, 500, "ease-out");
     }
-    // the crew walk in
-    clockIn(g, "er", walkIn(g, "er", 900, phone ? 820 : 900), !phone);
-    if (!phone) clockIn(g, "jl", walkIn(g, "jl", 1250, 900), true);
-    ctaFence(g, 1400, phone ? 0.85 : 1);
-    rollOnce(3000);
-    finishAt();
-    tl.play();
+    // the crew walk in and clock in on the headline (phones: ER only)
+    if (mk("er")) clockIn(g, "er", walkIn(g, "er", 900, phone ? 820 : 900), !phone);
+    if (!phone && mk("jl")) clockIn(g, "jl", walkIn(g, "jl", 1250, 900), true);
+    if (eo.ctaFence !== false) ctaFence(g, 1400);
+    if (eo.roll !== false) rollOnce(3000);
+    else rolling = false;
+    // the first screen has landed once the button has: the rest of the page may start its work
+    tl.at(cta ? 600 + CTA_LANDED : 0, markPageReady);
+    tl.at(tl.end() + 120, settle);
+
+    if (DEBUG) {
+      (window as unknown as { __hero: unknown }).__hero = { seek: (ms: number) => tl.seek(ms), geo: g, timing };
+      tl.seek(Math.max(0, eo.at ?? 0));
+    } else {
+      tl.play(Math.max(0, eo.at ?? 0), clamp(eo.speed ?? 1, 0.1, 10));
+    }
+    return done;
   }
 
-  /** Settle once everything has landed: the animations go, the inline rest state is the same frame. */
-  function finishAt() {
-    tl.at(tl.end() + 120, () => settle());
-  }
-
+  /** Everything has landed: the animations go, the inline rest state is the same frame. */
   function settle() {
     rolling = false;
     busy = false;
@@ -736,306 +776,42 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     tl = new Timeline();
     if (G) rest(G);
     root.classList.add("is-settled");
-    root.classList.remove("is-intro");
-    q(".hf-night")!.textContent = "";
-    q(".hf-tag-plate")?.removeAttribute("style");
-    q(".hf-chip-plate")?.removeAttribute("style");
+    landed?.();
+    landed = null;
+    markFirstScreenDone();
   }
 
-  // ── A · the hand-off from the intro (HERO_SPEC §5A, §7) ──
-
-  /** Put a frozen node where it was, in the night layer. */
-  function placeFrozen(f: Frozen<HTMLElement | SVGSVGElement>, parent: Element) {
-    const s = f.el.style;
-    s.position = "absolute";
-    s.left = px(f.left);
-    s.top = px(f.top);
-    s.right = "auto";
-    s.bottom = "auto";
-    s.width = px(f.width);
-    s.height = px(f.height);
-    s.margin = "0";
-    s.maxWidth = "none";
-    s.maxHeight = "none";
-    s.transform = f.transform;
-    s.transformOrigin = f.origin;
-    s.opacity = String(f.opacity);
-    parent.appendChild(f.el);
-  }
-
-  function playIntro(g: Geo, req: HandoffReq) {
-    const { snap, opts } = req;
-    introUsed = true;
-    busy = true;
-    root.classList.add("is-intro");
-    const k = (phone ? 0.8 : 1) * (opts.skip ? 0.6 : 1);
-    const T = (ms: number) => ms * k;
-    const A = tl.add.bind(tl);
-    const nightEl = q(".hf-night")!;
-    nightEl.textContent = "";
-
-    // ── 1 · the night layer: the intro's last frame, rebuilt (its nodes moved, not copied) ──
-    const ground = div("hf-night-ground", nightEl);
-    const mapW = div("hf-night-map", nightEl);
-    placeFrozen(snap.map, mapW);
-    const svg = snap.map.el;
-    // the fence, the label and Marcus are the hero's own from here (they move); the map keeps the rest
-    svg.querySelectorAll<SVGElement>(".t-fence, .t-zone, .t-ripple, .t-dashes, .t-truck").forEach((e) => (e.style.visibility = "hidden"));
-    snap.label.text.style.visibility = "hidden";
-    const dawn = div("hf-dawn", nightEl);
-    // the label, set again at its exact screen matrix (so it can grow into the words)
-    const labW = div("hf-night-label", nightEl);
-    const labSvg = svgEl("svg", { width: window.innerWidth, height: window.innerHeight }, labW);
-    const lab = snap.label.text.cloneNode(true) as SVGTextElement;
-    const m = snap.label.ctm;
-    lab.setAttribute("transform", `matrix(${m.a} ${m.b} ${m.c} ${m.d} ${m.e} ${m.f})`);
-    lab.style.visibility = "";
-    lab.style.opacity = String(snap.label.opacity);
-    labSvg.appendChild(lab);
-    placeFrozen(snap.cards.clockin, nightEl);
-    placeFrozen(snap.cards.load, nightEl);
-    if (snap.logo) placeFrozen(snap.logo, nightEl);
-    if (snap.skip) placeFrozen(snap.skip, nightEl);
-
-    // the night fence, at the intro's stakes and stroke (it re-stakes itself round the words)
-    const S = snap.S;
-    const stroke = 3 * S;
-    const nfence = q(".hf-nfence")!;
-    if (phone) {
-      nfence.textContent = "";
-      const s = svgEl("svg", { width: g.W, height: g.H, viewBox: `0 0 ${g.W} ${g.H}` }, nfence);
-      svgEl("polygon", { class: "hf-nfence-zone", points: polyPoints(snap.fence), style: `fill-opacity:${snap.zone}` }, s);
-      svgEl("polygon", { class: "hf-nfence-line", points: polyPoints(snap.fence), style: `stroke-width:${stroke.toFixed(2)}px` }, s);
+  /** Where everything is at rest, in viewport px (./opening.ts). */
+  function targets(): HeroTargets {
+    const g = G!;
+    const R = root.getBoundingClientRect();
+    const b = (x: TBox): TBox => ({ x: x.x + R.left, y: x.y + R.top, w: x.w, h: x.h });
+    const pt = ([x, y]: Pt): Pt => [x + R.left, y + R.top];
+    const markers: HeroTargets["markers"] = {};
+    for (const c of crew) {
+      const [x, y] = g.T[c.id];
+      markers[c.id as CrewId] = { at: pt([x, y]), box: b({ x: x - 13, y: y - 13, w: 26, h: 26 }), initials: c.initials, time: c.time };
     }
-
-    // Marcus: the hero's marker, wearing the intro's night marker for the first frames
-    const mbEl = q('.hf-mk[data-id="mb"]')!;
-    const mbT = Math.hypot(snap.mb.ctm.a, snap.mb.ctm.b);
-    const k0 = (14.5 * mbT) / 13;
-    const nf = svgEl("svg", { class: "hf-mk-night", viewBox: "0 0 26 26", width: 26, height: 26 });
-    const gI = snap.mb.group.cloneNode(true) as SVGGElement;
-    gI.removeAttribute("class");
-    gI.removeAttribute("style");
-    gI.setAttribute("transform", `translate(13 13) scale(${(13 / 14.5).toFixed(5)})`);
-    nf.appendChild(gI);
-    mbEl.appendChild(nf);
-
-    // the profit notification becomes the tag (desktop) or the chip (phones): ONE element, one FLIP
-    const target = g.tag ? q(".hf-tag") : q(".hf-chip");
-    const tBox = g.tag ? { x: g.tag.x, y: g.tag.y, w: g.tag.w, h: g.tag.h } : g.chip;
-    const pc = snap.cards.profit;
-    const flip = pc.opacity > 0.5 && target && tBox;
-    let plate: HTMLElement | null = null;
-    if (flip) {
-      plate = q(g.tag ? ".hf-tag-plate" : ".hf-chip-plate");
-      // the card rides inside the target, centred on it
-      placeFrozen({ ...pc, left: (tBox.w - pc.width) / 2, top: (tBox.h - pc.height) / 2, transform: "none", origin: "50% 50%" }, target);
-      pc.el.classList.add("hf-flying-card");
-      target.classList.add("is-flying");
-    } else {
-      placeFrozen(pc, nightEl);
-    }
-
-    opts.onSwap();
-    root.classList.add("is-live");
-
-    // ── 2 · the move ──
-    const nb = bbox(snap.fence);
-    const nC = centroid(snap.fence);
-    const W = window.innerWidth;
-    const H = window.innerHeight;
-
-    // camera: push in on the jobsite, the fence's centre carried onto the words
-    const zk = 2.4;
-    mapW.style.transformOrigin = "0 0";
-    A(mapW, [{ transform: "translate(0px, 0px) scale(1)" }, { transform: `translate(${px(g.wordC[0] - nC[0] * zk)}, ${px(g.wordC[1] - nC[1] * zk)}) scale(${zk})` }], 0, T(760), EIO);
-    A(mapW, op(1, 0), T(300), T(460), "ease-in");
-    // the dawn: a large lit field from the fence that accelerates out to the edges (no spotlight).
-    // It is as wide as the screen is (an ellipse on a landscape screen, a circle on a phone), so
-    // it reads as light coming over the land, not a disc in the dark
-    const D = 200; // the element is 400 px: radius 200
-    const asp = clamp(Math.pow(W / H, 0.6), 1, 1.7);
-    const reach = (x: number, y: number) => Math.hypot((x - nC[0]) / asp, y - nC[1]);
-    const far = Math.max(reach(0, 0), reach(W, 0), reach(0, H), reach(W, H));
-    const near = Math.min(nC[0] / asp, (W - nC[0]) / asp, nC[1], H - nC[1]);
-    // first visible frame: ≥ 0.6 × the fence's width, and its solid core already reaching the
-    // nearest edges: a band of light across the screen from the start, never a disc in the dark
-    const r0 = Math.max(0.6 * (nb.x1 - nb.x0), near / 0.8 + 4);
-    const r1 = far / 0.8 + 8; // the solid core (80 %) covers the farthest corner
-    const sc = (r: number) => `scale(${((r * asp) / D).toFixed(4)}, ${(r / D).toFixed(4)})`;
-    A(dawn, [{ transform: `${tr(nC[0] - D, nC[1] - D)} ${sc(r0)}` }, { transform: `${tr(nC[0] - D, nC[1] - D)} ${sc(r1)}` }], 0, T(phone ? 450 : 420), EDAWN);
-    A(dawn, op(0, 1), 0, T(130), "ease-out");
-    A(ground, op(1, 0), T(200), T(220), "linear");
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#FBF8F4");
-
-    // the notifications: the clock-in folds into Marcus, the load leaves
-    const ci = snap.cards.clockin;
-    ci.el.style.transformOrigin = `${px(snap.mb.at[0] - ci.left)} ${px(snap.mb.at[1] - ci.top)}`;
-    const ciT = ci.transform === "none" ? "" : ci.transform;
-    A(ci.el, [{ transform: `${ciT} scale(1)`, opacity: ci.opacity }, { transform: `${ciT} scale(0.08)`, opacity: 0 }], 0, T(380), EIO);
-    A(snap.cards.load.el, op(snap.cards.load.opacity, 0), 0, T(280), "ease-out");
-    if (snap.skip) A(snap.skip.el, op(snap.skip.opacity, 0), 0, T(150), "ease-out");
-
-    // the profit card → the tag / chip
-    if (flip && plate) {
-      const tc: Pt = [tBox!.x + tBox!.w / 2, tBox!.y + tBox!.h / 2];
-      const cc: Pt = [pc.left + pc.width / 2, pc.top + pc.height / 2];
-      const rest = g.tag ? tr(g.tag.x, g.tag.y) : "none";
-      const from = g.tag ? tr(g.tag.x + cc[0] - tc[0], g.tag.y + cc[1] - tc[1]) : tr(cc[0] - tc[0], cc[1] - tc[1]);
-      A(target, [{ transform: from }, { transform: rest }], 0, T(820), EIO);
-      A(plate, [{ transform: `scale(${(pc.width / tBox!.w).toFixed(4)}, ${(pc.height / tBox!.h).toFixed(4)})`, opacity: 1 }, { transform: "none", opacity: 1 }], 0, T(820), EIO);
-      A(pc.el, [{ transform: "scale(1)" }, { transform: `scale(${(tBox!.w / pc.width).toFixed(4)})` }], 0, T(820), EIO);
-      A(pc.el, op(pc.opacity, 0), T(140), T(220), "ease-out");
-      A(q(g.tag ? ".hf-tag-face" : ".hf-chip-face"), op(0, 1), T(300), T(260), "ease-out");
-      if (g.tag) {
-        // the plate (a plain card) settles into the tag's own shape
-        A(q(".hf-tag-bgw"), op(0, 1), T(560), T(240), "ease-out");
-        A(plate, [{ opacity: 1 }, { opacity: 0 }], T(640), T(200), "ease-out");
-      }
-      tl.at(T(840), () => {
-        pc.el.remove();
-        target!.classList.remove("is-flying");
-        plate!.removeAttribute("style");
-      });
-    } else {
-      A(pc.el, op(pc.opacity, 0), 0, T(240), "ease-out");
-      if (g.tag) {
-        const tg = q(".hf-tag")!;
-        tg.style.transformOrigin = "0 50%";
-        A(tg, [{ opacity: 0, transform: `${tr(g.tag.x - 10, g.tag.y)} scale(0.94)` }, { opacity: 1, transform: tr(g.tag.x, g.tag.y) }], T(500), T(520), EO);
-      } else fadeUp(q(".hf-chip"), T(500), T(520), 6);
-    }
-    if (g.tag) {
-      A(q(".hf-tape"), op(0, 1), T(700), T(320), "ease-out");
-      A(q(".hf-tag-note"), op(0, 1), T(900), T(500), "ease-out");
-    }
-
-    // the label grows into the words; the words grow out of it
-    const lr = snap.label.rect;
-    const lc: Pt = [lr.left + lr.width / 2, lr.top + lr.height / 2];
-    const wc: Pt = [g.words.x + g.words.w / 2, g.words.y + g.words.h / 2];
-    const fenced = q(".hf-fenced")!;
-    const sIn = lr.width / g.words.w;
-    fenced.style.transformOrigin = "50% 50%";
-    A(fenced, [{ transform: `${tr(lc[0] - wc[0], lc[1] - wc[1])} scale(${sIn.toFixed(4)})` }, { transform: "none" }], 0, T(760), EIO);
-    A(fenced, op(0, 1), T(40), T(240), "ease-out");
-    labW.style.transformOrigin = `${px(lc[0])} ${px(lc[1])}`;
-    A(labW, [{ transform: "none" }, { transform: `${tr(wc[0] - lc[0], wc[1] - lc[1])} scale(${(1 / sIn).toFixed(4)})` }], 0, T(760), EIO);
-    A(labW, op(1, 0), 0, T(260), "ease-out");
-
-    // the fence re-stakes itself round the words
-    if (phone) {
-      // one transform on the whole night polygon, then a crossfade to the measured fence (no per-frame JS)
-      const db = bbox(g.fence);
-      const sx = (db.x1 - db.x0) / (nb.x1 - nb.x0);
-      const sy = (db.y1 - db.y0) / (nb.y1 - nb.y0);
-      nfence.style.transformOrigin = "0 0";
-      A(nfence, [{ transform: "none", opacity: snap.fenceOn }, { opacity: snap.fenceOn, offset: 0.45 }, { transform: `${tr(db.x0 - nb.x0 * sx, db.y0 - nb.y0 * sy)} scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`, opacity: 0 }], 0, T(780), EIO);
-      A(q(".hf-fence"), op(0, 1), T(340), T(280), "ease-out");
-      tl.at(T(800), () => (nfence.textContent = ""));
-    } else {
-      const from = snap.fence;
-      const to = g.fence;
-      const on = snap.fenceOn;
-      const set = (pts: Pt[]) => {
-        const s = polyPoints(pts);
-        g.line.setAttribute("points", s);
-        g.fill.setAttribute("points", s);
-        g.pulse.setAttribute("points", s);
-        pts.forEach(([x, y], i) => g.stakes[i].g.setAttribute("transform", `translate(${x.toFixed(1)} ${y.toFixed(1)})`));
-      };
-      g.line.removeAttribute("mask");
-      const dur = T(1250);
-      tl.fn(0, dur, (p) => {
-        const ms = p * dur;
-        set(from.map(([x, y], i) => {
-          const e = SPRING((ms - T(i * 26)) / 1000 / k);
-          return [x + (to[i][0] - x) * e, y + (to[i][1] - y) * e] as Pt;
-        }));
-        // closed solid at night, dashed by day; the jobsite's fill fades with the night
-        const d = clamp((ms - T(260)) / T(420), 0, 1);
-        if (p >= 1) {
-          g.line.style.removeProperty("stroke-dasharray");
-          g.line.style.removeProperty("stroke-width");
-          g.line.style.removeProperty("opacity");
-          g.fill.style.removeProperty("fill-opacity");
-        } else {
-          const sw = stroke + (2 - stroke) * clamp(ms / T(680), 0, 1);
-          g.line.style.strokeDasharray = `${(17 - 7 * d).toFixed(2)} ${(7 * d).toFixed(2)}`;
-          g.line.style.strokeWidth = `${sw.toFixed(2)}px`;
-          g.line.style.opacity = String(clamp(on + (1 - on) * (ms / T(160)), 0, 1));
-          g.fill.style.fillOpacity = String(snap.zone * (1 - clamp(ms / T(680), 0, 1)));
-        }
-      });
-      g.stakes.forEach((s, i) => A(s.dot, [{ transform: "scale(0)" }, { transform: "none" }], T(560 + i * 34), T(380), EPOP));
-    }
-
-    // Marcus glides from his night spot to his place on the fence and clocks in
-    const [mx, my] = snap.mb.at;
-    const [dx, dy] = g.T.mb;
-    A(mbEl, [{ transform: `${tr(mx - 13, my - 13)} scale(${k0.toFixed(4)})`, opacity: snap.mb.opacity }, { transform: tr(dx - 13, dy - 13), opacity: 1 }], 0, T(760), EIO);
-    A(nf, op(1, 0), T(120), T(420), "ease-out");
-    A(mbEl.querySelector(".hf-mk-dot"), [{ opacity: 0, transform: "scale(0.4)" }, { opacity: 1, transform: "none" }], T(420), T(300), EPOP);
-    tl.at(T(780), () => nf.remove());
-    if (!phone) A(q('.hf-stamp[data-id="mb"]'), [{ opacity: 0, transform: tr(g.stampPos.mb[0] - 6, g.stampPos.mb[1]) }, { opacity: 1, transform: tr(g.stampPos.mb[0], g.stampPos.mb[1]) }], T(620), T(420), EO);
-
-    // the ground: the landform's contours come up round the copy
-    const topo = q(".hf-ground")!;
-    topo.style.transformOrigin = `${g.wordC[0].toFixed(1)}px ${g.wordC[1].toFixed(1)}px`;
-    A(topo, [{ opacity: 0, transform: "scale(0.86)" }, { opacity: 1, transform: "none" }], T(60), T(780), EO);
-
-    // the header: the night logo hands over to the page's, in place; the nav comes in
-    const header = document.querySelector<HTMLElement>(".site-header");
-    if (snap.logo) A(snap.logo.el, op(snap.logo.opacity, 0), T(260), T(420), "ease-out");
-    const hd = A(header, op(0, 1), T(260), T(420), "ease-out");
-
-    // the rest of the headline closes in on the jobsite: lines above drop in, lines below rise
-    qa(".hf-line-in").forEach((ln, i) => {
-      if (i === g.fenceLine) return;
-      const d = Math.abs(i - g.fenceLine);
-      A(ln, [{ transform: `translateY(${i < g.fenceLine ? -112 : 112}%)` }, { transform: "none" }], T(600 + (d - 1) * 60), T(400), EO);
-    });
-    if (!phone) fadeUp(q(".hf-eyebrow"), T(700), T(500), 8);
-    fadeUp(q(".hf-sub"), T(800), T(520), 10);
-    ctaIn(T(900), k);
-    fadeUp(q(".hf-demo"), T(1000), T(460), 6);
-    fadeUp(q(".hf-micro"), T(1100), T(460), 6);
-    A(q(".hf-foot"), op(0, 1), T(1150), T(600), "ease-out");
-
-    // the crew walk in and clock in on the headline
-    clockIn(g, "er", walkIn(g, "er", T(1000), T(phone ? 820 : 900)), !phone);
-    if (!phone) clockIn(g, "jl", walkIn(g, "jl", T(1350), T(900)), true);
-    ctaFence(g, T(1600), k);
-    rollOnce(T(3000), k);
-
-    // the camera move is over: the page is the page (scroll, the late scenes, smooth scroll)
-    let doneCalled = false;
-    const done = () => {
-      if (doneCalled) return;
-      doneCalled = true;
-      opts.onDone();
-      nightEl.textContent = "";
-      hd?.cancel();
+    const row = HERO_JOBS.rows[0];
+    return {
+      phone,
+      fence: g.fence.map(pt),
+      words: b({ x: g.wordBox.x0, y: g.wordBox.y0, w: g.wordBox.x1 - g.wordBox.x0, h: g.wordBox.y1 - g.wordBox.y0 }),
+      phrase: qa(".hf-fenced").map((e) => e.textContent).join(" "),
+      markers,
+      stamp: g.boxes.stamp ? b(g.boxes.stamp) : null,
+      tag: g.tag ? b(g.tag) : null,
+      chip: g.chip ? b(g.chip) : null,
+      job: { name: row.job, today: row.today },
+      lines: g.boxes.lines.map(b),
+      fenceLines: [g.fenceLine, g.fenceLast],
+      eyebrow: g.boxes.eyebrow ? b(g.boxes.eyebrow) : null,
+      sub: b(g.boxes.sub),
+      cta: b(g.boxes.cta),
+      ctaRow: b(g.boxes.ctaRow),
+      micro: b(g.boxes.micro),
+      ctaFence: g.ring.map(pt),
     };
-    tl.at(T(1000), () => {
-      ground.remove();
-      mapW.remove();
-      dawn.remove();
-      labW.remove();
-    });
-    tl.at(T(900), done);
-    endMove = () => {
-      done();
-      endMove = null;
-    };
-    finishAt();
-    onSkipHandoff(() => tl.speed(1 / 0.6));
-    tl.at(T(1300), () => onSkipHandoff(null));
-
-    if (opts.debug) {
-      (window as unknown as { __hero: unknown }).__hero = { seek: (ms: number) => tl.seek(ms), geo: g, timing };
-      tl.seek(0);
-    } else tl.play();
   }
 
   // ── 5 · touch and cursor ──
@@ -1072,7 +848,7 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
 
     if (phone) {
       // tap the words: the fence pings and the crew show when they clocked in
-      on(q(".hf-line--fence"), "click", () => {
+      const tapWords = () => {
         if (busy) return;
         pulseOnce();
         if (reduced) return;
@@ -1081,7 +857,8 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
           m.querySelector(".hf-mk-i")!.animate([{ opacity: 1 }, { opacity: 0, offset: 0.15 }, { opacity: 0, offset: 0.85 }, { opacity: 1 }], { duration: 1500 });
           m.querySelector(".hf-mk-t")!.animate([{ opacity: 0 }, { opacity: 1, offset: 0.15 }, { opacity: 1, offset: 0.85 }, { opacity: 0 }], { duration: 1500 });
         }
-      });
+      };
+      for (const ln of qa(".hf-line--fence")) on(ln, "click", tapWords);
       return;
     }
 
@@ -1197,7 +974,8 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
 
   // ── boot ──
   let fontsLate = false;
-  let offHandoff: (() => void) | null = null;
+  let offCtrl: (() => void) | null = null;
+  let waitT = 0;
   (async () => {
     const inTime = await fontsReady(1600);
     if (!alive) return;
@@ -1205,25 +983,24 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     G = place();
     rest(G);
     root.classList.add("is-laid");
-    const mode: FenceMode = reduced ? "reduced" : o.mode === "intro" && !introUsed && getIntroPhase() !== "done" ? "intro" : "plain";
-    if (mode === "reduced") {
-      root.classList.add("is-live", "is-settled");
-      rolling = false;
-      drawTopo(G);
-    } else if (mode === "intro") {
-      // build the ground now, in the intro's hold, so the hand-off itself runs on a quiet thread
-      drawTopo(G);
-      offHandoff = onHeroHandoff((req) => {
-        if (!alive || !G) return;
-        if (req) playIntro(G, req);
-        else playPlain(G);
-      });
-    } else {
-      playPlain(G);
-      // after the headline's first frame
-      setTimeout(() => G && alive && drawTopo(G), 60);
-    }
     interact(G);
+    offCtrl = registerHero({ targets, enter: (eo) => (alive && G && !started ? entrance(G, eo) : Promise.resolve()) });
+    if (!started) {
+      if (heroEntered()) {
+        // a remount (crossing 760 px): the hero has entered already, show its rest state
+        started = true;
+        root.classList.add("is-live");
+        settle();
+      } else if (openingOn() && !reduced) {
+        // an opening is playing: wait for its heroEnter (./opening.ts), never forever
+        waitT = window.setTimeout(() => void heroEnter(), OPENING_WAIT);
+      } else void heroEnter();
+    }
+    // the ground's contours: built in slices once the headline's first frame is out (phones: once
+    // the button has landed, so the entrance has the main thread to itself). With an opening, now:
+    // the hero is hidden, so they are ready when the opening hands over
+    if (started && !reduced) setTimeout(() => G && alive && drawTopo(G), phone ? 1000 : 60);
+    else drawTopo(G);
     if (import.meta.env.DEV) devChecks();
   })();
 
@@ -1234,9 +1011,8 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
   let lastH = window.innerHeight;
   const replace = () => {
     if (!alive || !G) return;
+    // mid-entrance: land everything at once, then measure again
     if (busy) {
-      // mid-move: land everything at once, then measure again
-      endMove?.();
       tl.flush();
       settle();
     }
@@ -1268,10 +1044,10 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
   return () => {
     alive = false;
     topoJob?.cancel();
-    offHandoff?.();
-    onSkipHandoff(null);
-    endMove?.();
+    offCtrl?.();
+    clearTimeout(waitT);
     tl.cancel();
+    landed?.();
     clearTimeout(rt);
     window.removeEventListener("resize", onResize);
     document.fonts?.removeEventListener("loadingdone", onFonts);

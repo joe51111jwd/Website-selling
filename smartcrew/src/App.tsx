@@ -8,7 +8,7 @@ import { MotionConfig } from "motion/react";
 import Signup from "./signup/Signup";
 import { Header } from "./site/shell/Header";
 import { StickyBar } from "./site/shell/StickyBar";
-import { startIntro, onIntroPhase, getIntroPhase, useIntroPhase } from "./site/intro/intro";
+import { onPageReady, useFirstScreenDone } from "./site/ready";
 import { lockScroll, startSmoothScroll } from "./site/scroll";
 import { forceStage3d, isPhone, onPhoneChange, phoneAtLoad, stageAllowed, usePhone } from "./site/phone";
 import { setStageMounted, watchLayout } from "./three/stage/store";
@@ -17,8 +17,10 @@ import { startWarmAhead } from "./site/phone/warmAhead";
 import HeroScene from "./site/hero/Hero";
 import DayScene from "./site/day/Day";
 
-// three.js and the models load in their own chunk, in parallel with the page (the intro and the
-// posters cover the wait). Never on phones: the import only runs when <Stage/> first renders.
+// three.js and the models load in their own chunk once the first screen has landed (the hero's
+// button is in place: src/site/ready.ts), so evaluating it and the first GL work never land in
+// the middle of the hero's entrance; the posters cover the wait and the devices are parked below
+// the fold. Never on phones: the import only runs when <Stage/> first renders.
 const Stage = lazy(() => import("./three/stage/Stage"));
 // the geofence cursor (mouse/trackpad only): its own chunk, never fetched on phones
 const Cursor = lazy(() => import("./cursor/Cursor"));
@@ -27,8 +29,8 @@ const Cursor = lazy(() => import("./cursor/Cursor"));
  * The scenes after One Day, in page order, each in its own chunk (with its CSS and its phone
  * version), so the first screen's JS is only the hero and One Day: less to download and evaluate
  * at boot on a phone. Desktop starts fetching all of them at once, in parallel with the first
- * render (they land well inside the intro); phones fetch and mount them one by one after the
- * intro (useLateScenes).
+ * render; phones fetch and mount them one by one once the first screen is done
+ * (useLateScenes, src/site/ready.ts).
  */
 type SceneModule = { default: ComponentType };
 function lateScene(load: () => Promise<SceneModule>) {
@@ -49,53 +51,46 @@ const LATER_SCENES = [
 if (!phoneAtLoad) LATER_SCENES.forEach((sc) => void sc.get());
 
 const LATER: ComponentType[] = LATER_SCENES.map((sc) => memo(sc.C));
-// App re-renders when the intro changes phase; the scenes subscribe to what they need themselves,
-// so they don't re-render with it (One Day's seven screens, in the frame the hand-over starts)
+// App re-renders when the first screen is done; the scenes subscribe to what they need
+// themselves, so they don't re-render with it (One Day's seven screens)
 const Hero = memo(HeroScene);
 const Day = memo(DayScene);
 const hashOnLoad = typeof location !== "undefined" && location.hash.length > 1 ? location.hash.slice(1) : "";
 
+const idle = (f: () => void) =>
+  typeof window.requestIdleCallback === "function" ? window.requestIdleCallback(f, { timeout: 600 }) : window.setTimeout(f, 160);
+const cancelIdle = (id: number) => (typeof window.cancelIdleCallback === "function" ? window.cancelIdleCallback(id) : clearTimeout(id));
+
 /**
- * PHONE MODE: the first render is the hero and One Day only (7 screens of scroll); the scenes
- * after them mount one by one in idle time, as low-priority transitions (React renders them in
- * 5 ms slices), after the intro has handed over, so the boot never blocks the first screen and
- * no mount is a long task (all eight are in within ~2 s; One Day alone is 7 screens of scroll).
- * A #hash on load mounts them at once. Desktop mounts everything at once.
+ * PHONE MODE: the boot renders the hero alone, so the first frame comes fast; One Day (the very
+ * next screen) follows at once as a low-priority transition (rendered in 5 ms slices while the
+ * hero's fonts arrive). A #hash on load renders it at boot. Desktop renders it at boot.
  */
-/**
- * PHONE MODE: the boot renders the hero alone (its first task overlapped the intro's truck and
- * geofence, which animate on the main thread). One Day mounts as a transition in the intro's quiet
- * stretch: after its map animations (≈ 1.25 s into the intro), before the hand-over move; at once
- * when there is no intro, or as soon as the intro is skipped.
- */
-const DAY_AT = 1250;
 function useDayOnPhone() {
   const [on, setOn] = useState(() => !phoneAtLoad || !!hashOnLoad);
-  const phase = useIntroPhase();
   useEffect(() => {
-    if (on) return;
-    const go = () => startTransition(() => setOn(true));
-    if (phase !== "playing") return go();
-    const t0 = window.__intro?.t0 ?? 0;
-    const id = window.setTimeout(go, Math.max(0, DAY_AT - (performance.now() - t0)));
-    return () => window.clearTimeout(id);
-  }, [on, phase]);
+    if (!on) startTransition(() => setOn(true));
+  }, [on]);
   return on;
 }
 
+/**
+ * PHONE MODE: the scenes after One Day mount one by one in idle time, as low-priority transitions
+ * (React renders them in 5 ms slices), once the first screen is done (src/site/ready.ts: the
+ * hero's entrance has played out, or the visitor has started scrolling), so none of their mounts
+ * lands in the middle of the entrance as a long task. They are seven screens of One Day further
+ * down, all in within ~2 s. A #hash on load mounts them at once. Desktop mounts everything at
+ * once.
+ */
 function useLateScenes() {
   const [n, setN] = useState(() => (!phoneAtLoad || hashOnLoad ? LATER.length : 0));
-  const phase = useIntroPhase();
+  const go = useFirstScreenDone();
   useEffect(() => {
     // scenes that came in late may carry markers the shell looks for (data-hides-sticky)
     window.dispatchEvent(new Event("sc:scenes"));
-    // the intro's hand-over gets a quiet main thread: the late scenes start once it's over. One
-    // at a time: its chunk (JS + CSS: adding a stylesheet restyles the page) in idle time, then
-    // its mount as a transition in the next idle moment, then the next scene
-    if (n >= LATER.length || phase !== "done") return;
-    const idle = (f: () => void) =>
-      typeof window.requestIdleCallback === "function" ? window.requestIdleCallback(f, { timeout: 600 }) : window.setTimeout(f, 160);
-    const cancel = (id: number) => (typeof window.cancelIdleCallback === "function" ? window.cancelIdleCallback(id) : clearTimeout(id));
+    // one at a time: its chunk (JS + CSS: adding a stylesheet restyles the page) in idle time,
+    // then its mount as a transition in the next idle moment, then the next scene
+    if (n >= LATER.length || !go) return;
     let id = 0;
     let dead = false;
     const mount = () => (id = idle(() => !dead && startTransition(() => setN((k) => Math.min(LATER.length, k + 1)))));
@@ -112,10 +107,25 @@ function useLateScenes() {
     return () => {
       dead = true;
       cancelAnimationFrame(raf);
-      cancel(id);
+      cancelIdle(id);
     };
-  }, [n, phase]);
+  }, [n, go]);
   return n;
+}
+
+/** Desktop: the Stage mounts in the first idle moment after the first screen has landed (at once for a #hash on load). */
+function useStageGo() {
+  const [go, setGo] = useState(() => !!hashOnLoad);
+  useEffect(() => {
+    if (go) return;
+    let id = 0;
+    const off = onPageReady(() => (id = idle(() => setGo(true))));
+    return () => {
+      off();
+      cancelIdle(id);
+    };
+  }, [go]);
+  return go;
 }
 
 /** A #hash on load (#faq…): its scene arrives with its chunk, so scroll to it once it's there. */
@@ -137,34 +147,37 @@ export default function App() {
   const phone = usePhone();
   const later = useLateScenes();
   const dayOn = useDayOnPhone();
-  const stageOn = stageAllowed && (!phone || forceStage3d);
+  const stageWanted = stageAllowed && (!phone || forceStage3d);
+  const stageGo = useStageGo();
+  const stageOn = stageWanted && stageGo;
   // scenes, anchors and pose keys are measured by the store (no three.js), with or without the Stage
   useEffect(() => watchLayout(), []);
-  // phones: the next screens lay out in idle time before they scroll in (after the intro)
-  const introPhase = useIntroPhase();
+  // phones: the next screens lay out in idle time before they scroll in (once the first screen is done)
+  const firstDone = useFirstScreenDone();
   const lite = phone && !forceStage3d;
-  useEffect(() => (lite && introPhase === "done" ? startWarmAhead() : undefined), [lite, introPhase]);
+  useEffect(() => (lite && firstDone ? startWarmAhead() : undefined), [lite, firstDone]);
   // no Stage: the page is in its no-3D state (posters stay up)
-  useEffect(() => setStageMounted(stageOn), [stageOn]);
+  useEffect(() => {
+    // (while the Stage waits for the first screen, the page is not in its no-3D state: the
+    // posters are simply up until its first frame)
+    if (stageWanted && !stageGo) return;
+    setStageMounted(stageOn);
+  }, [stageOn, stageWanted, stageGo]);
 
   useEffect(() => {
-    startIntro();
     startTracking();
-    // smooth wheel scrolling (desktop only) starts once the intro has handed over
+    // smooth wheel scrolling (desktop only)
     let stop = () => {};
     const sync = () => {
       stop();
-      stop = () => {};
-      if (getIntroPhase() === "done" && !isPhone()) stop = startSmoothScroll();
+      stop = isPhone() ? () => {} : startSmoothScroll();
     };
     sync();
-    const off = onIntroPhase((p) => p === "done" && sync());
     const offPhone = onPhoneChange(sync);
     // the trial popup: smooth scroll stops underneath it while it's open
     const onPopup = (e: Event) => lockScroll(!!(e as CustomEvent<{ open: boolean }>).detail?.open);
     window.addEventListener("smartcrew:signup-state", onPopup);
     return () => {
-      off();
       offPhone();
       stop();
       window.removeEventListener("smartcrew:signup-state", onPopup);

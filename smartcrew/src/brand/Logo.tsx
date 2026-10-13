@@ -8,7 +8,7 @@
 //   <Logo variant="wordmark" tone="ink" />
 //   <Logo mono tone="ink" />                 one-colour lockup (stickers, stamps, fax)
 //   <Logo variant="mark" ridge={false} />    drop the ridge cut below ~24 px tall
-//   <Logo variant="mark" fence />            adds the geofence outline for an intro to draw
+//   <Logo variant="mark" fence />            adds the geofence outline for an animation to draw
 //
 // Size it with CSS height (default 1em, width follows the aspect ratio).
 //
@@ -19,7 +19,7 @@
 // .logo-hat, .logo-jaw, .logo-fence and the letters carry pathLength=1, so a stroke draw is
 // stroke-dasharray: 1; stroke-dashoffset: 1 -> 0. The fence starts and ends at the pin's tip.
 // Pass idPrefix to also get ids: <prefix>-hat, <prefix>-jaw, <prefix>-fence, <prefix>-word.
-// Colours are fill attributes, so any CSS rule (e.g. .intro .logo-mark { fill: ... }) wins.
+// Colours are fill attributes, so any CSS rule (e.g. .footer .logo-mark { fill: ... }) wins.
 
 import type { CSSProperties, SVGProps } from "react";
 import "./logo.css";
@@ -83,7 +83,7 @@ export interface LogoProps extends Omit<SVGProps<SVGSVGElement>, "children" | "v
   mono?: boolean;
   /** Keep the ridge cut in the dome (default true; turn off below ~24 px tall). */
   ridge?: boolean;
-  /** Render the geofence outline (.logo-fence) for an intro to draw. */
+  /** Render the geofence outline (.logo-fence) for an animation to draw. */
   fence?: boolean;
   /** Accessible name. Default "SmartCrew". */
   title?: string;

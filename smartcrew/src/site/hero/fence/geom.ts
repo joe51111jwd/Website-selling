@@ -4,8 +4,8 @@ export type Pt = [number, number];
 export type Box = { x0: number; y0: number; x1: number; y1: number };
 
 /**
- * A hand-staked geofence round a box: six stakes (the intro's fence has six too, so the hand-off
- * maps stake to stake), pointed ends `point` px out left and right, `clear` px off the box, a
+ * A hand-staked geofence round a box: six stakes (an opening's fence hands over stake to stake,
+ * ./opening.ts), pointed ends `point` px out left and right, `clear` px off the box, a
  * little irregular so it reads staked, not drawn by a computer. Order: left point, top-left,
  * top-right, right point, bottom-right, bottom-left.
  */
@@ -28,9 +28,6 @@ export function hexFence(b: Box, o: { clear: [number, number]; point: number; in
   ];
 }
 
-/** How far the fence reaches past the box it stakes (for the leading and fit rules). */
-export const fenceReach = (o: { clear: [number, number]; jitter?: number }) => o.clear[1] + 1 * (o.jitter ?? 1);
-
 export const polyPoints = (p: Pt[]) => p.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
 export const polyPath = (p: Pt[]) => `M${p.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join("L")}Z`;
 
@@ -43,25 +40,6 @@ export function inside(p: Pt[], x: number, y: number) {
   }
   return c;
 }
-
-export function bbox(p: Pt[]): Box {
-  let x0 = Infinity;
-  let y0 = Infinity;
-  let x1 = -Infinity;
-  let y1 = -Infinity;
-  for (const [x, y] of p) {
-    x0 = Math.min(x0, x);
-    y0 = Math.min(y0, y);
-    x1 = Math.max(x1, x);
-    y1 = Math.max(y1, y);
-  }
-  return { x0, y0, x1, y1 };
-}
-
-export const centroid = (p: Pt[]): Pt => {
-  const b = bbox(p);
-  return [(b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2];
-};
 
 /** Point on a cubic Bézier. */
 function bez(p0: Pt, p1: Pt, p2: Pt, p3: Pt, t: number): Pt {

@@ -28,7 +28,7 @@ export function startSmoothScroll() {
   };
 }
 
-/** Stop the page from scrolling (while the intro plays or a popup is open). */
+/** Stop the page from scrolling (while a popup is open). */
 export function lockScroll(on: boolean) {
   document.documentElement.classList.toggle("scroll-locked", on);
   if (!lenis) return;

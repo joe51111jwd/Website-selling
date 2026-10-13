@@ -19,10 +19,10 @@
   isolation: isolate;
 }
 
-/* before the first layout (fonts loading) nothing shows; while the intro plays, the hero waits
-   under it until it takes over the intro's last frame */
+/* before the first layout (fonts loading) nothing shows; with an opening (./opening.ts), the hero
+   waits laid out and hidden until the opening hands over (heroEnter) */
 .hf-root:not(.is-laid) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx),
-html.intro-on .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx) {
+html.has-opening .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx) {
   visibility: hidden;
 }
 
@@ -124,20 +124,25 @@ html.intro-on .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx)
   margin: -0.12em -0.3em -0.1em;
 }
 
-/* the fenced line: its leading opens so the fence keeps clear of the lines either side */
-.hf-line--fence {
+/* the fenced line(s): the leading opens so the fence keeps clear of the lines either side */
+.hf-line--fence.is-first {
   margin-top: calc(var(--fl-mt, 0px) - 0.12em);
-  margin-bottom: calc(var(--fl-mb, 0px) - 0.1em);
 }
 
-/* while the words grow out of the intro's map label, their line doesn't clip */
-.hf-root.is-intro .hf-line--fence {
-  overflow: visible;
+.hf-line--fence.is-last {
+  margin-bottom: calc(var(--fl-mb, 0px) - 0.1em);
 }
 
 .hf-line-in {
   display: inline-block;
   white-space: nowrap;
+}
+
+/* the lines have landed: the biggest line's box is rebuilt in place (no visual change), so the
+   browser files the headline for Largest Contentful Paint whole, not as it was half-way into its
+   slot (engine.ts) */
+.hf-line.is-set {
+  display: flow-root;
 }
 
 .hf-fenced {
@@ -223,24 +228,6 @@ html.intro-on .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx)
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
-}
-
-.hf-chip.is-flying {
-  background: transparent;
-  box-shadow: none;
-}
-
-.hf-chip-plate {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: 99px;
-  background: #fff;
-  box-shadow:
-    0 0 0 1px rgb(23 19 15 / 12%),
-    0 6px 14px -10px rgb(23 19 15 / 40%);
-  opacity: 0;
-  transform-origin: 50% 50%;
 }
 
 .hf-chip-face {
@@ -400,11 +387,6 @@ html.intro-on .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx)
   fill-opacity: 0.045;
 }
 
-/* during the hand-off the engine draws the fence frame by frame: no CSS easing in between */
-.hf-root.is-intro :is(.hf-fence-line, .hf-fence-fill) {
-  transition: none;
-}
-
 .hf-pulse {
   opacity: 0;
 }
@@ -432,19 +414,6 @@ html.intro-on .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx)
   pointer-events: all;
   cursor: grab;
   touch-action: none;
-}
-
-/* the intro's fence, re-staked by transform on phones (./engine.ts) */
-.hf-nfence-line {
-  fill: none;
-  stroke: var(--orange);
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-
-.hf-nfence-zone {
-  fill: var(--orange);
-  stroke: none;
 }
 
 /* the tape from the fence's top-right stake to the tag */
@@ -516,17 +485,6 @@ html.intro-on .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx)
   opacity: 0;
 }
 
-/* Marcus wears the intro's night marker for the first frames of the hand-off */
-.hf-mk-night {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 26px;
-  height: 26px;
-  max-width: none;
-  overflow: visible;
-}
-
 .hf-stamp {
   position: absolute;
   left: 0;
@@ -559,19 +517,6 @@ html.intro-on .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx)
   cursor: default;
 }
 
-.hf-tag-plate {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow:
-    0 0 0 1px rgb(17 17 17 / 6%),
-    0 16px 34px -14px rgb(17 17 17 / 42%);
-  opacity: 0;
-  transform-origin: 50% 50%;
-}
-
 .hf-tag-bgw {
   position: absolute;
   inset: 0;
@@ -602,10 +547,6 @@ html.intro-on .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx)
   inset: 4px 2px -2px 10px;
   border-radius: 10px;
   box-shadow: 0 14px 28px -16px rgb(23 19 15 / 45%);
-}
-
-.hf-flying-card {
-  z-index: 2;
 }
 
 .hf-tag-face {
@@ -699,59 +640,6 @@ html.intro-on .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx)
 .hf-root.is-cta .hf-ring-s {
   opacity: 1;
   transition-duration: 0.18s;
-}
-
-/* ── the night: the intro's last frame, rebuilt by the engine on the frame it takes over ── */
-
-.hf-night {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.hf-night:empty {
-  display: none;
-}
-
-.hf-night-ground {
-  position: absolute;
-  inset: 0;
-  background: var(--night);
-}
-
-.hf-night-map {
-  position: absolute;
-  inset: 0;
-}
-
-/* the day breaks from the jobsite: one ≤ 400 px gradient, scaled by transform only. It starts
-   large (already reaching the nearest edge), accelerates out, and carries a warm rim */
-.hf-dawn {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 400px;
-  height: 400px;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, var(--ground) 0%, var(--ground) 80%, #f1dfc6 89%, rgb(241 223 198 / 0) 100%);
-  opacity: 0;
-  will-change: transform, opacity;
-}
-
-.hf-night-label {
-  position: absolute;
-  inset: 0;
-}
-
-.hf-night-label svg {
-  position: absolute;
-  left: 0;
-  top: 0;
-  display: block;
-  max-width: none;
-  overflow: visible;
 }
 
 /* ── PHONE MODE ─────────────────────────────────────────────────────────────────────── */
@@ -856,9 +744,11 @@ html.intro-on .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-fx)
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hf-fence-line,
-  .hf-fence-fill,
-  .hf-ring-s {
-    transition: none;
+  /* nothing in the hero tweens. (The page's reduced-motion rule in base.css gives every property a
+     1 ms transition, transition-property being "all" by default: a size the engine sets and then
+     measures at once would still read the old value, and the headline would be fitted wrong) */
+  .sc-page .hf-root,
+  .sc-page .hf-root * {
+    transition: none !important;
   }
 }
