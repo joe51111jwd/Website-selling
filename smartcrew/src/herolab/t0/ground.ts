@@ -438,7 +438,7 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
 
   function buildGL(p: PlanRes, g: Geo): Layers {
     const G = gl!;
-    G.setGrade(p.grade, g.halos, g.nHead);
+    G.setGrade(p.grade, g.halos, g.nHead, p.labels);
     G.size(g.W, g.H, window.devicePixelRatio || 1);
     G.canvas.style.width = `${g.W}px`;
     G.canvas.style.height = `${g.H}px`;

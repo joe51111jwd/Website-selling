@@ -41,6 +41,8 @@ uniform vec4 uW;         // css widths: nat int, nat idx, pro int, pro idx
 uniform vec4 uO;         // opacities: nat int, nat idx, pro int, pro idx
 uniform vec4 uCur;       // cursor x, y, push dx, dy (css)
 uniform float uCurR;     // cursor radius
+uniform vec3 uLab[6];    // the index labels (x, y, half length): the push leaves their lines alone
+uniform int uNLab;
 out vec4 o;
 
 vec4 tx(ivec2 i) { return texelFetch(uE, clamp(i, ivec2(0), uGN - 1), 0); }
@@ -92,6 +94,10 @@ void main() {
   if (uCurR > 0.0) {
     float nat = 1.0 - smoothstep(0.0, 0.05, abs(G.x - E.x));
     nat *= smoothstep(30.0, 120.0, D.x);
+    for (int i = 0; i < 6; i++) {
+      if (i >= uNLab) break;
+      nat *= smoothstep(uLab[i].z, uLab[i].z + 50.0, distance(p, uLab[i].xy));
+    }
     vec2 r = p - uCur.xy;
     float f = exp(-dot(r, r) / (uCurR * uCurR)) * nat;
     if (f > 0.002) {
@@ -167,7 +173,7 @@ export type GLGround = {
   /** resolves true once the program has linked (never blocks: parallel compile, or a late check) */
   linked: Promise<boolean>;
   setField(tex: Float32Array, grid: { x0: number; y0: number; step: number; nx: number; ny: number }): void;
-  setGrade(g: Grade, keep: Rect[], nHead: number): void;
+  setGrade(g: Grade, keep: Rect[], nHead: number, labels?: { x: number; y: number }[]): void;
   size(W: number, H: number, dpr: number): void;
   /** front: css x of the grading front; band: its soft width; entrance: false = the rest frame */
   draw(s: { front: number; band: number; entrance: boolean; keepFoot?: number; cursor?: { x: number; y: number; dx: number; dy: number; r: number } }): void;
@@ -246,6 +252,8 @@ export function createGL(onLost: () => void): GLGround | null {
   let keep: Rect[] = [];
   let nHead = 0;
   const kb = new Float32Array(40);
+  const lb = new Float32Array(18);
+  let nLab = 0;
   let look = lookFor(1);
   let hasField = false;
 
@@ -253,7 +261,7 @@ export function createGL(onLost: () => void): GLGround | null {
     if (ready) return;
     ready = true;
     G.useProgram(prog);
-    for (const n of ["uE", "uGrid", "uGN", "uView", "uDpr", "uPad", "uPadR", "uSlope", "uFront", "uKeep", "uNKeep", "uNHead", "uKeepFoot", "uInkN", "uInkP", "uW", "uO", "uCur", "uCurR"])
+    for (const n of ["uE", "uGrid", "uGN", "uView", "uDpr", "uPad", "uPadR", "uSlope", "uFront", "uKeep", "uNKeep", "uNHead", "uKeepFoot", "uInkN", "uInkP", "uW", "uO", "uCur", "uCurR", "uLab", "uNLab"])
       U[n] = G.getUniformLocation(prog, n);
     G.bindBuffer(G.ARRAY_BUFFER, buf);
     G.bufferData(G.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), G.STATIC_DRAW);
@@ -289,8 +297,11 @@ export function createGL(onLost: () => void): GLGround | null {
       pendingTex = t;
       upload();
     },
-    setGrade(g, k, nh) {
+    setGrade(g, k, nh, labels = []) {
       grade = g;
+      nLab = Math.min(6, labels.length);
+      lb.fill(0);
+      labels.slice(0, 6).forEach((l, i) => lb.set([l.x, l.y, 26], i * 3));
       keep = k.slice(0, 10);
       nHead = nh;
       kb.fill(0);
@@ -331,6 +342,8 @@ export function createGL(onLost: () => void): GLGround | null {
       const c = s.cursor;
       G.uniform4f(U.uCur, c?.x ?? 0, c?.y ?? 0, c?.dx ?? 0, c?.dy ?? 0);
       G.uniform1f(U.uCurR, c && c.r > 0 ? c.r : 0);
+      G.uniform3fv(U.uLab, lb);
+      G.uniform1i(U.uNLab, nLab);
       G.drawArrays(G.TRIANGLES, 0, 3);
     },
     lost: () => isLost,
