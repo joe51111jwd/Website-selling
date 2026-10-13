@@ -40,6 +40,8 @@ export const HO = {
   mb: [0.15, 0.4],
   words: [0.3, 0.5],
   time: [0.1, 0.6],
+  /** the stamp and its copy cross over (same face, same size: hides a sub-pixel difference) */
+  take: [0.1, 0.13],
   am: [0.45, 0.6],
   lift: [0.15, 0.25],
   fence: [0.25, 0.7],
@@ -243,7 +245,9 @@ export function startHandoff(els: HandoffEls): () => void {
       // the contours drift up at half the scroll speed, and fade
       st.set(H.ground, "translate", s > 0 ? `0 ${r1(0.5 * Math.min(s, window.innerHeight))}px` : null);
       st.set(H.ground, "opacity", o(1 - inOut(seg(p, HO.ground))));
-      st.set(H.stamp, "visibility", p >= HO.time[0] && G ? "hidden" : null);
+      const take = G ? seg(p, HO.take) : 0;
+      st.set(H.stamp, "opacity", take > 0 && take < 1 ? (1 - take).toFixed(3) : null);
+      st.set(H.stamp, "visibility", take >= 1 ? "hidden" : null);
       for (const el of H.fence) st.set(el, "visibility", p >= HO.lift[0] && G ? "hidden" : null);
     }
 
@@ -262,6 +266,7 @@ export function startHandoff(els: HandoffEls): () => void {
       els.time.style.transform = `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0) scale(${sc.toFixed(4)})`;
       // the stamp is set in the time's face at --ink-2; it darkens to the odometer's ink
       els.time.style.color = `color-mix(in srgb, var(--ink) ${Math.round(e * 100)}%, var(--ink-2))`;
+      els.time.style.opacity = seg(p, HO.take).toFixed(3);
       const am = suffix();
       if (am) am.style.opacity = seg(p, HO.am).toFixed(3);
     }
