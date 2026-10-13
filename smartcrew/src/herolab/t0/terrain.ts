@@ -111,26 +111,28 @@ export type Land = {
 };
 
 /**
- * Desktop: the ground falls to the east and a little south. A ridge spur comes in from the west
- * (the cut side), Willow Creek runs north → south across the east side (the fill side), so the
- * pass grades from cut into fill, the way a dozer moves dirt.
+ * Desktop: the ground falls to the south-east, so the pad's cut is deepest at its top-left corner
+ * and its fill at the bottom-right, with balance points at the other two corners (the slopes
+ * taper: it reads as earthwork, not a frame). A ridge spur comes down from the north-west (the
+ * cut side); Willow Creek cuts in from the east and runs south (the fill side), so the pass grades
+ * from cut into fill, the way a dozer moves dirt.
  */
 export const LAND_DESK: Land = {
   seed: 11,
   scale: 0.9,
   amp: 2.8,
   warp: 0.85,
-  fallX: 14,
-  fallY: 10,
+  fallX: 12,
+  fallY: 11,
   drain: {
     bez: [
-      [0.93, -0.06],
-      [0.87, 0.3],
-      [0.92, 0.62],
-      [0.8, 1.08],
+      [1.08, 0.42],
+      [0.95, 0.6],
+      [0.93, 0.82],
+      [0.86, 1.12],
     ],
-    depth: 6,
-    width: 0.1,
+    depth: 7,
+    width: 0.11,
     floor: 12,
     fall: 3,
   },

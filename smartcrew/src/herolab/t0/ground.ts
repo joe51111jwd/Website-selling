@@ -203,6 +203,7 @@ type Layers = {
 };
 
 let uid = 0;
+let maskSeq = 0;
 
 // ─── the engine ──────────────────────────────────────────────────────────────────────────
 
@@ -382,7 +383,7 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     if (!g.halos.length) return "";
     const defs = document.createElementNS(NS, "defs");
     const m = document.createElementNS(NS, "mask");
-    const mid = `${id}-halo`;
+    const mid = `${id}-halo-${++maskSeq}`;
     m.setAttribute("id", mid);
     m.setAttribute("maskUnits", "userSpaceOnUse");
     m.setAttribute("x", "0");

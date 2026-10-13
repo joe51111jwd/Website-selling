@@ -21,6 +21,7 @@ Every piece of feedback on the product page, in one place. Each item has a statu
    - The visitor's scrolling never fights it, and no jumpy animation is left anywhere: no snapping, no springy pops, no lurching zooms.
    - There are controls (pause, a timeline with the 7 times, skip), and the orange button keeps working during the ride.
    - When it ends, the page is free again: you can scroll back up, and Replay is there.
+   - It takes over the whole screen: scrolling stops, the header slides away, and it shows the whole app (the crew's phone and the office), ending on the full app view. The control bar keeps a small orange "Get my free trial". It should run about 45–60 s.
    - Brief: `RIDE_BRIEF.md` (design notes).
 5. **A pace you can read.**
    - Each step holds until a slow reader has read everything on screen: the time, the headline, what the crew tapped and what the office got.
