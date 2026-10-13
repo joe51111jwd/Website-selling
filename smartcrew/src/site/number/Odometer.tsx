@@ -4,6 +4,7 @@
 
 import { useLayoutEffect, useState } from "react";
 import { reducedMotion } from "../../three/stage/store";
+import { money } from "./calc";
 
 const DIGITS = Array.from({ length: 20 }, (_, i) => i % 10);
 
@@ -35,7 +36,7 @@ function Wheel({ d, place, spin }: { d: number; place: number; spin: boolean }) 
 export function Odometer({ value, className, label }: { value: number | null; className?: string; label?: string }) {
   const on = value != null;
   // unset: a counter at zero ("$00,000"), the wheels waiting to roll
-  const str = value == null ? "$00,000" : "$" + Math.round(value).toLocaleString("en-US");
+  const str = value == null ? "$00,000" : money(value);
   const chars = str.split("");
   // wheels sit on 0 until a value arrives, then spin a full turn to it; later changes roll
   // within the second turn (the short way)

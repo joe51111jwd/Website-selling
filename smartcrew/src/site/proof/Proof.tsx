@@ -13,6 +13,8 @@ import { Scene, useSceneProgress } from "../scene/Scene";
 import { reducedMotion } from "../../three/stage";
 import { exitKeys } from "../../three/stage";
 import { Odometer } from "./Odometer";
+import { usePhoneLite } from "../phone";
+import ProofPhone from "./ProofPhone";
 import "./proof.css";
 
 const P = PROOF.phil;
@@ -128,7 +130,12 @@ function Katie() {
 /** No devices on this screen: they are already out (Try it's exit) and stay out. */
 const PROOF_POSES = exitKeys({ hold: true, side: 1, start: 0 });
 
+/** Phones (PHONE MODE): one quote per screen, trigger-once, no scroll-driven motion (./ProofPhone.tsx). */
 export default function Proof() {
+  return usePhoneLite() ? <ProofPhone /> : <ProofDesk />;
+}
+
+function ProofDesk() {
   const poses = PROOF_POSES;
   return (
     <Scene id="proof" pinnedViewports={PROOF_VIEWPORTS} poses={poses} label={PROOF.label} className="proof">

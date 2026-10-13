@@ -12,7 +12,13 @@ export function annualCost({ crew, minutes, rate, days }: Inputs) {
   return (crew * minutes * days * rate) / 60;
 }
 
-export const money = (n: number) => "$" + Math.round(n).toLocaleString("en-US");
+// one cached formatter: toLocaleString() builds a new one on every call (slow on phones)
+const INT = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+
+/** 48125 → "48,125" */
+export const grouped = (n: number) => INT.format(Math.round(n));
+
+export const money = (n: number) => "$" + grouped(n);
 
 /** "about $561 a week" uses 52 weeks (the yearly figure ÷ 52). */
 export const weekly = (annual: number) => annual / 52;

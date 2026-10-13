@@ -1,0 +1,375 @@
+/* 2 · One Day, PHONE MODE (./DayPhone.tsx). One moment = one full screen: the big time, a short
+   headline, a big phone, and the office card that slides up beneath it. Everything that moves
+   moves by transform/opacity; offscreen moments skip rendering (content-visibility). */
+
+.dph-m {
+  --dph-ink: var(--ink);
+  --dph-ink-2: var(--ink-2);
+  --dph-ink-3: var(--ink-3);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100svh;
+  min-height: 540px;
+  max-height: 940px;
+  padding: calc(var(--header-h) + clamp(8px, 2svh, 16px)) var(--gutter) calc(var(--sticky-h) + env(safe-area-inset-bottom) + 8px);
+  overflow: hidden;
+  color: var(--dph-ink);
+  /* this moment's light, easing into the next one's across the bottom of the screen */
+  background: linear-gradient(to bottom, var(--g) 0%, var(--g) 74%, var(--g2) 100%);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 664px;
+}
+
+.dph-m.is-dark {
+  --dph-ink: var(--ink-night);
+  --dph-ink-2: var(--ink-night-2);
+  --dph-ink-3: var(--ink-night-3);
+}
+
+/* the last moment hands the page back to the day ground through the dusk */
+.dph-m.is-last {
+  background: linear-gradient(to bottom, var(--g) 0%, var(--g) 70%, color-mix(in srgb, var(--dusk) 60%, var(--g)) 88%, var(--g2) 100%);
+}
+
+/* ── the time, the count, the headline ── */
+.dph-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dph-time {
+  display: flex;
+  align-items: baseline;
+  gap: 0.1em;
+  font-size: clamp(46px, 13.2vw, 60px);
+  line-height: 0.86;
+  color: var(--dph-ink);
+}
+
+.dph-ap {
+  font-size: 0.4em;
+  letter-spacing: 0.01em;
+}
+
+.dph-word {
+  font-stretch: calc(var(--wdth-head) * 1%);
+}
+
+.dph-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding-bottom: 1px;
+}
+
+.dph-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--dph-ink-3);
+}
+
+.dph-bar {
+  display: flex;
+  gap: 3px;
+}
+
+.dph-bar i {
+  width: 7px;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.35;
+}
+
+.dph-bar i.is-on {
+  background: var(--orange);
+  opacity: 1;
+}
+
+.dph-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  margin-right: -4px;
+  padding: 0 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--dph-ink-2);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
+  text-underline-offset: 3px;
+}
+
+.dph-more svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.dph-head {
+  margin-top: clamp(6px, 1.4svh, 10px);
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-head) * 1%);
+  font-weight: var(--display-wght);
+  font-size: clamp(20px, 5.7vw, 25px);
+  line-height: 1.1;
+  letter-spacing: var(--track-head);
+  word-spacing: var(--display-word);
+  text-wrap: balance;
+  color: var(--dph-ink);
+}
+
+/* ── the phone, and the office card under it ── */
+.dph-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: clamp(10px, 2svh, 16px);
+}
+
+.dph-phone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  aspect-ratio: 430 / 900;
+  max-width: 100%;
+  transform: translateX(-50%);
+}
+
+.dph-card {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: 2;
+  width: min(100%, 372px);
+  padding: 12px 14px 13px;
+  border-radius: 16px;
+  background: var(--paper);
+  color: #111;
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 6%),
+    0 10px 24px -12px rgb(23 19 15 / 32%);
+  opacity: 0;
+  transform: translate(-50%, 28px);
+  transition:
+    opacity 0.38s var(--ease-out),
+    transform 0.56s var(--ease-spring);
+}
+
+.dph-m.is-card .dph-card {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.dph-card-k {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.dph-card-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+}
+
+/* the update lands: the dot pings once */
+.dph-card-dot::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid var(--orange);
+  opacity: 0;
+}
+
+.dph-m.is-card .dph-card-dot::after {
+  animation: dph-ping 0.9s 0.25s var(--ease-out) both;
+}
+
+@keyframes dph-ping {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+.dph-card-state {
+  margin-top: 3px;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-state) * 1%);
+  font-weight: var(--display-wght);
+  font-size: 19px;
+  line-height: 1.15;
+  letter-spacing: var(--track-state);
+  color: var(--ink);
+}
+
+.dph-card-row {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgb(23 19 15 / 8%);
+  min-height: 40px;
+}
+
+.dph-card-wait {
+  height: 40px;
+}
+
+/* ── "+N more here": the moment's other tools, on demand ── */
+.dph-sheet {
+  position: absolute;
+  z-index: 3;
+  left: var(--gutter);
+  right: var(--gutter);
+  top: calc(var(--header-h) + 76px);
+  max-height: calc(100% - var(--header-h) - 76px - var(--sticky-h) - 16px);
+  overflow: auto;
+  padding: 14px 16px 6px;
+  border-radius: 16px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 7%),
+    0 16px 30px -14px rgb(23 19 15 / 35%);
+  animation: dph-sheet 0.32s var(--ease-out) both;
+}
+
+.dph-sheet[hidden] {
+  display: none;
+}
+
+@keyframes dph-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.dph-sheet-t {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-3);
+  margin-bottom: 6px;
+}
+
+.dph-sheet li {
+  display: grid;
+  gap: 1px;
+  padding: 8px 0 9px;
+  border-top: 1px solid var(--line);
+}
+
+.dph-sheet li:first-child {
+  border-top: 0;
+}
+
+.dph-sheet b {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.dph-sheet li span {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.dph-caption {
+  position: relative;
+  padding: 0 var(--gutter) 10px;
+  margin-top: -6px;
+  font-size: 11.5px;
+  color: var(--ink-3);
+  text-align: right;
+  background: var(--ground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dph-card {
+    transition: none;
+  }
+  .dph-m.is-card .dph-card-dot::after {
+    animation: none;
+  }
+}
+
+/* ── the rows, one line each on a phone (the state above carries the rest) ── */
+.dph-card .sc.ddc .ddc-clockin > :nth-child(3) {
+  display: none;
+}
+.dph-card .sc.ddc .ddc-insp > .sce-td:nth-child(2) {
+  display: none;
+}
+.dph-card .sc.ddc .ddc-haul {
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+}
+.dph-card .sc.ddc .ddc-haul > :nth-child(6) {
+  display: none;
+}
+.dph-card .sc.ddc .ddc-profit .sc-kpi {
+  padding: 8px 12px;
+  gap: 12px;
+}
+.dph-card .sc.ddc .ddc-profit .sc-kpi-well {
+  width: 38px;
+  height: 38px;
+}
+.dph-card .sc.ddc .ddc-profit .sc-kpi-sub {
+  display: none;
+}
+.dph-card .sc.ddc .ddc-profit .sc-kpi-value {
+  font-size: 22px;
+  line-height: 26px;
+}
+
+/* the toast is its own state line (Friday) */
+.dph-m[data-moment="payroll"] .dph-card-state {
+  display: none;
+}
+
+/* office → field (5:30 PM): the plan comes down from the office, above the phone, so the
+   phone's own sheet (bottom of its screen) stays in view */
+.dph-m[data-moment="plan"] .dph-card {
+  top: 9%;
+  bottom: auto;
+  transform: translate(-50%, -24px);
+}
+.dph-m[data-moment="plan"].is-card .dph-card {
+  transform: translate(-50%, 0);
+}
+/* no card in a card: the KPI sits straight on the update card (the intro's .sc-kpi card style
+   in index.html shares the class name: undo it here) */
+.dph-card .sc.ddc .ddc-profit .sc-kpi {
+  display: flex;
+  align-items: center;
+  width: auto;
+  min-height: 0;
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}

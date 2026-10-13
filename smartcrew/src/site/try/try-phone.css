@@ -1,76 +1,89 @@
-/* 3 · Try it on phones: the page becomes the crew app. */
+/* 3 · Try it on phones (PHONE MODE, ./TryPhone.tsx): one screen; the page becomes the crew app.
+   The line on top, the live app edge to edge under it. It rises once on arrival; after the tap a
+   note slides over the bottom. Transform/opacity only, no blur, nothing per frame while scrolling.
+   The `.tp-ui` rules (the app's UI at the visitor's width) are shared with TryDomPhone (desktop
+   without WebGL). */
 
-.try--phone .scene-stage {
-  background: var(--page-ground, var(--ground));
+.try--phone .scene-body {
+  height: 100vh;
+  height: 100svh;
+  min-height: 540px;
+  max-height: 940px;
+  overflow: hidden;
+  background: var(--ground);
 }
 
 .tp {
   position: relative;
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  --tp-top: var(--header-h);
-  /* where the app's top edge rests before it rises, as a fraction of its own height */
-  --tp-peek: 0.5;
+  padding-top: var(--header-h);
 }
 
-.tp-intro {
-  position: absolute;
-  inset: var(--tp-top) 0 auto;
-  padding-top: clamp(12px, 2.6svh, 22px);
-  will-change: transform, opacity;
+.tp-head {
+  flex: none;
+  padding-top: clamp(10px, 2.2svh, 18px);
+  padding-bottom: clamp(12px, 2.4svh, 18px);
+}
+
+/* before / after the tap, stacked in one cell: the taller one sets the height */
+.tp-swap {
+  display: grid;
+}
+
+.tp-swap > * {
+  grid-area: 1 / 1;
+  transition:
+    opacity 0.35s var(--ease-out),
+    transform 0.5s var(--ease-out);
+}
+
+.tp-swap > .tp-b {
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+}
+
+.tp.is-on .tp-swap > .tp-a {
+  opacity: 0;
+  transform: translate3d(0, -10px, 0);
+}
+
+.tp.is-on .tp-swap > .tp-b {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.12s;
 }
 
 .tp-title {
-  font-size: clamp(30px, 8.6vw, 38px);
-  line-height: 1.02;
-  max-width: 9em;
+  font-size: clamp(28px, 8vw, 34px);
+  line-height: 1.03;
+  max-width: 10em;
 }
 
 .tp-prompt {
-  margin-top: 10px;
+  margin-top: 6px;
   font-size: 16px;
-  max-width: 21rem;
-}
-
-.tp-facts {
-  margin-top: 14px;
-  display: grid;
-  gap: 8px;
-  max-width: 22rem;
-}
-
-.tp-facts li {
-  font-size: 13.5px;
-  line-height: 1.45;
-  color: var(--ink-3);
-}
-
-.tp-facts strong {
-  font-weight: 650;
+  line-height: 1.35;
   color: var(--ink-2);
 }
 
-/* the app: a full-width sheet under the header that rises from the peek to fill the screen */
+/* the app: edge to edge under the line, a white sheet with rounded top corners */
 .tp-app {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: var(--tp-top);
-  height: calc(100% - var(--tp-top));
-  transform-origin: 50% 0;
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden;
   background: #fff;
-  will-change: transform;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -1px 0 rgb(23 19 15 / 7%), 0 -8px 20px rgb(23 19 15 / 6%);
+  transform: translate3d(0, 56px, 0);
+  transition: transform 0.75s var(--ease-out);
 }
 
-.tp-app-shadow {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow:
-    0 -1px 0 rgb(23 19 15 / 6%),
-    0 -18px 50px rgb(23 19 15 / 14%);
-  pointer-events: none;
-  z-index: 3;
+/* arrival (once): the app rises into place */
+.tp.is-in .tp-app {
+  transform: none;
 }
 
 /* the app's own UI at the visitor's width (the screens are drawn for 402 px; they flex) */
@@ -220,12 +233,19 @@
   right: 0;
   bottom: 0;
   z-index: 4;
-  padding: 18px var(--gutter) calc(10px + env(safe-area-inset-bottom));
+  padding: 16px var(--gutter) calc(10px + env(safe-area-inset-bottom));
   background: var(--ground);
   border-radius: 22px 22px 0 0;
   box-shadow:
-    0 -1px 0 rgb(23 19 15 / 6%),
-    0 -20px 44px rgb(23 19 15 / 16%);
+    0 -1px 0 rgb(23 19 15 / 7%),
+    0 -10px 24px rgb(23 19 15 / 12%);
+  animation: tp-sheet-up 0.55s var(--ease-out) both;
+}
+
+@keyframes tp-sheet-up {
+  from {
+    transform: translate3d(0, 105%, 0);
+  }
 }
 
 .tp-stamp {
@@ -235,31 +255,43 @@
   font-variant-numeric: tabular-nums;
 }
 
-.tp-done-1 {
-  margin-top: 6px;
-  font-size: 24px;
-}
-
-.tp-done-2 {
-  margin-top: 2px;
-  font-size: 16px;
-  color: var(--ink-2);
-}
-
 .tp-cta.cta {
   display: flex;
   width: 100%;
-  margin-top: 14px;
+  /* room for the CTA's one-time geofence cue clear of the stamp */
+  margin-top: 16px;
 }
 
 .tp-again {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  margin-top: 4px;
   font-size: 14px;
   font-weight: 560;
   color: var(--ink-2);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tp-ring {
+  .tp-ring,
+  .tp-sheet {
     animation: none;
+  }
+  .tp-swap > *,
+  .tp-app {
+    transition: none;
+  }
+}
+
+/* short phones: the app keeps the room it needs for the Clock In circle */
+@media (max-height: 640px) {
+  .tp-title {
+    font-size: 26px;
+  }
+  .tp-prompt {
+    font-size: 15px;
+  }
+  .tp .tp-ui .pc-dayoff {
+    display: none;
   }
 }

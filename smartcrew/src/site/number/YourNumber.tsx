@@ -13,6 +13,8 @@ import { SceneCta } from "../try/SceneCta";
 import { CrewSlider } from "./CrewSlider";
 import { Odometer } from "./Odometer";
 import { DAYS_DEFAULT, annualCost, money, parseDays, weekly } from "./calc";
+import { usePhoneLite } from "../phone";
+import NumberPhone from "./NumberPhone";
 import "./number.css";
 
 function Chips<T extends number>({
@@ -182,6 +184,13 @@ function Calculator() {
 const NUMBER_POSES = exitKeys({ hold: true, side: 1, start: 0 });
 
 export default function YourNumber() {
+  // phones: the light 2D build (one screen, the crew on one canvas; no Stage keys)
+  if (usePhoneLite())
+    return (
+      <Scene id="number" pinnedViewports={1} stage="keep" label="Your number" className="num num--phone">
+        <NumberPhone />
+      </Scene>
+    );
   return (
     // desktop: natural height, tight to the calculator (no empty band); phones keep one full
     // screen (slider, result and CTA in one view), set in number.css

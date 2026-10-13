@@ -74,7 +74,8 @@ export default function Stage() {
   useEffect(() => onStageChange(() => !xdr && devicesInUse().has("display") && setXdr(true)), [xdr]);
 
   if (!ok || failed) return null;
-  const maxDpr = Math.min(window.devicePixelRatio || 1, phone ? 1.5 : 2);
+  // ?stageHQ (rendering stills): the screen's full DPR, e.g. 3 for the phone stills
+  const maxDpr = HQ ? window.devicePixelRatio || 1 : Math.min(window.devicePixelRatio || 1, phone ? 1.5 : 2);
   return (
     <Canvas
       className="stage"

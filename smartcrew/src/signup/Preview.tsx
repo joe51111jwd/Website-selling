@@ -254,12 +254,9 @@ function Compact({ draft, focus, hidden }: Props) {
   const { company, first, done, count } = useFacts(draft);
   const sub = [draft.size ? `${draft.size} crew members` : null, done.admin ? `Admin ${first}` : null].filter(Boolean).join(" · ");
   return (
-    <motion.div
-      className="su-pvc"
-      initial={false}
-      animate={hidden ? { height: 0, opacity: 0 } : { height: "auto", opacity: 1 }}
-      transition={{ duration: reduce ? 0 : 0.26, ease: [0.22, 1, 0.36, 1] }}
-    >
+    // while the keyboard is up the strip steps out at once (animating its height would lay the
+    // sheet out every frame while the keyboard itself is moving); it fades back in after
+    <div className={`su-pvc${hidden ? " is-hidden" : ""}`}>
       <div className="su-pvc-in">
         <p className="su-pv-label">
           <span className="su-pv-live" aria-hidden="true" />
@@ -301,6 +298,6 @@ function Compact({ draft, focus, hidden }: Props) {
           </span>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

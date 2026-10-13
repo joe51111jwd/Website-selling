@@ -53,6 +53,11 @@ function useMedia(q: string) {
 
 const PULSE_TARGET = ["company", "admin", "call"] as const;
 
+/** The page's scroll lock (phones apply it after the sheet's slide; see the effect). */
+let lockTimer = 0;
+let locked = false;
+let lockedPrev = "";
+
 /** Once the visitor reaches the last step, warm up /book and Andrew's calendar so the hand-off is instant. */
 function warmBooking() {
   const add = (rel: string, href: string, as?: string) => {
@@ -134,13 +139,26 @@ export default function Dialog({ req, opener, onClose }: Props) {
   }, [req]);
 
   // ── while open: scroll lock, Back button closes, tell the page ───────────────
+  // Phones: locking the page (overflow on <html>) restyles and re-lays-out the whole page (~1,200
+  // elements, every content-visibility scene re-checked): a long task if it lands in the tap. So
+  // on phones the lock waits until the sheet has slid up, and comes off once it has slid away;
+  // the sheet covers the page meanwhile and the finger that tapped has already lifted.
   useEffect(() => {
     if (!open) return;
     const html = document.documentElement;
-    const prev = html.style.overflow;
-    html.style.overflow = "hidden";
+    window.clearTimeout(lockTimer);
+    const prev = locked ? lockedPrev : html.style.overflow;
+    const lock = () => {
+      lockTimer = 0;
+      if (!locked) lockedPrev = html.style.overflow;
+      locked = true;
+      html.style.overflow = "hidden";
+      window.dispatchEvent(new CustomEvent("smartcrew:signup-state", { detail: { open: true } }));
+    };
+    const slow = phone && !reduce;
+    if (slow) lockTimer = window.setTimeout(lock, 520);
+    else lock();
     html.dataset.signup = "open";
-    window.dispatchEvent(new CustomEvent("smartcrew:signup-state", { detail: { open: true } }));
     if (!pushed.current) {
       try {
         history.pushState({ ...(history.state ?? {}), scSignup: true }, "");
@@ -156,11 +174,20 @@ export default function Dialog({ req, opener, onClose }: Props) {
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
-      html.style.overflow = prev;
       delete html.dataset.signup;
-      window.dispatchEvent(new CustomEvent("smartcrew:signup-state", { detail: { open: false } }));
+      window.clearTimeout(lockTimer);
+      const unlock = () => {
+        lockTimer = 0;
+        if (!locked) return;
+        locked = false;
+        html.style.overflow = prev;
+        window.dispatchEvent(new CustomEvent("smartcrew:signup-state", { detail: { open: false } }));
+      };
+      if (slow && locked) lockTimer = window.setTimeout(unlock, 320);
+      else unlock();
       opener.current?.focus?.({ preventScroll: true });
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, opener]);
 
   // the resume pill (laptops): after closing halfway, a quiet way back in
@@ -179,21 +206,32 @@ export default function Dialog({ req, opener, onClose }: Props) {
     return () => window.removeEventListener("pageshow", onShow);
   }, []);
 
-  // phones: keep the sheet (and its Continue button) inside the visible area above the keyboard
+  // phones: keep the sheet (and its Continue button) inside the visible area above the keyboard.
+  // The two variables live on the popup's own root, not on <html>: a custom property changed on
+  // <html> restyles the whole page (every scene inherits it), once per keyboard resize event.
+  const shell = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
     const vv = window.visualViewport;
-    if (!vv) return;
-    const root = document.documentElement;
+    const root = shell.current;
+    if (!vv || !root) return;
+    let last = "";
     const update = () => {
-      root.style.setProperty("--su-vvh", `${vv.height}px`);
-      root.style.setProperty("--su-vvt", `${vv.offsetTop}px`);
+      const h = `${vv.height}px`;
+      const t = `${vv.offsetTop}px`;
+      if (h + t === last) return;
+      last = h + t;
+      root.style.setProperty("--su-vvh", h);
+      root.style.setProperty("--su-vvt", t);
       setKb(window.innerHeight - vv.height > 140);
     };
-    update();
+    // first read on the next frame: reading the visual viewport right after the DOM changed
+    // forces a synchronous style + layout inside the tap
+    const raf = requestAnimationFrame(update);
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
     return () => {
+      cancelAnimationFrame(raf);
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
       root.style.removeProperty("--su-vvh");
@@ -389,7 +427,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
     <>
       <AnimatePresence>
         {open && (
-          <motion.div className="su-root" key="su-root" data-intent={intent}>
+          <motion.div className="su-root" key="su-root" data-intent={intent} ref={shell}>
             <motion.div
               className="su-scrim"
               onClick={close}
@@ -407,10 +445,16 @@ export default function Dialog({ req, opener, onClose }: Props) {
               aria-labelledby={`${ids}-title`}
               aria-describedby={`${ids}-honest`}
               onKeyDown={onKeyDown}
-              initial={phone ? { y: "100%" } : { opacity: 0, y: 30, scale: 0.965, ...blur(12) }}
-              animate={phone ? { y: 0 } : { opacity: 1, y: 0, scale: 1, ...blur(0) }}
-              exit={phone ? { y: "100%" } : { opacity: 0, y: 14, scale: 0.98, ...blur(6), transition: { duration: 0.18 } }}
-              transition={phone ? (reduce ? { duration: 0 } : { type: "spring", stiffness: 320, damping: 36 }) : spring}
+              // phones: the sheet slides up as one `transform` tween (runs on the compositor; a
+              // `y` spring is written by JS every frame)
+              initial={phone ? { transform: "translateY(100%)" } : { opacity: 0, y: 30, scale: 0.965, ...blur(12) }}
+              animate={phone ? { transform: "translateY(0%)" } : { opacity: 1, y: 0, scale: 1, ...blur(0) }}
+              exit={
+                phone
+                  ? { transform: "translateY(100%)", transition: { duration: reduce ? 0 : 0.26, ease: [0.4, 0, 1, 1] } }
+                  : { opacity: 0, y: 14, scale: 0.98, ...blur(6), transition: { duration: 0.18 } }
+              }
+              transition={phone ? (reduce ? { duration: 0 } : { duration: 0.46, ease: [0.32, 0.72, 0, 1] }) : spring}
             >
               <header className="su-head">
                 <div className="su-head-row">

@@ -210,9 +210,12 @@
 
 /* ── phones ───────────────────────────────────────────────────────────── */
 
+/* PHONE MODE: compact. The questions as tight rows (one open at a time), then the close in one
+   screen: the hero's still of the devices (the page bookends with the product), Andrew's line,
+   the CTA. No transforms on scroll; answers open by grid rows (tapped, not scrolled). */
 @media (max-width: 760px) {
   .faq .scene-body {
-    padding-block: calc(var(--header-h) + 12px) calc(var(--sticky-h) + 24px);
+    padding-block: calc(var(--header-h) + 8px) 18px;
   }
 
   .faq-grid {
@@ -220,27 +223,81 @@
   }
 
   .faq-title {
-    margin-bottom: 14px;
+    margin-bottom: 10px;
+    font-size: clamp(26px, 7.2vw, 30px);
   }
 
-  .faq-close {
-    margin-top: 20px;
+  .faq-q {
+    min-height: 52px;
+    padding-block: 8px;
+    gap: 14px;
+    font-size: 16.5px;
   }
 
-  .faq-stage-box {
-    height: clamp(170px, 30svh, 230px);
+  .faq-icon {
+    width: 28px;
+    height: 28px;
   }
 
   .faq-a-text {
-    padding-right: 8px;
+    padding: 0 6px 14px 0;
+    font-size: 15.5px;
+    line-height: 1.5;
+  }
+
+  .faq-close {
+    align-items: stretch;
+    margin-top: 22px;
+  }
+
+  .faq-stage-box {
+    height: auto;
+    display: flex;
+    justify-content: center;
+  }
+
+  .faq-still {
+    display: block;
+    width: min(100%, 330px);
+    height: auto;
+    aspect-ratio: 1170 / 774;
+  }
+
+  .faq-close-head {
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .faq-face {
+    width: 40px;
+    height: 40px;
+  }
+
+  .faq-close-line {
+    font-size: 20px;
   }
 
   .faq-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
     width: 100%;
+    margin-top: 14px;
   }
 
   .faq-actions .cta {
     width: 100%;
+  }
+
+  .faq-actions .link {
+    align-self: center;
+    min-height: 40px;
+  }
+
+  .faq-micro {
+    margin-top: 2px;
+    text-align: center;
+    max-width: none;
   }
 }
 

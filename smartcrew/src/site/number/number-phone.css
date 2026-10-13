@@ -1,0 +1,396 @@
+/* 4 · Your number, PHONE MODE (./NumberPhone.tsx, ./CrewCanvas.tsx). One screen: the question,
+   the crew (one canvas), two picks, then the visitor's number and the orange CTA in the thumb
+   zone. Transform/opacity only; nothing blurs; nothing runs while scrolling. */
+
+.num--phone .scene-body {
+  display: flex;
+  height: 100vh;
+  height: 100svh;
+  min-height: 560px;
+  max-height: 900px;
+}
+
+.nph {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding-top: calc(var(--header-h) + clamp(10px, 2.4svh, 20px));
+  padding-bottom: calc(clamp(10px, 2svh, 16px) + env(safe-area-inset-bottom));
+}
+
+.nph-title {
+  font-size: clamp(27px, 7.8vw, 33px);
+  line-height: 1.03;
+  max-width: 10.5em;
+}
+
+/* ── the crew ───────────────────────────────────────────────────────────── */
+
+.ncv {
+  margin-top: clamp(12px, 2.6svh, 22px);
+}
+
+.ncv-read {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  height: 40px;
+}
+
+.ncv-n {
+  font-size: 46px;
+  line-height: 0.86;
+  min-width: 1.1ch;
+}
+
+.ncv-unit {
+  font-size: 16px;
+  font-weight: 560;
+  color: var(--ink-2);
+}
+
+.ncv:not(.is-set) .ncv-read {
+  align-items: center;
+}
+
+.ncv:not(.is-set) .ncv-unit {
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+/* an arrow after "Drag to your crew size" until it's touched */
+.ncv:not(.is-set) .ncv-unit::after {
+  content: "→";
+  display: inline-block;
+  margin-left: 8px;
+  animation: ncv-nudge-arrow 2.4s var(--ease-in-out) 1.2s infinite;
+}
+
+@keyframes ncv-nudge-arrow {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: translateX(6px);
+  }
+}
+
+.ncv-area {
+  position: relative;
+  margin-top: 8px;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 10px;
+}
+
+.ncv-area:focus-visible {
+  outline: 2.5px solid var(--orange);
+  outline-offset: 6px;
+}
+
+.ncv-grid {
+  display: block;
+  width: 100%;
+}
+
+.ncv-track {
+  position: relative;
+  height: 34px;
+  margin-top: 2px;
+}
+
+.ncv-track::before,
+.ncv-fill {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 2px;
+}
+
+.ncv-track::before {
+  background: rgb(23 19 15 / 12%);
+}
+
+.ncv-fill {
+  background: var(--ink);
+  transform-origin: 0 50%;
+}
+
+.ncv-thumb {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0;
+  height: 0;
+  will-change: transform;
+}
+
+.ncv-stake {
+  position: absolute;
+  left: -0.75px;
+  bottom: 0;
+  width: 1.5px;
+  background: var(--ink);
+  border-radius: 1px;
+  opacity: 0;
+  transform-origin: 50% 100%;
+  transform: scaleY(0.6);
+  transition:
+    opacity 0.25s var(--ease-out),
+    transform 0.35s var(--ease-out);
+}
+
+.ncv.is-set .ncv-stake {
+  opacity: 1;
+  transform: none;
+}
+
+.ncv-knob {
+  position: absolute;
+  left: -16px;
+  top: -16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--ink);
+  box-shadow:
+    0 0 0 3px var(--ground),
+    0 3px 8px rgb(23 19 15 / 22%);
+  transition: transform 0.2s var(--ease-out);
+}
+
+.ncv-knob svg {
+  width: 15px;
+  height: 10px;
+}
+
+.ncv.is-drag .ncv-knob {
+  transform: scale(0.9);
+}
+
+.ncv:not(.is-set) .ncv-knob {
+  animation: ncv-nudge 2.4s var(--ease-in-out) 1.2s infinite;
+}
+
+@keyframes ncv-nudge {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: translateX(10px);
+  }
+}
+
+/* ── the picks ──────────────────────────────────────────────────────────── */
+
+.nph-pick {
+  margin-top: clamp(10px, 2svh, 16px);
+}
+
+.nph-pick-k {
+  font-size: 13.5px;
+  line-height: 1.3;
+  font-weight: 620;
+  color: var(--ink);
+}
+
+.nph-pick-note {
+  font-weight: 450;
+  color: var(--ink-3);
+}
+
+.nph-chips {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.nph-chip {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 42px;
+  padding: 0 4px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-size: 16px;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.16s var(--ease-out),
+    border-color 0.16s var(--ease-out),
+    color 0.16s var(--ease-out),
+    transform 0.12s var(--ease-out);
+}
+
+.nph-chip:active {
+  transform: scale(0.96);
+}
+
+.nph-chip.is-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+/* ── the result, the CTA (in the thumb zone) ────────────────────────────── */
+
+.nph-out {
+  margin-top: auto;
+  padding-top: clamp(12px, 2.4svh, 20px);
+}
+
+.nph-big {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+/* "a year" over "about $925 a week", beside the figure */
+.nph-per {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-bottom: 0.2em;
+}
+
+.nph-odo {
+  font-size: clamp(44px, 12.4vw, 52px);
+  line-height: 1;
+}
+
+.nph-year {
+  line-height: 1.05;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  letter-spacing: var(--track-sub);
+  font-size: 19px;
+  font-weight: 640;
+  color: var(--ink-2);
+}
+
+.nph:not(.is-done) .nph-year {
+  color: var(--ink-3);
+  opacity: 0.6;
+}
+
+.nph-formula {
+  margin-top: 4px;
+  min-height: 1.5em;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.nph:not(.is-done) .nph-formula {
+  color: var(--ink-3);
+}
+
+.nph-week {
+  font-size: 13.5px;
+  font-weight: 560;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.nph-blank {
+  display: inline-block;
+  min-width: 1.4em;
+  text-align: center;
+  color: var(--ink-3);
+  border-bottom: 1.5px solid var(--line);
+  line-height: 1.2;
+}
+
+.nph-days {
+  white-space: nowrap;
+}
+
+.nph-days input {
+  width: 3.2ch;
+  padding: 0 1px;
+  border: 0;
+  border-bottom: 1.5px dashed var(--ink-3);
+  border-radius: 0;
+  background: transparent;
+  font: inherit;
+  /* 16px stops iOS zooming the page on focus; scaled back to the line's size */
+  font-size: 16px;
+  transform: scale(0.85);
+  transform-origin: 50% 70%;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.nph-days input:focus {
+  outline: none;
+  border-bottom: 1.5px solid var(--orange);
+  background: rgb(255 122 1 / 8%);
+}
+
+.nph-cta.cta {
+  display: flex;
+  width: 100%;
+  margin-top: clamp(10px, 2svh, 14px);
+}
+
+.nph-micro {
+  margin-top: 8px;
+  font-size: 12.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ncv:not(.is-set) .ncv-knob,
+  .ncv:not(.is-set) .ncv-unit::after {
+    animation: none;
+  }
+}
+
+/* the small print only where it fits under the CTA */
+@media (max-height: 700px) {
+  .nph-micro {
+    display: none;
+  }
+}
+
+/* short phones (in-app browsers with tall toolbars): tighten so the CTA stays on screen */
+@media (max-height: 640px) {
+  .nph-title {
+    font-size: 26px;
+  }
+  .ncv-read {
+    height: 34px;
+  }
+  .ncv-n {
+    font-size: 38px;
+  }
+  .ncv-track {
+    height: 30px;
+  }
+  .nph-chip {
+    height: 38px;
+  }
+  .nph-odo {
+    font-size: 42px;
+  }
+}

@@ -177,22 +177,51 @@
   }
 }
 
+/* PHONE MODE: compact. The fenced logo, the two links on one row, the legal row, the notes.
+   (The tagline repeats the hero; it stays on laptops.) */
 @media (max-width: 760px) {
   .ftr {
-    padding-block: 32px calc(var(--sticky-h) + env(safe-area-inset-bottom) + 16px);
+    padding-block: 24px calc(var(--sticky-h) + env(safe-area-inset-bottom) + 14px);
   }
   .ftr-top {
     flex-direction: column;
-    gap: 12px;
+    gap: 2px;
   }
-  .ftr-base {
-    margin-top: 24px;
+  .ftr-tag {
+    display: none;
+  }
+  .ftr-mark {
+    width: 64px;
+    height: 52px;
+  }
+  .ftr-mark-svg {
+    height: 26px;
+  }
+  .ftr-word {
+    height: 19px;
   }
   .ftr-links {
-    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 22px;
+  }
+  .ftr-links a {
+    font-size: 15px;
+  }
+  .ftr-base {
+    margin-top: 12px;
+    padding-top: 10px;
+    gap: 6px;
   }
   .ftr-legal {
     flex-wrap: wrap;
+    gap: 0 20px;
+    font-size: 13.5px;
+  }
+  .ftr-notes {
+    font-size: 11.5px;
+    line-height: 1.5;
   }
 }
 

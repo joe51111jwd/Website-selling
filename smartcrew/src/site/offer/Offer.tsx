@@ -12,6 +12,8 @@ import { Receipt } from "./Receipt";
 import { useSeen } from "./useSeen";
 import { DemoButton, TrialButton } from "./Actions";
 import { playCue } from "../ui/cue";
+import { usePhoneLite } from "../phone";
+import OfferPhone from "./OfferPhone";
 import "./offer.css";
 
 // No devices here: Five apps glides them out past the right edge as this scene comes up (its exit
@@ -20,7 +22,12 @@ import "./offer.css";
 // this natural-height scene's end would land after the FAQ has started bringing them back.
 const OFFER_POSES = exitKeys({ hold: true, side: 1, start: -0.2, end: -0.18 });
 
+/** Phones (PHONE MODE): face, one line, the receipt (simplified, prints once), the CTA (./OfferPhone.tsx). */
 export default function Offer() {
+  return usePhoneLite() ? <OfferPhone /> : <OfferDesk />;
+}
+
+function OfferDesk() {
   return (
     // natural height, tight to its content (BRIEF round 2 §7): no empty band above or below it
     <Scene id="offer" pinnedViewports={0} poses={OFFER_POSES} label="Andrew and the offer" className="offer">

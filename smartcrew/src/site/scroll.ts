@@ -1,16 +1,28 @@
 // Scrolling: native everywhere; on desktop with a mouse or trackpad, Lenis smooths the wheel so
 // scroll-scrubbed scenes glide (it still moves the real window scroll, so position: sticky,
-// useScroll and the Stage all just work). Off on touch and for reduced motion.
+// useScroll and the Stage all just work). Off on touch, on phones (App never starts it there; it
+// is a lazy chunk, so phones don't download it) and for reduced motion.
 
-import Lenis from "lenis";
+import type Lenis from "lenis";
 import { reducedMotion, sceneY } from "../three/stage/store";
 
 let lenis: Lenis | null = null;
+let starting = false;
 
 export function startSmoothScroll() {
-  if (lenis || reducedMotion || !window.matchMedia("(pointer: fine)").matches) return () => {};
-  lenis = new Lenis({ duration: 1.05, easing: (t) => 1 - Math.pow(1 - t, 3.2), wheelMultiplier: 0.95, autoRaf: true, anchors: false });
+  if (lenis || starting || reducedMotion || !window.matchMedia("(pointer: fine)").matches) return () => {};
+  starting = true;
+  let stopped = false;
+  import("lenis")
+    .then(({ default: L }) => {
+      starting = false;
+      if (stopped || lenis) return;
+      lenis = new L({ duration: 1.05, easing: (t) => 1 - Math.pow(1 - t, 3.2), wheelMultiplier: 0.95, autoRaf: true, anchors: false });
+      if (document.documentElement.classList.contains("scroll-locked")) lenis.stop();
+    })
+    .catch(() => (starting = false));
   return () => {
+    stopped = true;
     lenis?.destroy();
     lenis = null;
   };

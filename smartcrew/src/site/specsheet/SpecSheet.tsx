@@ -29,6 +29,8 @@ import { playCue } from "../ui/cue";
 import { CATEGORIES, TOOL_COUNT, screensOf, type Category, type Tool } from "./data";
 import { Roll } from "./Roll";
 import { Snippet, warmScreen } from "./Snippet";
+import { usePhoneLite } from "../phone";
+import SpecPhone from "./SpecPhone";
 import "./specsheet.css";
 
 type View = { kind: "sheet" } | { kind: "cat"; cat: string; tool: string | null } | { kind: "all" };
@@ -129,7 +131,12 @@ const captionFor = (t: Tool) => `${SPEC.app[t.shot.kind]} · ${SPEC.screen[t.sho
  */
 const EXIT = exitKeys({ start: -0.98, end: 0, side: { macbook: -1, iphone: 1, display: 1 } }).slice(0, 2);
 
+/** Phones get the light 2D sheet (./SpecPhone.tsx: rows land once, a section opens as a full-screen sheet). */
 export default function SpecSheet() {
+  return usePhoneLite() ? <SpecPhone /> : <SpecDesk />;
+}
+
+function SpecDesk() {
   return (
     <Scene id="specs" pinnedViewports={1} poses={EXIT} label={SPEC.label} className="spec">
       <SpecInner />

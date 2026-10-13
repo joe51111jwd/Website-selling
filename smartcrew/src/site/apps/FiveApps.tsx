@@ -14,6 +14,8 @@ import { StageAnchor, phone } from "../../three/stage";
 import { Cta } from "../ui/Cta";
 import { APPS_VIEWPORTS, CLOSE_AT, PAYOFF_AT, SHOTS, appsPoses } from "./poses";
 import { runTiles } from "./tiles";
+import { usePhoneLite } from "../phone";
+import AppsPhone from "./AppsPhone";
 import "./apps.css";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -140,7 +142,12 @@ function AppsStage() {
   );
 }
 
+/** Phones (PHONE MODE): no Stage, no per-frame tile loop: a trigger-once beat (./AppsPhone.tsx). */
 export default function FiveApps() {
+  return usePhoneLite() ? <AppsPhone /> : <FiveAppsDesk />;
+}
+
+function FiveAppsDesk() {
   const poses = useMemo(appsPoses, []);
   return (
     <Scene id="apps" pinnedViewports={APPS_VIEWPORTS} poses={poses} label={APPS_SCENE.label} className="apps">

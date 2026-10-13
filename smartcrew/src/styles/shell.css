@@ -197,3 +197,35 @@ html[data-ground="dark"] .site-nav a:hover {
     transform: none;
   }
 }
+
+/* ── PHONE MODE (BRIEF ROUND 3, scratchpad design/v2/phone/PHONE.md): no backdrop-filter, no big
+      blurred shadows on anything that sits over scrolling content. Solid grounds instead. ── */
+@media (max-width: 760px) {
+  .site-header {
+    transition: background-color 0.3s var(--ease-out);
+  }
+  .site-header.is-solid {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--page-ground, var(--ground));
+  }
+  .sticky-bar {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--paper);
+    box-shadow: 0 -1px 0 rgb(23 19 15 / 9%);
+    will-change: transform;
+  }
+}
+
+/* PHONE MODE: scenes below the first screens skip style, layout and paint until they come near
+   (content-visibility). The boot's first layout covers the hero and the first moment only.
+   Pinned scenes keep their exact height (explicit), natural-height ones start from one screen
+   and remember their real height once rendered (`auto`). */
+@media (max-width: 760px) {
+  .site > .scene:not(.hero):not(.day) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 100vh;
+    contain-intrinsic-size: auto 100svh;
+  }
+}

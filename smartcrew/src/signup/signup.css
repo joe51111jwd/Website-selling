@@ -1306,6 +1306,10 @@
 
   .su-pvc {
     overflow: hidden;
+    animation: su-pvc-in 0.26s var(--ease-out) both;
+  }
+  .su-pvc.is-hidden {
+    display: none;
   }
   .su-pvc-in {
     padding: 14px var(--su-form-x) 0;
@@ -1431,4 +1435,11 @@
 .su-pill .su-pill-go:focus-visible,
 .su-pill .su-pill-x:focus-visible {
   border-radius: 999px;
+}
+
+/* phones: the preview strip fades back in when the keyboard goes down */
+@keyframes su-pvc-in {
+  from {
+    opacity: 0;
+  }
 }

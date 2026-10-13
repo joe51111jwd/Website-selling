@@ -3,11 +3,13 @@
 // screens). The Stage reads all of it every frame; nothing here touches WebGL.
 
 import { DEVICE_IDS, type Box, type DeviceId, type DeviceState, type Ease, type PoseKey, type PulseSpec, type ResolvedKey } from "./types";
+import { isPhoneLite, phoneAtLoad } from "../../site/phone";
 
 // ─── environment ──────────────────────────────────────────────────────────────
 export const reducedMotion = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 export const coarse = typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
-export const phone = typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches;
+/** The page opened in phone mode (src/site/phone.ts is the source of truth; poses read this). */
+export const phone = phoneAtLoad;
 
 // ─── change notifications (the Stage invalidates its frame on these) ─────────
 type Fn = () => void;
@@ -61,16 +63,32 @@ export function registerAnchor(id: string, el: HTMLElement) {
   };
 }
 
+/** 100svh in px (what every pinned .scene-stage is tall), from a fixed probe. */
+let svhProbe: HTMLElement | null = null;
+function smallViewportHeight() {
+  if (!svhProbe) {
+    svhProbe = document.createElement("div");
+    svhProbe.setAttribute("aria-hidden", "true");
+    svhProbe.style.cssText = "position:fixed;left:0;top:0;width:0;height:100vh;height:100svh;visibility:hidden;pointer-events:none;contain:strict";
+    document.body.appendChild(svhProbe);
+  }
+  return svhProbe.offsetHeight || window.innerHeight;
+}
+
 /** Measure every scene and anchor. Runs on resize, font load and DOM size changes, never per frame. */
 export function measure() {
   const sy = window.scrollY;
+  // PHONE MODE (no Stage): only the scenes' own boxes. Reading anything inside a scene would
+  // force its skipped (content-visibility) content to lay out; pinned stages are 100svh tall.
+  const lite = isPhoneLite();
+  const svh = lite ? smallViewportHeight() : 0;
   scenes.forEach((s) => {
     const r = s.el.getBoundingClientRect();
     s.top = r.top + sy;
     s.height = r.height;
-    s.stageH = s.stage ? s.stage.getBoundingClientRect().height : r.height;
+    s.stageH = s.stage ? (lite ? svh : s.stage.getBoundingClientRect().height) : r.height;
   });
-  anchors.forEach((a) => {
+  if (!lite) anchors.forEach((a) => {
     const r = a.el.getBoundingClientRect();
     a.left = r.left;
     a.w = r.width;
@@ -432,6 +450,28 @@ export function setFailed() {
 }
 export function setNoWebGL() {
   status.webgl = false;
+  emitStatus();
+}
+/**
+ * App mounts the Stage only off phones (src/site/phone.ts). While it isn't mounted the page is in
+ * its no-3D state: html.stage-fallback, the poster stills stay up, DOM falls back to them. When
+ * it mounts (again), the Stage sets ready on its first frame.
+ */
+let offByApp = false;
+export function setStageMounted(on: boolean) {
+  if (on) {
+    // undo only our own "off" (the Stage itself reports a device without WebGL)
+    if (!offByApp) return;
+    offByApp = false;
+    status.webgl = true;
+    // the unmounted Stage's context was released ("lost" on purpose): the new one starts clean
+    status.failed = false;
+  } else {
+    if (offByApp && !status.ready) return;
+    offByApp = true;
+    status.webgl = false;
+    status.ready = false;
+  }
   emitStatus();
 }
 /** Start the devices' entrance (the intro calls this as it opens; without an intro, the hero does). */

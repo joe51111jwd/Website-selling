@@ -33,7 +33,7 @@ function stamp(d = new Date()) {
 }
 
 /** A serrated paper edge: n teeth stretched across the width, so it is symmetric at any size. */
-function Edge({ side, teeth = 34 }: { side: "top" | "bottom"; teeth?: number }) {
+export function Edge({ side, teeth = 34 }: { side: "top" | "bottom"; teeth?: number }) {
   const w = teeth * 10;
   let d = side === "top" ? `M0 8` : `M0 0`;
   for (let i = 0; i < teeth; i++) {

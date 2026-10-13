@@ -1,0 +1,263 @@
+/* The 2D iPhone (./PhoneFrame.tsx). Every length is in screen points: --u = 1 pt of the 402 × 874
+   screen (the body is 430 × 900), via container units, so the frame is crisp at any size and
+   costs nothing per frame. Animations: opacity and transform only. */
+
+.pf {
+  position: relative;
+  isolation: isolate;
+  container-type: inline-size;
+  width: 100%;
+  aspect-ratio: 430 / 900;
+  flex: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.pf-body {
+  --u: calc(100cqw / 430);
+  position: absolute;
+  inset: 0;
+  padding: calc(var(--u) * 3);
+  border-radius: calc(var(--u) * 70);
+  /* black titanium: a rim that catches a little light on the left and the right */
+  background: linear-gradient(90deg, #4b4946 0%, #22211f 3.5%, #191817 50%, #22211f 96.5%, #4b4946 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--u) * 0.8) rgb(255 255 255 / 10%),
+    0 0 0 calc(var(--u) * 0.6) rgb(0 0 0 / 35%);
+}
+
+.pf--dark .pf-body {
+  background: linear-gradient(90deg, #6d6a65 0%, #2f2d2a 3.5%, #1f1e1c 50%, #2f2d2a 96.5%, #6d6a65 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--u) * 0.8) rgb(255 255 255 / 16%),
+    0 0 0 calc(var(--u) * 0.8) rgb(255 255 255 / 9%);
+}
+
+.pf-bezel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: calc(var(--u) * 10) calc(var(--u) * 11);
+  border-radius: calc(var(--u) * 67);
+  background: #050505;
+}
+
+.pf-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: calc(var(--u) * 56);
+  background: #f2f2f2;
+  /* clip children (and their animations) to the rounded screen */
+  isolation: isolate;
+}
+
+.pf-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.32s var(--ease-out, ease-out);
+}
+
+.pf-layer.is-on {
+  opacity: 1;
+}
+
+.pf-layer img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+}
+
+.pf-live {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 402px;
+  height: 874px;
+  transform-origin: 0 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.pf-island {
+  position: absolute;
+  z-index: 5;
+  top: calc(var(--u) * 11);
+  left: 50%;
+  width: calc(var(--u) * 126);
+  height: calc(var(--u) * 37);
+  margin-left: calc(var(--u) * -63);
+  border-radius: calc(var(--u) * 19);
+  background: #000;
+}
+
+/* side buttons, sitting just proud of the rim */
+.pf-btn {
+  position: absolute;
+  width: calc(var(--u) * 3.2);
+  border-radius: calc(var(--u) * 2);
+  background: linear-gradient(90deg, #2a2927, #55524e 50%, #2a2927);
+}
+
+.pf-btn--action,
+.pf-btn--volup,
+.pf-btn--voldn {
+  left: calc(var(--u) * -2.4);
+}
+
+.pf-btn--power,
+.pf-btn--camera {
+  right: calc(var(--u) * -2.4);
+}
+
+.pf-btn--action {
+  top: calc(var(--u) * 168);
+  height: calc(var(--u) * 34);
+}
+
+.pf-btn--volup {
+  top: calc(var(--u) * 236);
+  height: calc(var(--u) * 60);
+}
+
+.pf-btn--voldn {
+  top: calc(var(--u) * 312);
+  height: calc(var(--u) * 60);
+}
+
+.pf-btn--power {
+  top: calc(var(--u) * 262);
+  height: calc(var(--u) * 96);
+}
+
+.pf-btn--camera {
+  top: calc(var(--u) * 560);
+  height: calc(var(--u) * 58);
+}
+
+/* a soft contact shadow: one static radial gradient (no blur filter, no big box-shadow) */
+.pf--shadow::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 6%;
+  right: 6%;
+  bottom: -2.6%;
+  height: 7%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(23 19 15 / 30%), rgb(23 19 15 / 0%));
+  pointer-events: none;
+}
+
+.pf--dark.pf--shadow::after {
+  background: radial-gradient(closest-side, rgb(0 0 0 / 55%), rgb(0 0 0 / 0%));
+}
+
+/* ── the tap: finger, the button depressing, an orange ripple ── */
+.pf-tap {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.pf-press {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(var(--u) * 10);
+  background: rgb(0 0 0 / 24%);
+  opacity: 0;
+  animation: pf-press 0.62s 0.12s var(--ease-out, ease-out) both;
+}
+
+.pf-tap.is-round .pf-press {
+  border-radius: 50%;
+}
+
+.pf-ring,
+.pf-finger {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+}
+
+.pf-ring {
+  width: calc(var(--u) * 70);
+  height: calc(var(--u) * 70);
+  margin: calc(var(--u) * -35) 0 0 calc(var(--u) * -35);
+  border: calc(var(--u) * 3) solid var(--orange, #ff7a01);
+  opacity: 0;
+  animation: pf-ring 0.8s 0.2s var(--ease-out, ease-out) both;
+}
+
+.pf-tap.is-notify .pf-ring {
+  animation-delay: 0s;
+}
+
+.pf-finger {
+  width: calc(var(--u) * 52);
+  height: calc(var(--u) * 52);
+  margin: calc(var(--u) * -26) 0 0 calc(var(--u) * -26);
+  background: rgb(23 19 15 / 30%);
+  box-shadow: 0 0 0 calc(var(--u) * 2.5) rgb(255 255 255 / 80%);
+  opacity: 0;
+  animation: pf-finger 0.82s var(--ease-out, ease-out) both;
+}
+
+@keyframes pf-finger {
+  0% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(0.84);
+  }
+  62% {
+    opacity: 1;
+    transform: scale(0.94);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes pf-press {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes pf-ring {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.35);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-layer {
+    transition: none;
+  }
+  .pf-tap {
+    display: none;
+  }
+}

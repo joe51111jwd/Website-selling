@@ -17,15 +17,25 @@ export function StickyBar() {
   const desc = useId();
   // a scene can hide it while an element is on screen: add data-hides-sticky to that element
   useEffect(() => {
-    const els = document.querySelectorAll("[data-hides-sticky]");
-    if (!els.length) return;
     const seen = new Set<Element>();
+    const watched = new Set<Element>();
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => (e.isIntersecting ? seen.add(e.target) : seen.delete(e.target)));
       setHidden(seen.size > 0);
     });
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    // phones mount the later scenes progressively (App: useLateScenes): look again when they land
+    const scan = () =>
+      document.querySelectorAll("[data-hides-sticky]").forEach((el) => {
+        if (watched.has(el)) return;
+        watched.add(el);
+        io.observe(el);
+      });
+    scan();
+    window.addEventListener("sc:scenes", scan);
+    return () => {
+      window.removeEventListener("sc:scenes", scan);
+      io.disconnect();
+    };
   }, []);
   const on = gone && !hidden && !sceneCta;
   return (

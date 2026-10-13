@@ -1,0 +1,272 @@
+/* 6 · Five apps → one, PHONE MODE (./AppsPhone.tsx). One screen: the headline, a stage (a dark
+   2D iPhone with the five tiles stacked over it; the laptop joins behind it for the payoff), the
+   CTA. Every move is a transform or an opacity change, played once on arrival. */
+
+.apps--phone .scene-body {
+  display: block;
+}
+
+.aph {
+  --aph-pitch: 55px;
+  --aph-w: calc(100vw - 2 * var(--gutter));
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  max-height: 940px;
+  padding: calc(var(--header-h) + 10px) var(--gutter) calc(env(safe-area-inset-bottom) + 14px);
+}
+
+/* ── the headline: its turn ("Or one that does.") lands once all five are in ── */
+.aph-title {
+  font-size: clamp(27px, 7.6vw, 32px);
+  line-height: 1.04;
+}
+
+.aph-l1,
+.aph-l2 {
+  display: block;
+}
+
+.aph-l1 {
+  transition: opacity 0.6s var(--ease-out);
+}
+
+.aph-l2 {
+  opacity: 0;
+  transform: translateY(0.45em);
+  transition:
+    opacity 0.5s var(--ease-out),
+    transform 0.7s var(--ease-out);
+}
+
+.aph.is-payoff .aph-l1 {
+  opacity: 0.45;
+}
+
+.aph.is-payoff .aph-l2 {
+  opacity: 1;
+  transform: none;
+}
+
+.aph-list {
+  display: none;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+
+/* ── the stage: the phone fills its height; the tiles stack on the phone's centre ── */
+.aph-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 250px;
+  max-height: 440px;
+  margin: clamp(10px, 2svh, 18px) 0 clamp(10px, 2svh, 16px);
+}
+
+.aph-phone {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  aspect-ratio: 430 / 900;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+  transition: transform 0.85s cubic-bezier(0.6, 0, 0.2, 1);
+}
+
+/* off: a black screen until the first app goes in */
+.aph-phone .pf-screen {
+  background: #0a0a0b;
+}
+
+/* the payoff: the phone steps forward-right and smaller, the office behind it */
+.aph.is-payoff .aph-phone {
+  transform: translateX(calc(-50% + var(--aph-w) * 0.3)) scale(0.64);
+}
+
+.aph-laptop {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: 10%;
+  width: min(92%, 336px);
+  opacity: 0;
+  transform: translateX(-50%) translateY(14px) scale(0.94);
+  transition:
+    opacity 0.55s var(--ease-out) 0.15s,
+    transform 0.85s var(--ease-out) 0.15s;
+}
+
+.aph.is-payoff .aph-laptop {
+  opacity: 1;
+  transform: translateX(calc(-50% - var(--aph-w) * 0.04));
+}
+
+/* a ping at the centre of the phone's screen as each app goes in */
+.aph-ping {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46%;
+  aspect-ratio: 1;
+  margin: -23% 0 0 -23%;
+  border-radius: 50%;
+  border: calc(var(--u, 1px) * 4) solid var(--orange);
+  opacity: 0;
+  pointer-events: none;
+  animation: aph-ping 0.75s 0.36s var(--ease-out) both;
+}
+
+@keyframes aph-ping {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* ── the tiles: notifications stacked on the phone; each drains into its centre ── */
+.aph-tiles {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+
+.aph-tile {
+  --slot: 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  width: min(252px, 74vw);
+  padding: 7px 14px 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  box-shadow:
+    0 1px 2px rgb(23 19 15 / 7%),
+    0 10px 22px -10px rgb(23 19 15 / 30%);
+  white-space: nowrap;
+  z-index: 1;
+  transform: translate(-50%, -50%) translateY(calc(var(--slot) * var(--aph-pitch)));
+  /* the stack closes up a beat after a tile has left it */
+  transition: transform 0.44s var(--ease-out) 0.16s;
+  will-change: transform;
+}
+
+/* pulled in like a magnet: it resists for a beat (a small lift), then goes, fast, behind the rest
+   of the stack and into the screen */
+.aph-tile.is-gone {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.06);
+  transition: none;
+  animation: aph-drain 0.54s linear both;
+}
+
+@keyframes aph-drain {
+  0% {
+    z-index: 3;
+    opacity: 1;
+    transform: translate(-50%, -50%) translateY(calc(var(--slot) * var(--aph-pitch)));
+    animation-timing-function: var(--ease-out);
+  }
+  24% {
+    z-index: 3;
+    opacity: 1;
+    transform: translate(-50%, -50%) translateY(calc(var(--slot) * var(--aph-pitch) - 4px)) scale(1.04);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.9, 0.4);
+  }
+  34% {
+    z-index: 0;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    z-index: 0;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.06);
+  }
+}
+
+.aph-tile-kind {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: 660;
+  font-size: 15.5px;
+  line-height: 1.15;
+  letter-spacing: var(--track-sub);
+  color: var(--ink);
+}
+
+.aph-tile-names {
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--ink-3);
+}
+
+/* ── the close: the CTA, once the office has lit up ── */
+.aph-close {
+  position: relative;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.45s var(--ease-out),
+    transform 0.6s var(--ease-out);
+}
+
+.aph.is-close .aph-close {
+  opacity: 1;
+  transform: none;
+}
+
+.aph-note {
+  margin-top: 10px;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+/* hides the sticky bar from just before the CTA comes in (StickyBar watches [data-hides-sticky]) */
+.aph-bar-mark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 2px;
+  pointer-events: none;
+}
+
+@media (max-height: 620px) {
+  .aph {
+    --aph-pitch: 50px;
+  }
+  .aph-tile {
+    padding-block: 6px 7px;
+  }
+  .aph-tile-kind {
+    font-size: 14.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aph-list {
+    display: block;
+  }
+  .aph *,
+  .aph-tile.is-gone {
+    transition: none !important;
+    animation: none !important;
+  }
+}

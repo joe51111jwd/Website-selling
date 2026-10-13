@@ -15,6 +15,7 @@
 
 import { useSyncExternalStore } from "react";
 import { reveal, status, onStatus } from "../../three/stage/store";
+import { isPhoneLite } from "../phone";
 import { cardTarget, introFinished, landCard, type CardId } from "../hero/cards";
 
 export type IntroPhase = "playing" | "revealing" | "done";
@@ -56,6 +57,15 @@ export function onIntroPhase(fn: (p: IntroPhase) => void) {
 const HOLD = 2080;
 const EXIT = 820;
 const EXIT_SKIP = 540;
+/**
+ * PHONE MODE: the same story, shorter and lighter (≤ 2.5 s in all). index.html plays the CSS
+ * sequence at PHONE_RATE× (its last notification lands at ~1.56 s), the hand-over is opacity and
+ * transform only (no contour recolouring, no day map: phones keep a plain ground).
+ */
+const PHONE_RATE = 1.4;
+const HOLD_PHONE = 1700;
+const EXIT_PHONE = 580;
+const EXIT_SKIP_PHONE = 380;
 /** How long before the move the 3D starts drawing (hidden) to get its first heavy frames done. */
 const WARM = 560;
 /** The day state of the map (must match `#topo.is-day` in index.html). */
@@ -80,7 +90,7 @@ export function startIntro() {
   const finish = () => {
     ui.remove();
     dayMap(topo);
-    for (const el of document.querySelectorAll<HTMLElement>(".stage, .site-header, .hero .stage-poster")) {
+    for (const el of document.querySelectorAll<HTMLElement>(".stage, .site-header, .hero .stage-poster, .hph-still")) {
       el.style.removeProperty("opacity");
       el.style.removeProperty("transition");
     }
@@ -89,6 +99,11 @@ export function startIntro() {
     setPhase("done");
     introFinished();
   };
+
+  const lite = isPhoneLite();
+  const hold = lite ? HOLD_PHONE : HOLD;
+  const exitMs = lite ? EXIT_PHONE : EXIT;
+  const exitSkip = lite ? EXIT_SKIP_PHONE : EXIT_SKIP;
 
   // skipped before the app arrived: the CSS is already fading to the day
   if (I.skipped) {
@@ -105,7 +120,7 @@ export function startIntro() {
     if (exiting) return;
     exiting = true;
     clearTimeout(timer);
-    const render = begin(ui, topo);
+    const render = begin(ui, topo, lite);
     // the move runs on a clamped clock: a stalled frame (the 3D's first draw, a slow phone)
     // pauses it for that frame instead of jumping it ahead, so no frame ever reads as a cut
     let tt = 0;
@@ -130,10 +145,10 @@ export function startIntro() {
     let done = false;
     (window as unknown as { __introSeek: (ms: number) => void }).__introSeek = (ms: number) => {
       if (done) return;
-      if (!render) seekCss(ui, topo, Math.min(ms, HOLD));
-      if (ms > HOLD) {
-        if (!render) render = begin(ui, topo);
-        const t = Math.min(1, (ms - HOLD) / EXIT);
+      if (!render) seekCss(ui, topo, Math.min(ms, hold) * (lite ? PHONE_RATE : 1));
+      if (ms > hold) {
+        if (!render) render = begin(ui, topo, lite);
+        const t = Math.min(1, (ms - hold) / exitMs);
         render(t);
         if (t >= 1) {
           done = true;
@@ -143,17 +158,17 @@ export function startIntro() {
     };
     return;
   }
-  I.onSkip = () => exit(EXIT_SKIP);
+  I.onSkip = () => exit(exitSkip);
 
   // time since the CSS sequence actually started (its first frame can come well after the inline
   // gate script ran: fonts, first layout), so the move never cuts the last notification short
   const st = ui.querySelector(".i-n1")?.getAnimations()[0]?.startTime;
   const elapsed = performance.now() - (typeof st === "number" ? st : I.t0);
-  timer = window.setTimeout(() => exit(EXIT), Math.max(0, HOLD - elapsed));
+  timer = window.setTimeout(() => exit(exitMs), Math.max(0, hold - elapsed));
   // let the 3D draw its first frames (shader compiles, texture uploads) under the map, half a
   // second before the move, so the move itself runs on light frames (the canvas stays hidden
   // until the move: index.html)
-  window.setTimeout(() => !exiting && reveal(), Math.max(0, HOLD - WARM - elapsed));
+  if (!lite) window.setTimeout(() => !exiting && reveal(), Math.max(0, HOLD - WARM - elapsed));
 }
 
 function themeDay() {
@@ -217,14 +232,14 @@ function lineAt(t: number, major: boolean) {
 
 const num = (el: Element, name: string) => parseFloat(getComputedStyle(el).getPropertyValue(name)) || 0;
 
-type Glide = { el: HTMLElement; id: CardId | null; base: DOMRect; op: number; pin: [number, number]; kpi: HTMLElement | null; face: HTMLElement[] };
+type Glide = { el: HTMLElement; id: CardId | null; base: DOMRect; op: number; pin: [number, number]; kpi: HTMLElement | null; face: HTMLElement[]; target?: DOMRect | null };
 
 /**
  * Freeze the CSS sequence where it is and set up the move. Returns render(t), t 0..1. It also
  * starts the hero: the copy builds, the devices rise in (or their poster stands in), the
  * header fades in.
  */
-function begin(ui: HTMLElement, topo: HTMLElement): (t: number) => void {
+function begin(ui: HTMLElement, topo: HTMLElement, lite = false): (t: number) => void {
   const svg = topo.querySelector<SVGSVGElement>("svg.t-map")!;
   const places = topo.querySelector<SVGGElement>(".t-places");
   const veil = topo.querySelector<HTMLElement>(".t-veil");
@@ -244,7 +259,9 @@ function begin(ui: HTMLElement, topo: HTMLElement): (t: number) => void {
   const k0 = ms * cam0.z;
   const lineOp = lines ? +getComputedStyle(lines).opacity : 1;
   const header = document.querySelector<HTMLElement>(".site-header");
-  const poster = document.querySelector<HTMLElement>(".hero .stage-poster");
+  const poster = document.querySelector<HTMLElement>(lite ? ".hph-still" : ".hero .stage-poster");
+  // phones: the camera move scales a composited layer (no re-raster per frame)
+  if (lite) svg.style.willChange = "transform";
   if (poster) poster.style.transition = "none";
 
   // the notifications: the ones on screen glide to the hero's laptop, the rest fade
@@ -289,11 +306,17 @@ function begin(ui: HTMLElement, topo: HTMLElement): (t: number) => void {
     const tg = sine(seg(t, 0.04, 0.92));
     const g = groundAt(tg);
     topo.style.backgroundColor = `rgb(${g[0]} ${g[1]} ${g[2]})`;
-    topo.style.setProperty("--topo-line", lineAt(smooth(seg(t, 0.2, 0.8)), false));
-    topo.style.setProperty("--topo-major", lineAt(smooth(seg(t, 0.2, 0.8)), true));
-    if (lines) lines.style.opacity = String(lerp(lineOp, 1, ec));
+    if (lite) {
+      // phones: the night map just fades as the ground warms (opacity only: the contours are
+      // never re-stroked); the day keeps a plain ground
+      if (lines) lines.style.opacity = String(lineOp * (1 - smooth(seg(t, 0.05, 0.6))));
+    } else {
+      topo.style.setProperty("--topo-line", lineAt(smooth(seg(t, 0.2, 0.8)), false));
+      topo.style.setProperty("--topo-major", lineAt(smooth(seg(t, 0.2, 0.8)), true));
+      if (lines) lines.style.opacity = String(lerp(lineOp, 1, ec));
+      if (veil) veil.style.opacity = String(smooth(seg(t, 0.3, 1)));
+    }
     if (places) places.style.opacity = String(1 - smooth(seg(t, 0, 0.5)));
-    if (veil) veil.style.opacity = String(smooth(seg(t, 0.3, 1)));
     if (skip) skip.style.opacity = String(skipOp * (1 - seg(t, 0, 0.2)));
     // the page under the map: the devices come up once the ground has started to warm, then the header
     const stage = document.querySelector<HTMLElement>(".stage");
@@ -309,7 +332,9 @@ function begin(ui: HTMLElement, topo: HTMLElement): (t: number) => void {
 
     const k = ms * z;
     for (const n of glides) {
-      const target = n.id ? cardTarget(n.id) : null;
+      // phones: the cards sit still on the hero's still, so their boxes are read once (no forced
+      // layout per frame); desktop: they ride the rising devices, read every frame
+      const target = n.id ? (lite ? (n.target ??= cardTarget(n.id)) : cardTarget(n.id)) : null;
       if (target) {
         // glide onto the laptop (the target moves with the devices as they rise in)
         const a = n.id === "toast" ? 0 : 0.06;

@@ -15,6 +15,7 @@
 // so neither flashes in during the hand-over.
 
 import { useSyncExternalStore } from "react";
+import { isPhoneLite } from "../phone";
 
 const els = new Set<HTMLElement>();
 const near = new Set<HTMLElement>();
@@ -76,7 +77,13 @@ function check() {
   }
 }
 
+let throttle = 0;
 function schedule() {
+  // PHONE MODE: no per-frame layout reads while scrolling; look at most every 120 ms
+  if (isPhoneLite()) {
+    if (!throttle && !raf) throttle = window.setTimeout(() => ((throttle = 0), (raf = requestAnimationFrame(check))), 120);
+    return;
+  }
   if (!raf) raf = requestAnimationFrame(check);
 }
 

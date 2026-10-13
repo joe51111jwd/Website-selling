@@ -6,8 +6,7 @@
 // little float), so the real <button> drawn over its Clock In circle stays exactly on it. As Your
 // number comes up, the phone leaves the way it came: up with the page and out past the right edge.
 //
-// Phones: no 3D here (the page itself becomes the app); the devices are already out of frame
-// (the spec sheet sent them) and stay out.
+// Phones (PHONE MODE): no Stage at all; the scene is ./TryPhone.tsx and registers no keys.
 
 import type { PoseKey } from "../../three/stage/types";
 import { returnKeys } from "../../three/stage/recipes";
@@ -22,7 +21,6 @@ export const TRY_LOOK = 0.18;
 /** How many screens the scene takes (desktop: a short hold for the tap, 0.2 screen; the phone
  *  demos itself after a few seconds anyway, so the hold needn't be long). */
 export const TRY_VIEWPORTS = 1.2;
-export const TRY_VIEWPORTS_PHONE = 1.8;
 
 const phoneAt = { x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1 };
 
@@ -53,14 +51,5 @@ export function tryPoses(): PoseKey[] {
     { at: past(0.1), iphone: { ...phoneAt } },
     { at: past(0.6), iphone: { ...phoneAt, out: 1 }, ease: "in" },
     { at: past(0.7), iphone: { show: 0, out: 1 } },
-  ];
-}
-
-/** Phones: the devices stay out of frame (laptop left, phone right) while the app fills the screen. */
-export function tryPhonePoses(): PoseKey[] {
-  return [
-    { at: 0, macbook: { out: -1 }, iphone: { out: 1 }, ease: "in" },
-    { at: 0.06, macbook: { show: 0, out: -1 }, iphone: { show: 0, out: 1 } },
-    { at: 1, macbook: { show: 0 }, iphone: { show: 0 } },
   ];
 }

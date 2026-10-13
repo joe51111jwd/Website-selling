@@ -18,7 +18,14 @@ export function Header() {
   const sceneCta = usePrimaryInView();
   const ctaOn = heroGone && !sceneCta;
   useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 12);
+    // only on a change (a setState per scroll event re-renders the header on every frame)
+    let last: boolean | null = null;
+    const on = () => {
+      const v = window.scrollY > 12;
+      if (v === last) return;
+      last = v;
+      setScrolled(v);
+    };
     on();
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);

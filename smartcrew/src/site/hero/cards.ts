@@ -48,7 +48,9 @@ let readySince = 0;
 let onProfit: ((v: number, flash: number) => void) | null = null;
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
-export const money = (n: number) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// one formatter (toLocaleString builds a new one per call: costly at 60 fps on a phone)
+const fmt = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+export const money = (n: number) => "$" + fmt.format(n);
 
 /** The in-screen profit number (screenLife) follows the card's. */
 export function onProfitValue(fn: ((v: number, flash: number) => void) | null) {
@@ -160,7 +162,7 @@ function entrance(quick: boolean) {
   const run = () => {
     const wait = quick ? 0 : Math.max(0, status.revealAt + 420 - performance.now());
     if (!shown.toast) {
-      later(wait, () => pulse("iphone", "macbook", { duration: 640, fromPx: [201, 600], toPx: [SPOT.toast[0] - 120, SPOT.toast[1] + 40] }));
+      if (status.webgl) later(wait, () => pulse("iphone", "macbook", { duration: 640, fromPx: [201, 600], toPx: [SPOT.toast[0] - 120, SPOT.toast[1] + 40] }));
       later(wait + 600, () => show("toast", "pop"));
     }
     if (!shown.profit) later(wait + (shown.toast ? 150 : 900), () => show("profit", "pop"));
@@ -249,6 +251,32 @@ export function mountCards(e: Els, fromIntro: boolean) {
     els = null;
   };
 }
+
+/**
+ * PHONE MODE (no 3D): the cards sit on the hero's still (public/renders/phone-hero.webp), placed
+ * by CSS (src/site/hero/hero-phone.css, from STILL_PCT); nothing tracks anything per frame. Same
+ * entrance and intro hand-over (cardTarget / landCard / introFinished) as on desktop.
+ */
+export function mountStillCards(e: Omit<Els, "leader">, fromIntro: boolean) {
+  els = { ...e, leader: null };
+  shown.toast = shown.profit = false;
+  e.value.textContent = money(HERO2.profit.from);
+  if (!fromIntro) entrance(false);
+  return () => {
+    cancelAnimationFrame(tickRaf);
+    timers.forEach(clearTimeout);
+    timers.length = 0;
+    stops.forEach((f) => f());
+    stops.length = 0;
+    els = null;
+  };
+}
+
+/** Where the cards' spots are on the phone still, % of its box (from STILL, frame 4.6 × 3.05). */
+export const STILL_PCT: Record<CardId, { x: number; y: number }> = {
+  toast: { x: 50 + (1.371 / 4.6) * 100, y: 50 + (-1.093 / 3.05) * 100 },
+  profit: { x: 50 + (-0.081 / 4.6) * 100, y: 50 + (-0.498 / 3.05) * 100 },
+};
 
 /** Dev: the spots relative to the anchor in frame units (to refresh STILL after a pose change). */
 export function measureSpots(): Promise<Record<CardId, [number, number]> | null> {

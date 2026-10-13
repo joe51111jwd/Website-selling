@@ -9,9 +9,11 @@ import { useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ANDREW, ANGLES, CTA, FAQ_CLOSE, FAQ_TITLE, FAQS, FLAG, readAngle } from "../../content/copy";
 import { trackCustom } from "../../lib/track";
 import { StageAnchor, phone, returnKeys, type PoseKey } from "../../three/stage";
+import { usePhoneLite } from "../phone";
 import { usePrimaryElsewhere } from "../shell/primaryCta";
 import { Scene } from "../scene/Scene";
 import { DemoButton, TrialButton } from "../offer/Actions";
+import { PHONE_HERO_STILL } from "../hero/HeroPhone";
 import { useSeen } from "../offer/useSeen";
 import "./faq.css";
 
@@ -74,7 +76,25 @@ function useAnchorSpot(section: React.RefObject<HTMLDivElement | null>, anchor: 
   return spot;
 }
 
+/**
+ * Phones (PHONE MODE): no Stage, so no return keys and no anchor measuring (it would force the
+ * still-skipped section to lay out as soon as it mounts): the same questions and close, compact.
+ */
 export default function Faq() {
+  return usePhoneLite() ? <FaqPhone /> : <FaqDesk />;
+}
+
+function FaqPhone() {
+  const root = useRef<HTMLDivElement>(null);
+  const anchor = useRef<HTMLDivElement>(null);
+  return (
+    <Scene id="faq" pinnedViewports={0} stage="keep" label={FAQ_TITLE} className="faq faq--phone">
+      <FaqBody root={root} anchor={anchor} />
+    </Scene>
+  );
+}
+
+function FaqDesk() {
   const root = useRef<HTMLDivElement>(null);
   const anchor = useRef<HTMLDivElement>(null);
   const spot = useAnchorSpot(root, anchor);
@@ -100,6 +120,7 @@ export default function Faq() {
 
 function FaqBody({ root, anchor }: { root: React.RefObject<HTMLDivElement | null>; anchor: React.RefObject<HTMLDivElement | null> }) {
   const [open, setOpen] = useState(0);
+  const lite = usePhoneLite();
   const base = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const seen = useSeen(root, 0.25);
   // the last CTA waits while the offer's is still on screen (one orange button at a time)
@@ -154,7 +175,23 @@ function FaqBody({ root, anchor }: { root: React.RefObject<HTMLDivElement | null
       {/* the close: the product back on screen, Andrew's last line, the last CTA */}
       <div className="faq-close" ref={close} data-cta-held={held}>
         <div ref={anchor} className="faq-stage-box">
-          <StageAnchor id="faq" className="faq-stage" />
+          {lite ? (
+            // phones (no 3D): the hero's still of the real devices bookends the page (same file
+            // and same `sizes` as the hero, so it comes from the cache)
+            <img
+              className="faq-still"
+              src={PHONE_HERO_STILL.src}
+              srcSet={PHONE_HERO_STILL.srcSet}
+              sizes="(max-width: 760px) 100vw, 390px"
+              alt=""
+              width={1170}
+              height={774}
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <StageAnchor id="faq" className="faq-stage" />
+          )}
         </div>
         <div className="faq-close-head">
           <img className="faq-face" src={import.meta.env.BASE_URL + ANDREW.face} alt="" width={48} height={48} loading="lazy" decoding="async" />

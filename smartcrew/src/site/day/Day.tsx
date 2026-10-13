@@ -26,6 +26,8 @@ import { dayPosterFrame, dayPoses, markOf, tapOf } from "./poses";
 import { SCRIPT } from "./script";
 import { dayLive, onDayFrame, startDayLife, type DayLive } from "./life";
 import { Odometer } from "./Odometer";
+import { usePhoneLite } from "../phone";
+import DayPhone from "./phone/DayPhone";
 import "./day.css";
 
 const UpdateCardBody = lazy(() => import("./UpdateCard"));
@@ -428,7 +430,12 @@ function DayStage() {
   );
 }
 
+/** Phones get the light 2D day (./phone/DayPhone.tsx: one screen per moment, plays on arrival). */
 export default function Day() {
+  return usePhoneLite() ? <DayPhone /> : <DayDesk />;
+}
+
+function DayDesk() {
   const poses = useMemo(dayPoses, []);
   return (
     <Scene id="day" pinnedViewports={DAY_STEPS * PER_MOMENT + 1} poses={poses} label={DAY_UI.rail} className="day">

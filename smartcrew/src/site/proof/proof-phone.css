@@ -1,0 +1,199 @@
+/* 5 · Proof, PHONE MODE (./ProofPhone.tsx). One quote per screen; the number is the focal point.
+   Everything that moves moves by transform/opacity, once, on arrival. */
+
+.proof--phone .scene-body {
+  display: block;
+}
+
+.prfp-q {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0;
+  padding: calc(var(--header-h) + 12px) var(--gutter) calc(var(--sticky-h) + env(safe-area-inset-bottom) + 18px);
+}
+
+/* Phil: his screen, the figure in the middle of it. A little under a full screen, so when it is
+   in view Katie's quote is still just below the fold (one quote per screen) and the scroll from
+   one to the other has no empty band. */
+.prfp-phil {
+  min-height: 86vh;
+  min-height: 86svh;
+  max-height: 780px;
+  padding-bottom: 20px;
+}
+
+.prfp-quote p {
+  margin: 0;
+}
+
+.prfp-lead,
+.prfp-per {
+  display: block;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-quote) * 1%);
+  letter-spacing: var(--track-quote);
+  color: var(--ink);
+}
+
+.prfp-lead {
+  font-size: clamp(21px, 6vw, 25px);
+  font-weight: 560;
+  line-height: 1.15;
+  color: var(--ink-2);
+}
+
+/* the figure: as big as the width allows ("~$150k" is ~2.4 em wide in the instrument width) */
+.prfp-num {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  margin: 0.08em 0 0.12em -0.04em;
+  font-size: clamp(88px, 33vw, 150px);
+  line-height: 0.92;
+  color: var(--ink);
+}
+
+/* the reels clip without a mask on phones (a mask over moving content costs a repaint per frame) */
+.prfp-num .odo-col {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.prfp-per {
+  font-stretch: calc(var(--wdth-head) * 1%);
+  font-size: clamp(25px, 7.6vw, 32px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: var(--track-head);
+  word-spacing: var(--display-word);
+}
+
+/* survey paint under the figure, wiped in once it has landed: the clip slides right while the
+   stroke slides back left inside it, so the stroke appears to be sprayed left to right */
+.prfp-mark {
+  position: absolute;
+  left: 0.12em;
+  right: 0.06em;
+  top: 0.86em;
+  height: 0.1em;
+  overflow: hidden;
+  transform: translateX(-101%);
+  pointer-events: none;
+}
+
+.prfp-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: translateX(101%);
+}
+
+.prfp-mark,
+.prfp-mark svg {
+  transition: transform 0.7s cubic-bezier(0.65, 0, 0.35, 1) 1.45s;
+}
+
+.prfp-phil.is-on .prfp-mark,
+.prfp-phil.is-on .prfp-mark svg {
+  transform: none;
+}
+
+/* ink, not orange: orange is kept for the CTA and the geofence signals */
+.prfp-mark path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* who said it */
+.prfp-cite {
+  display: block;
+  margin-top: clamp(16px, 3.4svh, 26px);
+  font-size: 15.5px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.prfp-who {
+  display: block;
+}
+
+.prfp-who b {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.prfp-disclose {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-3);
+  max-width: 30em;
+}
+
+/* Katie: her one sentence, big; as tall as it is (no dead band around it) */
+.prfp-katie {
+  padding-top: 12px;
+  padding-bottom: calc(var(--sticky-h) + env(safe-area-inset-bottom) + 36px);
+}
+
+.prfp-katie-text {
+  position: relative;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-quote) * 1%);
+  font-weight: 640;
+  font-size: clamp(29px, 8.6vw, 38px);
+  line-height: 1.08;
+  letter-spacing: var(--track-quote);
+  word-spacing: var(--display-word);
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.prfp-open {
+  display: block;
+  height: 0.5em;
+  font-size: 2em;
+  line-height: 1;
+  color: var(--ink-3);
+  transform-origin: 0 100%;
+}
+
+/* said phrase by phrase: each comes up from a quiet ink to full ink (readable before it plays) */
+.prfp-said {
+  opacity: 0.32;
+  transition: opacity 0.5s var(--ease-out) calc(120ms + var(--i) * 230ms);
+}
+
+.prfp-katie.is-on .prfp-said {
+  opacity: 1;
+}
+
+.prfp-katie .prfp-open {
+  transform: translateY(0.12em) scale(0.86);
+  transition: transform 0.6s var(--ease-out);
+}
+
+.prfp-katie.is-on .prfp-open {
+  transform: none;
+}
+
+@media (max-height: 620px) {
+  .prfp-num {
+    font-size: clamp(80px, 29vw, 120px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prfp-mark,
+  .prfp-mark svg,
+  .prfp-said,
+  .prfp-open {
+    transition: none;
+  }
+}
