@@ -324,6 +324,11 @@ function Annotations({ st, cardRef }: { st: DayLive; cardRef: RefObject<HTMLDivE
       const i = s.i;
       const sc = SCRIPT[i];
       const tap = tapOf(i);
+      // all layout reads first, then the writes (no forced layout per frame)
+      const c = chip.current;
+      const cw = c?.offsetWidth ?? 0;
+      const ch = c?.offsetHeight ?? 0;
+      const cardRect = cardRef.current?.querySelector<HTMLElement>(".day-card")?.getBoundingClientRect() ?? null;
       // the touch ripple sits on the button that gets tapped
       if (tap) {
         const p = f.project(tap.device, tap.px[0], tap.px[1]);
@@ -333,10 +338,9 @@ function Annotations({ st, cardRef }: { st: DayLive; cardRef: RefObject<HTMLDivE
       const [ax, ay] = sc.phone.mark;
       const edge = f.project("iphone", PHONE_W, ay);
       const from = f.project("iphone", ax, ay);
-      const c = chip.current;
       if (edge && from && c) {
-        const w = c.offsetWidth;
-        const h = c.offsetHeight;
+        const w = cw;
+        const h = ch;
         let x = edge.x + (phone ? 10 : 22);
         if (x + w > f.w - 8) x = Math.max(8, f.w - 8 - w);
         const y = Math.max(phone ? 60 : 72, Math.min(f.h - h - 8, edge.y - h / 2));
@@ -349,9 +353,8 @@ function Annotations({ st, cardRef }: { st: DayLive; cardRef: RefObject<HTMLDivE
       // the office leader: from the card to the spot that changed
       const mk = markOf(i);
       const to = f.project("macbook", mk[0], mk[1]);
-      const card = cardRef.current?.querySelector<HTMLElement>(".day-card");
-      if (to && card) {
-        const r = card.getBoundingClientRect();
+      if (to && cardRect) {
+        const r = cardRect;
         const below = to.y > r.bottom;
         const sx = Math.max(r.left + 28, Math.min(r.right - 28, to.x));
         const sy = below ? r.bottom : r.top;

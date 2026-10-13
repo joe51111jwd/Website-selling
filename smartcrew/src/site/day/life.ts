@@ -20,11 +20,11 @@
 import interUrl from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
 import { MOMENTS } from "../../content/moments";
 import { onStageFrame, onStatus, reducedMotion, sceneProgress, setOverlay, status, updateOverlay, type OverlaySlot, type StageFrame } from "../../three/stage/store";
-import { screenUrl } from "../../three/stage/textures";
+import { screenUrl } from "../../three/stage/urls";
 import type { Box } from "../../three/stage/types";
 import { B, DAY_STEPS } from "./clock";
 import { SCRIPT, type Script } from "./script";
-import { DAY_DATA } from "./states/rows";
+import { DAY_DATA } from "./states/data";
 
 // ─── the state the DOM follows ───────────────────────────────────────────────
 export type DayLive = {

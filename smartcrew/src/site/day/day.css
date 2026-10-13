@@ -208,7 +208,7 @@ html[data-ground="dark"] .day-caption {
   font-family: var(--font-display);
   font-stretch: calc(var(--display-wdth) * 1%);
   font-weight: 650;
-  font-size: clamp(19px, 0.8vw + 1.4svh, 27px);
+  font-size: clamp(20px, 1vw + 1.8svh, 30px);
   line-height: 1.1;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -622,7 +622,7 @@ html[data-ground="dark"] .day-lead:not(.day-lead-halo) {
   }
   .day-tag {
     gap: 8px;
-    font-size: 17px;
+    font-size: 18px;
     box-shadow: 0 6px 18px rgb(23 19 15 / 22%);
   }
   .day-rail {

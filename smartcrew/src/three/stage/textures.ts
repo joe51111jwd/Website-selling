@@ -7,11 +7,8 @@ import { liveScreens, phone } from "./store";
 
 export type ScreenTex = { tex: THREE.Texture; w: number; h: number; live?: string; version?: number };
 
-/** Native CSS px size of the recreated screens (src/screens/registry.ts SIZE). */
-const NATIVE = { web: { w: 1440, h: 900 }, phone: { w: 402, h: 874 } };
-
-const base = import.meta.env.BASE_URL;
-export const screenUrl = (id: string) => (id.includes("/") || id.includes(".") ? base + id.replace(/^\//, "") : `${base}screens/${id}.webp`);
+import { nativeSize, screenUrl } from "./urls";
+export { nativeSize, screenUrl };
 
 type Entry = { tex: ScreenTex | null; promise: Promise<ScreenTex | null>; used: number };
 const cache = new Map<string, Entry>();
@@ -58,13 +55,6 @@ function finish(tex: THREE.Texture) {
   return tex;
 }
 
-/** Native CSS px of a screen: by id, or by a file's name ("renders/day-s/web-hauling.webp" is a web screen shot at 2x). */
-export function nativeSize(id: string, iw: number, ih: number) {
-  const name = id.split("/").pop() ?? id;
-  if (name.startsWith("web-")) return NATIVE.web;
-  if (name.startsWith("phone-")) return NATIVE.phone;
-  return { w: iw, h: ih };
-}
 
 /** Start loading a screen (no-op if cached). */
 export function loadScreen(id: string): Promise<ScreenTex | null> {

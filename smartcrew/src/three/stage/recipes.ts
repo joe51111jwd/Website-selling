@@ -30,6 +30,12 @@ export type ExitOptions = {
   /** devices to move (default all three; a device that is already hidden stays hidden) */
   devices?: DeviceId[];
   ease?: Ease;
+  /**
+   * exitKeys only: the devices are already out when this scene starts (the scene before used
+   * exitKeys too): keep them out all the way, no glide. Without it, its first key (which names
+   * no device, so out = 0) would bring them back in.
+   */
+  hold?: boolean;
 };
 
 const EXIT_SIDE: Record<DeviceId, Side> = { macbook: 1, iphone: -1, display: 1 };
@@ -49,8 +55,9 @@ function sideOf(opts: ExitOptions, id: DeviceId, x?: number): Side {
  * out (not drawn) through the scene. Pass to <Scene poses={…}> (memoize it).
  */
 export function exitKeys(opts: ExitOptions = {}): PoseKey[] {
-  const { start = -0.8, end = -0.1, devices = ALL, ease = "in" } = opts;
+  const { start = -0.8, end = -0.1, devices = ALL, ease = "in", hold = false } = opts;
   const out = (k: number) => Object.fromEntries(devices.map((id) => [id, { out: sideOf(opts, id) * k }])) as Partial<Record<DeviceId, { out: number }>>;
+  if (hold) return [{ at: 0, offset: -1, ease: "linear", ...out(1) }, { at: 1, ease: "linear", ...out(1) }];
   return [
     // a key that names no device: everything holds as it was (out = 0)
     { at: 0, offset: start, ease: "linear" },

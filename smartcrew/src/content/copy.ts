@@ -280,8 +280,9 @@ export const APPS_SCENE = {
 };
 
 // ─── 2 · One Day: scene UI strings (Day owner's block, src/site/day) ─────────
-// The moments, titles, outcomes and features themselves live in moments.ts. These are the
-// scene's own labels and the two bits of demo UI it draws onto the device screens.
+// The moments and features live in moments.ts; the round-2 headlines and state labels in DAY2
+// below; the demo records the day creates in src/site/day/states/data.ts. These are the scene's
+// own labels. (The cursor's loupe tags "Office" / "Crew app" are the Stage's: stage/loupe.ts.)
 export const DAY_UI = {
   /** accessible name of the day rail */
   rail: `The day at ${T.COMPANY}`,
@@ -298,26 +299,8 @@ export const DAY_UI = {
   /** the rail's last stop: opens the popup */
   crew: "Your crew",
   crewAria: "Set up SmartCrew for your crew",
-  /** the cursor's loupe tags over the two screens */
-  office: "Office",
-  crewApp: "Crew app",
   /** quiet caption under the devices (PLAYBOOK §8.1 rule 2) */
   caption: "Demo account. Names and numbers are made up.",
-  /** Friday: toast on the office screen as the timecards land. AMBER: says only that the hours
-   * are ready for QuickBooks payroll ("QuickBooks integration for payroll", L); never "sync". */
-  payrollToast: { title: "Payroll hours ready for QuickBooks", meta: "Sep 28 – Oct 4 · 14 timecards", time: "now" },
-  /** 5:30 PM: the crew's phone gets Monday (demo data: web-scheduling, Mon Oct 12, p2409) */
-  planSheet: {
-    title: "Monday, Oct 12",
-    sub: "Your next job",
-    rows: [
-      ["Project", "Riverside Storm Sewer"],
-      ["Activity code", "Pipe Laying"],
-      ["Hours", "6:30 AM – 3:00 PM"],
-      ["Crew", "Andre Whitfield, Tomás Ortega"],
-    ] as [string, string][],
-    done: "Got it",
-  },
 };
 
 // ─── 7 · Andrew + the offer · 8 · FAQ + close · footer ─────────────────────────────────────────
