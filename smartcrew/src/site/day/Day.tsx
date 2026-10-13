@@ -23,7 +23,7 @@
 // The 3D choreography is ./poses.ts (on the film's clock), the screens' own animations
 // ./rideLife.ts, the light ./stageFx.ts. This file is the DOM and the controller.
 
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { lazy, memo, Suspense, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { MOMENTS, type Moment } from "../../content/moments";
 import { DAY2, DAY2_UI, DAY_UI, FLAG } from "../../content/copy";
@@ -32,7 +32,7 @@ import { StageAnchor } from "../../three/stage/StageAnchor";
 import { onStageFrame, onStatus, poke, reducedMotion, registerPoses, sceneOnScreen, sceneY, status, type StageFrame } from "../../three/stage/store";
 import { onSignup } from "../../signup/contract";
 import { Cta } from "../ui/Cta";
-import { glideTo } from "../scroll";
+import { glideTo, navigatingTo } from "../scroll";
 import { usePhoneLite } from "../phone";
 import { Controls, EASE, Player, bindPlayerKeys, holdPage, presence, usePlayer, type TrackFrame } from "../player";
 import { RIDE, PACE, rideChapters, type Ride } from "./ride";
@@ -163,6 +163,10 @@ function useRide(p: Player): RideActions {
       if (!down || p.started || hold.held || document.documentElement.classList.contains("scroll-locked")) return;
       const top = sceneY("day", 0);
       if (top === null) return;
+      // a header link passing through on its way further down (#faq) doesn't start it; one to
+      // One Day itself ("How it works") does
+      const nav = navigatingTo();
+      if (nav !== null && Math.abs(nav - top) > 2) return;
       const vh = window.innerHeight;
       if (y >= top - 0.75 * vh && y < top + 0.3 * vh) actions.start();
     };
@@ -218,9 +222,11 @@ function useRide(p: Player): RideActions {
  * A fixed layer just above the page's ground (portalled to <body>, under the Stage's canvas): its
  * colour follows the film (a track: it changes only while the camera glides between moments),
  * its opacity follows the scroll (One Day's presence). The header and the controls take the
- * moment's ground (--page-ground, data-ground) at each moment's start.
+ * moment's ground (--page-ground on those two only: an inherited custom property set higher up
+ * restyles every element under it, a long task on a slow laptop) and Friday night's dark tone
+ * (html[data-ground]) at each moment's start.
  */
-function useGround(p: Player, el: RefObject<HTMLDivElement | null>) {
+function useGround(p: Player, el: RefObject<HTMLDivElement | null>, grid: RefObject<HTMLDivElement | null>) {
   useEffect(() => {
     const g = el.current;
     if (!g) return;
@@ -233,10 +239,26 @@ function useGround(p: Player, el: RefObject<HTMLDivElement | null>) {
     const offTrack = p.track(g, fr);
 
     const root = document.documentElement;
-    let owned = false;
+    const tinted = () => [document.querySelector<HTMLElement>(".site-header"), grid.current?.querySelector<HTMLElement>(".plc")].filter((x): x is HTMLElement => !!x);
+    let ground = "";
+    let tone = "";
     let bodyClear = false;
     let lastW = -1;
     let raf = 0;
+    const setGround = (c: string) => {
+      if (c === ground) return;
+      ground = c;
+      for (const e of tinted()) {
+        if (c) e.style.setProperty("--page-ground", c);
+        else e.style.removeProperty("--page-ground");
+      }
+    };
+    const setTone = (t: string) => {
+      if (t === tone) return;
+      tone = t;
+      if (t) root.dataset.ground = t;
+      else root.removeAttribute("data-ground");
+    };
     const apply = () => {
       raf = 0;
       const w = dayPresence(window.scrollY, window.innerHeight);
@@ -254,14 +276,11 @@ function useGround(p: Player, el: RefObject<HTMLDivElement | null>) {
       }
       if (w >= 0.5) {
         const c = pal.moments[p.chapterAt()];
-        root.style.setProperty("--page-ground", rgb(c));
-        const tone = luminance(c) < 0.45 ? "dark" : "light";
-        if (root.dataset.ground !== tone) root.dataset.ground = tone;
-        owned = true;
-      } else if (owned) {
-        root.style.removeProperty("--page-ground");
-        root.removeAttribute("data-ground");
-        owned = false;
+        setGround(rgb(c));
+        setTone(luminance(c) < 0.45 ? "dark" : "light");
+      } else {
+        setGround("");
+        setTone("");
       }
     };
     const onScroll = () => {
@@ -277,13 +296,11 @@ function useGround(p: Player, el: RefObject<HTMLDivElement | null>) {
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
-      if (owned) {
-        root.style.removeProperty("--page-ground");
-        root.removeAttribute("data-ground");
-      }
+      setGround("");
+      setTone("");
       if (bodyClear) document.body.style.removeProperty("background-color");
     };
-  }, [p, el]);
+  }, [p, el, grid]);
 }
 
 // ─── the copy column ─────────────────────────────────────────────────────────────
@@ -344,7 +361,7 @@ function useNoStage() {
   return no;
 }
 
-function Annotations({ p, stageRef }: { p: Player; stageRef: RefObject<HTMLDivElement | null> }) {
+const Annotations = memo(function Annotations({ p, stageRef }: { p: Player; stageRef: RefObject<HTMLDivElement | null> }) {
   const root = useRef<HTMLDivElement>(null);
   const R = RIDE;
 
@@ -480,7 +497,69 @@ function Annotations({ p, stageRef }: { p: Player; stageRef: RefObject<HTMLDivEl
       ))}
     </div>
   );
-}
+});
+
+// ─── the heavy, static parts (rendered once; only which one is current changes) ──────
+
+const HeadBody = memo(function HeadBody({ m }: { m: Moment }) {
+  return (
+    <>
+      <h3 className="day-title">{DAY2[m.id].headline}</h3>
+      <p className="day-features">
+        <Features m={m} />
+      </p>
+    </>
+  );
+});
+
+const Heads = memo(function Heads({ chapter }: { chapter: number }) {
+  return (
+    <div className="day-text">
+      {MOMENTS.map((mm, k) => (
+        <div key={mm.id} className="day-head" data-i={k} aria-hidden={k !== chapter}>
+          <HeadBody m={mm} />
+        </div>
+      ))}
+    </div>
+  );
+});
+
+const OfficeBody = memo(function OfficeBody({ m, noStage }: { m: Moment; noStage: boolean }) {
+  const copy = DAY2[m.id];
+  return (
+    <>
+      {noStage && (
+        <p className="day-tag day-tag--phone" aria-hidden="true">
+          <span className="day-tag-dot" />
+          {copy.phone}
+        </p>
+      )}
+      <p className="day-tag day-tag--office">
+        <span className="day-tag-dot" aria-hidden="true" />
+        <span className="sr-only">{DAY2_UI.officeSr} </span>
+        {copy.office}
+      </p>
+      <div className="day-card" data-cursor="text">
+        <p className="day-card-where">{copy.where}</p>
+        <Suspense fallback={<div className="day-card-wait" />}>
+          <UpdateCardBody id={m.id} />
+        </Suspense>
+      </div>
+    </>
+  );
+});
+
+const Offices = memo(function Offices({ chapter, noStage, stageRef }: { chapter: number; noStage: boolean; stageRef: RefObject<HTMLDivElement | null> }) {
+  return (
+    <div className="day-offices" ref={stageRef}>
+      {MOMENTS.map((mm, k) => (
+        <div key={mm.id} className="day-office" data-i={k} aria-hidden={k !== chapter}>
+          <OfficeBody m={mm} noStage={noStage} />
+        </div>
+      ))}
+    </div>
+  );
+});
 
 // ─── the scene ──────────────────────────────────────────────────────────────────
 
@@ -493,7 +572,7 @@ function DayStage({ player: p }: { player: Player }) {
   const ground = useRef<HTMLDivElement>(null);
   const film = useRef<HTMLDivElement>(null);
   const noStage = useNoStage();
-  useGround(p, ground);
+  useGround(p, ground, grid);
 
   // the live layer on the screens (the press, the office updates) and the light, with the Stage
   useEffect(() => {
@@ -567,16 +646,7 @@ function DayStage({ player: p }: { player: Player }) {
       <div className="day-film" ref={film}>
         <div className="day-copy">
           <RideOdo player={p} ride={R} />
-          <div className="day-text">
-            {MOMENTS.map((mm, k) => (
-              <div key={mm.id} className="day-head" data-i={k} aria-hidden={k !== i}>
-                <h3 className="day-title">{DAY2[mm.id].headline}</h3>
-                <p className="day-features">
-                  <Features m={mm} />
-                </p>
-              </div>
-            ))}
-          </div>
+          <Heads chapter={i} />
           <div className="day-end" inert={!ctaOn} aria-hidden={!ctaOn}>
             <Cta source="day" size="lg" cue={false} />
           </div>
@@ -587,32 +657,7 @@ function DayStage({ player: p }: { player: Player }) {
           className="day-stage"
           poster={{ src: `renders/day-${m.id}.webp`, frame, pad: 0.04, alt: `${m.when}: ${DAY2[m.id].headline}` }}
         >
-          <div className="day-offices" ref={stage}>
-            {MOMENTS.map((mm, k) => {
-              const copy = DAY2[mm.id];
-              return (
-                <div key={mm.id} className="day-office" data-i={k} aria-hidden={k !== i}>
-                  {noStage && (
-                    <p className="day-tag day-tag--phone" aria-hidden="true">
-                      <span className="day-tag-dot" />
-                      {copy.phone}
-                    </p>
-                  )}
-                  <p className="day-tag day-tag--office">
-                    <span className="day-tag-dot" aria-hidden="true" />
-                    <span className="sr-only">{DAY2_UI.officeSr} </span>
-                    {copy.office}
-                  </p>
-                  <div className="day-card" data-cursor="text">
-                    <p className="day-card-where">{copy.where}</p>
-                    <Suspense fallback={<div className="day-card-wait" />}>
-                      <UpdateCardBody id={mm.id} />
-                    </Suspense>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <Offices chapter={i} noStage={noStage} stageRef={stage} />
         </StageAnchor>
 
         {!noStage && <Annotations p={p} stageRef={stage} />}

@@ -92,9 +92,27 @@ export function cancelGlide() {
 /** A glide is running. */
 export const gliding = () => glideDone !== null || glideRaf !== 0;
 
+let navTo: number | null = null;
+let navTimer = 0;
+/**
+ * Where an in-page navigation (a header link, a rail jump) is taking the page while it scrolls
+ * there, else null. Scenes that react to scrolling (One Day's ride starts when the visitor scrolls
+ * into it) leave a page that is only passing through alone.
+ */
+export const navigatingTo = () => navTo;
+
 export function scrollToY(y: number, opts: { instant?: boolean } = {}) {
   const top = Math.max(0, y);
-  if (lenis && !opts.instant) lenis.scrollTo(top, { duration: Math.min(2.2, 0.8 + Math.abs(top - window.scrollY) / 4000) });
+  const dur = Math.min(2.2, 0.8 + Math.abs(top - window.scrollY) / 4000);
+  window.clearTimeout(navTimer);
+  navTo = top;
+  const done = () => {
+    window.clearTimeout(navTimer);
+    if (navTo === top) navTo = null;
+  };
+  // never wait forever (an interrupted scroll)
+  navTimer = window.setTimeout(done, opts.instant || reducedMotion ? 100 : dur * 1000 + 600);
+  if (lenis && !opts.instant) lenis.scrollTo(top, { duration: dur, onComplete: done });
   else window.scrollTo({ top, behavior: opts.instant || reducedMotion ? "auto" : "smooth" });
 }
 

@@ -71,6 +71,10 @@ const STILL = reducedMotion || SNAP || CAP;
 type CapWindow = { __stageNow?: number; __stageDt?: number; __stageFrames?: number; __stageNudge?: { y?: number; rz?: number } };
 const CAP_NO_AA = CAP && new URLSearchParams(location.search).has("noAA");
 const capWin = (typeof window !== "undefined" ? window : {}) as CapWindow;
+/** ?stagePerf (perf checks): each frame's JS time in the Stage (ms) goes to window.__stagePerf. */
+const PERF = typeof location !== "undefined" && new URLSearchParams(location.search).has("stagePerf");
+const perfLog: number[] = [];
+if (PERF) (window as unknown as { __stagePerf: number[] }).__stagePerf = perfLog;
 
 preloadDevices(["macbook", "iphone"]);
 
@@ -287,6 +291,7 @@ function Driver() {
   }, []);
 
   useFrame((state, rawDt0) => {
+    const tPerf = PERF ? performance.now() : 0;
     const L = live.current;
     const camera = state.camera;
     const capNow = CAP ? capWin.__stageNow : undefined;
@@ -570,6 +575,7 @@ function Driver() {
     }
 
     if (CAP) capWin.__stageFrames = (capWin.__stageFrames ?? 0) + 1;
+    if (PERF) perfLog.push(performance.now() - tPerf);
     if (busy) invalidate();
   });
 

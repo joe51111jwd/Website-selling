@@ -141,7 +141,6 @@ export function holdPage(o: { y: () => number | null; onExit: (dir: HoldExit) =>
     up = 0;
     if (gliding()) cancelGlide();
     listen(false);
-    document.documentElement.classList.remove("is-held");
   }
 
   return {
@@ -155,7 +154,6 @@ export function holdPage(o: { y: () => number | null; onExit: (dir: HoldExit) =>
       if (!held) {
         held = true;
         listen(true);
-        document.documentElement.classList.add("is-held");
       }
       landing = true;
       glideTo(holdY, o.glideMs ?? 700, () => {

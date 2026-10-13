@@ -59,6 +59,16 @@ function splitLines(lines: string[], key: string): Line[] {
   });
 }
 
+/** Words as their own spans (desktop: each sets as the pass reaches it), spaces kept between them. */
+function Words({ text }: { text: string }) {
+  const parts = text.split(/( +)/);
+  return (
+    <>
+      {parts.map((p, i) => (p.trim() ? <span className="t0-w" key={i}>{p}</span> : p))}
+    </>
+  );
+}
+
 const Down = () => (
   <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
     <path d="M8 2.5v10.2M3.8 8.6 8 12.8l4.2-4.2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
@@ -94,14 +104,14 @@ export default function HeroT0() {
               {lines.map((l, i) => (
                 <span className="t0-line" key={i}>
                   <span className="t0-line-in">
-                    {l.pre}
+                    <Words text={l.pre} />
                     {l.key && (
                       <span className="t0-key">
-                        {l.key}
+                        <Words text={l.key} />
                         <i className="t0-tape" />
                       </span>
                     )}
-                    {l.post}
+                    <Words text={l.post} />
                   </span>
                 </span>
               ))}

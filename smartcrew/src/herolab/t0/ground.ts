@@ -18,6 +18,7 @@ import { markFirstScreenDone, markPageReady } from "../../site/ready";
 import { createGL, type GLGround } from "./gl";
 import type { Mode, Pad, Rect } from "./terrain";
 import type { FieldReq, FieldRes, PlanReq, PlanRes } from "./terrain.worker";
+import { BERM } from "./consts";
 
 export type GroundOpts = { phone: boolean; reduced: boolean };
 
@@ -32,20 +33,12 @@ const NO_GL = q.get("t0Gl") === "0";
 const DESK = {
   hold: 100,
   passEnd: 850,
-  band: 150,
-  eyebrow: 380,
-  h1: 380,
-  h1Dur: 300,
-  stagger: 50,
-  tape: 640,
+  band: 260,
+  h1Dur: 280,
   tapeDur: 300,
-  sub: 560,
   subDur: 280,
   cta: 680,
-  ctaDur: 270,
-  demo: 740,
-  micro: 760,
-  foot: 820,
+  ctaDur: 260,
   ghost: 850,
   ghostDur: 250,
   labels: 1000,
@@ -58,19 +51,11 @@ const PHONE = {
   hold: 40,
   passEnd: 760,
   band: 0,
-  eyebrow: 300,
-  h1: 300,
-  h1Dur: 230,
-  stagger: 45,
-  tape: 560,
+  h1Dur: 240,
   tapeDur: 260,
-  sub: 460,
   subDur: 260,
   cta: 550,
   ctaDur: 250,
-  demo: 600,
-  micro: 620,
-  foot: 660,
   ghost: 0,
   ghostDur: 0,
   labels: 0,
@@ -79,6 +64,34 @@ const PHONE = {
   rest: 900,
   ready: 800,
 };
+/** The pass's easing: a gentle S (peak speed ~1.6× the mean), the same curve for the shader's
+ * front (JS) and the phone's container (WAAPI). */
+const PASS_CSS = "cubic-bezier(0.45, 0, 0.55, 1)";
+const PASS_EASE = bezier(0.45, 0, 0.55, 1);
+function bezier(x1: number, y1: number, x2: number, y2: number) {
+  const cx = 3 * x1;
+  const bx = 3 * (x2 - x1) - cx;
+  const ax = 1 - cx - bx;
+  const cy = 3 * y1;
+  const by = 3 * (y2 - y1) - cy;
+  const ay = 1 - cy - by;
+  const X = (t: number) => ((ax * t + bx) * t + cx) * t;
+  const Y = (t: number) => ((ay * t + by) * t + cy) * t;
+  return (u: number) => {
+    if (u <= 0) return 0;
+    if (u >= 1) return 1;
+    let lo = 0;
+    let hi = 1;
+    let t = u;
+    for (let i = 0; i < 26; i++) {
+      t = (lo + hi) / 2;
+      if (X(t) < u) lo = t;
+      else hi = t;
+    }
+    return Y(t);
+  };
+}
+
 /** a later visit in the session: a short settle */
 const SETTLE = 400;
 const SEEN = "sc-t0";
@@ -126,7 +139,15 @@ function ask<T extends FieldRes | PlanRes>(msg: Omit<FieldReq, "id"> | Omit<Plan
           resolve({
             id,
             kind: "plan",
-            paths: { natI: by(p.natural, false), natX: by(p.natural, true), proI: by(p.proposed, false), proX: by(p.proposed, true), exPad: T.pathD(p.existingPad), exSlope: T.pathD(p.existingSlope) },
+            paths: {
+              natI: by(p.natural, false),
+              natX: by(p.natural, true),
+              proI: by(p.proposed, false),
+              proX: by(p.proposed, true),
+              exPad: T.pathD(p.existingPad),
+              exSlope: T.pathD(p.existingSlope),
+              berm: msg.mode === "phone" ? T.pathD(T.splitByRect(p.proposed, { x: -1e4, y: msg.pad.y + msg.pad.h, w: 2e4, h: BERM }).inside) : "",
+            },
             labels: p.labels,
             limits: p.limits,
             grade: p.grade,
@@ -184,6 +205,8 @@ type Geo = {
   halos: Rect[];
   /** the small print under the button: PAD EL sits on its baseline */
   micro: Rect;
+  /** halos[0 … nHead) are the header's (always on); the rest are the foot row's */
+  nHead: number;
 };
 
 type Layers = {
@@ -197,6 +220,8 @@ type Layers = {
   boxIn?: HTMLDivElement;
   blade?: HTMLDivElement;
   existing?: SVGSVGElement;
+  berm?: SVGSVGElement;
+  bermBottom?: number;
   rect?: Rect;
   labels?: SVGSVGElement;
   limits: Rect;
@@ -330,7 +355,7 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
       void y1;
     }
     const halos = [...head.map((r) => inflate(r, 10, 6)), ...foot.map((r) => inflate(r, 12, 8))];
-    return { W, H, pad, copy, halos, micro: rel($(".t0-micro")!.getBoundingClientRect()) };
+    return { W, H, pad, copy, halos, micro: rel($(".t0-micro")!.getBoundingClientRect()), nHead: head.length };
   }
 
   // ── 3 · the layers ──
@@ -379,8 +404,9 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
   }
 
   /** halos as an SVG mask (the SVG plan's version of the shader's halo breaks) */
-  function haloMask(s: SVGSVGElement, g: Geo) {
-    if (!g.halos.length) return "";
+  function haloMask(s: SVGSVGElement, g: Geo, headOnly = false) {
+    const hs = headOnly ? g.halos.slice(0, g.nHead) : g.halos;
+    if (!hs.length) return "";
     const defs = document.createElementNS(NS, "defs");
     const m = document.createElementNS(NS, "mask");
     const mid = `${id}-halo-${++maskSeq}`;
@@ -391,7 +417,12 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     m.setAttribute("width", String(g.W));
     m.setAttribute("height", String(g.H));
     let inner = `<rect width="${g.W}" height="${g.H}" fill="#fff"/>`;
-    for (const h of g.halos) inner += `<rect x="${h.x.toFixed(1)}" y="${h.y.toFixed(1)}" width="${h.w.toFixed(1)}" height="${h.h.toFixed(1)}" rx="6" fill="#000"/>`;
+    // a soft edge in four steps (no filters): the lines thin out into the halo, they don't stop on a box
+    for (const h of hs)
+      for (let k = 3; k >= 0; k--) {
+        const e = k * 2.5;
+        inner += `<rect x="${(h.x - e).toFixed(1)}" y="${(h.y - e).toFixed(1)}" width="${(h.w + 2 * e).toFixed(1)}" height="${(h.h + 2 * e).toFixed(1)}" rx="${(8 + e).toFixed(1)}" fill="#000" fill-opacity="${[1, 0.5, 0.333, 0.25][k]}"/>`;
+      }
     m.innerHTML = inner;
     defs.appendChild(m);
     s.appendChild(defs);
@@ -407,7 +438,7 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
 
   function buildGL(p: PlanRes, g: Geo): Layers {
     const G = gl!;
-    G.setGrade(p.grade, g.halos);
+    G.setGrade(p.grade, g.halos, g.nHead);
     G.size(g.W, g.H, window.devicePixelRatio || 1);
     G.canvas.style.width = `${g.W}px`;
     G.canvas.style.height = `${g.H}px`;
@@ -418,14 +449,13 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     exw.className = "t0-exw";
     const exin = document.createElement("div");
     exin.className = "t0-exin";
+    // (the header's halo only: the existing ground has gone before the foot row lands)
     const s1 = svg(g.W, g.H, "t0-ex");
-    const m1 = haloMask(s1, g);
-    path(group(s1, m1), p.paths.exPad, "t0-ex-l");
+    path(group(s1, haloMask(s1, g, true)), p.paths.exPad, "t0-ex-l");
     exin.appendChild(s1);
     exw.appendChild(exin);
     const s2 = svg(g.W, g.H, "t0-ex t0-ex-slope");
-    const m2 = haloMask(s2, g);
-    path(group(s2, m2), p.paths.exSlope, "t0-ex-l");
+    path(group(s2, haloMask(s2, g, true)), p.paths.exSlope, "t0-ex-l");
     groundEl.append(exw, s2);
     return { kind: "gl", exw, exin, exSlope: s2, labels: buildLabels(p, g), limits: p.limits };
   }
@@ -438,10 +468,9 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     const rect: Rect = phone ? { x: 0, y: L.y - 6, w: W, h: L.h + 12 } : { x: L.x - 6, y: 0, w: L.w + 12, h: H };
     // 1 · existing ground inside the limits (dashed): covered as the pass goes over it
     const ex = svg(W, H, "t0-ex t0-ex-all");
-    const mx = haloMask(ex, g);
-    const ge = group(ex, mx);
-    path(ge, p.paths.exPad, "t0-ex-l");
-    path(ge, p.paths.exSlope, "t0-ex-l");
+    const gx = group(ex, haloMask(ex, g, true));
+    path(gx, p.paths.exPad, "t0-ex-l");
+    path(gx, p.paths.exSlope, "t0-ex-l");
     // 2 · the graded container: a ground-coloured backing + the proposed slopes
     const box = document.createElement("div");
     box.className = "t0-box";
@@ -458,6 +487,13 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     path(gp, p.paths.proI, "t0-pi");
     path(gp, p.paths.proX, "t0-px");
     boxIn.append(back, pr);
+    // the berm (phones): rides just behind the blade's edge, lands as the fill slope's top lines
+    let berm: SVGSVGElement | undefined;
+    if (phone && p.paths.berm) {
+      berm = svg(W, H, "t0-berm");
+      path(group(berm, haloMask(berm, g)), p.paths.berm, "t0-pi");
+      boxIn.appendChild(berm);
+    }
     box.appendChild(boxIn);
     // 3 · the blade's edge: a soft ground-coloured band at the front, riding with the container
     const blade = document.createElement("div");
@@ -470,30 +506,66 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     path(gn, p.paths.natI, "t0-ni");
     path(gn, p.paths.natX, "t0-nx");
     groundEl.append(ex, box, blade, nat);
-    return { kind: "svg", box, boxIn, blade, existing: ex, rect, labels: buildLabels(p, g), limits: p.limits };
+    return { kind: "svg", box, boxIn, blade, berm, bermBottom: g.pad.y + g.pad.h + BERM, existing: ex, rect, labels: buildLabels(p, g), limits: p.limits };
   }
 
   // ── 4 · the entrance ──
 
+  /** the pass's span along its axis (desktop GL: the front's centre; SVG: the container's leading edge) */
   const passSpan = () => {
-    const L = layers!.limits;
-    return { a: L.x - TL.band / 2 - 10, b: L.x + L.w + TL.band / 2 + 10 };
+    if (!layers) {
+      // the ground is late: the copy keeps the same rhythm over the whole hero
+      const g = geo!;
+      return phone ? { a: 0, b: g.H } : { a: -TL.band / 2, b: g.W + TL.band / 2 };
+    }
+    const L = layers.limits;
+    if (layers.kind === "gl") return { a: L.x - TL.band / 2 - 10, b: L.x + L.w + TL.band / 2 + 10 };
+    const r = layers.rect!;
+    return phone ? { a: r.y, b: r.y + r.h } : { a: r.x, b: r.x + r.w };
   };
-  const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2); // in-out cubic
-  /** desktop: where the front is at t */
-  function frontAt(t: number) {
+  /** the pass's position at t (px along its axis) */
+  function passAt(t: number) {
     const { a, b } = passSpan();
     const u = clamp((t - TL.hold) / (TL.passEnd - TL.hold), 0, 1);
-    return a + (b - a) * ease(u);
+    return a + (b - a) * PASS_EASE(u);
+  }
+  /** the pass's time fraction at which its eased progress reaches s */
+  function passInv(s: number) {
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 22; i++) {
+      const m = (lo + hi) / 2;
+      if (PASS_EASE(m) < s) lo = m;
+      else hi = m;
+    }
+    return (lo + hi) / 2;
+  }
+  /** when the graded ground reaches `v` along the axis (desktop GL: the band's trailing edge) */
+  function gradedAt(v: number) {
+    const { a, b } = passSpan();
+    const target = (layers ? layers.kind === "gl" : !phone) ? v + TL.band / 2 : v;
+    const s = clamp((target - a) / (b - a), 0, 1);
+    let lo = 0;
+    let hi = 1;
+    for (let i = 0; i < 22; i++) {
+      const m = (lo + hi) / 2;
+      if (PASS_EASE(m) < s) lo = m;
+      else hi = m;
+    }
+    return TL.hold + ((lo + hi) / 2) * (TL.passEnd - TL.hold);
   }
 
+  /** when the foot row starts landing (its halos fade in with it) */
+  let footAt = 0;
+  const FOOT_DUR = 320;
   function drawGLAt(t: number) {
     if (!gl || !layers || layers.kind !== "gl") return;
     const rest = t >= TL.passEnd;
-    const f = frontAt(t);
-    gl.draw({ front: f, band: TL.band, entrance: !rest });
-    // the dashed pad ground: visible only ahead of the front, its edge just inside the band
-    const edge = f + TL.band * 0.18;
+    const f = passAt(t);
+    gl.draw({ front: rest ? 1e6 : f, band: TL.band, entrance: !rest, keepFoot: clamp((t - footAt) / FOOT_DUR, 0, 1) });
+    // the dashed pad ground dissolves across the band (its edge fades over 170 px), so the pad is
+    // clear by the time the band's trailing edge (where the words set) gets there
+    const edge = f - TL.band * 0.2;
     if (layers.exw && layers.exin) {
       layers.exw.style.transform = `translate3d(${edge.toFixed(2)}px,0,0)`;
       layers.exin.style.transform = `translate3d(${(-edge).toFixed(2)}px,0,0)`;
@@ -513,20 +585,45 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
   ];
   const fade: Keyframe[] = [{ opacity: 0 }, { opacity: 1 }];
 
-  function copyIn(scale = 1) {
-    const s = (n: number) => n * scale;
-    animate($(".t0-eyebrow"), rise(8), s(TL.eyebrow), TL.h1Dur);
-    $$(".t0-line-in").forEach((l, i) => animate(l, rise(8), s(TL.h1 + i * TL.stagger), TL.h1Dur));
+  /**
+   * The copy sets in the pass's wake: each headline word (desktop) or line (phones) lands as the
+   * graded ground reaches it; the sub follows; the orange button lands last, like finish grade.
+   */
+  function copyIn() {
+    const R = root.getBoundingClientRect();
+    const at = (el: Element, edge: "c" | "end") => {
+      const r = el.getBoundingClientRect();
+      const v = phone ? (edge === "c" ? (r.top + r.bottom) / 2 : r.bottom) - R.top + (layers?.berm ? BERM + 8 : 0) : (edge === "c" ? (r.left + r.right) / 2 : r.right) - R.left;
+      return gradedAt(v);
+    };
+    const floor = phone ? 240 : 320;
+    let last = 0;
+    const words = phone ? $$(".t0-line-in") : $$(".t0-w");
+    words.forEach((w) => {
+      const d = Math.max(floor, at(w, phone ? "end" : "c") + 20);
+      last = Math.max(last, d);
+      animate(w, rise(8), d, TL.h1Dur);
+    });
+    const eb = $(".t0-eyebrow");
+    if (eb) animate(eb, rise(6), Math.max(floor, at(eb, "c") + 20), TL.h1Dur);
+    // the flagging tape pulls tight once its words have set
     const lines = $$(".t0-line-in");
     $$(".t0-tape").forEach((t) => {
-      const li = lines.findIndex((l) => l.contains(t));
-      animate(t, [{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], s(Math.max(TL.tape, TL.h1 + li * TL.stagger + TL.h1Dur - 60)), TL.tapeDur, EIO);
+      const ws = phone ? [lines.find((l) => l.contains(t))!] : [...t.parentElement!.querySelectorAll(".t0-w")];
+      const d = Math.max(...ws.map((w) => Math.max(floor, at(w, phone ? "end" : "c") + 20))) + 120;
+      animate(t, [{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], d, TL.tapeDur, EIO);
     });
-    animate($(".t0-sub"), rise(8), s(TL.sub), TL.subDur);
-    animate($(".t0-cta-wrap"), rise(8), s(TL.cta), TL.ctaDur);
-    animate($(".t0-demo"), rise(6), s(TL.demo), TL.ctaDur);
-    animate($(".t0-micro"), fade, s(TL.micro), TL.ctaDur);
-    animate($(".t0-foot"), fade, s(TL.foot), 320);
+    const sub = $(".t0-sub")!;
+    const dSub = Math.max(floor + 80, at(sub, phone ? "end" : "c") + 60);
+    animate(sub, rise(8), dSub, TL.subDur);
+    // the button: after the headline, never later than TL.cta (fully landed by TL.cta + its duration)
+    const dCta = Math.min(TL.cta, Math.max(last + 40, dSub + 60, at($(".t0-cta-wrap")!, "end") + 40));
+    animate($(".t0-cta-wrap"), rise(8), dCta, TL.ctaDur);
+    animate($(".t0-demo"), rise(6), dCta + 60, TL.ctaDur);
+    animate($(".t0-micro"), fade, dCta + 80, TL.ctaDur);
+    footAt = dCta + 140;
+    animate($(".t0-foot"), fade, footAt, FOOT_DUR);
+    return dCta + TL.ctaDur;
   }
 
   function labelsIn(l: SVGSVGElement | undefined) {
@@ -536,16 +633,18 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
       .forEach((t, i) => animate(t, fade, TL.labels + i * TL.labelStagger, TL.labelDur, "linear"));
   }
 
-  /** the full entrance: t = 0 is this frame */
-  function play() {
-    const Ly = layers!;
+  /** the full entrance: t = 0 is this frame (withGround false: the copy only, the ground is late) */
+  function play(withGround: boolean) {
+    const Ly = layers;
     root.classList.add("is-live", "is-moving");
     root.classList.remove("is-pre");
     clock = new Animation(new KeyframeEffect(null, [], { duration: TL.rest }), document.timeline);
     clock.play();
     anims = [clock];
-    copyIn();
-    if (Ly.kind === "gl") {
+    const landed = copyIn();
+    if (!withGround || !Ly) {
+      // nothing to grade yet
+    } else if (Ly.kind === "gl") {
       if (Ly.exw) Ly.exw.style.display = "";
       drawGLAt(0);
       animate(Ly.exSlope, [{ opacity: 1 }, { opacity: 0 }], TL.ghost, TL.ghostDur, "linear", "both");
@@ -554,7 +653,7 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
         if (!alive || finished || !clock) return;
         const t = clock.currentTime == null ? 0 : Number(clock.currentTime);
         drawGLAt(t);
-        if (t < TL.passEnd) raf = requestAnimationFrame(loop);
+        if (t < Math.max(TL.passEnd, footAt + FOOT_DUR)) raf = requestAnimationFrame(loop);
       };
       if (!DEBUG) raf = requestAnimationFrame(loop);
       labelsIn(Ly.labels);
@@ -564,14 +663,23 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
       const n = phone ? r.h : r.w;
       const tr = (v: number) => (phone ? `translate3d(0, ${v}px, 0)` : `translate3d(${v}px, 0, 0)`);
       const dur = TL.passEnd - TL.hold;
-      animate(Ly.box, [{ transform: tr(-n) }, { transform: tr(0) }], TL.hold, dur, EIO);
-      animate(Ly.boxIn, [{ transform: tr(n) }, { transform: tr(0) }], TL.hold, dur, EIO);
-      animate(Ly.blade, [{ transform: tr(-n), opacity: 1 }, { transform: tr(0), opacity: 1 }], TL.hold, dur, EIO);
+      animate(Ly.box, [{ transform: tr(-n) }, { transform: tr(0) }], TL.hold, dur, PASS_CSS);
+      animate(Ly.boxIn, [{ transform: tr(n) }, { transform: tr(0) }], TL.hold, dur, PASS_CSS);
+      animate(Ly.blade, [{ transform: tr(-n) }, { transform: tr(0) }], TL.hold, dur, PASS_CSS);
       animate(Ly.blade, [{ opacity: 1 }, { opacity: 0 }], TL.passEnd, 120, "linear", "forwards");
+      if (Ly.berm && Ly.bermBottom) {
+        // the berm's bottom rides 6 px behind the edge (whose position is linear in the eased
+        // progress, so keyframe offsets in progress space line it up exactly) until it lands
+        const pEnd = clamp((Ly.bermBottom + 6 - r.y) / n, 0.05, 1);
+        const off0 = r.y - 6 - Ly.bermBottom;
+        animate(Ly.berm, [{ transform: tr(off0), offset: 0 }, { transform: tr(0), offset: pEnd }, { transform: tr(0), offset: 1 }], TL.hold, dur, PASS_CSS);
+        const landAt = TL.hold + dur * passInv(pEnd);
+        animate(Ly.berm, [{ opacity: 1 }, { opacity: 0 }], landAt, 140, "linear", "forwards");
+      }
       if (!phone) labelsIn(Ly.labels);
     }
     if (DEBUG) return;
-    timers.push(window.setTimeout(() => markPageReady(), TL.ready));
+    timers.push(window.setTimeout(() => markPageReady(), Math.min(TL.ready, landed)));
     timers.push(window.setTimeout(() => toRest(), TL.rest + 30));
   }
 
@@ -582,9 +690,11 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     clock = new Animation(new KeyframeEffect(null, [], { duration: SETTLE }), document.timeline);
     clock.play();
     anims = [clock];
-    showRest();
-    animate(groundEl, [{ opacity: 0.6 }, { opacity: 1 }], 0, SETTLE, EO);
-    animate($(".t0-labels"), fade, 0, SETTLE, EO);
+    if (layers) {
+      showRest();
+      animate(groundEl, [{ opacity: 0.6 }, { opacity: 1 }], 0, SETTLE, EO);
+      animate($(".t0-labels"), fade, 0, SETTLE, EO);
+    }
     for (const s of [".t0-eyebrow", ".t0-h1", ".t0-sub", ".t0-act", ".t0-micro", ".t0-foot"]) animate($(s), fade, 0, SETTLE, EO);
     if (DEBUG) return;
     timers.push(window.setTimeout(() => markPageReady(), 200));
@@ -595,12 +705,13 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
   function showRest() {
     if (!layers) return;
     if (layers.kind === "gl") {
-      gl?.draw({ front: 1e6, band: TL.band, entrance: false });
+      gl?.draw({ front: 1e6, band: TL.band, entrance: false, keepFoot: 1 });
       if (layers.exw) layers.exw.style.display = "none";
       if (layers.exSlope) layers.exSlope.style.display = "none";
     } else {
       if (layers.existing) layers.existing.style.display = "none";
       if (layers.blade) layers.blade.style.display = "none";
+      if (layers.berm) layers.berm.style.display = "none";
     }
   }
 
@@ -648,26 +759,13 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
   let lastPlan: PlanRes | null = null;
   let fontsLate = false;
 
-  async function lay(first: boolean) {
-    fit();
-    const g = measure();
-    geo = g;
-    root.classList.add("is-laid");
-    const field = wantField(g.W, g.H);
-    const plan = ask<PlanRes>({ kind: "plan", W: g.W, H: g.H, mode, pad: g.pad, keep: [...g.copy, ...g.halos], labels: phone ? 0 : 4 });
-    const t0 = performance.now();
-    // the GL path needs the field and a linked program; it gives up after a short wait
+  /** Build the ground's layers from a plan (desktop: the shader if it has linked in time, else SVG). */
+  async function build(p: PlanRes, f: FieldRes, g: Geo, glWait: number) {
     let useGL = !!gl && !phone;
-    const [p, f] = await Promise.all([plan, field]);
-    if (!alive) return;
     if (useGL && gl) {
-      const left = Math.max(0, 250 - (performance.now() - t0));
-      const ok = await Promise.race([gl.linked, new Promise<boolean>((r) => setTimeout(() => r(false), left))]);
-      if (!alive) return;
+      const ok = await Promise.race([gl.linked, new Promise<boolean>((r) => setTimeout(() => r(false), Math.max(0, glWait)))]);
+      if (!alive) return false;
       if (ok && f.tex) gl.setField(f.tex, f.grid);
-      else if (ok && !f.tex) {
-        // a resize reused the field: the texture is already up
-      }
       useGL = ok && !gl.lost();
       if (!useGL) {
         gl.destroy();
@@ -677,28 +775,73 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     lastPlan = p;
     clearLayers();
     layers = useGL ? buildGL(p, g) : buildSVG(p, g);
-    const late = performance.now() - t0 > 600;
-    if (!first || finished || reduced) {
-      finished = true;
-      root.classList.remove("is-pre");
-      root.classList.add("is-live", "is-rest");
-      showRest();
+    return true;
+  }
+
+  /** the ground arrived after the copy's entrance started: it fades in at rest */
+  function groundLate() {
+    showRest();
+    groundEl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: EO });
+    $(".t0-labels")?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: EO });
+  }
+
+  /** how long the hero's first frame waits for the ground after the type is laid out */
+  const WAIT = DEBUG ? 30000 : phone ? 380 : 320;
+
+  async function lay(first: boolean) {
+    fit();
+    const g = measure();
+    geo = g;
+    root.classList.add("is-laid");
+    const field = wantField(g.W, g.H);
+    const plan = ask<PlanRes>({ kind: "plan", W: g.W, H: g.H, mode, pad: g.pad, keep: [...g.copy, ...g.halos], labels: phone ? 0 : 4 });
+    const t0 = performance.now();
+    const res: { v: [PlanRes, FieldRes] | null } = { v: null };
+    const both = Promise.all([plan, field]).then((v) => (res.v = v));
+    const full = first && !finished && !reduced && !settleOnly;
+
+    if (!full) {
+      // a resize, reduced motion or a later visit: the copy shows (or settles) now, the ground
+      // joins at rest when it's ready
       if (first) {
-        markPageReady();
-        markFirstScreenDone();
+        playing = true;
+        if (reduced) {
+          root.classList.remove("is-pre");
+          toRest();
+        } else settle();
       }
+      await both;
+      if (!alive || !res.v) return;
+      const [p, f] = res.v;
+      if (!(await build(p, f, g, 400))) return;
+      if (first && !reduced) groundLate();
+      else showRest();
       return;
     }
-    // the hero's first frame: the existing ground (or straight to a settle)
+
+    // the first visit: the hero's first frame waits a beat for the ground (built in the worker)
+    await Promise.race([both, new Promise((r) => setTimeout(r, WAIT))]);
+    if (!alive) return;
+    if (res.v) {
+      const [p, f] = res.v;
+      if (!(await build(p, f, g, WAIT + 120 - (performance.now() - t0)))) return;
+    }
     requestAnimationFrame(() => {
       if (!alive) return;
       playing = true;
-      if (settleOnly || late) settle();
-      else play();
+      play(!!layers);
       if (DEBUG) {
         anims.forEach((a) => a.pause());
         expose();
       }
+      if (!layers)
+        // the ground was late: the copy plays its entrance on time, the ground fades in at rest
+        void both.then(async () => {
+          if (!alive || !res.v) return;
+          const [p, f] = res.v;
+          if (!(await build(p, f, g, 300))) return;
+          groundLate();
+        });
     });
   }
 

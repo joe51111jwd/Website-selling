@@ -25,7 +25,7 @@
   visibility: hidden;
 }
 
-.t0-root.is-pre :is(.t0-eyebrow, .t0-line-in, .t0-sub, .t0-cta-wrap, .t0-demo, .t0-micro, .t0-foot, .t0-labels) {
+.t0-root.is-pre :is(.t0-eyebrow, .t0-line-in, .t0-w, .t0-sub, .t0-cta-wrap, .t0-demo, .t0-micro, .t0-foot, .t0-labels) {
   opacity: 0;
 }
 
@@ -113,7 +113,7 @@
   }
 }
 
-/* the pad's ground rides the front (desktop): its leading edge fades in over 56 px */
+/* the pad's old ground rides the front (desktop) and dissolves across the band (170 px) */
 .t0-exw,
 .t0-exin {
   width: 100%;
@@ -121,11 +121,11 @@
 }
 
 .t0-exw {
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 56px);
-  mask-image: linear-gradient(90deg, transparent 0, #000 56px);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 170px);
+  mask-image: linear-gradient(90deg, transparent 0, #000 170px);
 }
 
-.t0-root.is-moving :is(.t0-exw, .t0-exin, .t0-box, .t0-box-in, .t0-blade) {
+.t0-root.is-moving :is(.t0-exw, .t0-exin, .t0-box, .t0-box-in, .t0-blade, .t0-berm) {
   will-change: transform;
 }
 
@@ -147,6 +147,10 @@
   position: absolute;
   left: 0;
   top: 0;
+}
+
+.t0-root:not(.is-moving) .t0-berm {
+  display: none;
 }
 
 /* the blade's edge: a soft ground-coloured band at the front */
@@ -256,6 +260,10 @@
 .t0-line-in {
   display: inline-block;
   white-space: nowrap;
+}
+
+.t0-w {
+  display: inline-block;
 }
 
 /* the key phrase: plain emphasis, a strip of flagging tape under it (no shape, no box) */

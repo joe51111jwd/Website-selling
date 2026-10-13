@@ -198,15 +198,30 @@ function bezPts(b: Bez, W: number, H: number, n = 40): Pt[] {
   return out;
 }
 
-/** Distance from (px, py) to a polyline, and how far along it (0…1) the nearest point is. */
-function polyDist(px: number, py: number, pl: Pt[], len: Float64Array, total: number): [number, number] {
+/** A polyline flattened for fast distance queries (no allocation per query). */
+type Spine = { xy: Float64Array; len: Float64Array; total: number; n: number };
+function spine(pl: Pt[]): Spine {
+  const xy = new Float64Array(pl.length * 2);
+  const len = new Float64Array(pl.length);
+  pl.forEach((p, i) => {
+    xy[2 * i] = p[0];
+    xy[2 * i + 1] = p[1];
+    if (i) len[i] = len[i - 1] + Math.hypot(p[0] - pl[i - 1][0], p[1] - pl[i - 1][1]);
+  });
+  return { xy, len, total: len[len.length - 1] || 1, n: pl.length };
+}
+/** how far along the spine (0…1) the last polyDist query's nearest point was */
+let alongT = 0;
+/** Distance from (px, py) to a spine; sets alongT. */
+function polyDist(px: number, py: number, s: Spine): number {
   let best = Infinity;
   let bt = 0;
-  for (let i = 1; i < pl.length; i++) {
-    const ax = pl[i - 1][0];
-    const ay = pl[i - 1][1];
-    const ex = pl[i][0] - ax;
-    const ey = pl[i][1] - ay;
+  const xy = s.xy;
+  for (let i = 1; i < s.n; i++) {
+    const ax = xy[2 * i - 2];
+    const ay = xy[2 * i - 1];
+    const ex = xy[2 * i] - ax;
+    const ey = xy[2 * i + 1] - ay;
     const L2 = ex * ex + ey * ey || 1;
     let t = ((px - ax) * ex + (py - ay) * ey) / L2;
     t = t < 0 ? 0 : t > 1 ? 1 : t;
@@ -215,16 +230,13 @@ function polyDist(px: number, py: number, pl: Pt[], len: Float64Array, total: nu
     const d = dx * dx + dy * dy;
     if (d < best) {
       best = d;
-      bt = (len[i - 1] + t * (len[i] - len[i - 1])) / total;
+      bt = i - 1 + t;
     }
   }
-  return [Math.sqrt(best), bt];
-}
-
-function cumLen(pl: Pt[]) {
-  const len = new Float64Array(pl.length);
-  for (let i = 1; i < pl.length; i++) len[i] = len[i - 1] + Math.hypot(pl[i][0] - pl[i - 1][0], pl[i][1] - pl[i - 1][1]);
-  return len;
+  const i = Math.floor(bt);
+  const f = bt - i;
+  alongT = (s.len[i] + f * ((s.len[Math.min(i + 1, s.n - 1)] || s.len[i]) - s.len[i])) / s.total;
+  return Math.sqrt(best);
 }
 
 /** The existing ground E(x, y) in ft (before the balance shift), for a W×H viewport. */
@@ -246,12 +258,8 @@ export function makeLand(W: number, H: number, mode: Mode) {
     return s;
   };
   const ref = mode === "phone" ? H : W; // spine widths are fractions of this
-  const dr = bezPts(L.drain.bez, W, H);
-  const drLen = cumLen(dr);
-  const drTot = drLen[drLen.length - 1];
-  const rg = bezPts(L.ridge.bez, W, H);
-  const rgLen = cumLen(rg);
-  const rgTot = rgLen[rgLen.length - 1];
+  const dr = spine(bezPts(L.drain.bez, W, H));
+  const rg = spine(bezPts(L.ridge.bez, W, H));
   const dw = L.drain.width * ref;
   const rw = L.ridge.width * ref;
   const floor2 = L.drain.floor * L.drain.floor;
@@ -263,14 +271,15 @@ export function makeLand(W: number, H: number, mode: Mode) {
     let e = L.amp * fbm(u * 1.4 + L.warp * qx, v * 1.4 + L.warp * qy, n1);
     e += L.fallX * (0.5 - x / W) + L.fallY * (0.5 - y / H);
     // Willow Creek: a V section with a rounded floor, falling downstream
-    const [dd, dt] = polyDist(x, y, dr, drLen, drTot);
+    const dd = polyDist(x, y, dr);
+    const dt = alongT;
     const ds = Math.sqrt(dd * dd + floor2);
     const k = 1 - ds / dw;
     if (k > 0) e -= L.drain.depth * Math.pow(k, 1.35);
     e -= L.drain.fall * dt * Math.max(0, 1 - dd / (dw * 1.8));
     // the ridge spur
-    const [rd] = polyDist(x, y, rg, rgLen, rgTot);
-    e += L.ridge.height * Math.exp(-(rd / rw) * (rd / rw));
+    const rd = polyDist(x, y, rg);
+    if (rd < 3.2 * rw) e += L.ridge.height * Math.exp(-(rd / rw) * (rd / rw));
     return e;
   };
 }
@@ -535,42 +544,59 @@ export function contourGrid(g: Grid, levels?: [number, number]): Level[] {
       }
     }
   const out: Level[] = [];
+  // per edge key: the (up to two) segments touching it, +1 (0 = none); reset per level
+  const nk = 2 * nx * ny;
+  const e1 = new Int32Array(nk);
+  const e2 = new Int32Array(nk);
   for (let li = 0; li < nL; li++) {
     const level = L0 + li;
     const S = segs[li];
     const ns = S.length / 2;
     const used = new Uint8Array(ns);
-    const ends = new Map<number, number[]>();
     for (let s = 0; s < ns; s++)
-      for (const key of [S[2 * s], S[2 * s + 1]]) {
-        const l = ends.get(key);
-        if (l) l.push(s);
-        else ends.set(key, [s]);
+      for (let q = 0; q < 2; q++) {
+        const key = S[2 * s + q];
+        if (!e1[key]) e1[key] = s + 1;
+        else e2[key] = s + 1;
       }
+    const other = (key: number) => {
+      const a = e1[key] - 1;
+      if (a >= 0 && !used[a]) return a;
+      const b = e2[key] - 1;
+      if (b >= 0 && !used[b]) return b;
+      return -1;
+    };
     const lines: Line[] = [];
     for (let s = 0; s < ns; s++) {
       if (used[s]) continue;
       used[s] = 1;
-      const keys = [S[2 * s], S[2 * s + 1]];
       const walk = (start: number, push: (k: number) => void) => {
         let key = start;
         for (;;) {
-          const cand = (ends.get(key) || []).find((m) => !used[m]);
-          if (cand === undefined) return key;
+          const cand = other(key);
+          if (cand < 0) return key;
           used[cand] = 1;
-          const nk = S[2 * cand] === key ? S[2 * cand + 1] : S[2 * cand];
-          push(nk);
-          key = nk;
+          const nk2 = S[2 * cand] === key ? S[2 * cand + 1] : S[2 * cand];
+          push(nk2);
+          key = nk2;
         }
       };
+      const k0 = S[2 * s];
+      const k1 = S[2 * s + 1];
       const tail: number[] = [];
       const head: number[] = [];
-      const tk = walk(keys[1], (k) => tail.push(k));
-      const hk = walk(keys[0], (k) => head.push(k));
-      const all = [...head.reverse(), keys[0], keys[1], ...tail];
+      const tk = walk(k1, (k) => tail.push(k));
+      const hk = walk(k0, (k) => head.push(k));
+      const all = [...head.reverse(), k0, k1, ...tail];
       const closed = tk === hk && all.length > 3;
       const pts = (closed ? all.slice(0, -1) : all).map((key) => ptOf(key, level));
       lines.push({ pts, closed });
+    }
+    for (let s = 0; s < ns; s++) {
+      e1[S[2 * s]] = 0;
+      e1[S[2 * s + 1]] = 0;
+      e2[S[2 * s]] = 0;
+      e2[S[2 * s + 1]] = 0;
     }
     out.push({ level, index: ((level % MAJOR) + MAJOR) % MAJOR === 0, lines });
   }
@@ -730,16 +756,9 @@ function splitRuns(lines: Line[], cls: (p: Pt) => number, index: boolean, level:
   return out;
 }
 
-/** Chaikin ×2 (dense, ~1 px apart): runs are split on these points, then simplified (rdpRuns). */
-function smooth(levels: Level[], minLen: number): Level[] {
-  return levels.map((lv) => ({
-    ...lv,
-    lines: lv.lines.map((l) => ({ pts: chaikin(l.pts, l.closed, 2), closed: l.closed })).filter((l) => plen(l.pts) > minLen),
-  }));
-}
-
-function rdpRuns(runs: Run[], eps: number): Run[] {
-  return runs.map((r) => ({ ...r, pts: rdp(r.pts, eps) }));
+/** Each run smoothed on its own (Chaikin ×2 keeps a run's endpoints, so neighbouring runs still meet) and simplified. */
+function finish(runs: Run[], eps: number): Run[] {
+  return runs.map((r) => ({ ...r, pts: rdp(chaikin(r.pts, false, 2), eps) }));
 }
 
 export function buildPlan(f: Field, o: PlanIn): Plan {
@@ -771,24 +790,25 @@ export function buildPlan(f: Field, o: PlanIn): Plan {
   const gD: Grid = { ...g, v: D };
   const eps = o.mode === "phone" ? 0.3 : 0.32;
   const minLen = g.step * 3;
-  const cG = smooth(contourGrid(gG), minLen);
-  const cE = smooth(contourGrid(g), minLen);
+  const long = (lv: Level[]) => lv.map((l) => ({ ...l, lines: l.lines.filter((q) => plen(q.pts) > minLen) }));
+  const cG = long(contourGrid(gG));
+  const cE = long(contourGrid(g));
   const inLim = (p: Pt) => Math.abs(sample(gG, p[0], p[1]) - sample(g, p[0], p[1])) > LIM;
 
   const natural: Run[] = [];
   const proposed: Run[] = [];
   for (const lv of cG) {
     const m = splitRuns(lv.lines, (p) => (inLim(p) ? 1 : 0), lv.index, lv.level, 4);
-    natural.push(...rdpRuns(m.get(0) || [], eps));
-    proposed.push(...rdpRuns(m.get(1) || [], eps));
+    natural.push(...finish(m.get(0) || [], eps));
+    proposed.push(...finish(m.get(1) || [], eps));
   }
   const existingPad: Run[] = [];
   const existingSlope: Run[] = [];
   for (const lv of cE) {
     // 0: natural (drawn by the G layer), 1: under the slopes, 2: on the pad
     const m = splitRuns(lv.lines, (p) => (sample(gD, p[0], p[1]) <= 0 ? 2 : inLim(p) ? 1 : 0), lv.index, lv.level, 4);
-    existingSlope.push(...rdpRuns(m.get(1) || [], eps * 1.6));
-    existingPad.push(...rdpRuns(m.get(2) || [], eps * 1.6));
+    existingSlope.push(...finish(m.get(1) || [], eps * 1.6));
+    existingPad.push(...finish(m.get(2) || [], eps * 1.6));
   }
   const limits = lx0 <= lx1 ? { x: lx0, y: ly0, w: lx1 - lx0, h: ly1 - ly0 } : { x: 0, y: 0, w: 0, h: 0 };
   const labels = o.labels > 0 ? placeLabels(natural, gG, o) : [];
@@ -824,24 +844,24 @@ function placeLabels(runs: Run[], G: Grid, o: PlanIn): Label[] {
       const aL = Math.atan2(rs[i][1] - rs[i - k][1], rs[i][0] - rs[i - k][0]);
       const aR = Math.atan2(rs[i + k][1] - rs[i][1], rs[i + k][0] - rs[i][0]);
       const turn = Math.abs(angDiff(aL, aR));
-      if (turn > 0.21) continue;
+      if (turn > 0.24) continue;
       let ang = a0;
       if (ang > Math.PI / 2) ang -= Math.PI;
       if (ang < -Math.PI / 2) ang += Math.PI;
-      if (Math.abs(ang) > 0.95) continue; // too steep to read upright
+      if (Math.abs(ang) > 1.05) continue; // too steep to read upright
       const gr = grad(p[0], p[1]);
       const upx = Math.sin(ang);
       const upy = -Math.cos(ang);
       if (gr[0] * upx + gr[1] * upy <= 0) continue; // the figures would face downhill
       // neighbouring lines must be clear of the label's halo
       const gm = Math.hypot(gr[0], gr[1]) || 1e-6;
-      if (1 / gm < 13) continue;
+      if (1 / gm < 11) continue;
       cands.push({ p, a: (ang * 180) / Math.PI, t: r.level.toLocaleString("en-US"), score: turn + Math.abs(ang) * 0.3 });
     }
   }
   cands.sort((a, b) => a.score - b.score);
   for (const c of cands) {
-    if (placed.some((q) => Math.hypot(q[0] - c.p[0], q[1] - c.p[1]) < 240)) continue;
+    if (placed.some((q) => Math.hypot(q[0] - c.p[0], q[1] - c.p[1]) < 220)) continue;
     // one label per level and side reads as a plan, not a pattern
     if (out.some((l) => l.t === c.t && Math.sign(l.x - o.W / 2) === Math.sign(c.p[0] - o.W / 2))) continue;
     placed.push(c.p);

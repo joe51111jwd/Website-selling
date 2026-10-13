@@ -33,6 +33,8 @@ uniform vec3 uSlope;     // cut, fill (ft per px), k (ft)
 uniform vec3 uFront;     // front x (css), band width, entrance (1) / rest (0)
 uniform vec4 uKeep[10];  // halo boxes: x0, y0, x1, y1 (css)
 uniform int uNKeep;
+uniform int uNHead;      // the first uNHead boxes always break the lines (the header)
+uniform float uKeepFoot; // the rest (the foot row) fade in with it
 uniform vec3 uInkN;      // natural ink
 uniform vec3 uInkP;      // proposed ink
 uniform vec4 uW;         // css widths: nat int, nat idx, pro int, pro idx
@@ -120,7 +122,10 @@ void main() {
   // near the pad's edge the slope lines step back, so they never buzz against the type
   op *= mix(1.0, mix(0.7, 1.0, smoothstep(0.0, 40.0, D.x)), lim);
   // during the entrance the existing ground inside the limits is the dashed overlay's job
-  if (uFront.z > 0.5) op *= mix(1.0, smoothstep(0.06, 0.55, w), lim);
+  // and on the pad itself the old ground dissolves (the dashed overlay) rather than morphing: a
+  // flat target under a moving blend only draws strands along the band, a curtain, not a grade.
+  // The slopes are where the lines visibly slide aside and bunch into the cut and fill.
+  if (uFront.z > 0.5) op *= mix(1.0, smoothstep(0.02, 0.16, w) * smoothstep(-30.0, 8.0, D.x), lim);
   // halo breaks round the header and the foot row
   float keep = 1.0;
   for (int i = 0; i < 10; i++) {
@@ -128,7 +133,7 @@ void main() {
     vec4 k = uKeep[i];
     vec2 dd = max(k.xy - p, p - k.zw);
     float sd = max(dd.x, dd.y);
-    keep *= smoothstep(0.0, 7.0, sd);
+    keep *= mix(1.0, smoothstep(0.0, 7.0, sd), i < uNHead ? 1.0 : uKeepFoot);
   }
   float we = max(wid, 1.0);
   float cov = clamp(0.5 * we + 0.5 - dist, 0.0, 1.0) * min(wid, 1.0);
@@ -162,10 +167,10 @@ export type GLGround = {
   /** resolves true once the program has linked (never blocks: parallel compile, or a late check) */
   linked: Promise<boolean>;
   setField(tex: Float32Array, grid: { x0: number; y0: number; step: number; nx: number; ny: number }): void;
-  setGrade(g: Grade, keep: Rect[]): void;
+  setGrade(g: Grade, keep: Rect[], nHead: number): void;
   size(W: number, H: number, dpr: number): void;
   /** front: css x of the grading front; band: its soft width; entrance: false = the rest frame */
-  draw(s: { front: number; band: number; entrance: boolean; cursor?: { x: number; y: number; dx: number; dy: number; r: number } }): void;
+  draw(s: { front: number; band: number; entrance: boolean; keepFoot?: number; cursor?: { x: number; y: number; dx: number; dy: number; r: number } }): void;
   lost(): boolean;
   destroy(): void;
 };
@@ -239,13 +244,16 @@ export function createGL(onLost: () => void): GLGround | null {
   let grid = { x0: 0, y0: 0, step: 1, nx: 1, ny: 1 };
   let grade: Grade | null = null;
   let keep: Rect[] = [];
+  let nHead = 0;
+  const kb = new Float32Array(40);
+  let look = lookFor(1);
   let hasField = false;
 
   const init = () => {
     if (ready) return;
     ready = true;
     G.useProgram(prog);
-    for (const n of ["uE", "uGrid", "uGN", "uView", "uDpr", "uPad", "uPadR", "uSlope", "uFront", "uKeep", "uNKeep", "uInkN", "uInkP", "uW", "uO", "uCur", "uCurR"])
+    for (const n of ["uE", "uGrid", "uGN", "uView", "uDpr", "uPad", "uPadR", "uSlope", "uFront", "uKeep", "uNKeep", "uNHead", "uKeepFoot", "uInkN", "uInkP", "uW", "uO", "uCur", "uCurR"])
       U[n] = G.getUniformLocation(prog, n);
     G.bindBuffer(G.ARRAY_BUFFER, buf);
     G.bufferData(G.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), G.STATIC_DRAW);
@@ -281,14 +289,18 @@ export function createGL(onLost: () => void): GLGround | null {
       pendingTex = t;
       upload();
     },
-    setGrade(g, k) {
+    setGrade(g, k, nh) {
       grade = g;
       keep = k.slice(0, 10);
+      nHead = nh;
+      kb.fill(0);
+      keep.forEach((r, i) => kb.set([r.x, r.y, r.x + r.w, r.y + r.h], i * 4));
     },
     size(w, h, d) {
       W = w;
       H = h;
       dpr = d;
+      look = lookFor(d);
       const cw = Math.round(w * d);
       const ch = Math.round(h * d);
       if (canvas.width !== cw) canvas.width = cw;
@@ -298,7 +310,6 @@ export function createGL(onLost: () => void): GLGround | null {
       if (!ready || isLost || !grade) return;
       upload();
       if (!hasField) return;
-      const look = lookFor(dpr);
       G.viewport(0, 0, canvas.width, canvas.height);
       G.uniform4f(U.uGrid, grid.x0, grid.y0, 1 / grid.step, grid.step);
       G.uniform2i(U.uGN, grid.nx, grid.ny);
@@ -309,10 +320,10 @@ export function createGL(onLost: () => void): GLGround | null {
       G.uniform1f(U.uPadR, p.r);
       G.uniform3f(U.uSlope, grade.cut, grade.fill, grade.k);
       G.uniform3f(U.uFront, s.front, s.band, s.entrance ? 1 : 0);
-      const kb = new Float32Array(40);
-      keep.forEach((k, i) => kb.set([k.x, k.y, k.x + k.w, k.y + k.h], i * 4));
       G.uniform4fv(U.uKeep, kb);
       G.uniform1i(U.uNKeep, keep.length);
+      G.uniform1i(U.uNHead, nHead);
+      G.uniform1f(U.uKeepFoot, s.keepFoot ?? 1);
       G.uniform3fv(U.uInkN, look.inkN);
       G.uniform3fv(U.uInkP, look.inkP);
       G.uniform4fv(U.uW, look.w);
