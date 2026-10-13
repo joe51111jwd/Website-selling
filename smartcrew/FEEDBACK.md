@@ -23,6 +23,8 @@ Every piece of feedback on the product page, in one place. Each item has a statu
    - When it ends, the page is free again: you can scroll back up, and Replay is there.
    - It takes over the whole screen: scrolling stops, the header slides away, and it shows the whole app (the crew's phone and the office), ending on the full app view. The control bar keeps a small orange "Get my free trial". It should run about 45–60 s.
    - Brief: `RIDE_BRIEF.md` (design notes).
+   - **Always moving, never repetitive** (after watching the first version): no frozen frames, and every moment is its own shot (a different framing, camera move and animation). It is one continuous walk through the day, with the phone as a lead character. Shot list: `RIDE_SHOTS.md`.
+   - **Smooth, not laggy:** it must hold its frame rate on an ordinary 13" MacBook in Safari and Chrome. Quality adapts to the machine, and a dedicated performance pass measures before and after.
 5. **A pace you can read.**
    - Each step holds until a slow reader has read everything on screen: the time, the headline, what the crew tapped and what the office got.
    - One thing moves at a time, in reading order. Whatever is being explained is big enough to read on a 13" MacBook.

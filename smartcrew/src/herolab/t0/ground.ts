@@ -28,6 +28,8 @@ const EIO = "cubic-bezier(0.65, 0, 0.35, 1)";
 const q = new URLSearchParams(typeof location !== "undefined" ? location.search : "");
 const DEBUG = q.has("t0Debug");
 const NO_GL = q.get("t0Gl") === "0";
+/** lab only: ?t0Perf records the JS time of each shader frame (window.__t0perf) */
+const PERF = q.has("t0Perf");
 
 /** The choreography, ms from the hero's first frame (t = 0). */
 const DESK = {
@@ -560,6 +562,7 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
   const FOOT_DUR = 320;
   function drawGLAt(t: number) {
     if (!gl || !layers || layers.kind !== "gl") return;
+    const p0 = PERF ? performance.now() : 0;
     const rest = t >= TL.passEnd;
     const f = passAt(t);
     gl.draw({ front: rest ? 1e6 : f, band: TL.band, entrance: !rest, keepFoot: clamp((t - footAt) / FOOT_DUR, 0, 1) });
@@ -571,6 +574,7 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
       layers.exin.style.transform = `translate3d(${(-edge).toFixed(2)}px,0,0)`;
       if (rest) layers.exw.style.display = "none";
     }
+    if (PERF) ((window as unknown as { __t0perf?: number[] }).__t0perf ??= []).push(performance.now() - p0);
   }
 
   const animate = (el: Element | null | undefined, kf: Keyframe[], delay: number, dur: number, easing = EO, fill: FillMode = "backwards") => {
