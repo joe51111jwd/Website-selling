@@ -4,7 +4,7 @@
 // popup) the play button reads "Resume". Reduced motion: Previous / Next instead (no autoplay).
 // Every control is a real button with a visible focus ring.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import type { Player } from "./player";
 import { EASE } from "./player";
 import { usePlayer } from "./usePlayer";
@@ -35,6 +35,8 @@ type Props = {
   className?: string;
   /** the text under a tick (default: the chapter's label) */
   tickText?: (i: number) => string;
+  /** after Skip: e.g. the film's small orange "Get my free trial" (the page's own door out) */
+  children?: ReactNode;
 };
 
 const Icon = ({ kind }: { kind: "play" | "pause" | "replay" | "prev" | "next" }) => (
@@ -70,7 +72,7 @@ function useFills(p: Player, fills: React.RefObject<(HTMLSpanElement | null)[]>)
   }, [p, fills]);
 }
 
-export function Controls({ player: p, copy, onPlay, onPause, onSkip, onReplay, onChapter, className, tickText }: Props) {
+export function Controls({ player: p, copy, onPlay, onPause, onSkip, onReplay, onChapter, className, tickText, children }: Props) {
   const v = usePlayer(p);
   const fills = useRef<(HTMLSpanElement | null)[]>([]);
   useFills(p, fills);
@@ -139,6 +141,7 @@ export function Controls({ player: p, copy, onPlay, onPause, onSkip, onReplay, o
           {copy.skip}
         </button>
       )}
+      {children}
     </div>
   );
 }

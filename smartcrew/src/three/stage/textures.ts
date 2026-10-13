@@ -18,9 +18,34 @@ const cache = new Map<string, Entry>();
 /** ?stageCap (frame-by-frame captures): keep every screen (a capture walks a whole film). */
 const CAP = typeof location !== "undefined" && new URLSearchParams(location.search).has("stageCap");
 const MAX = phone ? 10 : CAP ? 48 : 12;
+/** ?stageHQ (rendering stills): screens at their full size. */
+const HQ = typeof location !== "undefined" && new URLSearchParams(location.search).has("stageHQ");
+/**
+ * GPU memory the screens may take (MB, RGBA with mipmaps). Past it the least-recently-used screens
+ * that are neither on a device nor coming up next are let go. A screen in use or coming up is never
+ * evicted, so a long prefetch can go over for a moment instead of decoding the same image again.
+ */
+const BUDGET_MB = CAP || HQ ? Infinity : 48;
+const wanted = new Set<string>();
+/** The screens coming up (the Stage's prefetch): kept while the budget allows anything else to go. */
+export function wantScreens(ids: Iterable<string>) {
+  wanted.clear();
+  for (const id of ids) wanted.add(id);
+  evict();
+}
+const texBytes = (e: Entry) => {
+  const img = e.tex?.tex.image as { width?: number; height?: number } | undefined;
+  return img?.width && img.height ? img.width * img.height * 4 * (4 / 3) : 0;
+};
 let inflight = 0;
 /** Screens still loading (captures wait for none before drawing a frame). */
 export const screensLoading = () => inflight;
+/** GPU memory the cached screen textures take (RGBA, with mipmaps), MB: for the perf checks. */
+export function screenTextureMB() {
+  let b = 0;
+  cache.forEach((e) => (b += texBytes(e)));
+  return Math.round((b / 1048576) * 10) / 10;
+}
 let renderer: THREE.WebGLRenderer | null = null;
 let onLoaded: (() => void) | null = null;
 
@@ -72,9 +97,14 @@ export function loadScreen(id: string): Promise<ScreenTex | null> {
     hit.used = performance.now();
     return hit.promise;
   }
-  // phones show the laptop small: a 1920-wide web screen is plenty and saves ~45% memory
+  // Decoded at the size they're shown. Desktop: the laptop's screen is at most ~1170 CSS px wide
+  // (One Day's push-ins at 1440 wide), so 2048 px covers it at the Stage's 1.5 DPR cap (14 MB with
+  // mipmaps instead of 28 MB at 2880); the phone's screen is at most ~400 CSS px tall, so 804 px
+  // wide (1748 tall) is plenty (7.5 MB instead of 17). Phones show the laptop small: 1440.
   const name = id.split("/").pop() ?? id;
-  const maxW = !phone ? 4096 : name.startsWith("web-") ? 1440 : name.startsWith("phone-") ? 804 : 1920;
+  const web = name.startsWith("web-");
+  const ph = name.startsWith("phone-");
+  const maxW = HQ ? 4096 : phone ? (web ? 1440 : ph ? 804 : 1920) : web ? 2048 : ph ? 804 : 2048;
   const entry: Entry = { tex: null, used: performance.now(), promise: Promise.resolve(null) };
   inflight++;
   entry.promise = decode(screenUrl(id), maxW)
@@ -138,13 +168,18 @@ export function pinScreens(ids: Iterable<string>) {
 
 function evict() {
   const loaded = [...cache.entries()].filter(([, e]) => e.tex);
-  if (loaded.length <= MAX) return;
-  loaded
-    .filter(([id]) => !pinned.has(id))
-    .sort((a, b) => a[1].used - b[1].used)
-    .slice(0, loaded.length - MAX)
-    .forEach(([id, e]) => {
-      e.tex?.tex.dispose();
-      cache.delete(id);
-    });
+  let n = loaded.length;
+  let bytes = loaded.reduce((b, [, e]) => b + texBytes(e), 0);
+  const budget = BUDGET_MB * 1048576;
+  if (n <= MAX && bytes <= budget) return;
+  const free = (id: string, e: Entry) => {
+    n--;
+    bytes -= texBytes(e);
+    e.tex?.tex.dispose();
+    cache.delete(id);
+  };
+  const lru = loaded.filter(([id]) => !pinned.has(id)).sort((a, b) => a[1].used - b[1].used);
+  // first the ones nobody wants soon, then (only over the count) the coming-up ones
+  for (const [id, e] of lru) if ((n > MAX || bytes > budget) && !wanted.has(id)) free(id, e);
+  for (const [id, e] of lru) if (n > MAX && cache.has(id)) free(id, e);
 }

@@ -36,6 +36,10 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  /* the ground steps back under the header band, so the slope lines along the pad's top edge
+     never read as a rule under the logo and the nav (static: rasterised once) */
+  -webkit-mask-image: linear-gradient(180deg, rgb(0 0 0 / 45%) 14px, #000 calc(var(--header-h) + 10px));
+  mask-image: linear-gradient(180deg, rgb(0 0 0 / 45%) 14px, #000 calc(var(--header-h) + 10px));
 }
 
 .t0-ground > * {

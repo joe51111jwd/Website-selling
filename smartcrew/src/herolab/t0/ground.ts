@@ -356,7 +356,17 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
       pad = { x: W / 2 - hw, y: y0 - 22, w: 2 * hw, h: H + 80 - (y0 - 22), r: 24 };
       void y1;
     }
-    const halos = [...head.map((r) => inflate(r, 10, 6)), ...foot.map((r) => inflate(r, 12, 8))];
+    // a halo that nearly reaches the screen's edge runs off it (no stubs of line left at the edge)
+    const toEdge = (r: Rect): Rect => {
+      let { x, w } = r;
+      if (x < 28) {
+        w += x + 40;
+        x = -40;
+      }
+      if (x + w > W - 28) w = W + 40 - x;
+      return { x, y: r.y < 20 ? -40 : r.y, w, h: r.y < 20 ? r.h + r.y + 40 : r.h };
+    };
+    const halos = [...head.map((r) => toEdge(inflate(r, 10, 6))), ...foot.map((r) => toEdge(inflate(r, 12, 8)))];
     return { W, H, pad, copy, halos, micro: rel($(".t0-micro")!.getBoundingClientRect()), nHead: head.length };
   }
 
@@ -602,23 +612,34 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     };
     const floor = phone ? 240 : 320;
     let last = 0;
-    const words = phone ? $$(".t0-line-in") : $$(".t0-w");
-    words.forEach((w) => {
-      const d = Math.max(floor, at(w, phone ? "end" : "c") + 20);
-      last = Math.max(last, d);
-      animate(w, rise(8), d, TL.h1Dur);
+    const lines = $$(".t0-line-in");
+    // reading order first: line n starts 50 ms after line n−1 (a wide lower line never sets its
+    // first word before the line above), and within a line each word waits for the pass to reach it
+    let lineStart = 0;
+    const wordAt = new Map<Element, number>();
+    lines.forEach((ln, i) => {
+      const ws = phone ? [ln] : [...ln.querySelectorAll(".t0-w")];
+      if (!ws.length) return;
+      const first = Math.max(floor, at(ws[0], phone ? "end" : "c") + 20);
+      lineStart = i === 0 ? first : Math.max(first, lineStart + 50);
+      ws.forEach((w) => {
+        const d = Math.max(lineStart, at(w, phone ? "end" : "c") + 20);
+        wordAt.set(w, d);
+        last = Math.max(last, d);
+        animate(w, rise(8), d, TL.h1Dur);
+      });
     });
     const eb = $(".t0-eyebrow");
     if (eb) animate(eb, rise(6), Math.max(floor, at(eb, "c") + 20), TL.h1Dur);
     // the flagging tape pulls tight once its words have set
-    const lines = $$(".t0-line-in");
     $$(".t0-tape").forEach((t) => {
       const ws = phone ? [lines.find((l) => l.contains(t))!] : [...t.parentElement!.querySelectorAll(".t0-w")];
-      const d = Math.max(...ws.map((w) => Math.max(floor, at(w, phone ? "end" : "c") + 20))) + 120;
+      const d = Math.max(...ws.map((w) => wordAt.get(w) ?? floor)) + 120;
       animate(t, [{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], d, TL.tapeDur, EIO);
     });
     const sub = $(".t0-sub")!;
-    const dSub = Math.max(floor + 80, at(sub, phone ? "end" : "c") + 60);
+    // the sub follows the headline's last line (reading order), and the pass
+    const dSub = Math.max(floor + 80, lineStart + 60, at(sub, phone ? "end" : "c") + 60);
     animate(sub, rise(8), dSub, TL.subDur);
     // the button: after the headline, never later than TL.cta (fully landed by TL.cta + its duration)
     const dCta = Math.min(TL.cta, Math.max(last + 40, dSub + 60, at($(".t0-cta-wrap")!, "end") + 40));
@@ -797,11 +818,15 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     const g = measure();
     geo = g;
     root.classList.add("is-laid");
+    if (first) performance.mark("t0-laid");
     const field = wantField(g.W, g.H);
     const plan = ask<PlanRes>({ kind: "plan", W: g.W, H: g.H, mode, pad: g.pad, keep: [...g.copy, ...g.halos], labels: phone ? 0 : 4 });
     const t0 = performance.now();
     const res: { v: [PlanRes, FieldRes] | null } = { v: null };
-    const both = Promise.all([plan, field]).then((v) => (res.v = v));
+    const both = Promise.all([plan, field]).then((v) => {
+      if (first) performance.mark("t0-ground");
+      return (res.v = v);
+    });
     const full = first && !finished && !reduced && !settleOnly;
 
     if (!full) {
@@ -833,6 +858,7 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     requestAnimationFrame(() => {
       if (!alive) return;
       playing = true;
+      performance.mark("t0-first");
       play(!!layers);
       if (DEBUG) {
         anims.forEach((a) => a.pause());

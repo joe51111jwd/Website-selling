@@ -1,0 +1,533 @@
+/* t1 · Hero "The Site Model" (./HeroT1.tsx, ./ground.ts). Every selector is .t1- prefixed; the
+   orange button is the page's .cta (src/site/ui/cta.css). PHONE MODE: max-width 760px (transform
+   and opacity only, no filters, no animated shadows). */
+
+.t1-root {
+  --g: clamp(20px, 4vw, 64px);
+  --fs: min(92px, 6.4vw);
+  --gap-h1: clamp(8px, 2.2svh, 18px);
+  --gap-sub: clamp(12px, 3svh, 24px);
+  --gap-cta: clamp(16px, 3.4svh, 26px);
+  /* the plan's inks: natural ground in ink-3, the proposed grade one step darker */
+  --plan-ink: #74665a;
+  --plan-ink-p: #4a4038;
+  /* line weights (DPR 2; ./ground.ts sets .t1-d1 / .t1-d3) */
+  --w-nm: 0.6px;
+  --o-nm: 0.22;
+  --w-ni: 1.05px;
+  --o-ni: 0.4;
+  --w-pm: 0.7px;
+  --o-pm: 0.3;
+  --w-pi: 1.15px;
+  --o-pi: 0.48;
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 540px;
+  overflow: clip;
+  color: var(--ink);
+  isolation: isolate;
+}
+
+.t1-root.t1-d1 {
+  /* DPR 1: one device pixel; index and intermediate differ by opacity, never by a sub-pixel width */
+  --w-nm: 1px;
+  --o-nm: 0.15;
+  --w-ni: 1px;
+  --o-ni: 0.34;
+  --w-pm: 1px;
+  --o-pm: 0.22;
+  --w-pi: 1px;
+  --o-pi: 0.44;
+}
+
+.t1-root.t1-d3 {
+  --w-nm: 0.5px;
+  --w-ni: 0.9px;
+  --w-pm: 0.6px;
+  --w-pi: 1px;
+}
+
+/* before the entrance starts (fonts, layout, the land) nothing shows; the copy is laid out and
+   measured while hidden */
+.t1-root:not(.is-on) :is(.t1-cam, .t1-labels) {
+  visibility: hidden;
+}
+
+/* ── the camera, the model, the stack ──────────────────────────────────────────────── */
+
+.t1-cam,
+.t1-model,
+.t1-zs,
+.t1-sheets,
+.t1-table {
+  position: absolute;
+  inset: 0;
+}
+
+.t1-root.is-3d .t1-cam {
+  perspective: var(--persp, 1800px);
+  perspective-origin: var(--po, 50% 50%);
+}
+
+.t1-root.is-3d :is(.t1-model, .t1-zs, .t1-sheets) {
+  transform-style: preserve-3d;
+}
+
+.t1-root.is-3d .t1-model {
+  transform-origin: var(--to, 50% 50%);
+}
+
+.t1-root.is-3d .t1-zs {
+  transform-origin: var(--to, 50% 50%);
+}
+
+.t1-sheets {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.t1-sheets > svg {
+  position: absolute;
+  display: block;
+  max-width: none;
+  overflow: visible;
+}
+
+/* the model's shadow on the table (the 3D phase only) */
+.t1-table {
+  display: none;
+  pointer-events: none;
+}
+
+.t1-root.is-3d:not(.t1--phone) .t1-table {
+  display: block;
+  border-radius: 2px;
+  box-shadow:
+    0 1px 0 rgb(60 44 30 / 18%),
+    0 16px 30px -16px rgb(60 44 30 / 34%);
+}
+
+/* the plan: hairlines, no fill */
+.t1-sheets path {
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.t1-nm,
+.t1-ni,
+.t1-pm,
+.t1-pi {
+  fill: none;
+}
+
+.t1-nm {
+  stroke: var(--plan-ink);
+  stroke-width: var(--w-nm);
+  stroke-opacity: var(--o-nm);
+}
+
+.t1-ni {
+  stroke: var(--plan-ink);
+  stroke-width: var(--w-ni);
+  stroke-opacity: var(--o-ni);
+}
+
+.t1-pm {
+  stroke: var(--plan-ink-p);
+  stroke-width: var(--w-pm);
+  stroke-opacity: var(--o-pm);
+}
+
+.t1-pi {
+  stroke: var(--plan-ink-p);
+  stroke-width: var(--w-pi);
+  stroke-opacity: var(--o-pi);
+}
+
+/* within 44 px of the pad (30 on phones) every line steps back to 70%: nothing buzzes against the type */
+.t1-nmn {
+  fill: none;
+  stroke: var(--plan-ink);
+  stroke-width: var(--w-nm);
+  stroke-opacity: calc(var(--o-nm) * 0.7);
+}
+
+.t1-nin {
+  fill: none;
+  stroke: var(--plan-ink);
+  stroke-width: var(--w-ni);
+  stroke-opacity: calc(var(--o-ni) * 0.7);
+}
+
+.t1-pmn {
+  fill: none;
+  stroke: var(--plan-ink-p);
+  stroke-width: var(--w-pm);
+  stroke-opacity: calc(var(--o-pm) * 0.7);
+}
+
+.t1-pin {
+  fill: none;
+  stroke: var(--plan-ink-p);
+  stroke-width: var(--w-pi);
+  stroke-opacity: calc(var(--o-pi) * 0.7);
+}
+
+/* labels: index elevations along their lines, the pad's note */
+.t1-labels,
+.t1-probe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.t1-lbl {
+  font-family: var(--font-text);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  fill: var(--plan-ink);
+  fill-opacity: 0.9;
+  paint-order: stroke;
+  stroke: var(--ground);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+
+.t1-padel {
+  font-family: var(--font-text);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  fill: var(--plan-ink);
+}
+
+/* the contour readout (desktop): the line under the cursor, darker near the cursor, with its
+   elevation set on it */
+.t1-probe {
+  opacity: 0;
+  transition: opacity 0.32s var(--ease-out, ease-out);
+}
+
+.t1-probe.is-on {
+  opacity: 1;
+  transition-duration: 0.14s;
+}
+
+.t1-probe-line {
+  fill: none;
+  stroke: var(--plan-ink-p);
+  stroke-width: 1.3px;
+  stroke-opacity: 0.62;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.t1-probe-lbl {
+  fill: var(--ink-2);
+  font-weight: 600;
+}
+
+/* ── the copy, on the pad ───────────────────────────────────────────────────────────── */
+
+.t1-copy {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  top: var(--copy-top, 76px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--g);
+  text-align: center;
+  pointer-events: none;
+}
+
+.t1-copy > * {
+  pointer-events: auto;
+}
+
+.t1-eyebrow {
+  font-size: 15px;
+  font-weight: 560;
+  line-height: 1.2;
+  color: var(--ink-2);
+}
+
+.t1-h1 {
+  margin-top: var(--gap-h1);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-stretch: 96%;
+  font-size: var(--fs);
+  line-height: 0.98;
+  letter-spacing: -0.012em;
+  word-spacing: 0.04em;
+  font-kerning: normal;
+  color: var(--ink);
+}
+
+.t1-h1-v,
+.t1-line {
+  display: block;
+}
+
+.t1-line-in {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* the key phrase: a solid strip of orange flagging tape under it (no shape, no box) */
+.t1-key {
+  position: relative;
+  display: inline-block;
+}
+
+.t1-tape {
+  position: absolute;
+  left: -0.02em;
+  right: -0.02em;
+  bottom: -0.035em;
+  height: 0.105em;
+  border-radius: 0.02em;
+  background: var(--orange);
+}
+
+.t1-sub {
+  margin-top: var(--gap-sub);
+  max-width: 34.5em;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-wrap: balance;
+}
+
+/* the button sits ON the axis; the demo link hangs to its right and never moves it */
+.t1-act {
+  position: relative;
+  margin-top: var(--gap-cta);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.t1-cta-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.t1-root .t1-cta {
+  --cta-h: 64px;
+  --cta-px: 40px;
+  --cta-fs: 20px;
+  min-width: 300px;
+}
+
+.t1-root .t1-demo {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(100% + 40px);
+  margin: auto 0;
+  height: 44px;
+  font-size: 16px;
+  font-weight: 560;
+  white-space: nowrap;
+}
+
+.t1-micro {
+  margin-top: clamp(12px, 2.4svh, 18px);
+  font-size: 13.5px;
+  line-height: 1.3;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+/* ── the foot: proof and the open loop ──────────────────────────────────────────────── */
+
+.t1-foot {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  top: auto;
+  bottom: clamp(14px, 3svh, 22px);
+  max-width: calc(var(--max) + var(--g) * 2);
+  margin: 0 auto;
+  padding: 0 var(--g);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.t1-logos {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+/* the foot reads like a map's legend: a soft ground-coloured halo knocks the lines out under it
+   (static paint; desktop) */
+@media (min-width: 761px) {
+  .t1-logos,
+  .t1-cue {
+    border-radius: 14px;
+    background: var(--ground);
+    box-shadow: 0 0 10px 8px var(--ground);
+  }
+}
+
+.t1-logos-k {
+  font-size: 13px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.t1-logos ul {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.8vw, 26px);
+}
+
+.t1-logos img {
+  height: calc(var(--h) * 0.8);
+  width: auto;
+  opacity: 0.6;
+}
+
+.t1-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.t1-cue svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* the foot and the labels come in after the camera has landed */
+.t1-root.is-pre-foot :is(.t1-foot, .t1-labels) {
+  opacity: 0;
+}
+
+/* ── PHONE MODE ─────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  .t1-root {
+    --g: 16px;
+    --fs: 54px;
+    height: auto;
+    min-height: 100svh;
+  }
+
+  .t1-cam,
+  .t1-model,
+  .t1-zs {
+    position: relative;
+    inset: auto;
+    min-height: 100svh;
+  }
+
+  .t1-copy {
+    position: relative;
+    top: auto;
+    padding-top: calc(var(--header-h) + 10px);
+  }
+
+  .t1-h1 {
+    margin-top: 0;
+  }
+
+  .t1-sub {
+    margin-top: 12px;
+    max-width: 24em;
+    font-size: 15px;
+    line-height: 1.42;
+  }
+
+  .t1-act {
+    margin-top: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .t1-cta-wrap {
+    display: flex;
+    width: 100%;
+  }
+
+  .t1-root .t1-cta {
+    --cta-h: 56px;
+    --cta-px: 20px;
+    --cta-lip: 3px;
+    --cta-fs: 19px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .t1-root .t1-demo {
+    position: static;
+    align-self: center;
+    height: auto;
+    min-height: 40px;
+    margin-top: 4px;
+    font-size: 15.5px;
+  }
+
+  .t1-micro {
+    margin-top: 2px;
+    font-size: 13px;
+  }
+
+  .t1-foot {
+    position: relative;
+    bottom: auto;
+    margin-top: 16px;
+    padding-bottom: 14px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .t1-logos-k {
+    display: none;
+  }
+
+  .t1-logos,
+  .t1-logos ul {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .t1-logos img {
+    height: calc(var(--h) * 0.62);
+  }
+
+  .t1-cue {
+    justify-content: center;
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* nothing in the hero tweens (the page's reduced-motion rule gives every property a 1 ms
+     transition; a size set and measured at once would read the old value) */
+  .sc-page .t1-root,
+  .sc-page .t1-root * {
+    transition: none !important;
+  }
+}

@@ -10,7 +10,7 @@ import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 import { StageDevice, preloadDevices, rig, onRig, type RigDevice } from "./devices";
 import { Comet } from "./pulse";
-import { getScreen, initTextures, loadScreen, pinScreens, screensLoading } from "./textures";
+import { getScreen, initTextures, loadScreen, pinScreens, screenTextureMB, screensLoading, wantScreens } from "./textures";
 import { StageLoupe } from "./loupe";
 import {
   anchorRect,
@@ -25,7 +25,6 @@ import {
   onStageChange,
   onStatus,
   overlays,
-  phone,
   reducedMotion,
   ringBoxCentre,
   sceneOnScreen,
@@ -49,6 +48,17 @@ export const FOV = 22;
 /** ?stageHQ: never lower the resolution (for rendering the poster stills). */
 const HQ = typeof location !== "undefined" && new URLSearchParams(location.search).has("stageHQ");
 /**
+ * The stage's resolution: at most 1.5 device px per CSS px (a Retina laptop's integrated GPU fills
+ * 44% fewer pixels than at 2, and with MSAA on the devices still read crisp), stepped down to 1 while
+ * frames slip and back up when there is headroom (see the Driver). ?stageHQ (rendering stills): the
+ * screen's full DPR, e.g. 3 for the phone stills, never lowered.
+ */
+const DPR_CAP = 1.5;
+function stageMaxDpr() {
+  const d = (typeof window !== "undefined" && window.devicePixelRatio) || 1;
+  return HQ ? d : Math.min(d, DPR_CAP);
+}
+/**
  * ?stageSnap (captures in headless browsers, where software WebGL draws 1–3 frames a second): every
  * frame is the pose for the current scroll at once (no scroll spring, no float or look-around, no
  * entrance spring, no screen crossfade), so a screenshot after one frame is the settled frame.
@@ -71,7 +81,11 @@ const STILL = reducedMotion || SNAP || CAP;
 type CapWindow = { __stageNow?: number; __stageDt?: number; __stageFrames?: number; __stageNudge?: { y?: number; rz?: number } };
 const CAP_NO_AA = CAP && new URLSearchParams(location.search).has("noAA");
 const capWin = (typeof window !== "undefined" ? window : {}) as CapWindow;
-/** ?stagePerf (perf checks): each frame's JS time in the Stage (ms) goes to window.__stagePerf. */
+/**
+ * ?stagePerf (perf checks): each frame's JS time in the Stage (ms) goes to window.__stagePerf, and
+ * window.__stageInfo() reports the last frame's draw calls and triangles, the GPU textures and
+ * the screen textures' memory.
+ */
 const PERF = typeof location !== "undefined" && new URLSearchParams(location.search).has("stagePerf");
 const perfLog: number[] = [];
 if (PERF) (window as unknown as { __stagePerf: number[] }).__stagePerf = perfLog;
@@ -103,13 +117,11 @@ export default function Stage() {
   useEffect(() => onStageChange(() => !xdr && devicesInUse().has("display") && setXdr(true)), [xdr]);
 
   if (!ok || failed) return null;
-  // ?stageHQ (rendering stills): the screen's full DPR, e.g. 3 for the phone stills
-  const maxDpr = HQ ? window.devicePixelRatio || 1 : Math.min(window.devicePixelRatio || 1, phone ? 1.5 : 2);
   return (
     <Canvas
       className="stage"
       frameloop="demand"
-      dpr={[1, maxDpr]}
+      dpr={[1, stageMaxDpr()]}
       // MSAA at every DPR: without it the keyboard's fine keycaps, the device edges and the floor
       // shadow's edge alias, and any sub-pixel move makes them shimmer
       gl={{ alpha: true, antialias: !CAP_NO_AA, powerPreference: "high-performance", toneMapping: THREE.NeutralToneMapping, preserveDrawingBuffer: CAP }}
@@ -198,7 +210,13 @@ type Live = {
   pointer: { x: number; y: number };
   entrance: Record<DeviceId, Spring>;
   comets: Comet[];
+  /** adaptive resolution: seconds of slow / fast frames, when it last stepped, up-steps locked */
   slow: number;
+  fast: number;
+  stepAt: number;
+  upAt: number;
+  upLock: boolean;
+  wasBusy: boolean;
   lastY: number;
   lastPrefetch: number;
 };
@@ -214,6 +232,11 @@ function Driver() {
     entrance: { macbook: { x: 1, v: 0 }, iphone: { x: 1, v: 0 }, display: { x: 0, v: 0 } },
     comets: [new Comet(), new Comet(), new Comet()],
     slow: 0,
+    fast: 0,
+    stepAt: 0,
+    upAt: -1e9,
+    upLock: false,
+    wasBusy: false,
     lastY: 0,
     lastPrefetch: 0,
   });
@@ -241,6 +264,20 @@ function Driver() {
     if (import.meta.env.DEV || CAP)
       (window as unknown as { __stage: unknown }).__stage = { rig, getTimeline, status, invalidate, setScreen, clearScreen, screensLoading, loadScreen };
   }, [invalidate]);
+
+  useEffect(() => {
+    if (!PERF) return;
+    // draw calls per frame, not per render call (R3F renders once per frame)
+    gl.info.autoReset = true;
+    (window as unknown as { __stageInfo: unknown }).__stageInfo = () => ({
+      calls: gl.info.render.calls,
+      triangles: gl.info.render.triangles,
+      textures: gl.info.memory.textures,
+      geometries: gl.info.memory.geometries,
+      screenTexMB: screenTextureMB(),
+      dpr: gl.getPixelRatio(),
+    });
+  }, [gl]);
 
   useEffect(() => {
     initTextures(gl, () => invalidate());
@@ -461,7 +498,9 @@ function Driver() {
     if (Math.abs(sy - L.lastY) > H * 0.5 || !firstFrame.current || Math.abs(now - L.lastPrefetch) > 1200) {
       L.lastY = sy;
       L.lastPrefetch = now;
-      screensNear(sy, H * 2, now).forEach((s) => loadScreen(s));
+      const near = screensNear(sy, H * 2, now);
+      wantScreens(near);
+      near.forEach((s) => loadScreen(s));
     }
 
     comp.updateMatrixWorld(true);
@@ -564,15 +603,32 @@ function Driver() {
       } else busy = true;
     }
 
-    // adaptive resolution: if frames stay slow while animating, draw fewer pixels
-    if (busy && !HQ) {
-      L.slow = rawDt > 1 / 28 ? L.slow + rawDt : Math.max(0, L.slow - rawDt * 0.5);
-      if (L.slow > 1.5) {
-        L.slow = 0;
-        const cur = state.viewport.dpr;
-        if (cur > 1) setDpr(Math.max(1, cur - 0.25));
+    // adaptive resolution, measured on the visitor's machine: while something moves, a second of
+    // frames under ~40 fps draws fewer pixels (a quarter step, down to 1); five seconds of frames
+    // over ~50 fps steps back up towards the cap. A step up that is followed by a slip within 8 s
+    // stays down from then on (no see-saw). Only frames that follow a moving frame count: the
+    // first frame after the stage idled (frameloop "demand") or after a hidden tab spans the gap.
+    if (busy && L.wasBusy && !HQ && !CAP && rawDt < 0.25) {
+      const cur = state.viewport.dpr;
+      if (rawDt > 1 / 40) {
+        L.slow += rawDt;
+        L.fast = 0;
+      } else {
+        L.slow = Math.max(0, L.slow - rawDt * 0.5);
+        if (rawDt < 1 / 50) L.fast += rawDt;
+      }
+      if (L.slow > 1 && cur > 1) {
+        setDpr(Math.max(1, cur - 0.25));
+        if (now - L.upAt < 8000) L.upLock = true;
+        L.slow = L.fast = 0;
+        L.stepAt = now;
+      } else if (L.fast > 5 && !L.upLock && cur < stageMaxDpr() - 0.01 && now - L.stepAt > 3000) {
+        setDpr(Math.min(stageMaxDpr(), cur + 0.25));
+        L.fast = 0;
+        L.upAt = L.stepAt = now;
       }
     }
+    L.wasBusy = busy;
 
     if (CAP) capWin.__stageFrames = (capWin.__stageFrames ?? 0) + 1;
     if (PERF) perfLog.push(performance.now() - tPerf);

@@ -14,13 +14,18 @@
 //   pulse    the orange pulse travels to the other device
 //   update   the office screen changes in place (row slides in · number ticks · block drops · flips)
 //   push     the camera pushes in on what changed, and the crisp update card + label land
-//   hold     nothing moves: 1.5 s + 0.35 s per word of what just landed, at least 4.5 s
+//   hold     time to read what landed (0.7 s + 0.24 s per word, at least 2.9 s; the headline has
+//            been up since the tap), while the shot keeps drifting slowly (a dolly, a few
+//            degrees of orbit): never a frozen frame, and slow enough that the words stay easy
+//            to read
 //
 // 5:30 PM runs office → field: the click is on the laptop, the office card lands first, the pulse
 // carries the plan to the phone, the phone swings forward with it.
 //
 // Before the first moment: "Enjoy the ride" holds, then the hand-off: the devices rise from where
-// they waited under the hero into the first shot while the clock sets.
+// they waited under the hero into the first shot while the clock sets. After the last one, the
+// FINALE: the camera eases out to the whole app (the office dashboard and the crew's phone),
+// "That's SmartCrew.", and the orange button. About a minute in all (the brief: 45–60 s).
 
 import { MOMENTS, type MomentId } from "../../content/moments";
 import { DAY2 } from "../../content/copy";
@@ -29,36 +34,39 @@ import { SCRIPT, type Script } from "./script";
 /** Every duration of the film, ms. One place to tune the pace. */
 export const PACE = {
   /** "Enjoy the ride" holds this long once the page has glided to One Day … */
-  title: 1400,
+  title: 1300,
   /** … then fades */
-  titleOut: 520,
+  titleOut: 480,
   /** the hand-off: the devices rise into the first shot (starts as the title fades) */
-  riseAt: 1650,
-  rise: 1500,
+  riseAt: 1500,
+  rise: 1400,
   /** the camera move from one moment's last shot to the next one's first */
-  glide: 1150,
+  glide: 900,
   /** the last moment's labels and card fade out at the start of the glide */
-  out: 340,
+  out: 320,
   /** the big clock rolls */
-  time: 680,
+  time: 620,
   /** the headline fades up */
-  head: 540,
+  head: 500,
   /** finger down → the screen shows its result */
-  press: 260,
+  press: 240,
   /** a state label fades in */
-  label: 380,
+  label: 340,
   /** the orange pulse's flight */
-  pulse: 720,
+  pulse: 560,
   /** the camera pushes in on what changed */
-  push: 1050,
+  push: 820,
   /** the update card lands */
-  card: 440,
-  /** the hold: max(holdMin, holdBase + perWord × words) */
-  holdMin: 4500,
-  holdBase: 1500,
-  perWord: 350,
-  /** after the last hold, the page is handed back this much later */
-  release: 1000,
+  card: 400,
+  /** the hold: max(holdMin, holdBase + perWord × words), the shot drifting slowly */
+  holdMin: 2900,
+  holdBase: 700,
+  perWord: 240,
+  /** the finale: the camera eases out to the whole app, "That's SmartCrew.", the CTA, a hold */
+  finaleGlide: 1500,
+  finaleHold: 2900,
+  /** after the finale, the page is handed back this much later */
+  release: 800,
 } as const;
 
 /** How long each kind of office update takes to play (./rideLife.ts draws them). */
@@ -98,7 +106,9 @@ export type Ride = {
   duration: number;
   title: [number, number];
   moments: RideMoment[];
-  /** the last moment's CTA comes in */
+  /** the finale: the camera eases out to the whole app (start → settle), then holds to `end` */
+  finale: { start: number; settle: number; line: [number, number]; end: number };
+  /** the finale's orange button comes in */
   cta: [number, number];
   /** extra beat times (labels, card, hold) */
   cues: number[];
@@ -154,18 +164,21 @@ export function buildRide(): Ride {
     start = hold[1];
   });
   const last = moments[moments.length - 1];
-  const cta: [number, number] = [last.hold[0] + 300, last.hold[0] + 300 + 500];
+  const fs = last.end;
+  const finale = { start: fs, settle: fs + P.finaleGlide, line: [fs + P.finaleGlide - 500, fs + P.finaleGlide] as [number, number], end: fs + P.finaleGlide + P.finaleHold };
+  const cta: [number, number] = [finale.line[1] + 150, finale.line[1] + 650];
   const cues: number[] = [P.title, P.title + P.titleOut];
   moments.forEach((m) => cues.push(m.head[0], m.tap, m.phoneLabel[0], m.card[0], m.hold[0]));
-  cues.push(cta[0]);
-  return { duration: last.end, title: [P.title, P.title + P.titleOut], moments, cta, cues };
+  cues.push(finale.start, finale.line[0], cta[0]);
+  return { duration: finale.end, title: [P.title, P.title + P.titleOut], moments, finale, cta, cues };
 }
 
 export const RIDE = buildRide();
 
 /** The chapters for the player's rail (one per moment). */
 export const rideChapters = (R: Ride = RIDE) =>
-  R.moments.map((m) => ({ start: m.start, at: m.settle - 40, rest: m.hold[0], end: m.end, label: MOMENTS[m.i].when }));
+  // the finale belongs to the last chapter (Friday)
+  R.moments.map((m, i) => ({ start: m.start, at: m.settle - 40, rest: m.hold[0], end: i === R.moments.length - 1 ? R.duration : m.end, label: MOMENTS[m.i].when }));
 
 /** The moment the clock is in. */
 export function momentAt(t: number, R: Ride = RIDE) {

@@ -15,7 +15,7 @@ Facebook ad ──► /  (product page) ──► popup "Set up your SmartCrew" 
 The page, in order (no intro: the page opens on the hero, its orange CTA clickable within 2.5 s):
 
 1. **Hero.** "Fence the Words": a giant centred headline, an orange dashed geofence staked round its key phrase, crew clocking in on the fence, and the orange CTA centred under it.
-2. **One Day.** Seven moments from 6:42 AM to Friday payroll. On laptops they play on a 3D MacBook and iPhone; on phones, on a 2D phone frame.
+2. **One Day: "Enjoy the ride".** Seven moments from 6:42 AM to Friday payroll. On laptops, scrolling past the hero glides One Day into place and the day takes over the screen: the header slides away and the day plays by itself on a clock, at a pace you can read (about a minute), on a 3D MacBook and iPhone, every hold still moving slowly (each moment its own camera move), with video-like controls (pause, a rail of the seven times, Skip, a small orange "Get my free trial"; Space, ← →, Esc). The visitor's scrolling never fights it; a scroll up hands the page back (the header returns). It ends by easing out to the whole app, "That's SmartCrew.", its own orange button and Replay. On phones the moments are screens in the page with a 2D phone frame.
 3. **Spec sheet.** All 38 tools in six groups.
 4. **Try it.** The visitor taps Clock In.
 5. **Your number.** A calculator; its estimate rides into the popup.
@@ -79,7 +79,10 @@ All copy lives in `src/content/copy.ts`: the tokens `T.SIZE`, `T.N` and `T.PROGR
 |---|---|
 | `/?angle=profit\|overbudget\|timecards\|payroll\|replace` | The hero H1, sub and fenced phrase that match the ad. |
 | **`?review`** | **Shows every ⚑ marker and every unapproved proposal on a built page.** It sticks for the session, so the popup and `/book` show them too. The dev server always shows them, and so does a build made with `VITE_SHOW_FLAGS=1`. The ad build hides them. |
-| `/?nocursor` · `/?stageHQ` · `/?daySlow=8` | No custom cursor · full-resolution 3D · One Day at 8× slower. |
+| `/?nocursor` · `/?stageHQ` | No custom cursor · full-resolution 3D. |
+| `/?rideDebug` (`&rideRate=0.25`) | One Day's ride on `window.__ride` (state, seek, its timeline); optionally slower. Works on a build. |
+| `/?stageCap&rideDebug` | Frame-by-frame captures: the 3D frame time is `window.__stageNow`, so a frame is exactly the film at `__ride.seek(ms)`. Add `&stageHQ` for the screen's full DPR and full-size screen textures. |
+| `/?stagePerf` | `window.__stagePerf` (the Stage's JS ms per frame) and `window.__stageInfo()` (draw calls, triangles, textures, screen-texture MB, current DPR). |
 | `/?stage3d` (dev only) | Forces the 3D Stage on a phone-sized window. |
 | `/?screens`, `/?screen=<id>` · `/?sandbox=devices` · `/?cursor-demo` | App screens · device sandbox · cursor bench (dev only). |
 | `/book/` · `/book/?demo=booked` | The booking page, and its booked state without touching Andrew's calendar (dev only). |
@@ -97,7 +100,9 @@ All copy lives in `src/content/copy.ts`: the tokens `T.SIZE`, `T.N` and `T.PROGR
 | `src/site/<scene>/` | One folder per scene. Each phone version sits beside its desktop one (`*Phone.tsx`). |
 | `src/site/ui/Cta.tsx` | The orange `<Cta>` and the ink `DemoLink` / `InlineCta`. They all call `openSignup()` (`src/signup/contract.ts`). |
 | `src/site/shell/` | Header, phone sticky bar, and the "one orange button" rule. |
-| `src/three/` | The Stage: one canvas, `StageAnchor`, pose keys. Import from `src/three/stage` only. |
+| `src/three/` | The Stage: one canvas, `StageAnchor`, pose keys (on the scroll, or on a scene's clock: `registerPoses(id, keys, { clock })`). Draws only while something moves; resolution capped at 1.5 device px per CSS px, stepped down to 1 while frames slip and back up with headroom; screen textures decoded at the size they're shown and kept under a 48 MB budget. Import from `src/three/stage` only. |
+| `src/site/player/` | The film player (One Day's ride; Five apps next): one clock for Web Animations and the Stage, the page held while it plays, controls, keys, reduced-motion stepping, tracking. |
+| `src/site/day/` | One Day: the ride's timeline (`ride.ts`, paced by reading time), its 3D keys (`poses.ts`), the screens' own animations (`rideLife.ts`), the DOM and controller (`Day.tsx`); phones `phone/DayPhone.tsx`. |
 | `src/signup/` | The popup. It saves each step, then hands the lead to `/book` in `sessionStorage` (`sc_lead`), never in the URL. |
 | `src/book/` | `/book`: headline, Andrew's video, Cal.com inline (prefilled), what the call covers, and "What you're setting up" (`Setup.tsx`: the spec sheet's six groups and the five apps, read from the page's own data, so it never says more than the page). On phones the calendar starts inside the first screen, under the video. |
 | `src/lib/` | `lead.ts` (validation, attribution, webhook), `track.ts` (Pixel/GA4 events), `flags.ts` (⚑ on/off). |
@@ -117,6 +122,7 @@ It runs Playwright as a 1440 × 660 laptop (mouse, DPR 1 to keep software WebGL 
 - never two orange CTAs on screen at once;
 - the popup's three steps and their errors, then the hand-off to `/book` with the lead in storage;
 - `/book`: the H1, Andrew's video container, Cal.com mounted with name and email prefilled (**it never picks a time**), the calendar high on the first screen, the product details;
+- One Day's ride (laptop): a scroll down starts it and holds the page, downward input is absorbed, pause / play / Space / → / a tick work, the header is away while it plays, the control bar's CTA pauses it and opens the popup ("Resume the ride" after, the header back), a scroll up hands the page back, Skip moves on and the page scrolls after, it ends on its own CTA and releases, no auto-replay, Replay; `ride_*` events tracked; reduced motion steps through it with Previous / Next and never holds the page;
 - spec sheet expand and collapse, the Try it tap, the calculator's estimate in the popup, the FAQ toggles, the header links and Log in;
 - each `?angle=` H1 (read from `copy.ts`);
 - no intro or opening overlay, and the hero's CTA uncovered and clickable within 2.5 s (of navigation start on a build, of the load event on the dev server; best of three fresh loads, since a busy machine only adds time);

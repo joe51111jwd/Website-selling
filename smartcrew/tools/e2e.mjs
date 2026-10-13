@@ -874,12 +874,19 @@ async function noWebgl() {
 //
 // Scrolling past the hero starts the ride: the page glides One Day into place and holds it while
 // the day plays on a clock. The visitor's own scrolling never fights it (downward input is
-// absorbed), a clear scroll up hands the page back with "Resume the ride", the header's orange
-// button stays clickable (it pauses the ride), the controls work (pause / play, the 7-tick rail,
+// absorbed), a clear scroll up hands the page back with "Resume the ride", the header slides away
+// for the takeover and the control bar's own orange button stays clickable (it pauses the ride),
+// the controls work (pause / play, the 7-tick rail,
 // Space, →, Skip), the page scrolls normally afterwards, and the ride ends on its own orange
 // button with Replay. ?rideDebug exposes the ride's state (and lets the test jump to its end).
 
-const rideState = (page) => page.evaluate(() => ({ y: Math.round(scrollY), ...window.__ride.state(), t: Math.round(window.__ride.time()) }));
+const rideState = (page) =>
+  page.evaluate(() => ({
+    y: Math.round(scrollY),
+    ...window.__ride.state(),
+    t: Math.round(window.__ride.time()),
+    bar: Math.round(document.querySelector("#day .day-controls")?.getBoundingClientRect().top ?? -1),
+  }));
 const dayTopOf = (page) => page.evaluate(() => Math.round(document.getElementById("day").getBoundingClientRect().top + scrollY));
 async function rideDbg(page, label) {
   if (DEBUG) console.log(`    ride ${label.padEnd(26)} ${JSON.stringify(await rideState(page))}`);
@@ -893,6 +900,17 @@ async function until(page, fn, what, ms = 8000) {
     await wait(150);
   }
   throw new Error(`${what} (state ${JSON.stringify(last)})`);
+}
+/** Wait until the page has stopped scrolling (the smooth scroll's glide after a wheel). */
+async function settleScroll(page, ms = 6000) {
+  const t0 = Date.now();
+  let y = -1;
+  while (Date.now() - t0 < ms) {
+    const now = await page.evaluate(() => scrollY);
+    if (now === y) return;
+    y = now;
+    await wait(250);
+  }
 }
 const wheel = async (page, dy, n = 1, gap = 40) => {
   for (let i = 0; i < n; i++) {
@@ -970,14 +988,25 @@ async function ride(device, { kind = "nogl", full = true } = {}) {
     await until(page, (x) => x.chapter === 4 && x.state === "playing", "the 5:00 PM tick didn't jump there");
     out.push("pause / play / Space / → / tick");
 
-    // the header's orange button during the ride: it opens the popup and pauses the ride
-    await press(page, page.getByRole("banner").getByRole("button", { name: /get my free trial/i }), { what: "the header CTA during the ride" });
+    // the takeover: the header has slid away while the ride plays; the control bar carries the
+    // orange button, which opens the popup and pauses the ride (and the header comes back)
+    const headerShown = () => page.evaluate(() => getComputedStyle(document.querySelector(".site-header")).visibility !== "hidden");
+    await wait(900);
+    assert(!(await headerShown()), "the header is still there during the ride (the takeover)");
+    await press(page, ctrl.getByRole("button", { name: /get my free trial/i }), { what: "the control bar's CTA during the ride" });
     await expectPopup(page);
     s = await rideState(page);
     assert(s.state === "paused" && s.reason === "cta", `the ride didn't pause for the popup: ${JSON.stringify(s)}`);
+    const sigBar = (await signups(page)).pop();
+    assert(sigBar?.source === "ride", `the control bar's CTA sent ${JSON.stringify(sigBar)}`);
+    await rideDbg(page, "popup open");
     await closePopup(page);
+    await rideDbg(page, "popup closed");
     await ctrl.getByRole("button", { name: /resume the ride/i }).waitFor({ state: "visible", timeout: 5000 });
-    out.push("header CTA clickable (pauses, popup, Resume)");
+    await wait(900);
+    await rideDbg(page, "header back?");
+    assert(await headerShown(), "the header didn't come back when the ride paused for the popup");
+    out.push("header away during the ride; the bar's CTA works (pauses, popup, Resume, header back)");
 
     // a clear scroll up hands the page back, with "Resume the ride"
     await press(page, ctrl.getByRole("button", { name: /resume the ride/i }), { what: "Resume the ride" });
@@ -986,7 +1015,9 @@ async function ride(device, { kind = "nogl", full = true } = {}) {
     s = await until(page, (x) => x.state === "paused" && x.reason === "exit" && x.y < top, "a scroll up didn't hand the page back");
     out.push(`scroll up exits (page at ${s.y - top} px)`);
 
-    // Skip: the page moves on past One Day, and scrolls normally after
+    // Skip: the page moves on past One Day, and scrolls normally after. (Back to One Day first,
+    // once the smooth scroll of the exit has come to rest: a jump while it still glides is undone.)
+    await settleScroll(page);
     await scrollTo(page, top, 500);
     await press(page, ctrl.getByRole("button", { name: /resume the ride/i }), { what: "Resume the ride" });
     await until(page, (x) => x.state === "playing" && x.held, "Resume didn't play");

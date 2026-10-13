@@ -48,6 +48,10 @@ html[data-ground="dark"] .plc {
   -webkit-tap-highlight-color: transparent;
 }
 
+.plc-btn[hidden] {
+  display: none;
+}
+
 .plc-btn:hover {
   background: color-mix(in srgb, currentColor 8%, transparent);
 }

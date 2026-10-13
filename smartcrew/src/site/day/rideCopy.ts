@@ -14,6 +14,8 @@ export function aboutLength(ms: number) {
 
 export const RIDE_COPY = {
   title: "Enjoy the ride",
+  /** the finale, over the whole app (the brief's line) */
+  finale: "That\u2019s SmartCrew.",
   sub: (ms: number) => `One day at a 16-person dirt crew. ${aboutLength(ms)}`,
   controls: {
     group: "The day's controls",

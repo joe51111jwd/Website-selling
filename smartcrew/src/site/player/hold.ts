@@ -63,6 +63,8 @@ export function holdPage(o: { y: () => number | null; onExit: (dir: HoldExit) =>
   const onWheel = (e: WheelEvent) => {
     if (!held || e.ctrlKey) return; // pinch-zoom stays the browser's
     const d = wheelPx(e);
+    // sideways swipes stay the browser's too (a trackpad's back / forward gesture)
+    if (Math.abs(d.x) > Math.abs(d.y)) return;
     const t = performance.now();
     if (d.y < 0 && Math.abs(d.y) >= Math.abs(d.x)) {
       if (t - upAt > BURST_MS) up = 0;

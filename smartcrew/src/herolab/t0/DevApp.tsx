@@ -57,7 +57,7 @@ const LATER: ComponentType[] = LATER_SCENES.map((sc) => memo(sc.C));
 const Hero = memo(HeroScene);
 const Day = memo(DayScene);
 const hashOnLoad = typeof location !== "undefined" && location.hash.length > 1 ? location.hash.slice(1) : "";
-/** lab only: ?t0Solo renders the header and the hero alone (to measure the hero's own cost) */
+/** lab only: ?t0Solo renders the header and the hero alone, no 3D Stage (the hero's own cost; captures) */
 const SOLO = typeof location !== "undefined" && /[?&]t0Solo\b/.test(location.search);
 
 const idle = (f: () => void) =>
@@ -178,7 +178,7 @@ export default function DevApp() {
   const phone = usePhone();
   const later = useLateScenes();
   const dayOn = useDayOnPhone();
-  const stageWanted = stageAllowed && (!phone || forceStage3d);
+  const stageWanted = stageAllowed && (!phone || forceStage3d) && !SOLO;
   const stageGo = useStageGo();
   const stageOn = stageWanted && stageGo;
   // scenes, anchors and pose keys are measured by the store (no three.js), with or without the Stage

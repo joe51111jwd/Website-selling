@@ -53,6 +53,12 @@ export type PlayerOpts = {
   reduced?: boolean;
   /** playback speed (1 = the film's own pace; tests may slow it down) */
   rate?: number;
+  /**
+   * Stretches of the film where nothing in the 3D Stage moves (the holds): the Stage stops
+   * drawing there, so a held frame is drawn once and kept, pixel for pixel. It is woken at every
+   * beat, so put a cue at the end of each stretch.
+   */
+  still?: [number, number][];
   /** how long a soft jump's fade takes (ms, each way) and the Stage's glide */
   jump?: { fadeOut: number; fadeIn: number; glide: number };
 };
@@ -90,6 +96,7 @@ export class Player {
   private jumpState: { from: number; start: number; dur: number } | null = null;
   private jumpTimer = 0;
   private opts: Required<Pick<PlayerOpts, "jump">>;
+  private still: [number, number][];
 
   constructor(o: PlayerOpts) {
     this.name = o.name;
@@ -97,6 +104,7 @@ export class Player {
     this.chapters = o.chapters;
     this.reduced = !!o.reduced;
     this.rate = o.rate && o.rate > 0 ? o.rate : 1;
+    this.still = o.still ?? [];
     this.opts = { jump: o.jump ?? { fadeOut: 180, fadeIn: 320, glide: 950 } };
     const cues = new Set<number>(o.cues ?? []);
     o.chapters.forEach((c) => (cues.add(c.start), cues.add(c.at), cues.add(c.rest)));
@@ -130,7 +138,12 @@ export class Player {
       void n;
       return { a: j.from, b: t, w: Math.max(0, w) };
     },
-    moving: () => this.state === "playing" || (!!this.jumpState && now() - this.jumpState.start < this.jumpState.dur),
+    moving: () => {
+      if (this.jumpState && now() - this.jumpState.start < this.jumpState.dur) return true;
+      if (this.state !== "playing") return false;
+      const t = this.time();
+      return !this.still.some(([a, b]) => t >= a && t < b);
+    },
   };
 
   /** The chapter the clock is in. */
@@ -217,6 +230,8 @@ export class Player {
     if (b !== this.beat) {
       this.beat = b;
       this.emit("beat", b, t);
+      // the Stage may be resting (a still stretch): wake it on every beat
+      this.pokeStage();
     }
     if (this.state === "playing" && b < this.cues.length) {
       const wait = Math.max(4, (this.cues[b] - t) / this.rate + 2);
@@ -257,8 +272,8 @@ export class Player {
   /** Jump the clock at once (no fade, no glide). */
   seek(t: number) {
     const tt = Math.max(0, Math.min(this.duration, t));
+    // (an ended film stays "ended" while the visitor scrubs it: the rail is a scrubber, Replay plays)
     this.all((a) => (a.currentTime = tt));
-    if (tt < this.duration && this.state === "ended") this.state = "ended"; // stays reviewed
     this.emitBeat();
     this.pokeStage();
   }
