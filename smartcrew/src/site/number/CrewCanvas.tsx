@@ -56,7 +56,15 @@ export function CrewCanvas({
   const area = useRef<HTMLDivElement>(null);
   const cv = useRef<HTMLCanvasElement>(null);
   const [w, setW] = useState(0);
-  const drag = useRef<{ id: number; x0: number; y0: number; on: boolean; touch: boolean; left: number; width: number } | null>(null);
+  const drag = useRef<{
+    id: number;
+    x0: number;
+    y0: number;
+    on: boolean;
+    touch: boolean;
+    left: number;
+    width: number;
+  } | null>(null);
   const [dragging, setDragging] = useState(false);
 
   // per slot: when it was turned on / off (ms, performance.now()), for the pop and the fade
@@ -88,10 +96,17 @@ export function CrewCanvas({
     if (!ctx) return;
     if (!colors.current) {
       const cs = getComputedStyle(c);
-      const k: Colors = { ink: cs.getPropertyValue("--ink") || "#17130f", orange: cs.getPropertyValue("--orange") || "#ff7a01" };
+      const k: Colors = {
+        ink: cs.getPropertyValue("--ink") || "#17130f",
+        orange: cs.getPropertyValue("--orange") || "#ff7a01",
+      };
       colors.current = { ink: hex(k.ink), orange: hex(k.orange) };
     }
-    if (!hat.current && typeof Path2D !== "undefined") hat.current = { hat: new Path2D(LOGO_DATA.mark.hatPlain), jaw: new Path2D(LOGO_DATA.mark.jaw) };
+    if (!hat.current && typeof Path2D !== "undefined")
+      hat.current = {
+        hat: new Path2D(LOGO_DATA.mark.hatPlain),
+        jaw: new Path2D(LOGO_DATA.mark.jaw),
+      };
     const { ink, orange } = colors.current;
     const dpr = c.width / w;
     const now = performance.now();
@@ -189,7 +204,7 @@ export function CrewCanvas({
     const n = value ?? 0;
     const was = shown.current;
     const now = performance.now();
-    if (n > was) for (let i = was; i < n; i++) (born.current[i] = reduce ? -1e9 : now + (i - was) * 6), (died.current[i] = 0);
+    if (n > was) for (let i = was; i < n; i++) ((born.current[i] = reduce ? -1e9 : now + (i - was) * 6), (died.current[i] = 0));
     else if (n < was) for (let i = n; i < was; i++) died.current[i] = reduce ? 0 : now;
     shown.current = n;
     kick();
@@ -219,7 +234,15 @@ export function CrewCanvas({
     const touch = e.pointerType !== "mouse";
     // the track's box, once per gesture
     const r = e.currentTarget.getBoundingClientRect();
-    drag.current = { id: e.pointerId, x0: e.clientX, y0: e.clientY, on: !touch, touch, left: r.left, width: r.width };
+    drag.current = {
+      id: e.pointerId,
+      x0: e.clientX,
+      y0: e.clientY,
+      on: !touch,
+      touch,
+      left: r.left,
+      width: r.width,
+    };
     if (!touch) {
       e.currentTarget.setPointerCapture(e.pointerId);
       setDragging(true);
@@ -256,7 +279,14 @@ export function CrewCanvas({
 
   const key = (e: KeyboardEvent<HTMLDivElement>) => {
     const v = value ?? 0;
-    const step: Record<string, number> = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1, PageUp: 10, PageDown: -10 };
+    const step: Record<string, number> = {
+      ArrowRight: 1,
+      ArrowUp: 1,
+      ArrowLeft: -1,
+      ArrowDown: -1,
+      PageUp: 10,
+      PageDown: -10,
+    };
     let n: number | null = null;
     if (e.key in step) n = clampN(v + step[e.key]);
     else if (e.key === "Home") n = 1;
@@ -299,7 +329,14 @@ export function CrewCanvas({
             <span className="ncv-stake" style={{ height: h + 14 }} />
             <span className="ncv-knob">
               <svg viewBox="0 0 16 10" aria-hidden="true">
-                <path d="M5 1.5 1.5 5 5 8.5M11 1.5 14.5 5 11 8.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M5 1.5 1.5 5 5 8.5M11 1.5 14.5 5 11 8.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </span>
           </span>

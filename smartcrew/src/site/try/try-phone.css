@@ -13,6 +13,11 @@
   background: var(--ground);
 }
 
+/* laid out ahead of arrival (./warm.ts) */
+html .site > .scene.try--phone[data-warm] {
+  content-visibility: visible;
+}
+
 .tp {
   position: relative;
   display: flex;
@@ -226,6 +231,27 @@
   display: none;
 }
 
+/* parts built a step at a time (./warm.ts): the space they will take, then a quick fade in */
+.tp-ui .tp-chrome--wait {
+  height: 139.5px; /* .pc-head 12 + 40, .pc-week 13.5 + 74 */
+}
+
+.tp-ui .tp-tabs--wait {
+  flex: none;
+  height: calc(70px + env(safe-area-inset-bottom));
+}
+
+.tp .tp-chrome,
+.tp .sc-tabbar {
+  animation: tp-part-in 0.32s var(--ease-out) both;
+}
+
+@keyframes tp-part-in {
+  from {
+    opacity: 0;
+  }
+}
+
 /* the page's note over the bottom of the app, after the tap */
 .tp-sheet {
   position: absolute;
@@ -274,7 +300,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .tp-ring,
-  .tp-sheet {
+  .tp-sheet,
+  .tp .tp-chrome,
+  .tp .sc-tabbar {
     animation: none;
   }
   .tp-swap > *,

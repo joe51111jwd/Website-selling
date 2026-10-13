@@ -786,17 +786,25 @@ body {
     margin-top: 10px;
     font-size: 13px;
   }
+  /* the calendar right under the video: the headline already says "Last step", so the progress
+     row goes; the estimate is one slim line */
+  .bk-dark {
+    padding-bottom: 16px;
+  }
   .bk-light {
-    padding: 14px var(--bk-pad) 0;
+    padding: 12px var(--bk-pad) 0;
   }
   .bk-top {
-    min-height: 28px;
-  }
-  .bk-help {
     display: none;
   }
   .bk-stage {
-    padding-top: 10px;
+    padding-top: 0;
+  }
+  .bk-est {
+    margin-bottom: 10px;
+    padding: 9px 12px;
+    font-size: 14px;
+    line-height: 1.4;
   }
   .bk-cal {
     min-height: 520px;

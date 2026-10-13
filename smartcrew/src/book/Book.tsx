@@ -50,11 +50,24 @@ export default function Book() {
     track("ViewContent", { content_name: "Book a call", intent: lead?.intent ?? "direct" }, lead?.lead_id ? `${lead.lead_id}-book` : undefined);
   }, [lead]);
 
-  // Andrew's video after first paint, so the headline and calendar come first
+  // Andrew's video after first paint, so the headline and calendar come first. Phones: after the
+  // calendar has loaded (or 2 s), so the player's scripts don't compete with the booking for the
+  // main thread; the poster (Andrew, a play mark) holds the spot meanwhile.
+  const video = useRef(false);
+  const mountVideo = () => {
+    if (video.current) return;
+    video.current = true;
+    mountVidalytics(config.vidalytics.walkthrough, () => setVideoFailed(true));
+  };
   useEffect(() => {
-    const id = window.setTimeout(() => mountVidalytics(config.vidalytics.walkthrough, () => setVideoFailed(true)), 60);
+    const id = window.setTimeout(mountVideo, LITE && !booking ? 2000 : 60);
     return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  useEffect(() => {
+    if (LITE && cal !== "loading") mountVideo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cal]);
 
   // Andrew's calendar, prefilled; a failure falls back to a plain link and email
   useEffect(() => {

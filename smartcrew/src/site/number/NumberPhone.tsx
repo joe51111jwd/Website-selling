@@ -5,12 +5,13 @@
 // is pre-selected, we only multiply and show the working. No scroll-driven JS: the empty crew
 // ripples in once on arrival; everything else moves only when the visitor touches it.
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { CALC, FLAG } from "../../content/copy";
 import { sizeFor, type SignupRequest } from "../../signup/contract";
 import { trackCustom } from "../../lib/track";
 import { useArrive } from "../phone/useArrive";
 import { SceneCta } from "../try/SceneCta";
+import { useStaged } from "../try/warm";
 import { CrewCanvas } from "./CrewCanvas";
 import { Odometer } from "./Odometer";
 import { DAYS_DEFAULT, annualCost, money, parseDays, weekly } from "./calc";
@@ -77,7 +78,18 @@ export default function NumberPhone() {
   const days = parseDays(daysText);
   const annual = annualCost({ crew, minutes, rate, days });
   const complete = annual != null;
-  const [ref, arrived] = useArrive<HTMLDivElement>({ amount: 0.4 });
+  const [arriveRef, arrived] = useArrive<HTMLDivElement>({ amount: 0.4 });
+  const el = useRef<HTMLDivElement | null>(null);
+  const ref = useCallback(
+    (n: HTMLDivElement | null) => {
+      el.current = n;
+      arriveRef(n);
+    },
+    [arriveRef],
+  );
+  // built before it scrolls in, a piece per idle moment (../try/warm.ts): 1 the scene lays out,
+  // 2 the crew, 3 the picks, the result and the CTA
+  const stage = useStaged(el, 3);
   const short = useShort();
 
   // analytics, as on the desktop: the first touch and each settled result; never the figures
@@ -98,7 +110,15 @@ export default function NumberPhone() {
     intent: "trial",
     source: "calculator",
     size: crew ? sizeFor(crew) : undefined,
-    estimate: complete ? { crew: crew!, minutes: minutes!, rate: rate!, days: days!, annual: Math.round(annual!) } : undefined,
+    estimate: complete
+      ? {
+          crew: crew!,
+          minutes: minutes!,
+          rate: rate!,
+          days: days!,
+          annual: Math.round(annual!),
+        }
+      : undefined,
   });
 
   const blank = <span className="nph-blank">–</span>;
@@ -106,78 +126,76 @@ export default function NumberPhone() {
     <div ref={ref} className={`nph wrap${arrived ? " is-in" : ""}${complete ? " is-done" : ""}`}>
       <h2 className="t-h2 nph-title">{CALC.title}</h2>
 
-      <CrewCanvas
-        value={crew}
-        rows={short ? 5 : 6}
-        arrived={arrived}
-        onFirst={() => touch("crew")}
-        onChange={setCrew}
-      />
+      {stage >= 2 && <CrewCanvas value={crew} rows={short ? 5 : 6} arrived={arrived} onFirst={() => touch("crew")} onChange={setCrew} />}
 
-      <Pick
-        label={CALC.minutesLabel}
-        options={CALC.minutes}
-        value={minutes}
-        format={(m) => String(m)}
-        onPick={(m) => {
-          touch("minutes");
-          setMinutes(m);
-        }}
-      />
-      <Pick
-        label={COPY.rate}
-        note={COPY.rateNote}
-        options={CALC.rates}
-        value={rate}
-        format={(r) => `$${r}`}
-        onPick={(r) => {
-          touch("rate");
-          setRate(r);
-        }}
-      />
+      {stage >= 3 && (
+        <>
+          <Pick
+            label={CALC.minutesLabel}
+            options={CALC.minutes}
+            value={minutes}
+            format={(m) => String(m)}
+            onPick={(m) => {
+              touch("minutes");
+              setMinutes(m);
+            }}
+          />
+          <Pick
+            label={COPY.rate}
+            note={COPY.rateNote}
+            options={CALC.rates}
+            value={rate}
+            format={(r) => `$${r}`}
+            onPick={(r) => {
+              touch("rate");
+              setRate(r);
+            }}
+          />
 
-      <div className="nph-out" data-hides-sticky>
-        <p className="nph-big">
-          <Odometer value={complete ? annual : null} className="t-time nph-odo" label={CALC.year} />
-          <span className="nph-per">
-            <span className="nph-year">{CALC.year}</span>
-            {complete && <span className="nph-week">{CALC.week(money(weekly(annual!)))}</span>}
-          </span>
-        </p>
-        <p className="nph-formula t-num" aria-live="polite">
-          {crew || minutes || rate ? (
-            <>
-              <span>{crew ?? blank}</span> × <span>{minutes ?? blank} min</span> ×{" "}
-              <label className="nph-days">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={daysText}
-                  size={3}
-                  maxLength={3}
-                  onChange={(e) => {
-                    touch("days");
-                    setDaysText(e.target.value.replace(/[^\d]/g, "").slice(0, 3));
-                  }}
-                  onBlur={() => !parseDays(daysText) && setDaysText(String(DAYS_DEFAULT))}
-                  aria-label={CALC.daysLabel}
-                />{" "}
-                days
-              </label>{" "}
-              × <span>{rate ? `$${rate}` : <>${blank}</>}/hr</span>
-            </>
-          ) : (
-            CALC.pending
-          )}
-        </p>
-        <SceneCta request={request} size="lg" className="nph-cta" />
-        <p className="t-micro nph-micro">
-          {CALC.ctaMicro}
-          <span className="flag" title="Andrew to confirm">
-            {FLAG}
-          </span>
-        </p>
-      </div>
+          <div className="nph-out" data-hides-sticky>
+            <p className="nph-big">
+              <Odometer value={complete ? annual : null} className="t-time nph-odo" label={CALC.year} />
+              <span className="nph-per">
+                <span className="nph-year">{CALC.year}</span>
+                {complete && <span className="nph-week">{CALC.week(money(weekly(annual!)))}</span>}
+              </span>
+            </p>
+            <p className="nph-formula t-num" aria-live="polite">
+              {crew || minutes || rate ? (
+                <>
+                  <span>{crew ?? blank}</span> × <span>{minutes ?? blank} min</span> ×{" "}
+                  <label className="nph-days">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={daysText}
+                      size={3}
+                      maxLength={3}
+                      onChange={(e) => {
+                        touch("days");
+                        setDaysText(e.target.value.replace(/[^\d]/g, "").slice(0, 3));
+                      }}
+                      onBlur={() => !parseDays(daysText) && setDaysText(String(DAYS_DEFAULT))}
+                      aria-label={CALC.daysLabel}
+                    />{" "}
+                    days
+                  </label>{" "}
+                  × <span>{rate ? `$${rate}` : <>${blank}</>}/hr</span>
+                </>
+              ) : (
+                CALC.pending
+              )}
+            </p>
+            <SceneCta request={request} size="lg" className="nph-cta" />
+            <p className="t-micro nph-micro">
+              {CALC.ctaMicro}
+              <span className="flag" title="Andrew to confirm">
+                {FLAG}
+              </span>
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 }

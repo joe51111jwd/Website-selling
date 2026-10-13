@@ -12,6 +12,11 @@
   min-height: 100svh;
 }
 
+/* laid out ahead of arrival, a piece at a time (../try/warm.ts) */
+html .site > .scene.spp[data-warm] {
+  content-visibility: visible;
+}
+
 .spp-in {
   display: flex;
   flex-direction: column;

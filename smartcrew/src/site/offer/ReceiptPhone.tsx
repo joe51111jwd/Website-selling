@@ -41,7 +41,7 @@ export function ReceiptPhone({ onSigned }: { onSigned?: () => void }) {
         <span id={titleId}>{RECEIPT.title}</span>
       </div>
       <div className="rcp-row rcp-rule" {...row()} />
-      <div className="rcp-row rcp-h t-label" {...row()}>
+      <div className="rcp-row rcp-h" {...row()}>
         {RECEIPT.get}
       </div>
       {RECEIPT.items.map((it) => (
@@ -60,7 +60,7 @@ export function ReceiptPhone({ onSigned }: { onSigned?: () => void }) {
         </div>
       )}
       <div className="rcp-row rcp-rule" {...row()} />
-      <div className="rcp-row rcp-h t-label" {...row()}>
+      <div className="rcp-row rcp-h" {...row()}>
         {RECEIPT.costs}
       </div>
       <div className="rcp-row rcp-line" {...row()}>

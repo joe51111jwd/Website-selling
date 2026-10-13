@@ -54,10 +54,12 @@
   color: var(--ink);
 }
 
-/* the reels clip without a mask on phones (a mask over moving content costs a repaint per frame) */
-.prfp-num .odo-col {
-  -webkit-mask-image: none;
-  mask-image: none;
+/* one text node of stacked digits, one per line (1em each) */
+.prfp-reel {
+  display: block;
+  white-space: pre-line;
+  line-height: 1;
+  text-align: center;
 }
 
 .prfp-per {
@@ -139,7 +141,7 @@
 /* Katie: her one sentence, big; as tall as it is (no dead band around it) */
 .prfp-katie {
   padding-top: 12px;
-  padding-bottom: calc(var(--sticky-h) + env(safe-area-inset-bottom) + 36px);
+  padding-bottom: 30px;
 }
 
 .prfp-katie-text {

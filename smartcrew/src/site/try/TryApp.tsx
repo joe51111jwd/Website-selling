@@ -19,17 +19,30 @@ export type TryAppProps = {
   live: boolean;
   onClockIn: () => void;
   onClockOut?: () => void;
+  /**
+   * Phones build the app a piece at a time (./warm.ts), so its first layout is never one long task:
+   * 1 the Clock In body · 2 + the day header and week strip · 3 + the tab bar. Parts not built yet
+   * keep their exact space (no shift when they land). Default: everything at once.
+   */
+  stage?: number;
 };
 
-export function TryApp({ on, secs, ghost, live, onClockIn, onClockOut }: TryAppProps) {
+export function TryApp({ on, secs, ghost, live, onClockIn, onClockOut, stage }: TryAppProps) {
   const a = currentActivity;
+  const staged = stage !== undefined;
+  const at = stage ?? 3;
+  const chrome = (
+    <>
+      <DayHeader />
+      <WeekStrip todayMark={on ? "check" : undefined} />
+    </>
+  );
   return (
     <div className="sc tp-sc">
       <div className="tp-body">
-        <DayHeader />
-        <WeekStrip todayMark={on ? "check" : undefined} />
+        {!staged ? chrome : at >= 2 ? <div className="tp-chrome">{chrome}</div> : <div className="tp-chrome tp-chrome--wait" aria-hidden="true" />}
         <AnimatePresence mode="wait" initial={false}>
-          {!on ? (
+          {at < 1 ? null : !on ? (
             <motion.div
               key="ready"
               className="pc-ready tp-ready"
@@ -109,7 +122,7 @@ export function TryApp({ on, secs, ghost, live, onClockIn, onClockOut }: TryAppP
           )}
         </AnimatePresence>
       </div>
-      <TabBar active="Home" />
+      {at >= 3 ? <TabBar active="Home" /> : <div className="tp-tabs--wait" aria-hidden="true" />}
     </div>
   );
 }

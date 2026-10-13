@@ -184,8 +184,18 @@
     linear-gradient(rgb(35 29 23 / 80%), rgb(35 29 23 / 80%)) 0 calc(50% + 1.5px) / 100% 1px no-repeat;
 }
 
+/* caps section heads, the .t-label role (spelled out here: index.html's intro also has a
+   ".t-label" class, for its map labels, that starts it at opacity 0) */
 .rcp-h {
   margin: 1px 0 2px;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-label) * 1%);
+  font-weight: var(--label-wght);
+  font-size: var(--fs-label);
+  line-height: 1.2;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-feature-settings: "case" 1;
   color: var(--rcp-ink-2);
 }
 

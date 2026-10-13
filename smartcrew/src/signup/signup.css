@@ -1308,6 +1308,21 @@
     overflow: hidden;
     animation: su-pvc-in 0.26s var(--ease-out) both;
   }
+  /* the "live" dot: a ring that scales and fades (compositor only; an animated box-shadow
+     repaints every frame for as long as the popup is open) */
+  .su-pv-live {
+    position: relative;
+    box-shadow: none;
+    animation: none;
+  }
+  .su-pv-live::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgb(255 122 1 / 55%);
+    animation: su-live-ring 2.4s ease-out infinite;
+  }
   .su-pvc.is-hidden {
     display: none;
   }
@@ -1407,6 +1422,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .su-pv-live::after,
   .su-pv-live,
   .su-callring::after,
   .su-skel,
@@ -1441,5 +1457,16 @@
 @keyframes su-pvc-in {
   from {
     opacity: 0;
+  }
+}
+@keyframes su-live-ring {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
   }
 }

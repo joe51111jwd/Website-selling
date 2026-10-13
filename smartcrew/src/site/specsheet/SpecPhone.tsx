@@ -20,6 +20,7 @@ import { lockScroll } from "../scroll";
 import { Cta } from "../ui/Cta";
 import { phoneSmall, phoneSrcSet } from "../phone/PhoneFrame";
 import { useArrive } from "../phone/useArrive";
+import { useStaged } from "../try/warm";
 import { CATEGORIES, TOOL_COUNT, type Category, type Shot as ShotT, type Tool } from "./data";
 import "./spec-phone.css";
 
@@ -63,7 +64,15 @@ function Roll({ value, delay, className }: { value: number; delay: number; class
       <span className="spp-roll-d" aria-hidden="true">
         {digits.map((d, i) => (
           <span key={i} className="spp-col">
-            <span className="spp-strip" style={{ "--d": d, "--delay": `${delay + (digits.length - 1 - i) * 70}ms` } as CSSProperties}>
+            <span
+              className="spp-strip"
+              style={
+                {
+                  "--d": d,
+                  "--delay": `${delay + (digits.length - 1 - i) * 70}ms`,
+                } as CSSProperties
+              }
+            >
               {"0123456789".split("").map((n) => (
                 <span key={n}>{n}</span>
               ))}
@@ -91,7 +100,18 @@ export default function SpecPhone() {
 }
 
 function SpecPhoneInner() {
-  const [ref, arrived] = useArrive<HTMLDivElement>({ amount: 0.25 });
+  const [arriveRef, arrived] = useArrive<HTMLDivElement>({ amount: 0.25 });
+  const el = useRef<HTMLDivElement | null>(null);
+  const ref = useCallback(
+    (n: HTMLDivElement | null) => {
+      el.current = n;
+      arriveRef(n);
+    },
+    [arriveRef],
+  );
+  // built before it scrolls in, a piece per idle moment (../try/warm.ts): 1 the scene lays out,
+  // 2 the six sections, 3 the total and the CTA
+  const stage = useStaged(el, 3);
   const [open, setOpen] = useState<string | null>(null);
   const opener = useRef<string | null>(null);
 
@@ -113,27 +133,32 @@ function SpecPhoneInner() {
       </h2>
       <span className="spp-rule-heavy" aria-hidden="true" />
       <ul className="spp-rows">
-        {CATEGORIES.map((c, i) => (
-          <li key={c.id} className="spp-li" style={{ "--i": i } as CSSProperties}>
-            <button type="button" className="spp-row" data-cat={c.id} aria-haspopup="dialog" onClick={() => openCat(c.id)}>
-              <span className="spp-row-t">
-                <span className="spp-name">{c.name}</span>
-                <span className="spp-out">{c.outcome}</span>
-              </span>
-              <Roll value={c.tools.length} delay={ROW0 + i * ROW_STEP + 120} className="spp-n" />
-              <Chevron className="spp-chev" />
-            </button>
-          </li>
-        ))}
+        {stage >= 2 &&
+          CATEGORIES.map((c, i) => (
+            <li key={c.id} className="spp-li" style={{ "--i": i } as CSSProperties}>
+              <button type="button" className="spp-row" data-cat={c.id} aria-haspopup="dialog" onClick={() => openCat(c.id)}>
+                <span className="spp-row-t">
+                  <span className="spp-name">{c.name}</span>
+                  <span className="spp-out">{c.outcome}</span>
+                </span>
+                <Roll value={c.tools.length} delay={ROW0 + i * ROW_STEP + 120} className="spp-n" />
+                <Chevron className="spp-chev" />
+              </button>
+            </li>
+          ))}
       </ul>
       <span className="spp-rule-double" aria-hidden="true" />
-      <p className="spp-total">
-        <span className="t-label spp-total-k">
-          {SPEC.total} {COPY.tools}
-        </span>
-        <Roll value={TOOL_COUNT} delay={TOTAL_AT} className="spp-total-n" />
-      </p>
-      <Cta source="specsheet" size="lg" className="spp-cta" />
+      {stage >= 3 && (
+        <>
+          <p className="spp-total">
+            <span className="t-label spp-total-k">
+              {SPEC.total} {COPY.tools}
+            </span>
+            <Roll value={TOOL_COUNT} delay={TOTAL_AT} className="spp-total-n" />
+          </p>
+          <Cta source="specsheet" size="lg" className="spp-cta" />
+        </>
+      )}
       <CatSheet id={open} onPick={openCat} onClose={close} />
     </div>
   );
@@ -308,7 +333,11 @@ function camFor(shot: ShotT, fw: number, fh: number): Cam {
   const s = clamp(Math.min(fw / (F[2] + pad * 2), fh / (F[3] + pad * 2)), 0.34, 0.72);
   const cx = (F[2] + pad * 2) * s > fw ? F[0] - pad + fw / (2 * s) : F[0] + F[2] / 2;
   const cy = (F[3] + pad * 2) * s > fh ? F[1] - pad + fh / (2 * s) : F[1] + F[3] / 2;
-  return { s, x: clamp(fw / 2 - cx * s, fw - W * s, 0), y: clamp(fh / 2 - cy * s, fh - H * s, 0) };
+  return {
+    s,
+    x: clamp(fw / 2 - cx * s, fw - W * s, 0),
+    y: clamp(fh / 2 - cy * s, fh - H * s, 0),
+  };
 }
 
 function Shot({ shot, closest }: { shot: ShotT; closest: boolean }) {
@@ -330,7 +359,15 @@ function Shot({ shot, closest }: { shot: ShotT; closest: boolean }) {
   const { w: W, h: H } = NATIVE[shot.kind];
   const cam = size ? camFor(shot, size.w, size.h) : null;
   const R = shot.ring;
-  const ring = cam && R ? { l: cam.x + R[0] * cam.s - 4, t: cam.y + R[1] * cam.s - 4, w: R[2] * cam.s + 8, h: R[3] * cam.s + 8 } : null;
+  const ring =
+    cam && R
+      ? {
+          l: cam.x + R[0] * cam.s - 4,
+          t: cam.y + R[1] * cam.s - 4,
+          w: R[2] * cam.s + 8,
+          h: R[3] * cam.s + 8,
+        }
+      : null;
   const round = !!R && Math.abs(R[2] - R[3]) < 6;
   const tagBelow = !!(ring && size && ring.t + ring.h + 40 < size.h);
   const phoneShot = shot.kind === "phone";
@@ -346,7 +383,11 @@ function Shot({ shot, closest }: { shot: ShotT; closest: boolean }) {
             alt=""
             decoding="async"
             draggable={false}
-            style={{ width: W * cam.s, height: H * cam.s, transform: `translate3d(${cam.x}px, ${cam.y}px, 0)` }}
+            style={{
+              width: W * cam.s,
+              height: H * cam.s,
+              transform: `translate3d(${cam.x}px, ${cam.y}px, 0)`,
+            }}
           />
         )}
         {ring && (

@@ -8,7 +8,6 @@
 import { FLAG, PROOF } from "../../content/copy";
 import { Scene } from "../scene/Scene";
 import { useArrive } from "../phone/useArrive";
-import { Odometer } from "./Odometer";
 import "./proof-phone.css";
 
 const P = PROOF.phil;
@@ -36,6 +35,35 @@ function phrases(text: string) {
 }
 const KATIE_PHRASES = phrases(K.text);
 
+/**
+ * The figure's odometer, light: each reel is ONE text node of stacked digits (white-space:
+ * pre-line), not a span per digit, so the screen's first render stays small. Same roll as the
+ * laptop's (./Odometer.tsx): every reel turns at least once, the leftmost lands last.
+ */
+function Reels({ digits, on, duration = 1500 }: { digits: string; on: boolean; duration?: number }) {
+  const n = digits.length;
+  return (
+    <span className="odo" aria-hidden="true">
+      {digits.split("").map((ch, i) => {
+        const turns = i + 1;
+        const target = on ? 10 * turns + Number(ch) : 0;
+        const cells = Array.from({ length: 10 * turns + 10 }, (_, k) => k % 10).join("\n");
+        return (
+          <span className="odo-col" key={i}>
+            <span
+              className="odo-reel prfp-reel"
+              style={{ ["--odo-y" as string]: String(-target), transitionDuration: `${duration}ms`, transitionDelay: on ? `${(n - 1 - i) * 70}ms` : "0ms" }}
+            >
+              {cells}
+            </span>
+            <span className="odo-size">{ch}</span>
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
 function Flag({ title }: { title: string }) {
   return (
     <span className="flag" title={title} aria-label={title}>
@@ -58,7 +86,7 @@ function Phil() {
           </span>
           <span className="prfp-num t-time" aria-hidden="true">
             {P.figure.prefix}
-            <Odometer digits={P.figure.digits} on={on} duration={1500} />
+            <Reels digits={P.figure.digits} on={on} />
             {P.figure.suffix}
             {/* survey paint under the figure: a wipe (two counter-moving transforms), once it lands */}
             <span className="prfp-mark">

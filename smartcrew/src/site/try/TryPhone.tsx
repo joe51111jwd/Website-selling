@@ -7,12 +7,13 @@
 // Your crew gets this." and the orange CTA slides up into the thumb zone. Untouched for 4 s while
 // on screen, it demos itself once.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TRY_IT } from "../../content/copy";
 import { useArrive } from "../phone/useArrive";
 import { Cta } from "../ui/Cta";
 import { localTime, useClock, useElapsed, useSelfDemo } from "./clock";
 import { TryApp } from "./TryApp";
+import { useStaged } from "./warm";
 import "./try-phone.css";
 
 const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -25,14 +26,22 @@ export default function TryPhone() {
   // arrives once (the rise); "on view" tracks whether the app is (mostly) on screen right now,
   // which gates the self demo so it never fires off screen
   const [arriveRef, arrived] = useArrive<HTMLDivElement>({ amount: 0.55 });
-  const [viewRef, onView] = useArrive<HTMLDivElement>({ amount: 0.8, repeat: true });
+  const [viewRef, onView] = useArrive<HTMLDivElement>({
+    amount: 0.8,
+    repeat: true,
+  });
+  const el = useRef<HTMLDivElement | null>(null);
   const ref = useCallback(
-    (el: HTMLDivElement | null) => {
-      arriveRef(el);
-      viewRef(el);
+    (n: HTMLDivElement | null) => {
+      el.current = n;
+      arriveRef(n);
+      viewRef(n);
     },
     [arriveRef, viewRef],
   );
+  // built before it scrolls in, a piece per idle moment: 1 the scene lays out (still off screen),
+  // 2 the Clock In body, 3 the day header + week strip, 4 the tab bar (./warm.ts)
+  const stage = useStaged(el, 4);
   useSelfDemo(clock, arrived && onView);
 
   useEffect(() => {
@@ -70,6 +79,7 @@ export default function TryPhone() {
           secs={secs}
           ghost={clock.ghost}
           live={arrived}
+          stage={stage - 1}
           onClockIn={() => clock.clockIn("visitor")}
           onClockOut={clock.clockOut}
         />
