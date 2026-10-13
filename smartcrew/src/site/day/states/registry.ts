@@ -12,6 +12,8 @@ export const DAY_STATES: DayStateDef[] = [
   { id: "phone-d-clockedin", kind: "phone", load: () => P().then((m) => m.ClockedIn) },
   { id: "phone-d-dot", kind: "phone", load: () => P().then((m) => m.DotForm) },
   { id: "phone-d-dot-sent", kind: "phone", load: () => P().then((m) => m.DotSent) },
+  { id: "phone-d-dot-empty", kind: "phone", load: () => P().then((m) => m.DotFormEmpty) },
+  { id: "phone-d-service-empty", kind: "phone", load: () => P().then((m) => m.ServiceFormEmpty) },
   { id: "phone-d-hauling", kind: "phone", load: () => P().then((m) => m.HaulForm) },
   { id: "phone-d-load-sent", kind: "phone", load: () => P().then((m) => m.HaulSent) },
   { id: "phone-d-service", kind: "phone", load: () => P().then((m) => m.ServiceForm) },

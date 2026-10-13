@@ -200,7 +200,7 @@ function springU(s: Spring, to: number, dt: number, k: number, c: number) {
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const D2R = Math.PI / 180;
-const NUMERIC = ["show", "x", "y", "z", "rx", "ry", "rz", "s", "out"] as const;
+const NUMERIC = ["show", "x", "y", "z", "rx", "ry", "rz", "s", "power", "out"] as const;
 const HALF_FOV = Math.tan((FOV * D2R) / 2);
 
 type Live = {
@@ -499,6 +499,7 @@ function Driver() {
         if (outAmt > 0) placeOut(d, s.out, outAmt, comp, W, H);
       }
 
+      d.surface.power = Math.max(0, Math.min(1, s.power ?? 1));
       if (vis && d.surface.update(now, dt, ring, a.dim, STILL)) busy = true;
       else if (!vis) d.surface.update(now, dt, ring, a.dim, true);
     }

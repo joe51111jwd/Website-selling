@@ -34,6 +34,8 @@ export type DevicePose = {
   ring?: Box | null;
   /** How much the rest of the screen dims while a ring is up (0..1, default 0.16). */
   dim?: number;
+  /** The screen's brightness, 0..1 (default 1): a device that waits in the background dims. Inherits; blends. */
+  power?: number;
   /**
    * Leave the frame deliberately instead of shrinking away: -1 = glided out past the left edge of
    * the viewport (turning as it goes), +1 = past the right edge, 0 = in place. Fractions are part
@@ -142,6 +144,7 @@ export type DeviceState = {
   scroll: number;
   ring: Box | null;
   dim: number;
+  power: number;
   out: number;
 };
 

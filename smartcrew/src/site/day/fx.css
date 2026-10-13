@@ -1,0 +1,435 @@
+/* One Day's focal layer (./Fx.tsx): over the Stage's canvas, under the copy. Every piece is placed
+   by transform from the Stage's frames (or a track on the film's clock) and faded by opacity; at
+   rest everything here is transparent. No filters, no animated shadows. */
+
+.day-fx {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.day-fx > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  backface-visibility: hidden;
+}
+
+/* 5:00 PM: the devices soften behind the profit card */
+.day-fx > .fx-veil {
+  inset: 0;
+  background: var(--dusk);
+}
+
+/* the finger: a pad lands, an orange ring opens out of it (sized by the phone's scale) */
+.fx-touch {
+  width: 0;
+  height: 0;
+}
+
+.fx-touch-pad,
+.fx-touch-ring {
+  position: absolute;
+  left: -26px;
+  top: -26px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.fx-touch-pad {
+  background: rgb(23 19 15 / 26%);
+  box-shadow:
+    0 0 0 2px rgb(255 255 255 / 70%),
+    0 6px 16px rgb(23 19 15 / 25%);
+}
+
+.fx-touch-ring {
+  border: 2px solid var(--orange);
+}
+
+/* a flat box mapped onto a quad on screen (matrix3d from ./quad.ts) */
+.fx-quad {
+  transform-origin: 0 0;
+  background-repeat: no-repeat;
+}
+
+/* 6:42: the row lifting off the office screen, and its soft shadow (a gradient: no blur filter) */
+.fx-lift {
+  border-radius: 6px;
+}
+
+.fx-lift-shadow {
+  background: radial-gradient(closest-side, rgb(23 19 15 / 34%), rgb(23 19 15 / 0%));
+}
+
+/* 9:20: the hauling ticket */
+.fx-ticket {
+  width: 300px;
+  padding: 12px 16px 13px;
+  border-radius: 10px;
+  background: #fff;
+  color: #111;
+  transform-origin: 0 0;
+  font-family: "Inter Variable", Inter, system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.35;
+  box-shadow:
+    0 1px 2px rgb(23 19 15 / 10%),
+    0 14px 34px rgb(23 19 15 / 22%);
+}
+
+.fx-ticket p {
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fx-ticket-h {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px !important;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #ececec;
+  font-size: 14px;
+}
+
+.fx-ticket-h span {
+  color: #6b6b6b;
+}
+
+.fx-ticket-r {
+  color: #333;
+}
+
+.fx-ticket-f {
+  margin-top: 4px !important;
+  color: #8a8a8a;
+  font-size: 12px;
+}
+
+/* 4:12: the request's card on its way to the shop queue */
+.fx-card {
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgb(23 19 15 / 22%);
+}
+
+/* 5:00: the profit card. Laid out at the size it ends up (so it is crisp where it is read) and
+   mapped down onto the screen's own card for the hand-over. */
+.fx-macro-img {
+  border-radius: 8px;
+}
+
+.fx-macro-wrap {
+  opacity: 1 !important;
+}
+
+.fx-macro {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 56vw;
+  opacity: 0;
+  transform-origin: 0 0;
+  font-family: "Inter Variable", Inter, system-ui, sans-serif;
+  color: #000;
+}
+
+.fx-macro-where {
+  margin: 0 0 1.1vw 0.3vw;
+  font-size: max(13px, 1.05vw);
+  font-weight: 500;
+  color: rgb(23 19 15 / 72%);
+  opacity: 0;
+}
+
+html[data-ground="dark"] .fx-macro-where {
+  color: rgb(244 238 231 / 72%);
+}
+
+.fx-macro-card {
+  display: flex;
+  align-items: center;
+  gap: 2.2vw;
+  aspect-ratio: 199.2 / 66;
+  padding: 0 3.2vw;
+  border-radius: 2.6vw;
+  background: #f6f6f6;
+  box-shadow: 0 2vw 5vw rgb(23 19 15 / 18%);
+}
+
+.fx-macro-well {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 7.4vw;
+  height: 7.4vw;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+}
+
+.fx-macro-well svg {
+  width: 52%;
+  height: 52%;
+}
+
+.fx-macro-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fx-macro-label {
+  font-size: 1.55vw;
+  line-height: 1.2;
+  color: #222;
+}
+
+.fx-macro-value {
+  display: inline-flex;
+  align-items: baseline;
+  margin-top: 0.2vw;
+  font-size: 5vw;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-wheel {
+  position: relative;
+  display: inline-block;
+  height: 1.1em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(transparent 0, #000 18%, #000 82%, transparent 100%);
+  mask-image: linear-gradient(transparent 0, #000 18%, #000 82%, transparent 100%);
+}
+
+.fx-wheel-sizer {
+  visibility: hidden;
+}
+
+.fx-wheel-strip {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.fx-wheel-strip > span {
+  display: block;
+  flex: none;
+  height: 1.1em;
+  text-align: center;
+}
+
+.fx-macro-today {
+  margin-top: 0.3vw;
+  font-size: 1.7vw;
+  font-weight: 600;
+  color: #1a8f4c;
+  opacity: 0;
+}
+
+.fx-macro-bars {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8vw 2.6vw;
+  margin-top: 1.4vw;
+  padding: 1.5vw 2.2vw 1.3vw;
+  border-radius: 1.6vw;
+  background: #fff;
+  opacity: 0;
+  box-shadow: 0 1.4vw 3.6vw rgb(23 19 15 / 14%);
+}
+
+.fx-bar {
+  display: grid;
+  grid-template-columns: 6.6vw 1fr auto;
+  align-items: center;
+  gap: 1vw;
+  margin: 0;
+  font-size: max(12px, 0.95vw);
+  color: #333;
+}
+
+.fx-bar-track {
+  position: relative;
+  height: 0.5vw;
+  min-height: 5px;
+  border-radius: 99px;
+  background: #ececec;
+  overflow: hidden;
+}
+
+.fx-bar-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #111;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+.fx-bar-v {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-bar-note {
+  grid-column: 1 / -1;
+  margin: 0.2vw 0 0;
+  font-size: max(11px, 0.8vw);
+  color: #8a8a8a;
+}
+
+/* 5:30: the office's cursor and its click */
+.fx-cursor svg {
+  position: absolute;
+  left: -3px;
+  top: -2px;
+  width: 20px;
+  height: 24px;
+}
+
+.fx-cursor-ring {
+  position: absolute;
+  left: -14px;
+  top: -14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--orange);
+  opacity: 0;
+}
+
+/* the crew the plan goes out to */
+.fx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 16px 7px 7px;
+  border-radius: 999px;
+  background: #fff;
+  color: #111;
+  font-family: "Inter Variable", Inter, system-ui, sans-serif;
+  box-shadow:
+    0 1px 2px rgb(23 19 15 / 10%),
+    0 10px 26px rgb(23 19 15 / 18%);
+  transform-origin: 0 50%;
+}
+
+.fx-chip-ini {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--ground);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.fx-chip-dot {
+  position: absolute;
+  right: -1px;
+  top: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 0 2px #fff;
+  opacity: 0;
+}
+
+.fx-chip-t {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.fx-chip-t b {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.fx-chip-t span {
+  font-size: 12.5px;
+  color: #6b6b6b;
+}
+
+/* one tag per moment */
+.fx-tag {
+  will-change: auto;
+}
+
+/* Friday: the payroll toast, in the app's toast style, at the size it is read */
+.fx-toast {
+  display: flex;
+  align-items: center;
+  gap: 1.3vw;
+  width: 40vw;
+  aspect-ratio: 368 / 66;
+  padding: 0 1.6vw 0 1.3vw;
+  border-radius: 1.5vw;
+  background: #fff;
+  color: #111;
+  transform-origin: 0 0;
+  font-family: "Inter Variable", Inter, system-ui, sans-serif;
+  box-shadow:
+    0 0 0 1px #e6e6e6,
+    0 1.6vw 4vw rgb(0 0 0 / 34%);
+}
+
+.fx-toast-ok {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 3.9vw;
+  height: 3.9vw;
+  border-radius: 50%;
+  background: #e8f6ee;
+  color: #1f9d55;
+}
+
+.fx-toast-ok svg {
+  width: 56%;
+  height: 56%;
+}
+
+.fx-toast-t {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3vw;
+  min-width: 0;
+}
+
+.fx-toast-t b {
+  font-size: 1.62vw;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.fx-toast-t span {
+  font-size: 1.36vw;
+  color: #6b6b6b;
+  white-space: nowrap;
+}
+
+.fx-toast-time {
+  align-self: flex-start;
+  margin-top: 1.5vw;
+  font-size: 1.1vw;
+  color: #9a9a9a;
+}

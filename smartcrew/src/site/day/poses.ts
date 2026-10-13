@@ -1,262 +1,304 @@
-// One Day's choreography for the Stage, on the ride's clock (./ride.ts): `at` is ms of the film
-// (the Stage evaluates these keys at the player's clock: registerPoses("day", keys, { clock })).
+// One Day's camera, v2 (RIDE_SHOTS.md §4–5): the Stage's keys on the ride's clock (`at` = ms of
+// the film; registerPoses("day", keys, { clock })). Every moment is its own SHOT, one continuous
+// camera walking through the day, and the camera never stops: every hold keeps a slow move going
+// (a dolly, an orbit, a crane, a track) in the direction the move before it was going.
 //
-// Each moment has two shots:
-//  · ACT: the device that acts is big and close (the crew's phone, or the office laptop at
-//    5:30 PM), the other waits behind it. The tap lands, its screen shows the result, the orange
-//    pulse leaves from the button. Nothing else moves meanwhile.
-//  · PUSH: the update has landed; the camera pushes in on the exact spot that changed (Stage
-//    `focus`: the laptop scales about that spot) while the phone steps down to the corner, still
-//    in front (Stage `front`). Then it holds to be read, never frozen: the shot keeps drifting,
-//    slowly (a short dolly, a degree or two of orbit, the push-in creeping on), slow enough that
-//    the words stay easy to read. Each moment has its own: a dolly, an orbit round the phone, a
-//    track with the load, a rise, the push going on in, the phone turning to face us, a pull back.
-// Between moments the devices glide from one moment's PUSH to the next one's ACT (one eased
-// move). Before the first, they rise from below the fold (where they waited under the hero).
-// After the last, the FINALE eases out to the whole app: the office dashboard and the crew's
-// phone, side by side.
+//   6:42   extreme close-up on the phone (two taps) → pull back and pan right: the office arrives
+//   6:55   a close orbit round the phone; the office seen over its shoulder
+//   9:20   crane up: a high angle while the truck drives the haul road on the map ground; then
+//          the office comes up to us for the ticket
+//   4:12   crane down to a low angle on the phone; then up again after the flying card
+//   5:00   the laptop squares up; a straight push into the Profit card (the DOM takes it over)
+//   5:30   a counter-orbit; Marcus's phone swings forward with Monday's plan
+//   Friday nightfall, a high angle on the lamp-lit desk, a slow turntable down the timecards
+//   end    dolly back to the film's one centred, symmetrical frame: the whole app
+//
+// The stage anchor is the whole takeover (the viewport): positions here are % of the viewport
+// (x from the left, y from the top), the phone's size its height in % of the viewport's height,
+// the laptop's its width in % of the viewport's width. They become Stage units for the viewport's
+// aspect when the keys are registered (again on resize). ./shotkeys.ts compiles the moves and
+// events into keys.
 
 import { phone as isPhone } from "../../three/stage/store";
-import type { Box, DevicePose, FocusSpec, PoseKey } from "../../three/stage/types";
+import type { Box, FocusSpec, PoseKey } from "../../three/stage/types";
 import { RIDE, type Ride } from "./ride";
-import { SCRIPT, type Script } from "./script";
+import { SCRIPT } from "./script";
+import { Film, type MoveTo } from "./shotkeys";
 
-type View = { rx: number; ry: number };
-/** A slow move over a hold: [dz dolly, dry turn, drx tilt, dx, dy] per device, the camera's turn, the push-in creeping on. */
-type Move = { iphone: Drift; macbook: Drift; view: [number, number]; creep?: number };
-type Drift = [number, number, number?, number?, number?];
-type Shot = {
-  view: View;
-  act: { iphone: DevicePose; macbook: DevicePose };
-  push: { iphone: DevicePose; macbook: DevicePose; view?: View };
-  /** the hold's own camera move (every moment its own shot: a dolly, an orbit, a track, a rise …) */
-  move: Move;
+// ─── viewport % → Stage units ─────────────────────────────────────────────────
+
+/** The frame's height in Stage units (1 = 10 cm); its width follows the viewport's aspect. */
+const FH = 6;
+/** The Stage's camera (src/three/stage/Stage.tsx: CAM_Z 26, FOV 22°). */
+const CAM_Z = 26;
+const KK = (2 * CAM_Z * Math.tan((22 * Math.PI) / 360)) / FH; // world units per frame unit (any viewport)
+/** The models' sizes in Stage units (their re-centred boxes). */
+const PHONE_H = 1.634;
+const LAPTOP_W = 3.117;
+
+type Rot = { rx?: number; ry?: number; rz?: number; z?: number; power?: number };
+type Num = NonNullable<MoveTo["iphone"]>;
+let FW = FH * (16 / 9);
+const persp = (z: number) => CAM_Z / (CAM_Z - z * KK);
+
+/** The phone, its centre at (x%, y%) of the viewport, h% of the viewport's height tall. */
+function ph(x: number, y: number, h: number, r: Rot = {}): Num {
+  const z = r.z ?? 0;
+  const p = persp(z);
+  return { x: ((x / 100 - 0.5) * FW) / p, y: ((0.5 - y / 100) * FH) / p, z, s: ((h / 100) * FH) / (PHONE_H * p), rx: r.rx ?? 0, ry: r.ry ?? 0, rz: r.rz ?? 0, ...(r.power !== undefined ? { power: r.power } : {}) };
+}
+/** The laptop, its centre at (x%, y%) of the viewport, w% of the viewport's width wide. */
+function lp(x: number, y: number, w: number, r: Rot = {}): Num {
+  const z = r.z ?? 0;
+  const p = persp(z);
+  return { x: ((x / 100 - 0.5) * FW) / p, y: ((0.5 - y / 100) * FH) / p, z, s: ((w / 100) * FW) / (LAPTOP_W * p), rx: r.rx ?? 0, ry: r.ry ?? 0, rz: r.rz ?? 0, ...(r.power !== undefined ? { power: r.power } : {}) };
+}
+/** A pose moved on a little (a hold's drift): `x`/`y` in % of the viewport, the rest in Stage units / degrees. */
+function drift(p: Num, d: { x?: number; y?: number; z?: number; rx?: number; ry?: number; rz?: number; s?: number }): Num {
+  const k = persp(p.z ?? 0);
+  return {
+    ...p,
+    x: (p.x ?? 0) + ((d.x ?? 0) / 100) * (FW / k),
+    y: (p.y ?? 0) - ((d.y ?? 0) / 100) * (FH / k),
+    z: (p.z ?? 0) + (d.z ?? 0),
+    rx: (p.rx ?? 0) + (d.rx ?? 0),
+    ry: (p.ry ?? 0) + (d.ry ?? 0),
+    rz: (p.rz ?? 0) + (d.rz ?? 0),
+    s: (p.s ?? 1) * (d.s ?? 1),
+  };
+}
+
+// ─── native px on the screens (web 1440×900, phone 402×874), measured on the rendered screens ──
+
+export const PX = {
+  /** phone-home: Clock In; phone-select-task: Start */
+  clockIn: [118.5, 383.3, 165, 165] as Box,
+  start: [209.3, 785.3, 172.8, 49.5] as Box,
+  /** the forms' Submit, the 5 PM Clock Out, Friday's Submit Timecard */
+  submit: [207, 777.2, 174.5, 41] as Box,
+  clockOut: [205.7, 620.1, 140, 50] as Box,
+  submitTimecard: [33, 257.7, 336, 49.5] as Box,
+  /** phone-d-clockedin: the running timer; phone-d-service-sent: the summary card */
+  timer: [56.3, 312.8, 289.4, 46] as Box,
+  serviceCard: [20, 605, 362, 172] as Box,
+  /** web-dashboard: the Clock Ins row that lands at 6:42 */
+  clockRow: [339, 694, 1057, 66] as Box,
+  /** web-d-inspections: the 06:55 inspection */
+  inspRow: [139, 506.8, 1257, 62] as Box,
+  /** web-d-hauling: ticket #14 */
+  haulRow: [339, 351.5, 1057, 56] as Box,
+  /** web-d-queue: the D6's request */
+  queueRow: [339, 277, 1057, 63.5] as Box,
+  /** web-project-detail: the Profit card */
+  profit: [560.3, 385, 199.2, 66] as Box,
+  /** web-scheduling: Mon 12 and the block that drops into it; the toolbar's Add Schedule */
+  monCell: [339, 594, 151, 189] as Box,
+  block: [346, 685, 137, 52.8] as Box,
+  addSchedule: [1263, 108, 134, 40] as Box,
+  /** web-timecards: the Status column's first row (8 rows of 60.75); the toast */
+  status0: [1250, 294.3, 110, 60.75] as Box,
+  toast: [1018, 70, 404, 100] as Box,
+  /** web-dashboard: the sidebar's items, Dashboard (0) … Reports (10) */
+  nav: (k: number): Box => [10, 101 + 49 * k, 275, 43],
 };
+export const centre = (b: Box): [number, number] => [b[0] + b[2] / 2, b[1] + b[3] / 2];
 
-// The stage is the right ~60% of the screen, under the header and above the controls. One frame
-// for every moment so the moves read as one camera.
-const F: [number, number] = [5.3, 3.4];
-/** The frame the poster stills (public/renders/day-*.webp) were rendered with. */
-const F_POSTER: [number, number] = [5, 3.4];
-
-const P_ACT: DevicePose = { x: -1.25, y: -0.12, z: 0.9, rx: 3, ry: 16, rz: 2, s: 1.32 };
-const M_ACT: DevicePose = { x: 0.95, y: 0.3, z: -0.9, rx: 11, ry: -24, rz: 0, s: 0.98 };
-const P_PUSH: DevicePose = { x: -1.95, y: -0.66, z: 1.3, rx: 6, ry: 22, rz: 4, s: 1.0 };
-const M_PUSH: DevicePose = { x: 0.6, y: 0.2, z: -0.3, rx: 7, ry: -9, rz: 0, s: 1 };
-
-const v = (p: DevicePose, d: DevicePose): DevicePose => ({ ...p, ...d });
-
-const SHOTS: Shot[] = [
-  // 6:42 AM · dawn: it opens close on the phone, the office laptop small and far behind it; the
-  // push pulls back and brings the office forward as the clock-in lands. Hold: a slow dolly in.
-  {
-    view: { rx: 0, ry: 0 },
-    act: { iphone: v(P_ACT, { x: -0.7, y: -0.1, z: 1.25, ry: 10, rz: 1, s: 1.5 }), macbook: v(M_ACT, { x: 1.45, y: 0.5, z: -2.6, ry: -30, s: 0.82 }) },
-    push: { iphone: P_PUSH, macbook: M_PUSH },
-    move: { iphone: [0.14, 1.5], macbook: [0.08, 1], view: [0.6, -0.8], creep: 1.08 },
-  },
-  // 6:55 AM · the camera a touch lower, the phone upright and leading. Hold: a slow orbit round it.
-  {
-    view: { rx: -3, ry: 2 },
-    act: { iphone: v(P_ACT, { ry: 10, rz: -1, y: -0.05 }), macbook: v(M_ACT, { ry: -30, y: 0.36 }) },
-    push: { iphone: v(P_PUSH, { ry: 16, rz: -2 }), macbook: v(M_PUSH, { ry: -6, rx: 5 }) },
-    move: { iphone: [0.04, 7, 0], macbook: [0.02, -2.5], view: [0, 3.2], creep: 1.04 },
-  },
-  // 9:20 AM · high sun, the camera looks down on the haul. Hold: it tracks sideways with the load.
-  {
-    view: { rx: 6, ry: -2 },
-    act: { iphone: v(P_ACT, { rx: 10, ry: 8, rz: -3, z: 1.2 }), macbook: v(M_ACT, { rx: 20, ry: -34, y: 0.2 }) },
-    push: { iphone: v(P_PUSH, { rx: 10, ry: 14, rz: -4 }), macbook: v(M_PUSH, { rx: 12, ry: -5 }) },
-    move: { iphone: [0.02, 1, 0, -0.16], macbook: [0.02, -1, 0, -0.12], view: [0.3, -2.4], creep: 1.05 },
-  },
-  // 4:12 PM · low and tilted. Hold: the camera rises a little, looking down into the shop queue.
-  {
-    view: { rx: -5, ry: 3 },
-    act: { iphone: v(P_ACT, { rx: -3, ry: 22, rz: 6, y: -0.2 }), macbook: v(M_ACT, { rx: 5, ry: -28, y: 0.38 }) },
-    push: { iphone: v(P_PUSH, { rx: -2, ry: 26, rz: 7 }), macbook: v(M_PUSH, { rx: 4, ry: -12 }) },
-    move: { iphone: [0.05, 1, 2.5, 0, 0.08], macbook: [0.03, 0.5, 3, 0, 0.06], view: [2.6, -0.6], creep: 1.06 },
-  },
-  // 5:00 PM · the payoff: the laptop nearly square in the long light. Hold: the push keeps going
-  // in on the profit number.
-  {
-    view: { rx: 1, ry: -3 },
-    act: { iphone: v(P_ACT, { ry: 20, rz: 3 }), macbook: v(M_ACT, { ry: -18, rx: 10 }) },
-    push: { iphone: v(P_PUSH, { ry: 24, rz: 3, y: -0.7 }), macbook: v(M_PUSH, { ry: -4, rx: 8 }) },
-    move: { iphone: [0.06, 1.5], macbook: [0.04, 0.8], view: [0.5, -0.6], creep: 1.2 },
-  },
-  // 5:30 PM · the other way: the office is already close on the calendar, the phone waits small
-  // in the corner, then swings forward with Monday on it. Hold: the phone turns to face us.
-  {
-    view: { rx: 2, ry: -4 },
-    act: { iphone: v(P_PUSH, { ry: 26, rz: 2, s: 0.95 }), macbook: v(M_PUSH, { ry: -12, rx: 9 }) },
-    push: { iphone: v(P_ACT, { x: -1.1, y: -0.08, z: 1.6, ry: 12, rz: 1, s: 1.38 }), macbook: v(M_ACT, { x: 1.05, ry: -32, z: -1.0, s: 0.92 }) },
-    move: { iphone: [0.1, -6], macbook: [0.03, 1.5], view: [0.6, -1], creep: 1 },
-  },
-  // Friday night · close and warm under the lamp. Hold: a slow pull back (the finale follows).
-  {
-    view: { rx: 4, ry: 0 },
-    act: { iphone: v(P_ACT, { rx: 6, ry: 12, rz: -2 }), macbook: v(M_ACT, { rx: 15, ry: -20 }) },
-    push: { iphone: v(P_PUSH, { rx: 8, ry: 18, rz: -3 }), macbook: v(M_PUSH, { rx: 10, ry: -7 }) },
-    move: { iphone: [-0.08, 2], macbook: [-0.06, 1.2], view: [0.8, -1.2], creep: 1.02 },
-  },
+/** The pulse's start on the phone at each moment (native px): where the tap's result shows. */
+const FROM_PHONE: [number, number][] = [
+  [201, 335], // 6:42 the timer
+  [201, 640], // 6:55 the Pre-trip passed sheet
+  [201, 640], // 9:20
+  [201, 690], // 4:12
+  [201, 300], // 5:00 Clocked out
+  [201, 520], // 5:30
+  [201, 282], // Friday: Timecard submitted
 ];
 
-/**
- * Before the ride: where the devices wait while "Enjoy the ride" holds, below the fold of One
- * Day's stage, tipped back (the hero parks them the same way, so the scroll from the hero leaves
- * them out of sight), screens already on the first moment's.
- */
-const WAIT: { iphone: DevicePose; macbook: DevicePose } = {
-  iphone: v(P_ACT, { y: -5.2, z: 0.5, rx: 34 }),
-  macbook: v(M_ACT, { y: -5.6, z: -1.3, rx: 42 }),
-};
+// ─── the film ─────────────────────────────────────────────────────────────────
 
-/** The finale: the whole app, the office dashboard and the crew's phone, a calm three-quarter. */
-const FINALE: { iphone: DevicePose; macbook: DevicePose; view: View } = {
-  iphone: { x: -1.42, y: -0.32, z: 1.0, rx: 4, ry: 18, rz: 2, s: 1.18, screen: "phone-working" },
-  macbook: { x: 0.72, y: 0.18, z: -0.55, rx: 9, ry: -17, rz: 0, s: 1.04, screen: "web-dashboard" },
-  view: { rx: 2, ry: -1 },
-};
+export function ridePoses(aspect = typeof window !== "undefined" ? window.innerWidth / Math.max(1, window.innerHeight) : 16 / 9, R: Ride = RIDE): PoseKey[] {
+  FW = FH * Math.max(1.2, Math.min(2.6, aspect));
+  const m = R.moments;
+  const b = (i: number, k: string) => m[i].at[k];
+  const S = SCRIPT;
+  const F = new Film({ anchor: "day", frame: [FW, FH], float: 0, look: 0.2, display: { show: 0 } });
 
-/** A slow drift on a pose over a hold (dolly towards the camera, a little turn, a little track). */
-const drift = (p: DevicePose, dz: number, dry = 0, drx = 0, dx = 0, dy = 0): DevicePose => ({
-  ...p,
-  z: (p.z ?? 0) + dz,
-  ry: (p.ry ?? 0) + dry,
-  rx: (p.rx ?? 0) + drx,
-  x: (p.x ?? 0) + dx,
-  y: (p.y ?? 0) + dy,
-});
-const moved = (p: DevicePose, d: Drift) => drift(p, d[0], d[1], d[2] ?? 0, d[3] ?? 0, d[4] ?? 0);
-
-export const dayFrame = () => F;
-export const dayPosterFrame = () => F_POSTER;
-
-const centre = (b: Box): [number, number] => [b[0] + b[2] / 2, b[1] + b[3] / 2];
-
-/** The update's ring on the office screen (the row, the number, the block, the column). */
-export function updateRing(s: Script): Box {
-  const u = s.laptop.update;
-  if (u.kind === "insert") return u.row;
-  if (u.kind === "tick") return [558, 383, 204, 70];
-  if (u.kind === "block") return u.rect;
-  const first = u.cells[0];
-  return [first[0], first[1], first[2], first[3] * u.cells.length];
-}
-
-/** The push-in on the changed spot; `k` > 1 creeps on during the hold (in, and a little up). */
-function focusOf(s: Script, k = 1): FocusSpec {
-  const f = s.laptop.focus;
-  return { device: "macbook", px: f.px, zoom: 1 + (f.zoom - 1) * k, to: [f.to[0] - (k - 1) * 0.35, f.to[1] - (k - 1) * 0.45] };
-}
-
-export function ridePoses(R: Ride = RIDE): PoseKey[] {
-  const keys: PoseKey[] = [];
-  const base = { anchor: "day", frame: F, float: 0, look: 0.35, front: "iphone" as const };
-
-  // the wait, and the hand-off: the devices rise into the first shot as the title fades
-  const s0 = SCRIPT[0];
-  const wait = {
-    ...base,
-    view: SHOTS[0].view,
-    iphone: { ...WAIT.iphone, screen: s0.phone.before },
-    macbook: { ...WAIT.macbook, screen: s0.laptop.before },
-    display: { show: 0 },
-  };
-  keys.push({ ...wait, at: 0, ease: "linear", look: 0 }, { ...wait, at: R.moments[0].start, ease: "linear", look: 0 });
-
-  R.moments.forEach((m, i) => {
-    const s = SCRIPT[i];
-    const shot = SHOTS[i];
-    const up = m.up;
-    const ring = updateRing(s);
-    const pushView = shot.push.view ?? shot.view;
-    const act = shot.act;
-    const push = shot.push;
-    // office → field: the office is pushed in from the start, the phone comes forward at the end
-    const actFocus = up ? null : focusOf(s);
-    const pushFocus = up ? focusOf(s) : null;
-    const tapPx = up && s.phone.tap ? centre(s.phone.tap) : s.laptop.tap ? centre(s.laptop.tap) : undefined;
-    const pulse = (t: number) =>
-      up ? { from: "iphone" as const, to: "macbook" as const, t, fromPx: tapPx } : { from: "macbook" as const, to: "iphone" as const, t, fromPx: centre(ring) };
-    const hold = (at: number, ease: PoseKey["ease"], o: Partial<PoseKey> & { iphone?: DevicePose; macbook?: DevicePose }) =>
-      keys.push({ ...base, view: shot.view, focus: actFocus, ...o, at, ease });
-
-    // ACT: the glide lands (from the last moment's PUSH, or from the wait); while the time, the
-    // headline and the tap play, the shot eases in a touch (never a frozen frame)
-    const before = { iphone: { ...act.iphone, screen: s.phone.before }, macbook: { ...act.macbook, screen: s.laptop.before } };
-    hold(m.settle, "inOut", before);
-    // how far the ACT shot has crept in by time t (0 at settle … 1 at the push)
-    const creep = (t: number) => Math.max(0, Math.min(1, (t - m.settle) / Math.max(1, m.push[0] - m.settle)));
-    const actAt = (t: number) => ({ iphone: drift(act.iphone, 0.06 * creep(t), 0.8 * creep(t)), macbook: drift(act.macbook, 0.05 * creep(t), -0.6 * creep(t)) });
-    const viewAt = (t: number) => ({ rx: shot.view.rx + 0.4 * creep(t), ry: shot.view.ry - 0.5 * creep(t) });
-    if (up) {
-      // the tap: the phone shows its result
-      let a = actAt(m.shown);
-      hold(m.shown, "linear", { view: viewAt(m.shown), iphone: { ...a.iphone, screen: s.phone.after }, macbook: { ...a.macbook, screen: s.laptop.before } });
-      // the pulse leaves the button … and lands on the row the office screen is about to change
-      a = actAt(m.pulse[0]);
-      hold(m.pulse[0], "linear", { view: viewAt(m.pulse[0]), iphone: { ...a.iphone, screen: s.phone.after }, macbook: { ...a.macbook, screen: s.laptop.before }, pulse: pulse(0) });
-      a = actAt(m.pulse[1]);
-      const landed = { iphone: { ...a.iphone, screen: s.phone.after }, macbook: { ...a.macbook, screen: s.laptop.after, ring } };
-      hold(m.pulse[1], "inOut", { ...landed, view: viewAt(m.pulse[1]), pulse: pulse(1) });
-      a = actAt(m.push[0]);
-      hold(m.push[0], "linear", { view: viewAt(m.push[0]), iphone: { ...a.iphone, screen: s.phone.after }, macbook: { ...a.macbook, screen: s.laptop.after, ring } });
-      // PUSH: in on the changed spot; then the hold, drifting slowly (dolly in, a degree or two)
-      const pushed = { iphone: { ...push.iphone, screen: s.phone.after }, macbook: { ...push.macbook, screen: s.laptop.after, ring, dim: 0.1 } };
-      hold(m.push[1], "inOut", { ...pushed, view: pushView, focus: pushFocus });
-      hold(m.end, "linear", {
-        iphone: { ...moved(push.iphone, shot.move.iphone), screen: s.phone.after },
-        macbook: { ...moved(push.macbook, shot.move.macbook), screen: s.laptop.after, ring, dim: 0.1 },
-        view: { rx: pushView.rx + shot.move.view[0], ry: pushView.ry + shot.move.view[1] },
-        focus: pushFocus ? focusOf(s, shot.move.creep ?? 1.08) : null,
-      });
-    } else {
-      // the click on the office's calendar: the block drops in (./rideLife.ts), its ring
-      let a = actAt(m.update[1]);
-      const clicked = { iphone: { ...a.iphone, screen: s.phone.before }, macbook: { ...a.macbook, screen: s.laptop.after, ring } };
-      hold(m.update[1], "linear", { ...clicked, view: viewAt(m.update[1]) });
-      a = actAt(m.pulse[0]);
-      hold(m.pulse[0], "linear", { view: viewAt(m.pulse[0]), iphone: { ...a.iphone, screen: s.phone.before }, macbook: { ...a.macbook, screen: s.laptop.after, ring }, pulse: pulse(0) });
-      // the plan lands on the crew's phone …
-      a = actAt(m.pulse[1]);
-      hold(m.pulse[1], "inOut", { view: viewAt(m.pulse[1]), iphone: { ...a.iphone, screen: s.phone.after }, macbook: { ...a.macbook, screen: s.laptop.after, ring }, pulse: pulse(1) });
-      // … which swings forward with it, then drifts
-      const pushed = { iphone: { ...push.iphone, screen: s.phone.after }, macbook: { ...push.macbook, screen: s.laptop.after } };
-      hold(m.push[1], "inOut", { ...pushed, view: pushView, focus: pushFocus });
-      hold(m.end, "linear", {
-        iphone: { ...moved(push.iphone, shot.move.iphone), screen: s.phone.after },
-        macbook: { ...moved(push.macbook, shot.move.macbook), screen: s.laptop.after },
-        view: { rx: pushView.rx + shot.move.view[0], ry: pushView.ry + shot.move.view[1] },
-        focus: pushFocus,
-      });
-    }
-  });
-
-  // THE FINALE: ease out to the whole app (the dashboard and the crew's phone), then a slow dolly
-  const f = R.finale;
-  const wide = { iphone: { ...FINALE.iphone }, macbook: { ...FINALE.macbook } };
-  keys.push({ ...base, at: f.settle, ease: "inOut", view: FINALE.view, focus: null, ...wide });
-  keys.push({
-    ...base,
-    at: f.end,
-    ease: "linear",
-    view: { rx: FINALE.view.rx + 0.8, ry: FINALE.view.ry + 2 },
+  // ── the wait ("Enjoy the ride"): the phone below the frame, tipped back, its screen already lit;
+  // the laptop past the right edge, lit
+  F.move(0, "linear", {
+    iphone: ph(60, 168, 105, { rx: 34, ry: -8, rz: -1, power: 1 }),
+    macbook: lp(152, 47, 50, { rx: 8, ry: -36, z: -0.6, power: 1 }),
+    view: { rx: 0, ry: 0 },
+    light: { key: 0.85, warm: 0 },
     focus: null,
-    iphone: { ...drift(FINALE.iphone, 0.1, -2), screen: FINALE.iphone.screen },
-    macbook: { ...drift(FINALE.macbook, 0.08, 2), screen: FINALE.macbook.screen },
   });
-  return keys;
-}
+  F.at(0, { iphone: { screen: "phone-home" }, macbook: { screen: "web-dashboard" }, front: "iphone" });
+  F.move(m[0].start, "linear", {});
 
-/** For the DOM: the point of the office screen the update card's leader lands on, per moment. */
-export const markOf = (i: number) => SCRIPT[i].laptop.mark;
-/** The tap point on the acting screen (native px), or null. */
-export function tapOf(i: number): { device: "iphone" | "macbook"; px: [number, number] } | null {
-  const s = SCRIPT[i];
-  if (s.dir === "up" && s.phone.tap) return { device: "iphone", px: centre(s.phone.tap) };
-  if (s.dir === "down" && s.laptop.tap) return { device: "macbook", px: centre(s.laptop.tap) };
-  return null;
+  // ── 6:42 AM · ECU on the phone → pull back and pan right ──
+  {
+    const i = 0;
+    const ecu = ph(60, 55, 105, { rx: 3, ry: -8, rz: -1 });
+    // the rise into the close-up, then a slow dolly in while the time, the headline and the taps play
+    F.move(m[i].settle, "inOut", { iphone: ecu, macbook: lp(148, 47, 50, { rx: 8, ry: -36, z: -0.6 }) });
+    F.move(b(i, "pull")[0], "linear", { iphone: ph(60, 55, 110, { rx: 3, ry: -10, rz: -1 }), macbook: lp(144, 47, 50, { rx: 8, ry: -34, z: -0.6 }) });
+    F.at(b(i, "sheet")[0], { iphone: { screen: "phone-select-task" } });
+    F.at(b(i, "clocked")[0], { iphone: { screen: S[i].phone.after } });
+    // pull back and pan right: the office arrives (the pan carries on into the hold)
+    const pulled = ph(28, 64, 56, { rx: 4, ry: 16, rz: 2, z: 0.6 });
+    const office = lp(67, 55, 48, { rx: 8, ry: -14, z: -0.6 });
+    F.move(b(i, "pull")[1], "inOut", { iphone: pulled, macbook: office });
+    F.pulse(b(i, "pulse")[0], b(i, "pulse")[1], { from: "iphone", to: "macbook", fromPx: FROM_PHONE[0], toPx: centre(PX.clockRow) });
+    // push in on the new row (it lifts off the screen: the DOM's, ./fx.ts) as the pan goes on
+    const rowFocus: FocusSpec = { device: "macbook", px: centre(PX.clockRow), zoom: 1.06, to: [0.66, 0.63] };
+    F.move(b(i, "lift")[0], "linear", { iphone: drift(pulled, { x: -0.5, ry: 0.5 }), macbook: drift(office, { x: -0.4, ry: 0.3 }) });
+    F.move(b(i, "lift")[1], "inOut", { iphone: drift(pulled, { x: -1.2, ry: 1.2 }), macbook: drift(office, { x: -0.9, ry: 0.8 }), focus: rowFocus });
+    // hold: the pan carries on (the devices drift left, the view turns), the push creeps on
+    F.move(m[i].end, "linear", {
+      iphone: drift(pulled, { x: -3.6, ry: 3.4, y: -0.6 }),
+      macbook: drift(office, { x: -2.6, ry: 2 }),
+      view: { ry: 1.4 },
+      focus: { ...rowFocus, zoom: 1.09, to: [0.65, 0.625] },
+    });
+  }
+
+  // ── 6:55 AM · a close orbit round the phone; the office over its shoulder ──
+  {
+    const i = 1;
+    const hero = ph(50, 54, 92, { rx: 2, ry: -10, z: 0.4 });
+    const back = lp(81, 35, 30, { rx: 6, ry: -16, z: -2.4, power: 0.45 });
+    // the pan turns into the orbit: the phone comes forward to the centre; its screen turns to the
+    // form while it is turned away
+    F.move(m[i].settle, "inOut", { iphone: hero, macbook: back, view: { rx: -1, ry: -12 }, focus: null, light: { key: 0.95, warm: 0.05 } });
+    F.at(b(i, "swap")[0], { iphone: { screen: S[i].phone.before }, macbook: { screen: S[i].laptop.before } });
+    F.at(b(i, "sent")[0], { iphone: { screen: S[i].phone.after } });
+    F.pulse(b(i, "pulse")[0], b(i, "pulse")[1], { from: "iphone", to: "macbook", fromPx: FROM_PHONE[1], toPx: centre(PX.inspRow) });
+    // the orbit: −12° → +12°, linear (the highlights slide across the glass); the laptop lights
+    // up as the record lands
+    const span = m[i].end - m[i].settle;
+    const ry = (t: number) => -12 + (24 * (t - m[i].settle)) / span;
+    F.move(b(i, "pulse")[1], "linear", { view: { ry: ry(b(i, "pulse")[1]) }, iphone: drift(hero, { ry: 0.6 }), macbook: drift(back, { z: 0.05 }) });
+    F.move(b(i, "insert")[0] + 300, "linear", { view: { ry: ry(b(i, "insert")[0] + 300) }, iphone: drift(hero, { ry: 0.7 }), macbook: { ...drift(back, { z: 0.08 }), power: 1 } });
+    F.at(b(i, "ring")[0], { macbook: { ring: PX.inspRow, dim: 0.1 } });
+    F.move(m[i].end, "linear", { view: { ry: 12, rx: 0 }, iphone: drift(hero, { z: 0.06, ry: 2 }), macbook: { ...drift(back, { z: 0.2 }), power: 1 } });
+  }
+
+  // ── 9:20 AM · crane up; the haul on the map ground; then the office comes up to us ──
+  {
+    const i = 2;
+    const corner = ph(13, 80, 46, { rx: 14, ry: 24, rz: -6, z: 0.6 });
+    const low = lp(77, 82, 36, { rx: 30, ry: -10, z: -0.8, power: 0.92 });
+    F.at(m[i].start, { macbook: { ring: null, dim: 0.16 } });
+    F.at(m[i].start + 450, { iphone: { screen: S[i].phone.before }, macbook: { screen: S[i].laptop.before } });
+    F.move(m[i].settle, "inOut", { iphone: corner, macbook: low, view: { rx: 12, ry: 4 }, light: { key: 1.15, warm: 0 } });
+    // the track: the camera follows the truck to the right (the devices slide left, slowly)
+    F.move(b(i, "drive")[1], "linear", { iphone: drift(corner, { x: -2.2 }), macbook: drift(low, { x: -3.2 }), view: { ry: 1.5 } });
+    F.at(b(i, "sent")[0], { iphone: { screen: S[i].phone.after } });
+    F.move(b(i, "rise")[0], "linear", { iphone: drift(corner, { x: -3.2, ry: -1.4 }), macbook: drift(low, { x: -4.4 }), view: { ry: 0.6 } });
+    // the office comes up to us: Materials · Hauling, a touch pushed in on today's tickets
+    const up = lp(64, 55, 49, { rx: 12, ry: -7, z: -0.3, power: 1 });
+    const tickets: FocusSpec = { device: "macbook", px: [868, 420], zoom: 1.06, to: [0.66, 0.57] };
+    F.move(b(i, "rise")[1], "inOut", { iphone: drift(corner, { x: -4, y: 1, ry: -2 }), macbook: up, view: { rx: 7, ry: 0 }, focus: tickets });
+    // hold: the track carries on in the truck's direction
+    F.move(m[i].end, "linear", { iphone: drift(corner, { x: -6, y: 1.6, ry: -3 }), macbook: drift(up, { x: -3, ry: 1.2 }), view: { rx: 6, ry: -1.6 }, focus: { ...tickets, zoom: 1.09, to: [0.65, 0.57] } });
+  }
+
+  // ── 4:12 PM · crane down to a low angle; then up after the flying card ──
+  {
+    const i = 3;
+    const hero = ph(45, 57, 96, { rx: 1, ry: 16, rz: 3, z: 0.3 });
+    const shelf = lp(81, 34, 38, { rx: 2, ry: -24, z: -1.6, power: 0.5 });
+    F.at(m[i].start + 500, { iphone: { screen: S[i].phone.before }, macbook: { screen: S[i].laptop.before } });
+    F.move(m[i].settle, "inOut", { iphone: hero, macbook: shelf, view: { rx: -6, ry: 2 }, focus: null, light: { key: 1.0, warm: 0.35 } });
+    F.at(b(i, "sent")[0], { iphone: { screen: S[i].phone.after } });
+    // a slow rise while the request is written, then the crane follows the card up; the laptop
+    // comes forward, lit
+    F.move(b(i, "fly")[0], "linear", { iphone: drift(hero, { y: -0.8, ry: -1.4 }), macbook: drift(shelf, { y: -0.3 }), view: { rx: -5 } });
+    const shelf2 = lp(73, 45, 44, { rx: 4, ry: -20, z: -1.2, power: 1 });
+    const hero2 = ph(41, 63, 88, { rx: 3, ry: 14, rz: 3, z: 0.2 });
+    F.move(b(i, "fly")[1], "inOut", { iphone: hero2, macbook: shelf2, view: { rx: 4, ry: 1 } });
+    F.at(b(i, "ring")[0], { macbook: { ring: PX.queueRow, dim: 0.1 } });
+    F.move(m[i].end, "linear", { iphone: drift(hero2, { x: -2, y: 2.5, ry: -2 }), macbook: drift(shelf2, { x: -0.8, ry: 1.5 }), view: { rx: 6, ry: 0 }, light: { key: 0.97, warm: 0.48 } });
+  }
+
+  // ── 5:00 PM · the payoff: square up and push straight in on the profit ──
+  {
+    const i = 4;
+    const square = lp(65, 51, 54, { rx: 8, ry: -4, z: -0.4 });
+    const fg = ph(23, 70, 64, { rx: 2, ry: 22, rz: 3, z: 0.8 });
+    F.at(m[i].start, { macbook: { ring: null, dim: 0.16 } });
+    F.at(m[i].start + 450, { iphone: { screen: S[i].phone.before }, macbook: { screen: S[i].laptop.before } });
+    F.move(m[i].settle, "inOut", { iphone: fg, macbook: square, view: { rx: 1, ry: -1 }, light: { key: 0.95, warm: 0.55 } });
+    F.at(b(i, "sent")[0], { iphone: { screen: S[i].phone.after } });
+    F.pulse(b(i, "pulse")[0], b(i, "pulse")[1], { from: "iphone", to: "macbook", fromPx: FROM_PHONE[4], toPx: centre(PX.profit) });
+    F.move(b(i, "push")[0], "linear", { iphone: drift(fg, { z: 0.06, x: -0.6 }), macbook: drift(square, { z: 0.06 }), view: { ry: -0.6 } });
+    // the push through the screen (the DOM's profit card takes over as it ends)
+    const push: FocusSpec = { device: "macbook", px: centre(PX.profit), zoom: 2.4, to: [0.58, 0.47] };
+    F.move(b(i, "push")[1], "in", { iphone: drift(fg, { x: -3, z: 0.1, ry: 2 }), macbook: drift(square, { z: 0.1 }), focus: push });
+    F.move(m[i].end, "linear", { iphone: drift(fg, { x: -5, z: 0.12, ry: 4 }), macbook: drift(square, { z: 0.14 }), focus: { ...push, zoom: 2.5 }, view: { ry: 0.6 } });
+  }
+
+  // ── 5:30 PM · a counter-orbit; the plan goes out; the phone swings forward ──
+  {
+    const i = 5;
+    const right = lp(68, 58, 45, { rx: 8, ry: -12, z: -0.4 });
+    const behind = ph(38, 60, 46, { rx: 4, ry: -28, z: -2.4 });
+    // the number shrinks back into the screen; the laptop slides right; the phone drops back
+    F.move(b(i, "unzoom")[1], "inOut", { macbook: lp(66, 53, 50, { rx: 8, ry: -8, z: -0.4 }), iphone: ph(30, 68, 50, { rx: 4, ry: -12, z: -1 }), focus: null, view: { ry: 4, rx: 2 } });
+    F.at(b(i, "unzoom")[0] + 200, { iphone: { screen: "phone-home" } });
+    F.at(b(i, "swap")[0], { macbook: { screen: S[i].laptop.before } });
+    F.at(b(i, "unzoom")[1], { front: "macbook" });
+    const cal: FocusSpec = { device: "macbook", px: [520, 640], zoom: 1.1, to: [0.6, 0.63] };
+    F.move(m[i].settle, "inOut", { macbook: right, iphone: behind, view: { ry: 8, rx: 2 }, focus: cal, light: { key: 0.85, warm: 0.75 } });
+    // counter-orbit: +8° → −8° across the moment
+    const span = m[i].end - m[i].settle;
+    const ry = (t: number) => 8 - (16 * (t - m[i].settle)) / span;
+    F.at(b(i, "block")[1], { macbook: { ring: PX.block, dim: 0.1 } });
+    F.move(b(i, "swing")[0], "linear", { view: { ry: ry(b(i, "swing")[0]) }, focus: { ...cal, zoom: 1.14 }, iphone: drift(behind, { ry: 2 }), macbook: drift(right, { z: 0.03 }) });
+    F.at(b(i, "plan")[0], { iphone: { screen: S[i].phone.after } });
+    F.at(b(i, "swing")[0] + 500, { front: "iphone" });
+    // Marcus's phone swings forward into the left-centre foreground
+    const fore = ph(42, 58, 84, { rx: 3, ry: 10, rz: 1, z: 0.9 });
+    F.move(b(i, "swing")[1], "inOut", { view: { ry: ry(b(i, "swing")[1]) }, iphone: fore, focus: { ...cal, zoom: 1.16 }, macbook: drift(right, { z: 0.04 }) });
+    F.move(m[i].end, "linear", { view: { ry: -8 }, iphone: drift(fore, { ry: -7, z: 0.06 }), macbook: drift(right, { z: 0.08 }), focus: { ...cal, zoom: 1.19 } });
+  }
+
+  // ── Friday · nightfall; a high angle on the lamp-lit desk; a slow turntable ──
+  {
+    const i = 6;
+    const desk = lp(66, 63, 47, { rx: 14, ry: -8, z: -0.6 });
+    const lean = ph(27, 71, 64, { rx: 12, ry: 14, rz: -2, z: 0.6 });
+    F.at(m[i].start, { macbook: { ring: null, dim: 0.16 } });
+    F.at(m[i].start + 500, { iphone: { screen: S[i].phone.before }, macbook: { screen: S[i].laptop.before } });
+    F.move(m[i].settle, "inOut", { iphone: lean, macbook: desk, view: { rx: 10, ry: -2 }, focus: null, light: { key: 0.7, warm: 1 } });
+    F.at(b(i, "sent")[0], { iphone: { screen: S[i].phone.after } });
+    F.pulse(b(i, "pulse")[0], b(i, "pulse")[1], { from: "iphone", to: "macbook", fromPx: FROM_PHONE[6], toPx: centre(PX.status0) });
+    F.move(b(i, "cascade")[0], "inOut", { iphone: { ...drift(lean, { z: 0.05 }), power: 0.72 }, view: { ry: -1.2 }, focus: { device: "macbook", px: [1250, 300], zoom: 1.12, to: [0.8, 0.42] } });
+    // the camera follows the cascade down the Status column, then settles on the toast
+    F.move(b(i, "cascade")[1], "linear", { focus: { device: "macbook", px: [1250, 720], zoom: 1.14, to: [0.8, 0.62] }, view: { ry: -0.4 }, iphone: drift(lean, { z: 0.08, ry: 0.6 }) });
+    const toast: FocusSpec = { device: "macbook", px: [1180, 150], zoom: 1.1, to: [0.78, 0.4] };
+    F.move(b(i, "toast")[1], "inOut", { focus: toast, view: { ry: 0 }, iphone: drift(lean, { z: 0.09, ry: 0.9 }) });
+    // hold: the turntable
+    F.move(m[i].end, "linear", { focus: { ...toast, zoom: 1.13, to: [0.77, 0.405] }, view: { ry: 4, rx: 11 }, iphone: drift(lean, { z: 0.12, ry: 2.6 }), macbook: drift(desk, { ry: 1 }) });
+  }
+
+  // ── the finale: dolly back to the whole app; the one centred frame ──
+  {
+    const f = R.finale;
+    const lap = lp(58, 75, 40, { rx: 10, ry: -10, z: -0.4, power: 1 });
+    const phn = ph(38.5, 77, 44, { rx: 4, ry: 16, rz: 1.5, z: 0.6, power: 1 });
+    F.at(f.screens, { iphone: { screen: "phone-working" }, macbook: { screen: "web-dashboard", dim: 0.08 } });
+    F.move(f.settle, "inOut", { iphone: phn, macbook: lap, focus: null, view: { rx: 3, ry: 0 }, light: { key: 0.8, warm: 0.9 } });
+    // the ring glides once down the dashboard's sidebar: Dashboard … Reports
+    const [s0, s1] = f.sweep;
+    for (let k = 0; k < 11; k++) F.at(s0 + ((s1 - s0) * k) / 10, { macbook: { ring: PX.nav(k) } });
+    F.at(s1 + 260, { macbook: { ring: null } });
+    // the orbit runs on through the hold and eases out over the last 600 ms (then the Stage rests)
+    F.move(f.end - 600, "linear", { view: { ry: 1.8, rx: 3.36 }, iphone: drift(phn, { ry: -1.35 }), macbook: drift(lap, { ry: 1.08 }) });
+    F.move(f.end, "out", { view: { ry: 2, rx: 3.4 }, iphone: drift(phn, { ry: -1.5 }), macbook: drift(lap, { ry: 1.2 }) });
+  }
+
+  return F.compile();
 }
 
 /** Phones never load the Stage; their day is ./phone/DayPhone.tsx. */

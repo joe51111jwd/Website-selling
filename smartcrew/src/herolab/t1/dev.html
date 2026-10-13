@@ -34,7 +34,11 @@
          ?angle=… as the page · ?t1=full|settle|rest (force the full entrance / the later-visit
          settle / the rest frame; by default the full entrance plays once per session)
          · ?t1Solo (header + hero only) · ?t1Debug (paused at t = 0; window.__t1.seek(ms) renders
-         any frame, __t1.state()) -->
+         any frame, __t1.state()) · lab comparisons: ?t1Ortho=0 (the perspective camera: lands
+         soft, snaps sharp) · ?t1Pad=box (the old pad ringed by its slopes) · ?t1Depth=b,a (sheets
+         under / over the pad) · ?t1Move=rx:56,rz:-16,s:.76,sep:10 · ?t1Land=fall:14,cut:.12 -->
+    <!-- In a production build open it at "/" (as tools/e2e.mjs does through a proxy): the build's
+         relative base resolves ./models/*.glb and the logos against this nested path otherwise. -->
     <div id="root"></div>
     <script type="module" src="./dev.tsx"></script>
   </body>

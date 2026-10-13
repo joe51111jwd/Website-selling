@@ -2,18 +2,18 @@
 // fonts load), then grades the measured pad and cuts the sheets, off the main thread, so the
 // hero's first frame never shares a task with the contouring.
 
-import { buildField, buildPlan, type Field, type Pad, type Plan, type Rect } from "./terrain";
+import { buildField, buildPlan, type Field, type LandOver, type Pad, type Plan, type Rect } from "./terrain";
 
-export type FieldReq = { id: number; kind: "field"; W: number; H: number; Hv: number; m: number; phone: boolean };
-export type PlanReq = { id: number; kind: "plan"; W: number; H: number; Hv: number; m: number; phone: boolean; pads: Pad[]; blend: number; keep: Rect[]; quiet: Rect[]; labels: number; labelGap: number };
+export type FieldReq = { id: number; kind: "field"; W: number; H: number; Hv: number; m: number; phone: boolean; land?: LandOver };
+export type PlanReq = { id: number; kind: "plan"; W: number; H: number; Hv: number; m: number; phone: boolean; land?: LandOver; pads: Pad[]; blend: number; keep: Rect[]; quiet: Rect[]; labels: number; labelGap: number };
 export type PlanRes = { id: number; kind: "plan"; plan: Omit<Plan, "lines">; lines: Float32Array; lineIdx: Int32Array; fieldMs: number; planMs: number };
 
 let cache: { key: string; f: Field; ms: number } | null = null;
-const field = (W: number, H: number, Hv: number, m: number, phone: boolean) => {
-  const key = `${W}x${H}x${Hv}+${m}:${phone}`;
+const field = (W: number, H: number, Hv: number, m: number, phone: boolean, land?: LandOver) => {
+  const key = `${W}x${H}x${Hv}+${m}:${phone}:${land ? JSON.stringify(land) : ""}`;
   if (!cache || cache.key !== key) {
     const t = performance.now();
-    const f = buildField(W, H, Hv, phone, m);
+    const f = buildField(W, H, Hv, phone, m, land);
     cache = { key, f, ms: performance.now() - t };
   }
   return cache;
@@ -22,10 +22,10 @@ const field = (W: number, H: number, Hv: number, m: number, phone: boolean) => {
 self.onmessage = (ev: MessageEvent<FieldReq | PlanReq>) => {
   const m = ev.data;
   if (m.kind === "field") {
-    field(m.W, m.H, m.Hv, m.m, m.phone);
+    field(m.W, m.H, m.Hv, m.m, m.phone, m.land);
     return;
   }
-  const c = field(m.W, m.H, m.Hv, m.m, m.phone);
+  const c = field(m.W, m.H, m.Hv, m.m, m.phone, m.land);
   const t = performance.now();
   const { lines, ...plan } = buildPlan(c.f, { pads: m.pads, blend: m.blend, keep: m.keep, quiet: m.quiet, labels: m.labels, labelGap: m.labelGap });
   // the polylines (for the cursor's contour readout), packed: [level, n, x0, y0, …] per line

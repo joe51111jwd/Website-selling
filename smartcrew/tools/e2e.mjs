@@ -960,6 +960,12 @@ async function ride(device, { kind = "nogl", full = true } = {}) {
     s = await rideState(page);
     assert(s.y === top && s.state === "playing" && s.t > t1, `scrolling down during the ride moved the page or stopped the ride: ${JSON.stringify(s)}`);
     out.push("downward input absorbed");
+    // never a still frame: the map ground keeps walking while it plays (a track on the film's clock)
+    const walk = () => page.evaluate(() => getComputedStyle(document.querySelector(".day-topo-sheet")).transform);
+    const w0 = await walk();
+    await wait(700);
+    assert(w0 !== (await walk()), "the ground stood still while the ride played");
+    out.push("the ground walks");
     if (!full) {
       await press(page, ctrl.getByRole("button", { name: /^skip$/i }), { what: "Skip" });
       s = await until(page, (x) => x.state === "paused" && x.reason === "skip" && !x.held && x.y > top + 100, "Skip didn't hand the page back and move on", 20000);
@@ -993,6 +999,16 @@ async function ride(device, { kind = "nogl", full = true } = {}) {
     const headerShown = () => page.evaluate(() => getComputedStyle(document.querySelector(".site-header")).visibility !== "hidden");
     await wait(900);
     assert(!(await headerShown()), "the header is still there during the ride (the takeover)");
+    // …and nothing of the page above or below peeks into the frame
+    const peek = await page.evaluate(() =>
+      [[720, 3], [8, 330], [innerWidth - 8, 330], [720, innerHeight - 3], [innerWidth - 8, 8]]
+        .map(([x, y]) => {
+          const e = document.elementFromPoint(x, y);
+          return e && e !== document.body && e !== document.documentElement && !e.closest("#day") ? `${e.tagName}.${e.className}` : null;
+        })
+        .filter(Boolean),
+    );
+    assert(!peek.length, `the page peeks into the ride's frame: ${peek.join(", ")}`);
     await press(page, ctrl.getByRole("button", { name: /get my free trial/i }), { what: "the control bar's CTA during the ride" });
     await expectPopup(page);
     s = await rideState(page);

@@ -1,15 +1,19 @@
 // t0 · the desktop ground: one WebGL2 fragment shader draws the contour plan straight from the
-// height field, so the grading pass is a true field morph, H = mix(E, G, pass(x, t)): the lines
-// themselves slide aside and straighten into the cut and fill slopes. No CPU contouring per frame.
+// height field, so the grading is a true field morph, H = E + w(p, t)·(G − E): the lines themselves
+// slide aside and bunch into the cut and fill slopes. No CPU contouring per frame.
 //
-// - E (the existing ground) comes in as a texture from the worker (./terrain.ts: value and
-//   gradient on a 2 px grid). G (the graded surface: the level pad, the 2:1 cut and 3:1 fill
-//   slopes, the daylight creases) is computed per pixel, with its gradient (dual numbers), so every
-//   line's width is exact: distance to the nearest isoline = |A − round(A)| / |∇A|.
-// - Every 5th level is an index contour. Proposed (graded) lines are one step heavier and darker
-//   than natural ground, and drop to 70% near the pad's edge. Ink only, never orange.
-// - It renders on demand: the pass, a resize, a lost context. At rest the canvas is a still bitmap
-//   (no rAF, no re-render), so two frames 500 ms apart are pixel-identical.
+// - E (the existing ground) comes in as a texture from the worker (./terrain.ts: value, gradient
+//   and the arc length along its own contours, on a 2 px grid). G (the graded surface: the level
+//   pad (a smooth union of rounded boxes), 2:1 cut and 3:1 fill slopes from a softened edge, the
+//   daylight creases) is computed per pixel with its gradient (dual numbers), so every line's
+//   width is exact: distance to the nearest isoline = |A − round(A)| / |∇A|.
+// - The existing ground inside the grading limits is dashed (5 on, 4 off, from the arc channel)
+//   until it is graded, then solid: the dashes ride the very lines that move.
+// - Every 5th level is an index contour. Proposed lines are a touch darker than natural ground and
+//   drop to 70% near the pad's edge. Ink only, never orange.
+// - It renders on demand: the entrance, the cursor's push while it moves, a resize, a lost context.
+//   At rest the canvas is a still bitmap (no rAF, no re-render): two frames 500 ms apart are
+//   pixel-identical.
 // - The program links with KHR_parallel_shader_compile where available, so it never blocks the
 //   main thread; the caller falls back to the SVG plan if it isn't ready in time.
 
@@ -27,10 +31,14 @@ uniform vec4 uGrid;      // x0, y0, 1/step, step
 uniform ivec2 uGN;       // nx, ny
 uniform vec2 uView;      // css W, H
 uniform float uDpr;
-uniform vec4 uPad;       // cx, cy, half w, half h
-uniform float uPadR;
+uniform vec4 uBox[4];    // the pad's boxes: cx, cy, half w, half h (css)
+uniform vec4 uBoxR;      // their corner radii
+uniform int uNBox;
+uniform float uPadK;     // smooth-union width (css px)
 uniform vec3 uSlope;     // cut, fill (ft per px), k (ft)
-uniform vec3 uFront;     // front x (css), band width, entrance (1) / rest (0)
+uniform vec4 uPass;      // front (css px along the pass axis), band, entrance (1) / rest (0), mode
+uniform vec2 uDir;       // the pass's direction (modes 0 and 2)
+uniform vec4 uLag;       // mode 2: lag, q at the lead edge, 1 / q span, schedule power
 uniform vec4 uKeep[10];  // halo boxes: x0, y0, x1, y1 (css)
 uniform int uNKeep;
 uniform int uNHead;      // the first uNHead boxes always break the lines (the header)
@@ -39,6 +47,7 @@ uniform vec3 uInkN;      // natural ink
 uniform vec3 uInkP;      // proposed ink
 uniform vec4 uW;         // css widths: nat int, nat idx, pro int, pro idx
 uniform vec4 uO;         // opacities: nat int, nat idx, pro int, pro idx
+uniform vec2 uEx;        // existing ground (dashed): css width, opacity
 uniform vec4 uCur;       // cursor x, y, push dx, dy (css)
 uniform float uCurR;     // cursor radius
 uniform vec3 uLab[6];    // the index labels (x, y, half length): the push leaves their lines alone
@@ -46,12 +55,15 @@ uniform int uNLab;
 out vec4 o;
 
 vec4 tx(ivec2 i) { return texelFetch(uE, clamp(i, ivec2(0), uGN - 1), 0); }
-vec4 sampleE(vec2 p) {
+vec4 sampleE(vec2 p, out float arcOk) {
   vec2 f = (p - uGrid.xy) * uGrid.z;
   vec2 i0 = floor(f);
   vec2 t = f - i0;
   ivec2 i = ivec2(i0);
   vec4 a = tx(i), b = tx(i + ivec2(1, 0)), c = tx(i + ivec2(0, 1)), d = tx(i + ivec2(1, 1));
+  float lo = min(min(a.w, b.w), min(c.w, d.w));
+  float hi = max(max(a.w, b.w), max(c.w, d.w));
+  arcOk = (lo >= 0.0 && hi - lo < 12.0) ? 1.0 : 0.0;
   return mix(mix(a, b, t.x), mix(c, d, t.x), t.y);
 }
 
@@ -66,29 +78,39 @@ vec3 dmin(vec3 a, vec3 b, float k) {
 }
 vec3 dmax(vec3 a, vec3 b, float k) { return -dmin(-a, -b, k); }
 
-// signed distance to the pad (a rounded rectangle) and its gradient
-vec3 sdPad(vec2 p) {
-  vec2 hs = uPad.zw;
-  float r = min(uPadR, min(hs.x, hs.y));
-  vec2 dp = p - uPad.xy;
+// signed distance to a rounded box and its gradient
+vec3 sdBox(vec2 p, vec4 B, float R) {
+  vec2 hs = B.zw;
+  float r = min(R, min(hs.x, hs.y));
+  vec2 dp = p - B.xy;
   vec2 sg = vec2(dp.x < 0.0 ? -1.0 : 1.0, dp.y < 0.0 ? -1.0 : 1.0);
   vec2 q = abs(dp) - (hs - r);
   if (q.x > 0.0 && q.y > 0.0) { float L = length(q); return vec3(L - r, sg * q / L); }
   if (q.x > q.y) return vec3(q.x - r, sg.x, 0.0);
   return vec3(q.y - r, 0.0, sg.y);
 }
+// the pad: the smooth union of its boxes
+vec3 sdPad(vec2 p) {
+  vec3 d = sdBox(p, uBox[0], uBoxR.x);
+  if (uNBox > 1) d = dmin(d, sdBox(p, uBox[1], uBoxR.y), uPadK);
+  if (uNBox > 2) d = dmin(d, sdBox(p, uBox[2], uBoxR.z), uPadK);
+  if (uNBox > 3) d = dmin(d, sdBox(p, uBox[3], uBoxR.w), uPadK);
+  return d;
+}
 
 void main() {
   vec2 p = vec2(gl_FragCoord.x, uView.y * uDpr - gl_FragCoord.y) / uDpr;
   vec3 D = sdPad(p);
-  vec3 E = sampleE(p).xyz;
+  float arcOk;
+  vec4 Es = sampleE(p, arcOk);
+  vec3 E = Es.xyz;
+  float arc = Es.w;
   // the graded surface
-  vec3 G = vec3(0.0);
-  if (D.x > 0.0) {
-    vec3 hi = uSlope.x * D;
-    vec3 lo = -uSlope.y * D;
-    G = dmax(dmin(E, hi, uSlope.z), lo, uSlope.z);
-  }
+  // (the slopes start from a softened edge, Ds = softplus(D): a rounded top of cut and toe of
+  // fill, so no contour ever kinks at the pad's edge while it moves)
+  float sq = sqrt(D.x * D.x + 100.0);
+  vec3 Ds = vec3(0.5 * (D.x + sq), 0.5 * (1.0 + D.x / sq) * D.yz);
+  vec3 G = dmax(dmin(E, uSlope.x * Ds, uSlope.z), -uSlope.y * Ds, uSlope.z);
   float lim = smoothstep(0.02, 0.1, abs(G.x - E.x));
   // the cursor: on natural ground only, the contours make way (a push, no new rings)
   if (uCurR > 0.0) {
@@ -101,37 +123,63 @@ void main() {
     vec2 r = p - uCur.xy;
     float f = exp(-dot(r, r) / (uCurR * uCurR)) * nat;
     if (f > 0.002) {
-      vec3 Ed = sampleE(p - uCur.zw * f).xyz;
+      float ok2;
+      vec3 Ed = sampleE(p - uCur.zw * f, ok2).xyz;
       E = mix(E, Ed, nat);
-      if (D.x > 0.0) G = mix(G, Ed, nat);
+      G = mix(G, Ed, nat);
     }
   }
-  // the pass: w = 1 behind the front (graded), 0 ahead (existing)
+  // the pass: w = 1 where the ground is graded, 0 where it is still the existing ground.
+  // mode 0: a front along uDir; mode 1: from deep inside the pad outward (q = D); mode 2: everywhere at once
   float w = 1.0;
-  float dw = 0.0;
-  if (uFront.z > 0.5) {
-    float u = clamp((p.x - (uFront.x - 0.5 * uFront.y)) / uFront.y, 0.0, 1.0);
-    w = 1.0 - u * u * (3.0 - 2.0 * u);
-    dw = (u > 0.0 && u < 1.0) ? -6.0 * u * (1.0 - u) / uFront.y : 0.0;
+  vec2 dw = vec2(0.0);
+  if (uPass.z > 0.5) {
+    if (uPass.w > 1.5) {
+      // the whole site levels at once, the uphill (lead) side a little ahead: progress x runs
+      // later along uDir, and the relief left, R = (1 − x^1.5)^k, falls fast and settles softly
+      float q01 = clamp((dot(p, uDir) - uLag.y) * uLag.z, 0.0, 1.0);
+      float L = uLag.x;
+      float x = clamp((uPass.x - L * q01) / (1.0 - L), 0.0, 1.0);
+      float xs = pow(x, 1.5);
+      float R = pow(1.0 - xs, uLag.w);
+      w = 1.0 - R;
+      if (x > 0.0 && x < 1.0 && q01 > 0.0 && q01 < 1.0) {
+        float dRdx = -uLag.w * pow(1.0 - xs, uLag.w - 1.0) * 1.5 * sqrt(x);
+        dw = -dRdx * (-L / (1.0 - L)) * uLag.z * uDir;
+      }
+    } else {
+      float q = uPass.w > 0.5 ? D.x : dot(p, uDir);
+      vec2 dq = uPass.w > 0.5 ? D.yz : uDir;
+      float u = clamp((q - (uPass.x - 0.5 * uPass.y)) / uPass.y, 0.0, 1.0);
+      w = 1.0 - u * u * (3.0 - 2.0 * u);
+      dw = (u > 0.0 && u < 1.0) ? -6.0 * u * (1.0 - u) / uPass.y * dq : vec2(0.0);
+    }
   }
   vec3 H = mix(E, G, w);
-  H.y += (G.x - E.x) * dw;
+  H.yz += (G.x - E.x) * dw;
   float A = H.x + 1240.5;
   float n = floor(A + 0.5);
   float g = max(length(H.yz), 1e-5);
   float dist = abs(A - n) / g * uDpr;
   bool idx = abs(mod(n, 5.0)) < 0.5;
+  // proposed: graded and inside the grading limits; existing: inside the limits, not yet graded
   float pro = lim * w;
-  float wid = mix(idx ? uW.y : uW.x, idx ? uW.w : uW.z, pro) * uDpr;
+  float ex = lim * (1.0 - w);
+  float wid = mix(idx ? uW.y : uW.x, idx ? uW.w : uW.z, pro);
   float op = mix(idx ? uO.y : uO.x, idx ? uO.w : uO.z, pro);
+  wid = mix(wid, idx ? uEx.x * 1.3 : uEx.x, ex);
+  op = mix(op, idx ? uEx.y * 1.25 : uEx.y, ex);
+  wid *= uDpr;
   vec3 ink = mix(uInkN, uInkP, pro);
   // near the pad's edge the slope lines step back, so they never buzz against the type
   op *= mix(1.0, mix(0.7, 1.0, smoothstep(0.0, 40.0, D.x)), lim);
-  // during the entrance the existing ground inside the limits is the dashed overlay's job
-  // and on the pad itself the old ground dissolves (the dashed overlay) rather than morphing: a
-  // flat target under a moving blend only draws strands along the band, a curtain, not a grade.
-  // The slopes are where the lines visibly slide aside and bunch into the cut and fill.
-  if (uFront.z > 0.5) op *= mix(1.0, smoothstep(0.02, 0.16, w) * smoothstep(-30.0, 8.0, D.x), lim);
+  // the existing ground is dashed (5 on, 4 off) along its own lines, until the pass grades it
+  float dash = 1.0;
+  if (ex > 0.001 && arcOk > 0.5) {
+    float ph = mod(arc, 9.0);
+    float dd = ph < 5.0 ? min(ph, 5.0 - ph) : -min(ph - 5.0, 9.0 - ph);
+    dash = mix(1.0, clamp(dd * uDpr + 0.5, 0.0, 1.0), smoothstep(0.35, 0.85, ex));
+  }
   // halo breaks round the header and the foot row
   float keep = 1.0;
   for (int i = 0; i < 10; i++) {
@@ -143,7 +191,7 @@ void main() {
   }
   float we = max(wid, 1.0);
   float cov = clamp(0.5 * we + 0.5 - dist, 0.0, 1.0) * min(wid, 1.0);
-  float a = cov * op * keep;
+  float a = cov * op * keep * dash;
   o = vec4(ink * a, a);
 }`;
 
@@ -151,6 +199,8 @@ export type Look = {
   /** css px widths: natural intermediate / index, proposed intermediate / index */
   w: [number, number, number, number];
   o: [number, number, number, number];
+  /** existing ground (dashed, the entrance only): css width, opacity */
+  ex: [number, number];
   inkN: [number, number, number];
   inkP: [number, number, number];
 };
@@ -161,12 +211,16 @@ const hex = (h: string): [number, number, number] => [parseInt(h.slice(1, 3), 16
 export function lookFor(dpr: number): Look {
   const hi = dpr >= 1.5;
   return {
-    w: hi ? [0.6, 1.05, 0.7, 1.2] : [0.6, 1, 0.7, 1],
-    o: hi ? [0.22, 0.4, 0.3, 0.48] : [0.3, 0.36, 0.4, 0.46],
+    w: hi ? [0.6, 1.05, 0.6, 1.05] : [1, 1, 1, 1],
+    o: hi ? [0.22, 0.4, 0.24, 0.42] : [0.18, 0.36, 0.2, 0.38],
+    ex: hi ? [0.75, 0.34] : [1, 0.3],
     inkN: hex("#74665a"),
     inkP: hex("#4a4038"),
   };
 }
+
+/** How the pass runs: 0 = a soft front along `dir`, 1 = from deep inside the pad outward, 2 = the whole site at once, the lead side ahead (`lag`). */
+export type PassMode = 0 | 1 | 2;
 
 export type GLGround = {
   canvas: HTMLCanvasElement;
@@ -175,8 +229,8 @@ export type GLGround = {
   setField(tex: Float32Array, grid: { x0: number; y0: number; step: number; nx: number; ny: number }): void;
   setGrade(g: Grade, keep: Rect[], nHead: number, labels?: { x: number; y: number }[]): void;
   size(W: number, H: number, dpr: number): void;
-  /** front: css x of the grading front; band: its soft width; entrance: false = the rest frame */
-  draw(s: { front: number; band: number; entrance: boolean; keepFoot?: number; cursor?: { x: number; y: number; dx: number; dy: number; r: number } }): void;
+  /** front: the grading front (css px along the pass, or 0…1 in mode 2); band: its soft width; entrance: false = the rest frame */
+  draw(s: { front: number; band: number; entrance: boolean; mode?: PassMode; dir?: [number, number]; lag?: [number, number, number, number]; keepFoot?: number; cursor?: { x: number; y: number; dx: number; dy: number; r: number } }): void;
   lost(): boolean;
   destroy(): void;
 };
@@ -261,7 +315,7 @@ export function createGL(onLost: () => void): GLGround | null {
     if (ready) return;
     ready = true;
     G.useProgram(prog);
-    for (const n of ["uE", "uGrid", "uGN", "uView", "uDpr", "uPad", "uPadR", "uSlope", "uFront", "uKeep", "uNKeep", "uNHead", "uKeepFoot", "uInkN", "uInkP", "uW", "uO", "uCur", "uCurR", "uLab", "uNLab"])
+    for (const n of ["uE", "uGrid", "uGN", "uView", "uDpr", "uBox", "uBoxR", "uNBox", "uPadK", "uSlope", "uPass", "uDir", "uLag", "uKeep", "uNKeep", "uNHead", "uKeepFoot", "uInkN", "uInkP", "uW", "uO", "uEx", "uCur", "uCurR", "uLab", "uNLab"])
       U[n] = G.getUniformLocation(prog, n);
     G.bindBuffer(G.ARRAY_BUFFER, buf);
     G.bufferData(G.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), G.STATIC_DRAW);
@@ -327,10 +381,21 @@ export function createGL(onLost: () => void): GLGround | null {
       G.uniform2f(U.uView, W, H);
       G.uniform1f(U.uDpr, dpr);
       const p = grade.pad;
-      G.uniform4f(U.uPad, p.x + p.w / 2, p.y + p.h / 2, p.w / 2, p.h / 2);
-      G.uniform1f(U.uPadR, p.r);
+      const parts = p.parts && p.parts.length ? p.parts.slice(0, 4) : [p];
+      const bx = new Float32Array(16);
+      const br = new Float32Array(4);
+      parts.forEach((b, i) => {
+        bx.set([b.x + b.w / 2, b.y + b.h / 2, b.w / 2, b.h / 2], i * 4);
+        br[i] = b.r;
+      });
+      G.uniform4fv(U.uBox, bx);
+      G.uniform4fv(U.uBoxR, br);
+      G.uniform1i(U.uNBox, parts.length);
+      G.uniform1f(U.uPadK, p.k ?? 40);
       G.uniform3f(U.uSlope, grade.cut, grade.fill, grade.k);
-      G.uniform3f(U.uFront, s.front, s.band, s.entrance ? 1 : 0);
+      G.uniform4f(U.uPass, s.front, s.band, s.entrance ? 1 : 0, s.mode ?? 0);
+      G.uniform2f(U.uDir, s.dir?.[0] ?? 1, s.dir?.[1] ?? 0);
+      G.uniform4f(U.uLag, s.lag?.[0] ?? 0, s.lag?.[1] ?? 0, s.lag?.[2] ?? 1, s.lag?.[3] ?? 5);
       G.uniform4fv(U.uKeep, kb);
       G.uniform1i(U.uNKeep, keep.length);
       G.uniform1i(U.uNHead, nHead);
@@ -339,6 +404,7 @@ export function createGL(onLost: () => void): GLGround | null {
       G.uniform3fv(U.uInkP, look.inkP);
       G.uniform4fv(U.uW, look.w);
       G.uniform4fv(U.uO, look.o);
+      G.uniform2fv(U.uEx, look.ex);
       const c = s.cursor;
       G.uniform4f(U.uCur, c?.x ?? 0, c?.y ?? 0, c?.dx ?? 0, c?.dy ?? 0);
       G.uniform1f(U.uCurR, c && c.r > 0 ? c.r : 0);

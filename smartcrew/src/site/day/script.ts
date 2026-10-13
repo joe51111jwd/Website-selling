@@ -1,7 +1,7 @@
-// One Day, moment by moment: what is tapped, what each screen shows before and after, how the
-// office screen changes when the update lands, where the camera pushes in and what the update
-// card shows. Poses (./poses.ts), the screen animations (./life.ts) and the DOM (./Day.tsx) all
-// read this one table, so a tap, its pulse and its update always land on the same beat.
+// One Day, moment by moment: what is tapped, what each screen shows before and after, and how
+// the office screen changes when the update lands. The camera (./poses.ts) and the screens' life
+// (./rideLife.ts) read the screens from this table. (`focus` and `mark` are the v1 ride's push-ins
+// and leader lines; the v2 shots set their own in ./poses.ts and ./Fx.tsx.)
 //
 // Native px of the screens (web 1440×900, phone 402×874), measured on the rendered screens
 // (src/screens and ./states). New state screens live in public/renders/day-s (./states).

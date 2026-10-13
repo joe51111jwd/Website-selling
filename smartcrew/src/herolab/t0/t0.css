@@ -117,19 +117,7 @@
   }
 }
 
-/* the pad's old ground rides the front (desktop) and dissolves across the band (170 px) */
-.t0-exw,
-.t0-exin {
-  width: 100%;
-  height: 100%;
-}
-
-.t0-exw {
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 170px);
-  mask-image: linear-gradient(90deg, transparent 0, #000 170px);
-}
-
-.t0-root.is-moving :is(.t0-exw, .t0-exin, .t0-box, .t0-box-in, .t0-blade, .t0-berm) {
+.t0-root.is-moving :is(.t0-box, .t0-box-in, .t0-blade, .t0-ex-all) {
   will-change: transform;
 }
 
@@ -151,10 +139,6 @@
   position: absolute;
   left: 0;
   top: 0;
-}
-
-.t0-root:not(.is-moving) .t0-berm {
-  display: none;
 }
 
 /* the blade's edge: a soft ground-coloured band at the front */

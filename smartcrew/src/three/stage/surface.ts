@@ -315,6 +315,8 @@ export class ScreenSurface {
     let busy = false;
     // crossfade
     const dur = reduced ? 1 : 380;
+    // the frame clock went back (a capture rewinding the film): whatever was fading is done
+    if (now < this.fadeStart) this.fadeStart = now - dur;
     const f = Math.min(1, (now - this.fadeStart) / dur);
     // a screen set to null is a target too: the old image fades to the screen's "off" colour
     const off = this.cur.id === null;

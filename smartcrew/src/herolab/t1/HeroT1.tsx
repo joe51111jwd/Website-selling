@@ -2,13 +2,14 @@
 // site model (one sheet per 5 ft, white museum board), seen three-quarter, with the headline, the
 // sub and the orange button printed on its pad. In one eased camera move it tips flat into plan
 // view; the sheets close up, their edges become the contour lines, and the page is the plan: the
-// copy on a level pad, the cut and fill slopes round it, the natural ground beyond.
+// copy on a level bench cut into the hillside, the cut and fill slopes beside it, the natural
+// ground beyond.
 //
 // React renders the copy and the empty layers; ./ground.ts fits the type, measures the pad, asks
 // the worker for the land (./terrain.ts), builds the sheets and plays the camera move (WAAPI on
 // two elements; no rAF). At rest the sheets are plain flat SVGs: nothing renders. Desktop and
-// phones share this component: phones get their own line breaks and copy (HERO_PHONE), a
-// 5-sheet model and a tilt-only move.
+// phones share this component: phones get their own line breaks and copy (HERO_PHONE) and a
+// 5-sheet model.
 
 import { useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties } from "react";
 import { ANGLES, HERO, HERO_PHONE, LOGOS, LOGO_VECTORS, readAngle } from "../../content/copy";
@@ -83,7 +84,7 @@ export default function HeroT1() {
   return (
     <Scene id="top" pinnedViewports={1} poses={lite ? undefined : HERO_PARK} stage={lite ? "keep" : "hide"} label="SmartCrew" className="hero t1">
       <div className={`t1-root${lite ? " t1--phone" : ""}`} ref={root}>
-        {/* the camera (perspective) › the model (its tilt) › the stack (its sheet separation) */}
+        {/* the camera › the model (its tilt) › the stack (its sheet separation) */}
         <div className="t1-cam">
           <div className="t1-model">
             <div className="t1-zs">

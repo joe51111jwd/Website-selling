@@ -183,6 +183,30 @@ export function DotForm() {
   );
 }
 
+/** 6:55 AM, before the form fills itself (the ride's covers are cut from this one). */
+export function DotFormEmpty() {
+  return (
+    <PhoneShell tab={null} padded={false} bodyClassName="rf-body" footer={formFooter}>
+      <FormHeader icon="clipboard" title="DOT Inspection Report" />
+      <Field label="Truck">
+        <Input select placeholder="Select truck" />
+      </Field>
+      <Field label="Mileage">
+        <Input placeholder="Enter mileage" />
+      </Field>
+      <Field label="Trailer Number">
+        <Input select placeholder="Select trailer" />
+      </Field>
+      <Field label="Is Anything Defective On The Truck?" className="rf-field-choice">
+        <div className="rf-choices">
+          <Choice label="No" check />
+          <Choice label="Yes" check />
+        </div>
+      </Field>
+    </PhoneShell>
+  );
+}
+
 export const DotSent = () => (
   <Sent
     title="Pre-trip passed"
@@ -267,6 +291,31 @@ export function ServiceForm() {
       </Field>
       <Field label="What needs fixing?">
         <Input multiline className="rf-notes" value={`${Q.issue}.`} />
+      </Field>
+    </PhoneShell>
+  );
+}
+
+/** 4:12 PM, before the request is written (the ride's covers are cut from this one). */
+export function ServiceFormEmpty() {
+  return (
+    <PhoneShell tab={null} padded={false} bodyClassName="rf-body" footer={formFooter}>
+      <FormHeader icon="clipboard" title="Service Request" />
+      <Field label="Equipment">
+        <Input select value={Q.equipment} />
+      </Field>
+      <Field label="Hour Meter">
+        <Input value={equipmentById("CAT-D6-01").reading.toLocaleString("en-US")} />
+      </Field>
+      <Field label="Urgency" className="rf-field-choice">
+        <div className="rf-choices dds-choices-3">
+          <Choice label="Low" check />
+          <Choice label="Medium" check />
+          <Choice label="High" check />
+        </div>
+      </Field>
+      <Field label="What needs fixing?">
+        <Input multiline className="rf-notes" value="" />
       </Field>
     </PhoneShell>
   );

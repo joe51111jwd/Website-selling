@@ -246,14 +246,14 @@ export function registerPoses(scene: string, keys: PoseKey[], opts: { clock?: Sc
   };
 }
 
-const blankDevice = (): DeviceState => ({ show: 0, x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1, lid: 110, screen: null, scroll: 0, ring: null, dim: 0.16, out: 0 });
+const blankDevice = (): DeviceState => ({ show: 0, x: 0, y: 0, z: 0, rx: 0, ry: 0, rz: 0, s: 1, lid: 110, screen: null, scroll: 0, ring: null, dim: 0.16, power: 1, out: 0 });
 
 /** A device pose that only says where it goes out (and/or its ring): it doesn't show a hidden device. */
 const onlyOut = (p: { out?: number }) =>
   p.out !== undefined && Object.entries(p).every(([k, v]) => v === undefined || k === "out" || k === "ring");
 
 /** The device fields a key inherits (ring and out are per key). */
-const INHERITED_DEVICE = ["show", "x", "y", "z", "rx", "ry", "rz", "s", "lid", "screen", "scroll", "dim"] as const;
+const INHERITED_DEVICE = ["show", "x", "y", "z", "rx", "ry", "rz", "s", "lid", "screen", "scroll", "dim", "power"] as const;
 /** The key-level fields a key inherits. */
 const INHERITED_KEY = ["anchor", "frame", "float", "look", "viewX", "viewY", "lightKey", "lightWarm", "front"] as const;
 
@@ -398,7 +398,7 @@ export function clocksMoving(now: number) {
 
 // ─── evaluating a clock-driven scene ─────────────────────────────────────────
 
-const NUM_DEVICE = ["show", "x", "y", "z", "rx", "ry", "rz", "s", "out"] as const;
+const NUM_DEVICE = ["show", "x", "y", "z", "rx", "ry", "rz", "s", "power", "out"] as const;
 const lerpN = (a: number, b: number, t: number) => a + (b - a) * t;
 const lerp2 = (a: [number, number], b: [number, number], t: number): [number, number] => [lerpN(a[0], b[0], t), lerpN(a[1], b[1], t)];
 

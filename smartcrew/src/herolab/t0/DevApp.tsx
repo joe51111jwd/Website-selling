@@ -65,15 +65,19 @@ const idle = (f: () => void) =>
 const cancelIdle = (id: number) => (typeof window.cancelIdleCallback === "function" ? window.cancelIdleCallback(id) : clearTimeout(id));
 
 /**
- * PHONE MODE: the boot renders the hero alone, so the first frame comes fast; One Day (the very
- * next screen) follows at once as a low-priority transition (rendered in 5 ms slices while the
- * hero's fonts arrive). A #hash on load renders it at boot. Desktop renders it at boot.
+ * PHONE MODE: the boot renders the hero alone, so the first frame comes fast. t0 change from
+ * src/App.tsx: One Day (the very next screen) mounts once the hero's entrance is DONE (it has come
+ * to rest, ~0.9 s after its first frame, or the visitor has started scrolling or tapping), as a
+ * low-priority transition. Its mount restyles a lot of DOM at once (a 50–70 ms task at 4× CPU); at
+ * boot that task landed in the middle of the grading pass and dropped frames there. A #hash on
+ * load renders it at boot. Desktop renders it at boot.
  */
 function useDayOnPhone() {
+  const done = useFirstScreenDone();
   const [on, setOn] = useState(() => !phoneAtLoad || !!hashOnLoad);
   useEffect(() => {
-    if (!on) startTransition(() => setOn(true));
-  }, [on]);
+    if (!on && done) startTransition(() => setOn(true));
+  }, [on, done]);
   return on;
 }
 

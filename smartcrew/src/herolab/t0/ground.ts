@@ -1,12 +1,15 @@
-// t0 · "Grade the Pad": the hero's engine. It fits the headline, measures the copy block (the pad),
-// asks the worker for the land and the plan, draws the ground (desktop: one WebGL2 shader;
-// phones and fallback: three static SVG layers), and plays the entrance:
+// t0 · "Grade the Pad": the hero's engine. It fits the headline, measures the copy's rows (the
+// pad: a mesa, narrow round the short top lines, stepped out to the widest line), asks the worker
+// for the land and the plan, draws the ground (desktop: one WebGL2 shader; phones and fallback:
+// static SVG layers), and plays the entrance:
 //
-//   rough existing ground (dashed) runs through where the copy will be → one grading pass sweeps
-//   across it (desktop: left → right, cut into fill, a true field morph; phones: top → bottom, in
-//   reading order, transforms only) → the contours slide aside into tight cut-slope and wider
-//   fill-slope offsets round a level pad → the headline sets on the pad as the pass crosses its
-//   centre → the orange button lands last, like finish grade → index labels and PAD EL tick on.
+//   rough existing ground (dashed) runs through where the copy will be → the site is graded:
+//   desktop, the whole field morphs, the uphill (cut) side a little ahead, the relief under the
+//   copy falling fast and settling softly, so the contours slide aside and bunch into tight
+//   cut-slope and wider fill-slope offsets round the level pad (the dashes turn solid as they're
+//   graded); phones, a blade pass top → bottom in reading order, transforms only → each headline
+//   line sets once the ground under it is clear (reading order, words 30 ms apart) → the sub →
+//   the orange button lands last, like finish grade → index labels and PAD EL tick on.
 //
 // Rules it keeps: the button is in the DOM and clickable from the first frame; any input (scroll,
 // wheel, touch, key, click) lands the rest frame on the same frame; reduced motion shows the rest
@@ -15,10 +18,9 @@
 // on transform/opacity only, and the contouring runs in a worker (0 long tasks).
 
 import { markFirstScreenDone, markPageReady } from "../../site/ready";
-import { createGL, type GLGround } from "./gl";
-import type { Mode, Pad, Rect } from "./terrain";
+import { createGL, type GLGround, type PassMode } from "./gl";
+import { padFromRows, sdPad, type Mode, type Pad, type Rect } from "./terrain";
 import type { FieldReq, FieldRes, PlanReq, PlanRes } from "./terrain.worker";
-import { BERM } from "./consts";
 
 export type GroundOpts = { phone: boolean; reduced: boolean };
 
@@ -30,41 +32,55 @@ const DEBUG = q.has("t0Debug");
 const NO_GL = q.get("t0Gl") === "0";
 /** lab only: ?t0Perf records the JS time of each shader frame (window.__t0perf) */
 const PERF = q.has("t0Perf");
+/** lab only: the pass's shape (?t0Pass=x|c|u, ?t0Ang=deg for x) and soft band (?t0Band=px) */
+const PASS_MODE: PassMode = ({ x: 0, c: 1, u: 2 } as Record<string, PassMode>)[q.get("t0Pass") ?? ""] ?? 2;
+const PASS_ANG = Number(q.get("t0Ang") ?? 0);
+const PASS_BAND = q.get("t0Band") ? Number(q.get("t0Band")) : 0;
+/** mode 2: how far the uphill side leads (fraction of the pass) and the relief's fall-off power */
+const PASS_LAG = q.get("t0Lag") ? Number(q.get("t0Lag")) : 0.2;
+const PASS_POW = q.get("t0Pow") ? Number(q.get("t0Pow")) : 6;
 
 /** The choreography, ms from the hero's first frame (t = 0). */
 const DESK = {
-  hold: 100,
-  passEnd: 850,
-  band: 260,
-  h1Dur: 280,
+  hold: 130,
+  passEnd: 880,
+  band: 420,
+  /** headline lines: never later than h1Max, lineGap apart, words wordGap apart */
+  h1Max: 620,
+  lineGap: 70,
+  wordGap: 30,
+  rise: 8,
+  h1Dur: 300,
   tapeDur: 300,
-  subDur: 280,
+  subDur: 300,
   cta: 680,
+  ctaMax: 740,
   ctaDur: 260,
-  ghost: 850,
-  ghostDur: 250,
   labels: 1000,
   labelDur: 260,
   labelStagger: 60,
   rest: 1320,
-  ready: 950,
+  ready: 960,
 };
 const PHONE = {
   hold: 40,
   passEnd: 760,
   band: 0,
+  h1Max: 520,
+  lineGap: 55,
+  wordGap: 0,
+  rise: 8,
   h1Dur: 240,
   tapeDur: 260,
   subDur: 260,
-  cta: 550,
+  cta: 540,
+  ctaMax: 640,
   ctaDur: 250,
-  ghost: 0,
-  ghostDur: 0,
   labels: 0,
   labelDur: 0,
   labelStagger: 0,
   rest: 900,
-  ready: 800,
+  ready: 810,
 };
 /** The pass's easing: a gentle S (peak speed ~1.6× the mean), the same curve for the shader's
  * front (JS) and the phone's container (WAAPI). */
@@ -93,6 +109,9 @@ function bezier(x1: number, y1: number, x2: number, y2: number) {
     return Y(t);
   };
 }
+
+/** SVG pass: how far the rough ground ahead of the blade is pushed (css px) */
+const PUSH = 14;
 
 /** a later visit in the session: a short settle */
 const SETTLE = 400;
@@ -148,7 +167,6 @@ function ask<T extends FieldRes | PlanRes>(msg: Omit<FieldReq, "id"> | Omit<Plan
               proX: by(p.proposed, true),
               exPad: T.pathD(p.existingPad),
               exSlope: T.pathD(p.existingSlope),
-              berm: msg.mode === "phone" ? T.pathD(T.splitByRect(p.proposed, { x: -1e4, y: msg.pad.y + msg.pad.h, w: 2e4, h: BERM }).inside) : "",
             },
             labels: p.labels,
             limits: p.limits,
@@ -158,6 +176,18 @@ function ask<T extends FieldRes | PlanRes>(msg: Omit<FieldReq, "id"> | Omit<Plan
         }, 16),
       ),
   );
+}
+
+/**
+ * Desktop: the land depends only on the viewport, so the worker starts on it as this module loads,
+ * before React has rendered anything (the hero's root is the viewport: 100svh, min 540 px). The
+ * engine picks the result up if the size matches.
+ */
+let prewarm: { key: string; p: Promise<FieldRes> } | null = null;
+if (typeof window !== "undefined" && typeof Worker !== "undefined" && !window.matchMedia("(max-width: 760px)").matches) {
+  const W = document.documentElement.clientWidth;
+  const H = Math.max(540, window.innerHeight);
+  prewarm = { key: `${W}x${H}`, p: ask<FieldRes>({ kind: "field", W, H, mode: "desk", tex: !NO_GL }) };
 }
 
 // ─── fonts ───────────────────────────────────────────────────────────────────────────────
@@ -222,8 +252,6 @@ type Layers = {
   boxIn?: HTMLDivElement;
   blade?: HTMLDivElement;
   existing?: SVGSVGElement;
-  berm?: SVGSVGElement;
-  bermBottom?: number;
   rect?: Rect;
   labels?: SVGSVGElement;
   limits: Rect;
@@ -271,7 +299,18 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     const key = `${W}x${H}`;
     if (key !== fieldKey) {
       fieldKey = key;
-      fieldP = ask<FieldRes>({ kind: "field", W, H, mode, tex: !phone && !NO_GL });
+      const pre = !phone && prewarm?.key === key ? prewarm.p : null;
+      prewarm = null;
+      fieldP = pre ?? ask<FieldRes>({ kind: "field", W, H, mode, tex: !phone && !NO_GL });
+      if (DEBUG || PERF) {
+        performance.mark("t0-field-ask");
+        void fieldP.then((r) => {
+          performance.mark("t0-field");
+          const o = performance.timeOrigin;
+          if (r.up) performance.mark("t0-worker-up", { startTime: r.up - o });
+          if (r.at) performance.mark("t0-field-done", { startTime: r.at - o });
+        });
+      }
     }
     return fieldP!;
   };
@@ -340,22 +379,23 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
       .filter((e): e is Element => !!e && e.getClientRects().length > 0)
       .map((e) => rel(e.getBoundingClientRect()))
       .filter((r) => r.w > 0);
-    const x0 = Math.min(...copy.map((r) => r.x));
-    const x1 = Math.max(...copy.map((r) => r.x + r.w));
-    const y0 = Math.min(...copy.map((r) => r.y));
-    const y1 = Math.max(...copy.map((r) => r.y + r.h));
-    let pad: Pad;
-    if (phone) {
-      // full bleed: the slopes show above and below the copy, never squeezed into the gutters
-      const footB = Math.max(y1, ...foot.map((r) => r.y + r.h));
-      pad = { x: -120, y: y0 - 12, w: W + 240, h: footB + 10 - (y0 - 12), r: 20 };
-    } else {
-      // open at the bottom: the pad runs on under the foot row and the fold (no slope bundle
-      // stranded between the logos and the scroll cue), so the ground carries on into One Day
-      const hw = Math.min(Math.max(W / 2 - x0, x1 - W / 2) + 30, W / 2 - 150);
-      pad = { x: W / 2 - hw, y: y0 - 22, w: 2 * hw, h: H + 80 - (y0 - 22), r: 24 };
-      void y1;
-    }
+    // the pad: a mesa from the copy's rows (a narrow top for short lines, stepped out to the
+    // widest line below); desktop closes it under the small print when the foot row has room
+    // for a slope, else just past the fold; phones carry it on under the foot row
+    const u = (rs: Rect[]): Rect[] => {
+      if (!rs.length) return [];
+      const x0 = Math.min(...rs.map((r) => r.x));
+      const y0 = Math.min(...rs.map((r) => r.y));
+      return [{ x: x0, y: y0, w: Math.max(...rs.map((r) => r.x + r.w)) - x0, h: Math.max(...rs.map((r) => r.y + r.h)) - y0 }];
+    };
+    const one = (sel: string) => $$(sel).map((e) => rel(e.getBoundingClientRect())).filter((r) => r.w > 0 && r.h > 0);
+    const rows = [...one(".t0-eyebrow"), ...one(".t0-line-in"), ...one(".t0-sub"), ...u([...one(".t0-cta-wrap"), ...one(".t0-demo")]), ...one(".t0-micro"), ...(phone ? foot : [])];
+    const lastB = Math.max(...rows.map((r) => r.y + r.h));
+    const micro = one(".t0-micro")[0] ?? rows[rows.length - 1];
+    const footT = foot.length ? Math.min(...foot.map((r) => r.y)) : H;
+    const m = phone ? 12 : 26;
+    const bottom = phone ? lastB + m : footT - (micro.y + micro.h) >= 96 ? micro.y + micro.h + m : H + 4;
+    const pad: Pad = padFromRows(rows, { m, mTop: phone ? 10 : m - 4, tol: phone ? 30 : 60, r: phone ? 30 : 60, k: phone ? 24 : 36, bottom, side: phone ? 14 : m, W, bleed: phone ? 30 : 60 });
     // a halo that nearly reaches the screen's edge runs off it (no stubs of line left at the edge)
     const toEdge = (r: Rect): Rect => {
       let { x, w } = r;
@@ -455,21 +495,8 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     G.canvas.style.width = `${g.W}px`;
     G.canvas.style.height = `${g.H}px`;
     if (!G.canvas.parentNode) groundEl.prepend(G.canvas);
-    // the existing ground on the pad: a wrapper that rides the front (its left edge fades), its
-    // content counter-moves so the dashes stay put on the ground
-    const exw = document.createElement("div");
-    exw.className = "t0-exw";
-    const exin = document.createElement("div");
-    exin.className = "t0-exin";
-    // (the header's halo only: the existing ground has gone before the foot row lands)
-    const s1 = svg(g.W, g.H, "t0-ex");
-    path(group(s1, haloMask(s1, g, true)), p.paths.exPad, "t0-ex-l");
-    exin.appendChild(s1);
-    exw.appendChild(exin);
-    const s2 = svg(g.W, g.H, "t0-ex t0-ex-slope");
-    path(group(s2, haloMask(s2, g, true)), p.paths.exSlope, "t0-ex-l");
-    groundEl.append(exw, s2);
-    return { kind: "gl", exw, exin, exSlope: s2, labels: buildLabels(p, g), limits: p.limits };
+    // the existing ground's dashes, the pass and the slopes are all the shader's (one canvas)
+    return { kind: "gl", labels: buildLabels(p, g), limits: p.limits };
   }
 
   function buildSVG(p: PlanRes, g: Geo): Layers {
@@ -499,13 +526,6 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     path(gp, p.paths.proI, "t0-pi");
     path(gp, p.paths.proX, "t0-px");
     boxIn.append(back, pr);
-    // the berm (phones): rides just behind the blade's edge, lands as the fill slope's top lines
-    let berm: SVGSVGElement | undefined;
-    if (phone && p.paths.berm) {
-      berm = svg(W, H, "t0-berm");
-      path(group(berm, haloMask(berm, g)), p.paths.berm, "t0-pi");
-      boxIn.appendChild(berm);
-    }
     box.appendChild(boxIn);
     // 3 · the blade's edge: a soft ground-coloured band at the front, riding with the container
     const blade = document.createElement("div");
@@ -518,72 +538,115 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     path(gn, p.paths.natI, "t0-ni");
     path(gn, p.paths.natX, "t0-nx");
     groundEl.append(ex, box, blade, nat);
-    return { kind: "svg", box, boxIn, blade, berm, bermBottom: g.pad.y + g.pad.h + BERM, existing: ex, rect, labels: buildLabels(p, g), limits: p.limits };
+    return { kind: "svg", box, boxIn, blade, existing: ex, rect, labels: buildLabels(p, g), limits: p.limits };
   }
 
   // ── 4 · the entrance ──
 
-  /** the pass's span along its axis (desktop GL: the front's centre; SVG: the container's leading edge) */
-  const passSpan = () => {
-    if (!layers) {
+  /**
+   * The pass. Desktop (shader): `mode` 0 sweeps a soft front along `dir`, 1 grades from deep inside
+   * the pad outward, 2 everywhere at once. SVG (phones, fallback): a hard-edged blade along the axis
+   * (phones top → bottom, in reading order; desktop left → right).
+   */
+  type Pass = { mode: PassMode; dir: [number, number]; band: number; a: number; b: number; lag?: [number, number, number, number] };
+  let pass: Pass | null = null;
+  function makePass(): Pass {
+    const g = geo!;
+    if (!layers || layers.kind === "svg") {
+      const dir: [number, number] = phone ? [0, 1] : [1, 0];
+      if (layers?.rect) {
+        const r = layers.rect;
+        return phone ? { mode: 0, dir, band: 0, a: r.y, b: r.y + r.h } : { mode: 0, dir, band: 0, a: r.x, b: r.x + r.w };
+      }
       // the ground is late: the copy keeps the same rhythm over the whole hero
-      const g = geo!;
-      return phone ? { a: 0, b: g.H } : { a: -TL.band / 2, b: g.W + TL.band / 2 };
+      return { mode: 0, dir, band: 0, a: 0, b: phone ? g.H : g.W };
     }
     const L = layers.limits;
-    if (layers.kind === "gl") return { a: L.x - TL.band / 2 - 10, b: L.x + L.w + TL.band / 2 + 10 };
-    const r = layers.rect!;
-    return phone ? { a: r.y, b: r.y + r.h } : { a: r.x, b: r.x + r.w };
-  };
-  /** the pass's position at t (px along its axis) */
-  function passAt(t: number) {
-    const { a, b } = passSpan();
+    const mode = PASS_MODE;
+    if (mode === 2) {
+      // the uphill side (the cut) leads, along the land's fall (west → east)
+      const t = (PASS_ANG * Math.PI) / 180;
+      const dir: [number, number] = [Math.cos(t), Math.sin(t)];
+      const pr = [0, g.W * dir[0], g.H * dir[1], g.W * dir[0] + g.H * dir[1]];
+      const q0 = Math.min(...pr);
+      const q1 = Math.max(...pr);
+      return { mode, dir, band: 0, a: 0, b: 1, lag: [PASS_LAG, q0, 1 / Math.max(1, q1 - q0), PASS_POW] };
+    }
+    if (mode === 1) {
+      const band = PASS_BAND || 220;
+      // from the pad's deepest point out past the slopes' daylight
+      let lo = 0;
+      for (let y = Math.max(0, g.pad.y); y < Math.min(g.H, g.pad.y + g.pad.h); y += 12)
+        for (let x = Math.max(0, g.pad.x); x < Math.min(g.W, g.pad.x + g.pad.w); x += 12) lo = Math.min(lo, sdPad(x, y, g.pad));
+      return { mode, dir: [1, 0], band, a: lo - band / 2, b: 240 + band / 2 };
+    }
+    const band = PASS_BAND || TL.band;
+    const t = (PASS_ANG * Math.PI) / 180;
+    const dir: [number, number] = [Math.cos(t), Math.sin(t)];
+    const pr = [L.x * dir[0] + L.y * dir[1], (L.x + L.w) * dir[0] + L.y * dir[1], L.x * dir[0] + (L.y + L.h) * dir[1], (L.x + L.w) * dir[0] + (L.y + L.h) * dir[1]];
+    return { mode, dir, band, a: Math.min(...pr) - band / 2 - 10, b: Math.max(...pr) + band / 2 + 10 };
+  }
+  /** the pass's front at t (css px along its axis; mode 2: 0 → 1) */
+  function frontAt(t: number) {
+    const P = pass!;
     const u = clamp((t - TL.hold) / (TL.passEnd - TL.hold), 0, 1);
-    return a + (b - a) * PASS_EASE(u);
+    return P.a + (P.b - P.a) * (P.mode === 2 ? u : PASS_EASE(u));
   }
-  /** the pass's time fraction at which its eased progress reaches s */
-  function passInv(s: number) {
-    let lo = 0;
-    let hi = 1;
-    for (let i = 0; i < 22; i++) {
-      const m = (lo + hi) / 2;
-      if (PASS_EASE(m) < s) lo = m;
-      else hi = m;
+  /** how graded the ground at (x, y) is at t: 1 graded, 0 the existing ground */
+  function wAt(x: number, y: number, t: number) {
+    const P = pass!;
+    const f = frontAt(t);
+    if (P.mode === 2 && P.lag) {
+      const [L, q0, iq, k] = P.lag;
+      const q01 = clamp((x * P.dir[0] + y * P.dir[1] - q0) * iq, 0, 1);
+      const xx = clamp((f - L * q01) / (1 - L), 0, 1);
+      return 1 - Math.pow(1 - Math.pow(xx, 1.5), k);
     }
-    return (lo + hi) / 2;
+    const qv = P.mode === 1 ? sdPad(x, y, geo!.pad) : x * P.dir[0] + y * P.dir[1];
+    if (P.band <= 0) return qv < f ? 1 : 0;
+    const u = clamp((qv - (f - P.band / 2)) / P.band, 0, 1);
+    return 1 - u * u * (3 - 2 * u);
   }
-  /** when the graded ground reaches `v` along the axis (desktop GL: the band's trailing edge) */
-  function gradedAt(v: number) {
-    const { a, b } = passSpan();
-    const target = (layers ? layers.kind === "gl" : !phone) ? v + TL.band / 2 : v;
-    const s = clamp((target - a) / (b - a), 0, 1);
-    let lo = 0;
-    let hi = 1;
-    for (let i = 0; i < 22; i++) {
-      const m = (lo + hi) / 2;
-      if (PASS_EASE(m) < s) lo = m;
-      else hi = m;
+  /** the existing ground E − PAD_EL at (x, y) (desktop: from the shader's texture), or null */
+  let fieldTex: { tex: Float32Array; x0: number; y0: number; step: number; nx: number; ny: number } | null = null;
+  function eAt(x: number, y: number) {
+    const F = fieldTex;
+    if (!F) return null;
+    const i = clamp(Math.round((x - F.x0) / F.step), 0, F.nx - 1);
+    const j = clamp(Math.round((y - F.y0) / F.step), 0, F.ny - 1);
+    return F.tex[(j * F.nx + i) * 4];
+  }
+  /**
+   * When a box of copy is on clear ground: no contour left across it. On the pad the morphing
+   * ground is P + (1 − w)(E − P), so a point is clear once (1 − w)·|E − P| < 0.5 ft (the nearest
+   * levels are P ± 0.5). The blade (SVG) clears what it has passed.
+   */
+  const CLEAR = q.get("t0Clear") ? Number(q.get("t0Clear")) : 2;
+  function clearAt(r: Rect) {
+    const pts: [number, number][] = [];
+    for (let a = 0; a <= 2; a++) for (let b = 0; b <= 2; b++) pts.push([r.x + (r.w * a) / 2, r.y + (r.h * b) / 2]);
+    const es = pts.map(([x, y]) => eAt(x, y));
+    for (let t = 0; t <= TL.passEnd; t += 10) {
+      const ok = pts.every(([x, y], i) => {
+        const w = wAt(x, y, t);
+        const e = es[i];
+        return e == null ? w >= 0.999 : (1 - w) * Math.abs(e) < CLEAR;
+      });
+      if (ok) return t;
     }
-    return TL.hold + ((lo + hi) / 2) * (TL.passEnd - TL.hold);
+    return TL.passEnd;
   }
 
   /** when the foot row starts landing (its halos fade in with it) */
   let footAt = 0;
+  let copyTimes: unknown = null;
+  let fieldMs = 0;
   const FOOT_DUR = 320;
   function drawGLAt(t: number) {
-    if (!gl || !layers || layers.kind !== "gl") return;
+    if (!gl || !layers || layers.kind !== "gl" || !pass) return;
     const p0 = PERF ? performance.now() : 0;
     const rest = t >= TL.passEnd;
-    const f = passAt(t);
-    gl.draw({ front: rest ? 1e6 : f, band: TL.band, entrance: !rest, keepFoot: clamp((t - footAt) / FOOT_DUR, 0, 1) });
-    // the dashed pad ground dissolves across the band (its edge fades over 170 px), so the pad is
-    // clear by the time the band's trailing edge (where the words set) gets there
-    const edge = f - TL.band * 0.2;
-    if (layers.exw && layers.exin) {
-      layers.exw.style.transform = `translate3d(${edge.toFixed(2)}px,0,0)`;
-      layers.exin.style.transform = `translate3d(${(-edge).toFixed(2)}px,0,0)`;
-      if (rest) layers.exw.style.display = "none";
-    }
+    gl.draw({ front: rest ? 1e6 : frontAt(t), band: pass.band, mode: pass.mode, dir: pass.dir, lag: pass.lag, entrance: !rest, keepFoot: clamp((t - footAt) / FOOT_DUR, 0, 1) });
     if (PERF) ((window as unknown as { __t0perf?: number[] }).__t0perf ??= []).push(performance.now() - p0);
   }
 
@@ -600,54 +663,54 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
   const fade: Keyframe[] = [{ opacity: 0 }, { opacity: 1 }];
 
   /**
-   * The copy sets in the pass's wake: each headline word (desktop) or line (phones) lands as the
-   * graded ground reaches it; the sub follows; the orange button lands last, like finish grade.
+   * The copy sets on the graded pad, in reading order: each headline line once the ground under
+   * it is clear (never before the line above, + 70 ms), its words 30 ms apart; the eyebrow with the
+   * first line; the sub after the headline; the orange button last, like finish grade, landed by
+   * TL.cta + its duration whatever the ground does.
    */
   function copyIn() {
     const R = root.getBoundingClientRect();
-    const at = (el: Element, edge: "c" | "end") => {
+    const rel = (el: Element): Rect => {
       const r = el.getBoundingClientRect();
-      const v = phone ? (edge === "c" ? (r.top + r.bottom) / 2 : r.bottom) - R.top + (layers?.berm ? BERM + 8 : 0) : (edge === "c" ? (r.left + r.right) / 2 : r.right) - R.left;
-      return gradedAt(v);
+      return { x: r.left - R.left, y: r.top - R.top, w: r.width, h: r.height };
     };
-    const floor = phone ? 240 : 320;
-    let last = 0;
+    const floor = phone ? 200 : 300;
     const lines = $$(".t0-line-in");
-    // reading order first: line n starts 50 ms after line n−1 (a wide lower line never sets its
-    // first word before the line above), and within a line each word waits for the pass to reach it
-    let lineStart = 0;
-    const wordAt = new Map<Element, number>();
-    lines.forEach((ln, i) => {
+    let prev = -1e9;
+    let last = 0;
+    const lineAt: number[] = [];
+    lines.forEach((ln) => {
+      const d = Math.min(TL.h1Max, Math.max(floor, clearAt(rel(ln)) + 10, prev + TL.lineGap));
+      prev = d;
+      lineAt.push(d);
       const ws = phone ? [ln] : [...ln.querySelectorAll(".t0-w")];
-      if (!ws.length) return;
-      const first = Math.max(floor, at(ws[0], phone ? "end" : "c") + 20);
-      lineStart = i === 0 ? first : Math.max(first, lineStart + 50);
-      ws.forEach((w) => {
-        const d = Math.max(lineStart, at(w, phone ? "end" : "c") + 20);
-        wordAt.set(w, d);
-        last = Math.max(last, d);
-        animate(w, rise(8), d, TL.h1Dur);
+      ws.forEach((w, k) => {
+        const dw = d + k * TL.wordGap;
+        last = Math.max(last, dw);
+        animate(w, rise(TL.rise), dw, TL.h1Dur);
       });
     });
     const eb = $(".t0-eyebrow");
-    if (eb) animate(eb, rise(6), Math.max(floor, at(eb, "c") + 20), TL.h1Dur);
+    if (eb) animate(eb, rise(6), Math.max(floor - 40, (lineAt[0] ?? floor) - 40), TL.h1Dur);
     // the flagging tape pulls tight once its words have set
     $$(".t0-tape").forEach((t) => {
-      const ws = phone ? [lines.find((l) => l.contains(t))!] : [...t.parentElement!.querySelectorAll(".t0-w")];
-      const d = Math.max(...ws.map((w) => wordAt.get(w) ?? floor)) + 120;
+      const i = lines.findIndex((l) => l.contains(t));
+      const n = phone ? 1 : t.parentElement!.querySelectorAll(".t0-w").length + [...lines[i].querySelectorAll(".t0-w")].indexOf(t.parentElement!.querySelector(".t0-w")!);
+      const d = (lineAt[i] ?? floor) + (phone ? 0 : (n - 1) * TL.wordGap) + 140;
       animate(t, [{ transform: "scaleX(0)" }, { transform: "scaleX(1)" }], d, TL.tapeDur, EIO);
     });
     const sub = $(".t0-sub")!;
-    // the sub follows the headline's last line (reading order), and the pass
-    const dSub = Math.max(floor + 80, lineStart + 60, at(sub, phone ? "end" : "c") + 60);
-    animate(sub, rise(8), dSub, TL.subDur);
-    // the button: after the headline, never later than TL.cta (fully landed by TL.cta + its duration)
-    const dCta = Math.min(TL.cta, Math.max(last + 40, dSub + 60, at($(".t0-cta-wrap")!, "end") + 40));
-    animate($(".t0-cta-wrap"), rise(8), dCta, TL.ctaDur);
+    const dSub = Math.max(prev + 80, clearAt(rel(sub)) + 10);
+    animate(sub, rise(TL.rise), dSub, TL.subDur);
+    // the button: after the sub (+70 ms), from TL.cta at the earliest... and never later than
+    // TL.ctaMax, whatever the ground does (a long headline only pushes it that far)
+    const dCta = Math.min(TL.ctaMax, Math.max(TL.cta, dSub + 70, clearAt(rel($(".t0-cta-wrap")!)) + 10));
+    animate($(".t0-cta-wrap"), rise(TL.rise), dCta, TL.ctaDur);
     animate($(".t0-demo"), rise(6), dCta + 60, TL.ctaDur);
     animate($(".t0-micro"), fade, dCta + 80, TL.ctaDur);
     footAt = dCta + 140;
     animate($(".t0-foot"), fade, footAt, FOOT_DUR);
+    if (DEBUG) copyTimes = { lines: lineAt, sub: dSub, cta: dCta, last, clear: lines.map((l) => clearAt(rel(l))), e: lines.map((l) => { const r = rel(l); return [eAt(r.x, r.y), eAt(r.x + r.w, r.y + r.h)]; }) };
     return dCta + TL.ctaDur;
   }
 
@@ -666,13 +729,14 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     clock = new Animation(new KeyframeEffect(null, [], { duration: TL.rest }), document.timeline);
     clock.play();
     anims = [clock];
+    pass = makePass();
     const landed = copyIn();
+    // the rough ground comes up with the hero's first frame (a short fade, not a pop)
+    if (withGround && Ly) animate(groundEl, fade, 0, phone ? 90 : 100, "linear");
     if (!withGround || !Ly) {
       // nothing to grade yet
     } else if (Ly.kind === "gl") {
-      if (Ly.exw) Ly.exw.style.display = "";
       drawGLAt(0);
-      animate(Ly.exSlope, [{ opacity: 1 }, { opacity: 0 }], TL.ghost, TL.ghostDur, "linear", "both");
       const loop = () => {
         raf = 0;
         if (!alive || finished || !clock) return;
@@ -692,20 +756,19 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
       animate(Ly.boxIn, [{ transform: tr(n) }, { transform: tr(0) }], TL.hold, dur, PASS_CSS);
       animate(Ly.blade, [{ transform: tr(-n) }, { transform: tr(0) }], TL.hold, dur, PASS_CSS);
       animate(Ly.blade, [{ opacity: 1 }, { opacity: 0 }], TL.passEnd, 120, "linear", "forwards");
-      if (Ly.berm && Ly.bermBottom) {
-        // the berm's bottom rides 6 px behind the edge (whose position is linear in the eased
-        // progress, so keyframe offsets in progress space line it up exactly) until it lands
-        const pEnd = clamp((Ly.bermBottom + 6 - r.y) / n, 0.05, 1);
-        const off0 = r.y - 6 - Ly.bermBottom;
-        animate(Ly.berm, [{ transform: tr(off0), offset: 0 }, { transform: tr(0), offset: pEnd }, { transform: tr(0), offset: 1 }], TL.hold, dur, PASS_CSS);
-        const landAt = TL.hold + dur * passInv(pEnd);
-        animate(Ly.berm, [{ opacity: 1 }, { opacity: 0 }], landAt, 140, "linear", "forwards");
-      }
+      // the rough ground ahead of the blade gives a little as it is pushed (transform only)
+      animate(Ly.existing, [{ transform: tr(0) }, { transform: tr(PUSH) }], TL.hold, dur, PASS_CSS, "both");
       if (!phone) labelsIn(Ly.labels);
     }
+    // rest comes once the last beat has finished (never cutting a fade short: no pop at the end)
+    const end = Math.max(TL.rest, ...anims.map((a) => {
+      const t = a.effect?.getComputedTiming();
+      return t ? Number(t.endTime ?? 0) : 0;
+    }));
+    if (clock?.effect) (clock.effect as KeyframeEffect).updateTiming({ duration: end });
     if (DEBUG) return;
     timers.push(window.setTimeout(() => markPageReady(), Math.min(TL.ready, landed)));
-    timers.push(window.setTimeout(() => toRest(), TL.rest + 30));
+    timers.push(window.setTimeout(() => toRest(), end + 30));
   }
 
   /** a later visit (or the ground arriving late): everything fades in at rest, 0.4 s */
@@ -731,12 +794,9 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     if (!layers) return;
     if (layers.kind === "gl") {
       gl?.draw({ front: 1e6, band: TL.band, entrance: false, keepFoot: 1 });
-      if (layers.exw) layers.exw.style.display = "none";
-      if (layers.exSlope) layers.exSlope.style.display = "none";
     } else {
       if (layers.existing) layers.existing.style.display = "none";
       if (layers.blade) layers.blade.style.display = "none";
-      if (layers.berm) layers.berm.style.display = "none";
     }
   }
 
@@ -774,9 +834,16 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     // the GPU took the context: the SVG plan stands in, at rest
     if (!alive || !geo || !lastPlan) return;
     gl = null;
-    clearLayers();
-    layers = buildSVG(lastPlan, geo);
-    showRest();
+    const g = geo;
+    const put = (p: PlanRes) => {
+      if (!alive || geo !== g) return;
+      lastPlan = p;
+      clearLayers();
+      layers = buildSVG(p, g);
+      showRest();
+    };
+    if (lastPlan.lite) void fullPlan(g).then(put);
+    else put(lastPlan);
   }
 
   // ── boot ──
@@ -784,23 +851,47 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
   let lastPlan: PlanRes | null = null;
   let fontsLate = false;
 
-  /** Build the ground's layers from a plan (desktop: the shader if it has linked in time, else SVG). */
-  async function build(p: PlanRes, f: FieldRes, g: Geo, glWait: number) {
+  /**
+   * Build the ground's layers from a plan (desktop: the shader if it has linked in time, else SVG).
+   * Returns false when there is nothing to show yet: the page went away, or the shader didn't link
+   * in time and the plan was the shader's lite one (labels only): the full SVG plan is then asked
+   * for, and it joins at rest when it comes (`onLate`).
+   */
+  async function build(p: PlanRes, f: FieldRes, g: Geo, glWait: number, onLate: () => void) {
     let useGL = !!gl && !phone;
     if (useGL && gl) {
       const ok = await Promise.race([gl.linked, new Promise<boolean>((r) => setTimeout(() => r(false), Math.max(0, glWait)))]);
       if (!alive) return false;
-      if (ok && f.tex) gl.setField(f.tex, f.grid);
+      fieldMs = f.ms;
+      if (ok && f.tex) {
+        gl.setField(f.tex, f.grid);
+        fieldTex = { tex: f.tex, ...f.grid };
+      }
       useGL = ok && !gl.lost();
       if (!useGL) {
         gl.destroy();
         gl = null;
       }
     }
+    if (!useGL && p.lite) {
+      void fullPlan(g).then((full) => {
+        if (!alive || !full) return;
+        lastPlan = full;
+        clearLayers();
+        layers = buildSVG(full, g);
+        onLate();
+      });
+      return false;
+    }
     lastPlan = p;
     clearLayers();
     layers = useGL ? buildGL(p, g) : buildSVG(p, g);
     return true;
+  }
+
+  /** the SVG plan (every line as path data) for a layout */
+  function fullPlan(g: Geo) {
+    return ask<PlanRes>({ kind: "plan", W: g.W, H: g.H, mode, pad: g.pad, keep: [...g.copy, ...g.halos], labels: phone ? 0 : 4 });
   }
 
   /** the ground arrived after the copy's entrance started: it fades in at rest */
@@ -820,7 +911,8 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     root.classList.add("is-laid");
     if (first) performance.mark("t0-laid");
     const field = wantField(g.W, g.H);
-    const plan = ask<PlanRes>({ kind: "plan", W: g.W, H: g.H, mode, pad: g.pad, keep: [...g.copy, ...g.halos], labels: phone ? 0 : 4 });
+    // the shader draws the lines itself: it only needs the labels and the grading limits
+    const plan = ask<PlanRes>({ kind: "plan", W: g.W, H: g.H, mode, pad: g.pad, keep: [...g.copy, ...g.halos], labels: phone ? 0 : 4, lite: !!gl && !phone });
     const t0 = performance.now();
     const res: { v: [PlanRes, FieldRes] | null } = { v: null };
     const both = Promise.all([plan, field]).then((v) => {
@@ -842,18 +934,21 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
       await both;
       if (!alive || !res.v) return;
       const [p, f] = res.v;
-      if (!(await build(p, f, g, 400))) return;
-      if (first && !reduced) groundLate();
-      else showRest();
+      const join = () => (first && !reduced ? groundLate() : showRest());
+      if (!(await build(p, f, g, 400, join))) return;
+      join();
       return;
     }
 
     // the first visit: the hero's first frame waits a beat for the ground (built in the worker)
     await Promise.race([both, new Promise((r) => setTimeout(r, WAIT))]);
     if (!alive) return;
+    const inTime = !!res.v;
     if (res.v) {
       const [p, f] = res.v;
-      if (!(await build(p, f, g, WAIT + 120 - (performance.now() - t0)))) return;
+      // (no layers yet when the shader missed its slot: the SVG plan joins at rest)
+      await build(p, f, g, WAIT + 120 - (performance.now() - t0), groundLate);
+      if (!alive) return;
     }
     requestAnimationFrame(() => {
       if (!alive) return;
@@ -864,12 +959,12 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
         anims.forEach((a) => a.pause());
         expose();
       }
-      if (!layers)
+      if (!inTime)
         // the ground was late: the copy plays its entrance on time, the ground fades in at rest
         void both.then(async () => {
           if (!alive || !res.v) return;
           const [p, f] = res.v;
-          if (!(await build(p, f, g, 300))) return;
+          if (!(await build(p, f, g, 300, groundLate))) return;
           groundLate();
         });
     });
@@ -885,13 +980,16 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
         drawGLAt(t);
       },
       rest: () => toRest(),
-      state: () => ({ kind: layers?.kind, limits: layers?.limits, pad: geo?.pad, halos: geo?.halos, plan: lastPlan && { labels: lastPlan.labels, ms: lastPlan.ms, bytes: Object.fromEntries(Object.entries(lastPlan.paths).map(([k, v]) => [k, (v as string).length])) } }),
+      state: () => ({ copy: copyTimes, pass, workerMs: { field: fieldMs, plan: lastPlan?.ms }, kind: layers?.kind, limits: layers?.limits, pad: geo?.pad, halos: geo?.halos, plan: lastPlan && { labels: lastPlan.labels, ms: lastPlan.ms, bytes: Object.fromEntries(Object.entries(lastPlan.paths).map(([k, v]) => [k, (v as string).length])) } }),
     };
   }
 
   // any input lands the rest frame on the same frame
-  const onInput = () => {
-    if (playing && !finished) toRest();
+  const onInput = (e: Event) => {
+    if (playing && !finished) {
+      if (PERF) (window as unknown as { __t0input?: string }).__t0input = `${e.type}@${Math.round(performance.now())}`;
+      toRest();
+    }
   };
   const INPUTS = ["wheel", "touchstart", "keydown", "pointerdown", "scroll"] as const;
   if (!DEBUG) INPUTS.forEach((t) => window.addEventListener(t, onInput, { passive: true, capture: true }));
@@ -922,8 +1020,9 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
     const step = (now: number) => {
       crf = 0;
       if (!alive || !gl || !layers || layers.kind !== "gl" || !finished) return;
-      const dt = Math.min(48, now - (lastT || now)) || 16;
+      const dt = clamp(now - (lastT || now), 1, 100);
       lastT = now;
+      if (PERF) ((window as unknown as { __t0cur?: number[] }).__t0cur ??= []).push(Math.round(amt * 100) / 100);
       // the push follows the cursor's motion and relaxes when it stops
       const k = 1 - Math.exp(-dt / 140);
       vx += (0 - vx) * k;
@@ -932,6 +1031,7 @@ export function mountGround(root: HTMLElement, o: GroundOpts): () => void {
       if (amt < 0.05) {
         vx = vy = 0;
         gl.draw({ front: 1e6, band: TL.band, entrance: false });
+        if (PERF) ((window as unknown as { __t0cur?: number[] }).__t0cur ??= []).push(-1);
         return;
       }
       gl.draw({ front: 1e6, band: TL.band, entrance: false, cursor: { x: cx, y: cy, dx: vx, dy: vy, r: R } });

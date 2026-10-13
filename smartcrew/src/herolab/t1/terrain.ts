@@ -127,10 +127,12 @@ type Land = {
   minLoop: number;
 };
 
-const DESK: Land = { S: 1200, ref: 1440, amp: 5, fall: 34, vd: 10, vw: 0.3, vfall: 4, rh: 8, rw: 0.2, fy: 0.42, gain: 0.4, warp: 0.8, seed: 11, cut: 0.075, fill: 0.045, tie: 0.5, step: 7, eps: 0.4, minLoop: 220 };
-const PHONE: Land = { S: 744, ref: 390, amp: 4, fall: 26, vd: 7, vw: 0.34, vfall: 3, rh: 6, rw: 0.22, fy: 0.7, gain: 0.35, warp: 0.8, seed: 11, cut: 0.1, fill: 0.06, tie: 0.5, step: 6, eps: 0.45, minLoop: 160 };
+const DESK: Land = { S: 1200, ref: 1440, amp: 3, fall: 14, vd: 10, vw: 0.3, vfall: 4, rh: 8, rw: 0.2, fy: 0.2, gain: 0.4, warp: 0.8, seed: 11, cut: 0.12, fill: 0.07, tie: 0.5, step: 7, eps: 0.4, minLoop: 220 };
+const PHONE: Land = { S: 744, ref: 390, amp: 4, fall: 16, vd: 7, vw: 0.34, vfall: 3, rh: 6, rw: 0.22, fy: 0.3, gain: 0.35, warp: 0.8, seed: 11, cut: 0.14, fill: 0.08, tie: 0.5, step: 6, eps: 0.45, minLoop: 160 };
 
-export const landFor = (phone: boolean) => (phone ? PHONE : DESK);
+export type LandOver = Partial<Land>;
+/** the land for a layout, with optional lab overrides (?t1Land=fall:20,cut:.1) */
+export const landFor = (phone: boolean, over?: LandOver): Land => (over && Object.keys(over).length ? { ...(phone ? PHONE : DESK), ...over } : phone ? PHONE : DESK);
 
 function bez(p0: number[], p1: number[], p2: number[], p3: number[], n: number) {
   const out: number[] = [];
@@ -225,11 +227,11 @@ function makeLand(W: number, Hv: number, o: Land) {
 // ─── the field grid ──────────────────────────────────────────────────────────────────────
 
 /** m: how far the model runs past the hero on every side (px): phones see the whole site model first, then the camera dives onto the pad */
-export type Field = { W: number; H: number; Hv: number; m: number; phone: boolean; step: number; x0: number; y0: number; nx: number; ny: number; E: Float32Array };
+export type Field = { W: number; H: number; Hv: number; m: number; phone: boolean; land: Land; step: number; x0: number; y0: number; nx: number; ny: number; E: Float32Array };
 
 /** Sample the natural ground on a grid two steps past every edge of the W×H hero. */
-export function buildField(W: number, H: number, Hv: number, phone: boolean, m = 0): Field {
-  const o = landFor(phone);
+export function buildField(W: number, H: number, Hv: number, phone: boolean, m = 0, over?: LandOver): Field {
+  const o = landFor(phone, over);
   const { noise, shape } = makeLand(W, Hv, o);
   const step = o.step;
   const x0 = -m - 2 * step;
@@ -259,7 +261,7 @@ export function buildField(W: number, H: number, Hv: number, phone: boolean, m =
       E[j * nx + i] = n + shape(x0 + i * step, y0 + j * step);
     }
   }
-  return { W, H, Hv, m, phone, step, x0, y0, nx, ny, E };
+  return { W, H, Hv, m, phone, land: o, step, x0, y0, nx, ny, E };
 }
 
 // ─── the grade ───────────────────────────────────────────────────────────────────────────
@@ -629,9 +631,6 @@ export type Sheet = {
   /** its outline (closed round the frame), for the paper; evenodd */
   fill: string;
   fillBox: Box;
-  /** the outline a hair (0.45 ft) higher: the sheet below backs only this far under this one, so
-   * each sheet's paper is a band, not a plate (no overdraw; its hole costs nothing) */
-  inner: string;
   /** its band's lines: natural/proposed × minor/index */
   ink: Ink;
   inkBox: Box;
@@ -682,7 +681,7 @@ const fmtEl = (n: number) => n.toLocaleString("en-US");
 
 export function buildPlan(f: Field, o: PlanIn): Plan {
   const t0 = typeof performance !== "undefined" ? performance.now() : 0;
-  const land = landFor(f.phone);
+  const land = f.land;
   const { nx, ny, step, x0, y0, W, H, m: mg } = f;
   const pads = o.pads;
   // the pad's centroid (area-weighted) is set at PAD_EL: half cut, half fill
@@ -769,7 +768,6 @@ export function buildPlan(f: Field, o: PlanIn): Plan {
     const Lk = base + k * IDX;
     // the sheet's outline: the index contour, closed round the frame
     let fill = "";
-    let inner = "";
     const fb: Box = [Infinity, Infinity, -Infinity, -Infinity];
     if (k === 0) {
       // the base board: the whole frame
@@ -783,7 +781,6 @@ export function buildPlan(f: Field, o: PlanIn): Plan {
       const o1 = outline(Lk + 1e-3, false);
       fill = o1.d;
       for (let i = 0; i < 4; i++) fb[i] = o1.box[i];
-      inner = outline(Lk + 0.45, true).d;
     }
     // the band's lines: the index contour (the sheet's edge) and its four intermediates
     const ink: Ink = {};
@@ -848,8 +845,8 @@ export function buildPlan(f: Field, o: PlanIn): Plan {
       }
     }
     for (const s of Object.values(ink)) inkBytes += s!.length;
-    fillBytes += fill.length + inner.length;
-    sheets.push({ level: Lk, fill, fillBox: fb, inner, ink, inkBox: ib });
+    fillBytes += fill.length;
+    sheets.push({ level: Lk, fill, fillBox: fb, ink, inkBox: ib });
   }
 
   // labels go on the natural ground first; a grading plan labels its proposed index contours too

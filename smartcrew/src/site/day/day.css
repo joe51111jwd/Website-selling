@@ -1,7 +1,9 @@
-/* 2 · One Day: "Enjoy the ride" (desktop; phones: ./phone/day-phone.css).
-   One screen: the copy on the left (the big time, the headline), the 3D devices on the right, the
-   controls at the bottom centre. Everything on the film's clock is a Web Animation (./Day.tsx):
-   the CSS here is the layout and the resting state, nothing here animates on its own. */
+/* 2 · One Day: "Enjoy the ride", v2 (desktop; phones: ./phone/day-phone.css).
+   The whole viewport is the film: the ground and its contour map underneath, the Stage's devices
+   over it (their anchor is the whole screen), the clock and the headline top left, the focal DOM
+   that works with the devices (./fx.css), the controls at the bottom centre. Everything on the
+   film's clock is a Web Animation or a Stage frame (./Day.tsx, ./Fx.tsx): the CSS here is the
+   layout and the resting state, nothing here animates on its own. */
 
 .scene-day.day--ride {
   height: 100vh;
@@ -12,42 +14,158 @@
   position: relative;
   height: 100vh;
   height: 100svh;
-  display: flex;
-  flex-direction: column;
-  padding-top: var(--header-h);
   color: var(--ink);
-  transition: color 0.6s var(--ease-out);
 }
 
-html[data-ground="dark"] .day-grid {
-  color: var(--ink-night);
-}
-
-/* the film: copy | stage (it dips during a soft jump) */
 .day-film {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 25.5rem) minmax(0, 1fr);
-  column-gap: clamp(16px, 2.6vw, 48px);
+  position: absolute;
+  inset: 0;
 }
 
-/* the page's ground on the film's clock (portalled to <body>, between the ground and the Stage) */
+/* the Stage's frame: the whole takeover */
+.day-stage {
+  position: absolute;
+  inset: 0;
+}
+
+/* ── the ground (portalled to <body>, under the Stage): colour, contour map, the haul ── */
+
 .day-ground {
   position: fixed;
   inset: 0;
   z-index: var(--z-backdrop);
   opacity: 0;
   pointer-events: none;
+  background-color: var(--dawn);
 }
 
-/* ── the copy: time, headline, the quiet feature line ──────────────────── */
+.day-topo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* the lines stay out from behind the copy (top left) and quiet under the controls */
+  -webkit-mask-image: radial-gradient(ellipse 34% 40% at 15% 17%, rgb(0 0 0 / 12%) 35%, #000 100%);
+  mask-image: radial-gradient(ellipse 34% 40% at 15% 17%, rgb(0 0 0 / 12%) 35%, #000 100%);
+}
+
+.day-topo-sheet {
+  position: absolute;
+  will-change: transform;
+}
+
+.day-topo-ink {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.day-topo-ink--night {
+  opacity: 0;
+}
+
+/* 9:20 AM: the haul road on the map */
+.day-haul {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0;
+}
+
+.day-haul-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+
+.day-haul-case,
+.day-haul-road {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.day-haul-case {
+  stroke: rgb(23 19 15 / 9%);
+  stroke-width: 9;
+}
+
+.day-haul-road {
+  stroke: var(--orange);
+  stroke-width: 3;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+}
+
+.day-haul-end {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ground);
+  border: 2px solid var(--ink);
+}
+
+.day-haul-end--job {
+  background: var(--ink);
+}
+
+.day-haul-ping {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border-radius: 50%;
+  border: 2px solid var(--orange);
+  opacity: 0;
+}
+
+.day-haul-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgb(23 19 15 / 62%);
+}
+
+.day-haul-truck {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+}
+
+.day-haul-truck-dot {
+  position: absolute;
+  left: -8px;
+  top: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow:
+    0 0 0 3px var(--ground),
+    0 0 0 5px var(--orange);
+}
+
+/* ── the copy: the clock and the headline, top left ───────────────────── */
 
 .day-copy {
-  align-self: start;
-  padding-top: clamp(14px, 5svh, 52px);
-  position: relative;
+  position: absolute;
+  left: 4.5vw;
+  color: var(--ink);
+  top: 7svh;
   z-index: 3;
+  max-width: 30vw;
+  pointer-events: none;
 }
 
 /* the odometer */
@@ -57,8 +175,8 @@ html[data-ground="dark"] .day-grid {
   height: var(--wh);
   overflow: clip;
   overflow-clip-margin: 0.16em;
-  margin: 0 0 clamp(8px, 1.8svh, 18px) -0.04em;
-  font-size: clamp(64px, 5.4vw + 3.4svh, 150px);
+  margin: 0 0 clamp(6px, 1.4svh, 14px) -0.04em;
+  font-size: clamp(52px, 4.4vw + 3svh, 128px);
   line-height: var(--wh);
   white-space: nowrap;
 }
@@ -97,6 +215,12 @@ html[data-ground="dark"] .day-grid {
   flex: none;
   height: var(--wh);
   text-align: center;
+}
+
+/* 10, 11, 12 pass through a one-figure wheel during a roll: condensed, not wider */
+.day-odo-strip > span.is-2 {
+  transform: scaleX(0.58);
+  letter-spacing: -0.06em;
 }
 
 .day-odo-colon {
@@ -153,23 +277,28 @@ html[data-ground="dark"] .day-grid {
   font-family: var(--font-display);
   font-stretch: calc(var(--display-wdth) * 1%);
   font-weight: 700;
-  font-size: clamp(28px, 1.6vw + 1.6svh + 2px, 44px);
+  font-size: clamp(24px, 1.3vw + 1.5svh + 2px, 40px);
   line-height: 1.04;
   letter-spacing: -0.03em;
-  max-width: 11.5em;
+  max-width: 11em;
   text-wrap: balance;
 }
 
+/* the detail (the moment's features): only for whoever pauses to look */
 .day-features {
-  margin-top: clamp(10px, 2svh, 20px);
-  /* 21rem: the longest line (Friday) stays clear of the laptop at 1440×660 */
+  margin-top: clamp(8px, 1.6svh, 16px);
   max-width: 21rem;
   font-size: 13.5px;
   line-height: 1.55;
-  /* a step darker than --ink-3: ≥ 4.8:1 on every time-of-day ground, 5:30 PM's amber included */
-  color: #685b50;
+  color: inherit;
+  opacity: 0;
   text-wrap: pretty;
-  transition: color 0.6s var(--ease-out);
+  transition: opacity 0.4s var(--ease-out);
+}
+
+.day-grid[data-state="paused"] .day-head[data-cur] .day-features,
+.day-grid[data-state="idle"][data-started="0"] .day-head[data-cur] .day-features {
+  opacity: 0.78;
 }
 
 .day-feature {
@@ -180,42 +309,47 @@ html[data-ground="dark"] .day-grid {
   white-space: normal;
 }
 
-html[data-ground="dark"] .day-features {
-  color: #a09385; /* 5.8:1 on the Friday night ground (--ink-night-3 is 4.0:1) */
-}
-
 html[data-ground="dark"] .day-grid .flag {
   color: var(--orange);
 }
 
-/* the finale: "That's SmartCrew." over the whole app, then its orange button */
+/* the finale: "That's SmartCrew." and the orange button, centred over the whole app */
 .day-end {
-  /* in the headline's place (the Friday headline steps aside for it) */
-  grid-area: 1 / 1;
-  align-self: start;
-  opacity: 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 9svh;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(14px, 3svh, 28px);
+  text-align: center;
+  pointer-events: none;
 }
 
 .day-end-t {
-  margin: 0 0 clamp(12px, 2.2svh, 20px);
+  margin: 0;
+  color: var(--ink-night);
   font-family: var(--font-display);
   font-stretch: calc(var(--display-wdth) * 1%);
   font-weight: 760;
-  font-size: clamp(30px, 1.8vw + 1.8svh + 2px, 48px);
+  font-size: clamp(34px, 2.4vw + 2.6svh, 64px);
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.04em;
+  opacity: 0;
 }
 
 .day-end-cta {
   opacity: 0;
+  pointer-events: auto;
 }
-
 
 /* ── "Enjoy the ride" ─────────────────────────────────────────────────── */
 
 .day-ride-title {
   position: absolute;
-  inset: var(--header-h) 0 clamp(64px, 10svh, 84px);
+  inset: 0 0 clamp(64px, 10svh, 84px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -234,48 +368,40 @@ html[data-ground="dark"] .day-grid .flag {
   line-height: 0.96;
   letter-spacing: -0.045em;
   color: var(--ink);
+  opacity: 0;
 }
 
 .day-ride-sub {
   font-size: clamp(16px, 0.5vw + 1.2svh, 20px);
   line-height: 1.4;
   color: var(--ink-2);
+  opacity: 0;
 }
 
-/* ── the stage ─────────────────────────────────────────────────────────── */
-
-.day-stage {
-  position: relative;
-  margin: 0 calc(var(--gutter) * -1) 0 0;
-}
-
-/* the demo note sits on the controls' line, at the left, clear of the devices */
-/* just above the control bar, at the copy's left edge (beside the bar it was cut off by the bar
-   once the bar carried its orange button) */
+/* the demo note: bottom left, quiet */
 .day-caption {
   position: absolute;
-  left: var(--gutter);
-  bottom: calc(clamp(10px, 2.2svh, 20px) + 66px);
+  left: 4.5vw;
+  bottom: clamp(18px, 3.4svh, 30px);
   z-index: 5;
-  max-width: min(36ch, calc(50% - 2 * var(--gutter)));
-  font-size: 12px;
+  max-width: 24ch;
+  font-size: 11.5px;
   line-height: 1.3;
   color: var(--ink-3);
   opacity: 0.8;
   pointer-events: none;
-  transition: color 0.6s var(--ease-out);
 }
 
 html[data-ground="dark"] .day-caption {
   color: var(--ink-night-3);
 }
 
-/* ── the big state labels: jobsite tags, dark on the day ground, light at night ── */
+/* ── the jobsite tags: dark on the day's grounds, light at night ─────────── */
 
 .day-tag {
   display: inline-flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   margin: 0;
   padding: 0.36em 0.72em 0.4em 0.56em;
   border-radius: 999px;
@@ -284,7 +410,7 @@ html[data-ground="dark"] .day-caption {
   font-family: var(--font-display);
   font-stretch: calc(var(--display-wdth) * 1%);
   font-weight: 650;
-  font-size: clamp(20px, 1vw + 1.8svh, 30px);
+  font-size: clamp(17px, 0.7vw + 1.4svh, 24px);
   line-height: 1.1;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -307,159 +433,14 @@ html[data-ground="dark"] .day-tag {
   box-shadow: 0 10px 30px rgb(0 0 0 / 40%);
 }
 
-/* ── the office: its label + the update card, top right of the stage ───── */
-
-.day-offices {
-  position: absolute;
-  top: clamp(10px, 2.4svh, 26px);
-  right: calc(var(--gutter) * 0.75);
-  width: min(600px, 74%);
-  display: grid;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.day-office {
-  grid-area: 1 / 1;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  opacity: 0;
-}
-
-.day-card {
-  width: 100%;
-  margin: 0;
-  padding: 13px 18px 16px;
-  border-radius: 16px;
-  background: #fff;
-  border: 1px solid rgb(23 19 15 / 7%);
-  box-shadow: 0 1px 2px rgb(23 19 15 / 8%), 0 24px 60px rgb(23 19 15 / 18%);
-}
-
-.day-card-where {
-  margin: 0 0 10px;
-  font-size: 14px;
-  line-height: 1.3;
-  color: var(--ink-3);
-}
-
-.day-card-wait {
-  height: 40px;
-}
-
-/* ── the annotation layer: the finger, the phone's label, leader lines ── */
-
-.day-ann {
-  position: fixed;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.day-ann-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.day-lead--phone,
-.day-lead--office {
-  opacity: 0;
-}
-
-.day-lead {
-  stroke: var(--ink);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.day-lead-dot {
-  fill: var(--orange);
-}
-
-.day-lead-ring {
-  fill: none;
-  stroke: var(--orange);
-  stroke-width: 1.5;
-}
-
-/* leaders run over the app's white UI and over the ground: ink with a light halo reads on both */
-.day-lead-halo {
-  stroke: rgb(255 255 255 / 78%);
-  stroke-width: 5;
-}
-
-/* the phone's label */
-.day-chip {
-  position: absolute;
-  left: 0;
-  top: 0;
-  visibility: hidden;
-}
-
-/* shown only once the Stage has pinned it next to the phone */
-.day-chip[data-placed="1"] {
-  visibility: visible;
-}
-
-.day-chip-in {
-  opacity: 0;
-  transform-origin: 0 50%;
-}
-
-/* the finger: a pad lands, an orange ring opens out of it */
-.day-touch {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 0;
-  height: 0;
-}
-
-.day-touch-pad,
-.day-touch-ring {
-  position: absolute;
-  left: -26px;
-  top: -26px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  opacity: 0;
-}
-
-.day-touch-pad {
-  background: rgb(23 19 15 / 26%);
-  box-shadow:
-    0 0 0 2px rgb(255 255 255 / 70%),
-    0 6px 16px rgb(23 19 15 / 25%);
-}
-
-.day-touch-ring {
-  border: 2px solid var(--orange);
-}
-
-/* office → field: a pointer click, smaller */
-.day-touch.is-click .day-touch-pad,
-.day-touch.is-click .day-touch-ring {
-  left: -18px;
-  top: -18px;
-  width: 36px;
-  height: 36px;
-}
-
 /* ── the controls, bottom centre ──────────────────────────────────────── */
 
 .day-controls {
-  flex: none;
-  align-self: center;
-  margin: 6px 0 clamp(10px, 2.2svh, 20px);
-  position: relative;
-  z-index: 5;
+  position: absolute;
+  left: 50%;
+  bottom: clamp(10px, 2.2svh, 20px);
+  z-index: 6;
+  transform: translateX(-50%);
 }
 
 /* the control bar's small orange door out, while the ride owns the screen */
@@ -480,7 +461,6 @@ html[data-ground="dark"] .day-tag {
   pointer-events: auto;
 }
 
-/* small: the bar's own height, round like the bar (the page's big orange buttons stay the big ones) */
 .plc-cta .cta {
   --cta-h: 38px;
   --cta-fs: 14px;
@@ -512,7 +492,54 @@ html.ride-on .site-header {
     visibility 0s linear 0.6s;
 }
 
-/* no WebGL: the stills stand in; the labels sit with the office card */
-.day-grid.is-nostage .day-office {
-  gap: 8px;
+/* ── no WebGL: the stills and plain office cards stand in ─────────────── */
+
+.day-nostage {
+  position: absolute;
+  left: 34vw;
+  right: 3vw;
+  top: 8svh;
+  bottom: 12svh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+}
+
+.day-nostage-img {
+  grid-area: 1 / 1;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.day-nostage-card {
+  grid-area: 1 / 1;
+  align-self: start;
+  justify-self: end;
+  width: min(520px, 70%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.day-card {
+  width: 100%;
+  margin: 0;
+  padding: 13px 18px 16px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgb(23 19 15 / 7%);
+  box-shadow: 0 1px 2px rgb(23 19 15 / 8%), 0 24px 60px rgb(23 19 15 / 18%);
+}
+
+.day-card-where {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--ink-3);
+}
+
+.day-card-wait {
+  height: 40px;
 }

@@ -2,13 +2,15 @@
 // ./terrain.worker.ts, and in Node for offline studies).
 //
 // - The land: one believable landform per viewport, seeded and fixed (the same land on every
-//   visit): low-frequency, domain-warped simplex (3 octaves, gain 0.35), a ridge spur from the
+//   visit): low-frequency, domain-warped simplex (3 octaves, gain 0.28, warp 0.6), a ridge spur from the
 //   uphill side, Willow Creek's drainage across the downhill side (its contours V upstream), and a
 //   regional fall. It scales with the viewport, so 1440×660 and 1280×600 show the same land.
-// - The grade: the copy sits on a level pad at PAD_EL. A tight cut slope (2:1) on the uphill side
-//   and a wider fill slope (3:1) downhill, both daylighting into the natural ground with a soft
-//   crease (polynomial smooth min/max). Where the ground is already at grade there is no slope:
-//   that asymmetry is what keeps the pad from reading as a frame.
+// - The grade: the copy sits on a level pad at PAD_EL, shaped from the copy's rows (padFromRows: a
+//   mesa, narrow round the short top lines, stepped out to the widest; the contours wrap the step).
+//   A tight cut slope (2:1) on the uphill side and a wider fill slope (3:1) downhill, from a
+//   softened edge, both daylighting into the natural ground with a soft crease (polynomial smooth
+//   min/max). Where the ground is already at grade there is no slope: that asymmetry is what keeps
+//   the pad from reading as a frame. No small closed rings (islands read as noise).
 // - The plan: marching squares → joined polylines → Chaikin ×2 → Douglas–Peucker, split into
 //   natural / proposed (G) and existing (E, inside the grading limits) runs, a few index labels set
 //   along calm stretches, top facing uphill.
@@ -17,7 +19,11 @@
 
 export type Mode = "desk" | "phone";
 export type Rect = { x: number; y: number; w: number; h: number };
-export type Pad = Rect & { r: number };
+/** The pad: its bounds (x, y, w, h, r) and, optionally, the rounded boxes it is the smooth union
+ * of (the copy's silhouette: a narrow top for the eyebrow and the short lines, the wide line and
+ * the button row below), blended over k px. */
+export type Box = Rect & { r: number };
+export type Pad = Rect & { r: number; parts?: Box[]; k?: number };
 export type Pt = [number, number];
 
 export const PAD_EL = 1240.5;
@@ -99,6 +105,9 @@ type Bez = [Pt, Pt, Pt, Pt];
 
 export type Land = {
   seed: number;
+  /** fBm: per-octave gain and the warp's own scale (studies) */
+  gain?: number;
+  octaves?: number;
   /** noise wavelength scale, as a fraction of the reference size (desk: W; phone: H) */
   scale: number;
   amp: number;
@@ -120,19 +129,20 @@ export type Land = {
 export const LAND_DESK: Land = {
   seed: 11,
   scale: 0.9,
-  amp: 2.8,
-  warp: 0.85,
-  fallX: 12,
-  fallY: 11,
+  amp: 3.5,
+  gain: 0.28,
+  warp: 0.6,
+  fallX: 18,
+  fallY: 18,
   drain: {
     bez: [
-      [1.08, 0.42],
-      [0.95, 0.6],
-      [0.93, 0.82],
-      [0.86, 1.12],
+      [1.1, 0.3],
+      [0.98, 0.55],
+      [0.97, 0.8],
+      [0.9, 1.15],
     ],
-    depth: 7,
-    width: 0.11,
+    depth: 8,
+    width: 0.09,
     floor: 12,
     fall: 3,
   },
@@ -156,10 +166,11 @@ export const LAND_DESK: Land = {
 export const LAND_PHONE: Land = {
   seed: 11,
   scale: 1.1,
-  amp: 2.6,
-  warp: 0.85,
-  fallX: 11,
-  fallY: 7,
+  amp: 3,
+  gain: 0.28,
+  warp: 0.6,
+  fallX: 14,
+  fallY: 12,
   drain: {
     bez: [
       [0.95, 1.15],
@@ -184,7 +195,7 @@ export const LAND_PHONE: Land = {
   },
 };
 
-function bezPts(b: Bez, W: number, H: number, n = 40): Pt[] {
+function bezPts(b: Bez, W: number, H: number, n = 24): Pt[] {
   const out: Pt[] = [];
   for (let i = 0; i <= n; i++) {
     const t = i / n;
@@ -240,20 +251,22 @@ function polyDist(px: number, py: number, s: Spine): number {
 }
 
 /** The existing ground E(x, y) in ft (before the balance shift), for a W×H viewport. */
-export function makeLand(W: number, H: number, mode: Mode) {
-  const L = mode === "phone" ? LAND_PHONE : LAND_DESK;
+export function makeLand(W: number, H: number, mode: Mode, land?: Land) {
+  const L = land ?? (mode === "phone" ? LAND_PHONE : LAND_DESK);
   const S = (mode === "phone" ? H : W) * L.scale;
   const n1 = makeSimplex(L.seed);
   const n2 = makeSimplex(L.seed + 7);
   const n3 = makeSimplex(L.seed + 19);
+  const gain = L.gain ?? 0.35;
+  const oct = L.octaves ?? 3;
   const fbm = (x: number, y: number, nz: (x: number, y: number) => number) => {
     let s = 0;
     let a = 0.6;
     let f = 1;
-    for (let k = 0; k < 3; k++) {
+    for (let k = 0; k < oct; k++) {
       s += a * nz(x * f + k * 13.1, y * f - k * 7.7);
       f *= 2.03;
-      a *= 0.35;
+      a *= gain;
     }
     return s;
   };
@@ -350,6 +363,8 @@ export type Field = {
   fine: Grid;
   /** E on the contouring grid (desk: 4 px; phone: 3 px) */
   cg: Grid;
+  /** E's contours on cg (all levels), once computed (the dashes' arc lengths, the plan) */
+  cE?: Level[];
 };
 
 const COARSE = { desk: 8, phone: 6 };
@@ -360,8 +375,8 @@ const CONTOUR_K = { desk: 2, phone: 1 }; // of the fine grid: desk 4 px, phone 3
  * E for a viewport: sampled on a coarse grid (the land is low-frequency), Catmull-Rom upsampled,
  * then shifted so the expected copy block sits at grade balance (as much cut as fill round it).
  */
-export function buildField(W: number, H: number, mode: Mode): Field {
-  const E = makeLand(W, H, mode);
+export function buildField(W: number, H: number, mode: Mode, land?: Land): Field {
+  const E = makeLand(W, H, mode, land);
   const c = COARSE[mode];
   const m = 3 * c;
   const coarse = sampleGrid(E, -m, -m, c, Math.ceil((W + 2 * m) / c) + 1, Math.ceil((H + 2 * m) / c) + 1);
@@ -386,11 +401,17 @@ export function buildField(W: number, H: number, mode: Mode): Field {
   return { W, H, mode, fine, cg };
 }
 
-/** The shader's texture: (E − PAD_EL, ∂E/∂x, ∂E/∂y, 0) per fine-grid sample, RGBA32F. */
+/**
+ * The shader's texture, per fine-grid sample, RGBA32F: (E − PAD_EL, ∂E/∂x, ∂E/∂y, arc), where arc
+ * is the distance along the nearest existing-ground contour (−1 away from every line). The shader
+ * dashes the existing ground with it (5 on, 4 off, like the plan's dashed lines) until the pass
+ * grades it: the dashes ride the very lines that move, no overlay to line up.
+ */
 export function fieldTexture(f: Field): Float32Array {
   const g = f.fine;
   const out = new Float32Array(g.nx * g.ny * 4);
   const s2 = 2 * g.step;
+  const arc = arcField(f);
   for (let j = 0; j < g.ny; j++)
     for (let i = 0; i < g.nx; i++) {
       const k = j * g.nx + i;
@@ -401,8 +422,53 @@ export function fieldTexture(f: Field): Float32Array {
       out[k * 4] = g.v[k] - PAD_EL;
       out[k * 4 + 1] = (r - l) / s2;
       out[k * 4 + 2] = (d - u) / s2;
+      out[k * 4 + 3] = arc[k];
     }
   return out;
+}
+
+/** Arc length along E's contours, splatted onto the fine grid within 3.2 px of each line. */
+function arcField(f: Field): Float32Array {
+  const g = f.fine;
+  const arc = new Float32Array(g.nx * g.ny).fill(-1);
+  const dist = new Float32Array(g.nx * g.ny).fill(1e9);
+  const R = 3.2;
+  const lv = (f.cE ??= contourGrid(f.cg));
+  for (const L of lv)
+    for (const ln of L.lines) {
+      if (ln.pts.length < 2) continue;
+      const pts = chaikin(ln.closed ? [...ln.pts, ln.pts[0]] : ln.pts, false, 1);
+      let s = 0;
+      for (let q = 1; q < pts.length; q++) {
+        const ax = pts[q - 1][0];
+        const ay = pts[q - 1][1];
+        const ex = pts[q][0] - ax;
+        const ey = pts[q][1] - ay;
+        const len = Math.hypot(ex, ey);
+        if (len < 1e-6) continue;
+        const i0 = Math.max(0, Math.floor((Math.min(ax, ax + ex) - R - g.x0) / g.step));
+        const i1 = Math.min(g.nx - 1, Math.ceil((Math.max(ax, ax + ex) + R - g.x0) / g.step));
+        const j0 = Math.max(0, Math.floor((Math.min(ay, ay + ey) - R - g.y0) / g.step));
+        const j1 = Math.min(g.ny - 1, Math.ceil((Math.max(ay, ay + ey) + R - g.y0) / g.step));
+        for (let j = j0; j <= j1; j++)
+          for (let i = i0; i <= i1; i++) {
+            const px = g.x0 + i * g.step - ax;
+            const py = g.y0 + j * g.step - ay;
+            let t = (px * ex + py * ey) / (len * len);
+            t = t < 0 ? 0 : t > 1 ? 1 : t;
+            const dx = px - ex * t;
+            const dy = py - ey * t;
+            const d = dx * dx + dy * dy;
+            const k = j * g.nx + i;
+            if (d < R * R && d < dist[k]) {
+              dist[k] = d;
+              arc[k] = s + t * len;
+            }
+          }
+        s += len;
+      }
+    }
+  return arc;
 }
 
 // ─── the grade ───────────────────────────────────────────────────────────────────────────
@@ -417,7 +483,7 @@ export type Grade = {
 };
 
 /** Signed distance to a rounded rectangle (negative inside). */
-export function sdPad(px: number, py: number, p: Pad) {
+export function sdBox(px: number, py: number, p: Box) {
   const cx = p.x + p.w / 2;
   const cy = p.y + p.h / 2;
   const r = Math.min(p.r, p.w / 2, p.h / 2);
@@ -426,14 +492,83 @@ export function sdPad(px: number, py: number, p: Pad) {
   return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r;
 }
 
+/** Signed distance to the pad (negative inside): one rounded box, or the smooth union of its parts. */
+export function sdPad(px: number, py: number, p: Pad) {
+  if (!p.parts || p.parts.length < 2) return sdBox(px, py, p);
+  const k = p.k ?? 40;
+  let d = sdBox(px, py, p.parts[0]);
+  for (let i = 1; i < p.parts.length; i++) d = smin(d, sdBox(px, py, p.parts[i]), k);
+  return d;
+}
+
+/**
+ * The pad from the copy's rows (top to bottom, CSS px): a mesa that never narrows going down.
+ * Rows are merged into bands while their extents stay within `tol`; each band is a rounded box,
+ * stretched to meet its neighbours, and the pad is their smooth union. So the short lines at the
+ * top of a headline get a narrow pad of their own, stepped out to the widest line below (the
+ * contours wrap the step), and a block of even rows is one box.
+ */
+export function padFromRows(rows: Rect[], o: { m: number; mTop: number; tol: number; r: number; k: number; bottom: number; side?: number; W?: number; bleed?: number }): Pad {
+  const rs = rows.filter((r) => r.w > 0 && r.h > 0).sort((a, b) => a.y - b.y);
+  type Band = { x0: number; x1: number; y0: number; y1: number };
+  const bands: Band[] = [];
+  for (const r of rs) {
+    let x0 = r.x;
+    let x1 = r.x + r.w;
+    const prev = bands[bands.length - 1];
+    if (prev) {
+      // never narrower than the band above
+      x0 = Math.min(x0, prev.x0);
+      x1 = Math.max(x1, prev.x1);
+      if (prev.x0 - x0 < o.tol && x1 - prev.x1 < o.tol) {
+        prev.x0 = x0;
+        prev.x1 = x1;
+        prev.y1 = Math.max(prev.y1, r.y + r.h);
+        continue;
+      }
+    }
+    bands.push({ x0, x1, y0: r.y, y1: r.y + r.h });
+  }
+  // a band shorter than 40 px that is narrower than the next is merged into it (no small tabs)
+  for (let i = bands.length - 2; i >= 0; i--) {
+    const b = bands[i];
+    if (b.y1 - b.y0 < 40) {
+      const n = bands[i + 1];
+      n.y0 = b.y0;
+      n.x0 = Math.min(n.x0, b.x0);
+      n.x1 = Math.max(n.x1, b.x1);
+      bands.splice(i, 1);
+    }
+  }
+  const side = o.side ?? o.m;
+  const parts: Box[] = bands.map((b, i) => {
+    const top = i === 0 ? b.y0 - o.mTop : (bands[i - 1].y1 + b.y0) / 2;
+    const bot = i === bands.length - 1 ? o.bottom : (b.y1 + bands[i + 1].y0) / 2 + o.r;
+    let x0 = b.x0 - side;
+    let x1 = b.x1 + side;
+    // a band that nearly reaches the screen's edge runs off it (no slope squeezed into a gutter)
+    if (o.W && o.bleed != null) {
+      if (x0 < o.bleed) x0 = -200;
+      if (x1 > o.W - o.bleed) x1 = o.W + 200;
+    }
+    return { x: x0, y: top, w: x1 - x0, h: bot - top, r: o.r };
+  });
+  const x0 = Math.min(...parts.map((p) => p.x));
+  const y0 = Math.min(...parts.map((p) => p.y));
+  const x1 = Math.max(...parts.map((p) => p.x + p.w));
+  const y1 = Math.max(...parts.map((p) => p.y + p.h));
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0, r: o.r, parts, k: o.k };
+}
+
 export function smin(a: number, b: number, k: number) {
   const h = Math.max(k - Math.abs(a - b), 0) / k;
   return Math.min(a, b) - (h * h * k) / 4;
 }
 
 /** The graded surface at a point, from the existing ground e there. */
-export function graded(e: number, d: number, g: Grade) {
-  if (d <= 0) return PAD_EL;
+export function graded(e: number, d0: number, g: Grade) {
+  // the slopes start from a softened edge (softplus): a rounded top of cut and toe of fill
+  const d = 0.5 * (d0 + Math.sqrt(d0 * d0 + 100));
   const rel = e - PAD_EL;
   const hi = g.cut * d;
   const lo = -g.fill * d;
@@ -453,7 +588,7 @@ export type Line = { pts: Pt[]; closed: boolean };
 export type Level = { level: number; index: boolean; lines: Line[] };
 
 /** Marching squares over a grid at every integer level in range; joined polylines per level. */
-export function contourGrid(g: Grid, levels?: [number, number]): Level[] {
+export function contourGrid(g: Grid, levels?: [number, number], indexOnly = false): Level[] {
   const { nx, ny, v, x0, y0, step } = g;
   let lo = Infinity;
   let hi = -Infinity;
@@ -496,14 +631,15 @@ export function contourGrid(g: Grid, levels?: [number, number]): Level[] {
       if (c > mx) mx = c;
       if (d < mn) mn = d;
       if (d > mx) mx = d;
-      const la = Math.max(L0, Math.ceil(mn));
+      let la = Math.max(L0, Math.ceil(mn));
       const lb = Math.min(L1, Math.floor(mx));
+      if (indexOnly) la = Math.ceil(la / MAJOR) * MAJOR;
       if (la > lb) continue;
       const eT = 2 * k;
       const eB = 2 * (k + nx);
       const eL = 2 * k + 1;
       const eR = 2 * (k + 1) + 1;
-      for (let L = la; L <= lb; L++) {
+      for (let L = la; L <= lb; L += indexOnly ? MAJOR : 1) {
         // a value exactly on a level counts as above it
         const idx = (a >= L ? 8 : 0) | (b >= L ? 4 : 0) | (c >= L ? 2 : 0) | (d >= L ? 1 : 0);
         if (idx === 0 || idx === 15) continue;
@@ -689,6 +825,10 @@ export type PlanIn = {
   keep: Rect[];
   /** labels wanted (desk 4, phone 0) */
   labels: number;
+  /** studies: slope overrides */
+  slopes?: Partial<Omit<Grade, "pad">>;
+  /** the shader draws the plan itself: only the labels (index lines) and the grading limits */
+  lite?: boolean;
 };
 
 export type Plan = {
@@ -762,8 +902,9 @@ function finish(runs: Run[], eps: number): Run[] {
 }
 
 export function buildPlan(f: Field, o: PlanIn): Plan {
+  if (o.lite) return litePlan(f, o);
   const g = f.cg;
-  const grade = gradeFor(o.W, o.mode, o.pad);
+  const grade = { ...gradeFor(o.W, o.mode, o.pad), ...o.slopes };
   // G and the pad distance on the contouring grid
   const G = new Float32Array(g.v.length);
   const D = new Float32Array(g.v.length);
@@ -790,9 +931,11 @@ export function buildPlan(f: Field, o: PlanIn): Plan {
   const gD: Grid = { ...g, v: D };
   const eps = o.mode === "phone" ? 0.3 : 0.32;
   const minLen = g.step * 3;
-  const long = (lv: Level[]) => lv.map((l) => ({ ...l, lines: l.lines.filter((q) => plen(q.pts) > minLen) }));
-  const cG = long(contourGrid(gG));
-  const cE = long(contourGrid(g));
+  // no stubs, and no small closed rings (islands and pits read as noise, not land)
+  const ring = o.mode === "phone" ? 70 : 110;
+  const long = (lv: Level[]) => lv.map((l) => ({ ...l, lines: l.lines.filter((q) => { const L = plen(q.pts); return L > minLen && !(q.closed && L < ring); }) }));
+  const cG = long(contourGrid(gG, undefined, !!o.lite));
+  const cE = o.lite ? [] : long((f.cE ??= contourGrid(g)));
   const inLim = (p: Pt) => Math.abs(sample(gG, p[0], p[1]) - sample(g, p[0], p[1])) > LIM;
 
   const natural: Run[] = [];
@@ -800,19 +943,61 @@ export function buildPlan(f: Field, o: PlanIn): Plan {
   for (const lv of cG) {
     const m = splitRuns(lv.lines, (p) => (inLim(p) ? 1 : 0), lv.index, lv.level, 4);
     natural.push(...finish(m.get(0) || [], eps));
-    proposed.push(...finish(m.get(1) || [], eps));
+    if (!o.lite) proposed.push(...finish(m.get(1) || [], eps));
   }
   const existingPad: Run[] = [];
   const existingSlope: Run[] = [];
   for (const lv of cE) {
     // 0: natural (drawn by the G layer), 1: under the slopes, 2: on the pad
     const m = splitRuns(lv.lines, (p) => (sample(gD, p[0], p[1]) <= 0 ? 2 : inLim(p) ? 1 : 0), lv.index, lv.level, 4);
-    existingSlope.push(...finish(m.get(1) || [], eps * 1.6));
-    existingPad.push(...finish(m.get(2) || [], eps * 1.6));
+    // (dashed and gone within the entrance: a coarser simplification is invisible, and keeps the
+    // phone's three layers inside their byte budget)
+    const exEps = eps * (o.mode === "phone" ? 3.2 : 1.6);
+    existingSlope.push(...finish(m.get(1) || [], exEps));
+    existingPad.push(...finish(m.get(2) || [], exEps));
   }
   const limits = lx0 <= lx1 ? { x: lx0, y: ly0, w: lx1 - lx0, h: ly1 - ly0 } : { x: 0, y: 0, w: 0, h: 0 };
   const labels = o.labels > 0 ? placeLabels(natural, gG, o) : [];
   return { natural, proposed, existingPad, existingSlope, limits, labels, grade };
+}
+
+/**
+ * The shader's plan: it draws every line itself, so only the grading limits (on a 12 px lattice)
+ * and the index labels are needed. The labels sit on natural ground, where the graded surface is
+ * the existing one, so they come from E's own index contours (cached from the dashes' pass), cut
+ * where the grading begins. No full-grid pass over G: a few ms instead of tens.
+ */
+function litePlan(f: Field, o: PlanIn): Plan {
+  const g = f.cg;
+  const grade = { ...gradeFor(o.W, o.mode, o.pad), ...o.slopes };
+  const G = (x: number, y: number, e: number) => graded(e, sdPad(x, y, o.pad), grade);
+  let lx0 = Infinity;
+  let ly0 = Infinity;
+  let lx1 = -Infinity;
+  let ly1 = -Infinity;
+  const st = 12;
+  for (let y = g.y0; y <= g.y0 + (g.ny - 1) * g.step; y += st)
+    for (let x = g.x0; x <= g.x0 + (g.nx - 1) * g.step; x += st) {
+      const e = sample(g, x, y);
+      if (Math.abs(G(x, y, e) - e) > LIM) {
+        if (x < lx0) lx0 = x;
+        if (x > lx1) lx1 = x;
+        if (y < ly0) ly0 = y;
+        if (y > ly1) ly1 = y;
+      }
+    }
+  const limits = lx0 <= lx1 ? { x: lx0 - st, y: ly0 - st, w: lx1 - lx0 + 2 * st, h: ly1 - ly0 + 2 * st } : { x: 0, y: 0, w: 0, h: 0 };
+  const cE = (f.cE ??= contourGrid(g));
+  const natural: Run[] = [];
+  const minLen = g.step * 3;
+  for (const lv of cE) {
+    if (!lv.index) continue;
+    const lines = lv.lines.filter((q) => plen(q.pts) > minLen);
+    const m = splitRuns(lines, (p) => (Math.abs(G(p[0], p[1], lv.level) - lv.level) > LIM ? 1 : 0), true, lv.level, 4);
+    natural.push(...finish(m.get(0) || [], 0.32));
+  }
+  const labels = o.labels > 0 ? placeLabels(natural, g, o) : [];
+  return { natural, proposed: [], existingPad: [], existingSlope: [], limits, labels, grade };
 }
 
 // ─── labels ──────────────────────────────────────────────────────────────────────────────

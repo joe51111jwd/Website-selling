@@ -1,49 +1,48 @@
-// 2 · One Day: "Enjoy the ride" (RIDE_BRIEF.md). The visitor scrolls past the hero; the page
-// glides One Day into place on its own and holds it; "Enjoy the ride" holds for a breath; then
-// the day PLAYS, on a clock, at one calm pace you can read: seven moments of a workday at Cedar
-// Ridge Earthworks on the real app, on the real 3D devices. Built from the page's own DOM and the
-// Stage, never a video.
+// 2 · One Day: "Enjoy the ride", v2 (RIDE_BRIEF.md; the shot list RIDE_SHOTS.md). The visitor
+// scrolls past the hero; the page glides One Day into place on its own and the ride TAKES OVER the
+// screen (the header slides away; the control bar keeps a small orange door out); "Enjoy the ride"
+// holds over the walking map for a breath; then the day PLAYS, on one clock, at a pace you can
+// read: seven moments of a workday at Cedar Ridge Earthworks on the real app, on the real 3D
+// devices, as one continuous walk from dawn to Friday night, every moment its own shot, and never
+// a still frame. It ends on the whole app, "That's SmartCrew." and the orange button.
 //
-// Each moment, one thing at a time, in reading order (./ride.ts): the camera glides to the shot →
-// the big time rolls → the headline → a finger taps the button on the crew's phone and its screen
-// shows the result (its label) → the orange pulse travels → the office screen updates in place →
-// the camera pushes in on what changed and the crisp update card lands → it holds, still, to be
-// read. Then the next.
+// Who does what, all on the one clock (./ride.ts):
+//   ./poses.ts      the camera: one shot per moment (the Stage's keys)
+//   ./rideLife.ts   the screens' own life: taps, a running timer, forms filling, rows sliding in
+//   ./Fx.tsx        the DOM that works with the devices: taps, tags, the lifted row, the ticket,
+//                   the flying card, the profit card, the cursor and the crew chips
+//   ./RideGround.tsx the ground: its colour through the day, the contour map it walks, the haul
+//   ./RideOdo.tsx   the clock, rolling through the time in between
+//   ./stageFx.ts    the light: dawn to the Friday-night lamp
+// This file is the controller (trigger, takeover, controls, keys, exits) and the copy.
 //
 // The visitor's own scrolling never fights it (src/site/player/hold.ts): downward input is
-// absorbed while it plays; a clear scroll up hands the page back ("Resume the ride"); the header's
-// orange button stays clickable (it pauses the film and opens the popup). Controls like a video
-// player's: play / pause, the seven times as a rail (click to go there), Skip; Space, ← →, Esc.
-// At the end it lands on Friday and its orange button, and the page is handed back: the rail
-// stays as a scrubber with Replay. Once per page load it starts on its own.
-//
-// Reduced motion: no autoplay, no holding: the moments one at a time, landed, with the rail and
-// Previous / Next. Phones: ./phone/DayPhone.tsx (2D, no WebGL).
-//
-// The 3D choreography is ./poses.ts (on the film's clock), the screens' own animations
-// ./rideLife.ts, the light ./stageFx.ts. This file is the DOM and the controller.
+// absorbed while it plays; a clear scroll up hands the page back ("Resume the ride"); any orange
+// button pauses it and opens the popup. Reduced motion: no autoplay, no holding: the moments one
+// at a time, landed, with the rail and Previous / Next. Phones: ./phone/DayPhone.tsx (2D).
 
 import { lazy, memo, Suspense, useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { MOMENTS, type Moment } from "../../content/moments";
-import { DAY2, DAY2_UI, DAY_UI, FLAG } from "../../content/copy";
+import { DAY2, DAY_UI, FLAG } from "../../content/copy";
 import { Scene } from "../scene/Scene";
 import { StageAnchor } from "../../three/stage/StageAnchor";
-import { onStageFrame, onStatus, poke, reducedMotion, registerPoses, sceneOnScreen, sceneY, status, type StageFrame } from "../../three/stage/store";
+import { onStageFrame, onStatus, poke, reducedMotion, registerPoses, sceneOnScreen, sceneY, status } from "../../three/stage/store";
 import { onSignup } from "../../signup/contract";
 import { Cta } from "../ui/Cta";
 import { glideTo, navigatingTo } from "../scroll";
 import { usePhoneLite } from "../phone";
 import { Controls, EASE, Player, bindPlayerKeys, holdPage, presence, usePlayer, type TrackFrame } from "../player";
 import { RIDE, PACE, rideChapters, type Ride } from "./ride";
-import { ridePoses, dayPosterFrame, markOf, tapOf } from "./poses";
-import { SCRIPT } from "./script";
+import { ridePoses } from "./poses";
 import { rideLifePending, startRideLife } from "./rideLife";
 import { RideOdo } from "./RideOdo";
+import { RideFx } from "./Fx";
+import { RideGround, nightfallAt } from "./RideGround";
 import { RIDE_COPY } from "./rideCopy";
-import { dayPresence, luminance, readPalette, rgb } from "./clock";
 import DayPhone from "./phone/DayPhone";
 import "./day.css";
+import "./fx.css";
 
 const UpdateCardBody = lazy(() => import("./UpdateCard"));
 
@@ -58,13 +57,13 @@ export function getRidePlayer() {
   if (!ridePlayer) {
     // ?rideDebug&rideRate=0.25: a slower film (tests on a slow machine keep up with it)
     const rate = DEBUG ? Number(new URLSearchParams(location.search).get("rideRate")) || 1 : 1;
-    // the Stage rests (draws nothing) while "Enjoy the ride" holds (the devices wait out of sight);
-    // from the hand-off on the shot is always moving, slowly
+    // the Stage rests (draws nothing) while "Enjoy the ride" holds (the devices wait out of sight;
+    // the ground walks on, it is DOM); from the rise on, the shot is always moving
     const still: [number, number][] = [[0, RIDE.moments[0].start]];
-    ridePlayer = new Player({ name: "ride", duration: RIDE.duration, chapters: rideChapters(), cues: RIDE.cues, reduced: reducedMotion, rate, still });
+    ridePlayer = new Player({ name: "ride", duration: RIDE.duration, chapters: rideChapters(), cues: [...RIDE.cues, nightfallAt()], reduced: reducedMotion, rate, still });
     ridePlayer.setStagePoke(poke);
     // reduced motion: no autoplay; the first moment is shown landed
-    if (reducedMotion) ridePlayer.seek(RIDE.moments[0].hold[0]);
+    if (reducedMotion) ridePlayer.seek(RIDE.moments[0].hold[0] + 200);
   }
   return ridePlayer;
 }
@@ -76,10 +75,27 @@ export default function Day() {
 
 function DayDesk() {
   const player = getRidePlayer();
-  // the Stage plays One Day on the film's clock: its keys are in ms of the film. The scene sits in
-  // the scroll timeline at its top and again three quarters of a screen earlier (where the ride
-  // starts), so while the page glides in, the devices wait below the fold with One Day's stage
-  useEffect(() => registerPoses("day", ridePoses(), { clock: player.sceneClock, portal: [-0.75, 0] }), [player]);
+  // the Stage plays One Day on the film's clock: its keys are in ms of the film, laid out for the
+  // viewport's shape (registered again when it changes). The scene sits in the scroll timeline at
+  // its top and three quarters of a screen earlier (where the ride starts), so while the page glides
+  // in, the devices wait below the frame with One Day's stage
+  const [aspect, setAspect] = useState(() => window.innerWidth / Math.max(1, window.innerHeight));
+  useEffect(() => {
+    let t = 0;
+    const on = () => {
+      window.clearTimeout(t);
+      t = window.setTimeout(() => {
+        const a = window.innerWidth / Math.max(1, window.innerHeight);
+        setAspect((x) => (Math.abs(x - a) > 0.01 ? a : x));
+      }, 200);
+    };
+    window.addEventListener("resize", on);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener("resize", on);
+    };
+  }, []);
+  useEffect(() => registerPoses("day", ridePoses(aspect), { clock: player.sceneClock, portal: [-0.75, 0] }), [player, aspect]);
   return (
     <Scene id="day" pinnedViewports={1} stage="keep" label={DAY_UI.rail} className="day day--ride">
       <DayStage player={player} />
@@ -238,93 +254,6 @@ function useRide(p: Player): RideActions {
   return actions;
 }
 
-// ─── the ground: dawn → Friday night, on the film's clock ───────────────────────
-
-/**
- * A fixed layer just above the page's ground (portalled to <body>, under the Stage's canvas): its
- * colour follows the film (a track: it changes only while the camera glides between moments),
- * its opacity follows the scroll (One Day's presence). The header and the controls take the
- * moment's ground (--page-ground on those two only: an inherited custom property set higher up
- * restyles every element under it, a long task on a slow laptop) and Friday night's dark tone
- * (html[data-ground]) at each moment's start.
- */
-function useGround(p: Player, el: RefObject<HTMLDivElement | null>, grid: RefObject<HTMLDivElement | null>) {
-  useEffect(() => {
-    const g = el.current;
-    if (!g) return;
-    const pal = readPalette();
-    const fr: TrackFrame[] = [{ t: 0, backgroundColor: rgb(pal.moments[0]) }];
-    RIDE.moments.forEach((m, i) => {
-      if (i === 0) return;
-      fr.push({ t: m.start, backgroundColor: rgb(pal.moments[i - 1]), ease: EASE.inOut }, { t: m.settle, backgroundColor: rgb(pal.moments[i]) });
-    });
-    const offTrack = p.track(g, fr);
-
-    const root = document.documentElement;
-    const tinted = () => [document.querySelector<HTMLElement>(".site-header"), grid.current?.querySelector<HTMLElement>(".plc")].filter((x): x is HTMLElement => !!x);
-    let ground = "";
-    let tone = "";
-    let bodyClear = false;
-    let lastW = -1;
-    let raf = 0;
-    const setGround = (c: string) => {
-      if (c === ground) return;
-      ground = c;
-      for (const e of tinted()) {
-        if (c) e.style.setProperty("--page-ground", c);
-        else e.style.removeProperty("--page-ground");
-      }
-    };
-    const setTone = (t: string) => {
-      if (t === tone) return;
-      tone = t;
-      if (t) root.dataset.ground = t;
-      else root.removeAttribute("data-ground");
-    };
-    const apply = () => {
-      raf = 0;
-      const w = dayPresence(window.scrollY, window.innerHeight);
-      if (Math.abs(w - lastW) > 0.002) {
-        g.style.opacity = w.toFixed(3);
-        lastW = w;
-      }
-      // the page's own ground (body) steps aside while One Day's shows through
-      if (w > 0 && !bodyClear) {
-        document.body.style.setProperty("background-color", "transparent");
-        bodyClear = true;
-      } else if (w <= 0 && bodyClear) {
-        document.body.style.removeProperty("background-color");
-        bodyClear = false;
-      }
-      if (w >= 0.5) {
-        const c = pal.moments[p.chapterAt()];
-        setGround(rgb(c));
-        setTone(luminance(c) < 0.45 ? "dark" : "light");
-      } else {
-        setGround("");
-        setTone("");
-      }
-    };
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(apply);
-    };
-    apply();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    const offBeat = p.on("beat", onScroll);
-    return () => {
-      offTrack();
-      offBeat();
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      setGround("");
-      setTone("");
-      if (bodyClear) document.body.style.removeProperty("background-color");
-    };
-  }, [p, el, grid]);
-}
-
 // ─── the copy column ─────────────────────────────────────────────────────────────
 
 function Features({ m }: { m: Moment }) {
@@ -344,7 +273,7 @@ function Features({ m }: { m: Moment }) {
             )}
             {k < last && (
               <span className="day-dot" aria-hidden="true">
-                {" ·"}
+                {" ·"}
               </span>
             )}
           </span>
@@ -354,208 +283,33 @@ function Features({ m }: { m: Moment }) {
   );
 }
 
-/** The windows a moment's things are on screen: from when they land until the next glide (or the finale) begins. */
+/** When a moment's headline leaves: as the next moment's move begins (or the finale's). */
 const outOf = (R: Ride, i: number): [number, number] => {
   const t = R.moments[i + 1]?.start ?? R.finale.start;
-  return [t, t + PACE.out];
+  return [t, t + 300];
 };
 
 function useTracks(p: Player, root: RefObject<HTMLElement | null>, sel: string, frames: (i: number) => TrackFrame[]) {
   useEffect(() => {
     const els = root.current ? [...root.current.querySelectorAll<HTMLElement>(sel)] : [];
-    const offs = els.map((el) => {
-      const i = Number(el.dataset.i ?? 0);
-      return p.track(el, frames(i));
-    });
+    const offs = els.map((el) => p.track(el, frames(Number(el.dataset.i ?? 0))));
     return () => offs.forEach((f) => f());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p, root, sel]);
 }
 
-// ─── the annotation layer: the finger, the phone's label, leader lines ─────────
-
-const PHONE_W = 402;
-
-/** Without WebGL (posters only) nothing can be pinned to the phone: its label joins the office's. */
+/** Without WebGL (stills only) nothing can follow the devices: the stills and plain labels stand in. */
 function useNoStage() {
   const [no, setNo] = useState(() => !status.webgl || status.failed);
   useEffect(() => onStatus(() => setNo(!status.webgl || status.failed)), []);
   return no;
 }
 
-const Annotations = memo(function Annotations({ p, stageRef }: { p: Player; stageRef: RefObject<HTMLDivElement | null> }) {
-  const root = useRef<HTMLDivElement>(null);
-  const R = RIDE;
-
-  // the finger: a pad lands, an orange ring opens out of it (calm: no squash, no bounce)
-  useTracks(p, root, ".day-touch-pad", (i) => {
-    const t = R.moments[i].tap;
-    return [
-      { t: 0, opacity: 0, transform: "scale(1.18)" },
-      { t: t - 1, opacity: 0, transform: "scale(1.18)", ease: EASE.out },
-      { t: t + 200, opacity: 1, transform: "scale(1)" },
-      { t: t + 420, opacity: 1, transform: "scale(1)", ease: EASE.inOut },
-      { t: t + 760, opacity: 0, transform: "scale(1)" },
-    ];
-  });
-  useTracks(p, root, ".day-touch-ring", (i) => {
-    const t = R.moments[i].tap + 90;
-    return [
-      { t: 0, opacity: 0, transform: "scale(0.6)" },
-      { t: t - 1, opacity: 0, transform: "scale(0.6)" },
-      { t, opacity: 0.95, transform: "scale(0.6)", ease: EASE.out },
-      { t: t + 900, opacity: 0, transform: "scale(2.4)" },
-    ];
-  });
-  // the phone's label and its leader
-  useTracks(p, root, ".day-chip-in", (i) => presence([{ in: R.moments[i].phoneLabel, out: outOf(R, i) }], { rise: 0 }).map((f) => ({ ...f, transform: f.opacity ? "translate3d(0, 0, 0)" : "translate3d(-8px, 0, 0)" })));
-  // (the leader lines are SVG: an animation on them would restyle and repaint on the main thread
-  // every frame of the film, so their opacity is set on the Stage's frames instead, below)
-
-  useEffect(() => {
-    const el = root.current;
-    if (!el) return;
-    const q = <T extends Element>(s: string) => [...el.querySelectorAll<T>(s)];
-    const touch = q<HTMLElement>(".day-touch");
-    const chips = q<HTMLElement>(".day-chip");
-    const leadP = q<SVGGElement>(".day-lead--phone");
-    const leadO = q<SVGGElement>(".day-lead--office");
-    /** a window's opacity at t: in over [a, b], out over [c, d] (eased, like the film's tracks) */
-    const win = (t: number, [a, b]: [number, number], out?: [number, number]) => {
-      const s3 = (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : 1 - Math.pow(1 - x, 3));
-      const i = s3((t - a) / (b - a));
-      const o = out ? 1 - s3((t - out[0]) / (out[1] - out[0])) : 1;
-      return Math.min(i, o);
-    };
-    const fade = (g: SVGGElement | undefined, v: number) => {
-      if (!g) return;
-      const o = v >= 0.999 ? "1" : v <= 0.001 ? "0" : v.toFixed(3);
-      if (g.style.opacity !== o) g.style.opacity = o;
-    };
-    const set = (e: Element | null | undefined, attrs: Record<string, string | number>) => {
-      if (!e) return;
-      for (const k in attrs) {
-        const v = String(attrs[k]);
-        if (e.getAttribute(k) !== v) e.setAttribute(k, v);
-      }
-    };
-    const place = (e: HTMLElement | undefined, x: number, y: number) => {
-      if (!e) return;
-      const t = `translate3d(${Math.round(x * 10) / 10}px, ${Math.round(y * 10) / 10}px, 0)`;
-      if (e.style.transform !== t) e.style.transform = t;
-    };
-    let shown = "";
-    return onStageFrame((f: StageFrame) => {
-      // the layer is One Day's: it fades as the scene scrolls away (the devices glide off with it)
-      const w = dayPresence(f.y, f.h);
-      const o = w >= 0.98 ? "" : w.toFixed(3);
-      if (o !== shown) {
-        el.style.opacity = o;
-        shown = o;
-      }
-      if (w <= 0) return false;
-      const t = p.time();
-      const k = R.moments.findIndex((m) => m.end > t);
-      const cur = k < 0 ? R.moments.length - 1 : k;
-      // the leader lines come and go with their labels
-      R.moments.forEach((m, i) => {
-        const near = i === cur || i === cur - 1;
-        fade(leadP[i], near ? win(t, m.phoneLabel, outOf(R, i)) : 0);
-        fade(leadO[i], near ? win(t, [m.card[0] + 120, m.card[1] + 120], outOf(R, i)) : 0);
-      });
-      // the moment on screen and the one fading out
-      for (const i of cur > 0 ? [cur, cur - 1] : [cur]) {
-        const sc = SCRIPT[i];
-        const tap = tapOf(i);
-        // layout reads first (one card rect), then writes
-        const card = stageRef.current?.querySelector<HTMLElement>(`.day-office[data-i="${i}"] .day-card`);
-        const cardRect = card?.getBoundingClientRect() ?? null;
-        const chip = chips[i];
-        const cw = chip?.offsetWidth ?? 0;
-        const ch = chip?.offsetHeight ?? 0;
-        if (tap) {
-          const pt = f.project(tap.device, tap.px[0], tap.px[1]);
-          if (pt) place(touch[i], pt.x, pt.y);
-        }
-        // the phone's label: beside the phone, level with where its screen shows the new state
-        const [ax, ay] = sc.phone.mark;
-        const edge = f.project("iphone", PHONE_W, ay);
-        const from = f.project("iphone", ax, ay);
-        // a phone that has glided out of the frame takes its label with it
-        if (chip) chip.style.visibility = edge ? "" : "hidden";
-        if (edge && from && chip) {
-          let x = edge.x + 22;
-          if (x + cw > f.w - 8) x = Math.max(8, f.w - 8 - cw);
-          const y = Math.max(72, Math.min(f.h - ch - 8, edge.y - ch / 2));
-          place(chip, x, y);
-          if (chip.dataset.placed !== "1") chip.dataset.placed = "1";
-          const g = leadP[i];
-          if (g) {
-            for (const l of g.querySelectorAll("line")) set(l, { x1: from.x, y1: from.y, x2: x, y2: y + ch / 2 });
-            set(g.querySelector("circle"), { cx: from.x, cy: from.y });
-          }
-        }
-        // the office leader: from the card to the spot that changed
-        const mk = markOf(i);
-        const to = f.project("macbook", mk[0], mk[1]);
-        const g = leadO[i];
-        if (g && to && cardRect) {
-          const r = cardRect;
-          const below = to.y > r.bottom;
-          const sx = Math.max(r.left + 28, Math.min(r.right - 28, to.x));
-          const sy = below ? r.bottom : r.top;
-          const pts = `${sx},${sy} ${sx},${sy + (below ? 1 : -1) * Math.min(18, Math.abs(to.y - sy) / 2)} ${to.x},${to.y}`;
-          for (const l of g.querySelectorAll("polyline")) set(l, { points: pts });
-          for (const c of g.querySelectorAll("circle")) set(c, { cx: to.x, cy: to.y });
-        }
-      }
-      return false;
-    });
-  }, [p, R, stageRef]);
-
-  return (
-    <div className="day-ann" ref={root} aria-hidden="true">
-      <svg className="day-ann-svg">
-        {MOMENTS.map((m, i) => (
-          <g key={m.id}>
-            <g className="day-lead--phone" data-i={i}>
-              <line className="day-lead day-lead-halo" />
-              <line className="day-lead" />
-              <circle className="day-lead-dot" r="3.5" />
-            </g>
-            <g className="day-lead--office" data-i={i}>
-              <polyline className="day-lead day-lead-halo" fill="none" />
-              <polyline className="day-lead" fill="none" />
-              <circle className="day-lead-ring" r="9" />
-              <circle className="day-lead-dot" r="3.5" />
-            </g>
-          </g>
-        ))}
-      </svg>
-      {MOMENTS.map((m, i) => (
-        <div key={m.id} className={`day-touch${SCRIPT[i].dir === "up" ? "" : " is-click"}`} data-i={i}>
-          <span className="day-touch-pad" data-i={i} />
-          <span className="day-touch-ring" data-i={i} />
-        </div>
-      ))}
-      {MOMENTS.map((m, i) => (
-        <div key={m.id} className="day-chip" data-i={i}>
-          <p className="day-tag day-tag--phone day-chip-in" data-i={i}>
-            <span className="day-tag-dot" />
-            {DAY2[m.id].phone}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
-});
-
-// ─── the heavy, static parts (rendered once; only which one is current changes) ──────
-
 const HeadBody = memo(function HeadBody({ m }: { m: Moment }) {
   return (
     <>
       <h3 className="day-title">{DAY2[m.id].headline}</h3>
+      {/* the detail, for whoever stops to look: it shows while the ride is paused */}
       <p className="day-features">
         <Features m={m} />
       </p>
@@ -567,7 +321,7 @@ const Heads = memo(function Heads({ chapter }: { chapter: number }) {
   return (
     <>
       {MOMENTS.map((mm, k) => (
-        <div key={mm.id} className="day-head" data-i={k} aria-hidden={k !== chapter}>
+        <div key={mm.id} className="day-head" data-i={k} data-cur={k === chapter ? "1" : undefined} aria-hidden={k !== chapter}>
           <HeadBody m={mm} />
         </div>
       ))}
@@ -575,39 +329,25 @@ const Heads = memo(function Heads({ chapter }: { chapter: number }) {
   );
 });
 
-const OfficeBody = memo(function OfficeBody({ m, noStage }: { m: Moment; noStage: boolean }) {
+/** No WebGL: each moment's still, and its office card, in the old two-column frame. */
+const NoStage = memo(function NoStage({ chapter }: { chapter: number }) {
+  const m = MOMENTS[chapter];
   const copy = DAY2[m.id];
   return (
-    <>
-      {noStage && (
-        <p className="day-tag day-tag--phone" aria-hidden="true">
-          <span className="day-tag-dot" />
-          {copy.phone}
+    <div className="day-nostage">
+      <img className="day-nostage-img" src={`${import.meta.env.BASE_URL}renders/day-${m.id}.webp`} alt={`${m.when}: ${copy.headline}`} decoding="async" />
+      <div className="day-nostage-card">
+        <p className="day-tag">
+          <span className="day-tag-dot" aria-hidden="true" />
+          {copy.office}
         </p>
-      )}
-      <p className="day-tag day-tag--office">
-        <span className="day-tag-dot" aria-hidden="true" />
-        <span className="sr-only">{DAY2_UI.officeSr} </span>
-        {copy.office}
-      </p>
-      <div className="day-card" data-cursor="text">
-        <p className="day-card-where">{copy.where}</p>
-        <Suspense fallback={<div className="day-card-wait" />}>
-          <UpdateCardBody id={m.id} />
-        </Suspense>
-      </div>
-    </>
-  );
-});
-
-const Offices = memo(function Offices({ chapter, noStage, stageRef }: { chapter: number; noStage: boolean; stageRef: RefObject<HTMLDivElement | null> }) {
-  return (
-    <div className="day-offices" ref={stageRef}>
-      {MOMENTS.map((mm, k) => (
-        <div key={mm.id} className="day-office" data-i={k} aria-hidden={k !== chapter}>
-          <OfficeBody m={mm} noStage={noStage} />
+        <div className="day-card">
+          <p className="day-card-where">{copy.where}</p>
+          <Suspense fallback={<div className="day-card-wait" />}>
+            <UpdateCardBody id={m.id} />
+          </Suspense>
         </div>
-      ))}
+      </div>
     </div>
   );
 });
@@ -619,19 +359,16 @@ function DayStage({ player: p }: { player: Player }) {
   const v = usePlayer(p);
   const a = useRide(p);
   const grid = useRef<HTMLDivElement>(null);
-  const stage = useRef<HTMLDivElement>(null);
   const ground = useRef<HTMLDivElement>(null);
   const film = useRef<HTMLDivElement>(null);
   const noStage = useNoStage();
-  useGround(p, ground, grid);
 
-  // the live layer on the screens (the press, the office updates) and the light, with the Stage
+  // the screens' life and the light, with the Stage
   useEffect(() => {
     let gone = false;
     let stopFx = () => {};
     const stopLife = startRideLife(() => p.time());
-    // the update card's chunk (the app kit) loads while the visitor is still on the hero
-    const idle = window.setTimeout(() => void import("./UpdateCard"), 1200);
+    // the stills' office cards (the app kit) load only without WebGL
     const go = () => {
       if (gone) return;
       import("./stageFx")
@@ -650,29 +387,51 @@ function DayStage({ player: p }: { player: Player }) {
       });
     return () => {
       gone = true;
-      window.clearTimeout(idle);
       off();
       stopFx();
       stopLife();
     };
   }, [p]);
 
-  // the film's tracks: the title, each moment's headline, the office's label and card, the CTA
-  useTracks(p, grid, ".day-ride-title", () => [
-    { t: 0, opacity: 1, transform: "translate3d(0, 0, 0)" },
-    { t: R.title[0], opacity: 1, transform: "translate3d(0, 0, 0)", ease: EASE.inOut },
-    { t: R.title[1], opacity: 0, transform: "translate3d(0, -12px, 0)" },
+  // the copy's ink follows the ground on the same clock: it turns to paper as night falls, so
+  // it can never sit dark on dark (only the copy column: a colour animation restyles its subtree)
+  useEffect(() => {
+    const el = grid.current?.querySelector<HTMLElement>(".day-copy");
+    if (!el) return;
+    const cs = getComputedStyle(document.documentElement);
+    const ink = cs.getPropertyValue("--ink").trim() || "#17130f";
+    const paper = cs.getPropertyValue("--ink-night").trim() || "#f4eee7";
+    const n = nightfallAt(R);
+    return p.track(el, [
+      { t: 0, color: ink },
+      { t: n - 220, color: ink, ease: EASE.inOut },
+      { t: n + 220, color: paper },
+    ]);
+  }, [p, R]);
+
+  // the film's tracks: the title, the copy column, each headline, the finale's line and button
+  useTracks(p, grid, ".day-ride-t", () => [
+    { t: 0, opacity: 0, transform: "translate3d(0, 10px, 0)" },
+    { t: R.title.in[0], opacity: 0, transform: "translate3d(0, 10px, 0)", ease: EASE.out },
+    { t: R.title.in[1], opacity: 1, transform: "translate3d(0, 0, 0)" },
+    { t: R.title.out[0], opacity: 1, transform: "translate3d(0, 0, 0)", ease: EASE.in },
+    { t: R.title.out[1], opacity: 0, transform: "translate3d(0, -36px, 0)" },
+  ]);
+  useTracks(p, grid, ".day-ride-sub", () => [
+    { t: 0, opacity: 0, transform: "translate3d(0, 10px, 0)" },
+    { t: R.title.sub[0], opacity: 0, transform: "translate3d(0, 10px, 0)", ease: EASE.out },
+    { t: R.title.sub[1], opacity: 1, transform: "translate3d(0, 0, 0)" },
+    { t: R.title.out[0] + 60, opacity: 1, transform: "translate3d(0, 0, 0)", ease: EASE.in },
+    { t: R.title.out[1] + 60, opacity: 0, transform: "translate3d(0, -36px, 0)" },
+  ]);
+  useTracks(p, grid, ".day-copy", () => [
+    { t: 0, opacity: 1 },
+    { t: R.finale.start, opacity: 1, ease: EASE.inOut },
+    { t: R.finale.start + 300, opacity: 0 },
   ]);
   useTracks(p, grid, ".day-head", (i) => presence([{ in: R.moments[i].head, out: outOf(R, i) }], { rise: 12 }));
-  useTracks(p, grid, ".day-office", (i) => presence([{ in: R.moments[i].card, out: outOf(R, i) }], { rise: 10 }));
-  useTracks(p, grid, ".day-end", () => presence([{ in: R.finale.line }], { rise: 12 }));
-  useTracks(p, grid, ".day-end-cta", () => presence([{ in: R.cta }], { rise: 8 }));
-  // without the 3D the stills stand in: they wait out the title as the devices do (no overlap)
-  useTracks(p, grid, noStage ? ".day-stage" : ".day-stage-none", () => [
-    { t: 0, opacity: 0 },
-    { t: R.title[1] - 200, opacity: 0, ease: EASE.out },
-    { t: R.title[1] + 500, opacity: 1 },
-  ]);
+  useTracks(p, grid, ".day-end-t", () => presence([{ in: R.finale.line }], { rise: 12 }));
+  useTracks(p, grid, ".day-end-cta", () => presence([{ in: R.finale.cta }], { rise: 8 }));
 
   // a soft jump (the rail, ← →): the film's DOM dips and comes back while the clock moves
   useEffect(() => {
@@ -684,7 +443,6 @@ function DayStage({ player: p }: { player: Player }) {
       last?.cancel();
       const an = el.animate([{ opacity: from }, { opacity: o }], { duration: ms, easing: EASE.inOut, fill: "forwards" });
       last = an;
-      // faded back in: let go of the effect (no layer left behind)
       if (o === 1)
         an.onfinish = () => {
           an.cancel();
@@ -695,7 +453,7 @@ function DayStage({ player: p }: { player: Player }) {
 
   const i = v.chapter;
   const m = MOMENTS[i];
-  const ctaOn = v.beat >= p.beatAt(R.cta[0]);
+  const ctaOn = v.beat >= p.beatAt(R.finale.cta[0]);
   const finaleOn = v.beat >= p.beatAt(R.finale.line[0]);
   // THE TAKEOVER: while the ride plays (or the visitor has paused it in place) it owns the screen:
   // the site's header slides away (html.ride-on, ./day.css); the control bar keeps a small orange
@@ -707,39 +465,39 @@ function DayStage({ player: p }: { player: Player }) {
     return () => html.classList.remove("ride-on");
   }, [engaged]);
   const barCta = engaged && !ctaOn;
-  const frame = dayPosterFrame();
-  // the stills stand in only without the 3D; with it they stay hidden, so don't fetch one per moment
-  const posterId = noStage ? m.id : MOMENTS[0].id;
   return (
-    <div className={`day-grid wrap${noStage ? " is-nostage" : ""}`} ref={grid} data-state={v.state} data-started={v.started ? "1" : "0"}>
-      {typeof document !== "undefined" && createPortal(<div className="day-ground" ref={ground} aria-hidden="true" />, document.body)}
+    <div className={`day-grid${noStage ? " is-nostage" : ""}`} ref={grid} data-state={v.state} data-started={v.started ? "1" : "0"}>
+      {typeof document !== "undefined" &&
+        createPortal(
+          <div className="day-ground" ref={ground} aria-hidden="true">
+            <RideGround player={p} groundRef={ground} />
+          </div>,
+          document.body,
+        )}
 
       <div className="day-film" ref={film}>
+        {/* the Stage's frame: the whole takeover */}
+        <StageAnchor id="day" className="day-stage" />
+        {noStage && <NoStage chapter={i} />}
+        {!noStage && <RideFx player={p} />}
+
         <div className="day-copy">
           <RideOdo player={p} ride={R} />
           <div className="day-text">
             <Heads chapter={i} />
-            <div className="day-end" aria-hidden={!finaleOn}>
-              <p className="day-end-t">{RIDE_COPY.finale}</p>
-              <div className="day-end-cta" inert={!ctaOn}>
-                <Cta source="day" size="lg" cue={false} />
-              </div>
-            </div>
           </div>
         </div>
 
-        <StageAnchor
-          id="day"
-          className="day-stage"
-          poster={{ src: `renders/day-${posterId}.webp`, frame, pad: 0.04, alt: `${m.when}: ${DAY2[m.id].headline}` }}
-        >
-          <Offices chapter={i} noStage={noStage} stageRef={stage} />
-        </StageAnchor>
-
-        {!noStage && <Annotations p={p} stageRef={stage} />}
+        {/* the finale: centred over the whole app */}
+        <div className="day-end" aria-hidden={!finaleOn}>
+          <p className="day-end-t">{RIDE_COPY.finale}</p>
+          <div className="day-end-cta" inert={!ctaOn}>
+            <Cta source="day" size="lg" cue={false} />
+          </div>
+        </div>
       </div>
 
-      {/* "Enjoy the ride": on the warm ground, before the day plays */}
+      {/* "Enjoy the ride": over the walking map, before the day plays */}
       {!p.reduced && (
         <div className="day-ride-title" aria-hidden={v.started && v.beat > 1}>
           <p className="day-ride-t">{RIDE_COPY.title}</p>
@@ -765,7 +523,7 @@ function DayStage({ player: p }: { player: Player }) {
       </Controls>
 
       <p className="sr-only" aria-live="polite">
-        {v.started || p.reduced ? `${m.when}. ${DAY2[m.id].headline} ${DAY2_UI.phoneSr} ${DAY2[m.id].phone}. ${DAY2_UI.officeSr} ${DAY2[m.id].office}.` : ""}
+        {v.started || p.reduced ? `${m.when}. ${DAY2[m.id].headline} ${DAY2[m.id].phone}. ${DAY2[m.id].office}.` : ""}
       </p>
     </div>
   );

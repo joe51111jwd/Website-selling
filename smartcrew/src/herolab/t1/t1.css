@@ -65,7 +65,7 @@
   inset: 0;
 }
 
-.t1-root.is-3d .t1-cam {
+.t1-root.is-3d:not(.is-ortho) .t1-cam {
   perspective: var(--persp, 1800px);
   perspective-origin: var(--po, 50% 50%);
 }

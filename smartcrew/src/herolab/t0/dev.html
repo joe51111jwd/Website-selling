@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- the page's relative URLs (the 3D models, /book) resolve from the site root, as on index.html -->
+    <base href="/" />
     <title>SmartCrew · See what every job is making, every day</title>
     <meta name="theme-color" content="#FBF8F4" />
     <link rel="icon" type="image/svg+xml" href="/src/site/assets/mark.svg" />
@@ -32,9 +34,10 @@
     <!-- Hero lab · t0 "Grade the Pad": http://127.0.0.1:5310/src/herolab/t0/dev.html
          The real page (the same scenes as src/App.tsx) with the t0 hero in place of the current one.
          ?angle=… as the page · ?t0=full|settle (force the full entrance / the later-visit settle)
-         · ?t0Gl=0 (desktop: the SVG plan instead of the shader) · ?t0Debug (paused at t = 0;
-         window.__t0.seek(ms) renders any frame, __t0.state()) -->
+         · ?t0Gl=0 (desktop: the SVG plan instead of the shader) · ?t0Solo (header + hero only)
+         · ?t0Debug (paused at t = 0; window.__t0.seek(ms) renders any frame, __t0.state())
+         · studies: ?t0Pass=x|c|u (front / centre-out / whole site, default u), ?t0Lag, ?t0Pow, ?t0Band, ?t0Ang -->
     <div id="root"></div>
-    <script type="module" src="./dev.tsx"></script>
+    <script type="module" src="/src/herolab/t0/dev.tsx"></script>
   </body>
 </html>

@@ -1,8 +1,9 @@
 // t0 · Hero: "Grade the Pad". The page opens on raw ground: dashed existing contours run straight
-// through where the copy will go. One grading pass sweeps across it; the contours slide aside and
-// straighten into a tight cut slope uphill and a wider fill slope downhill, the middle levels into
-// a pad, the headline sets on the pad as the pass crosses its centre, and the orange button lands
-// last, like finish grade. At rest it is a quiet grading plan with the copy on a level pad.
+// through where the copy will go. The site is graded: the contours slide aside and bunch into a
+// tight cut slope uphill and a wider fill slope downhill, the middle levels into a pad stepped to
+// the copy's shape, the headline sets on the pad line by line as its ground clears, and the orange
+// button lands last, like finish grade. At rest it is a quiet grading plan: the copy on a level
+// pad, index contours with a few elevations, "PAD EL. 1,240.50".
 //
 // React renders the copy and the empty layers; ./ground.ts fits the type, measures the pad, asks
 // the worker for the land (./terrain.ts), draws it (desktop: ./gl.ts; phones: static SVG) and plays

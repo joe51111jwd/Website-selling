@@ -1,23 +1,28 @@
 // t1 · the engine of "The Site Model" (./HeroT1.tsx).
 //
 // 1. Fit the headline to the screen (the fonts first: the pad is measured from the set type).
-// 2. Measure the copy's blocks: the level pad is their union (a narrower top over a wider base).
+// 2. Measure the copy's blocks: the level pad is their union (a narrower top over a wider base;
+//    phones: the headline's column over a screen-wide base). Its top block runs off the top of the
+//    frame, so the pad is a bench cut into the hillside: cut on the uphill side, fill downhill,
+//    open above the copy (never a frame round it).
 // 3. Ask the worker (./terrain.worker.ts) for the land, graded round the pad and cut into sheets,
 //    one per 5 ft index interval. Its field sampling starts at mount, while the fonts load.
-// 4. Build one SVG per sheet: paper, the shadow of the sheet above, and its band's contour lines.
-// 5. The entrance (first visit in a session): the model sits three-quarter (desktop: rotateX 56°,
-//    rotateZ −16°, scale .84; phones: rotateX 48°), sheets 7 px apart, the copy printed on its pad.
-//    One eased camera move (WAAPI on .t1-model) tips it flat while the stack closes up (WAAPI on
-//    .t1-zs, a z-scale): the parallax that showed each sheet's edge and shadow goes to 0 by
-//    itself. On landing, in one frame: the transforms and the paper go, and the sheets are the
-//    plan (flat SVGs, nothing composited, nothing animates). Then the labels and the foot.
+// 4. Build one SVG per sheet: its paper, the riser under the sheet above (an even band just inside
+//    that sheet's edge, seen only through the gap the parallax opens), and its band's contours.
+// 5. The entrance (first visit in a session): the model sits three-quarter on an axonometric
+//    camera (desktop: rotateX 56°, rotateZ −16°, scale .76; phones: rotateX 52°, rotateZ −8°,
+//    scale .7), sheets 10 px apart (8 on phones), the copy printed on its pad. One eased camera
+//    move (WAAPI on .t1-model) tips it flat while the stack closes up (WAAPI on .t1-zs, a
+//    z-scale): the parallax that showed each sheet's riser goes to 0 by itself. On landing, in one
+//    frame: the transforms and the paper go, and the sheets are the plan (flat SVGs, nothing
+//    composited, nothing animates), in the same pixels. Then the labels and the foot.
 // No rAF anywhere; the button is in the DOM and clickable from the model's first frame (hit
 // testing follows transforms). Any input lands it at once. Reduced motion: the rest frame.
 // Later visits in the session: a short settle. ?t1=full|settle|rest forces one; ?t1Debug builds
 // the entrance paused (window.__t1.seek(ms)).
 
 import { markFirstScreenDone, markPageReady } from "../../site/ready";
-import type { Box, Ink, InkKey, Pad, Rect } from "./terrain";
+import type { Box, Ink, InkKey, LandOver, Pad, Rect } from "./terrain";
 import type { PlanReq, PlanRes } from "./terrain.worker";
 
 export type T1Opts = { phone: boolean; reduced: boolean };
@@ -30,8 +35,8 @@ const EO = "cubic-bezier(0.22, 1, 0.36, 1)";
 
 /** The camera move; t = 0 is the model's first frame (ms). */
 type Move = { rx: number; rz: number; s: number; ty: number; m: number; sep: number; persp: number; fade: number; from: number; to: number; zHold: number; labels: number; labelsDur: number };
-const DESK: Move = { rx: 56, rz: -16, s: 0.76, ty: -34, m: 0, sep: 7, persp: 2000, fade: 220, from: 90, to: 980, zHold: 0.3, labels: 1030, labelsDur: 340 };
-const PHONE: Move = { rx: 46, rz: -9, s: 0.7, ty: -10, m: 90, sep: 6, persp: 1100, fade: 200, from: 80, to: 860, zHold: 0.25, labels: 900, labelsDur: 300 };
+const DESK: Move = { rx: 56, rz: -16, s: 0.76, ty: -34, m: 0, sep: 10, persp: 2000, fade: 220, from: 90, to: 980, zHold: 0.3, labels: 1030, labelsDur: 340 };
+const PHONE: Move = { rx: 52, rz: -8, s: 0.7, ty: -10, m: 40, sep: 8, persp: 1100, fade: 200, from: 80, to: 860, zHold: 0.25, labels: 900, labelsDur: 300 };
 
 /** museum board: the paper is the page's ground, so a closed stack seen from above is the plan */
 const PAPER = "#fbf8f4";
@@ -98,7 +103,7 @@ function requestPlan(r: Req): Promise<PlanRes> {
         new Promise<PlanRes>((res) => {
           const run = () => {
             const t = performance.now();
-            const f = m.buildField(r.W, r.H, r.Hv, r.phone, r.m);
+            const f = m.buildField(r.W, r.H, r.Hv, r.phone, r.m, r.land);
             const fieldMs = performance.now() - t;
             const { lines: _l, ...plan } = m.buildPlan(f, r);
             res({ id: 0, kind: "plan", plan, lines: new Float32Array(0), lineIdx: new Int32Array(0), fieldMs, planMs: performance.now() - t - fieldMs });
@@ -116,6 +121,26 @@ function requestPlan(r: Req): Promise<PlanRes> {
 }
 
 const DEBUG = typeof location !== "undefined" && /[?&]t1Debug\b/.test(location.search);
+/** the pad's shape: "rows" (phones: the headline's column over a screen-wide base), "up" (the top
+ * block runs off the top of the frame: a bench cut into the slope, open above the copy, so the
+ * slopes never ring the copy like a frame); lab: ?t1Pad=box (the old ring), =rows,up,down */
+/** The camera is axonometric: no perspective, the model's size by scale(). The compositor can
+ * size a transform animation's raster only when every function in the chain has a computable
+ * scale; under a perspective it rasters the moving layers at 1× and upscales them, so the lines
+ * and the headline land soft and snap sharp on the swap. (lab ?t1Ortho=0: the perspective camera) */
+const ORTHO = !(typeof location !== "undefined" && /[?&]t1Ortho=0\b/.test(location.search));
+const PADMODE = (typeof location !== "undefined" && new URLSearchParams(location.search).get("t1Pad")) || "rows,up";
+/** lab: land overrides, ?t1Land=fall:20,cut:0.1 */
+const LAND: LandOver | undefined = (() => {
+  const v = typeof location !== "undefined" ? new URLSearchParams(location.search).get("t1Land") : null;
+  if (!v) return undefined;
+  const o: Record<string, number> = {};
+  for (const kv of v.split(",")) {
+    const [k, n] = kv.split(":");
+    if (k && Number.isFinite(+n)) o[k] = +n;
+  }
+  return o as LandOver;
+})();
 
 // ── the engine ─────────────────────────────────────────────────────────────────────────
 
@@ -124,7 +149,12 @@ type Geo = { W: number; H: number; Hv: number; pads: Pad[]; keep: Rect[]; quiet:
 
 export function mountT1(root: HTMLElement, o: T1Opts): () => void {
   const phone = o.phone;
-  const M = phone ? PHONE : DESK;
+  const M: Move = { ...(phone ? PHONE : DESK) };
+  // lab: ?t1Move=rx:48,rz:0,sep:9 overrides the camera move
+  for (const kv of (new URLSearchParams(location.search).get("t1Move") ?? "").split(",")) {
+    const [k, v] = kv.split(":");
+    if (k in M && Number.isFinite(+v)) (M as Record<string, number>)[k] = +v;
+  }
   const q = <T extends Element = HTMLElement>(s: string) => root.querySelector(s) as T;
   const qa = <T extends Element = HTMLElement>(s: string) => [...root.querySelectorAll(s)] as T[];
   const cam = q(".t1-cam");
@@ -136,10 +166,11 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
   const foot = q(".t1-foot");
   const labelsSvg = q<SVGSVGElement>(".t1-labels");
   const dpr = window.devicePixelRatio || 1;
-  // sheets under / over the pad's (the rest merge into the base board and the top sheet);
-  // ?t1Depth=b,a overrides (lab)
+  // sheets under / over the pad's (the rest merge into the base board and the top sheet). Phones:
+  // the cut bank, the pad and the fill (three layers: compositing a deeper stack drops frames on a
+  // throttled phone CPU); ?t1Depth=b,a overrides (lab)
   const dq = new URLSearchParams(location.search).get("t1Depth")?.split(",").map(Number);
-  const DEPTH: [number, number] = dq && dq.length === 2 && dq.every((n) => n >= 0 && n < 9) ? [dq[0], dq[1]] : phone ? [2, 2] : [3, 2];
+  const DEPTH: [number, number] = dq && dq.length === 2 && dq.every((n) => n >= 0 && n < 9) ? [dq[0], dq[1]] : phone ? [1, 1] : [3, 2];
   root.classList.add(dpr < 1.5 ? "t1-d1" : dpr >= 2.5 ? "t1-d3" : "t1-d2");
 
   let alive = true;
@@ -246,13 +277,24 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
     const m = phone ? 12 : 22;
     const r = phone ? 22 : 30;
     const pads: Pad[] = [];
-    if (phone) {
+    if (phone && !PADMODE.includes("rows")) {
       // the copy is the screen's width: one pad, from the headline to the scroll cue
       const top = rows[0].y - m;
       const cue = rel(q(".t1-cue"));
       // (wider than the screen: its slopes run off the sides, never down the screen's edges)
       pads.push({ x: -36, y: top, w: W + 72, h: cue.y + cue.h + m - top, r });
     } else {
+      if (phone) {
+        // phones: the headline's column, then a base as wide as the screen (its slopes run off the
+        // sides, never down the screen's edges), from the sub to the scroll cue
+        const cue = rel(q(".t1-cue"));
+        const last = rows[rows.length - 1];
+        rows.push({ x: 0, y: last.y, w: W, h: cue.y + cue.h - last.y });
+        for (const row of rows) if (row.w > W * 0.72) {
+          row.x = -36 - m;
+          row.w = W + 72 + 2 * m;
+        }
+      }
       // rows of a similar width merge into one block; a much wider or narrower row starts a new one
       let b: { x0: number; x1: number; y0: number; y1: number } | null = null;
       const flush = () => b && pads.push({ x: b.x0 - m, y: b.y0 - m, w: b.x1 - b.x0 + 2 * m, h: b.y1 - b.y0 + 2 * m, r });
@@ -268,6 +310,18 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
         }
       }
       flush();
+      // lab: ?t1Pad=up runs the top block off the top of the frame (a bench cut into the slope, open
+      // above the copy); =updown also runs the base off the bottom
+      const pm = PADMODE;
+      if (pm.includes("up") && pads.length) {
+        const top = -(M.m + 160);
+        pads[0].h += pads[0].y - top;
+        pads[0].y = top;
+      }
+      if (pm.includes("down") && pads.length) {
+        const last = pads[pads.length - 1];
+        last.h = H + M.m + 160 - last.y;
+      }
     }
     // the pad's centroid: the camera's pivot
     let px = 0;
@@ -287,7 +341,7 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
     return { W, H, Hv, pads, keep, quiet, to: [px / pa, py / pa], foot: footRects, padEl };
   }
 
-  const req = (g: Geo): Req => ({ W: g.W, H: g.H, Hv: g.Hv, m: M.m, phone, pads: g.pads, blend: phone ? 24 : 36, keep: g.keep, quiet: g.quiet, labels: phone ? 2 : 4, labelGap: phone ? 190 : 250 });
+  const req = (g: Geo): Req => ({ W: g.W, H: g.H, Hv: g.Hv, m: M.m, phone, land: LAND, pads: g.pads, blend: phone ? 24 : 36, keep: g.keep, quiet: g.quiet, labels: phone ? 2 : 4, labelGap: phone ? 190 : 250 });
 
   // ── 4 · the sheets ──
 
@@ -300,7 +354,7 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
     const kp0 = Math.min(all.length - 1, res.plan.padSheet);
     const lo = Math.max(0, kp0 - DEPTH[0]);
     const hi = Math.min(all.length - 1, kp0 + DEPTH[1]);
-    type Layer = { fill: string; inner: string; ink: Ink; box: Box };
+    type Layer = { fill: string; ink: Ink; box: Box };
     const union = (a: Box, b: Box): Box => [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])];
     const merge = (into: Ink, from: Ink) => {
       for (const k of INK_KEYS) if (from[k]) into[k] = (into[k] ?? "") + from[k];
@@ -326,9 +380,11 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
           box = union(box, all[j].inkBox);
         }
       }
-      stack.push({ fill, inner: s.inner, ink, box });
+      stack.push({ fill, ink, box });
     }
     const kp = kp0 - lo;
+    // the widest gap the parallax opens under a sheet's edge, in sheet px (separation × tan(tilt)), + 2
+    const RISE = Math.ceil(M.sep * Math.tan((M.rx * Math.PI) / 180)) + 2;
     const step = phone ? 6 : 7;
     const e = M.m + step + 2;
     stack.forEach((s, k) => {
@@ -344,14 +400,20 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
       if (withPaper && s.fill) {
         const paper = svgEl("g", { class: "t1-paper" }, svg);
         const up = stack[k + 1];
-        // the paper is a band: this sheet's region, less the sheet above (it backs only a few px
-        // under that sheet's edge, where the gap shows); no overdraw, and its hole costs nothing
-        // (a 1 px paper outset hides the antialiased fringe of the shadow strip below once the
-        // stack has closed: no dark rim on the last frames, nothing to pop off on landing)
-        svgEl("path", k === 0 ? { d: s.fill + (up?.inner ?? ""), fill: PAPER, "fill-rule": "evenodd", stroke: EDGE, "stroke-width": 1 } : { d: s.fill + (up?.inner ?? ""), fill: PAPER, "fill-rule": "evenodd", stroke: PAPER, "stroke-width": 2, "stroke-linejoin": "round" }, paper);
-        // the sheet above, printed in shadow along that strip: it shows only through the gap under
-        // that sheet's edges while the stack is apart, and is covered exactly once it closes
-        if (up?.fill) svgEl("path", { d: up.fill + up.inner, fill: UNDER, "fill-rule": "evenodd" }, paper);
+        // the paper: this sheet's whole region (a 1 px paper outset hides the antialiased fringe of
+        // the riser below once the stack has closed: no dark rim on the last frames, nothing to pop
+        // off on landing); the base board's outline is the model's cut edge
+        svgEl("path", k === 0 ? { d: s.fill, fill: PAPER, "fill-rule": "evenodd", stroke: EDGE, "stroke-width": 1 } : { d: s.fill, fill: PAPER, "fill-rule": "evenodd", stroke: PAPER, "stroke-width": 2, "stroke-linejoin": "round" }, paper);
+        // the riser under the sheet above: a band of even width just inside that sheet's edge
+        // (its outline stroked, clipped to its own region), so it shows only through the gap the
+        // parallax opens under the edges that face the viewer, and is covered exactly when the
+        // stack closes
+        if (up?.fill) {
+          const id = `t1-rise-${k}`;
+          const cp = svgEl("clipPath", { id }, paper);
+          svgEl("path", { d: up.fill, "clip-rule": "evenodd" }, cp);
+          svgEl("path", { d: up.fill, fill: "none", stroke: UNDER, "stroke-width": RISE * 2, "stroke-linejoin": "round", "clip-path": `url(#${id})` }, paper);
+        }
       }
       for (const key of INK_KEYS) if (s.ink[key]) svgEl("path", { d: s.ink[key]!, class: `t1-${key}` }, svg);
       host.appendChild(svg);
@@ -415,26 +477,21 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
   function playFull(g: Geo) {
     state = "move";
     mark("first");
-    root.style.setProperty("--persp", `${M.persp}px`);
     root.style.setProperty("--po", `${g.to[0].toFixed(1)}px ${g.to[1].toFixed(1)}px`);
     root.style.setProperty("--to", `${g.to[0].toFixed(1)}px ${g.to[1].toFixed(1)}px`);
+    root.style.setProperty("--persp", `${M.persp}px`);
     setZ(true);
     root.classList.add("is-3d", "is-pre-foot", "is-on");
+    if (ORTHO) root.classList.add("is-ortho");
     const dur = M.to - M.from;
     // (fill "backwards": once in, the effect ends, so no group surface stays round the 3D stack)
     // (from 0.01, not 0: the headline counts as painted on the first frame, for Largest Contentful Paint)
     anims.push(cam.animate([{ opacity: 0.01 }, { opacity: 1 }], { duration: M.fade, easing: EO, fill: "backwards" }));
-    anims.push(
-      // the model starts small by distance, not by scale(): the layers' own scale stays 1, so the
-      // compositor rasters them at full resolution from the first frame and the copy lands crisp
-      // (a scale() start rasters at 0.76 and upscales: the headline goes soft, then snaps sharp)
-      model.animate([{ transform: `translateY(${M.ty}px) translateZ(${(-M.persp * (1 / M.s - 1)).toFixed(1)}px) rotateX(${M.rx}deg) rotateZ(${M.rz}deg)` }, { transform: "translateY(0px) translateZ(0px) rotateX(0deg) rotateZ(0deg)" }], {
-        delay: M.from,
-        duration: dur,
-        easing: EIO,
-        fill: "both",
-      }),
-    );
+    // the camera: axonometric (see ORTHO), so the compositor rasters the moving sheets and the copy
+    // at full resolution and they land crisp, in the same pixels as the flat plan
+    const tilt = ORTHO ? `translateY(${M.ty}px) scale(${M.s}) rotateX(${M.rx}deg) rotateZ(${M.rz}deg)` : `translateY(${M.ty}px) translateZ(${(-M.persp * (1 / M.s - 1)).toFixed(1)}px) rotateX(${M.rx}deg) rotateZ(${M.rz}deg)`;
+    const flat = ORTHO ? "translateY(0px) scale(1) rotateX(0deg) rotateZ(0deg)" : "translateY(0px) translateZ(0px) rotateX(0deg) rotateZ(0deg)";
+    anims.push(model.animate([{ transform: tilt }, { transform: flat }], { delay: M.from, duration: dur, easing: EIO, fill: "both" }));
     anims.push(zs.animate([{ transform: "scale3d(1, 1, 1)" }, { transform: "scale3d(1, 1, 1)", offset: M.zHold }, { transform: "scale3d(1, 1, 0.02)" }], { delay: M.from, duration: dur, easing: EIO, fill: "both" }));
     try {
       sessionStorage.setItem(SEEN_KEY, "1");
@@ -693,7 +750,7 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
     // the land's sampling starts now, while the fonts load (the field depends on the size only)
     const W0 = root.clientWidth;
     const H0 = root.clientHeight;
-    getWorker()?.postMessage({ id: 0, kind: "field", W: W0, H: H0, Hv: phone ? Math.min(window.innerHeight, H0) : H0, m: M.m, phone });
+    getWorker()?.postMessage({ id: 0, kind: "field", W: W0, H: H0, Hv: phone ? Math.min(window.innerHeight, H0) : H0, m: M.m, phone, land: LAND });
     const ok = await fontsReady(1600);
     if (!alive) return;
     fit();
