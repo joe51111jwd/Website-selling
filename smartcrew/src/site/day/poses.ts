@@ -121,8 +121,8 @@ function focusOf(s: Script, k = 1): FocusSpec {
   const f = s.laptop.focus;
   const zoom = isPhone ? Math.min(1.3, f.zoom) : f.zoom;
   const to: [number, number] = isPhone ? [0.72, 0.34] : f.to;
-  // during the hold the camera keeps creeping in (k > 1) and across
-  return { device: "macbook", px: f.px, zoom: 1 + (zoom - 1) * k, to: [to[0] - (k - 1) * 0.12, to[1]] };
+  // during the hold the camera keeps creeping in (k > 1), across and up
+  return { device: "macbook", px: f.px, zoom: 1 + (zoom - 1) * k, to: [to[0] - (k - 1) * 0.5, to[1] - (k - 1) * 0.6] };
 }
 
 export function dayPoses(): PoseKey[] {
@@ -230,7 +230,7 @@ export function dayPoses(): PoseKey[] {
       view: { rx: pushView.rx + 0.6, ry: pushView.ry - 0.8 },
       iphone: { ...hold.iphone, ...landed.iphone },
       macbook: { ...hold.macbook, ...landed.macbook, ring: up ? ring : null, dim: 0.1 },
-      focus: pushFocus ? focusOf(s, 1.06) : null,
+      focus: pushFocus ? focusOf(s, 1.1) : null,
     });
     left = { ...hold, view: pushView };
   });

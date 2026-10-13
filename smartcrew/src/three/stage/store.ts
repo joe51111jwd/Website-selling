@@ -194,11 +194,12 @@ const onlyOut = (p: { out?: number }) =>
 
 function buildTimeline() {
   const raw: { scene: string; key: PoseKey; y: number }[] = [];
+  const vh = typeof window === "undefined" ? 0 : window.innerHeight;
   tracks.forEach((keys, scene) => {
     const s = scenes.get(scene);
     if (!s) return;
     const travel = s.pinned ? s.height - s.stageH : s.height;
-    keys.forEach((key) => raw.push({ scene, key, y: s.top + key.at * Math.max(travel, 0) }));
+    keys.forEach((key) => raw.push({ scene, key, y: s.top + key.at * Math.max(travel, 0) + (key.offset ?? 0) * vh }));
   });
   raw.sort((a, b) => a.y - b.y);
   const out: ResolvedKey[] = [];

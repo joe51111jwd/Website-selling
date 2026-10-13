@@ -448,8 +448,6 @@ export const SPEC = {
     { k: "Payroll", v: "QuickBooks integration" },
     { k: "Setup", v: "A few days" },
   ],
-  /** Phones: the key specs as one line. */
-  specsShort: "Crew app + office web app · QuickBooks integration for payroll",
   /** The six sections, in the order a contractor cares; `tools` are moments.ts feature ids, the first three are the face-value "top 3". */
   categories: [
     { id: "time", name: "Time & crew", outcome: "Timecards that log themselves.", tools: ["T1", "T2", "T3", "T4", "T10", "T9", "T2c"] },
@@ -463,10 +461,11 @@ export const SPEC = {
   short: { T2: "GPS clock-in", M2: "Change orders", M5: "Dashboard", H2: "Receipts", H1: "Deliveries", S1: "Scheduling" } as Record<string, string>,
   more: (n: number) => `+${n} more`,
   tools: (n: number) => `${n} tools`,
+  unit: "tools",
   total: "Total",
+  /** Phones only (the desktop sheet already lists every tool). */
   all: "Show everything",
   allTitle: (n: number) => `All ${n} tools`,
-  allHint: "Point at any tool to read what it does. Click to see it.",
   allHintTouch: "Tap any tool to see it.",
   close: "Close",
   back: "All",

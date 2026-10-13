@@ -376,6 +376,14 @@ type Track = { anim: Anim | null; t: number; target: number; building: boolean }
 
 let started = false;
 
+/** Dev only: ?daySlow=8 plays the taps and updates 8× slower (to check them frame by frame). */
+const SLOW = (() => {
+  if (!import.meta.env.DEV || typeof location === "undefined") return 1;
+  const v = Number(new URLSearchParams(location.search).get("daySlow"));
+  if (v > 1) document.documentElement.style.setProperty("--day-slow", String(v));
+  return v > 1 ? v : 1;
+})();
+
 /** Start the live layer once the Stage is up (and the DOM fallback state without it). */
 export function startDayLife(): () => void {
   if (started) return () => {};
@@ -396,6 +404,8 @@ export function startDayLife(): () => void {
         tr.anim = a;
         tr.building = false;
         a?.set(tr.t);
+        // its beat may have passed while it was being built (a rail jump): play to it now
+        if (a && tr.t !== tr.target) kick();
       })
       .catch((e) => console.warn("[day] update overlay failed", MOMENTS[i].id, e));
   };
@@ -412,7 +422,7 @@ export function startDayLife(): () => void {
   const tick = () => {
     raf = 0;
     const now = performance.now();
-    const dt = Math.min(64, now - lastNow);
+    const dt = Math.min(64, now - lastNow) / SLOW;
     lastNow = now;
     let busy = false;
     updates.forEach((tr) => {

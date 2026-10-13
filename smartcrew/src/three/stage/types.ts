@@ -103,7 +103,16 @@ export type Ease = EaseName | ((t: number) => number);
  * non-pinned scene, 1 is when its bottom reaches the top of the viewport). `ease` shapes the
  * blend that ARRIVES at this key from the previous one.
  */
-export type PoseKey = Pose & { at: number; ease?: Ease };
+export type PoseKey = Pose & {
+  at: number;
+  ease?: Ease;
+  /**
+   * Shift the key by this many viewport heights of scroll (negative = earlier). With `at: 0` it
+   * places a key before the scene's top reaches the top of the viewport, e.g. while the scene is
+   * still entering from below (exitKeys/returnKeys use it).
+   */
+  offset?: number;
+};
 
 /** A device's fully resolved state in one key. */
 export type DeviceState = {

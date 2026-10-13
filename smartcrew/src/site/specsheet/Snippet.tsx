@@ -60,7 +60,12 @@ export function camFor(shot: Shot, fw: number, fh: number, compact: boolean): Ca
   return { s, x, y };
 }
 
-const spring = { type: "spring", stiffness: 150, damping: 24, mass: 0.9 } as const;
+const spring = {
+  type: "spring",
+  stiffness: 150,
+  damping: 24,
+  mass: 0.9,
+} as const;
 
 export function Snippet({ shot, compact = false, toolKey }: { shot: Shot; compact?: boolean; toolKey: string }) {
   const frame = useRef<HTMLDivElement>(null);
@@ -95,7 +100,11 @@ export function Snippet({ shot, compact = false, toolKey }: { shot: Shot; compac
             className="spec-snip-layer"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10, transition: { duration: 0.24, ease: [0.4, 0, 1, 1] } }}
+            exit={{
+              opacity: 0,
+              y: -10,
+              transition: { duration: 0.24, ease: [0.4, 0, 1, 1] },
+            }}
             transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
           >
             <motion.div
@@ -106,36 +115,54 @@ export function Snippet({ shot, compact = false, toolKey }: { shot: Shot; compac
               animate={{ x: cam.x, y: cam.y, scale: cam.s }}
               transition={spring}
             >
+              {/* the ring and its callout arrive with the screen, never over an empty frame */}
               <Suspense fallback={null}>
                 <Comp />
+                {R && (
+                  <motion.div
+                    className="spec-snip-ring"
+                    style={{ "--k": 1 / cam.s } as React.CSSProperties}
+                    initial={false}
+                    animate={{
+                      left: R[0] - 5 / cam.s,
+                      top: R[1] - 5 / cam.s,
+                      width: R[2] + 10 / cam.s,
+                      height: R[3] + 10 / cam.s,
+                    }}
+                    transition={spring}
+                  >
+                    <span key={toolKey} className="spec-snip-ping" />
+                  </motion.div>
+                )}
+                {R && shot.tag && (
+                  <motion.span
+                    key={`tag-${toolKey}`}
+                    className="spec-snip-tag"
+                    style={
+                      tagBelow
+                        ? {
+                            left: R[0],
+                            top: R[1] + R[3] + 12 / cam.s,
+                            scale: 1 / cam.s,
+                            originX: 0,
+                            originY: 0,
+                          }
+                        : {
+                            left: R[0],
+                            bottom: H - R[1] + 12 / cam.s,
+                            scale: 1 / cam.s,
+                            originX: 0,
+                            originY: 1,
+                          }
+                    }
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.25, duration: 0.3 }}
+                  >
+                    {shot.tag}
+                  </motion.span>
+                )}
               </Suspense>
-              {R && (
-                <motion.div
-                  className="spec-snip-ring"
-                  style={{ "--k": 1 / cam.s } as React.CSSProperties}
-                  initial={false}
-                  animate={{ left: R[0] - 5 / cam.s, top: R[1] - 5 / cam.s, width: R[2] + 10 / cam.s, height: R[3] + 10 / cam.s }}
-                  transition={spring}
-                >
-                  <span key={toolKey} className="spec-snip-ping" />
-                </motion.div>
-              )}
-              {R && shot.tag && (
-                <motion.span
-                  key={`tag-${toolKey}`}
-                  className="spec-snip-tag"
-                  style={
-                    tagBelow
-                      ? { left: R[0], top: R[1] + R[3] + 12 / cam.s, scale: 1 / cam.s, originX: 0, originY: 0 }
-                      : { left: R[0], bottom: H - R[1] + 12 / cam.s, scale: 1 / cam.s, originX: 0, originY: 1 }
-                  }
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.25, duration: 0.3 }}
-                >
-                  {shot.tag}
-                </motion.span>
-              )}
             </motion.div>
           </motion.div>
         </AnimatePresence>

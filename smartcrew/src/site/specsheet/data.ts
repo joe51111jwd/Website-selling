@@ -120,9 +120,6 @@ export const CATEGORIES: Category[] = SPEC.categories.map((c) => ({
 
 export const TOOL_COUNT = CATEGORIES.reduce((n, c) => n + c.tools.length, 0);
 
-/** The screen a section shows when you point at it on the sheet: its first office-screen tool (wide shots read best small). */
-export const peekOf = (c: Category) => c.tools.find((t) => t.shot.kind === "web" && !t.closest) ?? c.tools[0];
-
 /** Every screen a category's tools use, in order (to warm their code before they're shown). */
 export const screensOf = (c: Category) => [...new Set(c.tools.map((t) => t.shot.screen))];
 

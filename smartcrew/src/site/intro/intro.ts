@@ -188,14 +188,15 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const inOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 const outCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 const smooth = (t: number) => t * t * (3 - 2 * t);
+const sine = (t: number) => 0.5 - Math.cos(Math.PI * t) / 2;
 const seg = (t: number, a: number, b: number) => clamp01((t - a) / (b - a));
 
 /** Night → day through warm light (a sunrise, not a grey crossfade). */
 const GROUND: [number, [number, number, number]][] = [
   [0, [20, 17, 14]],
-  [0.3, [58, 38, 26]],
-  [0.55, [156, 118, 88]],
-  [0.78, [234, 214, 194]],
+  [0.25, [78, 52, 36]],
+  [0.5, [150, 112, 84]],
+  [0.75, [222, 198, 174]],
   [1, [251, 248, 244]],
 ];
 function groundAt(t: number) {
@@ -285,7 +286,7 @@ function begin(ui: HTMLElement, topo: HTMLElement): (t: number) => void {
     const fy = lerp(cam0.fy, DAY.fy, ec);
     svg.style.transform = `scale(${z.toFixed(4)}) translate(${(-fx * ms).toFixed(2)}px, ${(-fy * ms).toFixed(2)}px)`;
     // night → day
-    const tg = smooth(seg(t, 0.06, 0.86));
+    const tg = sine(seg(t, 0.04, 0.92));
     const g = groundAt(tg);
     topo.style.backgroundColor = `rgb(${g[0]} ${g[1]} ${g[2]})`;
     topo.style.setProperty("--topo-line", lineAt(smooth(seg(t, 0.2, 0.8)), false));
@@ -304,7 +305,7 @@ function begin(ui: HTMLElement, topo: HTMLElement): (t: number) => void {
     if (header) header.style.opacity = String(hd);
     if (logo) logo.style.opacity = String(logoOp * (1 - hd));
     // no 3D yet: the hero's still comes up in its place, on the same beat
-    if (poster && !status.ready) poster.style.opacity = String(smooth(seg(t, 0.28, 0.68)));
+    if (poster && !status.ready) poster.style.opacity = String(Math.max(0.001, smooth(seg(t, 0.28, 0.68))));
 
     const k = ms * z;
     for (const n of glides) {

@@ -361,7 +361,8 @@ export class ScreenSurface {
       // ring weight scales with the image so it reads the same on the laptop and the phone
       const scale = (b ?? a)?.w ?? 1440;
       u.uRingW.value = scale > 800 ? 3.2 : 2.6;
-      u.uRingR.value = Math.min(14, h / 2 + 5);
+      // a round button gets a round ring
+      u.uRingR.value = Math.abs(w - h) < Math.max(w, h) * 0.08 ? Math.min(w, h) / 2 + 5 : Math.min(14, h / 2 + 5);
     }
     u.uRingA.value = this.ringA;
     u.uDim.value = dim;

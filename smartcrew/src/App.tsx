@@ -11,6 +11,7 @@ import { lockScroll, startSmoothScroll } from "./site/scroll";
 import { startTracking } from "./lib/track";
 import Hero from "./site/hero/Hero";
 import Day from "./site/day/Day";
+import SpecSheet from "./site/specsheet/SpecSheet";
 import TryIt from "./site/try/TryIt";
 import YourNumber from "./site/number/YourNumber";
 import Proof from "./site/proof/Proof";
@@ -53,6 +54,7 @@ export default function App() {
       <main className="site">
         <Hero />
         <Day />
+        <SpecSheet />
         <TryIt />
         <YourNumber />
         <Proof />

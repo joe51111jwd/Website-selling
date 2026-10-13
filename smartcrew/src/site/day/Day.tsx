@@ -243,9 +243,17 @@ function Rail({ step }: { step: number }) {
 }
 
 // ─── the office: its big state label + the update card ─────────────────────────
+/** Without WebGL (posters only) nothing can be pinned to the phone: its label joins the office's. */
+function useNoStage() {
+  const [no, setNo] = useState(() => !status.webgl || status.failed);
+  useEffect(() => onStatus(() => setNo(!status.webgl || status.failed)), []);
+  return no;
+}
+
 function OfficeCard({ st, cardRef }: { st: DayLive; cardRef: RefObject<HTMLDivElement | null> }) {
   const m = MOMENTS[st.i];
   const copy = DAY2[m.id];
+  const noStage = useNoStage();
   return (
     <div className="day-office" ref={cardRef} data-on={st.officeLabel ? "1" : "0"}>
       <AnimatePresence initial={false}>
@@ -257,6 +265,12 @@ function OfficeCard({ st, cardRef }: { st: DayLive; cardRef: RefObject<HTMLDivEl
             animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease } }}
             exit={{ opacity: 0, y: -8, transition: { duration: 0.2 } }}
           >
+            {noStage && st.phoneLabel && (
+              <p className="day-tag day-tag--phone" aria-hidden="true">
+                <span className="day-tag-dot" />
+                {copy.phone}
+              </p>
+            )}
             <p className="day-tag day-tag--office">
               <span className="day-tag-dot" aria-hidden="true" />
               <span className="sr-only">{DAY2_UI.officeSr} </span>
@@ -285,6 +299,7 @@ function Annotations({ st, cardRef }: { st: DayLive; cardRef: RefObject<HTMLDivE
   const lineP = useRef<SVGLineElement>(null);
   const haloP = useRef<SVGLineElement>(null);
   const haloO = useRef<SVGPolylineElement>(null);
+  const officeG = useRef<SVGGElement>(null);
   const dotP = useRef<SVGCircleElement>(null);
   const lineO = useRef<SVGPolylineElement>(null);
   const dotO = useRef<SVGCircleElement>(null);
@@ -326,6 +341,7 @@ function Annotations({ st, cardRef }: { st: DayLive; cardRef: RefObject<HTMLDivE
         if (x + w > f.w - 8) x = Math.max(8, f.w - 8 - w);
         const y = Math.max(phone ? 60 : 72, Math.min(f.h - h - 8, edge.y - h / 2));
         place(c, x, y);
+        if (c.dataset.placed !== "1") c.dataset.placed = "1";
         set(lineP.current, { x1: from.x, y1: from.y, x2: x, y2: y + h / 2 });
         set(haloP.current, { x1: from.x, y1: from.y, x2: x, y2: y + h / 2 });
         set(dotP.current, { cx: from.x, cy: from.y });
@@ -346,8 +362,8 @@ function Annotations({ st, cardRef }: { st: DayLive; cardRef: RefObject<HTMLDivE
         set(haloO.current, { points: pts });
         set(dotO.current, { cx: ex, cy: ey });
         set(ringO.current, { cx: ex, cy: ey });
-        svg.current?.style.setProperty("--o", "1");
-      } else svg.current?.style.setProperty("--o", "0");
+        officeG.current?.style.setProperty("opacity", "1");
+      } else officeG.current?.style.setProperty("opacity", "0");
     });
   }, [cardRef]);
 
@@ -357,10 +373,12 @@ function Annotations({ st, cardRef }: { st: DayLive; cardRef: RefObject<HTMLDivE
         <line ref={haloP} className="day-lead day-lead-halo day-lead--phone" />
         <line ref={lineP} className="day-lead day-lead--phone" />
         <circle ref={dotP} className="day-lead-dot day-lead--phone" r="3.5" />
-        <polyline ref={haloO} className="day-lead day-lead-halo day-lead--office" fill="none" />
-        <polyline ref={lineO} className="day-lead day-lead--office" fill="none" />
-        <circle ref={ringO} className="day-lead-ring day-lead--office" r="9" />
-        <circle ref={dotO} className="day-lead-dot day-lead--office" r="3.5" />
+        <g ref={officeG}>
+          <polyline ref={haloO} className="day-lead day-lead-halo day-lead--office" fill="none" />
+          <polyline ref={lineO} className="day-lead day-lead--office" fill="none" />
+          <circle ref={ringO} className="day-lead-ring day-lead--office" r="9" />
+          <circle ref={dotO} className="day-lead-dot day-lead--office" r="3.5" />
+        </g>
       </svg>
       <div ref={touch} className="day-touch">
         {st.tapped && <span key={`${st.i}-${st.tapCount}`} className={`day-touch-in${up ? "" : " is-click"}`} />}

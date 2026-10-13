@@ -29,6 +29,8 @@ import {
   sceneOnScreen,
   screenOverrides,
   screensNear,
+  setScreen,
+  clearScreen,
   setFailed,
   setNoWebGL,
   setReady,
@@ -202,7 +204,7 @@ function Driver() {
 
   // dev: window.__stage for poking at the rig and the timeline from the console
   useEffect(() => {
-    if (import.meta.env.DEV) (window as unknown as { __stage: unknown }).__stage = { rig, getTimeline, status, invalidate };
+    if (import.meta.env.DEV) (window as unknown as { __stage: unknown }).__stage = { rig, getTimeline, status, invalidate, setScreen, clearScreen };
   }, [invalidate]);
 
   useEffect(() => {
@@ -242,8 +244,16 @@ function Driver() {
     }),
     [],
   );
-  const loupe = useMemo(() => new StageLoupe(), []);
-  useEffect(() => () => loupe.dispose(), [loupe]);
+  // the cursor's loupe over every screen (created in an effect: StrictMode-safe, no leaked spans)
+  const loupe = useRef<StageLoupe | null>(null);
+  useEffect(() => {
+    const l = new StageLoupe();
+    loupe.current = l;
+    return () => {
+      l.dispose();
+      if (loupe.current === l) loupe.current = null;
+    };
+  }, []);
 
   useFrame((state, rawDt) => {
     const L = live.current;
@@ -463,7 +473,7 @@ function Driver() {
         if (fn(frame)) busy = true;
       });
     }
-    loupe.update(camera, W, H);
+    loupe.current?.update(camera, W, H);
 
     // pulses: scroll-driven (from keys) and timed (pulse())
     const pxScale = state.gl.domElement.height / (2 * Math.tan((FOV * D2R) / 2));

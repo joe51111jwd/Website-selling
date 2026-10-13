@@ -190,7 +190,9 @@
 
       /* the page waits under the map until the camera pulls back */
       html.intro-on .site-header { opacity: 0; }
-      html.intro-on .hero .stage-poster { opacity: 0; }  /* (intro.ts brings it up if the 3D isn't ready) */
+      /* the still waits under the map (painted, so its image is decoded before it's needed);
+         intro.ts brings it up if the 3D isn't ready */
+      html.intro-on .hero .stage-poster { opacity: 0.001; }
       /* the 3D warms up (first draws) hidden under the map; intro.ts fades it in as the ground warms */
       html.intro-on .stage { opacity: 0; }
       /* the 3D arrived after the hand-over: hold the still until the devices have settled */

@@ -219,7 +219,7 @@ export default function Hero() {
         </div>
         <motion.div className="hero-act" ref={act} style={{ y: exitY, opacity: exitO }}>
           <motion.div className="hero-actions" ref={cta} data-hero-cta {...fade(0.55)}>
-            <Cta source="hero" id="hero-cta" className="hero-cta" />
+            <Cta source="hero" id="hero-cta" size="xl" className="hero-cta" />
             <DemoLink source="hero" />
           </motion.div>
           <motion.p className="t-micro hero-micro" {...fade(0.62)}>

@@ -78,13 +78,16 @@
   font-weight: 600;
 }
 
-/* inspection: operator · date · checklist · reading · status (no maintenance) */
+/* inspection: operator · date · reading · status (checklist and maintenance stay on the screen) */
 .sc.ddc .ddc-insp {
-  grid-template-columns: auto auto auto auto auto;
-  justify-content: space-between;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
 }
+.sc.ddc .ddc-insp > .sce-td:nth-child(3),
 .sc.ddc .ddc-insp > .sce-td:nth-child(5) {
   display: none;
+}
+.sc.ddc .ddc-insp .sce-date {
+  width: auto;
 }
 
 /* hauling: ticket · time · truck · project · type · material · qty · from */
@@ -219,7 +222,6 @@
   .sc.ddc .ddc-insp {
     grid-template-columns: minmax(0, 1fr) auto;
   }
-  .sc.ddc .ddc-insp > .sce-td:nth-child(3),
   .sc.ddc .ddc-insp > .sce-td:nth-child(4) {
     display: none;
   }
