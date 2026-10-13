@@ -12,7 +12,10 @@ export { nativeSize, screenUrl };
 
 type Entry = { tex: ScreenTex | null; promise: Promise<ScreenTex | null>; used: number };
 const cache = new Map<string, Entry>();
-const MAX = phone ? 6 : 12;
+// Phones decode screens at the size they're shown (phone screens 804 px wide, web 1440: about a
+// third of the desktop textures' memory each), so they can keep the next moments' screens around
+// without evicting them before they're used.
+const MAX = phone ? 10 : 12;
 let renderer: THREE.WebGLRenderer | null = null;
 let onLoaded: (() => void) | null = null;
 
@@ -65,7 +68,8 @@ export function loadScreen(id: string): Promise<ScreenTex | null> {
     return hit.promise;
   }
   // phones show the laptop small: a 1920-wide web screen is plenty and saves ~45% memory
-  const maxW = phone && (id.split("/").pop() ?? id).startsWith("web-") ? 1920 : 4096;
+  const name = id.split("/").pop() ?? id;
+  const maxW = !phone ? 4096 : name.startsWith("web-") ? 1440 : name.startsWith("phone-") ? 804 : 1920;
   const entry: Entry = { tex: null, used: performance.now(), promise: Promise.resolve(null) };
   entry.promise = decode(screenUrl(id), maxW)
     .then((img) => {
