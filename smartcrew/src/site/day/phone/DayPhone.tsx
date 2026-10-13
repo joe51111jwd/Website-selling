@@ -12,9 +12,10 @@ import { createPortal } from "react-dom";
 import { MOMENTS, type Moment, type MomentId } from "../../../content/moments";
 import { DAY2, DAY_UI, FLAG } from "../../../content/copy";
 import { Scene } from "../../scene/Scene";
-import { PhoneFrame, type Box } from "../../phone/PhoneFrame";
+import { PhoneFrame, pct, type Box } from "../../phone/PhoneFrame";
 import { useArrive, useSteps } from "../../phone/useArrive";
 import { SCRIPT } from "../script";
+import { CLOCK_IN_FENCE, fenceBox } from "../ring";
 import { DAY_DATA } from "../states/data";
 import "./day-phone.css";
 
@@ -48,6 +49,97 @@ const NOTIFY: Partial<Record<MomentId, Box>> = { plan: [167, 622, 68, 68] };
 /** Beats after arrival (ms). Field → office: tap, after screen, card. Office → field: card, then the phone. */
 const BEATS_UP = [280, 820, 1180];
 const BEATS_DOWN = [260, 1050];
+/**
+ * 6:42 AM, the hand-off from the hero (HERO_SPEC §8, phones): the hero's fence closes round the
+ * phone's Clock In button (fence in, closed solid), then the tap, the after screen, the card.
+ */
+const BEATS_FIRST = [60, 640, 920, 1460, 1820];
+
+/** The fence round the Clock In button, as an overlay on the phone's screen (native px). */
+const FENCE_BOX = fenceBox(6);
+const FENCE_PTS = CLOCK_IN_FENCE.map(([x, y]) => `${(x - FENCE_BOX[0]).toFixed(1)},${(y - FENCE_BOX[1]).toFixed(1)}`).join(" ");
+const FENCE_VB = `0 0 ${FENCE_BOX[2].toFixed(1)} ${FENCE_BOX[3].toFixed(1)}`;
+
+/**
+ * The hero is 40% out of view (once): One Day's first screen plays its arrival. One
+ * IntersectionObserver on the hero, nothing per frame. A page that opens below the hero reports
+ * it at once.
+ */
+function useHeroOut(on: boolean) {
+  const [out, setOut] = useState(false);
+  useEffect(() => {
+    const hero = document.getElementById("top");
+    if (!on || out || !hero || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.intersectionRatio <= 0.6 && e.boundingClientRect.top < 0) {
+          setOut(true);
+          io.disconnect();
+        }
+      },
+      { threshold: [0, 0.6] },
+    );
+    io.observe(hero);
+    return () => io.disconnect();
+  }, [on, out]);
+  return out;
+}
+
+/**
+ * 6:42 AM as an odometer that sets once (phones: CSS keyframes, transform only): each wheel rolls
+ * up through two digits and lands, the minutes' last wheel first and the hour last, then "AM".
+ * Before it plays the wheels are empty (their glyph keeps the space).
+ */
+function PhoneOdo({ when, go }: { when: string; go: boolean }) {
+  const m = when.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!m) return <Time when={when} />;
+  const chars = `${m[1]}:${m[2]}`.split("");
+  const n = chars.filter((c) => c !== ":").length;
+  let k = 0;
+  return (
+    <p className={`t-time dph-time dph-odo${go ? " is-go" : ""}`} aria-label={when}>
+      <span className="dph-hm" aria-hidden="true">
+        {chars.map((c, j) => {
+          if (c === ":")
+            return (
+              <span key={j} className="dph-colon">
+                :
+              </span>
+            );
+          const d = Number(c);
+          const delay = (n - 1 - k++) * 55;
+          return (
+            <span key={j} className="dph-wheel" style={{ ["--d" as string]: `${delay}ms` } as CSSProperties}>
+              <span className="dph-wheel-sz">{c}</span>
+              <span className="dph-strip">
+                {[(d + 8) % 10, (d + 9) % 10, d].map((v, q) => (
+                  <span key={q}>{v}</span>
+                ))}
+              </span>
+            </span>
+          );
+        })}
+      </span>
+      <span className="dph-ap" aria-hidden="true">
+        {m[3]}
+      </span>
+    </p>
+  );
+}
+
+/** The hero's fence, small, round the phone's Clock In button: draws in dashed, closes solid, rings out at the tap. */
+function ClockInFence({ step }: { step: "off" | "in" | "closed" | "out" }) {
+  return (
+    <span className={`dph-fence is-${step}`} style={pct(FENCE_BOX)} aria-hidden="true">
+      <svg className="dph-fence-dash" viewBox={FENCE_VB}>
+        <polygon points={FENCE_PTS} />
+      </svg>
+      <svg className="dph-fence-solid" viewBox={FENCE_VB}>
+        <polygon points={FENCE_PTS} />
+      </svg>
+    </span>
+  );
+}
 
 /** The time as the big instrument: "6:42" large, "AM" small; a word ("Friday") whole. */
 function Time({ when }: { when: string }) {
@@ -138,7 +230,13 @@ function MomentScreen({ m, i, next }: { m: Moment; i: number; next: Moment | nul
   const sc = SCRIPT[i];
   const copy = DAY2[m.id];
   const up = sc.dir === "up";
+  const first = i === 0;
   const [arriveRef, arrived] = useArrive<HTMLElement>({ amount: 0.5 });
+  // 6:42 AM: the time sets once the hero is 40% out of view; the fence and the tap wait until the
+  // phone itself is on screen (a slow scroller never misses the tap below the fold)
+  const heroOut = useHeroOut(first);
+  const [phoneRef, phoneSeen] = useArrive<HTMLDivElement>({ amount: 0.6 });
+  const odoGo = first && (heroOut || arrived);
   const el = useRef<HTMLElement | null>(null);
   const ref = useCallback(
     (n: HTMLElement | null) => {
@@ -147,13 +245,16 @@ function MomentScreen({ m, i, next }: { m: Moment; i: number; next: Moment | nul
     },
     [arriveRef],
   );
-  const step = useSteps(arrived, up ? BEATS_UP : BEATS_DOWN);
+  const step = useSteps(first ? odoGo && phoneSeen : arrived, first ? BEATS_FIRST : up ? BEATS_UP : BEATS_DOWN);
   const [open, setOpen] = useState(false);
   // field → office: 1 tap · 2 after screen · 3 card. office → field: 1 card · 2 the phone.
-  const after = step >= 2;
-  const card = up ? step >= 3 : step >= 1;
+  // 6:42 AM: 1 fence in · 2 fence closed · 3 tap · 4 after screen · 5 card.
+  const sh = first ? 2 : 0;
+  const after = step >= 2 + sh;
+  const card = up ? step >= 3 + sh : step >= 1;
   const tapBox: Box | null = up ? (sc.phone.tap ?? null) : (NOTIFY[m.id] ?? [sc.phone.mark[0] - 34, sc.phone.mark[1] - 34, 68, 68]);
-  const tapN = up ? (step >= 1 ? 1 : 0) : step >= 2 ? 1 : 0;
+  const tapN = up ? (step >= 1 + sh ? 1 : 0) : step >= 2 ? 1 : 0;
+  const fence = !first ? "off" : step >= 3 ? "out" : step >= 2 ? "closed" : step >= 1 ? "in" : "off";
   const dark = DARK.has(m.id);
   useProfitTick(el, m.id === "profit" && card);
   const style = {
@@ -170,7 +271,7 @@ function MomentScreen({ m, i, next }: { m: Moment; i: number; next: Moment | nul
       aria-label={`${m.when}: ${copy.headline}`}
     >
       <div className="dph-top">
-        <Time when={m.when} />
+        {first ? <PhoneOdo when={m.when} go={odoGo} /> : <Time when={m.when} />}
         <div className="dph-side">
           <p className="dph-count t-num" aria-label={`Moment ${i + 1} of ${MOMENTS.length}`}>
             {i + 1} / {MOMENTS.length}
@@ -180,7 +281,7 @@ function MomentScreen({ m, i, next }: { m: Moment; i: number; next: Moment | nul
       </div>
       <h3 className="dph-head">{copy.headline}</h3>
       <div className="dph-stage">
-        <div className="dph-phone">
+        <div className="dph-phone" ref={first ? phoneRef : undefined}>
           <PhoneFrame
             screens={[sc.phone.before, sc.phone.after]}
             index={after ? 1 : 0}
@@ -189,7 +290,9 @@ function MomentScreen({ m, i, next }: { m: Moment; i: number; next: Moment | nul
             loading={i === 0 ? "eager" : "lazy"}
             tone={dark ? "dark" : "light"}
             alt={`The crew app: ${copy.phone}`}
-          />
+          >
+            {first && <ClockInFence step={fence} />}
+          </PhoneFrame>
         </div>
         <div className="dph-card" aria-hidden={!card}>
           <p className="dph-card-k">

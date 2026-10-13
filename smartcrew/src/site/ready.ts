@@ -1,7 +1,8 @@
 // Two signals about the first screen, so the rest of the page can schedule its own work round it:
 //
 // - READY: the first screen has landed (the hero's headline, fence and orange button are in
-//   place). The desktop's 3D Stage starts its entrance after it.
+//   place). The desktop's 3D devices start their entrance after it (parked below the fold), and
+//   the desktop's Stage and later scenes load 1.2 s after it (App: useAfterEntrance).
 // - DONE: the first screen is done: the hero's entrance has played out (settled), or the visitor
 //   has started using the page (scroll, touch, wheel, key). Phones mount the later scenes and lay
 //   the next screens out ahead (warm-ahead) after it, so none of that work lands in the middle of

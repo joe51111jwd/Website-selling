@@ -1,0 +1,360 @@
+/* O1 · "Clock in": the opening (./index.tsx). Every selector is .o1- prefixed. Animations: WAAPI
+   on transform and opacity only. */
+
+.o1 {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  contain: layout style;
+}
+
+/* the phone and its map sit behind the page (.site is z 1: the headline masks in over them as
+   they go), the pieces the hero takes over in front of it, under the header (z 50) */
+.o1-scene {
+  z-index: 0;
+  will-change: transform, opacity;
+}
+
+/* the camera: the phone's layer, transformed about the viewport's origin */
+.o1-cam {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+}
+
+.o1-front {
+  z-index: 40;
+  will-change: transform, opacity;
+}
+
+.o1-phone {
+  position: absolute;
+}
+
+.o1-phone .pf {
+  width: 100%;
+}
+
+/* the live screen, drawn at 402 × 874 and scaled to the frame (the scale is set inline) */
+.o1-scrw {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 402px;
+  height: 874px;
+  transform-origin: 0 0;
+}
+
+/* ── the screen (native px; inside .sc, so the app's own tokens apply) ───────────────── */
+
+.sc.o1-scr {
+  background: #fff;
+}
+
+.o1--sys .sc.o1-scr {
+  --sc-font: -apple-system, "SF Pro Text", system-ui, sans-serif;
+}
+
+/* the status bar's clock: the minute he clocks in */
+.sc.o1-scr .sc-statusbar-time {
+  visibility: hidden;
+}
+
+.sc .o1-scr-now {
+  position: absolute;
+  z-index: 2;
+  left: 54px;
+  top: 19px;
+  font-size: 17px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--sc-status-ink);
+}
+
+.sc .o1-scr-job {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 350px; /* screen y 404 (the body starts under the 54 px status bar) */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sc .o1-scr-name {
+  font-size: 40px;
+  line-height: 44px;
+  font-weight: 760;
+  letter-spacing: -0.04em;
+  color: #050505;
+  white-space: nowrap;
+}
+
+.sc .o1-scr-on {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 25px;
+  line-height: 30px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: #2b2b2b;
+  white-space: nowrap;
+}
+
+.sc .o1-scr-on svg {
+  flex: none;
+  width: 26px;
+  height: 23px;
+  overflow: visible;
+}
+
+.sc .o1-scr-on path {
+  fill: rgb(255 122 1 / 12%);
+  stroke: #ff7a01;
+  stroke-width: 1.7;
+  stroke-dasharray: 3 2;
+  stroke-linejoin: round;
+}
+
+.sc .o1-scr-slot {
+  position: absolute;
+  left: 20px;
+  top: 62px; /* screen y 116: screen.tsx MAP */
+  width: 362px;
+  height: 268px;
+  border-radius: 22px;
+  background: #d4f3e2;
+}
+
+/* the map, over the screen's slot (native px, scaled to the screen): a rounded window onto a
+   taller map, slid (transform) so the culvert sits in the geofence */
+.o1-map {
+  position: absolute;
+  transform-origin: 0 0;
+  overflow: hidden;
+  border-radius: 22px;
+  /* keep the rounded clip on the compositor as the camera scales it */
+  isolation: isolate;
+}
+
+.o1-map::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 6%);
+  pointer-events: none;
+}
+
+.o1-mapin {
+  position: absolute;
+  left: 0;
+  display: block;
+  max-width: none;
+}
+
+.sc.o1-mapw {
+  background: transparent;
+}
+
+/* the Clock In button: the app's black disc, and its green clocked-in state over it */
+.sc .o1-scr-btn {
+  position: absolute;
+  left: 113px;
+  top: 460px; /* screen y 514: screen.tsx BTN */
+  width: 176px;
+  height: 176px;
+}
+
+.sc .o1-btn-off,
+.sc .o1-btn-on {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.sc .o1-btn-off {
+  gap: 8px;
+  background: var(--sc-phone-ink);
+  font-size: 30px;
+  line-height: 34px;
+  font-weight: 620;
+  letter-spacing: -0.025em;
+}
+
+.sc .o1-btn-on {
+  gap: 2px;
+  background: #149a52;
+  opacity: 0;
+}
+
+.sc .o1-btn-k {
+  font-size: 24px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.sc .o1-btn-t {
+  font-size: 38px;
+  line-height: 42px;
+  font-weight: 760;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* the tap (the phone frame's own finger and ripple, on the opening's clock) */
+.o1-tap {
+  position: absolute;
+  z-index: 4;
+}
+
+.o1-press,
+.o1-ripple,
+.o1-finger {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.o1-press {
+  inset: 0;
+  background: rgb(0 0 0 / 26%);
+}
+
+.o1-ripple {
+  left: 50%;
+  top: 50%;
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  border: 4px solid var(--orange, #ff7a01);
+}
+
+.o1-finger {
+  left: 50%;
+  top: 50%;
+  width: 60px;
+  height: 60px;
+  margin: 2px 0 0 -18px;
+  background: rgb(23 19 15 / 30%);
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 85%);
+}
+
+/* ── in front: the geofence, its stakes, Marcus, the words ──────────────────────────── */
+
+.o1-fly {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.o1-fly svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  max-width: none;
+  overflow: visible;
+}
+
+.o1-fly polygon {
+  fill: none;
+  stroke: var(--orange);
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+}
+
+/* on the map: the geofence's area */
+.o1-fly .o1-fill {
+  fill: var(--orange);
+  fill-opacity: 0.13;
+  stroke: none;
+}
+
+/* the hero's own line (.hf-fence-line), exactly */
+.o1-fly .o1-b {
+  stroke-width: 2;
+  stroke-dasharray: 10 7;
+  opacity: 0;
+}
+
+.o1-fly .o1-solid {
+  opacity: 0;
+}
+
+.o1-word {
+  position: absolute;
+  display: block;
+  white-space: nowrap;
+  opacity: 0;
+}
+
+/* the stakes: .hf-stake (a 6 px orange dot with a 2 px ground halo) */
+.o1-stake {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--orange);
+  border: 2px solid var(--ground);
+}
+
+/* Marcus: .hf-mk at rest (a pin on the map before he flies) */
+.o1-mk {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 0 1.5px var(--ink),
+    0 2px 6px -2px rgb(23 19 15 / 35%);
+  display: grid;
+  place-items: center;
+  font: 650 10.5px/1 var(--font-text);
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  transform-origin: 13px 13px;
+}
+
+.o1--phone .o1-mk {
+  box-shadow: 0 0 0 1.5px var(--ink);
+}
+
+.o1-mk-dot {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #24c56f;
+  box-shadow: 0 0 0 2px #fff;
+  opacity: 0;
+}
+
+.o1-mk-ring {
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2.5px var(--orange);
+  opacity: 0;
+}

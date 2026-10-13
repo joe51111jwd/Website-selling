@@ -1,0 +1,483 @@
+/* Opening O2 · "The office sees it" (./index.tsx). Every selector is .o2- prefixed; the html.o2-*
+   rules at the end hold the hero's handed-over pieces back until this layer's copies land on them.
+   The list is the app's own UI (the SmartCrew web app: white card, status pill, initials) set in
+   the page's type. PHONE MODE: transform and opacity only, static shadows ≤ 24 px blur. */
+
+/* between the page's ground (.backdrop, z −1) and its content (.site, z 1): before the hero
+   enters it is hidden, so the list is all there is; once its headline rises, whatever is still
+   travelling passes behind the headline's letters, never over them */
+/* (the host is a plain block: no stacking context, so its two fixed layers stack on the page's) */
+.o2-host {
+  font-family: var(--font-text);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.o2 {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* the crew's own layer: above the page's content (.site, z 1), below the header (z 50) */
+.o2-top {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* everything is placed in viewport px: 0 × 0 anchors, their content hung off them */
+.o2-in,
+.o2-row,
+.o2-row-in,
+.o2-hwy-fx,
+.o2-at {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+
+/* the list rises in on the first frame (a CSS animation: the mount makes no animation itself; the
+   rest of the opening runs on this one's time base, ./index.tsx) */
+.o2-in {
+  animation: o2-in 0.24s var(--ease-out) both;
+}
+
+@keyframes o2-in {
+  from {
+    opacity: 0.35;
+    transform: translateY(12px);
+  }
+}
+
+/* Marcus hasn't arrived yet, nor has the office's line about him */
+.o2-mk[data-id="mb"],
+.o2-ev {
+  opacity: 0;
+}
+
+.o2-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  max-width: none;
+  overflow: visible;
+}
+
+/* ── the card ────────────────────────────────────────────────────────────────────────── */
+
+.o2-card {
+  position: absolute;
+}
+
+.o2-card-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 7%),
+    0 30px 60px -34px rgb(23 19 15 / 38%),
+    0 8px 18px -12px rgb(23 19 15 / 16%);
+}
+
+.o2-head {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 30px;
+  border-bottom: 1px solid #eeebe7;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.o2-head b {
+  font-weight: 650;
+  letter-spacing: -0.005em;
+}
+
+.o2-head-mark {
+  width: 17px;
+  height: 20px;
+}
+
+.o2-live {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 560;
+  color: #13854a;
+}
+
+.o2-live i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #24c56f;
+  box-shadow: 0 0 0 3px rgb(36 197 111 / 18%);
+}
+
+/* the Hwy 9 row's plate: white on the white card, so it only shows once the card has gone */
+.o2-plate {
+  position: absolute;
+  transform-origin: 0 0;
+}
+
+.o2-plate-in,
+.o2-lift {
+  position: absolute;
+  inset: 0;
+  border-radius: 13px;
+}
+
+.o2-plate-in {
+  background: #fff;
+}
+
+.o2-lift {
+  opacity: 0;
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 9%),
+    0 18px 34px -20px rgb(23 19 15 / 42%);
+}
+
+/* the hero's face for the plate: its tag ground (copied from the hero), or a chip */
+.o2-face {
+  position: absolute;
+  transform-origin: 0 0;
+  opacity: 0;
+}
+
+.o2-face-tag {
+  position: absolute;
+  inset: 0;
+}
+
+.o2-face-glyph {
+  position: absolute;
+  overflow: visible;
+  max-width: none;
+}
+
+.o2-face-glyph path {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 1.6;
+  stroke-dasharray: 3 2;
+  stroke-linejoin: round;
+}
+
+.o2-face-dot {
+  position: absolute;
+  white-space: pre;
+  font-size: 14px;
+  font-weight: 560;
+  color: var(--ink);
+}
+
+.o2-face-chip {
+  position: absolute;
+  inset: 0;
+  border-radius: 99px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 12%),
+    0 6px 14px -10px rgb(23 19 15 / 40%);
+}
+
+/* ── a row: its site (the geofence, the crew, the name), today's number ─────────────────── */
+
+.o2-name,
+.o2-money {
+  position: absolute;
+  top: 0;
+  margin-top: -0.5em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.o2-name {
+  left: 0;
+  font-weight: 600;
+}
+
+.o2-money {
+  right: 0;
+}
+
+/* desktop: the tag's own face (Special Gothic, 88 % wide), so the number lands as itself */
+.o2-money:not(.o2-money--chip) {
+  font-family: var(--font-display);
+  font-stretch: 88%;
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: -0.004em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* phones: the chip's own setting (text face, semibold, tabular figures; size from the chip) */
+.o2-money--chip {
+  font-weight: 650;
+}
+
+.o2--phone .o2-name,
+.o2-money--chip {
+  font-variant-numeric: tabular-nums;
+}
+
+.o2 [data-tone="pos"] {
+  color: #18874a;
+}
+
+.o2 [data-tone="neg"] {
+  color: #cf3a3f;
+}
+
+.o2-line {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 1.6;
+  stroke-dasharray: 6 4.5;
+  stroke-linejoin: round;
+}
+
+/* the other jobs' geofences: quieter (the live one is Hwy 9) */
+.o2-fence-s .o2-line {
+  stroke-opacity: 0.5;
+}
+
+.o2-stake {
+  fill: var(--orange);
+  stroke: #fff;
+  stroke-width: 3;
+  paint-order: stroke;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.o2-pulse {
+  opacity: 0;
+}
+
+.o2-pulse polygon {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+}
+
+/* ── the event line: the dashboard's own clock-in (status pill, name, time) ─────────────── */
+
+.o2-ev {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  height: 28px;
+  margin-top: -14px;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 560;
+  line-height: 1;
+}
+
+.o2-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #e5f8ed;
+  color: #108a47;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.o2-ev-a {
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+}
+
+.o2-time-x {
+  position: relative;
+  display: inline-block;
+}
+
+.o2-time,
+.o2-ev-ap {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-stretch: 75%;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--ink-2);
+  /* the hero stamp's own figures */
+  font-variant-numeric: tabular-nums;
+  font-feature-settings:
+    "tnum" 1,
+    "lnum" 1,
+    "case" 1;
+}
+
+.o2-ev-ap {
+  margin-left: -6px;
+}
+
+/* ── the crew: the hero's own markers (white disc, ink ring, the app's green clock-in dot) ── */
+
+.o2-mk {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    0 0 0 1.5px var(--ink),
+    0 2px 6px -2px rgb(23 19 15 / 35%);
+  display: grid;
+  place-items: center;
+  font-size: 11.2px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.o2-mk-dot {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #24c56f;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.o2-mk[data-id="mb"] .o2-mk-dot {
+  opacity: 0;
+}
+
+.o2-mk-ring {
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2.5px var(--orange);
+  opacity: 0;
+}
+
+/* phones: the headline's fence, scaled out of the row's (transform only) */
+.o2-flyfence {
+  position: absolute;
+  transform-origin: 0 0;
+  opacity: 0;
+}
+
+.o2-flyfence svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: none;
+  overflow: visible;
+}
+
+.o2-line--hero {
+  stroke-width: 2;
+  stroke-dasharray: 10 7;
+}
+
+.o2-stake--hero {
+  stroke: var(--ground);
+  stroke-width: 4;
+}
+
+/* ── PHONE MODE ─────────────────────────────────────────────────────────────────────── */
+
+.o2--phone .o2-card-bg {
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 8%),
+    0 14px 24px -16px rgb(23 19 15 / 36%);
+}
+
+/* the chip's own weight, so the name lands as itself */
+.o2--phone .o2-name {
+  font-weight: 560;
+}
+
+.o2--phone .o2-head {
+  padding: 0 14px;
+  font-size: 14.5px;
+}
+
+.o2--phone .o2-lift {
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 9%),
+    0 12px 22px -14px rgb(23 19 15 / 42%);
+}
+
+.o2--phone .o2-mk {
+  font-size: 9.8px;
+  box-shadow: 0 0 0 1.5px var(--ink);
+}
+
+.o2--phone .o2-mk-dot {
+  width: 8px;
+  height: 8px;
+}
+
+.o2--phone .o2-ev {
+  gap: 7px;
+  height: 22px;
+  margin-top: -11px;
+  font-size: 13.5px;
+}
+
+.o2--phone .o2-pill {
+  height: 22px;
+  padding: 0 9px;
+  font-size: 12px;
+}
+
+.o2--phone .o2-ev-sep {
+  color: var(--ink-3);
+}
+
+.o2--phone .o2-time,
+.o2--phone .o2-ev-ap {
+  font-size: 14px;
+}
+
+.o2--phone .o2-ev-ap {
+  margin-left: -4px;
+}
+
+/* ── the hand-over: the hero's given pieces wait for their copies to land ───────────────── */
+
+html.o2-fly .hf-root :is(.hf-fence, .hf-pulse, .hf-tag, .hf-tape, .hf-tag-note, .hf-chip, .hf-mk[data-id="er"], .hf-mk[data-id="mb"]) {
+  visibility: hidden !important;
+}
+
+/* the tape and the small print under the tag (desktop): they tie on just after the tag has landed */
+html.o2-late .hf-root :is(.hf-tape, .hf-tag-note) {
+  opacity: 0 !important;
+}
+
+html.o2-tie .hf-root :is(.hf-tape, .hf-tag-note) {
+  transition: opacity 0.45s var(--ease-out) 0.05s;
+}

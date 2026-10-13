@@ -120,7 +120,7 @@ export const HERO_BEATS = {
 /** How long the hero waits, laid out and hidden, for an opening's `heroEnter` before entering on its own. */
 export const OPENING_WAIT = 3200;
 
-type Controller = { targets: () => HeroTargets; enter: (o: HeroEnterOpts) => Promise<void> };
+type Controller = { targets: () => HeroTargets; enter: (o: HeroEnterOpts) => Promise<void>; land?: () => void };
 
 let ctrl: Controller | null = null;
 let pending: { opts: HeroEnterOpts; resolve: () => void } | null = null;
@@ -156,6 +156,29 @@ export function heroEnter(opts: HeroEnterOpts = {}): Promise<void> {
 /** Whether the hero has entered (by `heroEnter`, or on its own). */
 export const heroEntered = () => entered !== null;
 
+/**
+ * Land the entrance now: everything still to come shows at rest at once (no-op once it has
+ * settled). One Day's scroll hand-off calls it when the visitor starts scrolling the hero away, so
+ * the hand-off always starts from the rest frame (src/site/day/handoff.ts).
+ */
+export function heroLand() {
+  ctrl?.land?.();
+}
+
+const layoutSubs = new Set<() => void>();
+/**
+ * Run `fn` every time the hero has (re-)laid itself out (fonts in, a width change): the boxes
+ * `getHeroTargets()` returns may have moved. Returns an unsubscribe.
+ */
+export function onHeroLayout(fn: () => void): () => void {
+  layoutSubs.add(fn);
+  return () => void layoutSubs.delete(fn);
+}
+/** The engine, after every layout. */
+export function heroLaidOut() {
+  layoutSubs.forEach((f) => f());
+}
+
 // ── the engine's side ───────────────────────────────────────────────────────────────────
 
 /**
@@ -174,4 +197,10 @@ export function registerHero(c: Controller): () => void {
   return () => {
     if (ctrl === c) ctrl = null;
   };
+}
+
+// ?heroDebug (captures, an opening's own test bench): the hooks on window, so a test can drive
+// them on a production build, where this module is bundled
+if (typeof location !== "undefined" && /[?&]heroDebug\b/.test(location.search)) {
+  (window as unknown as { __heroOpening: unknown }).__heroOpening = { heroEnter, getHeroTargets, whenHeroLaid, HERO_BEATS };
 }

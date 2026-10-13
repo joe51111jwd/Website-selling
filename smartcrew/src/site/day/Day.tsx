@@ -28,6 +28,7 @@ import { dayLive, onDayFrame, startDayLife, type DayLive } from "./life";
 import { Odometer } from "./Odometer";
 import { usePhoneLite } from "../phone";
 import DayPhone from "./phone/DayPhone";
+import { HeroHandoff } from "./Handoff";
 import "./day.css";
 
 const UpdateCardBody = lazy(() => import("./UpdateCard"));
@@ -426,6 +427,7 @@ function DayStage() {
       </StageAnchor>
       <Rail step={step} />
       <Annotations st={st} cardRef={cardRef} />
+      <HeroHandoff />
     </div>
   );
 }

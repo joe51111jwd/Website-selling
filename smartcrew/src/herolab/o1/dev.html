@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>SmartCrew · See what every job is making, every day · O1 Clock in</title>
+    <meta name="theme-color" content="#FBF8F4" />
+    <link rel="icon" type="image/svg+xml" href="/src/site/assets/mark.svg" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/special-gothic-var.latin.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/finlandica-text-var.latin.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/special-gothic-figures-w104.woff2" />
+    <!-- O1: the crew app's face (Inter), for the phone's screen in the first second -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2" />
+    <!-- O1: the job map on the phone (a 2x snapshot of the app's map, 11 KB) -->
+    <link rel="preload" as="image" href="./map-hwy9.webp" />
+    <style>
+      /* first paint: the warm jobsite ground, before any JS (the opening and the hero paint on it) */
+      html { background: #fbf8f4; }
+    </style>
+    <script>
+      // O1's gate (would live in index.html): once per session, never with reduced motion, never on
+      // a deep link. ?o1=1 forces it, ?o1=0 turns it off. The hero waits, laid out and hidden, for
+      // the opening's hand-off (src/site/hero/fence/opening.ts).
+      (function () {
+        var d = document.documentElement, q = location.search, seen = false;
+        var force = /[?&]o1=1\b/.test(q), off = /[?&](o1|intro)=0\b/.test(q);
+        var rm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+        try { seen = sessionStorage.getItem("sc-o1") === "1"; } catch (e) {}
+        if (!rm && !off && !location.hash && (force || !seen)) d.className += " has-opening o1-on";
+      })();
+    </script>
+  </head>
+  <body>
+    <!-- Opening lab · O1 "Clock in": http://127.0.0.1:5310/src/herolab/o1/dev.html
+         ?o1=1 play again this session · ?o1=0 no opening · ?angle=… · ?o1Debug&heroDebug frame-by-frame (window.__o1.seek(ms)) -->
+    <div id="root"></div>
+    <script type="module" src="./dev.tsx"></script>
+  </body>
+</html>

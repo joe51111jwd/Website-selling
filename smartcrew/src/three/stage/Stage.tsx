@@ -46,6 +46,14 @@ export const CAM_Z = 26;
 export const FOV = 22;
 /** ?stageHQ: never lower the resolution (for rendering the poster stills). */
 const HQ = typeof location !== "undefined" && new URLSearchParams(location.search).has("stageHQ");
+/**
+ * ?stageSnap (captures in headless browsers, where software WebGL draws 1–3 frames a second): every
+ * frame is the pose for the current scroll at once (no scroll spring, no float or look-around, no
+ * entrance spring, no screen crossfade), so a screenshot after one frame is the settled frame.
+ */
+const SNAP = typeof location !== "undefined" && new URLSearchParams(location.search).has("stageSnap");
+/** No tweening inside the Stage: reduced motion, or captures. */
+const STILL = reducedMotion || SNAP;
 
 preloadDevices(["macbook", "iphone"]);
 
@@ -267,7 +275,7 @@ function Driver() {
     const u = (2 * CAM_Z * Math.tan((FOV * D2R) / 2)) / H; // world units per CSS px at z = 0
 
     // the timeline position follows the scroll through a spring (jumps of more than 3 screens snap)
-    if (reducedMotion || Math.abs(sy - L.smoothY.x) > H * 3) {
+    if (STILL || Math.abs(sy - L.smoothY.x) > H * 3) {
       L.smoothY.x = sy;
       L.smoothY.v = 0;
     } else {
@@ -294,7 +302,7 @@ function Driver() {
 
     // frame boxes in world space
     const fit = (k: ResolvedKey, r: Rect, out: THREE.Vector3) => {
-      const ok = anchorRect(k.anchor, sy, r);
+      const ok = anchorRect(k.anchor, sy, r, k.dock);
       if (!ok) return 0;
       out.set((r.x + r.w / 2 - W / 2) * u, (H / 2 - (r.y + r.h / 2)) * u, 0);
       return Math.min((r.w * u) / k.frame[0], (r.h * u) / k.frame[1]);
@@ -311,7 +319,7 @@ function Driver() {
     comp.position.lerpVectors(tmp.a, tmp.b, te);
 
     // look-around (cursor on desktop, a slow sway on touch) and the composition's own turn
-    const look = lerp(A.look, B.look, te) * (reducedMotion ? 0 : 1);
+    const look = lerp(A.look, B.look, te) * (STILL ? 0 : 1);
     const tSec = now / 1000;
     const px = coarse ? Math.sin(tSec * 0.45) * 0.55 : L.pointer.x;
     const py = coarse ? Math.sin(tSec * 0.31 + 1) * 0.3 : L.pointer.y;
@@ -322,7 +330,7 @@ function Driver() {
     lightState.key = lerp(A.lightKey, B.lightKey, te);
     lightState.warm = lerp(A.lightWarm, B.lightWarm, te);
 
-    const float = lerp(A.float, B.float, te) * (reducedMotion ? 0 : 1);
+    const float = lerp(A.float, B.float, te) * (STILL ? 0 : 1);
     let anyVisible = false;
 
     // entrance: devices rise and turn into place once revealed (after the hero's first screen)
@@ -340,7 +348,7 @@ function Driver() {
 
       // entrance spring per device, staggered: phone first, then the laptop
       const ent = L.entrance[id];
-      if (reducedMotion) ent.x = 0;
+      if (STILL) ent.x = 0;
       else if (rev) {
         const delay = id === "iphone" ? 0 : id === "macbook" ? 140 : 260;
         if (sinceReveal > delay) springU(ent, 0, dt, 60, 11.5);
@@ -365,8 +373,8 @@ function Driver() {
         screensOn.add(screenId);
         let tex = getScreen(screenId);
         if (!tex) loadScreen(screenId);
-        d.surface.show(screenId, tex, now, reducedMotion);
-      } else d.surface.show(null, null, now, reducedMotion);
+        d.surface.show(screenId, tex, now, STILL);
+      } else d.surface.show(null, null, now, STILL);
       // overlays for this device
       for (const slot of OVERLAY_SLOTS) {
         const o = overlays.get(`${id}:${slot}`);
@@ -377,7 +385,7 @@ function Driver() {
       }
       // nothing shows until revealed (the hero parks them below the fold); a device that has
       // glided all the way out of the viewport (out = ±1) isn't drawn either
-      const show = Math.max(0, Math.min(1, s.show)) * (rev || reducedMotion ? 1 : 0);
+      const show = Math.max(0, Math.min(1, s.show)) * (rev || STILL ? 1 : 0);
       const outAmt = Math.min(1, Math.abs(s.out));
       const vis = show > 0.002 && outAmt < 0.999;
       d.group.visible = vis;
@@ -394,7 +402,7 @@ function Driver() {
         if (outAmt > 0) placeOut(d, s.out, outAmt, comp, W, H);
       }
 
-      if (vis && d.surface.update(now, dt, ring, a.dim, reducedMotion)) busy = true;
+      if (vis && d.surface.update(now, dt, ring, a.dim, STILL)) busy = true;
       else if (!vis) d.surface.update(now, dt, ring, a.dim, true);
     }
     pinScreens(screensOn);

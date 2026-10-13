@@ -8,7 +8,7 @@ import { MotionConfig } from "motion/react";
 import Signup from "./signup/Signup";
 import { Header } from "./site/shell/Header";
 import { StickyBar } from "./site/shell/StickyBar";
-import { onPageReady, useFirstScreenDone, usePageReady } from "./site/ready";
+import { onPageReady, useFirstScreenDone } from "./site/ready";
 import { lockScroll, startSmoothScroll } from "./site/scroll";
 import { forceStage3d, isPhone, onPhoneChange, phoneAtLoad, stageAllowed, usePhone } from "./site/phone";
 import { setStageMounted, watchLayout } from "./three/stage/store";
@@ -17,10 +17,10 @@ import { startWarmAhead } from "./site/phone/warmAhead";
 import HeroScene from "./site/hero/Hero";
 import DayScene from "./site/day/Day";
 
-// three.js and the models load in their own chunk once the first screen has landed (the hero's
-// button is in place: src/site/ready.ts), so evaluating it and the first GL work never land in
-// the middle of the hero's entrance; the posters cover the wait and the devices are parked below
-// the fold. Never on phones: the import only runs when <Stage/> first renders.
+// three.js and the models load in their own chunk once the hero's entrance has played its main
+// beats (useAfterEntrance, src/site/ready.ts), so evaluating it and the first GL work never land
+// in the middle of it; the posters cover the wait and the devices are parked below the fold.
+// Never on phones: the import only runs when <Stage/> first renders.
 const Stage = lazy(() => import("./three/stage/Stage"));
 // the geofence cursor (mouse/trackpad only): its own chunk, never fetched on phones
 const Cursor = lazy(() => import("./cursor/Cursor"));
@@ -28,8 +28,7 @@ const Cursor = lazy(() => import("./cursor/Cursor"));
 /**
  * The scenes after One Day, in page order, each in its own chunk (with its CSS and its phone
  * version), so the first screen's JS is only the hero and One Day: less to download and evaluate
- * at boot. They are fetched and mounted one by one in idle time after the first screen (desktop:
- * once it has landed; phones: once it is done), never in the middle of the hero's entrance
+ * at boot. They are fetched and mounted after the hero's entrance, never in the middle of it
  * (useLateScenes, src/site/ready.ts).
  */
 type SceneModule = { default: ComponentType };
@@ -77,9 +76,9 @@ function useDayOnPhone() {
  * The scenes after One Day mount after the first screen, as low-priority transitions (React
  * renders them in 5 ms slices; each chunk's stylesheet restyles the page as it lands), so none of
  * it lands in the middle of the hero's entrance as a long task:
- * - desktop: all at once (their chunks in parallel) once the first screen has landed (READY: the
- *   hero's button is in place), so the header's FAQ link and the 3D Stage's later keys are there
- *   within a second or two;
+ * - desktop: all at once (their chunks in parallel) once the entrance's main beats are over
+ *   (READY + 1.2 s: the button has landed and its fence has closed; at once on the first input),
+ *   so the header's FAQ link and the 3D Stage's later keys are there within a couple of seconds;
  * - phones: one by one in idle time once the first screen is done (DONE: the entrance has played
  *   out, or the visitor has started scrolling); they are seven screens of One Day further down,
  *   all in within ~2 s.
@@ -87,11 +86,11 @@ function useDayOnPhone() {
  */
 function useLateScenes() {
   const [n, setN] = useState(() => (hashOnLoad ? LATER.length : 0));
-  const ready = usePageReady();
+  const after = useAfterEntrance();
   const done = useFirstScreenDone();
   useEffect(() => {
-    if (!phoneAtLoad && ready && n < LATER.length) startTransition(() => setN(LATER.length));
-  }, [ready, n]);
+    if (!phoneAtLoad && after && n < LATER.length) startTransition(() => setN(LATER.length));
+  }, [after, n]);
   useEffect(() => {
     // scenes that came in late may carry markers the shell looks for (data-hides-sticky)
     window.dispatchEvent(new Event("sc:scenes"));
@@ -120,18 +119,38 @@ function useLateScenes() {
   return n;
 }
 
-/** Desktop: the Stage mounts in the first idle moment after the first screen has landed (at once for a #hash on load). */
-function useStageGo() {
-  const [go, setGo] = useState(() => !!hashOnLoad);
+/**
+ * Desktop: the entrance's main beats are over: the hero's button has landed and its own fence has
+ * closed round it (READY + 1.2 s), or the visitor has started using the page (DONE). The 3D Stage
+ * and the scenes after One Day start their work then, so their chunks' evaluation, their styles
+ * and the first GL work never land on the headline's or the button's fence while they draw
+ * (those two draw on the main thread on desktop). At once for a #hash on load.
+ */
+const ENTRANCE_TAIL = 1200;
+function useAfterEntrance() {
+  const done = useFirstScreenDone();
+  const [late, setLate] = useState(() => !!hashOnLoad);
   useEffect(() => {
-    if (go) return;
-    let id = 0;
-    const off = onPageReady(() => (id = idle(() => setGo(true))));
+    if (late) return;
+    let t = 0;
+    const off = onPageReady(() => (t = window.setTimeout(() => setLate(true), ENTRANCE_TAIL)));
     return () => {
       off();
-      cancelIdle(id);
+      clearTimeout(t);
     };
-  }, [go]);
+  }, [late]);
+  return late || done;
+}
+
+/** Desktop: the Stage mounts in the first idle moment after the entrance's main beats. */
+function useStageGo() {
+  const after = useAfterEntrance();
+  const [go, setGo] = useState(() => !!hashOnLoad);
+  useEffect(() => {
+    if (go || !after) return;
+    const id = idle(() => setGo(true));
+    return () => cancelIdle(id);
+  }, [go, after]);
   return go;
 }
 

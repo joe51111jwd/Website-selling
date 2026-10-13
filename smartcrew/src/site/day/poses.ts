@@ -11,10 +11,11 @@
 // rolls and the headline swaps half way). During holds every pose keeps drifting a little.
 
 import { MOMENTS } from "../../content/moments";
-import { phone as isPhone } from "../../three/stage/store";
+import { phone as isPhone, reducedMotion } from "../../three/stage/store";
 import type { Box, DevicePose, FocusSpec, PoseKey } from "../../three/stage/types";
 import { B, DAY_STEPS, beat } from "./clock";
 import { SCRIPT, type Script } from "./script";
+import { HO_DOCK_OFFSET } from "./handoff";
 
 export { DAY_STEPS, beat };
 
@@ -144,8 +145,10 @@ export function dayPoses(): PoseKey[] {
     const at = (ph: number) => beat(i, ph);
     const pushView = shot.push.view ?? shot.view;
 
-    // screens + rings at each beat
-    const phoneTapRing = up && s.phone.tap ? s.phone.tap : null;
+    // screens + rings at each beat (desktop, 6:42 AM: the hero's fence is the ring round the
+    // button: it flies there from the words, ./handoff.ts)
+    const fenced = i === 0 && !isPhone && !reducedMotion;
+    const phoneTapRing = up && s.phone.tap && !fenced ? s.phone.tap : null;
     const before = { iphone: { screen: s.phone.before }, macbook: { screen: s.laptop.before } };
     const shown = up
       ? { iphone: { screen: s.phone.after }, macbook: { screen: s.laptop.before } }
@@ -172,6 +175,22 @@ export function dayPoses(): PoseKey[] {
         macbook: { ...mid(left.macbook, act.macbook), ...before.macbook },
         focus: actFocus ? focusOf(s, 0.5) : null,
       });
+    }
+    // the hand-off from the hero (desktop): the devices rise from the hero's park pose into this
+    // first shot while the hero scrolls away, DOCKED (fitted into One Day's stage box where it
+    // will stick, though the scene is still coming up from below), so they arrive and hold still
+    // on screen by hero progress 0.7, when the fence lands on the phone's button, and One Day's
+    // copy rises into place beside them. Once the scene sticks, docked and undocked are the same.
+    if (i === 0 && !isPhone) {
+      const shot0 = {
+        ...base,
+        view: shot.view,
+        iphone: { ...act.iphone, ...before.iphone },
+        macbook: { ...act.macbook, ...before.macbook },
+        focus: null,
+        dock: true,
+      };
+      keys.push({ ...shot0, at: 0, offset: HO_DOCK_OFFSET, ease: "inOut" }, { ...shot0, at: 0, ease: "linear" });
     }
     // ACT: settled, the button ringed. The very first one is the move from the hero: on phones it
     // is linear, so the devices glide straight from the hero's spot to this one (an eased blend

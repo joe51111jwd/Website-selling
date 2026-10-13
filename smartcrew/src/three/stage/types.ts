@@ -92,6 +92,14 @@ export type Pose = {
    * rays and scaled to match, so it looks identical but can't be cut by a closer laptop). Inherits.
    */
   front?: DeviceId | null;
+  /**
+   * Dock the frame: fit it into the anchor's box where that box sits once its pinned scene has
+   * stuck to the top of the viewport, even while the scene is still scrolling in from below. The
+   * devices then hold still on screen while the page catches up under them (the hero → One Day
+   * hand-off: they rise into their first shot before One Day has arrived). Not inherited; an
+   * anchor outside a pinned scene ignores it.
+   */
+  dock?: boolean;
 };
 
 export type EaseName = "linear" | "in" | "out" | "inOut" | "snap" | "hold";
@@ -149,5 +157,6 @@ export type ResolvedKey = {
   lightWarm: number;
   focus: FocusSpec | null;
   front: DeviceId | null;
+  dock: boolean;
   ease: Ease;
 };

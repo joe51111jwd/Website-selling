@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>SmartCrew · See what every job is making, every day</title>
+    <meta name="theme-color" content="#FBF8F4" />
+    <link rel="icon" type="image/svg+xml" href="/src/site/assets/mark.svg" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/special-gothic-var.latin.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/finlandica-text-var.latin.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/special-gothic-figures-w104.woff2" />
+    <style>
+      /* first paint: the warm jobsite ground, before any JS (the opening and the hero paint on it) */
+      html { background: #fbf8f4; }
+    </style>
+    <script>
+      // The O2 opening's gate ("The office sees it"): once per session, never with reduced motion.
+      // `has-opening` keeps the hero laid out but hidden until the opening hands over
+      // (src/site/hero/fence/opening.ts). Dev: ?o2=1 plays it on every load, ?o2=0 never.
+      (function () {
+        var d = document.documentElement, q = location.search, seen = false;
+        try { seen = sessionStorage.getItem("sc-o2") === "1"; } catch (e) {}
+        var rm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!/[?&]o2=0/.test(q) && !rm && (/[?&]o2=1/.test(q) || !seen)) d.className += " has-opening o2-on";
+      })();
+    </script>
+  </head>
+  <body>
+    <!-- Opening lab · O2 "The office sees it": http://127.0.0.1:5310/src/herolab/o2/dev.html
+         The real page (src/main.tsx → App) with the opening in front of it.
+         ?o2=1 every load · ?o2=0 off · ?angle=… as the page · ?o2Debug&heroDebug: paused, window.__o2.seek(ms) -->
+    <div id="root"></div>
+    <div id="o2-root"></div>
+    <script type="module" src="./dev.tsx"></script>
+  </body>
+</html>

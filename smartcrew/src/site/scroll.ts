@@ -54,6 +54,14 @@ export function handleAnchorClick(e: React.MouseEvent<HTMLAnchorElement>) {
   const href = e.currentTarget.getAttribute("href");
   if (!href?.startsWith("#") || href.length < 2) return;
   e.preventDefault();
-  scrollToScene(href.slice(1));
+  const id = href.slice(1);
   history.replaceState(null, "", href);
+  // the scenes after One Day mount after the first screen (App, src/site/ready.ts): a click that
+  // comes before its scene is in the page waits for it (up to 3 s), then scrolls there
+  let tries = 0;
+  const go = () => {
+    if (document.getElementById(id)) requestAnimationFrame(() => scrollToScene(id));
+    else if (++tries < 30) window.setTimeout(go, 100);
+  };
+  go();
 }

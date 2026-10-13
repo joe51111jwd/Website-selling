@@ -15,7 +15,7 @@
 
 import { HERO_JOBS } from "../../../content/copy";
 import { markFirstScreenDone, markPageReady } from "../../ready";
-import { OPENING_WAIT, heroEntered, heroEnter, openingOn, registerHero, type Box as TBox, type CrewId, type HeroEnterOpts, type HeroTargets, type PieceMode } from "./opening";
+import { OPENING_WAIT, heroEntered, heroEnter, heroLaidOut, openingOn, registerHero, type Box as TBox, type CrewId, type HeroEnterOpts, type HeroTargets, type PieceMode } from "./opening";
 import { contoursSliced, type Rect, type TopoInput } from "./topo";
 import { SPRING, Walk, hexFence, inside, polyPath, polyPoints, springFrames, walkEaseInv, walkFrames, type Box, type Pt } from "./geom";
 
@@ -986,7 +986,17 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     rest(G);
     root.classList.add("is-laid");
     interact(G);
-    offCtrl = registerHero({ targets, enter: (eo) => (alive && G && !started ? entrance(G, eo) : Promise.resolve()) });
+    offCtrl = registerHero({
+      targets,
+      enter: (eo) => (alive && G && !started ? entrance(G, eo) : Promise.resolve()),
+      // One Day's hand-off: land whatever is still to come, at once
+      land: () => {
+        if (!alive || !busy) return;
+        tl.flush();
+        settle();
+      },
+    });
+    heroLaidOut();
     if (!started) {
       if (heroEntered()) {
         // a remount (crossing 760 px): the hero has entered already, show its rest state
@@ -1024,6 +1034,7 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     drawTopo(G);
     rolling = false;
     interact(G);
+    heroLaidOut();
   };
   const onResize = () => {
     const w = window.innerWidth;

@@ -146,14 +146,17 @@ function stageTop(s: SceneGeo, scrollY: number) {
 
 export type Rect = { x: number; y: number; w: number; h: number };
 
-/** An anchor's box in viewport px at a scroll position, without touching the DOM. */
-export function anchorRect(id: string, scrollY: number, out: Rect): Rect | null {
+/**
+ * An anchor's box in viewport px at a scroll position, without touching the DOM. `dock`: where the
+ * box sits once its pinned scene has stuck, even while the scene is still below (a key's `dock`).
+ */
+export function anchorRect(id: string, scrollY: number, out: Rect, dock = false): Rect | null {
   const a = anchors.get(id);
   if (!a) return null;
   let top: number;
   if (a.scene) {
     const s = scenes.get(a.scene);
-    top = s ? stageTop(s, scrollY) + a.offTop : a.pageTop - scrollY;
+    top = s ? (dock ? Math.min(0, stageTop(s, scrollY)) : stageTop(s, scrollY)) + a.offTop : a.pageTop - scrollY;
   } else top = a.pageTop - scrollY;
   out.x = a.left;
   out.y = top;
@@ -254,6 +257,7 @@ function buildTimeline() {
       lightWarm: key.light?.warm ?? prev?.lightWarm ?? 0,
       focus: key.focus ?? null,
       front: key.front !== undefined ? key.front : (prev?.front ?? null),
+      dock: key.dock ?? false,
       ease: key.ease ?? "inOut",
     };
     out.push(r);
