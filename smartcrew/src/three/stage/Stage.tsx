@@ -10,7 +10,7 @@ import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 import { StageDevice, preloadDevices, rig, onRig, type RigDevice } from "./devices";
 import { Comet } from "./pulse";
-import { getScreen, initTextures, loadScreen, pinScreens, screenTextureMB, screensLoading, wantScreens } from "./textures";
+import { getScreen, initTextures, loadScreen, pinScreens, screenCount, screenTextureMB, screensLoading, wantScreens } from "./textures";
 import { StageLoupe } from "./loupe";
 import {
   anchorRect,
@@ -275,6 +275,8 @@ function Driver() {
       textures: gl.info.memory.textures,
       geometries: gl.info.memory.geometries,
       screenTexMB: screenTextureMB(),
+      screens: screenCount(),
+      loading: screensLoading(),
       dpr: gl.getPixelRatio(),
     });
   }, [gl]);
@@ -347,7 +349,12 @@ function Driver() {
     } else {
       spring(L.smoothY, sy, dt, 11);
       if (Math.abs(L.smoothY.x - sy) > 0.5 || Math.abs(L.smoothY.v) > 1) busy = true;
-      else L.smoothY.x = sy;
+      else {
+        // at rest: exactly there (a spring left a fraction of a px short would creep on with any
+        // later frame, and a frame at rest must draw the very same pixels)
+        L.smoothY.x = sy;
+        L.smoothY.v = 0;
+      }
     }
     const y = L.smoothY.x;
 
@@ -408,6 +415,11 @@ function Driver() {
     spring(L.lookX, px * look, dt, 4.5);
     spring(L.lookY, py * look, dt, 4.5);
     const settlingLook = Math.abs(L.lookX.x - px * look) > 0.002 || Math.abs(L.lookY.x - py * look) > 0.002;
+    if (!settlingLook) {
+      L.lookX.x = px * look;
+      L.lookY.x = py * look;
+      L.lookX.v = L.lookY.v = 0;
+    }
     comp.rotation.set((lerp(A.viewX, B.viewX, te) + L.lookY.x * 3) * D2R, (lerp(A.viewY, B.viewY, te) + L.lookX.x * 4) * D2R, 0);
     lightState.key = lerp(A.lightKey, B.lightKey, te);
     lightState.warm = lerp(A.lightWarm, B.lightWarm, te);

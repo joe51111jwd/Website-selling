@@ -73,10 +73,16 @@ const cancelIdle = (id: number) => (typeof window.cancelIdleCallback === "functi
 function useDayOnPhone() {
   const [on, setOn] = useState(() => !phoneAtLoad || !!hashOnLoad);
   useEffect(() => {
-    if (!on) startTransition(() => setOn(true));
+    if (on) return;
+    // t1: the site model's camera move needs the main thread quiet for ~0.9 s (its commits would
+    // cost it frames on a slow phone): One Day mounts once the camera has landed (READY), or at
+    // once on the first input. ?t1DayBoot: the page's own scheduling (mount at boot).
+    if (DAY_AT_BOOT) return startTransition(() => setOn(true));
+    return onPageReady(() => startTransition(() => setOn(true)));
   }, [on]);
   return on;
 }
+const DAY_AT_BOOT = typeof location !== "undefined" && /[?&]t1DayBoot\b/.test(location.search);
 
 /**
  * The scenes after One Day mount after the first screen, as low-priority transitions (React

@@ -98,13 +98,14 @@ export function loadScreen(id: string): Promise<ScreenTex | null> {
     return hit.promise;
   }
   // Decoded at the size they're shown. Desktop: the laptop's screen is at most ~1170 CSS px wide
-  // (One Day's push-ins at 1440 wide), so 2048 px covers it at the Stage's 1.5 DPR cap (14 MB with
-  // mipmaps instead of 28 MB at 2880); the phone's screen is at most ~400 CSS px tall, so 804 px
-  // wide (1748 tall) is plenty (7.5 MB instead of 17). Phones show the laptop small: 1440.
+  // (One Day's push-ins at 1440 wide), ~1750 device px at the Stage's 1.5 DPR cap, so 1792 px
+  // covers it (10 MB with mipmaps instead of 28 MB at 2880); the phone's screen is at most ~400
+  // CSS px tall (600 device px), so 600 px wide (1304 tall) is plenty (4 MB instead of 17).
+  // Phones show the laptop small: 1440.
   const name = id.split("/").pop() ?? id;
   const web = name.startsWith("web-");
   const ph = name.startsWith("phone-");
-  const maxW = HQ ? 4096 : phone ? (web ? 1440 : ph ? 804 : 1920) : web ? 2048 : ph ? 804 : 2048;
+  const maxW = HQ ? 4096 : phone ? (web ? 1440 : ph ? 804 : 1920) : web ? 1792 : ph ? 600 : 1792;
   const entry: Entry = { tex: null, used: performance.now(), promise: Promise.resolve(null) };
   inflight++;
   entry.promise = decode(screenUrl(id), maxW)
@@ -178,8 +179,10 @@ function evict() {
     e.tex?.tex.dispose();
     cache.delete(id);
   };
-  const lru = loaded.filter(([id]) => !pinned.has(id)).sort((a, b) => a[1].used - b[1].used);
-  // first the ones nobody wants soon, then (only over the count) the coming-up ones
-  for (const [id, e] of lru) if ((n > MAX || bytes > budget) && !wanted.has(id)) free(id, e);
-  for (const [id, e] of lru) if (n > MAX && cache.has(id)) free(id, e);
+  // only screens that are neither on a device nor coming up: evicting one that is coming up would
+  // load it again on the next prefetch, and evict another (a loop of decodes and redraws)
+  const lru = loaded.filter(([id]) => !pinned.has(id) && !wanted.has(id)).sort((a, b) => a[1].used - b[1].used);
+  for (const [id, e] of lru) if (n > MAX || bytes > budget) free(id, e);
 }
+/** How many screens are decoded (for the perf checks). */
+export const screenCount = () => [...cache.values()].filter((e) => e.tex).length;

@@ -40,8 +40,8 @@ const UNDER = "#ddd3c7";
 /** the base board's cut edge */
 const EDGE = "#b9ab9c";
 
-/** How long the first frame may wait for the land before the copy shows flat (the land fades in when it lands). */
-const LAND_WAIT = 650;
+/** How long the first frame may wait for the land before the copy shows flat (the land fades in when it lands); ?t1Wait=ms (lab). */
+const LAND_WAIT = (typeof location !== "undefined" && Number(new URLSearchParams(location.search).get("t1Wait"))) || 650;
 const SEEN_KEY = "t1-seen";
 /** the sheets' line classes, minor first (the index lines draw over them) */
 const INK_KEYS: InkKey[] = ["nm", "pm", "nmn", "pmn", "ni", "pi", "nin", "pin"];
@@ -136,6 +136,10 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
   const foot = q(".t1-foot");
   const labelsSvg = q<SVGSVGElement>(".t1-labels");
   const dpr = window.devicePixelRatio || 1;
+  // sheets under / over the pad's (the rest merge into the base board and the top sheet);
+  // ?t1Depth=b,a overrides (lab)
+  const dq = new URLSearchParams(location.search).get("t1Depth")?.split(",").map(Number);
+  const DEPTH: [number, number] = dq && dq.length === 2 && dq.every((n) => n >= 0 && n < 9) ? [dq[0], dq[1]] : phone ? [2, 2] : [3, 2];
   root.classList.add(dpr < 1.5 ? "t1-d1" : dpr >= 2.5 ? "t1-d3" : "t1-d2");
 
   let alive = true;
@@ -294,8 +298,8 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
     // the stack: at most `below` sheets under the pad and `above` over it; the outer sheets merge
     // into the base board and the top sheet (printed on them: no parallax that far out, no layers)
     const kp0 = Math.min(all.length - 1, res.plan.padSheet);
-    const lo = Math.max(0, kp0 - (phone ? 2 : 3));
-    const hi = Math.min(all.length - 1, kp0 + 2);
+    const lo = Math.max(0, kp0 - DEPTH[0]);
+    const hi = Math.min(all.length - 1, kp0 + DEPTH[1]);
     type Layer = { fill: string; inner: string; ink: Ink; box: Box };
     const union = (a: Box, b: Box): Box => [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[2], b[2]), Math.max(a[3], b[3])];
     const merge = (into: Ink, from: Ink) => {
@@ -342,7 +346,9 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
         const up = stack[k + 1];
         // the paper is a band: this sheet's region, less the sheet above (it backs only a few px
         // under that sheet's edge, where the gap shows); no overdraw, and its hole costs nothing
-        svgEl("path", k === 0 ? { d: s.fill + (up?.inner ?? ""), fill: PAPER, "fill-rule": "evenodd", stroke: EDGE, "stroke-width": 1 } : { d: s.fill + (up?.inner ?? ""), fill: PAPER, "fill-rule": "evenodd" }, paper);
+        // (a 1 px paper outset hides the antialiased fringe of the shadow strip below once the
+        // stack has closed: no dark rim on the last frames, nothing to pop off on landing)
+        svgEl("path", k === 0 ? { d: s.fill + (up?.inner ?? ""), fill: PAPER, "fill-rule": "evenodd", stroke: EDGE, "stroke-width": 1 } : { d: s.fill + (up?.inner ?? ""), fill: PAPER, "fill-rule": "evenodd", stroke: PAPER, "stroke-width": 2, "stroke-linejoin": "round" }, paper);
         // the sheet above, printed in shadow along that strip: it shows only through the gap under
         // that sheet's edges while the stack is apart, and is covered exactly once it closes
         if (up?.fill) svgEl("path", { d: up.fill + up.inner, fill: UNDER, "fill-rule": "evenodd" }, paper);
@@ -416,9 +422,13 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
     root.classList.add("is-3d", "is-pre-foot", "is-on");
     const dur = M.to - M.from;
     // (fill "backwards": once in, the effect ends, so no group surface stays round the 3D stack)
-    anims.push(cam.animate([{ opacity: 0 }, { opacity: 1 }], { duration: M.fade, easing: EO, fill: "backwards" }));
+    // (from 0.01, not 0: the headline counts as painted on the first frame, for Largest Contentful Paint)
+    anims.push(cam.animate([{ opacity: 0.01 }, { opacity: 1 }], { duration: M.fade, easing: EO, fill: "backwards" }));
     anims.push(
-      model.animate([{ transform: `translateY(${M.ty}px) rotateX(${M.rx}deg) rotateZ(${M.rz}deg) scale(${M.s})` }, { transform: "translateY(0px) rotateX(0deg) rotateZ(0deg) scale(1)" }], {
+      // the model starts small by distance, not by scale(): the layers' own scale stays 1, so the
+      // compositor rasters them at full resolution from the first frame and the copy lands crisp
+      // (a scale() start rasters at 0.76 and upscales: the headline goes soft, then snaps sharp)
+      model.animate([{ transform: `translateY(${M.ty}px) translateZ(${(-M.persp * (1 / M.s - 1)).toFixed(1)}px) rotateX(${M.rx}deg) rotateZ(${M.rz}deg)` }, { transform: "translateY(0px) translateZ(0px) rotateX(0deg) rotateZ(0deg)" }], {
         delay: M.from,
         duration: dur,
         easing: EIO,
@@ -484,11 +494,33 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
 
   // any input lands it at once
   const INPUTS = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
-  const onInput = () => {
+  const finish = () => {
     if (state === "move" && !DEBUG) {
       if (root.classList.contains("is-3d")) land(true);
       else rest();
     } else if (state === "land") rest();
+  };
+  let afterClick = false;
+  const onInput = (e: Event) => {
+    if (state !== "move" && state !== "land") return;
+    // a press on a control (the orange button above all) lands the model only after its click:
+    // landing on the press would move the button out from under the finger before it lifts
+    const t = e.target as Element | null;
+    if ((e.type === "pointerdown" || e.type === "touchstart") && t?.closest?.("a, button, [role=button], input, label")) {
+      if (!afterClick) {
+        afterClick = true;
+        const done = () => {
+          afterClick = false;
+          window.removeEventListener("click", done, true);
+          window.removeEventListener("pointercancel", done, true);
+          setTimeout(finish, 0);
+        };
+        window.addEventListener("click", done, true);
+        window.addEventListener("pointercancel", done, true);
+      }
+      return;
+    }
+    finish();
   };
   INPUTS.forEach((t) => window.addEventListener(t, onInput, { passive: true, capture: true }));
   offs.push(() => INPUTS.forEach((t) => window.removeEventListener(t, onInput, { capture: true })));
@@ -720,7 +752,7 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
   /** a new width (or late fonts): fit, measure and cut the land again; no entrance */
   async function relayout() {
     if (!alive) return;
-    if (state === "move") onInput();
+    if (state === "move") finish();
     fit();
     const g = (geo = measure());
     const r = await requestPlan(req(g));
@@ -767,6 +799,9 @@ export function mountT1(root: HTMLElement, o: T1Opts): () => void {
   return () => {
     alive = false;
     cancelAll();
+    // unmounted mid-move (the phone/laptop layout switched): leave the hero flat
+    root.classList.remove("is-3d", "is-pre-foot");
+    setZ(false);
     clearTimeout(rt);
     offs.forEach((f) => f());
   };

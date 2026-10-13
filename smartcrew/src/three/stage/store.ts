@@ -509,8 +509,12 @@ export function devicesInUse() {
   return used;
 }
 
-/** The screen ids keys use near a scroll position (for prefetching); clock-driven scenes: near their clock. */
-export function screensNear(scrollY: number, range: number, now = 0, ahead = 14000) {
+/**
+ * The screen ids keys use near a scroll position (for prefetching); clock-driven scenes: near their
+ * clock, the next 5 s (the next moment's first screens: decoding takes a fraction of that, and the
+ * texture budget keeps no more).
+ */
+export function screensNear(scrollY: number, range: number, now = 0, ahead = 5000) {
   const ids = new Set<string>();
   const add = (k: ResolvedKey) =>
     DEVICE_IDS.forEach((d) => {
