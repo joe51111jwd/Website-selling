@@ -32,11 +32,15 @@ Every piece of feedback on the product page, in one place. Each item has a statu
    - Every time an app goes in, something pops up that says which part of SmartCrew replaces it ("This is the CRM part: …"), and the view zooms in on that part (mostly as it zooms now).
    - It ends on the whole dashboard with all five parts labelled (the "5-way dashboard"), then the orange button.
    - It uses the same player, controls and readable pace as the ride.
+   - **Make it more important** (after seeing the page): it gets a full-screen takeover like the ride. The five tools are named big in plain words, with the apps each one replaces underneath. A 1-of-5 … 5-of-5 tracker fills as each goes in, and it ends on the clearest frame on the page: "5 apps → 1", then the orange button.
 7. **No flicker.** The MacBook keys flash while the laptop stands still, and other spots may flicker too. Everything must look clean and stable, with no shimmer at rest or in motion.
-8. **The cursor doesn't zoom.** "When it hovers over something, it zooms in, which is kind of distracting."
+8. **Scroll moments everywhere else** ("put in some of the scroll timing, like the Andrew ticket").
+   - Every other section gets one well-timed moment as it comes into view, at the same quality as Andrew's receipt printing itself: the spec sheet, Try it, Your number, proof, the FAQ and /book.
+   - They are calm and readable and never fight your scroll. Brief: `SCROLL_BRIEF.md`.
+9. **The cursor doesn't zoom.** "When it hovers over something, it zooms in, which is kind of distracting."
    - Done: the magnifier over device screens is off, and the big "view" circle is now the small link ring.
    - Rule: hover states stay small and calm. No zoom and no big growth.
-9. **Copy.**
+10. **Copy.**
    - Every line is up for review on the copy review page (Use new / Keep current / Rewrite).
    - The site's wording changes only after the agency owner has marked it.
    - Questions only Andrew can answer are listed on that page.
@@ -74,7 +78,7 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 
 ## Before it goes to the client
 
-- [ ] Items 1–9 above are done.
+- [ ] Items 1–10 above are done.
 - [ ] A review panel passes it: an art director, a conversion lead and technical QA.
 - [ ] `npm run e2e` is green on desktop and on the Facebook in-app iPhone browser.
 - [ ] It is deployed, and the agency owner gets the link.
