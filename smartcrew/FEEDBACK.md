@@ -30,7 +30,10 @@ Every piece of feedback on the product page, in one place. Each item has a statu
    - It ends on the whole dashboard with all five parts labelled (the "5-way dashboard"), then the orange button.
    - It uses the same player, controls and readable pace as the ride.
 7. **No flicker.** The MacBook keys flash while the laptop stands still, and other spots may flicker too. Everything must look clean and stable, with no shimmer at rest or in motion.
-8. **Copy.**
+8. **The cursor doesn't zoom.** "When it hovers over something, it zooms in, which is kind of distracting."
+   - Done: the magnifier over device screens is off, and the big "view" circle is now the small link ring.
+   - Rule: hover states stay small and calm. No zoom and no big growth.
+9. **Copy.**
    - Every line is up for review on the copy review page (Use new / Keep current / Rewrite).
    - The site's wording changes only after the agency owner has marked it.
    - Questions only Andrew can answer are listed on that page.
@@ -68,7 +71,7 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 
 ## Before it goes to the client
 
-- [ ] Items 1–8 above are done.
+- [ ] Items 1–9 above are done.
 - [ ] A review panel passes it: an art director, a conversion lead and technical QA.
 - [ ] `npm run e2e` is green on desktop and on the Facebook in-app iPhone browser.
 - [ ] It is deployed, and the agency owner gets the link.

@@ -36,6 +36,62 @@ export function lockScroll(on: boolean) {
   else lenis.start();
 }
 
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+let glideRaf = 0;
+let glideDone: (() => void) | null = null;
+
+/**
+ * Glide the page to `y` on its own, on a clock (an eased ~0.7 s move, the same on a wheel, a
+ * trackpad or a finger), then call `done`. The visitor's own wheel input can't bend it (Lenis
+ * locks itself for the move; callers that hold the page absorb input anyway). Reduced motion: at
+ * once.
+ */
+export function glideTo(y: number, ms = 700, done?: () => void) {
+  cancelGlide();
+  const top = Math.max(0, Math.round(y));
+  const end = () => {
+    glideRaf = 0;
+    const d = glideDone;
+    glideDone = null;
+    d?.();
+  };
+  glideDone = done ?? null;
+  if (reducedMotion || Math.abs(top - window.scrollY) < 1) {
+    if (lenis) lenis.scrollTo(top, { immediate: true, force: true });
+    else window.scrollTo({ top, behavior: "auto" });
+    end();
+    return;
+  }
+  if (lenis) {
+    lenis.scrollTo(top, { duration: ms / 1000, easing: easeInOut, force: true, lock: true, onComplete: end });
+    return;
+  }
+  const from = window.scrollY;
+  const t0 = performance.now();
+  const step = () => {
+    const k = Math.min(1, (performance.now() - t0) / ms);
+    window.scrollTo({ top: from + (top - from) * easeInOut(k), behavior: "auto" });
+    if (k < 1) glideRaf = requestAnimationFrame(step);
+    else end();
+  };
+  glideRaf = requestAnimationFrame(step);
+}
+
+/** Stop a glide in flight (its `done` doesn't run). */
+export function cancelGlide() {
+  cancelAnimationFrame(glideRaf);
+  if (lenis && glideDone) {
+    // stop Lenis's own move where it is (stop() resets it; the popup's lock stays as it was)
+    lenis.stop();
+    if (!document.documentElement.classList.contains("scroll-locked")) lenis.start();
+  }
+  glideRaf = 0;
+  glideDone = null;
+}
+
+/** A glide is running. */
+export const gliding = () => glideDone !== null || glideRaf !== 0;
+
 export function scrollToY(y: number, opts: { instant?: boolean } = {}) {
   const top = Math.max(0, y);
   if (lenis && !opts.instant) lenis.scrollTo(top, { duration: Math.min(2.2, 0.8 + Math.abs(top - window.scrollY) / 4000) });

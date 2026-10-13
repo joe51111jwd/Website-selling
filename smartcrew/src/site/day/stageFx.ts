@@ -14,8 +14,9 @@
 
 import * as THREE from "three";
 import { rig } from "../../three/stage/devices";
-import { onStageFrame, poke, sceneProgress } from "../../three/stage/store";
-import { dayClock, dayPresence } from "./clock";
+import { onStageFrame, poke } from "../../three/stage/store";
+import { dayPresence } from "./clock";
+import { dayClockAt } from "./ride";
 
 /** The light at each moment (index = moment). az: degrees from the front, + = from the viewer's
  * right; el: degrees above the horizon; key: sun intensity; env: reflections; rot: how far the
@@ -36,7 +37,8 @@ const SUN: Sun[] = [
 const D2R = Math.PI / 180;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-export function startStageFx(): () => void {
+/** `time`: the ride's clock (ms of the film); the light follows the time of day it shows. */
+export function startStageFx(time: () => number): () => void {
   let stop = () => {};
   let gone = false;
   // the devices load asynchronously; wait until both are in the scene
@@ -46,7 +48,7 @@ export function startStageFx(): () => void {
     const scene = mb?.group.parent?.parent;
     if (!mb || !ip || !(scene instanceof THREE.Scene)) return;
     window.clearInterval(wait);
-    if (!gone) stop = install(scene);
+    if (!gone) stop = install(scene, time);
   }, 200);
   return () => {
     gone = true;
@@ -55,7 +57,7 @@ export function startStageFx(): () => void {
   };
 }
 
-function install(scene: THREE.Scene) {
+function install(scene: THREE.Scene, time: () => number) {
   // the Stage's two lights: the white key (directional) and the warm kicker (point)
   let key: THREE.DirectionalLight | null = null;
   let warm: THREE.PointLight | null = null;
@@ -102,7 +104,7 @@ function install(scene: THREE.Scene) {
   // on the Stage's frames, at the scroll position the poses were drawn at
   const off = onStageFrame((f) => {
     const w = dayPresence(f.y, f.h);
-    if (w > 0 || lastW !== 0) applyLight(w, dayClock(sceneProgress("day", f.y)));
+    if (w > 0 || lastW !== 0) applyLight(w, dayClockAt(time()));
     lastW = w;
   });
 

@@ -2,7 +2,7 @@
 // built from every scene's keys, and the imperative API (setScreen, pulse, overlays, live
 // screens). The Stage reads all of it every frame; nothing here touches WebGL.
 
-import { DEVICE_IDS, type Box, type DeviceId, type DeviceState, type Ease, type PoseKey, type PulseSpec, type ResolvedKey } from "./types";
+import { DEVICE_IDS, type Box, type DeviceId, type DeviceState, type Ease, type FocusSpec, type PoseKey, type PulseSpec, type ResolvedKey } from "./types";
 import { isPhoneLite, phoneAtLoad } from "../../site/phone";
 
 // ─── environment ──────────────────────────────────────────────────────────────
@@ -191,13 +191,52 @@ export function sceneY(id: string, at: number) {
 }
 
 // ─── pose keys → timeline ────────────────────────────────────────────────────
+//
+// Scroll-driven scenes place their keys along the page's scroll (`at` = scene progress). A
+// CLOCK-DRIVEN scene (registerPoses(id, keys, { clock })) is different: its keys sit on its own
+// clock (`at` = clock time, any unit, e.g. ms of a film) and the scene takes one place in the
+// scroll timeline, a PORTAL at its top (or at `portal` progress points). Every frame the portal's
+// pose is the scene's keys evaluated at the clock, so the devices play on time while the scroll
+// is held still, and the scroll blends into and out of whatever the clock shows (the scroll
+// before it glides the devices into the clock's pose; the keys after it carry on from it).
+
+/** Where a clock-driven scene's pose is: at `a`, or blended from `a` to `b` by `w` (a smooth jump). */
+export type ClockRead = { a: number; b: number; w: number };
+export type SceneClock = {
+  /** The clock now (`now` = the Stage's frame time, performance.now() or a capture's virtual time). */
+  read(now: number): ClockRead;
+  /** True while the clock is running or blending: the Stage keeps drawing. */
+  moving(now: number): boolean;
+};
+type ClockTrack = { keys: PoseKey[]; clock: SceneClock; portal: number[] };
+
 const tracks = new Map<string, PoseKey[]>();
+const clockTracks = new Map<string, ClockTrack>();
 let timelineDirty = true;
 let timeline: ResolvedKey[] = [];
+/** each clock-driven scene's own keys, resolved (inheriting from the key before its portal) */
+const subTimelines = new Map<string, ResolvedKey[]>();
 
-/** Register a scene's pose keys. Returns an unregister function. */
-export function registerPoses(scene: string, keys: PoseKey[]) {
+/**
+ * Register a scene's pose keys. Returns an unregister function. With `clock`, the keys are on that
+ * clock (their `at` is clock time) and the scene sits in the scroll timeline at its `portal`
+ * progress points (default [0]: its top).
+ */
+export function registerPoses(scene: string, keys: PoseKey[], opts: { clock?: SceneClock; portal?: number[] } = {}) {
+  if (opts.clock) {
+    const t: ClockTrack = { keys, clock: opts.clock, portal: opts.portal ?? [0] };
+    clockTracks.set(scene, t);
+    tracks.delete(scene);
+    timelineDirty = true;
+    poke();
+    return () => {
+      if (clockTracks.get(scene) === t) clockTracks.delete(scene);
+      timelineDirty = true;
+      poke();
+    };
+  }
   tracks.set(scene, keys);
+  clockTracks.delete(scene);
   timelineDirty = true;
   poke();
   return () => {
@@ -213,53 +252,122 @@ const blankDevice = (): DeviceState => ({ show: 0, x: 0, y: 0, z: 0, rx: 0, ry: 
 const onlyOut = (p: { out?: number }) =>
   p.out !== undefined && Object.entries(p).every(([k, v]) => v === undefined || k === "out" || k === "ring");
 
+/** The device fields a key inherits (ring and out are per key). */
+const INHERITED_DEVICE = ["show", "x", "y", "z", "rx", "ry", "rz", "s", "lid", "screen", "scroll", "dim"] as const;
+/** The key-level fields a key inherits. */
+const INHERITED_KEY = ["anchor", "frame", "float", "look", "viewX", "viewY", "lightKey", "lightWarm", "front"] as const;
+
+/** Resolve one key against the one before it (inheritance). */
+function resolveKey(scene: string, key: PoseKey, y: number, prev: ResolvedKey | null): ResolvedKey {
+  const devices = {} as Record<DeviceId, DeviceState>;
+  for (const id of DEVICE_IDS) {
+    // ring and out are per key; everything else inherits
+    const base: DeviceState = prev ? { ...prev.devices[id], ring: null, out: 0 } : blankDevice();
+    const p = key[id];
+    devices[id] = p
+      ? {
+          ...base,
+          ...Object.fromEntries(Object.entries(p).filter(([, v]) => v !== undefined)),
+          show: p.show ?? (onlyOut(p) ? base.show : 1), // naming a device in a key shows it
+          ring: p.ring ?? null,
+          out: p.out ?? 0,
+        }
+      : base;
+  }
+  const r: ResolvedKey = {
+    scene,
+    at: key.at,
+    y,
+    anchor: key.anchor ?? prev?.anchor ?? scene,
+    frame: key.frame ?? prev?.frame ?? [6, 4],
+    devices,
+    pulse: key.pulse ?? null,
+    float: key.float ?? prev?.float ?? 0,
+    look: key.look ?? prev?.look ?? 0,
+    viewX: key.view?.rx ?? prev?.viewX ?? 0,
+    viewY: key.view?.ry ?? prev?.viewY ?? 0,
+    lightKey: key.light?.key ?? prev?.lightKey ?? 1,
+    lightWarm: key.light?.warm ?? prev?.lightWarm ?? 0,
+    focus: key.focus ?? null,
+    front: key.front !== undefined ? key.front : (prev?.front ?? null),
+    dock: key.dock ?? false,
+    ease: key.ease ?? "inOut",
+  };
+  // what it inherits from a portal (directly, or through keys that didn't set it either)
+  const from = prev?.portal ?? prev?.dyn?.from;
+  if (prev && from) {
+    const all = !!prev.portal;
+    const keyDyn = new Set<string>();
+    const set = (f: (typeof INHERITED_KEY)[number]) => {
+      if (f === "viewX" || f === "viewY") return key.view?.[f === "viewX" ? "rx" : "ry"] !== undefined;
+      if (f === "lightKey" || f === "lightWarm") return key.light?.[f === "lightKey" ? "key" : "warm"] !== undefined;
+      return key[f] !== undefined;
+    };
+    for (const f of INHERITED_KEY) if (!set(f) && (all || prev.dyn!.key.has(f))) keyDyn.add(f);
+    const devs = {} as Record<DeviceId, Set<string>>;
+    let any = keyDyn.size > 0;
+    for (const id of DEVICE_IDS) {
+      const p = key[id];
+      const d = new Set<string>();
+      for (const f of INHERITED_DEVICE) {
+        const own = !!p && (f === "show" ? p.show !== undefined || !onlyOut(p) : p[f as keyof typeof p] !== undefined);
+        if (!own && (all || prev.dyn!.devices[id].has(f))) d.add(f);
+      }
+      if (d.size) any = true;
+      devs[id] = d;
+    }
+    if (any) r.dyn = { from, key: keyDyn, devices: devs };
+  }
+  return r;
+}
+
 function buildTimeline() {
-  const raw: { scene: string; key: PoseKey; y: number }[] = [];
+  type Raw = { scene: string; key: PoseKey; y: number; portal?: boolean };
+  const raw: Raw[] = [];
   const vh = typeof window === "undefined" ? 0 : window.innerHeight;
-  tracks.forEach((keys, scene) => {
+  const placeOf = (scene: string) => {
     const s = scenes.get(scene);
+    if (!s) return null;
+    return { top: s.top, travel: Math.max(s.pinned ? s.height - s.stageH : s.height, 0) };
+  };
+  tracks.forEach((keys, scene) => {
+    const s = placeOf(scene);
     if (!s) return;
-    const travel = s.pinned ? s.height - s.stageH : s.height;
-    keys.forEach((key) => raw.push({ scene, key, y: s.top + key.at * Math.max(travel, 0) + (key.offset ?? 0) * vh }));
+    keys.forEach((key) => raw.push({ scene, key, y: s.top + key.at * s.travel + (key.offset ?? 0) * vh }));
+  });
+  clockTracks.forEach((t, scene) => {
+    const s = placeOf(scene);
+    if (!s) return;
+    t.portal.forEach((at) => raw.push({ scene, key: { at }, y: s.top + at * s.travel, portal: true }));
   });
   raw.sort((a, b) => a.y - b.y);
   const out: ResolvedKey[] = [];
+  subTimelines.clear();
   let prev: ResolvedKey | null = null;
-  for (const { scene, key, y } of raw) {
-    const devices = {} as Record<DeviceId, DeviceState>;
-    for (const id of DEVICE_IDS) {
-      // ring and out are per key; everything else inherits
-      const base: DeviceState = prev ? { ...prev.devices[id], ring: null, out: 0 } : blankDevice();
-      const p = key[id];
-      devices[id] = p
-        ? {
-            ...base,
-            ...Object.fromEntries(Object.entries(p).filter(([, v]) => v !== undefined)),
-            show: p.show ?? (onlyOut(p) ? base.show : 1), // naming a device in a key shows it
-            ring: p.ring ?? null,
-            out: p.out ?? 0,
-          }
-        : base;
+  for (const { scene, key, y, portal } of raw) {
+    if (portal) {
+      // the scene's own keys, on its clock, inheriting from the key before the portal
+      let sub = subTimelines.get(scene);
+      if (!sub) {
+        sub = [];
+        let p: ResolvedKey | null = prev ? { ...prev, portal: undefined, dyn: undefined } : null;
+        for (const k of [...clockTracks.get(scene)!.keys].sort((a, b) => a.at - b.at)) {
+          const rk = resolveKey(scene, k, 0, p);
+          rk.dyn = undefined;
+          sub.push(rk);
+          p = rk;
+        }
+        subTimelines.set(scene, sub);
+      }
+      // what keys after it inherit until the clock says otherwise: the clock's last pose
+      const last = sub[sub.length - 1] ?? prev;
+      if (!last) continue;
+      const r: ResolvedKey = { ...last, scene, at: key.at, y, pulse: null, focus: null, dock: false, ease: "inOut", portal: scene, dyn: undefined };
+      out.push(r);
+      prev = r;
+      continue;
     }
-    const r: ResolvedKey = {
-      scene,
-      at: key.at,
-      y,
-      anchor: key.anchor ?? prev?.anchor ?? scene,
-      frame: key.frame ?? prev?.frame ?? [6, 4],
-      devices,
-      pulse: key.pulse ?? null,
-      float: key.float ?? prev?.float ?? 0,
-      look: key.look ?? prev?.look ?? 0,
-      viewX: key.view?.rx ?? prev?.viewX ?? 0,
-      viewY: key.view?.ry ?? prev?.viewY ?? 0,
-      lightKey: key.light?.key ?? prev?.lightKey ?? 1,
-      lightWarm: key.light?.warm ?? prev?.lightWarm ?? 0,
-      focus: key.focus ?? null,
-      front: key.front !== undefined ? key.front : (prev?.front ?? null),
-      dock: key.dock ?? false,
-      ease: key.ease ?? "inOut",
-    };
+    const r = resolveKey(scene, key, y, prev);
     out.push(r);
     prev = r;
   }
@@ -272,22 +380,159 @@ export function getTimeline() {
   return timeline;
 }
 
+/** A clock-driven scene's own keys, resolved (`at` = clock time). */
+export function getSubTimeline(scene: string) {
+  if (timelineDirty) buildTimeline();
+  return subTimelines.get(scene) ?? null;
+}
+
+export function getClock(scene: string) {
+  return clockTracks.get(scene)?.clock ?? null;
+}
+
+/** Whether any clock-driven scene's clock is moving (the Stage keeps drawing). */
+export function clocksMoving(now: number) {
+  for (const t of clockTracks.values()) if (t.clock.moving(now)) return true;
+  return false;
+}
+
+// ─── evaluating a clock-driven scene ─────────────────────────────────────────
+
+const NUM_DEVICE = ["show", "x", "y", "z", "rx", "ry", "rz", "s", "out"] as const;
+const lerpN = (a: number, b: number, t: number) => a + (b - a) * t;
+const lerp2 = (a: [number, number], b: [number, number], t: number): [number, number] => [lerpN(a[0], b[0], t), lerpN(a[1], b[1], t)];
+
+/** Blend two resolved poses (numbers by `t`; discrete fields from `a`, or from `b` with `discreteB`). */
+function blendKeys(a: ResolvedKey, b: ResolvedKey, t: number, discreteB: boolean): ResolvedKey {
+  const d = discreteB ? b : a;
+  const devices = {} as Record<DeviceId, DeviceState>;
+  for (const id of DEVICE_IDS) {
+    const x = a.devices[id];
+    const y = b.devices[id];
+    const o: DeviceState = { ...d.devices[id] };
+    for (const f of NUM_DEVICE) o[f] = lerpN(x[f], y[f], t);
+    devices[id] = o;
+  }
+  // a push-in: blend its weight (0 where a pose has none) and, when both have one, its spot
+  let focus: FocusSpec | null = null;
+  const fa = a.focus;
+  const fb = b.focus;
+  if (fa || fb) {
+    const wa = fa ? (fa.weight ?? 1) : 0;
+    const wb = fb && (!fa || fb.device === fa.device) ? (fb.weight ?? 1) : 0;
+    const f0 = (fa ?? fb)!;
+    const f1 = fb && fb.device === f0.device ? fb : f0;
+    const k = fa && fb && fb.device === fa.device ? t : 0;
+    focus = {
+      device: f0.device,
+      px: lerp2(f0.px, f1.px, k),
+      zoom: lerpN(f0.zoom, f1.zoom, k),
+      to: lerp2(f0.to ?? [0.5, 0.5], f1.to ?? [0.5, 0.5], k),
+      weight: lerpN(wa, wb, t),
+    };
+  }
+  let pulse = null;
+  if (a.pulse && b.pulse && a.pulse.from === b.pulse.from && a.pulse.to === b.pulse.to) pulse = { ...a.pulse, t: lerpN(a.pulse.t, b.pulse.t, t) };
+  else if (!discreteB) pulse = a.pulse;
+  return {
+    ...d,
+    devices,
+    float: lerpN(a.float, b.float, t),
+    look: lerpN(a.look, b.look, t),
+    viewX: lerpN(a.viewX, b.viewX, t),
+    viewY: lerpN(a.viewY, b.viewY, t),
+    lightKey: lerpN(a.lightKey, b.lightKey, t),
+    lightWarm: lerpN(a.lightWarm, b.lightWarm, t),
+    focus,
+    pulse,
+  };
+}
+
+/** A clock-driven scene's pose at clock time `t` (its keys blended like scroll keys). */
+function evalSub(sub: ResolvedKey[], t: number): ResolvedKey {
+  if (t <= sub[0].at || sub.length === 1) return sub[0];
+  let i = 0;
+  while (i < sub.length - 1 && sub[i + 1].at <= t) i++;
+  const A = sub[i];
+  const B = sub[Math.min(i + 1, sub.length - 1)];
+  if (B === A || B.at <= A.at) return A;
+  const te = easeFn(B.ease)((t - A.at) / (B.at - A.at));
+  return blendKeys(A, B, te, false);
+}
+
+/**
+ * A clock-driven scene's pose now. `base` is its portal key (anchor and scroll place); the
+ * result carries the portal's `y` so the scroll blend around it works as for any key.
+ */
+export function evalPortal(base: ResolvedKey, now: number): ResolvedKey {
+  const scene = base.portal!;
+  const sub = getSubTimeline(scene);
+  const clock = getClock(scene);
+  if (!sub?.length || !clock) return base;
+  const r = clock.read(now);
+  let k = evalSub(sub, r.a);
+  if (r.w > 0 && r.b !== r.a) {
+    const w = EASES.inOut(Math.min(1, r.w));
+    // a smooth jump: the poses glide from one point of the clock to the other, the screens
+    // switch to the target's at once (and crossfade), pulses don't fly
+    k = blendKeys(k, evalSub(sub, r.b), w, true);
+    k.pulse = null;
+  }
+  return { ...k, scene, at: base.at, y: base.y, portal: scene, dyn: undefined, ease: base.ease };
+}
+
+/** A key with the fields it inherited from a portal replaced by the portal's live pose. */
+export function materialize(key: ResolvedKey, portalPose: ResolvedKey): ResolvedKey {
+  const dyn = key.dyn;
+  if (!dyn) return key;
+  const out: ResolvedKey = { ...key, devices: { ...key.devices } };
+  const o = out as unknown as Record<string, unknown>;
+  const p = portalPose as unknown as Record<string, unknown>;
+  dyn.key.forEach((f) => (o[f] = p[f]));
+  for (const id of DEVICE_IDS) {
+    const fs = dyn.devices[id];
+    if (!fs.size) continue;
+    const dev = { ...key.devices[id] } as Record<string, unknown>;
+    const src = portalPose.devices[id] as unknown as Record<string, unknown>;
+    fs.forEach((f) => (dev[f] = src[f]));
+    out.devices[id] = dev as unknown as DeviceState;
+  }
+  return out;
+}
+
 /** Which device ids any key shows (the XDR loads only if some key shows it). */
 export function devicesInUse() {
   const used = new Set<DeviceId>();
-  getTimeline().forEach((k) => DEVICE_IDS.forEach((d) => k.devices[d].show > 0 && used.add(d)));
+  const add = (k: ResolvedKey) => DEVICE_IDS.forEach((d) => k.devices[d].show > 0 && used.add(d));
+  getTimeline().forEach(add);
+  subTimelines.forEach((sub) => sub.forEach(add));
   return used;
 }
 
-/** The screen ids keys use near a scroll position (for prefetching). */
-export function screensNear(scrollY: number, range: number) {
+/** The screen ids keys use near a scroll position (for prefetching); clock-driven scenes: near their clock. */
+export function screensNear(scrollY: number, range: number, now = 0, ahead = 14000) {
   const ids = new Set<string>();
-  getTimeline().forEach((k) => {
-    if (Math.abs(k.y - scrollY) > range) return;
+  const add = (k: ResolvedKey) =>
     DEVICE_IDS.forEach((d) => {
       const s = k.devices[d].screen;
       if (s && k.devices[d].show > 0) ids.add(s);
     });
+  getTimeline().forEach((k) => {
+    if (Math.abs(k.y - scrollY) > range) return;
+    if (!k.portal) return add(k);
+    const sub = subTimelines.get(k.portal);
+    const clock = getClock(k.portal);
+    if (!sub || !clock) return;
+    const r = clock.read(now);
+    const lo = Math.min(r.a, r.b) - 1500;
+    const hi = Math.max(r.a, r.b) + ahead;
+    // the key in force at the clock, and those coming up
+    let cur: ResolvedKey | null = null;
+    for (const s of sub) {
+      if (s.at <= lo) cur = s;
+      else if (s.at <= hi) add(s);
+    }
+    if (cur) add(cur);
   });
   return ids;
 }

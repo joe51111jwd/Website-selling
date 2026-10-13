@@ -1,15 +1,19 @@
-/* 2 · One Day (round 2) */
+/* 2 · One Day: "Enjoy the ride" (desktop; phones: ./phone/day-phone.css).
+   One screen: the copy on the left (the big time, the headline), the 3D devices on the right, the
+   controls at the bottom centre. Everything on the film's clock is a Web Animation (./Day.tsx):
+   the CSS here is the layout and the resting state, nothing here animates on its own. */
+
+.scene-day.day--ride {
+  height: 100vh;
+  height: 100svh;
+}
 
 .day-grid {
   position: relative;
-  height: 100%;
-  display: grid;
-  grid-template-columns: minmax(0, 25.5rem) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto;
-  grid-template-areas:
-    "copy stage"
-    "rail stage";
-  column-gap: clamp(16px, 2.6vw, 48px);
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
   padding-top: var(--header-h);
   color: var(--ink);
   transition: color 0.6s var(--ease-out);
@@ -19,10 +23,27 @@ html[data-ground="dark"] .day-grid {
   color: var(--ink-night);
 }
 
+/* the film: copy | stage (it dips during a soft jump) */
+.day-film {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 25.5rem) minmax(0, 1fr);
+  column-gap: clamp(16px, 2.6vw, 48px);
+}
+
+/* the page's ground on the film's clock (portalled to <body>, between the ground and the Stage) */
+.day-ground {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-backdrop);
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ── the copy: time, headline, the quiet feature line ──────────────────── */
 
 .day-copy {
-  grid-area: copy;
   align-self: start;
   padding-top: clamp(14px, 5svh, 52px);
   position: relative;
@@ -69,11 +90,11 @@ html[data-ground="dark"] .day-grid {
   inset: 0 0 auto;
   display: flex;
   flex-direction: column;
-  will-change: transform;
 }
 
 .day-odo-strip > span {
   display: block;
+  flex: none;
   height: var(--wh);
   text-align: center;
 }
@@ -96,8 +117,17 @@ html[data-ground="dark"] .day-grid {
   font-weight: 680;
 }
 
-.day-odo-suffix > span {
-  display: inline-block;
+.day-odo-apstrip {
+  flex: none;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  height: 2.5em;
+}
+
+.day-odo-apstrip > span {
+  display: block;
+  height: 1.25em;
 }
 
 .day-odo-word {
@@ -109,14 +139,14 @@ html[data-ground="dark"] .day-grid {
   white-space: pre;
 }
 
-/* the moment */
+/* the moment: every headline in the same place, one at a time */
 .day-text {
-  position: relative;
-  min-height: 9rem;
+  display: grid;
 }
 
-.day-text-in {
-  width: 100%;
+.day-head {
+  grid-area: 1 / 1;
+  opacity: 0;
 }
 
 .day-title {
@@ -132,8 +162,8 @@ html[data-ground="dark"] .day-grid {
 
 .day-features {
   margin-top: clamp(10px, 2svh, 20px);
-  /* 22rem: the longest line (Friday) stays clear of the pushed-in laptop at 1440×660 */
-  max-width: 22rem;
+  /* 21rem: the longest line (Friday) stays clear of the laptop at 1440×660 */
+  max-width: 21rem;
   font-size: 13.5px;
   line-height: 1.55;
   /* a step darker than --ink-3: ≥ 4.8:1 on every time-of-day ground, 5:30 PM's amber included */
@@ -150,11 +180,6 @@ html[data-ground="dark"] .day-grid {
   white-space: normal;
 }
 
-.day-cta {
-  margin-top: 8px;
-  font-size: 15px;
-}
-
 html[data-ground="dark"] .day-features {
   color: #a09385; /* 5.8:1 on the Friday night ground (--ink-night-3 is 4.0:1) */
 }
@@ -163,27 +188,57 @@ html[data-ground="dark"] .day-grid .flag {
   color: var(--orange);
 }
 
-html[data-ground="dark"] .day-cta {
-  color: var(--ink-night);
-  text-decoration-color: rgb(244 238 231 / 30%);
+/* Friday's orange button: the ride ends on it */
+.day-end {
+  margin-top: clamp(14px, 2.6svh, 26px);
+  opacity: 0;
 }
 
-html[data-ground="dark"] .day-cta:hover {
-  text-decoration-color: var(--orange);
+/* ── "Enjoy the ride" ─────────────────────────────────────────────────── */
+
+.day-ride-title {
+  position: absolute;
+  inset: var(--header-h) 0 clamp(64px, 10svh, 84px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2svh, 18px);
+  text-align: center;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.day-ride-t {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--display-wdth) * 1%);
+  font-weight: 760;
+  font-size: clamp(56px, 5.2vw + 3svh, 128px);
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+}
+
+.day-ride-sub {
+  font-size: clamp(16px, 0.5vw + 1.2svh, 20px);
+  line-height: 1.4;
+  color: var(--ink-2);
 }
 
 /* ── the stage ─────────────────────────────────────────────────────────── */
 
 .day-stage {
-  grid-area: stage;
   position: relative;
   margin: 0 calc(var(--gutter) * -1) 0 0;
 }
 
+/* the demo note sits on the controls' line, at the left, clear of the devices */
 .day-caption {
   position: absolute;
-  right: var(--gutter);
-  bottom: 10px;
+  left: var(--gutter);
+  bottom: clamp(24px, 3.6svh, 34px);
+  z-index: 5;
+  max-width: calc(50% - 340px);
   font-size: 12px;
   line-height: 1.3;
   color: var(--ink-3);
@@ -235,21 +290,23 @@ html[data-ground="dark"] .day-tag {
 
 /* ── the office: its label + the update card, top right of the stage ───── */
 
-.day-office {
+.day-offices {
   position: absolute;
   top: clamp(10px, 2.4svh, 26px);
   right: calc(var(--gutter) * 0.75);
   width: min(600px, 74%);
+  display: grid;
   z-index: 2;
   pointer-events: none;
 }
 
-.day-office-in {
+.day-office {
+  grid-area: 1 / 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  transform-origin: 50% 100%;
+  opacity: 0;
 }
 
 .day-card {
@@ -260,7 +317,6 @@ html[data-ground="dark"] .day-tag {
   background: #fff;
   border: 1px solid rgb(23 19 15 / 7%);
   box-shadow: 0 1px 2px rgb(23 19 15 / 8%), 0 24px 60px rgb(23 19 15 / 18%);
-  pointer-events: auto;
 }
 
 .day-card-where {
@@ -274,7 +330,7 @@ html[data-ground="dark"] .day-tag {
   height: 40px;
 }
 
-/* ── the annotation layer: touch ripple, the phone's label, leader lines ── */
+/* ── the annotation layer: the finger, the phone's label, leader lines ── */
 
 .day-ann {
   position: fixed;
@@ -291,37 +347,26 @@ html[data-ground="dark"] .day-tag {
   overflow: visible;
 }
 
+.day-lead--phone,
+.day-lead--office {
+  opacity: 0;
+}
+
 .day-lead {
   stroke: var(--ink);
   stroke-width: 1.5;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0;
-  transition: opacity 0.35s var(--ease-out);
 }
 
 .day-lead-dot {
   fill: var(--orange);
-  opacity: 0;
-  transition: opacity 0.35s var(--ease-out);
 }
 
 .day-lead-ring {
   fill: none;
   stroke: var(--orange);
   stroke-width: 1.5;
-  stroke-dasharray: 3 3;
-  opacity: 0;
-  transition: opacity 0.35s var(--ease-out);
-}
-
-.day-ann-svg[data-phone="1"] .day-lead--phone,
-.day-ann-svg[data-office="1"] .day-lead--office {
-  opacity: 1;
-}
-
-.day-ann-svg[data-office="1"] .day-lead.day-lead--office {
-  transition-delay: 0.18s;
 }
 
 /* leaders run over the app's white UI and over the ground: ink with a light halo reads on both */
@@ -330,16 +375,11 @@ html[data-ground="dark"] .day-tag {
   stroke-width: 5;
 }
 
-html[data-ground="dark"] .day-lead:not(.day-lead-halo) {
-  stroke: var(--ink);
-}
-
 /* the phone's label */
 .day-chip {
   position: absolute;
   left: 0;
   top: 0;
-  will-change: transform;
   visibility: hidden;
 }
 
@@ -348,313 +388,62 @@ html[data-ground="dark"] .day-lead:not(.day-lead-halo) {
   visibility: visible;
 }
 
-.day-chip > .day-tag {
+.day-chip-in {
   opacity: 0;
-  transform: translateX(-10px) scale(0.94);
   transform-origin: 0 50%;
-  transition:
-    opacity 0.25s var(--ease-out),
-    transform 0.45s var(--ease-spring);
 }
 
-.day-chip[data-on="1"] > .day-tag {
-  opacity: 1;
-  transform: none;
-}
-
-/* the finger: a pad that presses, then a ripple out of it */
+/* the finger: a pad lands, an orange ring opens out of it */
 .day-touch {
   position: absolute;
   left: 0;
   top: 0;
   width: 0;
   height: 0;
-  will-change: transform;
 }
 
-.day-touch-in {
+.day-touch-pad,
+.day-touch-ring {
   position: absolute;
   left: -26px;
   top: -26px;
   width: 52px;
   height: 52px;
-}
-
-.day-touch-in::before,
-.day-touch-in::after {
-  content: "";
-  position: absolute;
-  inset: 0;
   border-radius: 50%;
+  opacity: 0;
 }
 
-.day-touch-in::before {
+.day-touch-pad {
   background: rgb(23 19 15 / 26%);
   box-shadow:
     0 0 0 2px rgb(255 255 255 / 70%),
     0 6px 16px rgb(23 19 15 / 25%);
-  animation: day-press calc(0.7s * var(--day-slow, 1)) var(--ease-out) both;
 }
 
-.day-touch-in::after {
+.day-touch-ring {
   border: 2px solid var(--orange);
-  animation: day-ripple calc(0.85s * var(--day-slow, 1)) calc(0.1s * var(--day-slow, 1)) var(--ease-out) both;
 }
 
 /* office → field: a pointer click, smaller */
-.day-touch-in.is-click {
-  transform: scale(0.7);
+.day-touch.is-click .day-touch-pad,
+.day-touch.is-click .day-touch-ring {
+  left: -18px;
+  top: -18px;
+  width: 36px;
+  height: 36px;
 }
 
-@keyframes day-press {
-  0% {
-    opacity: 0;
-    transform: scale(1.5);
-  }
-  30% {
-    opacity: 1;
-    transform: scale(0.86);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(0.94);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.94);
-  }
-}
+/* ── the controls, bottom centre ──────────────────────────────────────── */
 
-@keyframes day-ripple {
-  0% {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  20% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: scale(2.6);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .day-touch-in::before,
-  .day-touch-in::after {
-    animation: none;
-    opacity: 0;
-  }
-}
-
-/* ── the day rail ──────────────────────────────────────────────────────── */
-
-.day-rail {
-  grid-area: rail;
-  padding-bottom: clamp(14px, 3svh, 28px);
-  z-index: 3;
-}
-
-.day-rail ol {
-  display: flex;
-  gap: 3px;
-}
-
-.day-rail li {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.day-rail li.day-rail-end {
-  flex: 1.55 1 0;
-  margin-left: 6px;
-}
-
-.day-rail button {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  width: 100%;
-  min-height: 44px;
-  color: inherit;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.day-rail-track {
+.day-controls {
+  flex: none;
+  align-self: center;
+  margin: 6px 0 clamp(10px, 2.2svh, 20px);
   position: relative;
-  display: block;
-  width: 100%;
-  height: 3px;
-  border-radius: 2px;
-  background: color-mix(in srgb, currentColor 13%, transparent);
-  overflow: hidden;
+  z-index: 5;
 }
 
-.day-rail-fill {
-  position: absolute;
-  inset: 0;
-  background: currentColor;
-  opacity: 0.42;
-  transform-origin: left center;
-}
-
-.day-rail .is-on .day-rail-fill {
-  background: var(--orange);
-  opacity: 1;
-}
-
-.day-rail-t {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  /* the times still to come: quieter, but text (≥ 5:1 on every ground; .45 was ~2.9:1) */
-  opacity: 0.66;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
-  transition: opacity 0.3s;
-}
-
-.day-rail .is-on .day-rail-t,
-.day-rail button:hover .day-rail-t {
-  opacity: 1;
-}
-
-.day-rail-end .day-rail-track {
-  height: 2px;
-  margin-top: 0.5px;
-  border-radius: 0;
-  background: repeating-linear-gradient(90deg, currentColor 0 5px, transparent 5px 9px);
-  opacity: 0.4;
-}
-
-.day-rail-end .day-rail-t {
-  opacity: 1;
-  font-size: 12.5px;
-  font-weight: 650;
-}
-
-.day-rail-arrow {
-  width: 14px;
-  height: 14px;
-  transition: transform var(--dur-2) var(--ease-out);
-}
-
-.day-rail-end button:hover .day-rail-arrow {
-  transform: translateX(3px);
-}
-
-.day-rail-end button:hover .day-rail-track {
-  opacity: 1;
-  color: var(--orange);
-}
-
-/* ── phones: time + headline, the stage, the update card, the rail ─────── */
-
-@media (max-width: 760px) {
-  .day-grid {
-    display: flex;
-    flex-direction: column;
-    padding-top: var(--header-h);
-    padding-bottom: calc(var(--sticky-h) + 4px);
-  }
-  .day-copy {
-    order: 1;
-    flex: none;
-    padding-top: 8px;
-  }
-  /* the copy band keeps its ground: devices that rise behind it fade out under the words */
-  .day-copy::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    top: calc(var(--header-h) * -1);
-    bottom: -18px;
-    left: calc(var(--gutter) * -1);
-    right: calc(var(--gutter) * -1);
-    background: linear-gradient(180deg, var(--page-ground, var(--ground)) calc(100% - 26px), transparent);
-    pointer-events: none;
-  }
-  .day-time {
-    font-size: clamp(42px, 12vw, 56px);
-    margin: 0 0 4px -0.04em;
-  }
-  .day-text {
-    min-height: 0;
-  }
-  .day-title {
-    font-size: clamp(20px, 5.6vw, 24px);
-    line-height: 1.08;
-    max-width: none;
-  }
-  .day-features {
-    display: none;
-  }
-  /* the sticky CTA bar is the one-tap way on phones; the inline link would crowd the stage */
-  .day-cta {
-    display: none;
-  }
-  .day-stage {
-    order: 2;
-    flex: 1 1 auto;
-    min-height: 0;
-    margin: 4px calc(var(--gutter) * -1) 0;
-  }
-  .day-office {
-    top: auto;
-    bottom: 0;
-    left: var(--gutter);
-    right: var(--gutter);
-    width: auto;
-  }
-  .day-office-in {
-    gap: 7px;
-  }
-  .day-card {
-    padding: 10px 13px 12px;
-    border-radius: 14px;
-  }
-  .day-card-where {
-    margin-bottom: 7px;
-  }
-  .day-caption {
-    display: none;
-  }
-  .day-tag {
-    gap: 8px;
-    font-size: 18px;
-    box-shadow: 0 6px 18px rgb(23 19 15 / 22%);
-  }
-  .day-rail {
-    order: 3;
-    padding: 6px 0 0;
-  }
-  .day-rail ol {
-    gap: 3px;
-  }
-  .day-rail li.day-rail-end {
-    flex: 0 0 auto;
-    margin-left: 8px;
-  }
-  .day-rail button {
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-    min-height: 28px;
-  }
-  .day-rail li:not(.day-rail-end) .day-rail-t {
-    display: none;
-  }
-  .day-rail-end .day-rail-track {
-    display: none;
-  }
-  .day-touch-in {
-    left: -20px;
-    top: -20px;
-    width: 40px;
-    height: 40px;
-  }
+/* no WebGL: the stills stand in; the labels sit with the office card */
+.day-grid.is-nostage .day-office {
+  gap: 8px;
 }

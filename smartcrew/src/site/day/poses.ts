@@ -1,31 +1,26 @@
-// One Day's choreography for the Stage, built from ./script.ts on the beats in ./clock.ts.
+// One Day's choreography for the Stage, on the ride's clock (./ride.ts): `at` is ms of the film
+// (the Stage evaluates these keys at the player's clock: registerPoses("day", keys, { clock })).
 //
 // Each moment has two shots:
 //  · ACT: the device that acts is big and close (the crew's phone, or the office laptop at
-//    5:30 PM), the other waits behind it. Its screen shows the button, ringed; the tap lands; the
-//    screen changes state; the orange pulse leaves from the button.
-//  · PUSH: the pulse lands, the office screen updates, and the camera pushes in on the exact
-//    spot that changed (Stage `focus`: the laptop scales about that spot and carries it into the
-//    stage) while the phone steps down to the corner, still in front (Stage `front`).
-// Between moments the devices travel from one moment's PUSH to the next one's ACT (the time
-// rolls and the headline swaps half way). During holds every pose keeps drifting a little.
+//    5:30 PM), the other waits behind it. The tap lands, its screen shows the result, the orange
+//    pulse leaves from the button. Nothing else moves meanwhile.
+//  · PUSH: the update has landed; the camera pushes in on the exact spot that changed (Stage
+//    `focus`: the laptop scales about that spot) while the phone steps down to the corner, still
+//    in front (Stage `front`). Then it HOLDS, perfectly still (no drift, no float), to be read.
+// Between moments the devices glide from one moment's PUSH to the next one's ACT (one eased
+// move). Before the first, they rise from below the fold (where they waited under the hero).
 
-import { MOMENTS } from "../../content/moments";
-import { phone as isPhone, reducedMotion } from "../../three/stage/store";
+import { phone as isPhone } from "../../three/stage/store";
 import type { Box, DevicePose, FocusSpec, PoseKey } from "../../three/stage/types";
-import { B, DAY_STEPS, beat } from "./clock";
+import { RIDE, type Ride } from "./ride";
 import { SCRIPT, type Script } from "./script";
-import { HO_DOCK_OFFSET } from "./handoff";
-
-export { DAY_STEPS, beat };
 
 type View = { rx: number; ry: number };
 type Shot = { view: View; act: { iphone: DevicePose; macbook: DevicePose }; push: { iphone: DevicePose; macbook: DevicePose; view?: View } };
 
-// Desktop: the stage is the right ~60% of the screen, header to bottom. One frame for every
-// moment so the moves read as one camera. It is a touch wider than the 1440×660 stage box needs
-// (there the height decides the fit): on narrower laptops (1280×600, 1366×768) the width decides
-// it, so the devices step down a few % and the pushed-in laptop keeps clear of the copy column.
+// The stage is the right ~60% of the screen, under the header and above the controls. One frame
+// for every moment so the moves read as one camera.
 const F: [number, number] = [5.3, 3.4];
 /** The frame the poster stills (public/renders/day-*.webp) were rendered with. */
 const F_POSTER: [number, number] = [5, 3.4];
@@ -79,42 +74,23 @@ const SHOTS: Shot[] = [
   },
 ];
 
-// Phones (390×664): the stage is the band between the headline and the rail; the update card
-// takes its bottom ~40%. While the phone acts it is big and central; when the update lands both
-// devices rise into the top of the band and the laptop comes forward (the card does the reading).
-const PF: [number, number] = [3.9, 4.1];
-const PP_ACT: DevicePose = { x: -0.62, y: 0.2, z: 0.8, rx: 3, ry: 12, rz: 2, s: 1.95 };
-const PM_ACT: DevicePose = { x: 1.15, y: 0.5, z: -0.8, rx: 12, ry: -22, rz: 0, s: 0.72 };
-const PP_PUSH: DevicePose = { x: -1.05, y: 0.52, z: 0.9, rx: 4, ry: 18, rz: 3, s: 1.38 };
-const PM_PUSH: DevicePose = { x: 0.62, y: 0.6, z: -0.2, rx: 8, ry: -10, rz: 0, s: 0.86 };
-
-const PHONE_SHOTS: Shot[] = SHOTS.map((s, i) =>
-  i === 5
-    ? { view: s.view, act: { iphone: v(PP_PUSH, { s: 1.3 }), macbook: v(PM_PUSH, { s: 0.95 }) }, push: { iphone: v(PP_ACT, { y: 0.5, s: 1.6 }), macbook: v(PM_ACT, { y: 0.8, s: 0.62 }) } }
-    : {
-        view: { rx: s.view.rx * 0.6, ry: s.view.ry * 0.6 },
-        act: { iphone: v(PP_ACT, { rx: s.act.iphone.rx, rz: s.act.iphone.rz }), macbook: PM_ACT },
-        push: { iphone: v(PP_PUSH, { rz: s.push.iphone.rz }), macbook: PM_PUSH },
-      },
-);
-
-export const dayFrame = () => (isPhone ? PF : F);
-export const dayPosterFrame = () => (isPhone ? PF : F_POSTER);
-
-/** A small dolly during a hold, so the shot breathes instead of stopping dead. */
-const drift = (p: DevicePose, dz: number, dry = 0): DevicePose => ({ ...p, z: (p.z ?? 0) + dz, ry: (p.ry ?? 0) + dry });
-
-const NUM = ["x", "y", "z", "rx", "ry", "rz", "s"] as const;
-const mid = (a: DevicePose, b: DevicePose): DevicePose => {
-  const o: DevicePose = {};
-  for (const k of NUM) o[k] = ((a[k] ?? 0) + (b[k] ?? 0)) / 2;
-  return o;
+/**
+ * Before the ride: where the devices wait while "Enjoy the ride" holds, below the fold of One
+ * Day's stage, tipped back (the hero parks them the same way, so the scroll from the hero leaves
+ * them out of sight), screens already on the first moment's.
+ */
+const WAIT: { iphone: DevicePose; macbook: DevicePose } = {
+  iphone: v(P_ACT, { y: -5.2, z: 0.5, rx: 34 }),
+  macbook: v(M_ACT, { y: -5.6, z: -1.3, rx: 42 }),
 };
+
+export const dayFrame = () => F;
+export const dayPosterFrame = () => F_POSTER;
 
 const centre = (b: Box): [number, number] => [b[0] + b[2] / 2, b[1] + b[3] / 2];
 
 /** The update's ring on the office screen (the row, the number, the block, the column). */
-function updateRing(s: Script): Box {
+export function updateRing(s: Script): Box {
   const u = s.laptop.update;
   if (u.kind === "insert") return u.row;
   if (u.kind === "tick") return [558, 383, 204, 70];
@@ -123,142 +99,71 @@ function updateRing(s: Script): Box {
   return [first[0], first[1], first[2], first[3] * u.cells.length];
 }
 
-function focusOf(s: Script, k = 1): FocusSpec {
+function focusOf(s: Script): FocusSpec {
   const f = s.laptop.focus;
-  const zoom = isPhone ? Math.min(1.3, f.zoom) : f.zoom;
-  const to: [number, number] = isPhone ? [0.72, 0.34] : f.to;
-  // during the hold the camera keeps creeping in (k > 1), across and up
-  return { device: "macbook", px: f.px, zoom: 1 + (zoom - 1) * k, to: [to[0] - (k - 1) * 0.5, to[1] - (k - 1) * 0.6] };
+  return { device: "macbook", px: f.px, zoom: f.zoom, to: f.to };
 }
 
-export function dayPoses(): PoseKey[] {
-  const shots = isPhone ? PHONE_SHOTS : SHOTS;
+export function ridePoses(R: Ride = RIDE): PoseKey[] {
   const keys: PoseKey[] = [];
-  let left: { iphone: DevicePose; macbook: DevicePose; view: View } | null = null;
+  const base = { anchor: "day", frame: F, float: 0, look: 0.35, front: "iphone" as const };
 
-  MOMENTS.forEach((_, i) => {
+  // the wait, and the hand-off: the devices rise into the first shot as the title fades
+  const s0 = SCRIPT[0];
+  const wait = {
+    ...base,
+    view: SHOTS[0].view,
+    iphone: { ...WAIT.iphone, screen: s0.phone.before },
+    macbook: { ...WAIT.macbook, screen: s0.laptop.before },
+    display: { show: 0 },
+  };
+  keys.push({ ...wait, at: 0, ease: "linear", look: 0 }, { ...wait, at: R.moments[0].start, ease: "linear", look: 0 });
+
+  R.moments.forEach((m, i) => {
     const s = SCRIPT[i];
-    const shot = shots[i];
-    const up = s.dir === "up";
+    const shot = SHOTS[i];
+    const up = m.up;
     const ring = updateRing(s);
-    const base = { anchor: "day", frame: isPhone ? PF : F, float: 0.35, look: 0.6, front: "iphone" as const };
-    const at = (ph: number) => beat(i, ph);
     const pushView = shot.push.view ?? shot.view;
-
-    // screens + rings at each beat (desktop, 6:42 AM: the hero's fence is the ring round the
-    // button: it flies there from the words, ./handoff.ts)
-    const fenced = i === 0 && !isPhone && !reducedMotion;
-    const phoneTapRing = up && s.phone.tap && !fenced ? s.phone.tap : null;
-    const before = { iphone: { screen: s.phone.before }, macbook: { screen: s.laptop.before } };
-    const shown = up
-      ? { iphone: { screen: s.phone.after }, macbook: { screen: s.laptop.before } }
-      : { iphone: { screen: s.phone.before }, macbook: { screen: s.laptop.after } };
-    const landed = { iphone: { screen: s.phone.after }, macbook: { screen: s.laptop.after } };
-    // the pulse leaves from the button that was tapped (its ring is gone by then)
-    const tapPx = up && s.phone.tap ? centre(s.phone.tap) : s.laptop.tap ? centre(s.laptop.tap) : undefined;
-    const pulse = (t: number) =>
-      up ? { from: "iphone" as const, to: "macbook" as const, t, fromPx: tapPx } : { from: "macbook" as const, to: "iphone" as const, t, fromPx: tapPx };
-
     const act = shot.act;
     const push = shot.push;
     // office → field: the office is pushed in from the start, the phone comes forward at the end
     const actFocus = up ? null : focusOf(s);
     const pushFocus = up ? focusOf(s) : null;
+    const tapPx = up && s.phone.tap ? centre(s.phone.tap) : s.laptop.tap ? centre(s.laptop.tap) : undefined;
+    const pulse = (t: number) =>
+      up ? { from: "iphone" as const, to: "macbook" as const, t, fromPx: tapPx } : { from: "macbook" as const, to: "iphone" as const, t, fromPx: centre(ring) };
+    const hold = (at: number, ease: PoseKey["ease"], o: Partial<PoseKey> & { iphone?: DevicePose; macbook?: DevicePose }) =>
+      keys.push({ ...base, view: shot.view, focus: actFocus, ...o, at, ease });
 
-    if (left) {
-      keys.push({
-        ...base,
-        at: at(0),
-        ease: "in",
-        view: { rx: (left.view.rx + shot.view.rx) / 2, ry: (left.view.ry + shot.view.ry) / 2 },
-        iphone: { ...mid(left.iphone, act.iphone), ...before.iphone },
-        macbook: { ...mid(left.macbook, act.macbook), ...before.macbook },
-        focus: actFocus ? focusOf(s, 0.5) : null,
-      });
+    // ACT: the glide lands (from the last moment's PUSH, or from the wait)
+    const before = { iphone: { ...act.iphone, screen: s.phone.before }, macbook: { ...act.macbook, screen: s.laptop.before } };
+    hold(m.settle, "inOut", before);
+    if (up) {
+      // the tap: the phone shows its result
+      hold(m.shown, "linear", { iphone: { ...act.iphone, screen: s.phone.after }, macbook: before.macbook });
+      // the pulse leaves the button … and lands on the row the office screen is about to change
+      hold(m.pulse[0], "linear", { iphone: { ...act.iphone, screen: s.phone.after }, macbook: before.macbook, pulse: pulse(0) });
+      const landed = { iphone: { ...act.iphone, screen: s.phone.after }, macbook: { ...act.macbook, screen: s.laptop.after, ring } };
+      hold(m.pulse[1], "inOut", { ...landed, pulse: pulse(1) });
+      hold(m.push[0], "linear", landed);
+      // PUSH: in on the changed spot; then the hold, perfectly still
+      const pushed = { iphone: { ...push.iphone, screen: s.phone.after }, macbook: { ...push.macbook, screen: s.laptop.after, ring, dim: 0.1 } };
+      hold(m.push[1], "inOut", { ...pushed, view: pushView, focus: pushFocus });
+      hold(m.end, "linear", { ...pushed, view: pushView, focus: pushFocus });
+    } else {
+      // the click on the office's calendar: the block drops in (./rideLife.ts), its ring
+      const clicked = { iphone: before.iphone, macbook: { ...act.macbook, screen: s.laptop.after, ring } };
+      hold(m.update[1], "linear", clicked);
+      hold(m.pulse[0], "linear", { ...clicked, pulse: pulse(0) });
+      // the plan lands on the crew's phone …
+      const landed = { iphone: { ...act.iphone, screen: s.phone.after }, macbook: clicked.macbook };
+      hold(m.pulse[1], "inOut", { ...landed, pulse: pulse(1) });
+      // … which swings forward with it
+      const pushed = { iphone: { ...push.iphone, screen: s.phone.after }, macbook: { ...push.macbook, screen: s.laptop.after } };
+      hold(m.push[1], "inOut", { ...pushed, view: pushView, focus: pushFocus });
+      hold(m.end, "linear", { ...pushed, view: pushView, focus: pushFocus });
     }
-    // the hand-off from the hero (desktop): the devices rise from the hero's park pose into this
-    // first shot while the hero scrolls away, DOCKED (fitted into One Day's stage box where it
-    // will stick, though the scene is still coming up from below), so they arrive and hold still
-    // on screen by hero progress 0.7, when the fence lands on the phone's button, and One Day's
-    // copy rises into place beside them. Once the scene sticks, docked and undocked are the same.
-    if (i === 0 && !isPhone) {
-      const shot0 = {
-        ...base,
-        view: shot.view,
-        iphone: { ...act.iphone, ...before.iphone },
-        macbook: { ...act.macbook, ...before.macbook },
-        focus: null,
-        dock: true,
-      };
-      keys.push({ ...shot0, at: 0, offset: HO_DOCK_OFFSET, ease: "inOut" }, { ...shot0, at: 0, ease: "linear" });
-    }
-    // ACT: settled, the button ringed. The very first one is the move from the hero: on phones it
-    // is linear, so the devices glide straight from the hero's spot to this one (an eased blend
-    // first rides up with the hero, then drops back down behind its CTA and copy)
-    keys.push({
-      ...base,
-      at: at(B.arrive),
-      ease: left ? "out" : isPhone ? "linear" : "inOut",
-      view: shot.view,
-      iphone: { ...act.iphone, ...before.iphone, ring: phoneTapRing },
-      macbook: { ...act.macbook, ...before.macbook, ring: up ? null : s.laptop.tap ?? null },
-      focus: actFocus,
-    });
-    // the tap lands; a beat later the acting screen shows the result
-    keys.push({
-      ...base,
-      at: at(B.shown),
-      ease: "linear",
-      view: shot.view,
-      iphone: { ...drift(act.iphone, 0.03, 0.6), ...shown.iphone, ring: null },
-      macbook: { ...drift(act.macbook, 0.02), ...shown.macbook, ring: up ? null : ring },
-      focus: actFocus,
-    });
-    // the pulse leaves the button …
-    keys.push({
-      ...base,
-      at: at(B.send),
-      ease: "linear",
-      view: shot.view,
-      iphone: { ...drift(act.iphone, 0.05, 1), ...shown.iphone, ring: null },
-      macbook: { ...drift(act.macbook, 0.04), ...shown.macbook, ring: up ? null : ring },
-      pulse: pulse(0),
-      focus: actFocus,
-    });
-    // … and lands on the row the office screen is about to change
-    keys.push({
-      ...base,
-      at: at(B.land),
-      ease: "inOut",
-      view: shot.view,
-      iphone: { ...drift(act.iphone, 0.1, 2), ...landed.iphone, ring: null },
-      macbook: { ...drift(act.macbook, 0.1, 1), ...landed.macbook, ring: up ? ring : null },
-      pulse: pulse(1),
-      focus: actFocus,
-    });
-    // PUSH: in on the changed spot
-    keys.push({
-      ...base,
-      at: at(B.push),
-      ease: "inOut",
-      view: pushView,
-      iphone: { ...push.iphone, ...landed.iphone },
-      macbook: { ...push.macbook, ...landed.macbook, ring: up ? ring : null, dim: 0.1 },
-      focus: pushFocus,
-    });
-    // hold, still drifting
-    const last = i === DAY_STEPS - 1;
-    const hold = { iphone: drift(push.iphone, 0.12, 2), macbook: drift(push.macbook, 0.06, 1.5) };
-    keys.push({
-      ...base,
-      at: last ? 1 : at(B.leave),
-      ease: "linear",
-      view: { rx: pushView.rx + 0.6, ry: pushView.ry - 0.8 },
-      iphone: { ...hold.iphone, ...landed.iphone },
-      macbook: { ...hold.macbook, ...landed.macbook, ring: up ? ring : null, dim: 0.1 },
-      focus: pushFocus ? focusOf(s, 1.1) : null,
-    });
-    left = { ...hold, view: pushView };
   });
   return keys;
 }
@@ -272,3 +177,6 @@ export function tapOf(i: number): { device: "iphone" | "macbook"; px: [number, n
   if (s.dir === "down" && s.laptop.tap) return { device: "macbook", px: centre(s.laptop.tap) };
   return null;
 }
+
+/** Phones never load the Stage; their day is ./phone/DayPhone.tsx. */
+export const dayHasStage = !isPhone;

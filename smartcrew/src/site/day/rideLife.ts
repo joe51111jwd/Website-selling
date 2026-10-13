@@ -1,92 +1,27 @@
-// One Day's live layer: the cause → effect you see on the screens, on the Stage's own frames.
+// One Day's live layer on the screens, on the ride's clock: the cause → effect you see on the
+// real UI, drawn into the device screens (Stage overlays) on the Stage's own frames.
 //
-//  · THE TAP. When the scroll reaches a moment's tap beat, the button on the acting screen
-//    depresses (a dark press drawn on the screen itself, iphone overlay slot 2) and the DOM
-//    shows a touch ripple exactly over it (./Day.tsx). A beat later the pose keys swap the
-//    screen to its "after" state (./states).
+//  · THE PRESS. When the finger lands (./ride.ts `tap`), the button on the phone's screen
+//    depresses (a dark press drawn on the screen itself, iphone overlay slot 2); a beat later the
+//    poses swap the screen to its "after" state (./states).
 //  · THE UPDATE. When the pulse lands, the office screen changes in place: the rows under the
 //    new one slide down a row and the new row fades in (insert), the number ticks up (tick), the
 //    calendar block drops in (block), "Review" flips to "Approved" row by row and a toast slides
 //    in (approve). Each is two small canvases over the screen (macbook overlay slots 2–3 for
 //    even moments, 4–5 for odd ones, so the next moment's "before" is in place before its screen
 //    fades in). The screen texture itself is the "after" state; the overlays hide the change
-//    until it lands, then animate it in, then step aside.
-//  · Triggers fire on the Stage's smoothed scroll (the same one the poses use), forward and
-//    back: scroll up past a beat and it plays in reverse. Reduced motion: states jump.
-//
-// The DOM (labels, card, ripple, leader lines) reads `dayLive` (state) and `onDayFrame`
-// (positions) from here.
+//    until it lands, play it, then step aside.
+//  · Every frame is a pure function of the clock: pause and the press stays half pressed, seek
+//    and the row is exactly where it is at that millisecond. Reduced motion: states jump.
 
 import interUrl from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
 import { MOMENTS } from "../../content/moments";
-import { onStageFrame, onStatus, reducedMotion, sceneProgress, setOverlay, status, updateOverlay, type OverlaySlot, type StageFrame } from "../../three/stage/store";
+import { onStageFrame, setOverlay, updateOverlay, type OverlaySlot } from "../../three/stage/store";
 import { screenUrl } from "../../three/stage/urls";
 import type { Box } from "../../three/stage/types";
-import { B, DAY_STEPS } from "./clock";
+import { RIDE, momentAt, type Ride } from "./ride";
 import { SCRIPT, type Script } from "./script";
 import { DAY_DATA } from "./states/data";
-
-// ─── the state the DOM follows ───────────────────────────────────────────────
-export type DayLive = {
-  /** current moment */
-  i: number;
-  /** phase inside it, 0..1 */
-  ph: number;
-  /** the acting screen has been tapped */
-  tapped: boolean;
-  /** the office (or, at 5:30 PM, the phone) has the update */
-  landed: boolean;
-  /** the phone's / the office's state label is up */
-  phoneLabel: boolean;
-  officeLabel: boolean;
-  /** increments on every forward tap, so the ripple replays */
-  tapCount: number;
-};
-
-let live: DayLive = { i: 0, ph: 0, tapped: false, landed: false, phoneLabel: false, officeLabel: false, tapCount: 0 };
-const subs = new Set<() => void>();
-export const dayLive = {
-  get: () => live,
-  subscribe(fn: () => void) {
-    subs.add(fn);
-    return () => void subs.delete(fn);
-  },
-};
-
-/** The beat state at a scene progress (pure; the DOM fallback without WebGL uses it too). */
-export function stateAt(p: number) {
-  const f = Math.max(0, Math.min(1, p)) * DAY_STEPS;
-  const i = Math.min(DAY_STEPS - 1, Math.floor(f));
-  const ph = f - i;
-  const up = SCRIPT[i].dir === "up";
-  const tapped = ph >= B.tap;
-  const updAt = up ? B.land : B.tap + 0.03;
-  const landed = ph >= updAt;
-  const inHold = ph < B.leave + 0.06;
-  return {
-    i,
-    ph,
-    tapped,
-    landed,
-    phoneLabel: (up ? ph >= B.shown : ph >= B.land + 0.03) && inHold,
-    officeLabel: (up ? ph >= B.card : ph >= B.shown) && inHold,
-  };
-}
-
-function publish(next: Omit<DayLive, "tapCount">, tapForward: boolean) {
-  const changed = (Object.keys(next) as (keyof typeof next)[]).some((k) => k !== "ph" && next[k] !== live[k]);
-  live = { ...next, tapCount: live.tapCount + (tapForward ? 1 : 0) };
-  if (changed || tapForward) subs.forEach((f) => f());
-}
-
-// ─── per-frame positions for the DOM ─────────────────────────────────────────
-type FrameFn = (f: StageFrame, s: DayLive) => void;
-const frameFns = new Set<FrameFn>();
-/** Called on every Stage frame with the projected scene (for labels and leader lines). */
-export function onDayFrame(fn: FrameFn) {
-  frameFns.add(fn);
-  return () => void frameFns.delete(fn);
-}
 
 // ─── drawing helpers ─────────────────────────────────────────────────────────
 const SCALE = 2; // canvas px per native px (the web screens are shot at 2x)
@@ -372,131 +307,76 @@ function buildPress(s: Script): Anim | null {
 }
 
 // ─── the controller ─────────────────────────────────────────────────────────
-type Track = { anim: Anim | null; t: number; target: number; building: boolean };
 
-let started = false;
+/**
+ * Start the live layer: on every Stage frame, the current moment's and the next one's overlays are
+ * set to where the clock (`time()`, ms of the film) has them. Returns a stop function.
+ */
+let building = 0;
+/** Office updates still being built (captures wait for none). */
+export const rideLifePending = () => building;
 
-/** Dev only: ?daySlow=8 plays the taps and updates 8× slower (to check them frame by frame). */
-const SLOW = (() => {
-  if (!import.meta.env.DEV || typeof location === "undefined") return 1;
-  const v = Number(new URLSearchParams(location.search).get("daySlow"));
-  if (v > 1) document.documentElement.style.setProperty("--day-slow", String(v));
-  return v > 1 ? v : 1;
-})();
-
-/** Start the live layer once the Stage is up (and the DOM fallback state without it). */
-export function startDayLife(): () => void {
-  if (started) return () => {};
-  started = true;
+export function startRideLife(time: () => number, R: Ride = RIDE): () => void {
   let gone = false;
+  type Track = { anim: Anim | null; last: number };
   const updates = new Map<number, Track>();
-  let press: { i: number; anim: Anim | null; t: number; target: number } | null = null;
-  let raf = 0;
-  let lastNow = performance.now();
+  let press: { i: number; anim: Anim | null; last: number } | null = null;
 
   const ensure = (i: number) => {
-    if (i < 0 || i >= DAY_STEPS || updates.has(i)) return;
-    const tr: Track = { anim: null, t: 0, target: 0, building: true };
+    if (i < 0 || i >= R.moments.length || updates.has(i)) return;
+    const tr: Track = { anim: null, last: -1 };
     updates.set(i, tr);
+    building++;
     buildUpdate(i, SCRIPT[i])
+      .finally(() => building--)
       .then((a) => {
-        if (gone) return;
+        if (gone || updates.get(i) !== tr) return;
         tr.anim = a;
-        tr.building = false;
-        a?.set(tr.t);
-        // its beat may have passed while it was being built (a rail jump): play to it now
-        if (a && tr.t !== tr.target) kick();
       })
       .catch((e) => console.warn("[day] update overlay failed", MOMENTS[i].id, e));
   };
-
-  // the current moment and the next one hold the two slot pairs; a moment that is already past
-  // shows its "after" state, which is the screen texture itself (no overlay needed), and one that
-  // comes back into view is rebuilt
+  // the current moment and the next one hold the two slot pairs; a moment that is past shows its
+  // "after" state, which is the screen texture itself (no overlay), one that comes back is rebuilt
   const prune = (i: number) => {
     updates.forEach((_, k) => {
       if (k < i || k > i + 1) updates.delete(k);
     });
   };
 
-  const tick = () => {
-    raf = 0;
-    const now = performance.now();
-    const dt = Math.min(64, now - lastNow) / SLOW;
-    lastNow = now;
-    let busy = false;
-    updates.forEach((tr) => {
-      if (!tr.anim || tr.t === tr.target) return;
-      const step = reducedMotion ? 1 : dt / tr.anim.duration;
-      tr.t = tr.target > tr.t ? Math.min(tr.target, tr.t + step) : Math.max(tr.target, tr.t - step * 1.6);
-      tr.anim.set(tr.t);
-      if (tr.t !== tr.target) busy = true;
-    });
-    if (press?.anim && press.t !== press.target) {
-      press.t = Math.min(press.target, press.t + (reducedMotion ? 1 : dt / press.anim.duration));
-      press.anim.set(press.t);
-      if (press.t !== press.target) busy = true;
-    }
-    if (busy) raf = requestAnimationFrame(tick);
-  };
-  const kick = () => {
-    if (!raf && !gone) {
-      lastNow = performance.now();
-      raf = requestAnimationFrame(tick);
-    }
-  };
-
-  const apply = (p: number) => {
-    const st = stateAt(p);
-    const { i } = st;
+  const off = onStageFrame(() => {
+    const t = time();
+    const i = momentAt(t, R);
     prune(i);
     ensure(i);
     ensure(i + 1);
-    // the current moment plays towards its state; the next one waits in its "before"
     updates.forEach((tr, k) => {
-      const target = k > i ? 0 : st.landed ? 1 : 0;
-      if (tr.target !== target) {
-        tr.target = target;
-        // a neighbour jumps; only the current moment animates
-        if (k !== i && tr.anim) {
-          tr.t = target;
-          tr.anim.set(target);
-        }
-        kick();
+      if (!tr.anim) return;
+      const m = R.moments[k];
+      const u = k > i ? 0 : Math.max(0, Math.min(1, (t - m.update[0]) / (m.update[1] - m.update[0])));
+      if (u !== tr.last) {
+        tr.last = u;
+        tr.anim.set(u);
       }
     });
-    // the press: plays forward once per tap
-    const forward = st.tapped && !(live.i === i && live.tapped);
-    if (forward) {
-      if (!press || press.i !== i) press = { i, anim: buildPress(SCRIPT[i]), t: 0, target: 0 };
-      press.t = 0;
-      press.target = 1;
-      kick();
+    // the press on the phone's button (field → office moments)
+    const m = R.moments[i];
+    if (m.up) {
+      if (!press || press.i !== i) press = { i, anim: buildPress(SCRIPT[i]), last: -1 };
+      const p = Math.max(0, Math.min(1, (t - m.tap) / 420));
+      if (press.anim && p !== press.last) {
+        press.last = p;
+        press.anim.set(p);
+      }
+    } else if (press) {
+      setOverlay("iphone", 2, null);
+      press = null;
     }
-    publish(st, forward);
-  };
-
-  // on the Stage's frames (smoothed scroll, same as the poses) …
-  const offFrame = onStageFrame((f) => {
-    apply(sceneProgress("day", f.y));
-    frameFns.forEach((fn) => fn(f, live));
+    return false;
   });
-  // … or straight from the scroll when there is no WebGL
-  const onScroll = () => {
-    if (status.webgl && !status.failed) return;
-    apply(sceneProgress("day", window.scrollY));
-  };
-  window.addEventListener("scroll", onScroll, { passive: true });
-  const offStatus = onStatus(onScroll);
-  onScroll();
 
   return () => {
     gone = true;
-    started = false;
-    offFrame();
-    offStatus();
-    window.removeEventListener("scroll", onScroll);
-    cancelAnimationFrame(raf);
+    off();
     for (const s of [2, 3, 4, 5] as const) setOverlay("macbook", s, null);
     setOverlay("iphone", 2, null);
   };

@@ -219,7 +219,11 @@ export function startCursor(root: HTMLElement): () => void {
     const m = (l && typeof l.closest === "function" ? l.closest(MATCH) : null) as HTMLElement | null;
     let next: CursorMode = "default";
     if (m) {
-      const a = m.getAttribute("data-cursor");
+      let a = m.getAttribute("data-cursor");
+      // No zoom on hover: the magnifier over device screens and the big "view" disc read as
+      // distracting, so screens get the plain cursor and "view" targets the quiet link ring.
+      if (a === "loupe") a = "default";
+      else if (a === "view") a = "link";
       next = a !== null ? ((MODES.has(a) ? a : "default") as CursorMode) : autoMode(m);
     }
     toneEl = l && typeof l.closest === "function" ? l.closest("[data-cursor-tone]") : null;

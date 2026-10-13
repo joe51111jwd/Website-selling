@@ -28,6 +28,11 @@ export const onRig = (fn: () => void) => (rigListeners.add(fn), () => void rigLi
 
 const FIT: Record<DeviceId, Fit> = { macbook: "width", iphone: "cover", display: "width" };
 
+/** ?stageCap&noGrilleFix (flicker checks only): leave the grille decal as the model has it. */
+const NO_GRILLE_FIX = typeof location !== "undefined" && /[?&]stageCap\b/.test(location.search) && /[?&]noGrilleFix\b/.test(location.search);
+/** The MacBook GLB's speaker-grille decal (a see-through dot pattern over the deck). */
+const GRILLE_DECALS = new Set(["YMmdfGRsPviDXYd"]);
+
 let shadowMat: THREE.MeshBasicMaterial | null = null;
 function shadowMaterial() {
   if (shadowMat) return shadowMat;
@@ -68,6 +73,19 @@ export function StageDevice({ id }: { id: DeviceId }) {
       mats.forEach((mat) => {
         const s = mat as THREE.MeshStandardMaterial;
         if (s && "envMapIntensity" in s) s.envMapIntensity = 1;
+        // NO FLICKER: the MacBook's speaker grilles are a see-through decal of tiny dots laid on the
+        // deck either side of the keyboard, within a few hundredths of a millimetre of the deck and
+        // the keycap tops. Depth-tested at that distance they z-fight: the dots and the keys beside
+        // them flash on and off as the laptop moves by a fraction of a pixel. Pulled towards the
+        // camera in depth only (it looks the same), it always wins cleanly.
+        if (s && GRILLE_DECALS.has(s.name) && !NO_GRILLE_FIX) {
+          s.polygonOffset = true;
+          s.polygonOffsetFactor = -2;
+          s.polygonOffsetUnits = -4;
+        }
+        // every texture filtered for oblique views (the deck seen at a low angle), so fine detail
+        // averages out instead of sparkling
+        for (const t of [s?.map, s?.normalMap, s?.roughnessMap, s?.metalnessMap, s?.alphaMap]) if (t) t.anisotropy = 8;
       });
       m.frustumCulled = false;
     });

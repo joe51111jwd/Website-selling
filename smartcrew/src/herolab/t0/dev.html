@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>SmartCrew · See what every job is making, every day</title>
+    <meta name="theme-color" content="#FBF8F4" />
+    <link rel="icon" type="image/svg+xml" href="/src/site/assets/mark.svg" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/special-gothic-var.latin.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/finlandica-text-var.latin.woff2" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/special-gothic-figures-w104.woff2" />
+    <style>
+      /* first paint: the warm jobsite ground, before any JS (the hero paints on it) */
+      html { background: #fbf8f4; }
+      /* lab only: One Day's in-progress ground layer currently shows (dawn grey) at the very top
+         of every page, the real index included. While the hero is at the top, keep it off here so
+         the hero is judged on its warm ground; once scrolled, One Day owns it. ?t0Day=1: leave it. */
+      html.t0-top:not(.t0-day) .day-ground { opacity: 0 !important; }
+      html.t0-top:not(.t0-day) .backdrop { background: #fbf8f4 !important; }
+    </style>
+    <script>
+      (function () {
+        var d = document.documentElement;
+        if (/[?&]t0Day=1/.test(location.search)) d.classList.add("t0-day");
+        var on = function () { d.classList.toggle("t0-top", window.scrollY < 40); };
+        on();
+        addEventListener("scroll", on, { passive: true });
+      })();
+    </script>
+  </head>
+  <body>
+    <!-- Hero lab · t0 "Grade the Pad": http://127.0.0.1:5310/src/herolab/t0/dev.html
+         The real page (the same scenes as src/App.tsx) with the t0 hero in place of the current one.
+         ?angle=… as the page · ?t0=full|settle (force the full entrance / the later-visit settle)
+         · ?t0Gl=0 (desktop: the SVG plan instead of the shader) · ?t0Debug (paused at t = 0;
+         window.__t0.seek(ms) renders any frame, __t0.state()) -->
+    <div id="root"></div>
+    <script type="module" src="./dev.tsx"></script>
+  </body>
+</html>

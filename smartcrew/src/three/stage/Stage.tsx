@@ -10,16 +10,18 @@ import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
 import { StageDevice, preloadDevices, rig, onRig, type RigDevice } from "./devices";
 import { Comet } from "./pulse";
-import { getScreen, initTextures, loadScreen, pinScreens } from "./textures";
+import { getScreen, initTextures, loadScreen, pinScreens, screensLoading } from "./textures";
 import { StageLoupe } from "./loupe";
 import {
   anchorRect,
-  coarse,
+  clocksMoving,
   devicesInUse,
   easeFn,
+  evalPortal,
   frameHooks,
   OVERLAY_SLOTS,
   getTimeline,
+  materialize,
   onStageChange,
   onStatus,
   overlays,
@@ -52,8 +54,23 @@ const HQ = typeof location !== "undefined" && new URLSearchParams(location.searc
  * entrance spring, no screen crossfade), so a screenshot after one frame is the settled frame.
  */
 const SNAP = typeof location !== "undefined" && new URLSearchParams(location.search).has("stageSnap");
+/**
+ * ?stageCap (frame-by-frame captures of a clock-driven scene, e.g. One Day's ride): the frame time
+ * is `window.__stageNow` when a capture sets it (screen crossfades and ring fades run on it, `dt`
+ * is `window.__stageDt`), and the scroll and cursor springs are off, so a frame is a pure function
+ * of the scroll, the clock and that time.
+ */
+const CAP = typeof location !== "undefined" && new URLSearchParams(location.search).has("stageCap");
 /** No tweening inside the Stage: reduced motion, or captures. */
-const STILL = reducedMotion || SNAP;
+const STILL = reducedMotion || SNAP || CAP;
+/**
+ * Capture-only switches for the flicker checks: `__stageNudge` moves every device by a fraction of
+ * a frame unit (to emulate the idle float the Stage used to have), `?noAA` / `?noGrilleFix` turn
+ * off the multisampling and (devices.tsx) the grille decal's depth offset, to show what they fix.
+ */
+type CapWindow = { __stageNow?: number; __stageDt?: number; __stageFrames?: number; __stageNudge?: { y?: number; rz?: number } };
+const CAP_NO_AA = CAP && new URLSearchParams(location.search).has("noAA");
+const capWin = (typeof window !== "undefined" ? window : {}) as CapWindow;
 
 preloadDevices(["macbook", "iphone"]);
 
@@ -89,7 +106,9 @@ export default function Stage() {
       className="stage"
       frameloop="demand"
       dpr={[1, maxDpr]}
-      gl={{ alpha: true, antialias: maxDpr < 2, powerPreference: "high-performance", toneMapping: THREE.NeutralToneMapping, preserveDrawingBuffer: false }}
+      // MSAA at every DPR: without it the keyboard's fine keycaps, the device edges and the floor
+      // shadow's edge alias, and any sub-pixel move makes them shimmer
+      gl={{ alpha: true, antialias: !CAP_NO_AA, powerPreference: "high-performance", toneMapping: THREE.NeutralToneMapping, preserveDrawingBuffer: CAP }}
       camera={{ fov: FOV, near: 1, far: 80, position: [0, 0, CAM_Z] }}
       onCreated={({ gl }) => {
         gl.setClearColor(0x000000, 0);
@@ -177,6 +196,7 @@ type Live = {
   comets: Comet[];
   slow: number;
   lastY: number;
+  lastPrefetch: number;
 };
 
 function Driver() {
@@ -191,6 +211,7 @@ function Driver() {
     comets: [new Comet(), new Comet(), new Comet()],
     slow: 0,
     lastY: 0,
+    lastPrefetch: 0,
   });
   const firstFrame = useRef(0);
 
@@ -213,7 +234,8 @@ function Driver() {
 
   // dev: window.__stage for poking at the rig and the timeline from the console
   useEffect(() => {
-    if (import.meta.env.DEV) (window as unknown as { __stage: unknown }).__stage = { rig, getTimeline, status, invalidate, setScreen, clearScreen };
+    if (import.meta.env.DEV || CAP)
+      (window as unknown as { __stage: unknown }).__stage = { rig, getTimeline, status, invalidate, setScreen, clearScreen, screensLoading, loadScreen };
   }, [invalidate]);
 
   useEffect(() => {
@@ -264,10 +286,12 @@ function Driver() {
     };
   }, []);
 
-  useFrame((state, rawDt) => {
+  useFrame((state, rawDt0) => {
     const L = live.current;
     const camera = state.camera;
-    const now = performance.now();
+    const capNow = CAP ? capWin.__stageNow : undefined;
+    const now = capNow ?? performance.now();
+    const rawDt = capNow !== undefined ? (capWin.__stageDt ?? 1 / 60) : rawDt0;
     const dt = Math.min(rawDt, 1 / 20);
     let busy = false;
     const sy = window.scrollY;
@@ -291,11 +315,28 @@ function Driver() {
       return;
     }
     comp.visible = true;
-    // bracketing keys
+    // bracketing keys; a clock-driven scene's portal is its pose at its clock, and the keys after
+    // it carry on from that pose (store.ts: evalPortal, materialize)
     let i = 0;
     while (i < tl.length - 1 && tl[i + 1].y <= y) i++;
-    const A = tl[i];
-    const B = y < A.y ? A : tl[Math.min(i + 1, tl.length - 1)];
+    const A0 = tl[i];
+    const B0 = y < A0.y ? A0 : tl[Math.min(i + 1, tl.length - 1)];
+    const portals = new Map<string, ResolvedKey>();
+    const livePose = (k: ResolvedKey): ResolvedKey => {
+      const scene = k.portal ?? k.dyn?.from;
+      if (!scene) return k;
+      let p = portals.get(scene);
+      if (!p) {
+        const base = k.portal ? k : tl.find((x) => x.portal === scene);
+        if (!base) return k;
+        p = evalPortal(base, now);
+        portals.set(scene, p);
+      }
+      return k.portal ? p : materialize(k, p);
+    };
+    const A = livePose(A0);
+    const B = B0 === A0 ? A : livePose(B0);
+    if (clocksMoving(now)) busy = true;
     const before = y < tl[0].y;
     const t = B === A || B.y === A.y ? (before ? 0 : 1) : Math.min(1, Math.max(0, (y - A.y) / (B.y - A.y)));
     const te = B === A ? 0 : easeFn(B.ease)(t);
@@ -318,11 +359,10 @@ function Driver() {
     if (!kB) tmp.b.copy(tmp.a);
     comp.position.lerpVectors(tmp.a, tmp.b, te);
 
-    // look-around (cursor on desktop, a slow sway on touch) and the composition's own turn
+    // look-around (the cursor on desktop; touch screens hold still) and the composition's own turn
     const look = lerp(A.look, B.look, te) * (STILL ? 0 : 1);
-    const tSec = now / 1000;
-    const px = coarse ? Math.sin(tSec * 0.45) * 0.55 : L.pointer.x;
-    const py = coarse ? Math.sin(tSec * 0.31 + 1) * 0.3 : L.pointer.y;
+    const px = L.pointer.x;
+    const py = L.pointer.y;
     spring(L.lookX, px * look, dt, 4.5);
     spring(L.lookY, py * look, dt, 4.5);
     const settlingLook = Math.abs(L.lookX.x - px * look) > 0.002 || Math.abs(L.lookY.x - py * look) > 0.002;
@@ -330,7 +370,9 @@ function Driver() {
     lightState.key = lerp(A.lightKey, B.lightKey, te);
     lightState.warm = lerp(A.lightWarm, B.lightWarm, te);
 
-    const float = lerp(A.float, B.float, te) * (STILL ? 0 : 1);
+    // No idle float: a device at rest is drawn once and held, pixel for pixel (a bobbing laptop
+    // re-samples its fine keycaps and edges every frame, which reads as flicker). Keys' `float` is
+    // kept for the API and ignored.
     let anyVisible = false;
 
     // entrance: devices rise and turn into place once revealed (after the hero's first screen)
@@ -392,13 +434,14 @@ function Driver() {
       if (vis) anyVisible = true;
 
       if (vis) {
-        const phase = id === "iphone" ? 1.7 : 0;
-        const fy = Math.sin(tSec * 0.9 + phase) * 0.05 * float;
-        const frz = Math.sin(tSec * 0.6 + phase) * 0.5 * float;
         const sc = kk * s.s * (1 - Math.pow(1 - show, 3)) * (1 - e * 0.12);
-        d.group.position.set(s.x * kk, (s.y + fy - e * 1.6) * kk, (s.z - e * 1.2) * kk);
-        d.group.rotation.set((s.rx + e * 24) * D2R, (s.ry - e * 18 * (id === "iphone" ? -1 : 1)) * D2R, (s.rz + frz + e * 4) * D2R);
+        d.group.position.set(s.x * kk, (s.y - e * 1.6) * kk, (s.z - e * 1.2) * kk);
+        d.group.rotation.set((s.rx + e * 24) * D2R, (s.ry - e * 18 * (id === "iphone" ? -1 : 1)) * D2R, (s.rz + e * 4) * D2R);
         d.group.scale.setScalar(Math.max(sc, 1e-4));
+        if (CAP && capWin.__stageNudge) {
+          d.group.position.y += (capWin.__stageNudge.y ?? 0) * kk;
+          d.group.rotation.z += (capWin.__stageNudge.rz ?? 0) * D2R;
+        }
         if (outAmt > 0) placeOut(d, s.out, outAmt, comp, W, H);
       }
 
@@ -406,14 +449,14 @@ function Driver() {
       else if (!vis) d.surface.update(now, dt, ring, a.dim, true);
     }
     pinScreens(screensOn);
-    // idle float and the touch sway keep drawing only while a device is on screen; the cursor
-    // look-around only until it settles
-    if (anyVisible && (float > 0.01 || (coarse && look > 0) || settlingLook)) busy = true;
+    // the cursor look-around keeps drawing only until it settles
+    if (anyVisible && settlingLook) busy = true;
 
-    // prefetch what's coming within two screens
-    if (Math.abs(sy - L.lastY) > H * 0.5 || !firstFrame.current) {
+    // prefetch what's coming within two screens (a clock-driven scene: what its clock shows next)
+    if (Math.abs(sy - L.lastY) > H * 0.5 || !firstFrame.current || Math.abs(now - L.lastPrefetch) > 1200) {
       L.lastY = sy;
-      screensNear(sy, H * 2).forEach((s) => loadScreen(s));
+      L.lastPrefetch = now;
+      screensNear(sy, H * 2, now).forEach((s) => loadScreen(s));
     }
 
     comp.updateMatrixWorld(true);
@@ -427,7 +470,9 @@ function Driver() {
       if (!fa && !fb) continue;
       const d = rig.get(id);
       if (!d || !d.group.visible) continue;
-      const w = B === A ? (fa ? 1 : 0) : lerp(fa ? 1 : 0, fb ? 1 : 0, te);
+      const wa = fa ? (fa.weight ?? 1) : 0;
+      const wb = fb ? (fb.weight ?? 1) : 0;
+      const w = B === A ? wa : lerp(wa, wb, te);
       if (w <= 0.0005) continue;
       const f0 = (fa ?? fb) as FocusSpec;
       const f1 = (fb ?? fa) as FocusSpec;
@@ -524,6 +569,7 @@ function Driver() {
       }
     }
 
+    if (CAP) capWin.__stageFrames = (capWin.__stageFrames ?? 0) + 1;
     if (busy) invalidate();
   });
 

@@ -1,0 +1,507 @@
+/* t0 · Hero "Grade the Pad" (./HeroT0.tsx, ./ground.ts). Every selector is .t0- prefixed; the
+   orange button is the page's .cta (src/site/ui/cta.css). PHONE MODE: max-width 760px
+   (transform and opacity only, no filters, no animated shadows). */
+
+.t0-root {
+  --g: clamp(24px, 5vw, 72px);
+  --fs: min(92px, 6.4vw);
+  --gap-h1: clamp(8px, 2.2svh, 18px);
+  --gap-sub: clamp(14px, 3.2svh, 26px);
+  --gap-cta: clamp(18px, 3.6svh, 28px);
+  --plan-ink: #74665a;
+  --plan-ink-p: #4a4038;
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  min-height: 540px;
+  overflow: clip;
+  color: var(--ink);
+  isolation: isolate;
+}
+
+/* before the first layout (fonts loading) nothing shows; before the first frame of the
+   entrance, the copy waits at opacity 0 (the button is already in the DOM and clickable) */
+.t0-root:not(.is-laid) :is(.t0-copy, .t0-foot, .t0-labels) {
+  visibility: hidden;
+}
+
+.t0-root.is-pre :is(.t0-eyebrow, .t0-line-in, .t0-sub, .t0-cta-wrap, .t0-demo, .t0-micro, .t0-foot, .t0-labels) {
+  opacity: 0;
+}
+
+/* ── the ground: a grading plan ─────────────────────────────────────────────────────── */
+
+.t0-ground {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.t0-ground > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  max-width: none;
+}
+
+.t0-ground svg {
+  overflow: visible;
+}
+
+.t0-ground path {
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* natural ground: hairline intermediates, a heavier index line every 5 ft */
+.t0-ni {
+  stroke: var(--plan-ink);
+  stroke-opacity: 0.22;
+  stroke-width: 0.6;
+}
+
+.t0-nx {
+  stroke: var(--plan-ink);
+  stroke-opacity: 0.4;
+  stroke-width: 1.05;
+}
+
+/* proposed grade (the cut and fill slopes): one step heavier, as on a grading plan */
+.t0-pi {
+  stroke: var(--plan-ink-p);
+  stroke-opacity: 0.3;
+  stroke-width: 0.7;
+}
+
+.t0-px {
+  stroke: var(--plan-ink-p);
+  stroke-opacity: 0.48;
+  stroke-width: 1.2;
+}
+
+/* existing ground (the entrance only): dashed */
+.t0-ex-l {
+  stroke: var(--plan-ink);
+  stroke-opacity: 0.36;
+  stroke-width: 0.75;
+  stroke-dasharray: 5 4;
+}
+
+@media (max-resolution: 1.49dppx) {
+  .t0-ni {
+    stroke-width: 1;
+    stroke-opacity: 0.18;
+  }
+
+  .t0-nx {
+    stroke-width: 1;
+    stroke-opacity: 0.36;
+  }
+
+  .t0-pi {
+    stroke-width: 1;
+    stroke-opacity: 0.24;
+  }
+
+  .t0-px,
+  .t0-ex-l {
+    stroke-width: 1;
+  }
+}
+
+/* the pad's ground rides the front (desktop): its leading edge fades in over 56 px */
+.t0-exw,
+.t0-exin {
+  width: 100%;
+  height: 100%;
+}
+
+.t0-exw {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 56px);
+  mask-image: linear-gradient(90deg, transparent 0, #000 56px);
+}
+
+.t0-root.is-moving :is(.t0-exw, .t0-exin, .t0-box, .t0-box-in, .t0-blade) {
+  will-change: transform;
+}
+
+/* the graded container (SVG plan): slides along the pass while its content counter-slides */
+.t0-box {
+  overflow: hidden;
+}
+
+.t0-box-in,
+.t0-back {
+  position: absolute;
+}
+
+.t0-back {
+  background: var(--ground);
+}
+
+.t0-box-in svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* the blade's edge: a soft ground-coloured band at the front */
+.t0-blade {
+  position: absolute;
+  pointer-events: none;
+}
+
+.t0-blade.is-y {
+  height: 44px;
+  background: linear-gradient(180deg, rgb(251 248 244 / 0%) 0%, var(--ground) 46%, var(--ground) 54%, rgb(251 248 244 / 0%) 100%);
+}
+
+.t0-blade.is-x {
+  width: 44px;
+  background: linear-gradient(90deg, rgb(251 248 244 / 0%) 0%, var(--ground) 46%, var(--ground) 54%, rgb(251 248 244 / 0%) 100%);
+}
+
+.t0-root:not(.is-moving) .t0-blade {
+  display: none;
+}
+
+/* the plan's figures: index labels along the lines (top facing uphill, a halo break) and the
+   pad's elevation */
+.t0-labels {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.t0-el,
+.t0-padel {
+  font-family: var(--font-text);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0.04em;
+  fill: var(--plan-ink);
+  stroke: var(--ground);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.t0-padel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  fill: var(--plan-ink);
+  fill-opacity: 0.85;
+  text-anchor: end;
+  dominant-baseline: alphabetic;
+}
+
+/* ── the copy column, on the axis (it sits on the pad) ──────────────────────────────── */
+
+.t0-copy {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  top: var(--copy-top, 76px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 var(--g);
+  text-align: center;
+  pointer-events: none;
+}
+
+.t0-copy > * {
+  pointer-events: auto;
+}
+
+.t0-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 560;
+  line-height: 1.2;
+  color: var(--ink-2);
+}
+
+.t0-h1 {
+  margin-top: var(--gap-h1);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-stretch: 96%;
+  font-size: var(--fs);
+  line-height: 0.98;
+  letter-spacing: -0.012em;
+  word-spacing: 0.04em;
+  font-kerning: normal;
+  color: var(--ink);
+}
+
+.t0-h1-v,
+.t0-line {
+  display: block;
+}
+
+.t0-line-in {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* the key phrase: plain emphasis, a strip of flagging tape under it (no shape, no box) */
+.t0-key {
+  position: relative;
+  display: inline-block;
+}
+
+.t0-tape {
+  position: absolute;
+  left: 0.01em;
+  right: 0.01em;
+  top: 100%;
+  margin-top: -0.075em;
+  height: 0.085em;
+  min-height: 4px;
+  background: var(--orange);
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+.t0-sub {
+  margin-top: var(--gap-sub);
+  max-width: 34.5em;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-wrap: balance;
+}
+
+/* the button sits ON the axis; the demo link hangs to its right and never moves it */
+.t0-act {
+  position: relative;
+  margin-top: var(--gap-cta);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.t0-cta-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.t0-root .t0-cta {
+  --cta-h: 64px;
+  --cta-px: 40px;
+  --cta-fs: 20px;
+  min-width: 300px;
+}
+
+.t0-root .t0-demo {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(100% + 40px);
+  margin: auto 0;
+  height: 44px;
+  font-size: 16px;
+  font-weight: 560;
+  white-space: nowrap;
+}
+
+.t0-micro {
+  margin-top: clamp(12px, 2.4svh, 18px);
+  font-size: 13.5px;
+  line-height: 1.3;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+/* ── the foot: proof and the open loop ──────────────────────────────────────────────── */
+
+.t0-foot {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  bottom: clamp(14px, 3svh, 22px);
+  max-width: calc(var(--max) + var(--g) * 2);
+  margin: 0 auto;
+  padding: 0 var(--g);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.t0-logos {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.t0-logos-k {
+  font-size: 13px;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.t0-logos ul {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.8vw, 26px);
+}
+
+.t0-logos img {
+  height: calc(var(--h) * 0.8);
+  width: auto;
+  opacity: 0.6;
+}
+
+.t0-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.t0-cue svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── PHONE MODE ─────────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  .t0-root {
+    --g: 16px;
+    --fs: 54px;
+    height: auto;
+    min-height: 100svh;
+  }
+
+  .t0-copy {
+    position: relative;
+    top: auto;
+    padding-top: calc(var(--header-h) + 12px);
+  }
+
+  .t0-h1 {
+    margin-top: 0;
+  }
+
+  .t0-tape {
+    min-height: 3px;
+  }
+
+  .t0-sub {
+    margin-top: 14px;
+    max-width: 24em;
+    font-size: 15px;
+    line-height: 1.42;
+  }
+
+  .t0-act {
+    margin-top: 18px;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .t0-cta-wrap {
+    display: flex;
+    width: 100%;
+  }
+
+  .t0-root .t0-cta {
+    --cta-h: 56px;
+    --cta-px: 20px;
+    --cta-lip: 3px;
+    --cta-fs: 19px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .t0-root .t0-demo {
+    position: static;
+    align-self: center;
+    height: auto;
+    min-height: 40px;
+    margin-top: 4px;
+    font-size: 15.5px;
+  }
+
+  .t0-micro {
+    margin-top: 2px;
+    font-size: 13px;
+  }
+
+  .t0-foot {
+    position: relative;
+    bottom: auto;
+    margin-top: 18px;
+    padding-bottom: 14px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .t0-logos-k {
+    display: none;
+  }
+
+  .t0-logos,
+  .t0-logos ul {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .t0-logos img {
+    height: calc(var(--h) * 0.62);
+  }
+
+  .t0-cue {
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .t0-ni {
+    stroke-width: 0.5;
+  }
+
+  .t0-nx {
+    stroke-width: 0.9;
+  }
+
+  .t0-pi {
+    stroke-width: 0.6;
+  }
+
+  .t0-px {
+    stroke-width: 1.05;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* nothing in the hero tweens (base.css gives every property a 1 ms transition under reduced
+     motion: a size set and measured at once would read the old value) */
+  .sc-page .t0-root,
+  .sc-page .t0-root * {
+    transition: none !important;
+  }
+}

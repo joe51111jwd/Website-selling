@@ -15,7 +15,12 @@ const cache = new Map<string, Entry>();
 // Phones decode screens at the size they're shown (phone screens 804 px wide, web 1440: about a
 // third of the desktop textures' memory each), so they can keep the next moments' screens around
 // without evicting them before they're used.
-const MAX = phone ? 10 : 12;
+/** ?stageCap (frame-by-frame captures): keep every screen (a capture walks a whole film). */
+const CAP = typeof location !== "undefined" && new URLSearchParams(location.search).has("stageCap");
+const MAX = phone ? 10 : CAP ? 48 : 12;
+let inflight = 0;
+/** Screens still loading (captures wait for none before drawing a frame). */
+export const screensLoading = () => inflight;
 let renderer: THREE.WebGLRenderer | null = null;
 let onLoaded: (() => void) | null = null;
 
@@ -71,7 +76,9 @@ export function loadScreen(id: string): Promise<ScreenTex | null> {
   const name = id.split("/").pop() ?? id;
   const maxW = !phone ? 4096 : name.startsWith("web-") ? 1440 : name.startsWith("phone-") ? 804 : 1920;
   const entry: Entry = { tex: null, used: performance.now(), promise: Promise.resolve(null) };
+  inflight++;
   entry.promise = decode(screenUrl(id), maxW)
+    .finally(() => inflight--)
     .then((img) => {
       const tex = finish(new THREE.Texture(img as unknown as HTMLImageElement));
       const n = nativeSize(id, img.width, img.height);

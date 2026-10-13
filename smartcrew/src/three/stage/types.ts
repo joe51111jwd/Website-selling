@@ -55,6 +55,11 @@ export type FocusSpec = {
   zoom: number;
   /** where the spot lands, as fractions of the anchor box (default [0.5, 0.5]) */
   to?: [number, number];
+  /**
+   * How far the push-in is applied, 0..1 (default 1). Set by the Stage itself on the pose it
+   * evaluates from a clock-driven scene (a push-in half way through its blend); keys leave it out.
+   */
+  weight?: number;
 };
 
 export type PulseSpec = {
@@ -159,4 +164,15 @@ export type ResolvedKey = {
   front: DeviceId | null;
   dock: boolean;
   ease: Ease;
+  /**
+   * A clock-driven scene's place in the scroll timeline (registerPoses(…, { clock })): its pose is
+   * not this key's own but the scene's keys evaluated at the scene's clock, every frame.
+   */
+  portal?: string;
+  /**
+   * The fields this key inherited from a portal (it didn't set them, nor did any key between
+   * them): they follow the portal's live pose, so the keys after a clock-driven scene carry on
+   * from wherever its clock left the devices.
+   */
+  dyn?: { from: string; key: ReadonlySet<string>; devices: Record<DeviceId, ReadonlySet<string>> };
 };

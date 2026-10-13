@@ -1,0 +1,186 @@
+/* The film's controls (./Controls.tsx): small, quiet, ink on the ground, one orange mark (where
+   the film is). Ink flips on dark grounds (html[data-ground="dark"]). */
+
+.plc {
+  --plc-ink: var(--ink);
+  --plc-ink-2: var(--ink-2);
+  --plc-line: rgb(23 19 15 / 16%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 8px 6px 6px;
+  border-radius: 999px;
+  color: var(--plc-ink);
+  background: color-mix(in srgb, var(--page-ground, var(--ground)) 96%, transparent);
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 7%),
+    0 6px 18px rgb(23 19 15 / 8%);
+  transition:
+    background-color 0.6s var(--ease-out),
+    color 0.6s var(--ease-out);
+  pointer-events: auto;
+}
+
+html[data-ground="dark"] .plc {
+  --plc-ink: var(--ink-night);
+  --plc-ink-2: var(--ink-night-2);
+  --plc-line: rgb(244 238 231 / 20%);
+  box-shadow: 0 0 0 1px rgb(244 238 231 / 10%);
+}
+
+.plc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.plc-btn:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.plc-btn:focus-visible,
+.plc-rail button:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 2px;
+}
+
+.plc-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.plc-play {
+  width: 40px;
+  background: var(--plc-ink);
+  color: var(--page-ground, var(--ground));
+}
+
+.plc-play:hover {
+  background: var(--plc-ink);
+  opacity: 0.88;
+}
+
+.plc-text {
+  padding: 0 16px 0 12px;
+  background: var(--plc-ink);
+  color: var(--page-ground, var(--ground));
+}
+
+.plc-text:hover {
+  background: var(--plc-ink);
+  opacity: 0.88;
+}
+
+.plc-ico {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.plc-skip {
+  padding: 0 14px;
+  color: var(--plc-ink-2);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 4px;
+}
+
+.plc-skip:hover {
+  color: var(--plc-ink);
+  background: transparent;
+  text-decoration-color: currentColor;
+}
+
+/* the rail: one tick per chapter */
+.plc-rail {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plc-rail li {
+  min-width: 0;
+}
+
+.plc-rail button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-width: 62px;
+  padding: 6px 2px 4px;
+  border-radius: 6px;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.plc-track {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--plc-line);
+  overflow: hidden;
+}
+
+.plc-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--plc-ink);
+  opacity: 0.5;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.plc-rail .is-on .plc-fill {
+  background: var(--orange);
+  opacity: 1;
+}
+
+.plc-t {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.1;
+  white-space: nowrap;
+  /* every label is text, on every ground: ink-2 (≥ 7:1 on dawn, day, amber; night: ink-night-2) */
+  color: var(--plc-ink-2);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  transition: color 0.3s var(--ease-out);
+}
+
+.plc-rail .is-on .plc-t,
+.plc-rail button:hover .plc-t {
+  color: var(--plc-ink);
+}
+
+/* after the end: the rail is a quiet scrubber */
+.plc[data-state="ended"] .plc-rail .is-on .plc-fill {
+  background: var(--plc-ink);
+  opacity: 0.5;
+}
+
+.plc[data-state="ended"] .plc-rail .is-on .plc-t {
+  text-decoration: underline;
+  text-decoration-color: var(--orange);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}

@@ -495,7 +495,8 @@ async function everyCta(device) {
     const need =
       device.name === "phone"
         ? ["hero", "sticky", "specsheet", "apps", "offer", "faq", "faq(demo)"]
-        : ["hero", "header", "day-rail", "day-profit", "specsheet", "apps", "offer", "offer(demo)", "faq", "faq(demo)"];
+        : // One Day's own CTA ("day") only comes in at the end of its ride: the ride check clicks it
+          ["hero", "header", "specsheet", "apps", "offer", "offer(demo)", "faq", "faq(demo)"];
     const missing = need.filter((n) => !sources.includes(n));
     assert(!missing.length, `never met (or never opened the popup): ${missing.join(", ")}; met: ${sources.join(", ")}`);
     return `${seen.size} CTAs clicked: ${sources.join(", ")}`;
@@ -869,6 +870,194 @@ async function noWebgl() {
   }
 }
 
+// ─── One Day: "Enjoy the ride" (desktop) ─────────────────────────────────────────────────────
+//
+// Scrolling past the hero starts the ride: the page glides One Day into place and holds it while
+// the day plays on a clock. The visitor's own scrolling never fights it (downward input is
+// absorbed), a clear scroll up hands the page back with "Resume the ride", the header's orange
+// button stays clickable (it pauses the ride), the controls work (pause / play, the 7-tick rail,
+// Space, →, Skip), the page scrolls normally afterwards, and the ride ends on its own orange
+// button with Replay. ?rideDebug exposes the ride's state (and lets the test jump to its end).
+
+const rideState = (page) => page.evaluate(() => ({ y: Math.round(scrollY), ...window.__ride.state(), t: Math.round(window.__ride.time()) }));
+const dayTopOf = (page) => page.evaluate(() => Math.round(document.getElementById("day").getBoundingClientRect().top + scrollY));
+async function rideDbg(page, label) {
+  if (DEBUG) console.log(`    ride ${label.padEnd(26)} ${JSON.stringify(await rideState(page))}`);
+}
+async function until(page, fn, what, ms = 8000) {
+  const t0 = Date.now();
+  let last = null;
+  while (Date.now() - t0 < ms) {
+    last = await rideState(page);
+    if (fn(last)) return last;
+    await wait(150);
+  }
+  throw new Error(`${what} (state ${JSON.stringify(last)})`);
+}
+const wheel = async (page, dy, n = 1, gap = 40) => {
+  for (let i = 0; i < n; i++) {
+    await page.mouse.wheel(0, dy);
+    await wait(gap);
+  }
+};
+
+/**
+ * The whole ride, functionally. `kind: "nogl"` (the stills stand in for the 3D): headless software
+ * WebGL redraws a 1440×660 frame in ~0.3 s and uploads each screen texture in seconds, so while
+ * the ride plays the page is stalled most of the time and taps land seconds late; the controls,
+ * the hold and the CTA are DOM either way. `full: false` (with the 3D): it starts and holds, input
+ * is absorbed, Skip hands the page back.
+ */
+async function ride(device, { kind = "nogl", full = true } = {}) {
+  const ctx = await newContext(device, {
+    kind,
+    init: {
+      fn: () => {
+        window.__tracks = [];
+        window.addEventListener("smartcrew:track", (e) => window.__tracks.push(e.detail.event));
+      },
+    },
+  });
+  // a quarter of the film's pace: headless software WebGL stalls for seconds at a time, and the
+  // ride must not run out from under the test
+  const page = await open(ctx, "/?rideDebug&rideRate=0.25");
+  const out = [];
+  try {
+    await waitScenes(page);
+    await scrollTo(page, 0, 400);
+    await quiet(page);
+    const top = await dayTopOf(page);
+    const ctrl = page.locator("#day .day-controls");
+
+    // starts on scroll: a few wheel notches down from the hero
+    await page.mouse.move(720, 330);
+    await wheel(page, 100, 3, 60);
+    let s = await until(page, (x) => x.state === "playing" && Math.abs(x.y - top) <= 2, "the ride didn't start and hold One Day after a scroll down", 12000);
+    out.push("starts on scroll, One Day held");
+
+    // input during the ride: a trackpad-like burst down is absorbed (nothing moves), the clock runs on
+    const t1 = s.t;
+    for (let i = 0; i < 30; i++) await page.mouse.wheel(0, 9);
+    await wait(700);
+    s = await rideState(page);
+    assert(s.y === top && s.state === "playing" && s.t > t1, `scrolling down during the ride moved the page or stopped the ride: ${JSON.stringify(s)}`);
+    out.push("downward input absorbed");
+    if (!full) {
+      await press(page, ctrl.getByRole("button", { name: /^skip$/i }), { what: "Skip" });
+      s = await until(page, (x) => x.state === "paused" && x.reason === "skip" && !x.held && x.y > top + 100, "Skip didn't hand the page back and move on", 20000);
+      out.push("Skip moves on");
+      return out.join("; ");
+    }
+
+    // the controls: pause, play, Space, → (next moment), a tick
+    await press(page, ctrl.getByRole("button", { name: /^pause$/i }), { what: "Pause" });
+    await until(page, (x) => x.state === "paused", "Pause didn't pause");
+    await press(page, ctrl.getByRole("button", { name: /^play the day$/i }), { what: "Play" });
+    await until(page, (x) => x.state === "playing" && x.held, "Play didn't play");
+    await rideDbg(page, "after Play");
+    await page.locator("body").focus().catch(() => {});
+    await page.keyboard.press("Space");
+    await rideDbg(page, "after Space 1");
+    await until(page, (x) => x.state === "paused", "Space didn't pause");
+    await rideDbg(page, "paused by Space");
+    await page.keyboard.press("Space");
+    await rideDbg(page, "after Space 2");
+    await until(page, (x) => x.state === "playing", "Space didn't play");
+    const c0 = (await rideState(page)).chapter;
+    await page.keyboard.press("ArrowRight");
+    await until(page, (x) => x.chapter === c0 + 1, "→ didn't go to the next moment");
+    await press(page, ctrl.locator(".plc-rail button").nth(4), { what: "the 5:00 PM tick" });
+    await until(page, (x) => x.chapter === 4 && x.state === "playing", "the 5:00 PM tick didn't jump there");
+    out.push("pause / play / Space / → / tick");
+
+    // the header's orange button during the ride: it opens the popup and pauses the ride
+    await press(page, page.getByRole("banner").getByRole("button", { name: /get my free trial/i }), { what: "the header CTA during the ride" });
+    await expectPopup(page);
+    s = await rideState(page);
+    assert(s.state === "paused" && s.reason === "cta", `the ride didn't pause for the popup: ${JSON.stringify(s)}`);
+    await closePopup(page);
+    await ctrl.getByRole("button", { name: /resume the ride/i }).waitFor({ state: "visible", timeout: 5000 });
+    out.push("header CTA clickable (pauses, popup, Resume)");
+
+    // a clear scroll up hands the page back, with "Resume the ride"
+    await press(page, ctrl.getByRole("button", { name: /resume the ride/i }), { what: "Resume the ride" });
+    await until(page, (x) => x.state === "playing" && x.held, "Resume didn't play");
+    await wheel(page, -60, 3, 30);
+    s = await until(page, (x) => x.state === "paused" && x.reason === "exit" && x.y < top, "a scroll up didn't hand the page back");
+    out.push(`scroll up exits (page at ${s.y - top} px)`);
+
+    // Skip: the page moves on past One Day, and scrolls normally after
+    await scrollTo(page, top, 500);
+    await press(page, ctrl.getByRole("button", { name: /resume the ride/i }), { what: "Resume the ride" });
+    await until(page, (x) => x.state === "playing" && x.held, "Resume didn't play");
+    await press(page, ctrl.getByRole("button", { name: /^skip$/i }), { what: "Skip" });
+    s = await until(page, (x) => x.state === "paused" && x.reason === "skip" && !x.held && x.y > top + 100, "Skip didn't hand the page back and move on", 10000);
+    const y0 = s.y;
+    await wheel(page, 120, 4, 80);
+    await wait(1200);
+    s = await rideState(page);
+    assert(s.y > y0 + 100, `the page doesn't scroll after Skip (${y0} → ${s.y})`);
+    out.push("Skip moves on, scroll works after");
+
+    // the end: Friday, its orange button, the page handed back, Replay
+    await scrollTo(page, top, 500);
+    await press(page, ctrl.getByRole("button", { name: /resume the ride/i }), { what: "Resume the ride" });
+    await until(page, (x) => x.state === "playing", "Resume didn't play");
+    await page.evaluate(() => window.__ride.seek(window.__ride.ride.duration - 1200));
+    await until(page, (x) => x.state === "ended" && !x.held, "the ride didn't end and hand the page back", 12000);
+    const dayCta = page.locator("#day .day-end").getByRole("button", { name: /get my free trial/i });
+    await press(page, dayCta, { what: "One Day's own CTA" });
+    await expectPopup(page);
+    const sig = (await signups(page)).pop();
+    assert(sig?.source === "day", `One Day's CTA sent ${JSON.stringify(sig)}`);
+    await closePopup(page);
+    const ye = (await rideState(page)).y;
+    await wheel(page, 120, 3, 80);
+    await wait(1000);
+    s = await rideState(page);
+    assert(s.y > ye + 100 && s.state === "ended", `the page doesn't scroll on after the end (${ye} → ${s.y})`);
+    await scrollTo(page, top, 600);
+    s = await rideState(page);
+    assert(s.state === "ended", `scrolling back up replayed it: ${JSON.stringify(s)}`);
+    await press(page, ctrl.getByRole("button", { name: /replay/i }), { what: "Replay" });
+    await until(page, (x) => x.state === "playing" && x.held, "Replay didn't play again");
+    out.push("ends on its CTA, released, no auto-replay, Replay");
+
+    const tracks = await page.evaluate(() => window.__tracks.filter((e) => e.startsWith("ride_")));
+    for (const e of ["ride_start", "ride_exit_up", "ride_skip", "ride_complete"]) assert(tracks.includes(e), `no ${e} tracked (${tracks.join(", ")})`);
+    out.push(`tracked ${[...new Set(tracks)].join(", ")}`);
+    return out.join("; ");
+  } finally {
+    await ctx.close();
+  }
+}
+
+/** Reduced motion: One Day never plays on its own or holds the page; Previous / Next step through it. */
+async function rideReduced(device) {
+  const ctx = await newContext(device, { reducedMotion: "reduce" });
+  const page = await open(ctx, "/?rideDebug");
+  try {
+    await waitScenes(page);
+    const top = await dayTopOf(page);
+    await page.mouse.move(720, 330);
+    await scrollTo(page, Math.round(top - 0.6 * device.ctx.viewport.height), 300);
+    await wheel(page, 100, 3, 60);
+    await wait(1500);
+    let s = await rideState(page);
+    assert(s.state !== "playing" && !s.held, `reduced motion: the ride played or held the page: ${JSON.stringify(s)}`);
+    await scrollTo(page, top, 400);
+    const ctrl = page.locator("#day .day-controls");
+    const c0 = (await rideState(page)).chapter;
+    await press(page, ctrl.getByRole("button", { name: /next moment/i }), { what: "Next" });
+    s = await until(page, (x) => x.chapter === c0 + 1, "Next didn't step");
+    await press(page, ctrl.getByRole("button", { name: /previous moment/i }), { what: "Previous" });
+    await until(page, (x) => x.chapter === c0, "Previous didn't step back");
+    return "no autoplay, no hold; Previous / Next step through the moments";
+  } finally {
+    await ctx.close();
+  }
+}
+
 /** The popup's 3 steps with their errors, the hand-off to /book, and /book itself (no booking). */
 async function funnel(device) {
   const ctx = await newContext(device);
@@ -996,6 +1185,11 @@ for (const device of [DESKTOP, PHONE]) {
   await check(D, "Your number: slider + picks → popup prefill", () => yourNumber(device));
   await check(D, "FAQ toggles", () => faq(device));
   await check(D, "header links + Log in href", () => headerLinks(device));
+  if (device.name === "desktop") {
+    await check(D, "One Day ride (3D): scroll starts it, holds, Skip", () => ride(device, { kind: "gl", full: false }), { timeout: 300000 });
+    await check(D, "One Day ride (stills): controls, CTA, exit, Skip, end", () => ride(device), { timeout: 300000 });
+    await check(D, "One Day ride: reduced motion steps, no autoplay", () => rideReduced(device), { timeout: 150000 });
+  }
   await check(D, "?angle= variants render their own H1", () => angles(device));
   await check(D, "no intro overlay; hero CTA clickable ≤ 2.5 s", () => noIntroCtaFast(device), { timeout: 150000 });
   if (device.name === "desktop") await check(D, "no WebGL: posters stand in, page still converts", () => noWebgl(), { timeout: 150000 });

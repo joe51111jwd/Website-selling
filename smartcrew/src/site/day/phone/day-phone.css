@@ -3,12 +3,8 @@
    moves by transform/opacity; offscreen moments skip rendering (content-visibility). */
 
 /* One moment = exactly the window between the header and the sticky bar, so the moments tile
-   with no blank band between them (12 px of each moment's own ground either side), and a gentle
-   native snap (proximity: never fights a flick) settles each one in that window. html already
-   carries scroll-padding-top: var(--header-h) (base.css), so the snap lands under the header. */
-html.is-phone {
-  scroll-snap-type: y proximity;
-}
+   with no blank band between them (12 px of each moment's own ground either side). No scroll
+   snap: the page never pulls against the visitor's finger. */
 
 .dph-m {
   --dph-ink: var(--ink);
@@ -28,7 +24,6 @@ html.is-phone {
   background: linear-gradient(to bottom, var(--g) 0%, var(--g) 74%, var(--g2) 100%);
   content-visibility: auto;
   contain-intrinsic-size: auto 544px;
-  scroll-snap-align: start;
 }
 
 /* laid out ahead of arrival, in idle time (src/site/phone/warmAhead.ts) */
@@ -404,11 +399,10 @@ html.is-phone {
   box-shadow: none;
 }
 
-/* ── 6:42 AM, the hand-off from the hero (HERO_SPEC §8, phones) ──
+/* ── 6:42 AM, the first moment ──
    Once the hero is 40% out of view the big time sets like an odometer (each wheel rolls up through
-   two digits and lands, the minutes' last first), and once the phone is on screen the hero's fence
-   closes round its Clock In button just before the finger lands. Transform and opacity only,
-   CSS keyframes and transitions, played once. */
+   two digits and lands, the minutes' last first), and once the phone is on screen the finger
+   lands. Transform and opacity only, CSS keyframes and transitions, played once. */
 .dph-wheel {
   position: relative;
   display: inline-block;
@@ -488,74 +482,6 @@ html.is-phone {
     opacity: 1;
     transform: none;
   }
-}
-
-/* the fence round the Clock In button (an overlay on the phone's screen, native-px viewBox) */
-.dph-fence {
-  position: absolute;
-  z-index: 3;
-  pointer-events: none;
-  opacity: 0;
-  transform: scale(1.34);
-  transition:
-    opacity 0.3s var(--ease-out),
-    transform 0.56s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.dph-fence.is-in,
-.dph-fence.is-closed {
-  opacity: 1;
-  transform: none;
-}
-
-/* the finger lands: it rings out with the tap */
-.dph-fence.is-out {
-  opacity: 0;
-  transform: scale(1.16);
-  transition-duration: 0.42s;
-}
-
-.dph-fence > svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.dph-fence polygon {
-  fill: none;
-  stroke: var(--orange);
-  stroke-linejoin: round;
-}
-
-/* ≈ 2 CSS px at the phone's size (its screen is drawn ~0.6 × native) */
-.dph-fence-dash polygon {
-  stroke-width: 3.4;
-  stroke-dasharray: 16 11;
-}
-
-.dph-fence-solid polygon {
-  stroke-width: 4;
-}
-
-.dph-fence-solid {
-  opacity: 0;
-  transition: opacity 0.16s var(--ease-out);
-}
-
-.dph-fence-dash {
-  transition: opacity 0.16s var(--ease-out);
-}
-
-.dph-fence.is-closed .dph-fence-solid,
-.dph-fence.is-out .dph-fence-solid {
-  opacity: 1;
-}
-
-.dph-fence.is-closed .dph-fence-dash,
-.dph-fence.is-out .dph-fence-dash {
-  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
