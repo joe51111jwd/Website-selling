@@ -2,10 +2,12 @@
 // slider + result + CTA. The headline, the crew (one canvas of hard hats, ./CrewCanvas.tsx), the
 // two picks, then the visitor's own number and the orange CTA that carries it into the popup.
 // Same arithmetic and honesty as the desktop (OFFER.md §6): every input is the visitor's, nothing
-// is pre-selected, we only multiply and show the working. No scroll-driven JS: the empty crew
-// ripples in once on arrival; everything else moves only when the visitor touches it.
+// is pre-selected, we only multiply and show the working. No scroll-driven JS: on arrival (once)
+// the empty crew ripples in and, at 1.4 s, the knob nudges once (CSS); everything else moves only
+// when the visitor touches it. The hour meter (SCROLL_SHOTS §2): his dollars appear once his
+// inputs have settled (250 ms after the last change), the wheels rolling up to them (transform).
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { CALC, FLAG } from "../../content/copy";
 import { sizeFor, type SignupRequest } from "../../signup/contract";
 import { trackCustom } from "../../lib/track";
@@ -15,6 +17,7 @@ import { useStaged } from "../try/warm";
 import { CrewCanvas } from "./CrewCanvas";
 import { Odometer } from "./Odometer";
 import { DAYS_DEFAULT, annualCost, grouped, money, parseDays, weekly } from "./calc";
+import { useSettled } from "./settle";
 import "./number-phone.css";
 
 const COPY = {
@@ -32,6 +35,9 @@ const COPY = {
   },
   hours: "paid hours lost a year",
 };
+
+/** When the meter's last wheel lands, + 200 ms: the words beside it come up then (its first roll). */
+const landMs = (v: number) => (grouped(v).replace(/\D/g, "").length - 1) * 55 + 650 + 200;
 
 /** Short phones (in-app browsers with tall toolbars): a 5-row crew instead of 6, so the CTA stays on screen. */
 const SHORT = "(max-height: 640px)";
@@ -82,6 +88,21 @@ function Pick<T extends number>({
   );
 }
 
+/** His dollars: the meter rolls up to them; "a year" and the weekly line come up as it lands. */
+function Money({ value }: { value: number }) {
+  // timed from the first roll (the words come up once; later rolls only turn the wheels)
+  const [land] = useState(() => landMs(value));
+  return (
+    <p className="nph-big nph-big--money" style={{ ["--land" as string]: `${land}ms` } as CSSProperties}>
+      <Odometer value={value} className="t-time nph-odo" label={CALC.year} />
+      <span className="nph-per">
+        <span className="nph-year">{CALC.year}</span>
+        <span className="nph-week">{CALC.week(money(weekly(value)))}</span>
+      </span>
+    </p>
+  );
+}
+
 export default function NumberPhone() {
   const [crew, setCrew] = useState<number | null>(null);
   const [minutes, setMinutes] = useState<number | null>(null);
@@ -90,6 +111,9 @@ export default function NumberPhone() {
   const days = parseDays(daysText);
   const annual = annualCost({ crew, minutes, rate, days });
   const complete = annual != null;
+  // the meter catches up once the inputs settle (the formula line is live)
+  const [dragging, setDragging] = useState(false);
+  const shown = useSettled(annual, dragging);
   const [arriveRef, arrived] = useArrive<HTMLDivElement>({ amount: 0.4 });
   const el = useRef<HTMLDivElement | null>(null);
   const ref = useCallback(
@@ -141,7 +165,7 @@ export default function NumberPhone() {
     <div ref={ref} className={`nph wrap${arrived ? " is-in" : ""}${complete ? " is-done" : ""}`}>
       <h2 className="t-h2 nph-title">{CALC.title}</h2>
 
-      {stage >= 2 && <CrewCanvas value={crew} rows={short ? 5 : 6} arrived={arrived} onFirst={() => touch("crew")} onChange={setCrew} />}
+      {stage >= 2 && <CrewCanvas value={crew} rows={short ? 5 : 6} arrived={arrived} onFirst={() => touch("crew")} onChange={setCrew} onDrag={setDragging} />}
 
       {stage >= 3 && (
         <>
@@ -170,14 +194,8 @@ export default function NumberPhone() {
           />
 
           <div className="nph-out" data-hides-sticky>
-            {complete ? (
-              <p className="nph-big" key="money">
-                <Odometer value={annual} className="t-time nph-odo" label={CALC.year} />
-                <span className="nph-per">
-                  <span className="nph-year">{CALC.year}</span>
-                  <span className="nph-week">{CALC.week(money(weekly(annual!)))}</span>
-                </span>
-              </p>
+            {complete && shown != null ? (
+              <Money key="money" value={shown} />
             ) : hours != null ? (
               <p className="nph-big nph-big--hrs" key="hours">
                 <span className="t-time nph-odo nph-hrs">{grouped(hours)}</span>

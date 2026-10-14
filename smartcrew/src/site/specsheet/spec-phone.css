@@ -1,10 +1,14 @@
-/* 2b · The spec sheet, PHONE MODE (./SpecPhone.tsx). The page: a heavy rule, six ruled sections
-   (name, outcome, a big count), a double rule, the total, the CTA. The sheet: a full-screen panel
-   over the page with one section's tools. Everything that moves moves by transform/opacity (the
-   one exception: an open tool unfolds by grid rows, inside the sheet, on a tap). */
+/* 2b · "Here's everything it does", PHONE MODE (SpecPhone.tsx). One screen between the header
+   and the sticky bar: the title, the count, the group chips, and the phone in its window (cut
+   off at the bottom by a fade, gliding up and down to the named spot). Transform and opacity
+   only; one-shot transitions keyed by data-boot, nothing per frame from JS. */
 
 .spp {
+  position: relative;
   background: var(--ground);
+  --spp-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --spp-pan: cubic-bezier(0.45, 0, 0.2, 1);
+  --spp-dev-w: min(288px, 74vw);
 }
 
 .spp .scene-body {
@@ -12,560 +16,531 @@
   min-height: 100svh;
 }
 
-/* laid out ahead of arrival, a piece at a time (../try/warm.ts) */
-html .site > .scene.spp[data-warm] {
-  content-visibility: visible;
-}
-
 .spp-in {
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding-top: calc(var(--header-h) + clamp(10px, 2.2svh, 18px));
-  padding-bottom: calc(clamp(12px, 2.4svh, 20px) + env(safe-area-inset-bottom));
+  height: 100svh;
+  min-height: 540px;
+  max-height: 940px;
+  padding-top: calc(var(--header-h) + 12px);
+  padding-bottom: calc(var(--sticky-h) + env(safe-area-inset-bottom) + 6px);
 }
 
-/* ── title ── */
+/* ── the words ─────────────────────────────────────────────────────────── */
+
 .spp-title {
-  font-size: clamp(28px, 8vw, 34px);
+  margin: 0;
+  font-size: clamp(26px, 7.9vw, 36px);
   line-height: 1.04;
 }
 
 .spp-kicker {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   font-family: var(--font-text);
   font-stretch: normal;
+  font-weight: 400;
   font-size: 16px;
-  font-weight: 560;
-  letter-spacing: 0;
-  word-spacing: normal;
   line-height: 1.3;
+  letter-spacing: 0;
   color: var(--ink-3);
 }
 
-/* ── the frame: a heavy rule on top, a double rule under the sections ── */
-.spp-rule-heavy,
-.spp-rule-double {
-  display: block;
-  flex: none;
-  transform: scaleX(0);
-  transform-origin: 0 50%;
-  transition: transform 0.8s var(--ease-out);
-}
-
-.spp-rule-heavy {
-  height: 3px;
-  margin-top: clamp(10px, 2svh, 16px);
-  background: var(--ink);
-}
-
-.spp-rule-double {
-  height: 5px;
-  border-top: 1.5px solid var(--ink);
-  border-bottom: 1.5px solid var(--ink);
-  transition-delay: calc(140ms + 6 * 70ms);
-}
-
-.is-in .spp-rule-heavy,
-.is-in .spp-rule-double {
-  transform: none;
-}
-
-/* ── the six sections ── */
-.spp-li {
-  border-bottom: 1px solid var(--line);
-  opacity: 0;
-  transform: translate3d(0, 14px, 0);
-  transition:
-    opacity 0.45s var(--ease-out),
-    transform 0.6s var(--ease-out);
-  transition-delay: calc(140ms + var(--i) * 70ms);
-}
-
-.spp-li:last-child {
-  border-bottom: 0;
-}
-
-.is-in .spp-li {
-  opacity: 1;
-  transform: none;
-}
-
-.spp-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto 16px;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 58px;
-  padding: clamp(7px, 1.4svh, 10px) 0;
-  text-align: left;
-  color: var(--ink);
-  -webkit-tap-highlight-color: transparent;
-  border-radius: 4px;
-  transition: background-color 0.15s var(--ease-out);
-}
-
-.spp-row:active {
-  background: rgb(23 19 15 / 4%);
-}
-
-.spp-row:focus-visible {
-  outline: 2.5px solid var(--orange);
-  outline-offset: 2px;
-}
-
-.spp-row-t {
+.spp-count {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.spp-count-p {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 0;
   min-width: 0;
 }
 
-.spp-name {
-  font-family: var(--font-display);
-  font-stretch: calc(var(--wdth-sub) * 1%);
-  font-weight: var(--sub-wght);
-  letter-spacing: var(--track-sub);
-  font-size: 19px;
-  line-height: 1.12;
+.spp-count-n {
+  font-size: 30px;
+  line-height: 0.9;
 }
 
-.spp-out {
-  font-size: 14px;
-  line-height: 1.3;
+.spp-count-l {
+  font-size: 15px;
+  line-height: 1.2;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.spp-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 13px;
+  margin-right: -4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 600 14.5px/1 var(--font-text);
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.spp-glyph {
+  width: 14px;
+  height: 14px;
   color: var(--ink-2);
 }
 
-.spp-chev {
-  width: 16px;
-  height: 16px;
-  color: var(--ink-3);
+/* ── the group chips (the app's sections) ──────────────────────────────── */
+
+.spp-chips {
+  display: flex;
+  gap: 8px;
+  flex: none;
+  margin: 12px calc(var(--gutter) * -1) 0;
+  padding: 0 var(--gutter) 2px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* the counts: big tabular figures that roll once (a 0–9 strip per digit) */
-.spp-roll-d {
+.spp-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.spp-chip {
+  position: relative;
   display: inline-flex;
-}
-
-.spp-col {
-  display: inline-block;
-  height: 1em;
-  overflow: hidden;
-}
-
-.spp-strip {
-  display: flex;
-  flex-direction: column;
-  transform: translate3d(0, 0, 0);
-  transition: transform 0.95s cubic-bezier(0.16, 0.84, 0.28, 1);
-  transition-delay: var(--delay, 0ms);
-}
-
-.spp-strip > span {
-  display: block;
-  height: 1em;
-  line-height: 1em;
-}
-
-.is-in .spp-strip {
-  transform: translate3d(0, calc(var(--d) * -10%), 0);
-}
-
-.spp-n,
-.spp-total-n {
-  font-family: var(--font-display);
-  font-stretch: calc(var(--wdth-time) * 1%);
-  font-weight: var(--time-wght);
-  letter-spacing: var(--track-time);
-  font-variant-numeric: tabular-nums lining-nums;
-  line-height: 1;
-  color: var(--ink);
-}
-
-.spp-n {
-  font-size: 40px;
-}
-
-/* ── the total: the counts add up, under the double rule ── */
-.spp-total {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto 16px;
   align-items: center;
-  gap: 12px;
-  margin-top: 8px;
+  gap: 8px;
+  flex: none;
+  height: 44px;
+  padding: 0 14px 0 15px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 600 15px/1 var(--font-text);
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.3s,
+    color 0.3s,
+    border-color 0.3s,
+    opacity 0.45s var(--spp-ease),
+    transform 0.55s var(--spp-ease);
 }
 
-.spp-total-k {
-  color: var(--ink-3);
+.spp-chip.is-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
 }
 
-.spp-total-n {
-  font-size: 48px;
+.spp-chip-n {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.62;
 }
 
-.spp-cta.cta {
-  display: flex;
-  width: 100%;
-  margin-top: clamp(12px, 2.4svh, 18px);
+.spp-chip:focus-visible,
+.spp-all:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 
-/* ── the sheet: one section's tools, full screen over the page ───────────── */
-.spps {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  contain: layout paint style;
+.spp-dot:focus-visible {
+  outline: none;
 }
 
-.spps-scrim {
+.spp-dot:focus-visible .spp-dot-core {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 5.5px var(--ink);
+}
+
+.spp-prog {
   position: absolute;
-  inset: 0;
-  background: rgb(23 19 15 / 44%);
-  opacity: 0;
-  transition: opacity 0.32s var(--ease-out);
+  left: 15px;
+  right: 14px;
+  bottom: 7px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 42%);
+  transform-origin: 0 50%;
+  animation: spp-prog linear both;
 }
 
-.spps.is-up .spps-scrim {
-  opacity: 1;
+@keyframes spp-prog {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
-.spps-panel {
+/* ── the phone in its window ───────────────────────────────────────────── */
+
+.spp-win {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 220px;
+  margin: 10px calc(var(--gutter) * -1) 0;
+  overflow: hidden;
+  /* clip, not hidden: focusing a dot must never scroll the window (the glide does that) */
+  overflow: clip;
+  touch-action: pan-y;
+}
+
+/* the phone is cut off by the ground, not by a hard edge (a short fade on top, a longer one under) */
+.spp-win::before {
+  content: "";
   position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 14px;
+  background: linear-gradient(to bottom, var(--ground), rgb(251 248 244 / 0%));
+  pointer-events: none;
+}
+
+.spp-win::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
   left: 0;
   right: 0;
   bottom: 0;
-  top: max(10px, env(safe-area-inset-top));
-  display: flex;
-  flex-direction: column;
-  background: var(--ground);
-  border-radius: 18px 18px 0 0;
-  transform: translate3d(0, 102%, 0);
-  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
+  height: 76px;
+  background: linear-gradient(to top, var(--ground) 34%, rgb(251 248 244 / 0%));
+  pointer-events: none;
 }
 
-.spps.is-up .spps-panel {
-  transform: none;
+.spp-dev {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  width: var(--spp-dev-w);
+  margin-left: calc(var(--spp-dev-w) / -2);
+  transition: transform 0.9s var(--spp-pan);
 }
 
-.spps-head {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 44px;
-  align-items: start;
-  gap: 12px;
-  padding: 18px var(--gutter) 14px;
-  border-bottom: 3px solid var(--ink);
-  animation: spps-fade 0.32s var(--ease-out) both;
+.spp-dev .pf {
+  opacity: 0;
+  transform: translate3d(0, 44px, 0);
+  transition:
+    opacity 0.6s var(--spp-ease),
+    transform 0.9s var(--spp-ease);
 }
 
-.spps-n {
-  font-size: 56px;
-  line-height: 0.84;
-  margin-top: 2px;
-}
-
-.spps-name {
-  font-family: var(--font-display);
-  font-stretch: calc(var(--wdth-sub) * 1%);
-  font-weight: var(--sub-wght);
-  letter-spacing: var(--track-sub);
-  font-size: 22px;
-  line-height: 1.1;
+.spp-out {
+  position: absolute;
+  z-index: 3;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: 4px;
+  margin: 0;
+  text-align: center;
+  font: 600 16px/1.3 var(--font-text);
   color: var(--ink);
+  animation: spp-out-in 0.5s var(--spp-ease) 0.15s both;
 }
 
-.spps-out {
-  margin-top: 3px;
-  font-size: 14.5px;
-  line-height: 1.35;
-  color: var(--ink-2);
+@keyframes spp-out-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
 }
 
-.spps-x {
+/* the six screens inside the phone (native 402 × 874, scaled by PhoneFrame) */
+.spp-stack {
+  position: relative;
+  width: 402px;
+  height: 874px;
+  background: #fff;
+}
+
+.spp-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  transform: translate3d(26px, 0, 0);
+  transition:
+    opacity 0.3s ease 0.36s,
+    transform 0s linear 0.66s;
+}
+
+.spp-stack[data-dir="-1"] .spp-layer {
+  transform: translate3d(-26px, 0, 0);
+}
+
+.spp-stack .spp-layer.is-on {
+  z-index: 2;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.36s var(--spp-ease),
+    transform 0.6s var(--spp-ease);
+}
+
+/* ── spots over the screen (the screen's box inside the 430 × 900 body) ── */
+
+.spp-spots {
+  position: absolute;
+  left: 3.256%;
+  top: 1.444%;
+  width: 93.49%;
+  height: 97.11%;
+  z-index: 1;
+}
+
+.spp-dot {
+  position: absolute;
+  z-index: 3;
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
-  margin: -6px -8px 0 0;
+  margin: -22px 0 0 -22px;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
-  color: var(--ink);
-  background: rgb(23 19 15 / 6%);
+  background: transparent;
   -webkit-tap-highlight-color: transparent;
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 0.4s var(--spp-ease),
+    transform 0.5s var(--spp-ease);
 }
 
-.spps-x svg {
-  width: 16px;
-  height: 16px;
+.spp-spots:not([data-boot="0"], [data-boot="1"], [data-boot="2"], [data-boot="3"]) .spp-dot {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(0.12s + var(--i, 0) * 90ms);
 }
 
-.spps-x:focus-visible,
-.spps-tool-b:focus-visible,
-.spps-next:focus-visible {
-  outline: 2.5px solid var(--orange);
-  outline-offset: 2px;
-}
-
-.spps-list {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  padding: 0 var(--gutter) 8px;
-}
-
-.spps-tool {
-  border-bottom: 1px solid var(--line);
-  animation: spps-row 0.4s var(--ease-out) both;
-  animation-delay: calc(60ms + var(--i) * 35ms);
-}
-
-.spps-tool-b {
-  display: grid;
-  grid-template-columns: 8px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 52px;
-  padding: 11px 0;
-  text-align: left;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.spps-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--line);
-  transition: background-color 0.2s var(--ease-out);
-}
-
-.spps-tool.is-on .spps-dot {
-  background: var(--orange);
-}
-
-.spps-tool-name {
-  font-size: 16.5px;
-  line-height: 1.3;
-  font-weight: 620;
-  color: var(--ink);
-}
-
-.spps-flag.flag,
-.spp-flag {
-  margin-left: 4px;
-}
-
-.spps-side {
-  font-size: 12.5px;
-  font-weight: 560;
-  color: var(--ink-3);
-  white-space: nowrap;
-}
-
-/* an open tool unfolds (grid rows: a tap's layout, not a scroll's) */
-.spps-body {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.34s var(--ease-out);
-}
-
-.spps-tool.is-on .spps-body {
-  grid-template-rows: 1fr;
-}
-
-.spps-body-in {
-  min-height: 0;
-  overflow: hidden;
-  padding-left: 20px;
-}
-
-.spps-line {
-  font-size: 14.5px;
-  line-height: 1.42;
-  color: var(--ink-2);
-  padding-bottom: 10px;
-}
-
-.spps-shot {
-  margin: 0 0 14px;
-}
-
-.spps-frame {
+.spp-dot-core {
   position: relative;
-  height: clamp(168px, 30svh, 228px);
-  border-radius: 14px;
-  overflow: hidden;
-  background: #fff;
-  border: 1px solid var(--line);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow:
+    0 0 0 3px #fff,
+    0 1px 5px 1px rgb(23 19 15 / 28%);
 }
 
-/* the crew's screen is cropped full width: a little taller, so a button and its label both fit */
-.spps-shot[data-kind="phone"] .spps-frame {
-  height: clamp(196px, 36svh, 260px);
-}
-
-.spps-img {
+.spp-dot-core::after {
+  content: "";
   position: absolute;
-  left: 0;
-  top: 0;
-  max-width: none;
-  user-select: none;
-  -webkit-user-select: none;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--orange);
+  opacity: 0;
+  animation: spp-pulse 2.6s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
+  animation-delay: calc(var(--i, 0) * -0.7s);
 }
 
-.spps-ring {
+.spp-spot.is-on .spp-dot-core {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 5px var(--orange),
+    0 1px 6px 2px rgb(23 19 15 / 24%);
+}
+
+.spp-spot.is-on .spp-dot-core::after {
+  animation: none;
+}
+
+@keyframes spp-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  70%,
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+
+.spp-ring {
   position: absolute;
+  z-index: 2;
+  margin: -4px 0 0 -4px;
+  padding: 4px;
+  box-sizing: content-box;
   border: 2px solid var(--orange);
   border-radius: 10px;
+  box-shadow: 0 0 0 3px rgb(255 122 1 / 14%);
   pointer-events: none;
-}
-
-.spps-ring.is-round {
-  border-radius: 50%;
-}
-
-.spps-ping {
-  position: absolute;
-  inset: -2px;
-  border: 2px solid var(--orange);
-  border-radius: inherit;
   opacity: 0;
-  animation: spps-ping 1.1s var(--ease-out) 0.35s 1 both;
+  transform: scale(1.03);
+  transition:
+    opacity 0.3s ease,
+    transform 0.5s var(--spp-ease);
 }
 
-@keyframes spps-ping {
-  from {
-    opacity: 0.9;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(1.22);
-  }
+.spp-spot.is-on .spp-ring {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.1s;
 }
 
-.spps-tag {
+.spp-tip {
   position: absolute;
-  max-width: 228px;
-  padding: 5px 9px;
-  border-radius: 8px;
+  z-index: 4;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  --tx: -50%;
+  --ty: 6px;
+}
+
+.spp-tip--start {
+  --tx: -18px;
+}
+
+.spp-tip--end {
+  --tx: calc(-100% + 18px);
+}
+
+.spp-tip-in {
+  position: absolute;
+  left: 0;
+  bottom: 16px;
+  padding: 8px 12px 9px;
+  border-radius: 9px;
   background: var(--ink);
   color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.25;
-  box-shadow: 0 3px 10px rgb(23 19 15 / 18%);
-  animation: spps-fade 0.3s var(--ease-out) 0.25s both;
+  font: 600 14.5px/1.15 var(--font-text);
+  white-space: nowrap;
+  box-shadow: 0 6px 16px -6px rgb(23 19 15 / 45%);
+  opacity: 0;
+  transform: translate3d(var(--tx), var(--ty), 0);
+  transition:
+    opacity 0.25s ease,
+    transform 0.45s var(--spp-ease);
 }
 
-.spps-cap {
-  margin-top: 6px;
-  font-size: 12.5px;
-  color: var(--ink-3);
+.spp-tip::after {
+  content: "";
+  position: absolute;
+  left: -5px;
+  bottom: 11px;
+  width: 10px;
+  height: 10px;
+  background: var(--ink);
+  transform: rotate(45deg) translate3d(0, 4px, 0);
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
 
-.spps-next {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  min-height: 56px;
-  padding: 12px 0;
-  font-size: 16px;
-  font-weight: 620;
-  color: var(--ink);
-  text-align: left;
-  -webkit-tap-highlight-color: transparent;
+.spp-tip.is-below .spp-tip-in {
+  bottom: auto;
+  top: 16px;
+  --ty: -6px;
 }
 
-.spps-next-chev {
-  width: 18px;
-  height: 18px;
-  flex: none;
+.spp-tip.is-below::after {
+  bottom: auto;
+  top: 11px;
 }
 
-.spps-foot {
-  flex: none;
-  padding: 10px var(--gutter) calc(10px + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line);
-  background: var(--ground);
+.spp-spot.is-on .spp-tip-in {
+  opacity: 1;
+  transform: translate3d(var(--tx), 0, 0);
+  transition-delay: 0.14s;
 }
 
-.spps-cta.cta {
-  display: flex;
-  width: 100%;
+.spp-spot.is-on .spp-tip::after {
+  opacity: 1;
+  transition-delay: 0.14s;
 }
 
-@keyframes spps-fade {
-  from {
-    opacity: 0;
-  }
+/* ── the arrival (once) ────────────────────────────────────────────────── */
+
+.spp-title,
+.spp-count {
+  transition:
+    opacity 0.6s var(--spp-ease),
+    transform 0.7s var(--spp-ease);
 }
 
-@keyframes spps-row {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 10px, 0);
-  }
+.spp-in[data-boot="0"] .spp-title,
+.spp-in[data-boot="0"] .spp-count {
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .spp-li,
-  .spp-strip,
-  .spp-rule-heavy,
-  .spp-rule-double,
-  .spps-scrim,
-  .spps-panel,
-  .spps-body {
-    transition: none;
-  }
-  .spps-head,
-  .spps-tool,
-  .spps-tag,
-  .spps-ping {
-    animation: none;
-  }
+.spp-in[data-boot="0"] .spp-count {
+  transition-delay: 0.08s;
 }
 
-/* short phones: the six sections a step tighter, so the CTA still lands on the screen */
-@media (max-height: 640px) {
+.spp-in[data-boot="0"] .spp-chip,
+.spp-in[data-boot="1"] .spp-chip {
+  opacity: 0;
+  transform: translate3d(14px, 0, 0);
+}
+
+.spp-in:not([data-boot="0"], [data-boot="1"]) .spp-chip {
+  transition-delay: 0s, 0s, 0s, calc(var(--i) * 50ms), calc(var(--i) * 50ms);
+}
+
+.spp-in:not([data-boot="0"], [data-boot="1"], [data-boot="2"]) .spp-dev .pf {
+  opacity: 1;
+  transform: none;
+}
+
+.spp-in[data-boot="0"] .spp-out,
+.spp-in[data-boot="1"] .spp-out,
+.spp-in[data-boot="2"] .spp-out,
+.spp-in[data-boot="3"] .spp-out {
+  visibility: hidden;
+}
+
+/* short phones (the FB in-app browser with its bars): the words get tighter */
+@media (max-height: 700px) {
   .spp-in {
     padding-top: calc(var(--header-h) + 8px);
   }
   .spp-title {
-    font-size: 26px;
+    font-size: clamp(25px, 7.4vw, 30px);
   }
   .spp-kicker {
-    font-size: 14.5px;
-    margin-bottom: 2px;
+    font-size: 15px;
+    margin-bottom: 1px;
   }
-  .spp-rule-heavy {
+  .spp-count {
+    margin-top: 6px;
+  }
+  .spp-chips {
     margin-top: 8px;
   }
-  .spp-row {
-    min-height: 0;
-    padding: 6px 0;
+  .spp-win {
+    margin-top: 8px;
   }
-  .spp-name {
-    font-size: 17.5px;
-  }
-  .spp-out {
-    font-size: 13.5px;
-  }
-  .spp-n {
-    font-size: 34px;
-  }
-  .spp-total {
-    margin-top: 4px;
-  }
-  .spp-total-n {
-    font-size: 40px;
-  }
-  .spp-cta.cta {
-    margin-top: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spp *,
+  .spp *::before,
+  .spp *::after {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    animation: none !important;
   }
 }

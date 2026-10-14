@@ -1,424 +1,314 @@
-// 2b · The spec sheet, PHONE MODE (BRIEF ROUND 3; scratchpad design/v2/phone/PHONE.md).
-// The three-second read survives: "Here's everything it does." over six ruled sections, each just
-// its name, its one-line outcome and its count as a big tabular figure, and under the double rule
-// the counts add up to the total. On arrival (once) the rules draw, the sections land and the
-// counts roll; it's all CSS transitions on transform/opacity (no layout animation, no motion
-// projection, nothing per frame from JS).
+// 2b · "Here's everything it does", PHONE MODE (SPEC_BRIEF.md; scratchpad design/v2/phone/PHONE.md).
+// The same click-through in a 2D iPhone: the six groups are thumb-sized chips (a tablist that
+// scrolls sideways), each opens its screen on the phone (the crew app where the group lives in
+// the field, the office app's mobile layout where it doesn't), and quiet dots on the screen name
+// the tools in one line. Swipe the phone to go to the next or the previous group. Outside the app:
+// the title, the count and "Show everything" (the plain list, ./AllTools.tsx). The sticky bar
+// carries the CTA.
 //
-// Tap a section → a clean full-screen sheet slides up with its tools: one line each (name, field /
-// office), the first one open. An open tool shows its one plain sentence and a crisp crop of the
-// real screen (phone-sized image, the exact spot ringed, the office's label as live text). "Next"
-// pages through the six sections; the orange CTA sits at the bottom of the sheet.
+// The moment: on arrival (once) the title settles, the chips draw in, the phone rises and its
+// first screen names its first tool; untouched, it walks on by itself (./useTour.ts). The phone
+// glides up or down inside its window (a transform) to bring a spot into view. Every motion is
+// transform/opacity, triggered by a step, never per frame; the screens mount one per idle moment.
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
-import { createPortal } from "react-dom";
+import { startTransition, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type TouchEvent } from "react";
 import { SPEC } from "../../content/copy";
-import type { Box } from "../../content/moments";
-import { NATIVE, screenUrl } from "../../three/stage/urls";
 import { Scene } from "../scene/Scene";
-import { lockScroll } from "../scroll";
-import { Cta } from "../ui/Cta";
-import { phoneSmall, phoneSrcSet } from "../phone/PhoneFrame";
-import { useArrive } from "../phone/useArrive";
-import { useStaged } from "../try/warm";
-import { CATEGORIES, TOOL_COUNT, type Category, type Shot as ShotT, type Tool } from "./data";
+import { PhoneFrame } from "../phone/PhoneFrame";
+import { useArrive, useSteps } from "../phone/useArrive";
+import { CATEGORIES, TOOL_COUNT, type Tool } from "./data";
+import { GROUPS, findPhoneSpot } from "./tour";
+import { useTour, type Pos } from "./useTour";
+import { AllTools, Flag, GridGlyph } from "./AllTools";
+import { Roll } from "./Roll";
+import { idle, screenComp, warmScreen } from "./screens";
 import "./spec-phone.css";
-
-const COPY = {
-  tools: "tools",
-  /** under a screen crop: whose app it is, and that the data is the demo account's */
-  demo: "Demo account",
-  next: (name: string) => `Next: ${name}`,
-  close: "Close",
-};
+import "./all-tools.css";
 
 const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const base = import.meta.env.BASE_URL;
 const clamp = (v: number, a: number, b: number) => Math.min(Math.max(v, a), b);
 
-/** srcset for a web screen: the 960 px phone copy and the 2880 px (2x) original. */
-const webSrcSet = (id: string) => `${base}phone/screens/${id}-960.webp 960w, ${screenUrl(id)} 2880w`;
+/** New words this layout needs (not in copy.ts yet: for the copy review). */
+const COUNT_LINE = (groups: number) => `${SPEC.unit} in ${groups} groups`;
 
-function Chevron({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <path d="M7.5 4.5 13 10l-5.5 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function Flag() {
-  return (
-    <span className="flag spp-flag" title={SPEC.flagTitle} aria-label={SPEC.flagTitle} role="img">
-      ⚑
-    </span>
-  );
-}
-
-/** A count that rolls like a mechanical counter (CSS: each digit a 0–9 strip that slides once). */
-function Roll({ value, delay, className }: { value: number; delay: number; className?: string }) {
-  const digits = String(value).split("");
-  return (
-    <span className={`spp-roll${className ? ` ${className}` : ""}`}>
-      <span className="sr-only">{value}</span>
-      <span className="spp-roll-d" aria-hidden="true">
-        {digits.map((d, i) => (
-          <span key={i} className="spp-col">
-            <span
-              className="spp-strip"
-              style={
-                {
-                  "--d": d,
-                  "--delay": `${delay + (digits.length - 1 - i) * 70}ms`,
-                } as CSSProperties
-              }
-            >
-              {"0123456789".split("").map((n) => (
-                <span key={n}>{n}</span>
-              ))}
-            </span>
-          </span>
-        ))}
-      </span>
-    </span>
-  );
-}
-
-// ─── the section on the page ─────────────────────────────────────────────────
-
-/** ms after arrival: rows land one by one, then the double rule draws and the total rolls. */
-const ROW0 = 140;
-const ROW_STEP = 70;
-const TOTAL_AT = ROW0 + CATEGORIES.length * ROW_STEP + 260;
+const SHAPE = GROUPS.map((g) => [g.phone.spots.length]);
+/** ms after arrival: 1 the title · 2 the chips · 3 the phone · 4 the dots · 5 the first name. */
+const BOOT = [40, 260, 520, 980, 1360];
+/** The iPhone's body around its 402 × 874 screen (PhoneFrame): 430 × 900, the screen 13 pt down. */
+const BODY = { w: 430, h: 900, top: 13, left: 14 };
 
 export default function SpecPhone() {
   return (
     <Scene id="specs" pinnedViewports={1} stage="keep" label={SPEC.label} className="spp">
-      <SpecPhoneInner />
+      <Inner />
     </Scene>
   );
 }
 
-function SpecPhoneInner() {
-  const [arriveRef, arrived] = useArrive<HTMLDivElement>({ amount: 0.25 });
-  const el = useRef<HTMLDivElement | null>(null);
+function Inner() {
+  const [arriveRef, arrived] = useArrive<HTMLDivElement>({ amount: 0.45 });
+  const [seenRef, visible] = useArrive<HTMLDivElement>({ amount: 0.3, repeat: true });
   const ref = useCallback(
     (n: HTMLDivElement | null) => {
-      el.current = n;
       arriveRef(n);
+      seenRef(n);
     },
-    [arriveRef],
+    [arriveRef, seenRef],
   );
-  // built before it scrolls in, a piece per idle moment (../try/warm.ts): 1 the scene lays out,
-  // 2 the six sections, 3 the total and the CTA
-  const stage = useStaged(el, 3);
-  const [open, setOpen] = useState<string | null>(null);
-  const opener = useRef<string | null>(null);
-
-  const openCat = useCallback((id: string) => {
-    opener.current = id;
-    setOpen(id);
-  }, []);
-  const close = useCallback(() => {
-    setOpen(null);
-    // focus goes back to the section that opened the sheet (without scrolling the page)
-    const id = opener.current;
-    window.setTimeout(() => document.querySelector<HTMLElement>(`.spp-row[data-cat="${id}"]`)?.focus({ preventScroll: true }), 0);
-  }, []);
-
-  return (
-    <div ref={ref} className={`spp-in wrap${arrived ? " is-in" : ""}`}>
-      <h2 className="t-h2 spp-title">
-        <span className="spp-kicker">{SPEC.kicker}</span> {SPEC.title}
-      </h2>
-      <span className="spp-rule-heavy" aria-hidden="true" />
-      <ul className="spp-rows">
-        {stage >= 2 &&
-          CATEGORIES.map((c, i) => (
-            <li key={c.id} className="spp-li" style={{ "--i": i } as CSSProperties}>
-              <button type="button" className="spp-row" data-cat={c.id} aria-haspopup="dialog" onClick={() => openCat(c.id)}>
-                <span className="spp-row-t">
-                  <span className="spp-name">{c.name}</span>
-                  <span className="spp-out">{c.outcome}</span>
-                </span>
-                <Roll value={c.tools.length} delay={ROW0 + i * ROW_STEP + 120} className="spp-n" />
-                <Chevron className="spp-chev" />
-              </button>
-            </li>
-          ))}
-      </ul>
-      <span className="spp-rule-double" aria-hidden="true" />
-      {stage >= 3 && (
-        <>
-          <p className="spp-total">
-            <span className="t-label spp-total-k">
-              {SPEC.total} {COPY.tools}
-            </span>
-            <Roll value={TOOL_COUNT} delay={TOTAL_AT} className="spp-total-n" />
-          </p>
-          <Cta source="specsheet" size="lg" className="spp-cta" />
-        </>
-      )}
-      <CatSheet id={open} onPick={openCat} onClose={close} />
-    </div>
-  );
-}
-
-// ─── the full-screen sheet ───────────────────────────────────────────────────
-
-/** Mounted while open and while it slides away. */
-function CatSheet({ id, onPick, onClose }: { id: string | null; onPick: (id: string) => void; onClose: () => void }) {
-  const [shown, setShown] = useState<string | null>(id);
-  const [up, setUp] = useState(false);
-
-  // the page stays put under the sheet; the lock is released only by the sheet that took it
-  const holds = useRef(false);
-  const hold = (on: boolean) => {
-    if (holds.current === on) return;
-    holds.current = on;
-    lockScroll(on);
-  };
-
+  const boot = useSteps(arrived, BOOT);
+  const [all, setAll] = useState(false);
+  const tour = useTour({ ready: boot >= 5 && !reduce, visible, blocked: all, shape: SHAPE, dwell: 2700, firstWait: 3600, resume: 8000 });
+  const { pos, go } = tour;
+  const g = GROUPS[pos.g];
+  // which way the last switch went (the new screen slides in from that side)
+  const [dir, setDir] = useState<1 | -1>(1);
+  const prevG = useRef(pos.g);
   useEffect(() => {
-    if (id) {
-      setShown(id);
-      hold(true);
-      // next frame: slide up (the panel mounts below the screen first)
-      let r2 = 0;
-      const r = requestAnimationFrame(() => (r2 = requestAnimationFrame(() => setUp(true))));
-      return () => {
-        cancelAnimationFrame(r);
-        cancelAnimationFrame(r2);
-      };
-    }
-    setUp(false);
-    hold(false);
-    const t = window.setTimeout(() => setShown(null), reduce ? 0 : 380);
-    return () => window.clearTimeout(t);
-  }, [id]);
+    if (prevG.current === pos.g) return;
+    const n = GROUPS.length;
+    setDir(((pos.g - prevG.current + n) % n) <= n / 2 ? 1 : -1);
+    prevG.current = pos.g;
+  }, [pos.g]);
 
-  useEffect(() => () => hold(false), []);
+  const toGroup = useCallback((i: number) => go({ g: (i + GROUPS.length) % GROUPS.length, p: 0, s: 0 }), [go]);
 
-  if (!shown) return null;
-  const cat = CATEGORIES.find((c) => c.id === shown) ?? CATEGORIES[0];
-  return createPortal(<SheetBody cat={cat} up={up && !!id} onPick={onPick} onClose={onClose} />, document.body);
-}
-
-function SheetBody({ cat, up, onPick, onClose }: { cat: Category; up: boolean; onPick: (id: string) => void; onClose: () => void }) {
-  const titleId = useId();
-  const panel = useRef<HTMLDivElement>(null);
-  const list = useRef<HTMLDivElement>(null);
-  const [tool, setTool] = useState<string | null>(cat.tools[0].id);
-  // tools opened once stay mounted (their crop doesn't reload when they fold away)
-  const [seen, setSeen] = useState<Set<string>>(() => new Set([cat.tools[0].id]));
-  const idx = CATEGORIES.indexOf(cat);
-  const next = CATEGORIES[(idx + 1) % CATEGORIES.length];
-
-  // a new section: its first tool open, the list back at the top
-  const shownCat = useRef(cat.id);
-  useLayoutEffect(() => {
-    if (shownCat.current === cat.id) return;
-    shownCat.current = cat.id;
-    setTool(cat.tools[0].id);
-    setSeen(new Set([cat.tools[0].id]));
-    list.current?.scrollTo({ top: 0 });
-  }, [cat]);
-
-  // focus the close button once the sheet is up
+  // screens mount one per idle moment: the first at once, the rest after the boot
+  const [mounted, setMounted] = useState<Set<number>>(() => new Set([0]));
+  const mountedRef = useRef(mounted);
+  mountedRef.current = mounted;
   useEffect(() => {
-    if (!up) return;
-    const t = window.setTimeout(() => panel.current?.querySelector<HTMLElement>(".spps-x")?.focus({ preventScroll: true }), reduce ? 0 : 60);
-    return () => window.clearTimeout(t);
-  }, [up]);
+    if (!mountedRef.current.has(pos.g)) setMounted((m) => new Set(m).add(pos.g));
+  }, [pos.g]);
+  useEffect(() => {
+    if (!arrived) return;
+    let cancel = () => {};
+    const next = () => {
+      const i = GROUPS.findIndex((_, k) => !mountedRef.current.has(k));
+      if (i < 0) return;
+      void warmScreen(GROUPS[i].phone.screen).then(() => {
+        cancel = idle(() => {
+          startTransition(() => setMounted((m) => new Set(m).add(i)));
+          cancel = idle(next, 2500);
+        }, 2500);
+      });
+    };
+    const t = window.setTimeout(() => (cancel = idle(next, 2500)), reduce ? 0 : 1800);
+    return () => {
+      window.clearTimeout(t);
+      cancel();
+    };
+  }, [arrived]);
+  useEffect(() => {
+    void warmScreen(GROUPS[0].phone.screen);
+  }, []);
 
-  const pick = (id: string) => {
-    setTool((t) => (t === id ? null : id));
-    setSeen((s) => (s.has(id) ? s : new Set(s).add(id)));
-  };
-
-  // Escape closes; Tab stays inside the sheet
-  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Escape") {
-      e.stopPropagation();
-      onClose();
-      return;
-    }
-    if (e.key !== "Tab" || !panel.current) return;
-    const f = [...panel.current.querySelectorAll<HTMLElement>("button:not([disabled]), [href], [tabindex]:not([tabindex='-1'])")];
-    if (!f.length) return;
-    const first = f[0];
-    const last = f[f.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  };
-
-  return (
-    <div className={`spps${up ? " is-up" : ""}`} role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={onKey}>
-      <div className="spps-scrim" onClick={onClose} aria-hidden="true" />
-      <div ref={panel} className="spps-panel">
-        <div className="spps-head" key={cat.id}>
-          <p className="t-time spps-n" aria-hidden="true">
-            {cat.tools.length}
-          </p>
-          <div className="spps-head-t">
-            <h3 id={titleId} className="spps-name">
-              {cat.name}
-              <span className="sr-only">
-                , {cat.tools.length} {COPY.tools}
-              </span>
-            </h3>
-            <p className="spps-out">{cat.outcome}</p>
-          </div>
-          <button type="button" className="spps-x" onClick={onClose} aria-label={`${COPY.close} ${cat.name}`}>
-            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-
-        <div ref={list} className="spps-list">
-          <ul className="spps-tools" key={cat.id}>
-            {cat.tools.map((t, i) => (
-              <ToolRow key={t.id} t={t} i={i} on={tool === t.id} mounted={seen.has(t.id)} onPick={pick} />
-            ))}
-          </ul>
-          <button type="button" className="spps-next" onClick={() => onPick(next.id)}>
-            <span>{COPY.next(next.name)}</span>
-            <Chevron className="spps-next-chev" />
-          </button>
-        </div>
-
-        <div className="spps-foot" onClickCapture={() => window.setTimeout(onClose, 0)}>
-          <Cta source="specsheet" size="lg" className="spps-cta" cue={false} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ToolRow({ t, i, on, mounted, onPick }: { t: Tool; i: number; on: boolean; mounted: boolean; onPick: (id: string) => void }) {
-  const bodyId = useId();
-  return (
-    <li className={`spps-tool${on ? " is-on" : ""}`} style={{ "--i": i } as CSSProperties}>
-      <button type="button" className="spps-tool-b" data-tool={t.id} aria-expanded={on} aria-controls={bodyId} onClick={() => onPick(t.id)}>
-        <span className="spps-dot" aria-hidden="true" />
-        <span className="spps-tool-name">
-          {t.label}
-          {t.confirm && <Flag />}
-        </span>
-        <span className="spps-side">{SPEC.side[t.side]}</span>
-      </button>
-      <div id={bodyId} className="spps-body" role="region" aria-label={t.label}>
-        <div className="spps-body-in">
-          <p className="spps-line">{t.line}</p>
-          {mounted && <Shot shot={t.shot} closest={t.closest} />}
-        </div>
-      </div>
-    </li>
-  );
-}
-
-// ─── a crop of the real screen ───────────────────────────────────────────────
-
-type Cam = { s: number; x: number; y: number };
-
-function camFor(shot: ShotT, fw: number, fh: number): Cam {
-  const { w: W, h: H } = NATIVE[shot.kind];
-  const F: Box = shot.focus;
-  if (shot.kind === "phone") {
-    // the crew's screen full width (legible), cropped round the spot
-    const s = fw / W;
-    // a little above the spot's centre: a button's label usually sits over it
-    const cy = F[1] + F[3] / 2 - 20;
-    return { s, x: 0, y: clamp(fh / 2 - cy * s, fh - H * s, 0) };
-  }
-  // the office screen: as close as the spot allows; a spot wider than the frame starts at its left
-  const pad = 22;
-  const s = clamp(Math.min(fw / (F[2] + pad * 2), fh / (F[3] + pad * 2)), 0.34, 0.72);
-  const cx = (F[2] + pad * 2) * s > fw ? F[0] - pad + fw / (2 * s) : F[0] + F[2] / 2;
-  const cy = (F[3] + pad * 2) * s > fh ? F[1] - pad + fh / (2 * s) : F[1] + F[3] / 2;
-  return {
-    s,
-    x: clamp(fw / 2 - cx * s, fw - W * s, 0),
-    y: clamp(fh / 2 - cy * s, fh - H * s, 0),
-  };
-}
-
-function Shot({ shot, closest }: { shot: ShotT; closest: boolean }) {
-  const frame = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
-  // the frame's size, measured once (and on resize), never while scrolling
+  // the window's height and the phone's width, on mount and resize only
+  const win = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState<{ h: number; w: number } | null>(null);
   useLayoutEffect(() => {
-    const el = frame.current;
+    const el = win.current;
     if (!el) return;
-    const ro = new ResizeObserver(([e]) => {
-      const w = Math.round(e.contentRect.width);
-      const h = Math.round(e.contentRect.height);
-      setSize((p) => (p && p.w === w && p.h === h ? p : { w, h }));
+    const ro = new ResizeObserver(() => {
+      const dev = el.querySelector<HTMLElement>(".spp-dev");
+      const h = Math.round(el.clientHeight);
+      const w = Math.round(dev?.clientWidth ?? 0);
+      setBox((p) => (p && p.h === h && p.w === w ? p : { h, w }));
     });
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  const { w: W, h: H } = NATIVE[shot.kind];
-  const cam = size ? camFor(shot, size.w, size.h) : null;
-  const R = shot.ring;
-  const ring =
-    cam && R
-      ? {
-          l: cam.x + R[0] * cam.s - 4,
-          t: cam.y + R[1] * cam.s - 4,
-          w: R[2] * cam.s + 8,
-          h: R[3] * cam.s + 8,
-        }
-      : null;
-  const round = !!R && Math.abs(R[2] - R[3]) < 6;
-  const tagBelow = !!(ring && size && ring.t + ring.h + 40 < size.h);
-  const phoneShot = shot.kind === "phone";
+  // the phone glides inside its window so the named spot is in view
+  const spot = g.phone.spots[pos.s];
+  const pan = useMemo(() => {
+    if (!box || !spot) return 0;
+    const u = box.w / BODY.w;
+    const max = Math.max(0, BODY.h * u - box.h + 8);
+    const b = spot.box;
+    if ((BODY.top + b[1] + b[3] + 34) * u <= box.h - 40) return 0;
+    return clamp((BODY.top + b[1] + b[3] / 2) * u - box.h * 0.46, 0, max);
+  }, [box, spot]);
+
+  // swipe the phone: next / previous group (a horizontal flick; vertical scrolling is untouched)
+  const touch = useRef<{ x: number; y: number; t: number } | null>(null);
+  const onTouchStart = (e: TouchEvent) => {
+    const p = e.touches[0];
+    touch.current = { x: p.clientX, y: p.clientY, t: Date.now() };
+  };
+  const onTouchEnd = (e: TouchEvent) => {
+    const s = touch.current;
+    touch.current = null;
+    const p = e.changedTouches[0];
+    if (!s || !p) return;
+    const dx = p.clientX - s.x;
+    const dy = p.clientY - s.y;
+    if (Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy) * 1.4 && Date.now() - s.t < 900) toGroup(pos.g + (dx < 0 ? 1 : -1));
+  };
+
+  // the chip row keeps the shown group in view (offsets read on resize, not while scrolling)
+  const chips = useRef<HTMLDivElement>(null);
+  const offsets = useRef<{ l: number; w: number }[]>([]);
+  useLayoutEffect(() => {
+    const el = chips.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      offsets.current = [...el.querySelectorAll<HTMLElement>("[role=tab]")].map((c) => ({ l: c.offsetLeft, w: c.offsetWidth }));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const chipW = useRef(0);
+  useEffect(() => {
+    const el = chips.current;
+    const o = offsets.current[pos.g];
+    if (!el || !o || boot < 2) return;
+    chipW.current ||= el.clientWidth;
+    el.scrollTo({ left: Math.max(0, o.l - (chipW.current - o.w) / 2), behavior: reduce ? "auto" : "smooth" });
+  }, [pos.g, boot]);
+
+  const onChipsKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    const n = GROUPS.length;
+    const to = e.key === "ArrowRight" ? (pos.g + 1) % n : e.key === "ArrowLeft" ? (pos.g - 1 + n) % n : e.key === "Home" ? 0 : e.key === "End" ? n - 1 : null;
+    if (to === null) return;
+    e.preventDefault();
+    toGroup(to);
+    chips.current?.querySelectorAll<HTMLElement>("[role=tab]")[to]?.focus({ preventScroll: true });
+  };
+
+  const canShow = useCallback((t: Tool) => !!findPhoneSpot(t.id), []);
+  const pick = useCallback(
+    (t: Tool) => {
+      const at = findPhoneSpot(t.id);
+      setAll(false);
+      if (at) go({ g: at.g, p: 0, s: at.s });
+    },
+    [go],
+  );
+  const count = useMemo(() => COUNT_LINE(CATEGORIES.length), []);
+
   return (
-    <figure className="spps-shot" data-kind={shot.kind}>
-      <div ref={frame} className="spps-frame" aria-hidden="true">
-        {cam && (
-          <img
-            className="spps-img"
-            src={phoneShot ? phoneSmall(shot.screen) : `${base}phone/screens/${shot.screen}-960.webp`}
-            srcSet={phoneShot ? phoneSrcSet(shot.screen) : webSrcSet(shot.screen)}
-            sizes={`${Math.round(W * cam.s)}px`}
-            alt=""
-            decoding="async"
-            draggable={false}
-            style={{
-              width: W * cam.s,
-              height: H * cam.s,
-              transform: `translate3d(${cam.x}px, ${cam.y}px, 0)`,
-            }}
-          />
-        )}
-        {ring && (
-          <span className={`spps-ring${round ? " is-round" : ""}`} style={{ left: ring.l, top: ring.t, width: ring.w, height: ring.h }}>
-            <span className="spps-ping" />
-          </span>
-        )}
-        {ring && size && shot.tag && (
-          <span
-            className="spps-tag"
-            style={{
-              left: clamp(ring.l, 8, Math.max(8, size.w - 236)),
-              ...(tagBelow ? { top: ring.t + ring.h + 8 } : { bottom: size.h - ring.t + 8 }),
-            }}
-          >
-            {shot.tag}
-          </span>
-        )}
+    <div ref={ref} className="spp-in wrap" data-boot={boot} data-running={tour.running || undefined}>
+      <h2 className="t-h2 spp-title">
+        <span className="spp-kicker">{SPEC.kicker}</span> {SPEC.title}
+      </h2>
+      <div className="spp-count">
+        <p className="spp-count-p">
+          <Roll value={TOOL_COUNT} go={boot >= 1} delay={200} className="t-time spp-count-n" />
+          <span className="spp-count-l">{count}</span>
+        </p>
+        <button type="button" className="spp-all" aria-haspopup="dialog" onClick={() => setAll(true)}>
+          <GridGlyph className="spp-glyph" />
+          <span>{SPEC.all}</span>
+        </button>
       </div>
-      <figcaption className="spps-cap">
-        {SPEC.app[shot.kind]} · {SPEC.screen[shot.screen] ?? shot.screen} · {closest ? SPEC.closest : COPY.demo}
-      </figcaption>
-    </figure>
+
+      <div ref={chips} className="spp-chips" role="tablist" aria-label="SmartCrew" onKeyDown={onChipsKey} onPointerDown={tour.poke}>
+        {GROUPS.map((x, i) => {
+          const on = i === pos.g;
+          return (
+            <button
+              key={x.cat.id}
+              type="button"
+              role="tab"
+              id={`spp-g-${x.cat.id}`}
+              className={`spp-chip${on ? " is-on" : ""}`}
+              data-cat={x.cat.id}
+              aria-selected={on}
+              aria-controls="spp-panel"
+              tabIndex={on ? 0 : -1}
+              style={{ "--i": i } as CSSProperties}
+              onClick={() => toGroup(i)}
+            >
+              <span>{x.cat.name}</span>
+              <span className="spp-chip-n">
+                {x.cat.tools.length}
+                <span className="sr-only"> tools</span>
+              </span>
+              {on && tour.running && <span key={`${tour.beat}-${pos.s}`} className="spp-prog" style={{ animationDuration: `${tour.wait}ms` }} aria-hidden="true" />}
+            </button>
+          );
+        })}
+      </div>
+
+      <div
+        ref={win}
+        id="spp-panel"
+        className="spp-win"
+        role="tabpanel"
+        aria-labelledby={`spp-g-${g.cat.id}`}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        onPointerDown={tour.poke}
+        onKeyDown={tour.poke}
+      >
+        <div className="spp-dev" style={{ transform: `translate3d(0, ${-pan}px, 0)` }}>
+          <PhoneFrame screens={[<Stack key="stack" active={pos.g} dir={dir} mounted={mounted} />]} index={0} tone="light" shadow={false} />
+          {/* over the screen, outside the frame (which is decorative for assistive tech) */}
+          <Spots key={pos.g} pos={pos} boot={boot} onSpot={(s) => go({ g: pos.g, p: 0, s })} />
+        </div>
+        <p className="spp-out" key={g.cat.id}>
+          {g.cat.outcome}
+          {g.officeMobile && <Flag />}
+        </p>
+      </div>
+
+      <AllTools open={all} onClose={() => setAll(false)} onPick={pick} canShow={canShow} variant="phone" />
+    </div>
+  );
+}
+
+/** The six screens, stacked at native size (402 × 874; PhoneFrame scales them). */
+function Stack({ active, dir, mounted }: { active: number; dir: 1 | -1; mounted: Set<number> }) {
+  return (
+    <div className="spp-stack" data-dir={dir}>
+      {GROUPS.map((x, i) => {
+        const Comp = mounted.has(i) ? screenComp(x.phone.screen) : null;
+        return (
+          <div key={x.cat.id} className={`spp-layer${i === active ? " is-on" : ""}`} aria-hidden="true" inert>
+            {Comp && (
+              <Suspense fallback={null}>
+                <Comp />
+              </Suspense>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** The group's dots, rings and names over the screen (placed in % of 402 × 874). */
+function Spots({ pos, boot, onSpot }: { pos: Pos; boot: number; onSpot: (s: number) => void }) {
+  const page = GROUPS[pos.g].phone;
+  const pc = (x: number, w: number) => `${(x / w) * 100}%`;
+  return (
+    <div className="spp-spots" data-boot={boot}>
+      {page.spots.map((spot, i) => {
+        const [bx, by, bw, bh] = spot.box;
+        const [dx, dy] = spot.dot;
+        const on = boot >= 5 && i === pos.s;
+        const align = dx > 280 ? "end" : dx < 120 ? "start" : "mid";
+        const below = dy < 150;
+        return (
+          <div key={spot.tool.id} className={`spp-spot${on ? " is-on" : ""}`} style={{ "--i": i } as CSSProperties}>
+            <span className="spp-ring" aria-hidden="true" style={{ left: pc(bx, 402), top: pc(by, 874), width: pc(bw, 402), height: pc(bh, 874) }} />
+            <button
+              type="button"
+              className="spp-dot"
+              style={{ left: pc(dx, 402), top: pc(dy, 874) }}
+              aria-label={spot.tool.label}
+              aria-pressed={on}
+              data-tool={spot.tool.id}
+              onClick={() => onSpot(i)}
+            >
+              <span className="spp-dot-core" />
+            </button>
+            <span className={`spp-tip spp-tip--${align}${below ? " is-below" : ""}`} style={{ left: pc(dx, 402), top: pc(dy, 874) }} aria-hidden="true">
+              <span className="spp-tip-in">{spot.tool.label}</span>
+            </span>
+          </div>
+        );
+      })}
+    </div>
   );
 }

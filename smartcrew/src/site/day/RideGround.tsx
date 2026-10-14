@@ -26,12 +26,31 @@ function groundStops(R: Ride) {
   R.moments.forEach((m, i) => {
     if (i === R.moments.length - 1) {
       // the nightfall: held until Friday's move, then fast
-      st.push({ t: m.start, c: pal.moments[i - 1] }, { t: m.settle, c: pal.moments[i] });
+      st.push(
+        { t: m.start, c: pal.moments[i - 1] },
+        { t: m.settle, c: pal.moments[i] },
+      );
     } else st.push({ t: m.settle, c: pal.moments[i] });
   });
   st.push({ t: R.duration, c: pal.moments[pal.moments.length - 1] });
   return st;
 }
+
+/** The ground's colour layers: each time of day's colour and when it fades in over the last. */
+function tintWindows(R: Ride) {
+  const pal = readPalette();
+  const m = R.moments;
+  const last = m.length - 1;
+  return pal.moments.map((c, i) =>
+    i === 0
+      ? { c, a: 0, b: 0, night: false }
+      : i === last
+        ? { c, a: m[i].start, b: m[i].settle, night: true }
+        : { c, a: m[i - 1].settle, b: m[i].settle, night: false },
+  );
+}
+/** How many colour layers the ground stacks. */
+const TINTS = 7;
 
 /** The ground's colour at film time `t` (for the header and the bar, which take it on beats). */
 export function groundAt(t: number, R: Ride = RIDE): RGB {
@@ -51,7 +70,14 @@ export const nightfallAt = (R: Ride = RIDE) => {
   return m.start + (m.settle - m.start) * 0.5;
 };
 
-type Geo = { L: number; T: number; Wv: number; Hv: number; w: number; h: number };
+type Geo = {
+  L: number;
+  T: number;
+  Wv: number;
+  Hv: number;
+  w: number;
+  h: number;
+};
 
 /** The sheet's place and size (% of the viewport) so the walk never shows its edge. */
 function sheetGeo(R: Ride, vw: number, vh: number): Geo {
@@ -70,16 +96,32 @@ function sheetGeo(R: Ride, vw: number, vh: number): Geo {
   T -= 2;
   Rr += 2;
   B += 2;
-  return { L, T, Wv: Rr - L, Hv: B - T, w: Math.round(((Rr - L) / 100) * vw), h: Math.round(((B - T) / 100) * vh) };
+  return {
+    L,
+    T,
+    Wv: Rr - L,
+    Hv: B - T,
+    w: Math.round(((Rr - L) / 100) * vw),
+    h: Math.round(((B - T) / 100) * vh),
+  };
 }
 
-export const RideGround = memo(function RideGround({ player: p, groundRef }: { player: Player; groundRef: RefObject<HTMLDivElement | null> }) {
+export const RideGround = memo(function RideGround({
+  player: p,
+  groundRef,
+}: {
+  player: Player;
+  groundRef: RefObject<HTMLDivElement | null>;
+}) {
   const R = RIDE;
   const sheet = useRef<HTMLDivElement>(null);
   const dayInk = useRef<HTMLCanvasElement>(null);
   const nightInk = useRef<HTMLCanvasElement>(null);
   const haul = useRef<HTMLDivElement>(null);
-  const [vp, setVp] = useState(() => ({ w: typeof window !== "undefined" ? window.innerWidth : 1440, h: typeof window !== "undefined" ? window.innerHeight : 900 }));
+  const [vp, setVp] = useState(() => ({
+    w: typeof window !== "undefined" ? window.innerWidth : 1440,
+    h: typeof window !== "undefined" ? window.innerHeight : 900,
+  }));
   const geo = sheetGeo(R, vp.w, vp.h);
 
   // the window's size (the sheet is repainted only when it changes by more than a little)
@@ -90,7 +132,9 @@ export const RideGround = memo(function RideGround({ player: p, groundRef }: { p
       t = window.setTimeout(() => {
         const w = window.innerWidth;
         const h = window.innerHeight;
-        setVp((v) => (Math.abs(v.w - w) > 24 || Math.abs(v.h - h) > 24 ? { w, h } : v));
+        setVp((v) =>
+          Math.abs(v.w - w) > 24 || Math.abs(v.h - h) > 24 ? { w, h } : v,
+        );
       }, 300);
     };
     window.addEventListener("resize", on);
@@ -108,10 +152,15 @@ export const RideGround = memo(function RideGround({ player: p, groundRef }: { p
     let gone = false;
     const scale = Math.min(window.devicePixelRatio || 1, 1.25);
     const go = () => {
-      if (!gone) void paintSheet([a, b], ["day", "night"], geo.w, geo.h, scale).catch((e) => console.warn("[day] contours failed", e));
+      if (!gone)
+        void paintSheet([a, b], ["day", "night"], geo.w, geo.h, scale).catch(
+          (e) => console.warn("[day] contours failed", e),
+        );
     };
     const idle = typeof requestIdleCallback === "function";
-    const id = idle ? requestIdleCallback(go, { timeout: 2500 }) : setTimeout(go, 600);
+    const id = idle
+      ? requestIdleCallback(go, { timeout: 2500 })
+      : setTimeout(go, 600);
     return () => {
       gone = true;
       if (idle) cancelIdleCallback(id as number);
@@ -128,11 +177,46 @@ export const RideGround = memo(function RideGround({ player: p, groundRef }: { p
     const hl = haul.current;
     if (!g || !s || !a || !b || !hl) return;
     const offs: (() => void)[] = [];
-    offs.push(p.track(g, groundStops(R).map((x, i, all) => ({ t: x.t, backgroundColor: rgb(x.c), ease: all[i + 1] && i === all.length - 3 ? EASE.inOut : undefined }))));
-    offs.push(p.track(s, walkFrames(R, 100).map((f) => ({ t: f.t, transform: `translate3d(${f.x.toFixed(3)}vw, ${f.y.toFixed(3)}vh, 0) scale(${f.s.toFixed(4)})` }))));
+    // the colour: a stack of flat layers, one per time of day, each fading in over the one before
+    // (opacity only: the compositor blends them, nothing is repainted per frame)
+    const tints = [...(g.querySelectorAll<HTMLElement>(".day-tint") ?? [])];
+    tintWindows(R).forEach((w, k) => {
+      const el = tints[k];
+      if (!el) return;
+      el.style.backgroundColor = rgb(w.c);
+      if (k === 0) return;
+      offs.push(
+        p.track(el, [
+          { t: 0, opacity: 0 },
+          { t: w.a, opacity: 0, ease: w.night ? EASE.inOut : EASE.linear },
+          { t: w.b, opacity: 1 },
+        ]),
+      );
+    });
+    offs.push(
+      p.track(
+        s,
+        walkFrames(R, 100).map((f) => ({
+          t: f.t,
+          transform: `translate3d(${f.x.toFixed(3)}vw, ${f.y.toFixed(3)}vh, 0) scale(${f.s.toFixed(4)})`,
+        })),
+      ),
+    );
     const m6 = R.moments[R.moments.length - 1];
-    offs.push(p.track(a, [{ t: 0, opacity: 1 }, { t: m6.start, opacity: 1, ease: EASE.inOut }, { t: m6.settle, opacity: 0 }]));
-    offs.push(p.track(b, [{ t: 0, opacity: 0 }, { t: m6.start, opacity: 0, ease: EASE.inOut }, { t: m6.settle, opacity: 1 }]));
+    offs.push(
+      p.track(a, [
+        { t: 0, opacity: 1 },
+        { t: m6.start, opacity: 1, ease: EASE.inOut },
+        { t: m6.settle, opacity: 0 },
+      ]),
+    );
+    offs.push(
+      p.track(b, [
+        { t: 0, opacity: 0 },
+        { t: m6.start, opacity: 0, ease: EASE.inOut },
+        { t: m6.settle, opacity: 1 },
+      ]),
+    );
 
     // the haul road: it draws itself ahead of the truck, the truck drives it, a ping on arrival
     const m2 = R.moments[2];
@@ -161,26 +245,49 @@ export const RideGround = memo(function RideGround({ player: p, groundRef }: { p
     if (truck) {
       const pts = routePx(vp.w, vp.h);
       const fr: TrackFrame[] = [];
-      const len = pts.reduce((L, q, i) => (i ? L + Math.hypot(q[0] - pts[i - 1][0], q[1] - pts[i - 1][1]) : 0), 0);
+      const len = pts.reduce(
+        (L, q, i) =>
+          i ? L + Math.hypot(q[0] - pts[i - 1][0], q[1] - pts[i - 1][1]) : 0,
+        0,
+      );
       const at = (d: number): [number, number] => {
         let acc = 0;
         for (let i = 1; i < pts.length; i++) {
-          const seg = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+          const seg = Math.hypot(
+            pts[i][0] - pts[i - 1][0],
+            pts[i][1] - pts[i - 1][1],
+          );
           if (acc + seg >= d) {
             const k = (d - acc) / (seg || 1);
-            return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * k, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * k];
+            return [
+              pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * k,
+              pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * k,
+            ];
           }
           acc += seg;
         }
         return pts[pts.length - 1];
       };
-      const inOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+      const inOut = (x: number) =>
+        x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
       const N = 40;
-      fr.push({ t: 0, transform: `translate3d(${pts[0][0]}px, ${pts[0][1]}px, 0)`, opacity: 0 });
-      fr.push({ t: d0 - 260, transform: `translate3d(${pts[0][0]}px, ${pts[0][1]}px, 0)`, opacity: 0 });
+      fr.push({
+        t: 0,
+        transform: `translate3d(${pts[0][0]}px, ${pts[0][1]}px, 0)`,
+        opacity: 0,
+      });
+      fr.push({
+        t: d0 - 260,
+        transform: `translate3d(${pts[0][0]}px, ${pts[0][1]}px, 0)`,
+        opacity: 0,
+      });
       for (let k = 0; k <= N; k++) {
         const [x, y] = at(len * inOut(k / N));
-        fr.push({ t: d0 + ((d1 - d0) * k) / N, transform: `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`, opacity: 1 });
+        fr.push({
+          t: d0 + ((d1 - d0) * k) / N,
+          transform: `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`,
+          opacity: 1,
+        });
       }
       offs.push(p.track(truck, fr));
     }
@@ -188,7 +295,12 @@ export const RideGround = memo(function RideGround({ player: p, groundRef }: { p
       offs.push(
         p.track(ping, [
           { t: 0, opacity: 0, transform: "scale(0.4)" },
-          { t: m2.at.arrive[0], opacity: 0.9, transform: "scale(0.4)", ease: EASE.out },
+          {
+            t: m2.at.arrive[0],
+            opacity: 0.9,
+            transform: "scale(0.4)",
+            ease: EASE.out,
+          },
           { t: m2.at.arrive[0] + 900, opacity: 0, transform: "scale(2.6)" },
         ]),
       );
@@ -204,7 +316,11 @@ export const RideGround = memo(function RideGround({ player: p, groundRef }: { p
       if (!el) return;
       const from = last ? Number(getComputedStyle(el).opacity) : 1;
       last?.cancel();
-      const an = el.animate([{ opacity: from }, { opacity: o }], { duration: ms, easing: EASE.inOut, fill: "forwards" });
+      const an = el.animate([{ opacity: from }, { opacity: o }], {
+        duration: ms,
+        easing: EASE.inOut,
+        fill: "forwards",
+      });
       last = an;
       if (o === 1)
         an.onfinish = () => {
@@ -221,7 +337,11 @@ export const RideGround = memo(function RideGround({ player: p, groundRef }: { p
     if (!g) return;
     const root = document.documentElement;
     const night = nightfallAt(R);
-    const tinted = () => [document.querySelector<HTMLElement>(".site-header"), document.querySelector<HTMLElement>(".day-controls")].filter((x): x is HTMLElement => !!x);
+    const tinted = () =>
+      [
+        document.querySelector<HTMLElement>(".site-header"),
+        document.querySelector<HTMLElement>(".day-controls"),
+      ].filter((x): x is HTMLElement => !!x);
     let ground = "";
     let tone = "";
     let bodyClear = false;
@@ -284,38 +404,76 @@ export const RideGround = memo(function RideGround({ player: p, groundRef }: { p
   }, [p, R, groundRef]);
 
   const route = routePx(vp.w, vp.h);
-  const d = route.map((q, i) => `${i ? "L" : "M"}${q[0].toFixed(1)} ${q[1].toFixed(1)}`).join(" ");
+  const d = route
+    .map((q, i) => `${i ? "L" : "M"}${q[0].toFixed(1)} ${q[1].toFixed(1)}`)
+    .join(" ");
   const A = route[0];
   const Z = route[route.length - 1];
   return (
-    <div className="day-topo" aria-hidden="true">
-      <div
-        className="day-topo-sheet"
-        ref={sheet}
-        style={{ left: `${geo.L}vw`, top: `${geo.T}vh`, width: `${geo.Wv}vw`, height: `${geo.Hv}vh`, transformOrigin: `${50 - geo.L}vw ${50 - geo.T}vh` }}
-      >
-        <canvas className="day-topo-ink" ref={dayInk} />
-        <canvas className="day-topo-ink day-topo-ink--night" ref={nightInk} />
-        <div className="day-haul" ref={haul} style={{ left: `${-geo.L}vw`, top: `${-geo.T}vh` }}>
-          <svg className="day-haul-svg" width={vp.w} height={vp.h} viewBox={`0 0 ${vp.w} ${vp.h}`}>
-            <path className="day-haul-case" d={d} />
-            <path className="day-haul-road" d={d} pathLength={1} />
-          </svg>
-          <span className="day-haul-end" style={{ transform: `translate3d(${A[0]}px, ${A[1]}px, 0)` }} />
-          <span className="day-haul-end day-haul-end--job" style={{ transform: `translate3d(${Z[0]}px, ${Z[1]}px, 0)` }} />
-          <span className="day-haul-ping" style={{ left: Z[0], top: Z[1] }} />
-          <span className="day-haul-label" style={{ transform: `translate3d(${A[0] - 6}px, ${A[1] + 14}px, 0)` }}>
-            {RIDE_COPY.haulFrom}
-          </span>
-          <span className="day-haul-label day-haul-label--job" style={{ transform: `translate3d(${Z[0] + 6}px, ${Z[1] - 30}px, 0) translateX(-100%)` }}>
-            {RIDE_COPY.haulTo}
-          </span>
-          <span className="day-haul-truck">
-            <span className="day-haul-truck-dot" />
-          </span>
+    <>
+      {Array.from({ length: TINTS }, (_, k) => (
+        <div key={k} className="day-tint" />
+      ))}
+      <div className="day-topo" aria-hidden="true">
+        <div
+          className="day-topo-sheet"
+          ref={sheet}
+          style={{
+            left: `${geo.L}vw`,
+            top: `${geo.T}vh`,
+            width: `${geo.Wv}vw`,
+            height: `${geo.Hv}vh`,
+            transformOrigin: `${50 - geo.L}vw ${50 - geo.T}vh`,
+          }}
+        >
+          <canvas className="day-topo-ink" ref={dayInk} />
+          <canvas className="day-topo-ink day-topo-ink--night" ref={nightInk} />
+          <div
+            className="day-haul"
+            ref={haul}
+            style={{ left: `${-geo.L}vw`, top: `${-geo.T}vh` }}
+          >
+            <svg
+              className="day-haul-svg"
+              width={vp.w}
+              height={vp.h}
+              viewBox={`0 0 ${vp.w} ${vp.h}`}
+            >
+              <path className="day-haul-case" d={d} />
+              <path className="day-haul-road" d={d} pathLength={1} />
+            </svg>
+            <span
+              className="day-haul-end"
+              style={{ transform: `translate3d(${A[0]}px, ${A[1]}px, 0)` }}
+            />
+            <span
+              className="day-haul-end day-haul-end--job"
+              style={{ transform: `translate3d(${Z[0]}px, ${Z[1]}px, 0)` }}
+            />
+            <span className="day-haul-ping" style={{ left: Z[0], top: Z[1] }} />
+            <span
+              className="day-haul-label"
+              style={{
+                transform: `translate3d(${A[0] - 6}px, ${A[1] + 14}px, 0)`,
+              }}
+            >
+              {RIDE_COPY.haulFrom}
+            </span>
+            <span
+              className="day-haul-label day-haul-label--job"
+              style={{
+                transform: `translate3d(${Z[0] + 6}px, ${Z[1] - 30}px, 0) translateX(-100%)`,
+              }}
+            >
+              {RIDE_COPY.haulTo}
+            </span>
+            <span className="day-haul-truck">
+              <span className="day-haul-truck-dot" />
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 });
 

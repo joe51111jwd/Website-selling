@@ -2,6 +2,10 @@
 // The visitor drags their crew size (the crew fills in as tiny hard-hat marks), picks the minutes
 // lost per person a day and the hourly cost, and their own number rolls up with the working shown.
 // We only multiply; we never claim SmartCrew saves it. The CTA carries the number into the popup.
+// The scroll moment is the "hour meter" (scratchpad design/v2/scroll/SCROLL_SHOTS.md §2): as the
+// crew comes into view the empty slots ripple in and the meter keys on (every wheel turns once);
+// at 1.4 s the knob nudges once; when his inputs settle (250 ms after the last change) the wheels
+// roll to his number, and "a year" and the weekly line come up 200 ms after the last one lands.
 
 import { useEffect, useRef, useState } from "react";
 import { CALC, FLAG } from "../../content/copy";
@@ -13,6 +17,7 @@ import { SceneCta } from "../try/SceneCta";
 import { CrewSlider } from "./CrewSlider";
 import { Odometer } from "./Odometer";
 import { DAYS_DEFAULT, annualCost, money, parseDays, weekly } from "./calc";
+import { useSettled } from "./settle";
 import { usePhoneLite } from "../phone";
 import NumberPhone from "./NumberPhone";
 import "./number.css";
@@ -69,6 +74,15 @@ function Calculator() {
   const days = parseDays(daysText);
   const annual = annualCost({ crew, minutes, rate, days });
   const complete = annual != null;
+  // the meter: keyed on as the crew arrives; it rolls once the inputs have settled, and the result's
+  // words come up once it has landed
+  const [arrived, setArrived] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const shown = useSettled(annual, dragging);
+  const [landed, setLanded] = useState<number | null>(null);
+  useEffect(() => {
+    if (shown == null) setLanded(null);
+  }, [shown]);
 
   // analytics: the first touch, and each time a complete result settles. The figures themselves
   // are not sent: the page promises "your numbers stay on this screen unless you continue" (they
@@ -99,7 +113,7 @@ function Calculator() {
       <h2 className="t-h2 num-title">{CALC.title}</h2>
 
       <div className="num-in">
-        <CrewSlider value={crew} onChange={setCrew} onFirst={() => touch("crew")} />
+        <CrewSlider value={crew} onChange={setCrew} onFirst={() => touch("crew")} onArrive={() => setArrived(true)} onDrag={setDragging} />
         <Chips
           name="minutes"
           label={CALC.minutesLabel}
@@ -126,13 +140,13 @@ function Calculator() {
         />
       </div>
 
-      <div className={`num-out${complete ? " is-on" : ""}`} data-hides-sticky>
+      <div className={`num-out${landed != null ? " is-on" : ""}`} data-hides-sticky>
         <p className="num-big">
-          <Odometer value={complete ? annual : null} className="t-time num-odo" label={CALC.year} />
+          <Odometer value={shown} keyOn={arrived} className="t-time num-odo" label={CALC.year} onLand={(v) => setLanded(v)} />
           <span className="num-year">{CALC.year}</span>
         </p>
         <p className="num-week" aria-live="polite">
-          {complete ? CALC.week(money(weekly(annual!))) : CALC.pending}
+          {landed != null ? CALC.week(money(weekly(landed))) : CALC.pending}
         </p>
         <p className="num-formula t-num">
           <span>{crew ?? blank} people</span> <span aria-hidden="true">×</span> <span>{minutes ?? blank} min</span>{" "}

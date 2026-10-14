@@ -16,14 +16,10 @@ const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-redu
 const clampN = (v: number) => Math.max(1, Math.min(CREW_MAX, Math.round(v)));
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
-/** a soft overshoot for the pop */
-const easeBack = (t: number) => 1 + 2.2 * Math.pow(t - 1, 3) + 1.2 * Math.pow(t - 1, 2);
 
-const POP_MS = 320;
+const POP_MS = 140;
 const TINT_MS = 900;
 const FADE_MS = 160;
-const RIPPLE_COL_MS = 18;
-const RIPPLE_MS = 560;
 
 type Colors = { ink: string; orange: string };
 
@@ -41,13 +37,16 @@ export function CrewCanvas({
   value,
   onChange,
   onFirst,
+  onDrag,
   arrived,
   rows,
 }: {
   value: number | null;
   onChange: (v: number) => void;
   onFirst?: () => void;
-  /** the scene has arrived: the empty slots ripple in (once) */
+  /** A drag starts / ends (the meter waits for its end). */
+  onDrag?: (on: boolean) => void;
+  /** the scene has arrived: the empty slots ripple in (once; CSS) */
   arrived: boolean;
   /** rows of the grid (columns = 150 / rows); the grid fills column by column so its edge follows the thumb */
   rows: number;
@@ -66,12 +65,14 @@ export function CrewCanvas({
     width: number;
   } | null>(null);
   const [dragging, setDragging] = useState(false);
+  const dragCb = useRef(onDrag);
+  dragCb.current = onDrag;
+  useEffect(() => dragCb.current?.(dragging), [dragging]);
 
   // per slot: when it was turned on / off (ms, performance.now()), for the pop and the fade
   const born = useRef<Float64Array>(new Float64Array(CREW_MAX));
   const died = useRef<Float64Array>(new Float64Array(CREW_MAX));
   const shown = useRef(0);
-  const ripple = useRef(reduce ? -1e9 : 0);
   const raf = useRef(0);
   const colors = useRef<{ ink: number[]; orange: number[] } | null>(null);
   const hat = useRef<{ hat: Path2D; jaw: Path2D } | null>(null);
@@ -122,7 +123,6 @@ export function CrewCanvas({
     const dotR = Math.max(0.9, cell * 0.085);
     const inkCss = `rgb(${ink.join(",")})`;
     // the empty slots: survey dots (and a hat that just left, fading over its dot)
-    const ripT = ripple.current;
     for (let i = n; i < CREW_MAX; i++) {
       const col = Math.floor(i / rows);
       const row = i % rows;
@@ -133,17 +133,7 @@ export function CrewCanvas({
         busy = true;
         drawHat(ctx, col, row, 1, 1 - fadeOut, inkCss);
       }
-      let a = 0.22;
-      if (ripT >= 0) {
-        if (!ripT) a = 0;
-        else {
-          const t = clamp01((now - ripT - col * RIPPLE_COL_MS) / RIPPLE_MS);
-          if (t < 1) busy = true;
-          a *= easeOut(t);
-        }
-      }
-      if (a <= 0.001) continue;
-      ctx.globalAlpha = a * (d && fadeOut < 1 ? fadeOut : 1);
+      ctx.globalAlpha = 0.22 * (d && fadeOut < 1 ? fadeOut : 1);
       ctx.fillStyle = inkCss;
       ctx.beginPath();
       ctx.arc(col * cell + cell / 2, row * cell + cell / 2, dotR, 0, Math.PI * 2);
@@ -158,7 +148,7 @@ export function CrewCanvas({
       let color = inkCss;
       if (age < TINT_MS && !reduce) {
         busy = true;
-        s = 0.35 + 0.65 * easeBack(clamp01(age / POP_MS));
+        s = 0.6 + 0.4 * easeOut(clamp01(age / POP_MS));
         // orange for the first third, then settling to ink
         const t = clamp01((age / TINT_MS - 0.35) / 0.65);
         color = mix(orange, ink, easeOut(t));
@@ -209,13 +199,6 @@ export function CrewCanvas({
     shown.current = n;
     kick();
   }, [value, kick]);
-
-  // the empty slots ripple in once, when the scene arrives
-  useEffect(() => {
-    if (!arrived || ripple.current) return;
-    ripple.current = performance.now();
-    kick();
-  }, [arrived, kick]);
 
   useEffect(() => () => cancelAnimationFrame(raf.current), []);
 
@@ -322,7 +305,11 @@ export function CrewCanvas({
         onPointerCancel={cancel}
         onKeyDown={key}
       >
-        <canvas ref={cv} className="ncv-grid" style={{ height: h || undefined }} aria-hidden="true" />
+        <div className={`ncv-gridbox${arrived ? " is-in" : ""}`}>
+          <canvas ref={cv} className="ncv-grid" style={{ height: h || undefined }} aria-hidden="true" />
+          {/* the arrival ripple: the veil slides off the dots, left to right (number-phone.css) */}
+          <span className="ncv-veil" aria-hidden="true" />
+        </div>
         <div className="ncv-track" aria-hidden="true">
           <span className="ncv-fill" style={{ transform: `scaleX(${p})` }} />
           <span className="ncv-thumb" style={{ transform: `translate3d(${(p * w).toFixed(1)}px, 0, 0)` }}>

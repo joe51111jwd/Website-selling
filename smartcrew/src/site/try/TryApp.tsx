@@ -17,6 +17,11 @@ export type TryAppProps = {
   ghost: boolean;
   /** the button can take focus / taps (the app is fully on screen) */
   live: boolean;
+  /**
+   * The Clock In circle breathes once (1 → 1.04 → 1, after --tp-breathe-delay; try-phone.css).
+   * Set while it should play; leave it off after the first tap so it never plays again.
+   */
+  breathe?: boolean;
   onClockIn: () => void;
   onClockOut?: () => void;
   /**
@@ -27,7 +32,7 @@ export type TryAppProps = {
   stage?: number;
 };
 
-export function TryApp({ on, secs, ghost, live, onClockIn, onClockOut, stage }: TryAppProps) {
+export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, stage }: TryAppProps) {
   const a = currentActivity;
   const staged = stage !== undefined;
   const at = stage ?? 3;
@@ -54,7 +59,7 @@ export function TryApp({ on, secs, ghost, live, onClockIn, onClockOut, stage }: 
               <div className="pc-ready-q">Ready to clock in?</div>
               <button
                 type="button"
-                className={`pc-clockin tp-clockin${ghost ? " is-ghost" : ""}`}
+                className={`pc-clockin tp-clockin${ghost ? " is-ghost" : ""}${breathe ? " is-breathe" : ""}`}
                 onClick={onClockIn}
                 tabIndex={live ? 0 : -1}
                 aria-label={TRY_IT.clockIn}
@@ -63,7 +68,6 @@ export function TryApp({ on, secs, ghost, live, onClockIn, onClockOut, stage }: 
               >
                 <Stopwatch size={22} stroke={1.7} />
                 <span className="pc-clockin-label">Clock In</span>
-                <span className="tp-ring" aria-hidden="true" />
                 <span className="tp-ghost" aria-hidden="true" />
               </button>
               <div className="pc-dayoff">

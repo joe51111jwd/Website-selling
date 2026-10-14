@@ -1,4 +1,5 @@
-// 2 · One Day as Andrew's own walkthrough video (version 2, ?v=video; src/site/version.ts).
+// 2 · One Day as SmartCrew's intro video, the one on smartcrewhq.com (version 2, ?v=video;
+// src/site/version.ts).
 // The visitor scrolls past the hero; the page glides this one-screen section into place and the
 // screen is taken over: "Enjoy the ride", then the video plays (muted autoplay, as browsers
 // require, with a big "Tap for sound") until it ends. The visitor's own scrolling never fights it:
@@ -36,7 +37,8 @@ export default function Film() {
   const phaseRef = useRef<Phase>("idle");
   const taken = phase === "title" || phase === "playing";
   phaseRef.current = phase;
-  const embedId = config.vidalytics.walkthrough;
+  // the intro video from smartcrewhq.com (not the screen-share walkthrough)
+  const embedId = config.vidalytics.explainer;
 
   // the player: mounted once the section is near, so it's ready by the time it's needed
   useEffect(() => {
@@ -244,18 +246,17 @@ export default function Film() {
   };
 
   return (
-    <Scene id="day" pinnedViewports={1} stage="hide" label="Andrew walks you through SmartCrew" className="film">
+    <Scene id="day" pinnedViewports={1} stage="hide" label="SmartCrew, the intro video" className="film">
       <div className="film-section" ref={section}>
         <div className={`film-stage is-${phase}${taken ? " is-taken" : ""}`}>
           <p className="film-title" aria-hidden={phase !== "title"}>
             Enjoy the ride
-            <span className="film-title-sub">Andrew walks you through SmartCrew</span>
           </p>
           <div className="film-frame">
             <div ref={frame} id={`vidalytics_embed_${embedId}`} className="film-vid" />
             {failed && (
               <p className="film-failed">
-                Andrew's video didn't load here. <Cta source="film" size="sm" />
+                The video didn't load here. <Cta source="film" size="sm" />
               </p>
             )}
             {phase === "playing" && muted && (
@@ -292,7 +293,7 @@ export default function Film() {
               </>
             ) : (
               <button type="button" className="film-btn film-btn--solid" onClick={start} data-cursor="link">
-                Play Andrew's walkthrough
+                Play the video
               </button>
             )}
           </div>

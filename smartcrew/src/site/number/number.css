@@ -1,6 +1,11 @@
 /* 4 · Your number. Desktop: headline across; the crew and the two picks left, the visitor's own
    number right. Phones: one column, slider + result + CTA in one screen. */
 
+.num {
+  /* travel / settle (SCROLL_SHOTS §0; the shared token once it lands in tokens.css) */
+  --ease-calm: cubic-bezier(0.45, 0, 0.25, 1);
+}
+
 .num .scene-body {
   display: flex;
 }
@@ -66,23 +71,22 @@
   font-weight: 650;
 }
 
-/* an arrow after "Drag to your crew size" until it's touched */
+/* an arrow after "Drag to your crew size" until it's touched; it moves 4 px with the knob's one
+   nudge (below) */
 .num-crew:not(.is-set) .num-crew-unit::after {
   content: "→";
   display: inline-block;
   margin-left: 8px;
   color: var(--ink);
-  animation: num-nudge-arrow 2.4s var(--ease-in-out) 1.2s infinite;
+}
+
+.num-crew.is-in:not(.is-set) .num-crew-unit::after {
+  animation: num-nudge-arrow 0.8s var(--ease-calm) 1.4s 1;
 }
 
 @keyframes num-nudge-arrow {
-  0%,
-  60%,
-  100% {
-    transform: none;
-  }
-  30% {
-    transform: translateX(6px);
+  50% {
+    transform: translateX(4px);
   }
 }
 
@@ -113,24 +117,35 @@
   overflow: visible;
 }
 
-/* the empty slots: survey dots, rippling in column by column the first time */
+/* the empty slots: survey dots, rippling in column by column the first time (18 ms a column,
+   opacity + scale 0.6 → 1), then simply there (a slot a hat leaves fades back, no replay) */
 .num-slot circle {
   fill: var(--ink);
   opacity: 0;
-  transition: opacity 0.2s;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.6);
 }
 
-.num-crew.is-in .num-slot circle {
-  animation: num-dot 0.6s var(--ease-out) both;
-  animation-delay: calc(var(--c) * 16ms);
+.num-crew.is-in:not(.is-rippled) .num-slot circle {
+  animation: num-dot 0.56s var(--ease-out) both;
+  animation-delay: calc(var(--c) * 18ms);
+}
+
+.num-crew.is-rippled .num-slot circle {
+  opacity: 0.22;
+  transform: none;
+  transition: opacity 0.2s var(--ease-out);
 }
 
 @keyframes num-dot {
   from {
     opacity: 0;
+    transform: scale(0.6);
   }
   to {
     opacity: 0.22;
+    transform: none;
   }
 }
 
@@ -139,16 +154,16 @@
   opacity: 0;
 }
 
-/* one hard hat per person, popping in orange and settling to ink */
+/* one hard hat per person, appearing in orange (scale 0.6 → 1, no overshoot) and settling to ink */
 .num-slot use {
   fill: var(--ink);
   opacity: 0;
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  transform: translateY(1.5px) scale(0.35);
+  transform: scale(0.6);
   transition:
-    opacity 0.16s var(--ease-out),
-    transform 0.32s var(--ease-spring);
+    opacity 0.14s var(--ease-out),
+    transform 0.14s var(--ease-out);
 }
 
 .num-slot.on use {
@@ -254,18 +269,14 @@
   transform: scale(0.9);
 }
 
-.num-crew:not(.is-set) .num-knob {
-  animation: num-nudge 2.4s var(--ease-in-out) 1.2s infinite;
+/* one nudge at 1.4 s after arrival (never a loop): "this moves" */
+.num-crew.is-in:not(.is-set) .num-knob {
+  animation: num-nudge 0.8s var(--ease-calm) 1.4s 1;
 }
 
 @keyframes num-nudge {
-  0%,
-  60%,
-  100% {
-    transform: none;
-  }
-  30% {
-    transform: translateX(10px);
+  50% {
+    transform: translateX(28px);
   }
 }
 
@@ -386,10 +397,10 @@
   mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
 }
 
+/* moved by the meter (./Odometer.tsx: Web Animations on transform) */
 .num-strip {
   display: flex;
   flex-direction: column;
-  transition: transform 1.25s cubic-bezier(0.16, 0.84, 0.28, 1);
   will-change: transform;
 }
 
@@ -407,11 +418,29 @@
   font-weight: 640;
   letter-spacing: -0.02em;
   color: var(--ink-2);
+  transition:
+    color 0.3s var(--ease-out),
+    opacity 0.3s var(--ease-out);
 }
 
 .num-out:not(.is-on) .num-year {
   color: var(--ink-3);
   opacity: 0.6;
+}
+
+/* the result's words come up 200 ms after the meter's last wheel lands */
+.num-out.is-on .num-year {
+  transition-delay: 0.2s;
+}
+
+.num-out.is-on .num-week {
+  animation: num-words-in 0.3s var(--ease-out) 0.2s backwards;
+}
+
+@keyframes num-words-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .num-week {
@@ -492,8 +521,8 @@
   opacity: 0;
   transform: translateY(6px);
   transition:
-    opacity 0.5s var(--ease-out) 0.5s,
-    transform 0.5s var(--ease-out) 0.5s;
+    opacity 0.4s var(--ease-out) 0.2s,
+    transform 0.4s var(--ease-out) 0.2s;
 }
 
 .num-out.is-on .num-framing {
@@ -519,12 +548,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .num-strip {
-    transition: none;
-  }
-  .num-crew:not(.is-set) .num-knob,
-  .num-crew:not(.is-set) .num-crew-unit::after {
+  .num-crew.is-in .num-slot circle,
+  .num-crew.is-in:not(.is-set) .num-knob,
+  .num-crew.is-in:not(.is-set) .num-crew-unit::after,
+  .num-out.is-on .num-week {
     animation: none;
+  }
+  .num-slot use,
+  .num-year,
+  .num-framing {
+    transition: none;
   }
 }
 

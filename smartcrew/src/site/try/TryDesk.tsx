@@ -1,7 +1,12 @@
-// Try it on desktop: the 3D iPhone (the Stage, fitted into the "try" anchor) stands square to the
-// camera inside the jobsite's geofence. Real buttons sit exactly on the screen's Clock In circle
-// and, once clocked in, on its Clock Out button; the screen swaps to "Currently working on" and a
-// timer that starts at the tap runs on it. Copy left, the two quiet facts right.
+// Try it on desktop: "Pick up the phone" (scratchpad design/v2/scroll/SCROLL_SHOTS.md §1). The 3D
+// iPhone (the Stage, fitted into the "try" anchor) is picked up out of the bottom of the frame and
+// tilts upright as the scene rises (./poses.ts); its screen wakes on "Ready to clock in?" when it
+// is nearly upright (./wake.ts). Once the scene settles: the jobsite's caption under the phone,
+// one breath of the Clock In circle, and at 3.2 s, if untouched, the self demo. Real buttons sit
+// exactly on the screen's Clock In circle and, once clocked in, on its Clock Out button; the
+// screen swaps to "Currently working on" and a timer that starts at the tap runs on it; the
+// caption's second line stamps the time. No fence, ring or dot round the phone: the screen's own
+// change is the confirmation. Copy left, the two quiet facts right.
 
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion } from "motion/react";
@@ -9,10 +14,10 @@ import { TRY_IT } from "../../content/copy";
 import { StageAnchor } from "../../three/stage/StageAnchor";
 import { clearScreen, onStatus, reducedMotion, setScreen, status } from "../../three/stage/store";
 import { SceneCta } from "./SceneCta";
-import { localTime, useClock, useElapsed, usePinned, useSelfDemo } from "./clock";
-import { Fence } from "./Fence";
+import { localTime, useClock, useElapsed, useSelfDemo, useStagePhase } from "./clock";
 import { TRY_FLOAT, TRY_FRAME } from "./poses";
 import { startScreenTimer } from "./screenTimer";
+import { breathe, prepareBreathe, useWake } from "./wake";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -36,6 +41,13 @@ const SY = 0.0018386;
 const CY0 = 0.0031;
 const NX = 201;
 const NY = 437;
+
+/** The iPhone model's half height, device units (TryDomPhone's BODY): the caption sits under its chin. */
+const CHIN = 1.6336 / 2;
+/** The caption's gap under the chin, px. */
+const CAP_GAP = 18;
+/** The breath comes 1.2 s after the scene pins (`pinned` already waits 0.26 s for the Stage). */
+const BREATHE_AFTER = 940;
 
 /** Clock In circle and Clock Out pill on the phone screens, native px. */
 const CLOCK_IN = { cx: 201, cy: 465.8, d: 165 };
@@ -88,10 +100,13 @@ export function TryDesk() {
   const anchor = useRef<HTMLDivElement>(null);
   const layer = useRef<HTMLDivElement>(null);
   const fit = useFit(anchor);
-  const pinned = usePinned("try");
+  const { phase, pinned } = useStagePhase("try");
+  const awake = useWake("try");
   const clock = useClock();
   const secs = useElapsed(clock.on, clock.since);
-  const [arrived, setArrived] = useState(false);
+  // the caption has come (it then stays, except while the phone is away below the frame)
+  const [captioned, setCaptioned] = useState(reducedMotion);
+  const [breathed, setBreathed] = useState(false);
   const [stamp, setStamp] = useState("");
   const timerRef = useRef<ReturnType<typeof startScreenTimer> | null>(null);
   const no3d = useNo3D();
@@ -116,10 +131,27 @@ export function TryDesk() {
   }, [clock.on]);
 
   useEffect(() => {
-    if (pinned) setArrived(true);
+    if (pinned) setCaptioned(true);
   }, [pinned]);
   useSelfDemo(clock, pinned);
   useFloat(layer, fit.k, pinned);
+
+  // one breath of the Clock In circle, the first time the scene settles untouched
+  const untouched = !clock.on && !clock.touched && !clock.demoed;
+  useEffect(() => {
+    if (!awake || no3d || reducedMotion) return;
+    prepareBreathe();
+  }, [awake, no3d]);
+  const stopBreathe = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    if (breathed || !pinned || !untouched || reducedMotion) return;
+    const t = window.setTimeout(() => {
+      setBreathed(true);
+      if (!no3d) stopBreathe.current = breathe();
+    }, BREATHE_AFTER);
+    return () => window.clearTimeout(t);
+  }, [breathed, pinned, untouched, no3d]);
+  useEffect(() => () => stopBreathe.current?.(), []);
 
   // While this scene covers the middle of the viewport the phone shows the app's home ("Ready to
   // clock in?"), so it has switched by the time it arrives; the tap swaps it to "Currently working
@@ -195,20 +227,30 @@ export function TryDesk() {
         <div ref={anchor} className="try-fit" onPointerMove={clock.poke} onFocusCapture={clock.poke}>
           {k > 0 && (
             <div className="try-frame" style={{ width: TRY_FRAME[0] * k, height: TRY_FRAME[1] * k }}>
-              <Fence k={k} drawn={arrived} on={clock.on} label={TRY_IT.site} stamp={clock.on ? TRY_IT.clocked.replace("{time}", stamp) : ""} />
               {no3d && (
                 <Suspense fallback={null}>
                   <TryDomPhone
                     k={k}
+                    awake={awake}
                     on={clock.on}
                     secs={secs}
                     ghost={clock.ghost}
                     live={pinned}
+                    breathe={breathed && untouched}
                     onClockIn={() => clock.clockIn("visitor")}
                     onClockOut={clock.clockOut}
                   />
                 </Suspense>
               )}
+              {/* the jobsite, under the phone's chin; once clocked in, the stamp under it */}
+              <p
+                className={`try-cap${captioned && phase !== -1 ? " is-on" : ""}${clock.on ? " is-clocked" : ""}`}
+                style={{ top: `calc(50% + ${(CHIN * k + CAP_GAP).toFixed(1)}px)` }}
+                aria-hidden="true"
+              >
+                <span className="try-cap-site">{TRY_IT.site}</span>
+                <span className="try-cap-stamp">{stamp ? TRY_IT.clocked.replace("{time}", stamp) : "\u00a0"}</span>
+              </p>
               <div
                 ref={layer}
                 className={`try-ov${live ? " is-live" : ""}`}
@@ -228,7 +270,6 @@ export function TryDesk() {
                   data-cursor-label="Clocked in · {time}"
                   data-cursor-magnet="4"
                 >
-                  <span className="try-in-ring" aria-hidden="true" />
                   <span className="try-ghost" aria-hidden="true" />
                 </button>
                 {/* the Clock Out pill on "Currently working on" */}

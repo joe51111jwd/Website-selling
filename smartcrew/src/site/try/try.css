@@ -1,5 +1,10 @@
-/* 3 · Try it. Desktop: copy | the 3D phone in its geofence | two quiet facts. Phones: see
-   try-phone.css (the page becomes the app). */
+/* 3 · Try it. Desktop: copy | the 3D phone, picked up off the dash, with its jobsite caption |
+   two quiet facts. Phones: see try-phone.css (the page becomes the app). */
+
+.try {
+  /* travel / settle (SCROLL_SHOTS §0; the shared token once it lands in tokens.css) */
+  --ease-calm: cubic-bezier(0.45, 0, 0.25, 1);
+}
 
 .try-phone-wrap {
   height: 100%;
@@ -50,8 +55,7 @@
   color: var(--ink);
 }
 
-/* the instruction on its own line, after a short ink tick (orange is kept for the CTA and the
-   fence) */
+/* the instruction on its own line, after a short ink tick (orange is kept for the CTA) */
 .try-prompt strong::before {
   content: "";
   display: inline-block;
@@ -150,129 +154,51 @@
   }
 }
 
-/* ── the geofence ───────────────────────────────────────────────────────── */
+/* ── the jobsite caption under the phone's chin (no outline, ring or dot round it) ── */
 
-.try-fence {
+.try-cap {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.try-fence svg {
-  position: absolute;
-  inset: 0;
-  overflow: visible;
-}
-
-.try-fence-draw {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-
-.try-fence.is-drawn .try-fence-draw {
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset 1.3s var(--ease-in-out) 0.1s;
-}
-
-.try-fence-line {
-  stroke: var(--ink-3);
-  stroke-width: 1.25;
-  stroke-linejoin: round;
-  stroke-dasharray: 8 7;
-  opacity: 0.55;
-  animation: try-march 2.4s linear infinite;
-  transition:
-    stroke 0.5s var(--ease-out),
-    stroke-dasharray 0.6s var(--ease-out),
-    stroke-width 0.5s var(--ease-out),
-    opacity 0.5s var(--ease-out);
-}
-
-@keyframes try-march {
-  to {
-    stroke-dashoffset: -32;
-  }
-}
-
-.try-fence.is-on .try-fence-line {
-  stroke: var(--orange);
-  stroke-dasharray: 15 0;
-  stroke-width: 1.6;
-  opacity: 1;
-  animation: none;
-}
-
-.try-fence-ping {
-  stroke: var(--orange);
-  stroke-width: 2;
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
-.try-fence.is-on .try-fence-ping {
-  animation: try-ping 1.1s var(--ease-out) 0.15s 1 both;
-}
-
-@keyframes try-ping {
-  from {
-    opacity: 0.8;
-    transform: scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: scale(1.09);
-  }
-}
-
-.try-fence-stake {
-  fill: var(--orange);
-  opacity: 0;
-  transition: opacity 0.4s var(--ease-out) 1.2s;
-}
-
-.try-fence.is-drawn .try-fence-stake {
-  opacity: 1;
-}
-
-/* the jobsite tag pinned at the fence's first corner: "Hwy 9 Culvert", the hero's fenced job */
-.try-tag {
-  position: absolute;
-  transform: translate(-100%, -50%) translate(-12px, 9px);
+  left: 0;
+  right: 0;
   display: grid;
-  justify-items: end;
-  font-size: 13px;
+  justify-items: center;
+  gap: 2px;
+  font-size: 14px;
   line-height: 1.35;
+  text-align: center;
   white-space: nowrap;
-  text-align: right;
+  pointer-events: none;
   opacity: 0;
-  transition: opacity 0.5s var(--ease-out) 1.1s;
+  transition: opacity 0.3s var(--ease-out);
 }
 
-.try-fence.is-drawn .try-tag {
+/* 0.6 s after the scene pins (`pinned` already waited 0.26 s) */
+.try-cap.is-on {
   opacity: 1;
+  transition-delay: 0.34s;
 }
 
-.try-tag-site {
-  font-weight: 650;
-  color: var(--ink);
+.try-cap-site {
+  font-weight: 600;
+  color: var(--ink-2);
 }
 
-.try-tag-stamp {
+/* "Clocked in · 7:42 AM": lifts 8 px and fades in once clocked in */
+.try-cap-stamp {
   font-weight: 600;
   color: var(--orange-ink);
   font-variant-numeric: tabular-nums;
   opacity: 0;
-  transform: translateY(-4px);
+  transform: translate3d(0, 8px, 0);
   transition:
-    opacity 0.4s var(--ease-out),
-    transform 0.4s var(--ease-out);
+    opacity 0.2s var(--ease-out),
+    transform 0.2s var(--ease-out);
 }
 
-.try-fence.is-on .try-tag-stamp {
+.try-cap.is-clocked .try-cap-stamp {
   opacity: 1;
   transform: none;
-  transition-delay: 0.35s;
+  transition-duration: 0.32s;
 }
 
 /* ── the buttons on the phone's screen ──────────────────────────────────── */
@@ -332,57 +258,6 @@
   background: rgb(255 255 255 / 14%);
 }
 
-/* an invitation: a soft ring breathes out of the circle until it's tapped */
-.try-in-ring {
-  position: absolute;
-  inset: -1px;
-  border-radius: 50%;
-  border: 1.5px solid rgb(23 19 15 / 35%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.try-ov.is-live .try-in:not(.is-off) .try-in-ring {
-  animation: try-invite 2.6s var(--ease-out) 0.8s infinite;
-}
-
-@keyframes try-invite {
-  0% {
-    opacity: 0;
-    transform: scale(1);
-  }
-  12% {
-    opacity: 0.9;
-  }
-  70%,
-  100% {
-    opacity: 0;
-    transform: scale(1.42);
-  }
-}
-
-/* the clock-in itself: an orange ring closes on the circle and pings */
-.try-in.is-off .try-in-ring {
-  border-color: var(--orange);
-  border-width: 2px;
-  animation: try-clocked 0.9s var(--ease-out) 1 both;
-}
-
-@keyframes try-clocked {
-  0% {
-    opacity: 1;
-    transform: scale(1.25);
-  }
-  35% {
-    opacity: 1;
-    transform: scale(1.04);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.5);
-  }
-}
-
 /* the self demo's ghost finger */
 .try-ghost {
   position: absolute;
@@ -424,9 +299,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .try-fence-line,
-  .try-ov.is-live .try-in:not(.is-off) .try-in-ring {
-    animation: none;
+  .try-cap,
+  .try-cap-stamp {
+    transition: none;
   }
 }
 
@@ -468,6 +343,30 @@
 .try-dom-app {
   position: relative;
   flex: 1 1 auto;
+}
+
+/* its screen is off until the scene's wake (./wake.ts), then it switches on */
+.try-dom {
+  --tp-breathe-delay: 0s;
+}
+
+.try-dom-plate {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #000;
+  pointer-events: none;
+  transition: opacity 0.28s var(--ease-out);
+}
+
+.try-dom-plate.is-awake {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .try-dom-plate {
+    display: none;
+  }
 }
 
 .try-done:focus {

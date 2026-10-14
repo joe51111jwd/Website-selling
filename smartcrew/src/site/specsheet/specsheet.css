@@ -1,20 +1,16 @@
-/* 2b · The spec sheet (src/site/specsheet/SpecSheet.tsx). One screen: the title, the sheet (or an
-   open section, or the wall of all tools) and the CTA. Ruled like an equipment spec sheet: a heavy
-   ink rule on top, hairlines between sections, a double rule over the total. Tabular figures.
-   Orange only on the CTA and the signals (the ring on the live screen, the selected tool's dot). */
+/* 2b · "Here's everything it does": the click-through (SpecSheet.tsx, AppFrame.tsx), desktop.
+   One screen: the title and the count over the app window, the CTA under it. The window is the
+   SmartCrew office web app (Inter, white, hairlines), sitting on the page's warm ground. Orange
+   only on the CTA and the signals (the dots and the ring round the thing a dot names). Motion is
+   transform/opacity: the boot on arrival, the screen crossfade, the pan, the dots' pulse. */
 
 .spec {
-  /* No devices here, so the section is paper: it slides up over the end of One Day (Friday night)
-     and the devices glide out behind its edge instead of passing under the copy. Same colour as
-     the page ground, so once One Day's tint has blended back there is no seam. */
   position: relative;
   background: var(--ground);
-  --spec-pad-r: 14px;
-  --spec-colgap: clamp(16px, 2vw, 32px);
-  --spec-head-w: clamp(15.5rem, 21vw, 20rem);
-  --spec-count-w: 5.5rem;
-  --spec-chev-w: 1.25rem;
-  --spec-gap: clamp(10px, 2.3svh, 22px);
+  --spx-side: clamp(214px, 17.4vw, 248px);
+  --spx-bar: 38px;
+  --spx-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --spx-pan: cubic-bezier(0.45, 0, 0.2, 1);
 }
 
 .spec .scene-body {
@@ -22,384 +18,102 @@
   min-height: 100svh;
 }
 
-/* title · heavy rule · the sheet (or an open section) · double rule · the CTA and the total */
 .spec-in {
-  position: relative;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: clamp(10px, 2.2svh, 20px);
   width: 100%;
   height: 100svh;
-  max-height: 900px;
+  max-height: 960px;
+  min-height: 560px;
   margin-block: auto;
   padding-top: calc(var(--header-h) + clamp(8px, 2.4svh, 24px));
-  padding-bottom: clamp(12px, 2.8svh, 26px);
+  padding-bottom: clamp(12px, 2.6svh, 24px);
 }
 
-/* ── title ─────────────────────────────────────────────────────────────── */
+/* ── title row: the title · the count · show everything ─────────────────── */
+
+.spec-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 0;
+}
 
 .spec-title {
-  margin-bottom: var(--spec-gap);
-  font-size: min(var(--fs-h2), 3.35vw);
+  margin: 0;
+  font-size: clamp(28px, 2.78vw, 52px);
   line-height: 1.02;
-  text-wrap: balance;
+  white-space: nowrap;
+  text-wrap: nowrap;
 }
 
 .spec-title-a {
   color: var(--ink-3);
 }
 
-/* ── the frame ─────────────────────────────────────────────────────────── */
-
-.spec-rule-heavy,
-.spec-rule-double {
-  display: block;
-  transform-origin: 0 50%;
-}
-
-.spec-rule-heavy {
-  height: 3px;
-  background: var(--ink);
-}
-
-.spec-rule-double {
-  height: 0;
-  border-top: 4px double var(--ink);
-}
-
-/* ── the views share the body; each fills it ───────────────────────────── */
-
-.spec-body {
-  position: relative;
-  min-height: 0;
-}
-
-.spec-view {
-  position: absolute;
-  inset: 0;
-}
-
-/* ── collapsed: the sheet ──────────────────────────────────────────────── */
-
-.spec-sheet {
-  display: grid;
-  /* key specs · the six sections (· phones: the total) */
-  grid-template-rows: auto minmax(0, 1fr) auto;
-}
-
-.spec-keys {
-  display: grid;
-  grid-template-columns: auto repeat(4, minmax(0, 1fr));
-  margin: 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.spec-plate {
+.spec-count {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: clamp(7px, 1.4svh, 12px) clamp(20px, 2.4vw, 34px) clamp(7px, 1.4svh, 12px) 0;
+  gap: clamp(14px, 1.6vw, 24px);
+  flex: none;
 }
 
-.spec-plate-mark {
-  height: 30px;
-}
-
-.spec-plate strong {
-  display: block;
-  font-family: var(--font-display);
-  font-stretch: 108%;
-  font-size: 17px;
-  font-weight: 720;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
-}
-
-.spec-plate strong + span {
-  display: block;
-  font-size: 12.5px;
-  line-height: 1.3;
-  color: var(--ink-3);
-}
-
-.spec-key {
-  min-width: 0;
-  padding: clamp(7px, 1.4svh, 12px) 0 clamp(7px, 1.4svh, 12px) clamp(14px, 1.6vw, 24px);
-  border-left: 1px solid var(--line);
-}
-
-.spec-key dt {
-  font-size: 12.5px;
-  line-height: 1.3;
-  color: var(--ink-3);
-}
-
-.spec-key dd {
-  margin: 0;
-  font-size: clamp(15px, 0.5vw + 9px, 17.5px);
-  font-weight: 640;
-  line-height: 1.3;
-  letter-spacing: -0.012em;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* the six sections (pinned to the middle track: the key specs above are hidden on phones) */
-.spec-rows {
-  grid-row: 2;
-  display: grid;
-  grid-template-rows: repeat(6, minmax(0, 1fr));
-  min-height: 0;
-}
-
-.spec-row-li {
-  position: relative;
+.spec-count-p {
   display: flex;
-  min-height: 0;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
 }
 
-.spec-rule {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: var(--line);
-  transform-origin: 0 50%;
-  pointer-events: none;
+.spec-count-n {
+  font-size: clamp(32px, 3vw, 50px);
+  line-height: 0.9;
 }
 
-.spec-row-li:last-child .spec-rule {
-  display: none;
-}
-
-/* the one band that glides to the row under the pointer (or keyboard focus) */
-.spec-hot {
-  position: absolute;
-  inset: 4px -14px;
-  border-radius: 12px;
-  background: var(--paper);
-  box-shadow:
-    0 0 0 1px rgb(23 19 15 / 5%),
-    0 10px 24px -16px rgb(23 19 15 / 32%);
-  pointer-events: none;
-}
-
-.spec-row {
-  position: relative;
-  flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, var(--spec-head-w)) minmax(0, 1fr) var(--spec-count-w) var(--spec-chev-w);
-  align-items: center;
-  column-gap: var(--spec-colgap);
-  min-height: 0;
-  padding: 0 var(--spec-pad-r) 0 0;
-  color: var(--ink);
-  text-align: left;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* keyboard focus: the page's focus ring, drawn on the band (so it wraps the whole row, not its text) */
-.spec-row:focus-visible {
-  outline: none;
-}
-
-.spec-row-li:has(.spec-row:focus-visible) .spec-hot {
-  outline: 2.5px solid var(--orange);
-  outline-offset: 1px;
-}
-
-.spec-row-head {
-  min-width: 0;
-}
-
-.spec-row-name {
-  display: block;
-  width: fit-content;
-  font-family: var(--font-display);
-  font-stretch: 108%;
-  font-size: clamp(19px, 0.8vw + 1.1svh + 3px, 25px);
-  font-weight: 690;
-  line-height: 1.08;
-  letter-spacing: -0.024em;
-  white-space: nowrap;
-}
-
-.spec-row-out {
-  display: block;
-  margin-top: 4px;
-  font-size: clamp(13.5px, 0.25vw + 10.5px, 15px);
-  line-height: 1.3;
+.spec-count-l {
+  font-size: 15px;
+  line-height: 1.2;
   color: var(--ink-2);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* every tool in the section: the top three in ink, the rest a step quieter; all of them legible */
-.spec-row-tools {
-  display: block;
-  min-width: 0;
-  font-size: clamp(15px, 0.3vw + 11px, 16.5px);
-  line-height: 1.45;
-  color: var(--ink-2);
-  text-wrap: pretty;
-}
-
-.spec-row-tool {
-  white-space: nowrap;
-  transition: color var(--dur-2) var(--ease-out);
-}
-
-.spec-row-tool.is-top {
-  color: var(--ink);
-  font-weight: 580;
-}
-
-.spec-row-tool:not(.is-last)::after {
-  content: "\00a0·";
-  color: var(--ink-3);
-  font-weight: 400;
-}
-
-.spec-row:hover .spec-row-tool {
-  color: var(--ink);
-}
-
-.spec-full {
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 4px;
-  transition: text-decoration-color var(--dur-1) var(--ease-out);
-}
-
-.spec-row-tool:hover .spec-full {
-  text-decoration-color: currentColor;
-}
-
-.spec-short,
-.spec-row-more {
-  display: none;
-}
-
-.spec-row-count {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 7px;
-  font-family: var(--font-display);
-  font-stretch: 104%;
-  font-size: clamp(30px, 1.4vw + 2svh + 2px, 46px);
-  font-weight: 720;
-  line-height: 1;
-  letter-spacing: -0.04em;
-}
-
-.spec-unit {
-  font-family: var(--font-text);
-  font-stretch: 100%;
-  font-size: 13px;
-  font-weight: 520;
-  line-height: 1;
-  letter-spacing: 0;
-  color: var(--ink-3);
-  padding-bottom: 0.18em;
-}
-
-.spec-chev {
-  width: 20px;
-  height: 20px;
-  color: var(--ink-3);
-  transition:
-    transform var(--dur-2) var(--ease-out),
-    color var(--dur-2) var(--ease-out);
-}
-
-.spec-row:hover .spec-chev,
-.spec-row:focus-visible .spec-chev {
-  transform: translateX(3px);
-  color: var(--ink);
-}
-
-/* phones: "Show everything" and the total, on a double rule */
-.spec-total {
-  grid-row: 3;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: var(--spec-colgap);
-  border-top: 4px double var(--ink);
 }
 
 .spec-all {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  justify-self: start;
-  min-height: 44px;
-  font-size: 16px;
-  font-weight: 650;
+  gap: 8px;
+  height: 38px;
+  padding: 0 15px 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
   color: var(--ink);
-  text-decoration: underline;
-  text-decoration-color: rgb(23 19 15 / 28%);
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 5px;
-  transition: text-decoration-color var(--dur-2) var(--ease-out);
+  font: 600 15px/1 var(--font-text);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
 }
 
 .spec-all:hover {
-  text-decoration-color: var(--ink);
+  border-color: #cfc3b6;
+}
+
+.spec-all:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
 
 .spec-glyph {
-  width: 17px;
-  height: 17px;
-  flex: none;
-  transition: transform var(--dur-2) var(--ease-spring);
+  width: 15px;
+  height: 15px;
+  color: var(--ink-2);
 }
 
-.spec-all:hover .spec-glyph {
-  transform: rotate(90deg);
-}
-
-/* the sum: under the column of counts */
-.spec-total-n {
-  display: flex;
-  align-items: flex-end;
-  gap: 9px;
-  margin: 0;
-  font-family: var(--font-display);
-  font-stretch: 104%;
-  font-size: clamp(38px, 2.2vw + 3svh, 62px);
-  font-weight: 740;
-  line-height: 1;
-  letter-spacing: -0.045em;
-}
-
-.spec-total-n .spec-unit {
-  font-size: 14px;
-  padding-bottom: 0.22em;
-}
-
-.spec-total-k {
-  font-family: var(--font-text);
-  font-stretch: 100%;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0;
-  color: var(--ink-3);
-  padding-bottom: 0.4em;
-  margin-right: 4px;
-}
-
-/* the rolling digits */
+/* the count rolls like a counter (Roll.tsx) */
 .roll {
   display: inline-flex;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
 .roll-digits {
@@ -410,1002 +124,728 @@
   display: inline-block;
   height: 1em;
   overflow: hidden;
+  line-height: 1;
 }
 
 .roll-strip {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  transform: translate3d(0, calc(var(--d) * -10%), 0);
+  transition: transform 1.15s var(--ease-out) var(--delay, 0ms);
 }
 
 .roll-strip > span {
   display: block;
   height: 1em;
-  line-height: 1em;
-  text-align: center;
-}
-
-/* ── open: index · tools · live screen ─────────────────────────────────── */
-
-.spec-detail {
-  display: grid;
-  grid-template-columns: clamp(14rem, 18vw, 16.5rem) minmax(0, 1fr) minmax(0, 1fr);
-  column-gap: clamp(22px, 2.8vw, 46px);
-}
-
-.spec-index {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.spec-index ul {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-/* the six sections share the panel's height, so the index reads as the sheet folded up */
-.spec-ix-li {
-  display: flex;
-  flex: 1 1 auto;
-  min-height: 0;
-  border-bottom: 1px solid var(--line);
-}
-
-.spec-ix-li:last-child {
-  border-bottom: 0;
-}
-
-.spec-ix {
-  position: relative;
-  flex: 1;
-  display: grid;
-  align-content: center;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    "name count"
-    "out out";
-  align-items: center;
-  column-gap: 12px;
-  width: 100%;
-  padding: clamp(6px, 1.25svh, 10px) 10px clamp(6px, 1.25svh, 10px) 14px;
-  color: var(--ink-2);
-  text-align: left;
-  transition:
-    background-color var(--dur-2) var(--ease-out),
-    color var(--dur-2) var(--ease-out);
-}
-
-.spec-ix:hover {
-  color: var(--ink);
-  background: var(--ground-2);
-}
-
-.spec-ix-name {
-  grid-area: name;
-  width: fit-content;
-  font-family: var(--font-display);
-  font-stretch: 106%;
-  font-size: 17px;
-  font-weight: 640;
-  line-height: 1.15;
-  letter-spacing: -0.016em;
-  white-space: nowrap;
-}
-
-.spec-ix-count {
-  grid-area: count;
-  font-family: var(--font-display);
-  font-stretch: 104%;
-  font-size: 21px;
-  font-weight: 720;
   line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--ink-3);
 }
 
-.spec-ix-out {
-  grid-area: out;
-  display: block;
-  text-wrap: pretty;
+/* ── the window ────────────────────────────────────────────────────────── */
+
+.spx {
+  position: relative;
+  display: grid;
+  grid-template-rows: var(--spx-bar) minmax(0, 1fr);
+  min-height: 0;
+  border: 1px solid rgb(23 19 15 / 13%);
+  border-radius: 14px;
+  background: #fff;
   overflow: hidden;
-  font-size: 13.5px;
-  line-height: 1.35;
-  color: var(--ink-2);
-}
-
-.spec-ix-li.is-on .spec-ix {
-  color: var(--ink);
-  background: var(--paper);
-  cursor: default;
-}
-
-.spec-ix-li.is-on .spec-ix::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--ink);
-}
-
-.spec-ix-li.is-on .spec-ix-name {
-  font-size: clamp(17px, 0.5vw + 11px, 19px);
-  font-weight: 700;
-}
-
-.spec-ix-li.is-on .spec-ix-count {
-  color: var(--ink);
-  font-size: 25px;
-}
-
-.spec-ix-li.is-on .spec-ix-out {
-  padding-top: 3px;
-}
-
-/* the tools */
-.spec-list {
-  position: relative;
-  min-height: 0;
-  overflow-y: auto;
-  /* when it scrolls, the last row fades out to say there's more */
-  --fade: 0px;
-  --fade-top: 0px;
-  mask-image: linear-gradient(to bottom, transparent, #000 var(--fade-top), #000 calc(100% - var(--fade)), transparent);
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
-}
-
-.spec-list.has-more {
-  --fade: 44px;
-}
-
-.spec-list.has-above {
-  --fade-top: 28px;
-}
-
-/* the rows share the column's height, so a short section has no empty band under it */
-.spec-tools {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-}
-
-.spec-tool-li {
-  display: flex;
-  flex-direction: column;
-  flex: 1 0 auto;
-  border-bottom: 1px solid var(--line);
-}
-
-.spec-tool-li:last-child {
-  border-bottom: 0;
-}
-
-.spec-tool {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas:
-    "name side"
-    "line line";
-  column-gap: 14px;
-  row-gap: 1px;
-  flex: 1;
-  align-content: center;
-  width: 100%;
-  padding: clamp(3px, 0.7svh, 10px) 12px clamp(3px, 0.7svh, 10px) 14px;
-  text-align: left;
-  color: var(--ink);
-  transition: background-color var(--dur-2) var(--ease-out);
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* desktop: pointing at a row selects it, so the selected style is the hover state */
-.spec-tool-li.is-on .spec-tool {
-  background: var(--paper);
-  box-shadow: inset 3px 0 0 var(--ink);
-}
-
-.spec-tool:focus-visible {
-  outline-offset: -3px;
-}
-
-.spec-tool-name {
-  grid-area: name;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  font-size: clamp(15px, 0.3vw + 11.5px, 16.5px);
-  font-weight: 660;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-}
-
-/* the selected tool's dot: the same signal as the ring on the screen */
-.spec-tool-dot {
-  flex: none;
-  width: 0;
-  height: 8px;
-  margin-right: 0;
-  border-radius: 50%;
-  background: var(--orange);
-  transform: scale(0);
+  /* clip, not hidden: focusing a dot must never scroll a box (the pan does that) */
+  overflow: clip;
+  box-shadow:
+    0 1px 2px rgb(23 19 15 / 6%),
+    0 22px 48px -18px rgb(23 19 15 / 24%);
+  /* boot 1: the window settles */
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
   transition:
-    width var(--dur-2) var(--ease-out),
-    margin-right var(--dur-2) var(--ease-out),
-    transform var(--dur-2) var(--ease-spring);
+    opacity 0.7s var(--spx-ease),
+    transform 0.9s var(--spx-ease);
 }
 
-.spec-tool-li.is-on .spec-tool-dot {
-  width: 8px;
-  margin-right: 9px;
-  transform: scale(1);
+.spx[data-boot]:not([data-boot="0"]) {
+  opacity: 1;
+  transform: none;
 }
 
-.spec-tool-side {
-  grid-area: side;
-  align-self: center;
-  font-size: 12.5px;
-  font-weight: 520;
-  color: var(--ink-3);
-  white-space: nowrap;
-}
-
-.spec-tool-line {
-  grid-area: line;
-  font-size: clamp(13.5px, 0.15vw + 11.5px, 14.5px);
-  line-height: 1.36;
-  color: var(--ink-2);
-  text-wrap: pretty;
-}
-
-.spec-flag {
-  margin-left: 0.35em;
-  font-size: 0.92em;
-}
-
-/* the live screen */
-.spec-preview {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  min-height: 0;
-  padding-bottom: clamp(6px, 1.4svh, 12px);
-}
-
-.spec-preview-bar {
+/* the title bar */
+.spx-bar {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: clamp(38px, 6.5svh, 48px);
+  gap: 14px;
+  padding: 0 8px 0 14px;
+  background: #f3efea;
+  border-bottom: 1px solid #e5ded5;
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
-.spec-preview-cap {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13.5px;
-  font-weight: 620;
-  color: var(--ink-2);
-}
-
-.spec-dev {
-  width: 16px;
-  height: 16px;
-  flex: none;
-}
-
-.spec-close {
-  display: inline-flex;
-  align-items: center;
+.spx-lights {
+  display: flex;
   gap: 7px;
-  min-height: 34px;
-  padding: 0 12px 0 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--paper);
-  font-size: 13.5px;
-  font-weight: 620;
-  color: var(--ink);
-  transition:
-    border-color var(--dur-2) var(--ease-out),
-    background-color var(--dur-2) var(--ease-out);
+  flex: none;
 }
 
-.spec-close:hover {
-  border-color: #d6c9bb;
-  background: var(--ground);
-}
-
-.spec-close svg {
-  width: 13px;
-  height: 13px;
-}
-
-.spec-preview-frame {
-  position: relative;
-  min-height: 0;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: #fff;
-  transition: background-color var(--dur-3) var(--ease-out);
-  /* a crisp edge and a little lift: the one thing in this section that floats */
-  box-shadow:
-    0 1px 2px rgb(23 19 15 / 5%),
-    0 18px 40px -24px rgb(23 19 15 / 28%);
-}
-
-.spec-preview-frame[data-kind="phone"] {
-  background: var(--ground-2);
-}
-
-.spec-preview-note {
-  padding-top: 8px;
-  font-size: 12.5px;
-  line-height: 1.35;
-  color: var(--ink-3);
-}
-
-/* the snippet itself (./Snippet.tsx) */
-.spec-snip {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  /* a crop, not a cut: the edges soften into the frame */
-  --fx: 20px;
-  mask-image:
-    linear-gradient(to right, transparent, #000 var(--fx), #000 calc(100% - var(--fx)), transparent),
-    linear-gradient(to bottom, transparent, #000 16px, #000 calc(100% - 16px), transparent);
-  mask-composite: intersect;
-  -webkit-mask-composite: source-in;
-}
-
-.spec-snip[data-kind="web"] {
-  --fx: 48px;
-}
-
-.spec-snip-layer {
-  position: absolute;
-  inset: 0;
-}
-
-.spec-snip-screen {
-  position: absolute;
-  left: 0;
-  top: 0;
-  background: #fff;
-}
-
-.spec-snip-screen[data-kind="phone"] {
-  border-radius: 56px;
-  overflow: hidden;
-  box-shadow:
-    0 0 0 2px rgb(23 19 15 / 10%),
-    0 40px 80px -30px rgb(23 19 15 / 35%);
-}
-
-.spec-snip-ring {
-  position: absolute;
-  border: calc(2.25px * var(--k)) solid var(--orange);
-  border-radius: calc(10px * var(--k));
-  box-shadow: 0 0 0 calc(5px * var(--k)) rgb(255 122 1 / 14%);
-  pointer-events: none;
-}
-
-.spec-snip-ping {
-  position: absolute;
-  inset: calc(-2.25px * var(--k));
-  border-radius: inherit;
-  animation: spec-ping 1.15s var(--ease-out) 0.3s 1 both;
-}
-
-@keyframes spec-ping {
-  0% {
-    box-shadow: 0 0 0 0 rgb(255 122 1 / 55%);
-  }
-  100% {
-    box-shadow: 0 0 0 calc(18px * var(--k)) rgb(255 122 1 / 0%);
-  }
-}
-
-.spec-snip-tag {
-  position: absolute;
-  padding: 6px 10px 6px 9px;
-  border-radius: 8px;
-  background: var(--ink);
-  color: var(--ink-night);
-  font-family: var(--font-text);
-  font-size: 13px;
-  font-weight: 620;
-  line-height: 1.2;
-  letter-spacing: -0.005em;
-  white-space: nowrap;
-  box-shadow: 0 6px 16px -6px rgb(23 19 15 / 45%);
-}
-
-.spec-snip-tag::before {
-  content: "";
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin: 0 7px 1px 0;
+.spx-lights i {
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  background: var(--orange);
-  vertical-align: middle;
+  background: #dbd3c9;
 }
 
-/* ── the wall: every tool at once ──────────────────────────────────────── */
-
-.spec-wall {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-}
-
-.spec-wall-bar {
+.spx-tabs {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: clamp(42px, 7svh, 54px);
-}
-
-.spec-wall-title {
-  font-family: var(--font-display);
-  font-stretch: 106%;
-  font-size: 19px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.spec-wall-grid {
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
-}
-
-.spec-wall-flow {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  column-gap: clamp(14px, 1.6vw, 26px);
-  align-content: start;
-}
-
-.spec-wall-col {
-  min-width: 0;
-}
-
-.spec-wall-h {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 2px 0 7px;
-  margin: 0 0 4px;
-  border-bottom: 2px solid var(--ink);
-  font-family: var(--font-display);
-  font-stretch: 104%;
-  font-size: 15.5px;
-  font-weight: 690;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
-}
-
-.spec-wall-n {
-  font-size: 19px;
-  font-weight: 700;
-  font-stretch: calc(var(--wdth-time) * 1%);
-  letter-spacing: var(--track-time);
-  font-variant-numeric: tabular-nums;
-}
-
-.spec-wall-tool {
-  display: flex;
-  align-items: baseline;
-  width: 100%;
-  min-height: clamp(30px, 5.7svh, 40px);
-  padding: 4px 6px 4px 0;
-  border-bottom: 1px solid var(--line);
-  font-size: clamp(14px, 0.25vw + 11px, 15.5px);
-  font-weight: 540;
-  line-height: 1.25;
-  text-align: left;
-  color: var(--ink);
-  transition:
-    background-color var(--dur-1) var(--ease-out),
-    padding var(--dur-2) var(--ease-out);
-}
-
-.spec-wall-tool:active {
-  background: var(--ground-2);
-}
-
-.spec-wall-tool:focus-visible {
-  outline-offset: -2px;
-}
-
-.spec-wall-read {
-  display: block;
-  min-height: 46px;
-  padding-top: 10px;
-  margin-top: 4px;
-  border-top: 1px solid var(--line);
-  font-size: 15px;
-  line-height: 1.4;
-  color: var(--ink-2);
-}
-
-.spec-wall-hint {
-  color: var(--ink-3);
-}
-
-/* ── the CTA ───────────────────────────────────────────────────────────── */
-
-/* the CTA, its quiet partner and the terms; the sum on the right, under the counts */
-.spec-foot {
-  display: flex;
-  align-items: center;
-  gap: clamp(16px, 1.8vw, 28px);
-  min-height: 60px;
-  margin-top: var(--spec-gap);
-}
-
-.spec-foot-alt {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
   gap: 4px;
   min-width: 0;
 }
 
-.spec-micro {
-  margin: 0;
+.spx-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 27px;
+  padding: 0 12px 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #6f665d;
+  font: 500 13px/1 "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.25s,
+    color 0.25s,
+    box-shadow 0.25s;
+  animation: spx-tab-in 0.45s var(--spx-ease) both;
+  animation-delay: calc(var(--i) * 60ms);
 }
 
-.spec-foot-total {
-  flex: none;
+.spx-tab svg {
+  color: currentColor;
+  opacity: 0.8;
+}
+
+.spx-tab:hover {
+  color: #222;
+}
+
+.spx-tab.is-on {
+  background: #fff;
+  color: #111;
+  box-shadow:
+    0 0 0 1px #e2dbd1,
+    0 1px 2px rgb(23 19 15 / 8%);
+}
+
+.spx-tab:focus-visible,
+.spx-play:focus-visible,
+.spx-item:focus-visible,
+.spx-edge:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+@keyframes spx-tab-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+}
+
+/* a page "loads": a thin line runs along the bar's foot */
+.spx-load {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--ink-2);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.spx[data-boot]:not([data-boot="0"], [data-boot="1"], [data-boot="2"]) .spx-load {
+  animation: spx-load 0.95s var(--spx-ease) both;
+}
+
+@keyframes spx-load {
+  0% {
+    transform: scaleX(0);
+    opacity: 0.55;
+  }
+  70% {
+    transform: scaleX(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+.spx-play {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
   margin-left: auto;
-  margin-right: calc(var(--spec-chev-w) + var(--spec-colgap) + var(--spec-pad-r));
+  flex: none;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #6f665d;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
 }
 
-/* ── laptops that are short (1280×600) ─────────────────────────────────── */
+.spx-play svg {
+  width: 14px;
+  height: 14px;
+}
 
-@media (max-height: 640px) and (min-width: 761px) {
-  .spec-plate-mark {
-    height: 26px;
+.spx-play:hover {
+  background: #e7e0d7;
+  color: #222;
+}
+
+/* ── the app ───────────────────────────────────────────────────────────── */
+
+.spx-app {
+  display: grid;
+  grid-template-columns: var(--spx-side) minmax(0, 1fr);
+  min-height: 0;
+  font-family: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* the sidebar: the six groups */
+.spx-side {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  padding: 0 10px 10px;
+  border-right: 1px solid #ececec;
+  background: #fff;
+  overflow: hidden;
+  overflow: clip;
+}
+
+.spx-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  height: clamp(44px, 7svh, 56px);
+  margin: 0 -10px 8px;
+  padding: 0 20px;
+  border-bottom: 1px solid #efefef;
+}
+
+.spx-logo-mark {
+  position: relative;
+  width: 20px;
+  height: 24px;
+  overflow: hidden;
+  flex: none;
+}
+
+.spx-logo-mark img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 24px;
+  width: auto;
+  max-width: none;
+}
+
+.spx-logo-word {
+  font-size: 16.5px;
+  font-weight: 620;
+  letter-spacing: -0.008em;
+  color: #000;
+}
+
+.spx-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 0fr;
+  flex: none;
+  width: 100%;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #4f4f4f;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    grid-template-rows 0.45s var(--spx-ease),
+    background-color 0.3s,
+    border-color 0.3s,
+    color 0.3s,
+    opacity 0.5s var(--spx-ease),
+    transform 0.6s var(--spx-ease);
+}
+
+.spx-item:hover {
+  color: #111;
+}
+
+.spx-item.is-on {
+  grid-template-rows: auto 1fr;
+  background: #f5f5f5;
+  border-color: #eaeaea;
+  color: #111;
+}
+
+.spx-item-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: clamp(34px, 5.8svh, 40px);
+  font-size: 14.5px;
+  line-height: 1.2;
+}
+
+.spx-item-row .sc-icon {
+  flex: none;
+  color: #636363;
+}
+
+.spx-item.is-on .spx-item-row .sc-icon {
+  color: #1c1c1c;
+}
+
+.spx-item-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 450;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spx-item.is-on .spx-item-name {
+  font-weight: 620;
+}
+
+.spx-item-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #efefef;
+  color: #555;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.spx-item.is-on .spx-item-n {
+  background: #111;
+  color: #fff;
+}
+
+.spx-item-out {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.spx-item-out > span {
+  display: block;
+  padding: 0 0 10px 29px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: #626262;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.spx-item.is-on .spx-item-out > span {
+  opacity: 1;
+  transition: opacity 0.4s 0.15s;
+}
+
+/* the walkthrough's clock: a hairline that fills while a spot is named */
+.spx-prog {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(17 17 17 / 22%);
+  transform-origin: 0 50%;
+  animation: spx-prog linear both;
+}
+
+@keyframes spx-prog {
+  from {
+    transform: scaleX(0);
   }
-  .spec-tool {
-    padding-top: 2px;
-    padding-bottom: 2px;
-  }
-  .spec-tool-name {
-    font-size: 15px;
-  }
-  .spec-tool-line {
-    font-size: 13.5px;
-    line-height: 1.3;
-  }
-  .spec-wall-tool {
-    min-height: 30px;
-  }
-  .spec-key dt,
-  .spec-plate strong + span {
-    font-size: 12px;
+  to {
+    transform: scaleX(1);
   }
 }
 
-/* ── tablets ───────────────────────────────────────────────────────────── */
+/* boot 2: the sidebar draws in */
+.spx-logo,
+.spx-item {
+  opacity: 0;
+  transform: translate3d(-10px, 0, 0);
+}
 
-@media (max-width: 1099px) and (min-width: 761px) {
-  .spec {
-    --spec-head-w: 14rem;
-    --spec-count-w: 4.75rem;
+.spx-logo {
+  transition:
+    opacity 0.5s var(--spx-ease),
+    transform 0.6s var(--spx-ease);
+}
+
+.spx:not([data-boot="0"], [data-boot="1"]) .spx-logo,
+.spx:not([data-boot="0"], [data-boot="1"]) .spx-item {
+  opacity: 1;
+  transform: none;
+}
+
+.spx:not([data-boot="0"], [data-boot="1"]) .spx-item {
+  transition-delay: 0s, 0s, 0s, 0s, calc(80ms + var(--i) * 55ms), calc(80ms + var(--i) * 55ms);
+}
+
+/* the screen */
+.spx-main {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  overflow: clip;
+  background: #fff;
+  contain: layout paint;
+  /* boot 3: the first screen loads */
+  opacity: 0;
+  transition: opacity 0.7s var(--spx-ease);
+}
+
+.spx:not([data-boot="0"], [data-boot="1"], [data-boot="2"]) .spx-main {
+  opacity: 1;
+}
+
+.spx-page {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, 10px, 0);
+  transition:
+    opacity 0.32s ease,
+    transform 0.5s var(--spx-ease),
+    visibility 0s linear 0.5s;
+}
+
+.spx-page.is-on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.5s var(--spx-ease) 0.1s,
+    transform 0.7s var(--spx-ease) 0.1s,
+    visibility 0s;
+}
+
+.spx-pan {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  transition: transform 0.95s var(--spx-pan);
+}
+
+.spx-scr {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+/* ── spots: the dot, the ring round what it names, the name ────────────── */
+
+.spx-dot {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  /* boot 4: the dots appear */
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity 0.4s var(--spx-ease),
+    transform 0.5s var(--spx-ease);
+}
+
+.spx:not([data-boot="0"], [data-boot="1"], [data-boot="2"], [data-boot="3"]) .spx-dot {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--i, 0) * 90ms);
+}
+
+.spx-spot {
+  --i: 0;
+}
+
+.spx-dot:focus-visible {
+  outline: none;
+}
+
+.spx-dot:focus-visible .spx-dot-core {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 5.5px var(--ink),
+    0 2px 8px 2px rgb(23 19 15 / 26%);
+}
+
+.spx-dot-core {
+  position: relative;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow:
+    0 0 0 3px #fff,
+    0 2px 6px 1px rgb(23 19 15 / 28%);
+  transition: box-shadow 0.3s;
+}
+
+.spx-dot-core::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--orange);
+  opacity: 0;
+  animation: spx-pulse 2.6s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
+  animation-delay: calc(var(--i, 0) * -0.7s);
+}
+
+.spx-spot.is-on .spx-dot-core {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 5px var(--orange),
+    0 2px 8px 2px rgb(23 19 15 / 26%);
+}
+
+.spx-spot.is-on .spx-dot-core::after {
+  animation: none;
+}
+
+@keyframes spx-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
   }
-  .spec-keys {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  70%,
+  100% {
+    transform: scale(2.9);
+    opacity: 0;
   }
-  /* rows are tall here: the outcome may take a second line rather than be cut */
-  .spec-row-out {
-    white-space: normal;
+}
+
+.spx-ring {
+  position: absolute;
+  z-index: 2;
+  border: 2px solid var(--orange);
+  border-radius: 9px;
+  box-shadow: 0 0 0 4px rgb(255 122 1 / 13%);
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(1.025);
+  transition:
+    opacity 0.3s ease,
+    transform 0.5s var(--spx-ease);
+}
+
+.spx-spot.is-on .spx-ring {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.08s;
+}
+
+.spx-tip {
+  position: absolute;
+  z-index: 4;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  --tx: -50%;
+  --ty: 6px;
+}
+
+.spx-tip--start {
+  --tx: -20px;
+}
+
+.spx-tip--end {
+  --tx: calc(-100% + 20px);
+}
+
+.spx-tip-in {
+  position: absolute;
+  left: 0;
+  bottom: 17px;
+  padding: 9px 13px 10px;
+  border-radius: 9px;
+  background: var(--ink);
+  color: #fff;
+  font: 600 15px/1.1 var(--font-text);
+  white-space: nowrap;
+  box-shadow: 0 8px 20px -6px rgb(23 19 15 / 40%);
+  opacity: 0;
+  transform: translate3d(var(--tx), var(--ty), 0);
+  transition:
+    opacity 0.25s ease,
+    transform 0.45s var(--spx-ease);
+}
+
+.spx-tip::after {
+  content: "";
+  position: absolute;
+  left: -5px;
+  bottom: 12px;
+  width: 10px;
+  height: 10px;
+  background: var(--ink);
+  transform: rotate(45deg) translate3d(0, 4px, 0);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.spx-tip.is-below .spx-tip-in {
+  bottom: auto;
+  top: 17px;
+  --ty: -6px;
+}
+
+.spx-tip.is-below::after {
+  bottom: auto;
+  top: 12px;
+}
+
+.spx-spot.is-on .spx-tip-in {
+  opacity: 1;
+  transform: translate3d(var(--tx), 0, 0);
+  transition-delay: 0.12s;
+}
+
+.spx-spot.is-on .spx-tip::after {
+  opacity: 1;
+  transition-delay: 0.12s;
+}
+
+/* spots out of view wait on the window's edge */
+.spx-edge {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 24px;
+  margin-left: -17px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--orange-ink);
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 10%),
+    0 4px 12px -2px rgb(23 19 15 / 22%);
+  cursor: pointer;
+  animation: spx-edge-in 0.5s var(--spx-ease) 0.85s both;
+}
+
+.spx-edge svg {
+  width: 15px;
+  height: 15px;
+}
+
+.spx-edge--bottom {
+  bottom: 10px;
+}
+
+.spx-edge--top {
+  top: 10px;
+}
+
+@keyframes spx-edge-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
   }
-  .spec-plate {
-    display: none;
-  }
-  .spec-key:first-of-type {
-    border-left: 0;
-    padding-left: 0;
-  }
-  .spec-detail {
-    grid-template-columns: minmax(10.5rem, 13rem) minmax(0, 1fr) minmax(0, 1fr);
-  }
-  .spec-wall-flow {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    row-gap: 18px;
-  }
+}
+
+/* ── under the window: the CTA ─────────────────────────────────────────── */
+
+.spec-foot {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2vw, 28px);
+  min-width: 0;
+}
+
+.spec-micro {
+  margin: 0 0 0 auto;
+  text-align: right;
+}
+
+/* boot: the title row comes in with the window (the CTA is simply there: it never fades, so
+   the header's CTA steps aside the moment it shows, src/site/shell/primaryCta.ts) */
+.spec-head {
+  transition:
+    opacity 0.7s var(--spx-ease),
+    transform 0.8s var(--spx-ease);
+}
+
+.spec-in[data-boot="0"] .spec-head {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+}
+
+@media (max-width: 1100px) {
   .spec-micro {
     display: none;
   }
 }
 
-/* ── phones (390×664): copy, sheet, CTA; panels scroll inside ──────────── */
-
-@media (max-width: 760px) {
-  .spec {
-    --spec-gap: 10px;
-  }
-
-  .spec-in {
-    max-height: none;
-    padding-top: calc(var(--header-h) + 10px);
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
-  }
-
-  .spec-title {
-    font-size: clamp(25px, 7vw, 30px);
-    line-height: 1.04;
-  }
-
-  .spec-title-a {
-    display: block;
-    margin-bottom: 1px;
-    font-family: var(--font-text);
-    font-stretch: 100%;
+/* short laptop screens: the window gets the height */
+@media (max-height: 640px) {
+  .spec-count-l {
     font-size: 14px;
-    font-weight: 560;
-    line-height: 1.2;
-    letter-spacing: -0.005em;
-  }
-
-  /* the phone sheet carries its own double rule over the total */
-  .spec-rule-double {
-    display: none;
-  }
-
-  .spec-keys {
-    display: none;
-  }
-
-  .spec-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "head count"
-      "tools tools";
-    align-content: center;
-    align-items: start;
-    row-gap: 3px;
-    column-gap: 12px;
-    padding: 0;
-  }
-
-  .spec-row:active {
-    background: var(--ground-2);
-  }
-
-  .spec-row-head {
-    grid-area: head;
-  }
-
-  .spec-row-name {
-    font-size: 18px;
-  }
-
-  .spec-row-out {
-    margin-top: 1px;
-    font-size: 13.5px;
-    line-height: 1.25;
-  }
-
-  /* each section's top three (short names where there are any) and "+N more" */
-  .spec-row-tools {
-    grid-area: tools;
-    font-size: 13.5px;
-    line-height: 1.25;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .spec-row-tool:nth-child(n + 4) {
-    display: none;
-  }
-
-  .spec-row-tool:nth-child(3)::after {
-    content: none;
-  }
-
-  .spec-row-tool.is-top {
-    font-weight: 520;
-  }
-
-  .spec-row-tool:has(.spec-short) .spec-full {
-    display: none;
-  }
-
-  .spec-short {
-    display: inline;
-  }
-
-  .spec-row-more {
-    display: inline;
-    margin-left: 4px;
-    font-size: 13px;
-    color: var(--ink-3);
-  }
-
-  /* "7 tools" on one line, level with the name, so the count never makes the row taller */
-  .spec-row-count {
-    grid-area: count;
-    gap: 4px;
-    font-size: 28px;
-  }
-
-  .spec-row-count .spec-unit {
-    font-size: 12px;
-    padding-bottom: 0.12em;
-  }
-
-  .spec-chev {
-    display: none;
-  }
-
-  .spec-total {
-    padding: 0;
-  }
-
-  .spec-all {
-    min-height: 42px;
-    font-size: 15px;
-  }
-
-  .spec-total-n {
-    font-size: 30px;
-    gap: 6px;
-  }
-
-  .spec-total-n .spec-unit,
-  .spec-total-k {
-    font-size: 12px;
-  }
-
-  /* open section */
-  .spec-detail {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-
-  .spec-dhead {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    column-gap: 8px;
-    padding: 6px 0 8px;
-    border-bottom: 2px solid var(--ink);
-  }
-
-  /* back to the sheet: a quiet ink control with a full-size tap target */
-  .spec-back {
-    display: inline-flex;
-    align-items: center;
-    align-self: stretch;
-    gap: 1px;
-    min-width: 44px;
-    min-height: 44px;
-    padding: 0 10px 0 0;
-    margin-left: -4px;
-    font-size: 15px;
-    font-weight: 650;
-    color: var(--ink);
-    border-right: 1px solid var(--line);
-  }
-
-  .spec-back:active {
-    color: var(--ink-3);
-  }
-
-  .spec-back-chev {
-    width: 20px;
-    height: 20px;
-    transform: scaleX(-1);
-  }
-
-  .spec-dhead-t {
-    min-width: 0;
-    padding-left: 4px;
-  }
-
-  .spec-dhead-name {
-    display: block;
-    width: fit-content;
-    font-family: var(--font-display);
-    font-stretch: 106%;
-    font-size: 19px;
-    font-weight: 710;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    white-space: nowrap;
-  }
-
-  .spec-dhead-out {
-    display: block;
-    font-size: 13px;
-    line-height: 1.3;
-    color: var(--ink-2);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .spec-dhead-count {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    font-family: var(--font-display);
-    font-stretch: 104%;
-    font-size: 30px;
-    font-weight: 720;
-    line-height: 1;
-    letter-spacing: -0.04em;
-  }
-
-  .spec-dhead-count .spec-unit {
-    font-size: 11.5px;
-    padding: 0;
-  }
-
-  .spec-list {
-    overscroll-behavior: auto;
-  }
-
-  /* the phone list scrolls (and rows open in place), so rows keep their own height */
-  .spec-tools,
-  .spec-tool-li {
-    display: block;
-  }
-
-  .spec-tool-li:last-child {
-    border-bottom: 1px solid var(--line);
-  }
-
-  .spec-tool {
-    grid-template-columns: minmax(0, 1fr) auto 18px;
-    grid-template-areas:
-      "name side chev"
-      "line line chev";
-    padding: 10px 2px 10px 0;
-  }
-
-  .spec-tool-li.is-on .spec-tool {
-    background: none;
-    box-shadow: none;
-  }
-
-  .spec-tool-chev {
-    grid-area: chev;
-    align-self: center;
-    width: 18px;
-    height: 18px;
-    color: var(--ink-3);
-    transform: rotate(90deg);
-    transition: transform var(--dur-2) var(--ease-out);
-  }
-
-  .spec-tool-li.is-on .spec-tool-chev {
-    transform: rotate(-90deg);
-    color: var(--ink);
-  }
-
-  .spec-tool-name {
-    font-size: 15.5px;
-  }
-
-  .spec-tool-line {
-    font-size: 13.5px;
-  }
-
-  .spec-tool-snip {
-    overflow: hidden;
-  }
-
-  .spec-tool-frame {
-    position: relative;
-    height: clamp(200px, 36svh, 250px);
-    margin: 0 0 6px;
-    overflow: hidden;
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    background: var(--ground-2);
-  }
-
-  .spec-tool-snip .spec-preview-note {
-    padding: 0 0 12px;
-  }
-
-  .spec-next {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    min-height: 52px;
-    font-size: 15px;
-    color: var(--ink-2);
-  }
-
-  .spec-next strong {
-    color: var(--ink);
-    font-weight: 680;
-  }
-
-  .spec-next .spec-chev {
-    display: block;
-  }
-
-  /* the wall */
-  .spec-wall-bar {
-    min-height: 48px;
-  }
-
-  .spec-wall-grid {
-    overscroll-behavior: auto;
-  }
-
-  /* two balanced columns that the sections flow through, no ragged gaps */
-  .spec-wall-flow {
-    display: block;
-    columns: 2;
-    column-gap: 16px;
-  }
-
-  .spec-wall-col {
-    break-inside: avoid;
-    padding-bottom: 14px;
-  }
-
-  .spec-wall-tool {
-    min-height: 34px;
-    padding-top: 6px;
-    padding-bottom: 6px;
-    font-size: 14px;
-  }
-
-  .spec-wall-read {
-    min-height: 0;
-    padding-top: 8px;
-    font-size: 13px;
-  }
-
-  /* the CTA with its quiet partner beside it */
-  .spec-foot {
-    gap: 14px;
-    min-height: 0;
-  }
-
-  .spec-cta {
-    flex: none;
-  }
-
-  .spec-demo {
-    max-width: 9.5rem;
-    min-height: 0;
-    font-size: 13.5px;
-    line-height: 1.3;
-    text-align: left;
-  }
-
-  .spec-micro {
-    display: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spec-snip-ping {
-    animation: none;
+  .spec *,
+  .spec *::before,
+  .spec *::after {
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+    animation: none !important;
   }
 }

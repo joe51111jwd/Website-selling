@@ -1,8 +1,9 @@
 /* 3 · Try it on phones (PHONE MODE, ./TryPhone.tsx): one screen; the page becomes the crew app.
-   The line on top, the live app edge to edge under it. It rises once on arrival; after the tap a
-   note slides over the bottom. Transform/opacity only, no blur, nothing per frame while scrolling.
-   The `.tp-ui` rules (the app's UI at the visitor's width) are shared with TryDomPhone (desktop
-   without WebGL). */
+   The line on top, the live app edge to edge under it. On arrival (once): the app rises 40 px and
+   its screen wakes (a black layer fades off it), then the Clock In circle breathes once; after
+   the tap a note slides over the bottom. Transform/opacity only, no blur, nothing per frame while
+   scrolling. The `.tp-ui` rules (the app's UI at the visitor's width) are shared with
+   TryDomPhone (desktop without WebGL). */
 
 .try--phone .scene-body {
   height: 100vh;
@@ -19,6 +20,8 @@ html .site > .scene.try--phone[data-warm] {
 }
 
 .tp {
+  --ease-calm: cubic-bezier(0.45, 0, 0.25, 1);
+  --tp-breathe-delay: 0.9s;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -82,13 +85,27 @@ html .site > .scene.try--phone[data-warm] {
   background: #fff;
   border-radius: 24px 24px 0 0;
   box-shadow: 0 -1px 0 rgb(23 19 15 / 7%), 0 -8px 20px rgb(23 19 15 / 6%);
-  transform: translate3d(0, 56px, 0);
-  transition: transform 0.75s var(--ease-out);
+  transform: translate3d(0, 40px, 0);
+  transition: transform 0.52s var(--ease-out);
 }
 
 /* arrival (once): the app rises into place */
 .tp.is-in .tp-app {
   transform: none;
+}
+
+/* the screen is off until it arrives, then wakes (300 → 560 ms) */
+.tp-wake {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: #000;
+  pointer-events: none;
+}
+
+.tp.is-in .tp-wake {
+  opacity: 0;
+  transition: opacity 0.26s var(--ease-out) 0.3s;
 }
 
 /* the app's own UI at the visitor's width (the screens are drawn for 402 px; they flex) */
@@ -150,29 +167,14 @@ html .site > .scene.try--phone[data-warm] {
   border-radius: 50%;
 }
 
-/* an invitation: a soft ring breathes out of the circle */
-.tp-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 1.5px solid rgb(31 31 31 / 35%);
-  opacity: 0;
-  pointer-events: none;
-  animation: tp-invite 2.6s var(--ease-out) 1.2s infinite;
+/* one breath, once, on arrival (it never loops): 1 → 1.04 → 1 */
+.tp-ui .tp-clockin.is-breathe {
+  animation: tp-breathe 0.7s var(--ease-calm) var(--tp-breathe-delay) 1;
 }
 
-@keyframes tp-invite {
-  0% {
-    opacity: 0;
-    transform: scale(1);
-  }
-  12% {
-    opacity: 0.9;
-  }
-  70%,
-  100% {
-    opacity: 0;
-    transform: scale(1.38);
+@keyframes tp-breathe {
+  50% {
+    transform: scale(1.04);
   }
 }
 
@@ -265,7 +267,7 @@ html .site > .scene.try--phone[data-warm] {
   box-shadow:
     0 -1px 0 rgb(23 19 15 / 7%),
     0 -10px 24px rgb(23 19 15 / 12%);
-  animation: tp-sheet-up 0.55s var(--ease-out) both;
+  animation: tp-sheet-up 0.34s var(--ease-out) both;
 }
 
 @keyframes tp-sheet-up {
@@ -284,7 +286,6 @@ html .site > .scene.try--phone[data-warm] {
 .tp-cta.cta {
   display: flex;
   width: 100%;
-  /* room for the CTA's one-time geofence cue clear of the stamp */
   margin-top: 16px;
 }
 
@@ -299,7 +300,10 @@ html .site > .scene.try--phone[data-warm] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tp-ring,
+  .tp-wake {
+    display: none;
+  }
+  .tp-ui .tp-clockin.is-breathe,
   .tp-sheet,
   .tp .tp-chrome,
   .tp .sc-tabbar {

@@ -3,8 +3,11 @@
 // SmartCrew hard-hat mark. Empty until the visitor drags ("Drag to your crew size").
 // Pointer: drag anywhere on the grid (touch waits for a sideways move so the page still scrolls);
 // keyboard: arrows ±1, Page Up/Down ±10, Home/End.
+// Arrival (once, the crew 35 % in view): the empty slots ripple in column by column and, at 1.4 s,
+// the knob nudges once (number.css); the parent keys the meter on from `onArrive`.
 
 import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
+import { reducedMotion } from "../../three/stage/store";
 import { LOGO_DATA } from "../../brand/Logo";
 import { CALC } from "../../content/copy";
 import { CREW_MAX } from "./calc";
@@ -16,45 +19,82 @@ const HAT_W = 7.6;
 const HAT_H = (HAT_W * LOGO_DATA.mark.height) / LOGO_DATA.mark.width;
 
 const clamp = (v: number) => Math.max(1, Math.min(CREW_MAX, Math.round(v)));
+/** The arrival ripple: 18 ms a column, 560 ms a slot (number.css); after it the slots are static. */
+const RIPPLE_DONE = (COLS - 1) * 18 + 560 + 60;
 
-export function CrewSlider({ value, onChange, onFirst }: { value: number | null; onChange: (v: number) => void; onFirst?: () => void }) {
+export function CrewSlider({
+  value,
+  onChange,
+  onFirst,
+  onArrive,
+  onDrag,
+}: {
+  value: number | null;
+  onChange: (v: number) => void;
+  onFirst?: () => void;
+  /** The crew has come into view (once). */
+  onArrive?: () => void;
+  /** A drag starts / ends (the meter waits for its end). */
+  onDrag?: (on: boolean) => void;
+}) {
   const id = useId().replace(/:/g, "");
   const area = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ id: number; x0: number; y0: number; on: boolean; touch: boolean } | null>(null);
+  const drag = useRef<{ id: number; x0: number; y0: number; on: boolean; touch: boolean; left: number; width: number } | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [inView, setInView] = useState(false);
+  const [inView, setInView] = useState(reducedMotion);
+  const [rippled, setRippled] = useState(reducedMotion);
   const touched = value != null;
+  const arrive = useRef(onArrive);
+  arrive.current = onArrive;
+  const dragCb = useRef(onDrag);
+  dragCb.current = onDrag;
+  useEffect(() => dragCb.current?.(dragging), [dragging]);
 
   // the empty slots ripple in once, the first time the scene comes into view
   useEffect(() => {
     const el = area.current;
     if (!el) return;
+    if (reducedMotion || typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      setRippled(true);
+      arrive.current?.();
+      return;
+    }
+    let t = 0;
     const io = new IntersectionObserver(
       (es) => {
         if (es.some((e) => e.isIntersecting)) {
           setInView(true);
+          arrive.current?.();
+          t = window.setTimeout(() => setRippled(true), RIPPLE_DONE);
           io.disconnect();
         }
       },
       { threshold: 0.35 },
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      window.clearTimeout(t);
+    };
   }, []);
 
   const set = (v: number) => {
     if (value == null) onFirst?.();
     if (v !== value) onChange(v);
   };
+  // the track's box is read once per gesture (on pointerdown), never per move
   const fromX = (clientX: number) => {
-    const r = area.current!.getBoundingClientRect();
-    return clamp(((clientX - r.left) / r.width) * CREW_MAX + 0.5);
+    const d = drag.current;
+    if (!d || !d.width) return value ?? 1;
+    return clamp(((clientX - d.left) / d.width) * CREW_MAX + 0.5);
   };
 
   const down = (e: PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     const touch = e.pointerType !== "mouse";
-    drag.current = { id: e.pointerId, x0: e.clientX, y0: e.clientY, on: !touch, touch };
+    const r = e.currentTarget.getBoundingClientRect();
+    drag.current = { id: e.pointerId, x0: e.clientX, y0: e.clientY, on: !touch, touch, left: r.left, width: r.width };
     if (!touch) {
       e.currentTarget.setPointerCapture(e.pointerId);
       setDragging(true);
@@ -106,7 +146,7 @@ export function CrewSlider({ value, onChange, onFirst }: { value: number | null;
   const valueText = value == null ? CALC.crewEmpty : `${value} ${value === 1 ? CALC.crewUnitOne : CALC.crewUnit}`;
 
   return (
-    <div className={`num-crew${touched ? " is-set" : ""}${dragging ? " is-drag" : ""}${inView ? " is-in" : ""}`}>
+    <div className={`num-crew${touched ? " is-set" : ""}${dragging ? " is-drag" : ""}${inView ? " is-in" : ""}${rippled ? " is-rippled" : ""}`}>
       <div className="num-crew-read" aria-hidden="true">
         {value != null && <span className="t-time num-crew-n">{value}</span>}
         <span className="num-crew-unit">{value == null ? CALC.crewEmpty : value === 1 ? CALC.crewUnitOne : CALC.crewUnit}</span>

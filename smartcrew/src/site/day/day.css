@@ -39,13 +39,24 @@
   background-color: var(--dawn);
 }
 
+/* the ground's colour through the day: flat layers fading in over each other (./RideGround.tsx) */
+.day-tint {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.day-tint:first-child {
+  opacity: 1;
+}
+
 .day-topo {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  /* the lines stay out from behind the copy (top left) and quiet under the controls */
-  -webkit-mask-image: radial-gradient(ellipse 34% 40% at 15% 17%, rgb(0 0 0 / 12%) 35%, #000 100%);
-  mask-image: radial-gradient(ellipse 34% 40% at 15% 17%, rgb(0 0 0 / 12%) 35%, #000 100%);
+  /* (no mask to keep the lines from behind the copy: a mask over a moving layer costs a full-screen
+     offscreen pass every frame, which halved the frame rate in the perf check. The lines are
+     hairlines at 6–13 % ink; the copy reads over them.) */
 }
 
 .day-topo-sheet {

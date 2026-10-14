@@ -1,0 +1,353 @@
+/* The office app's mobile layout (OfficeMobile.tsx, OfficeJob.tsx, OfficePlan.tsx), 402 × 874.
+   Gen C look: Inter, #F5F5F5 surfaces, 12–14 px corners, hairlines #EEE. */
+
+.sc.om {
+  background: #fff;
+}
+
+/* top bar: logo · account · menu (54 → 110) */
+.sc .om-top {
+  flex: none;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px 0 20px;
+  border-bottom: 1px solid #eeeeee;
+}
+.sc .om-logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-right: auto;
+}
+.sc .om-logo .sc-logo-mark {
+  width: 20.9px;
+  height: 25px;
+}
+.sc .om-logo .sc-logo-mark img {
+  height: 25px;
+}
+.sc .om-logo .sc-logo-word {
+  font-size: 18px;
+  line-height: 20px;
+}
+.sc .om-account {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f1f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #333;
+}
+.sc .om-menu {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #222;
+}
+
+.sc .om-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: 8px 20px 0;
+  display: flex;
+  flex-direction: column;
+}
+.sc .om-body > * {
+  flex-shrink: 0;
+}
+
+/* bottom bar: the office app's sections (761 → 874) */
+.sc .om-tabs {
+  flex: none;
+  height: 113px;
+  position: relative;
+  border-top: 1px solid #eeeeee;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: start;
+  padding-top: 11px;
+}
+.sc .om-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.8px;
+  line-height: 14px;
+  color: #6a6a6a;
+}
+.sc .om-tab .sc-icon {
+  color: #5a5a5a;
+}
+.sc .om-tab.is-active {
+  color: #050505;
+  font-weight: 600;
+}
+.sc .om-tab.is-active .sc-icon {
+  color: #111;
+}
+
+/* ── shared page bits ──────────────────────────────────────────────────── */
+.sc .om-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 22px;
+  margin-left: -4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+.sc .om-title {
+  margin-top: 2px;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: #0a0a0a;
+  white-space: nowrap;
+}
+.sc .om-title--big {
+  margin: 0;
+  font-size: 30px;
+  line-height: 36px;
+  letter-spacing: -0.025em;
+}
+.sc .om-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 24px;
+  margin-top: 2px;
+  font-size: 14px;
+  color: #555;
+}
+.sc .om-status {
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid #c9d8ff;
+  background: #eaf1ff;
+  color: #2563eb;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+/* ── job: profit card (196 → 308) ───────────────────────────────────────── */
+.sc .om-profit {
+  margin-top: 0;
+  height: 112px;
+  border-radius: 14px;
+  background: var(--sc-surface);
+  padding: 14px 16px 0;
+  display: flex;
+  flex-direction: column;
+}
+.sc .om-profit-k {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: #555;
+}
+.sc .om-profit-v {
+  margin-top: 4px;
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: #0a0a0a;
+}
+.sc .om-profit-sub {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: #666;
+}
+.sc .om-profit-sub b {
+  font-weight: 600;
+  color: #222;
+}
+
+/* budget cards, 2 × 2 (340 → 524) */
+.sc .om-grid {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.sc .om-bcard {
+  height: 88px;
+  border-radius: 12px;
+  background: var(--sc-surface);
+  padding: 11px 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sc .om-bcard-t {
+  font-size: 14.5px;
+  line-height: 18px;
+  font-weight: 650;
+  color: #0a0a0a;
+}
+.sc .om-bcard-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: #666;
+}
+.sc .om-bcard-row b {
+  font-weight: 600;
+  color: #111;
+  white-space: nowrap;
+}
+.sc .om-bcard-row i {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--sc-money);
+}
+.sc .om-bcard-row i.is-over {
+  color: var(--sc-red-ink);
+}
+
+/* labor hours (548 → 714) */
+.sc .om-h {
+  margin-top: 24px;
+  height: 20px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+}
+.sc .om-list {
+  margin-top: 8px;
+}
+.sc .om-li {
+  height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #efefef;
+}
+.sc .om-av {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #f1f1f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+}
+.sc .om-li-name {
+  flex: 1 1 auto;
+  font-size: 15px;
+  color: #111;
+}
+.sc .om-li-v {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+}
+
+/* ── plan: header, days, blocks ────────────────────────────────────────── */
+.sc .om-plan-head {
+  height: 40px;
+  margin-top: 4px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.sc .om-month {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+.sc .om-days {
+  margin-top: 14px;
+  height: 52px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.sc .om-day {
+  border-radius: 10px;
+  background: var(--sc-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-size: 11.5px;
+  color: #666;
+}
+.sc .om-day b {
+  font-size: 17px;
+  line-height: 20px;
+  font-weight: 650;
+  color: #111;
+}
+.sc .om-day.is-on {
+  background: #111;
+  color: #cfcfcf;
+}
+.sc .om-day.is-on b {
+  color: #fff;
+}
+.sc .om-blocks {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sc .om-block {
+  height: 74px;
+  border-radius: 12px;
+  background: #2563eb;
+  color: #fff;
+  padding: 10px 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sc .om-block-t {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 600;
+}
+.sc .om-block-crew {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.sc .om-block-p {
+  font-size: 15.5px;
+  line-height: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc .om-block-a {
+  font-size: 12.5px;
+  line-height: 16px;
+  opacity: 0.82;
+}

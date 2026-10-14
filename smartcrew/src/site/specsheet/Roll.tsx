@@ -1,38 +1,32 @@
-// A count that rolls like a mechanical counter: each digit is a strip of 0–9 that slides to its
-// value. Tabular, so the column never jitters. `digits` reserves room (a hidden leading slot) so a
-// total that grows from 7 to 38 doesn't shift. Screen readers get the plain number.
+// A count that rolls like a mechanical counter: each digit is a 0–9 strip that slides once to its
+// value when `go` turns true (a CSS transition on transform, eased out, no overshoot; nothing
+// runs per frame from JS). Tabular, so the figure never jitters. Screen readers get the number.
+// Reduced motion: the strips sit at their value (the transition is off in CSS).
 
-import { motion } from "motion/react";
+import type { CSSProperties } from "react";
 
-const STRIP = "0123456789".split("");
-
-function Digit({ d, delay, hidden }: { d: number; delay: number; hidden: boolean }) {
-  return (
-    <span className="roll-col" style={hidden ? { visibility: "hidden" } : undefined}>
-      <motion.span
-        className="roll-strip"
-        initial={false}
-        animate={{ y: `${-d * 10}%` }}
-        transition={{ type: "spring", stiffness: 120, damping: 18, mass: 0.8, delay }}
-      >
-        {STRIP.map((n) => (
-          <span key={n}>{n}</span>
-        ))}
-      </motion.span>
-    </span>
-  );
-}
-
-export function Roll({ value, digits = 1, delay = 0, className }: { value: number; digits?: number; delay?: number; className?: string }) {
-  const s = String(Math.max(0, Math.round(value))).padStart(digits, "0");
-  const lead = s.length - String(Math.max(0, Math.round(value))).length;
+export function Roll({ value, go = true, delay = 0, className }: { value: number; go?: boolean; delay?: number; className?: string }) {
+  const digits = String(Math.max(0, Math.round(value))).split("");
   return (
     <span className={`roll${className ? ` ${className}` : ""}`}>
       <span className="sr-only">{value}</span>
       <span className="roll-digits" aria-hidden="true">
-        {s.split("").map((c, i) => (
-          // keyed from the right, so a digit keeps its column as the number grows
-          <Digit key={s.length - i} d={+c} delay={delay + (s.length - 1 - i) * 0.05} hidden={i < lead} />
+        {digits.map((d, i) => (
+          <span key={digits.length - i} className="roll-col">
+            <span
+              className="roll-strip"
+              style={
+                {
+                  "--d": go ? Number(d) : 0,
+                  "--delay": `${delay + (digits.length - 1 - i) * 90}ms`,
+                } as CSSProperties
+              }
+            >
+              {"0123456789".split("").map((n) => (
+                <span key={n}>{n}</span>
+              ))}
+            </span>
+          </span>
         ))}
       </span>
     </span>
