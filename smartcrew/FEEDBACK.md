@@ -93,6 +93,8 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 ## Latest (hero type + topo)
 - **Topo lines smooth, not jagged.** Done: contour lines are relaxed before they're drawn, the polygon terraces are gone, and the landform around the copy is softer.
 - **The headline shouldn't be basic text.** "Maybe the text is like a box, and then there's dirt that fills up from the top of the screen."
-  - Done (first cut): each headline line starts as an outline (a dug trench), then soil pours in from the top and fills it, line by line, in strata with a gravel grain. "Every job" fills with orange clay.
+  - Boss, next message: "you don't see the text, then it's like someone's pouring dirt from the top… the letters just look like dirt."
+  - Done: the letters start empty, with nothing on screen. Dirt grains fall from the top of the screen into the line that's filling (a canvas, synced to each line's fill). The soil rises inside the letters with a lumpy surface, line by line, until the words are made of dirt. "Every job" fills with orange clay.
+  - Higgsfield was out of credits, so this is built in code instead of a video. It's lighter and stays crisp on phones.
   - Reduced motion shows it filled.
   - Open: tune the timing and texture with the boss, and consider the same treatment for other big headlines.

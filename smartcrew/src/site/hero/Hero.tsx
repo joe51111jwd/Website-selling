@@ -23,6 +23,7 @@ import { onPageReady } from "../ready";
 import { scrollToScene } from "../scroll";
 import { usePhoneLite } from "../phone";
 import { mountFence } from "./fence/engine";
+import { startPour } from "./fence/pour";
 import { VERSION } from "../version";
 import "./fence/fence.css";
 
@@ -100,6 +101,8 @@ export default function Hero() {
   // their first draws never compete with the headline's entrance
   useEffect(() => onPageReady(reveal), []);
   useLayoutEffect(() => mountFence(root.current!, { phone: lite, reduced: reducedMotion }), [lite]);
+  // the dirt that pours into the headline (once per load)
+  useEffect(() => startPour(root.current!, { phone: lite }), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Scene id="top" pinnedViewports={1} poses={lite || VERSION === "video" ? undefined : HERO_PARK} stage={lite ? "keep" : "hide"} label="SmartCrew" className="hero hf">
