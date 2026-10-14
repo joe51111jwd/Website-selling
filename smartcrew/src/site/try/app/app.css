@@ -1,0 +1,864 @@
+/* Try it's live crew app (../TryApp.tsx, ./views.tsx). Native phone px (402 wide); on phones the
+   page's own rules in ../try-phone.css adjust the gutters and the tab bar. Every move is
+   transform / opacity; reduced motion: none. Scoped under .sc.ca, prefix ca-. */
+
+.sc.ca {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 15px;
+  color: #111;
+  background: #fff;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  --ca-ease: var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.sc.ca button {
+  display: flex;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sc.ca button:focus-visible {
+  outline: 2px solid var(--orange, #ff7a1a);
+  outline-offset: 2px;
+}
+
+.sc.ca .ca-main {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.sc.ca .ca-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px 22px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.sc.ca .ca-view::-webkit-scrollbar {
+  display: none;
+}
+
+.sc.ca .ca-view > * {
+  flex-shrink: 0;
+}
+
+.sc.ca .ca-in--push {
+  animation: ca-push 0.26s var(--ca-ease) both;
+}
+.sc.ca .ca-in--pop {
+  animation: ca-pop 0.24s var(--ca-ease) both;
+}
+.sc.ca .ca-in--swap {
+  animation: ca-swap 0.2s var(--ca-ease) both;
+}
+.sc.ca .ca-fade {
+  animation: ca-swap 0.2s var(--ca-ease) both;
+}
+
+@keyframes ca-push {
+  from {
+    opacity: 0;
+    transform: translate3d(28px, 0, 0);
+  }
+}
+@keyframes ca-pop {
+  from {
+    opacity: 0;
+    transform: translate3d(-18px, 0, 0);
+  }
+}
+@keyframes ca-swap {
+  from {
+    opacity: 0;
+  }
+}
+
+.sc.ca .ca-press {
+  transition: transform 0.12s var(--ca-ease);
+}
+.sc.ca .ca-press:active {
+  transform: scale(0.97);
+}
+
+/* ── the clock screens' parts as real buttons (clock.css styles their spans) ── */
+
+.sc.ca .pc-head-cam {
+  align-items: center;
+  justify-content: center;
+}
+
+.sc.ca .pc-week > .pc-tile {
+  display: block;
+  padding: 0;
+}
+
+.sc.ca .pc-dayoff {
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 177px;
+  padding: 0 16px;
+}
+
+.sc.ca .pc-seg > button {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #a8a8a8;
+  transition: background-color 0.18s, color 0.18s;
+}
+.sc.ca .pc-seg > button.is-on {
+  background: #fff;
+  color: #0a0a0a;
+}
+
+.sc.ca .ca-row-btn {
+  width: 100%;
+  align-items: baseline;
+}
+.sc.ca .ca-row-btn:active .pc-row-v {
+  opacity: 0.6;
+}
+
+.sc.ca .pc-btn {
+  align-items: center;
+  justify-content: center;
+}
+.sc.ca .pc-btn.is-break {
+  background: var(--sc-green);
+  color: #fff;
+}
+.sc.ca .pc-timer.is-break::before {
+  background: var(--sc-orange);
+}
+
+.sc.ca .ca-last {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #8a8a8a;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── shared pieces ─────────────────────────────────────────────────────── */
+
+.sc.ca .ca-rhead {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 48px;
+  margin-top: 4px;
+}
+.sc.ca .ca-back {
+  align-items: center;
+  gap: 2px;
+  height: 44px;
+  margin-left: -8px;
+  padding-right: 8px;
+  font-size: 15.5px;
+  font-weight: 500;
+  color: #111;
+}
+.sc.ca .ca-rhead-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #8a8a8a;
+}
+
+.sc.ca .ca-title {
+  margin: 10px 0 2px;
+}
+.sc.ca .ca-title h3 {
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0a0a0a;
+}
+.sc.ca .ca-title p {
+  margin-top: 4px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: #8a8a8a;
+}
+
+.sc.ca .ca-card {
+  margin-top: 14px;
+  padding: 4px 16px;
+  border-radius: 14px;
+  background: var(--sc-surface);
+}
+
+.sc.ca .ca-list {
+  margin-top: 8px;
+}
+
+.sc.ca .ca-li {
+  width: 100%;
+  min-height: 62px;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 2px;
+  border-bottom: 1px solid #efefef;
+}
+.sc.ca .ca-card.ca-list {
+  margin-top: 12px;
+}
+.sc.ca .ca-card .ca-li {
+  border-bottom-color: #e6e6e6;
+}
+.sc.ca .ca-list > .ca-li:last-child {
+  border-bottom: 0;
+}
+.sc.ca .ca-li:active {
+  background: rgb(0 0 0 / 3%);
+}
+.sc.ca .ca-li--total {
+  display: flex;
+}
+
+.sc.ca .ca-li-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sc.ca .ca-li-main > b,
+.sc.ca .ca-li-main > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sc.ca .ca-li-main > b {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111;
+}
+.sc.ca .ca-li-main > span {
+  font-size: 13px;
+  color: #8a8a8a;
+}
+
+.sc.ca .ca-li-dow {
+  flex: none;
+  width: 38px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #555;
+}
+
+.sc.ca .ca-li-v {
+  flex: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+  font-variant-numeric: tabular-nums;
+}
+
+.sc.ca .ca-chev {
+  flex: none;
+  color: #a0a0a0;
+}
+
+.sc.ca .ca-ic {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f4f4f4;
+  color: #111;
+}
+
+.sc.ca .ca-pill {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #178a4c;
+  background: var(--sc-green-bg);
+}
+
+.sc.ca .ca-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c4c4c4;
+}
+.sc.ca .ca-dot.is-live {
+  background: var(--sc-green);
+}
+
+.sc.ca .ca-bar {
+  flex: 1 1 auto;
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: #e4e4e4;
+  overflow: hidden;
+}
+.sc.ca .ca-bar > i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: #111;
+  transform-origin: 0 50%;
+  transition: transform 0.4s var(--ca-ease);
+}
+
+.sc.ca .ca-kv {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e6e6e6;
+}
+.sc.ca .ca-kv:last-child {
+  border-bottom: 0;
+}
+.sc.ca .ca-kv > span {
+  flex: none;
+  font-size: 13.5px;
+  color: #8a8a8a;
+}
+.sc.ca .ca-kv > b {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: #111;
+  text-align: right;
+}
+
+.sc.ca .ca-progress {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0 14px;
+  font-size: 13.5px;
+  color: #8a8a8a;
+}
+.sc.ca .ca-progress b {
+  color: #111;
+  font-weight: 600;
+}
+
+.sc.ca .ca-cta {
+  width: 100%;
+  height: 52px;
+  margin-top: 16px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--sc-phone-ink, #1f1f1f);
+}
+.sc.ca .ca-cta.is-done {
+  background: var(--sc-green);
+}
+
+.sc.ca .ca-ghostbtn {
+  width: 100%;
+  height: 50px;
+  margin-top: 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111;
+  background: var(--sc-surface);
+}
+
+.sc.ca .ca-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  margin-top: 16px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #178a4c;
+  background: var(--sc-green-bg);
+}
+
+.sc.ca .ca-empty {
+  padding: 14px 0;
+  font-size: 14px;
+  color: #8a8a8a;
+}
+
+/* ── days ──────────────────────────────────────────────────────────────── */
+
+.sc.ca .ca-past {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.sc.ca .ca-day {
+  padding: 14px 16px 6px;
+}
+.sc.ca .ca-day-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sc.ca .ca-day-head > span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.sc.ca .ca-day-head b {
+  font-size: 16px;
+  font-weight: 650;
+}
+.sc.ca .ca-day-head span span {
+  font-size: 13px;
+  color: #8a8a8a;
+}
+.sc.ca .ca-day-total {
+  flex: none;
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.sc.ca .ca-day-span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 8px 0 6px;
+  font-size: 13px;
+  color: #666;
+}
+.sc.ca .ca-task {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid #e6e6e6;
+}
+.sc.ca .ca-check {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--sc-green);
+}
+.sc.ca .ca-check.is-live {
+  background: #111;
+}
+
+/* ── this week (Summary) ──────────────────────────────────────────────── */
+
+.sc.ca .ca-week {
+  padding: 14px 16px 16px;
+}
+.sc.ca .ca-week-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.sc.ca .ca-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.sc.ca .ca-stats > span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sc.ca .ca-stats small {
+  font-size: 12px;
+  color: #8a8a8a;
+}
+.sc.ca .ca-stats b {
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.sc.ca .ca-week .ca-cta {
+  margin-top: 14px;
+  height: 48px;
+}
+
+/* ── day off ──────────────────────────────────────────────────────────── */
+
+.sc.ca .ca-chips {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 16px;
+}
+.sc.ca .ca-chip {
+  height: 64px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 12px;
+  background: var(--sc-surface);
+  transition: background-color 0.16s, color 0.16s;
+}
+.sc.ca .ca-chip b {
+  font-size: 14.5px;
+  font-weight: 650;
+}
+.sc.ca .ca-chip span {
+  font-size: 12px;
+  color: #8a8a8a;
+}
+.sc.ca .ca-chip.is-on {
+  background: #111;
+  color: #fff;
+}
+.sc.ca .ca-chip.is-on span {
+  color: #bdbdbd;
+}
+
+/* ── profile ──────────────────────────────────────────────────────────── */
+
+.sc.ca .ca-me {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 0 8px;
+}
+.sc.ca .ca-me > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sc.ca .ca-me b {
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+.sc.ca .ca-me span span {
+  font-size: 13.5px;
+  color: #8a8a8a;
+}
+.sc.ca .ca-avatar {
+  flex: none;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  font-weight: 700;
+  color: #5e534b;
+  background: #ece8e4;
+}
+.sc.ca .ca-avatar--sm {
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+}
+
+.sc.ca .ca-switch {
+  flex: none;
+  position: relative;
+  width: 46px;
+  height: 28px;
+  border-radius: 14px;
+  background: #d6d6d6;
+  transition: background-color 0.18s;
+}
+.sc.ca .ca-switch::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
+  transition: transform 0.18s var(--ca-ease);
+}
+.sc.ca .ca-switch.is-on {
+  background: var(--sc-green);
+}
+.sc.ca .ca-switch.is-on::after {
+  transform: translateX(18px);
+}
+
+/* ── tab bar ──────────────────────────────────────────────────────────── */
+
+.sc.ca .ca-tabbar > .sc-tab {
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* ── the "Select task and project" sheet ──────────────────────────────── */
+
+.sc.ca .ca-scrim {
+  z-index: 25;
+  animation: ca-swap 0.22s var(--ca-ease) both;
+}
+.sc.ca .ca-scrim.is-out {
+  animation: ca-out 0.2s var(--ca-ease) both;
+}
+.sc.ca .ca-sheet {
+  z-index: 26;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100% - 12px);
+  padding-bottom: 18px;
+  animation: ca-up 0.28s var(--ca-ease) both;
+}
+.sc.ca .ca-sheet.is-out {
+  animation: ca-down 0.2s var(--ca-ease) both;
+}
+.sc.ca .ca-sheet > * {
+  flex-shrink: 0;
+}
+@keyframes ca-up {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+@keyframes ca-down {
+  to {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+@keyframes ca-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.sc.ca .ca-sheet .pc-sheet-head .ca-back .pc-sheet-title {
+  margin-left: 2px;
+}
+.sc.ca .ca-x {
+  width: 36px;
+  height: 36px;
+  margin-right: -8px;
+  align-items: center;
+  justify-content: center;
+  color: #4a4a4a;
+}
+.sc.ca .ca-sel {
+  width: 100%;
+}
+.sc.ca .ca-sel > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc.ca .pc-sheet-btns > button {
+  flex: 1 1 0;
+  height: 49.5px;
+  border-radius: 999px;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+.sc.ca .ca-opts {
+  flex: 1 1 auto !important;
+  min-height: 0;
+  overflow-y: auto;
+  margin: -8px -4px 0;
+  padding: 0 4px;
+  scrollbar-width: none;
+}
+.sc.ca .ca-opt {
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #efefef;
+  font-size: 16px;
+}
+.sc.ca .ca-opt small {
+  display: block;
+  font-size: 12px;
+  color: #8a8a8a;
+}
+.sc.ca .ca-opt.is-on {
+  font-weight: 600;
+}
+
+/* ── camera ───────────────────────────────────────────────────────────── */
+
+.sc.ca .ca-cam {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  background: #0e0d0c;
+}
+.sc.ca .ca-cam-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.sc.ca .ca-cam-x {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: rgb(255 255 255 / 14%);
+}
+.sc.ca .ca-cam-view {
+  position: relative;
+  flex: 1 1 auto;
+  background:
+    radial-gradient(120% 70% at 50% 100%, #6b5a46 0%, #3e352c 55%, transparent 56%),
+    linear-gradient(180deg, #9db3c4 0%, #c9c2b3 45%, #4a4038 46%, #2b2620 100%);
+}
+.sc.ca .ca-cam-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent calc(33.3% - 0.5px), rgb(255 255 255 / 28%) calc(33.3% - 0.5px), rgb(255 255 255 / 28%) calc(33.3% + 0.5px), transparent calc(33.3% + 0.5px), transparent calc(66.6% - 0.5px), rgb(255 255 255 / 28%) calc(66.6% - 0.5px), rgb(255 255 255 / 28%) calc(66.6% + 0.5px), transparent calc(66.6% + 0.5px)),
+    linear-gradient(180deg, transparent calc(33.3% - 0.5px), rgb(255 255 255 / 28%) calc(33.3% - 0.5px), rgb(255 255 255 / 28%) calc(33.3% + 0.5px), transparent calc(33.3% + 0.5px), transparent calc(66.6% - 0.5px), rgb(255 255 255 / 28%) calc(66.6% - 0.5px), rgb(255 255 255 / 28%) calc(66.6% + 0.5px), transparent calc(66.6% + 0.5px));
+}
+.sc.ca .ca-cam-bar {
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 128px;
+  padding: 0 20px 14px;
+}
+.sc.ca .ca-cam-count {
+  font-size: 13px;
+  color: #bdbdbd;
+}
+.sc.ca .ca-shutter {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow:
+    inset 0 0 0 4px #0e0d0c,
+    0 0 0 3px #fff;
+  transition: transform 0.12s var(--ca-ease);
+}
+.sc.ca .ca-shutter:active {
+  transform: scale(0.92);
+}
+
+/* ── toast and tap ripple ─────────────────────────────────────────────── */
+
+.sc.ca .ca-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  z-index: 20;
+  max-width: calc(100% - 32px);
+  width: max-content;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  line-height: 1.3;
+  font-weight: 500;
+  text-align: center;
+  color: #fff;
+  background: rgb(17 17 17 / 92%);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 18%);
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: ca-toast 0.24s var(--ca-ease) both;
+}
+@keyframes ca-toast {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+}
+
+.sc.ca .ca-ripple {
+  position: absolute;
+  z-index: 40;
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  border-radius: 50%;
+  background: rgb(20 20 20 / 14%);
+  pointer-events: none;
+  animation: ca-ripple 0.42s var(--ca-ease) both;
+}
+@keyframes ca-ripple {
+  from {
+    opacity: 1;
+    transform: scale(0.25);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc.ca .ca-in--push,
+  .sc.ca .ca-in--pop,
+  .sc.ca .ca-in--swap,
+  .sc.ca .ca-fade,
+  .sc.ca .ca-scrim,
+  .sc.ca .ca-sheet,
+  .sc.ca .ca-toast,
+  .sc.ca .ca-ripple {
+    animation: none !important;
+  }
+  .sc.ca .ca-press,
+  .sc.ca .ca-switch,
+  .sc.ca .ca-switch::after,
+  .sc.ca .ca-bar > i,
+  .sc.ca .pc-seg > button,
+  .sc.ca .ca-chip {
+    transition: none;
+  }
+  .sc.ca .ca-press:active {
+    transform: none;
+  }
+}

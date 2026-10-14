@@ -46,6 +46,11 @@ export function useClock() {
     ghostTimer.current = window.setTimeout(() => clockIn("demo"), reducedMotion ? 0 : GHOST_MS);
   }, [clockIn]);
 
+  /** The visitor is using the app (any tap or key in it): no self demo from now on. */
+  const touch = useCallback(() => {
+    set((s) => (s.touched ? s : { ...s, touched: true }));
+  }, []);
+
   /** The visitor is around the phone (pointer moving over it, focus): restart the demo countdown. */
   const [pokes, setPokes] = useState(0);
   const lastPoke = useRef(0);
@@ -57,7 +62,7 @@ export function useClock() {
   }, []);
 
   useEffect(() => () => window.clearTimeout(ghostTimer.current), []);
-  return { ...c, pokes, clockIn, clockOut, demo, poke };
+  return { ...c, pokes, clockIn, clockOut, demo, poke, touch };
 }
 
 /**

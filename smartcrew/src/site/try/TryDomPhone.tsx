@@ -3,6 +3,7 @@
 // still works (and reads the same). It scrolls in with the page (no tilt); its screen is off until
 // the scene's wake (./wake.ts), then the black plate fades and the app is on.
 
+import type { Ref } from "react";
 import { StatusBar } from "../../screens/kit";
 import { TryApp, type TryAppProps } from "./TryApp";
 import "./try-phone.css";
@@ -11,14 +12,14 @@ import "./try-phone.css";
 const BODY = { w: 0.79, h: 1.6336, r: 0.125 };
 const SCREEN_W = 0.7261;
 
-export default function TryDomPhone({ k, awake, ...app }: TryAppProps & { k: number; awake: boolean }) {
+export default function TryDomPhone({ k, awake, rootRef, ...app }: TryAppProps & { k: number; awake: boolean; rootRef?: Ref<HTMLDivElement> }) {
   const w = BODY.w * k;
   const h = BODY.h * k;
   const sw = SCREEN_W * k;
   const scale = sw / 402;
   const sh = 874 * scale;
   return (
-    <div className="try-dom" style={{ width: w, height: h, borderRadius: BODY.r * k }}>
+    <div ref={rootRef} className="try-dom" data-cursor="hide" style={{ width: w, height: h, borderRadius: BODY.r * k }}>
       <div className="try-dom-screen" style={{ width: sw, height: sh, borderRadius: BODY.r * k * 0.82 }}>
         <div className="try-dom-ui" style={{ transform: `scale(${scale})` }}>
           <div className="sc try-dom-status">

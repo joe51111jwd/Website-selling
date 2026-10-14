@@ -1,0 +1,112 @@
+/* Try it's focus mode (./focus.tsx): the dim round the phone, its hit bands, and the CTA that
+   stays reachable. Opacity only. */
+
+.fx {
+  --fx-dim: rgb(14 11 9 / 62%);
+  position: fixed;
+  inset: 0;
+  z-index: 49; /* under the header (50): its nav and CTA stay bright and usable */
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.26s var(--ease-out),
+    visibility 0s linear 0.26s;
+}
+
+.fx.is-open {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.3s var(--ease-out);
+}
+
+/* phones: over the header too (it has no CTA there; ours sits in it) */
+.fx--phone {
+  --fx-dim: rgb(14 11 9 / 66%);
+  z-index: 51;
+}
+
+.fx-hole {
+  position: fixed;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  border-radius: var(--r);
+  box-shadow: 0 0 10px 200vmax var(--fx-dim);
+  pointer-events: none;
+}
+
+.fx--phone .fx-hole {
+  box-shadow: 0 0 0 200vmax var(--fx-dim);
+}
+
+.fx-b {
+  position: fixed;
+}
+
+.fx.is-open .fx-b {
+  pointer-events: auto;
+}
+
+.fx-b--t {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--y);
+}
+
+.fx-b--b {
+  left: 0;
+  right: 0;
+  top: calc(var(--y) + var(--h));
+  bottom: 0;
+}
+
+.fx-b--l {
+  left: 0;
+  width: var(--x);
+  top: var(--y);
+  height: var(--h);
+}
+
+.fx-b--r {
+  left: calc(var(--x) + var(--w));
+  right: 0;
+  top: var(--y);
+  height: var(--h);
+}
+
+.fx-cta {
+  position: fixed;
+  top: calc(var(--y) + var(--h) / 2);
+  left: var(--cx);
+  right: var(--cr);
+  transform: translate3d(0, calc(-50% + 8px), 0);
+  opacity: 0;
+  transition:
+    opacity 0.2s var(--ease-out),
+    transform 0.3s var(--ease-out);
+}
+
+.fx.is-open .fx-cta {
+  pointer-events: auto;
+  opacity: 1;
+  transform: translate3d(0, -50%, 0);
+  transition-delay: 0.12s;
+}
+
+.fx--phone .fx-cta {
+  top: calc(var(--header-h) / 2);
+  left: auto;
+  right: var(--gutter);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx,
+  .fx.is-open,
+  .fx-cta,
+  .fx.is-open .fx-cta {
+    transition: none;
+  }
+}

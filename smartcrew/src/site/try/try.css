@@ -201,7 +201,7 @@
   transition-duration: 0.32s;
 }
 
-/* ── the buttons on the phone's screen ──────────────────────────────────── */
+/* ── the live app on the phone's screen ─────────────────────────────────── */
 
 .try-ov {
   position: absolute;
@@ -222,80 +222,23 @@
   transition: opacity 0.3s var(--ease-out);
 }
 
-.try-in,
-.try-out {
+/* the phone's body: taps, hover and focus here open focus mode (./focus.tsx) */
+.try-hit {
   position: absolute;
+  left: 0;
+  top: 0;
   transform: translate(-50%, -50%);
-  border-radius: 999px;
-  -webkit-tap-highlight-color: transparent;
 }
 
-.try-in:disabled,
-.try-out:disabled {
-  pointer-events: none;
-  cursor: default;
-}
-
-.try-in:focus-visible,
-.try-out:focus-visible {
-  outline: 2.5px solid var(--orange);
-  outline-offset: 4px;
-  border-radius: 999px;
-}
-
-/* pressed: the circle on the screen dips under the finger */
-.try-in::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: rgb(255 255 255 / 0%);
-  transition: background-color 0.12s;
-}
-
-.try-in:active::before,
-.try-in.is-ghost::before {
-  background: rgb(255 255 255 / 14%);
-}
-
-/* the self demo's ghost finger */
-.try-ghost {
+/* the live app, laid exactly over the 3D screen (TryScreen) */
+.try-scr {
+  --tp-breathe-delay: 0s;
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 46px;
-  height: 46px;
-  margin: -23px 0 0 -23px;
-  border-radius: 50%;
-  background: rgb(23 19 15 / 22%);
-  box-shadow:
-    0 0 0 2px rgb(255 255 255 / 75%),
-    0 6px 18px rgb(23 19 15 / 25%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.try-in.is-ghost .try-ghost {
-  animation: try-ghost 0.9s var(--ease-out) 1 both;
-}
-
-@keyframes try-ghost {
-  0% {
-    opacity: 0;
-    transform: translate(40px, 50px) scale(1.2);
-  }
-  45% {
-    opacity: 1;
-    transform: translate(0, 0) scale(1.08);
-  }
-  70% {
-    opacity: 1;
-    transform: scale(0.82);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1);
-  }
+  overflow: hidden;
+  background: #fff;
+  transform: translate(-50%, -50%);
 }
 
 @media (prefers-reduced-motion: reduce) {

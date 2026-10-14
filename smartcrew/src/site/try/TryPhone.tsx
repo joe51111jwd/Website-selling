@@ -7,8 +7,11 @@
 // it clocks in, the timer runs (one text update a second), the line on top turns into "That's the
 // whole training. Your crew gets this." and 0.6 s later the orange CTA slides up into the thumb
 // zone. Untouched for 3.2 s while on screen, it demos itself once. All CSS (try-phone.css).
+// Every control in the app works (./TryApp.tsx). Tapping the app dims the rest of the page and puts
+// the CTA in the dimmed header (./focus.tsx); a tap on the dim, or scrolling on, undims.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { FocusLayer, useFocusMode } from "./focus";
 import { TRY_IT } from "../../content/copy";
 import { useArrive } from "../phone/useArrive";
 import { Cta } from "../ui/Cta";
@@ -46,6 +49,14 @@ export default function TryPhone() {
   useSelfDemo(clock, arrived && onView);
   const isIn = arrived && stage >= 4;
 
+  // focus mode: the hole is the app (top edge to the bottom of the screen)
+  const app = useRef<HTMLDivElement>(null);
+  const measure = useCallback((n: HTMLElement) => {
+    const r = n.getBoundingClientRect();
+    return { x: r.left, y: r.top, w: r.width, h: Math.max(r.height, window.innerHeight - r.top), r: "24px 24px 0 0" };
+  }, []);
+  const focus = useFocusMode({ el: app, live: isIn, hover: false, measure, onEnter: clock.touch });
+
   useEffect(() => {
     if (!clock.on) {
       setSheet(false);
@@ -59,7 +70,7 @@ export default function TryPhone() {
 
   return (
     // the rise plays once the staged build is complete (never in the same frame as a build step)
-    <div ref={ref} className={`tp${isIn ? " is-in" : ""}${clock.on ? " is-on" : ""}`}>
+    <div ref={ref} className={`tp${isIn ? " is-in" : ""}${clock.on ? " is-on" : ""}${focus.open ? " is-focus" : ""}`}>
       {/* the line before the tap, and after it (crossfaded in place, no layout change) */}
       <div className="tp-head wrap">
         <div className="tp-swap">
@@ -76,7 +87,7 @@ export default function TryPhone() {
         </div>
       </div>
 
-      <div className="tp-app tp-ui">
+      <div ref={app} className="tp-app tp-ui" data-cursor="hide">
         <TryApp
           on={clock.on}
           secs={secs}
@@ -86,6 +97,7 @@ export default function TryPhone() {
           breathe={isIn && !clock.on && !clock.touched && !clock.demoed}
           onClockIn={() => clock.clockIn("visitor")}
           onClockOut={clock.clockOut}
+          onTouch={clock.touch}
         />
         <div className="tp-wake" aria-hidden="true" />
       </div>
@@ -98,13 +110,14 @@ export default function TryPhone() {
           <p className="tp-stamp" aria-hidden="true">
             {TRY_IT.site} · {TRY_IT.clocked.replace("{time}", stamp)}
           </p>
-          <Cta source="try" size="lg" className="tp-cta" />
+          <Cta source="try" size="lg" className="tp-cta" cue={false} />
           {/* he clocked in himself: just "Clock out"; the self demo did it: his turn */}
           <button type="button" className="link tp-again" onClick={clock.clockOut}>
             {clock.by === "visitor" ? TRY_IT.clockOut : TRY_IT.again}
           </button>
         </div>
       )}
+      <FocusLayer open={focus.open} soft={focus.soft} hole={focus.hole} onExit={focus.exit} variant="phone" />
     </div>
   );
 }
