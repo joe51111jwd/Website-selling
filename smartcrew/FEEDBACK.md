@@ -25,6 +25,8 @@ Every piece of feedback on the product page, in one place. Each item has a statu
    - Brief: `RIDE_BRIEF.md` (design notes).
    - **Always moving, never repetitive** (after watching the first version): no frozen frames, and every moment is its own shot (a different framing, camera move and animation). It is one continuous walk through the day, with the phone as a lead character. Shot list: `RIDE_SHOTS.md`.
    - **Smooth, not laggy:** it must hold its frame rate on an ordinary 13" MacBook in Safari and Chrome. Quality adapts to the machine, and a dedicated performance pass measures before and after.
+   - **5 PM gets big numbers.** The profit number is big on screen and counts up. Clicking the 5:00 tick must not shrink it or the logo.
+   - **No clipping after a jump.** Clicking a time on the timeline and then scrolling up must leave a clean frame: no extreme zoom into the laptop, nothing overlapping.
 5. **A pace you can read.**
    - Each step holds until a slow reader has read everything on screen: the time, the headline, what the crew tapped and what the office got.
    - One thing moves at a time, in reading order. Whatever is being explained is big enough to read on a 13" MacBook.
@@ -40,7 +42,12 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 9. **The cursor doesn't zoom.** "When it hovers over something, it zooms in, which is kind of distracting."
    - Done: the magnifier over device screens is off, and the big "view" circle is now the small link ring.
    - Rule: hover states stay small and calm. No zoom and no big growth.
-10. **Copy.**
+10. **"Here's everything it does": less text, click through the web app.** Less text, and the visitor can click through the real office web app: the six groups as its sidebar, real screens, and one-line labels on hotspots. Brief: `SPEC_BRIEF.md`.
+11. **Two versions.**
+    - Version 1 is the React ride (`?v=ride`). Version 2 (`?v=video`) plays Andrew's walkthrough video full screen in the same spot: scrolling past the hero locks the page, the video autoplays (muted, with "Tap for sound") until it ends, then the page lets go.
+    - Done: version 2 is live, with the takeover, Skip/Esc, scroll up to leave, Resume and Replay. Not verified: actual video playback, because the test browser here can't play the video's format (H.264). Check it in Safari or Chrome.
+    - Done: the hero's polygons and walking crew are gone, the topographic lines come forward, and "every job" is in orange.
+12. **Copy.**
    - Every line is up for review on the copy review page (Use new / Keep current / Rewrite).
    - The site's wording changes only after the agency owner has marked it.
    - Questions only Andrew can answer are listed on that page.
@@ -78,7 +85,7 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 
 ## Before it goes to the client
 
-- [ ] Items 1–10 above are done.
+- [ ] Items 1–12 above are done.
 - [ ] A review panel passes it: an art director, a conversion lead and technical QA.
 - [ ] `npm run e2e` is green on desktop and on the Facebook in-app iPhone browser.
 - [ ] It is deployed, and the agency owner gets the link.
