@@ -237,3 +237,68 @@
     transition: none !important;
   }
 }
+
+/* ── Fewer words: six boxes in a grid, each tool a chip (the boss: "so many words… do boxes or a
+   grid"). The tool's one-liner is its tooltip; "View" is the chip itself. ── */
+.spal-body {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.spal-group {
+  margin: 0;
+  padding: 14px 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--paper);
+}
+
+.spal-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spal-list li {
+  margin: 0;
+  border: 0;
+}
+
+.spal-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: auto;
+  min-height: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--ground);
+  font-size: 13.5px;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.spal-tool.is-link:hover,
+.spal-tool.is-link:focus-visible {
+  border-color: var(--orange);
+  background: var(--paper);
+}
+
+.spal-tool .spal-name {
+  font-weight: 600;
+}
+
+.spal-see {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .spal-body {
+    grid-template-columns: 1fr;
+  }
+}

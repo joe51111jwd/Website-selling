@@ -23,6 +23,7 @@ import { onPageReady } from "../ready";
 import { scrollToScene } from "../scroll";
 import { usePhoneLite } from "../phone";
 import { mountFence } from "./fence/engine";
+import { VERSION } from "../version";
 import "./fence/fence.css";
 
 /**
@@ -101,7 +102,7 @@ export default function Hero() {
   useLayoutEffect(() => mountFence(root.current!, { phone: lite, reduced: reducedMotion }), [lite]);
 
   return (
-    <Scene id="top" pinnedViewports={1} poses={lite ? undefined : HERO_PARK} stage={lite ? "keep" : "hide"} label="SmartCrew" className="hero hf">
+    <Scene id="top" pinnedViewports={1} poses={lite || VERSION === "video" ? undefined : HERO_PARK} stage={lite ? "keep" : "hide"} label="SmartCrew" className="hero hf">
       <div className={`hf-root${lite ? " hf--phone" : ""}`} ref={root}>
         <div className="hf-ground" aria-hidden="true">
           <div className="hf-ground-drift">

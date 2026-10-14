@@ -1,5 +1,6 @@
 // "Show everything": the plain list, for people who want to read. Every tool of the six groups
-// with its one plain line (⚑ where Andrew still has to confirm it). A tool that has a spot in the
+// as a grid of six boxes, each tool a short chip (its one plain line is the tooltip; ⚑ where
+// Andrew still has to confirm it). A tool that has a spot in the
 // app is a button: it closes the list and shows that spot. A modal dialog (focus kept inside,
 // Escape or Close shuts it, focus goes back to what opened it), portalled to <body>, the page
 // held still underneath. Desktop: a panel over the section; phones: a sheet up from the bottom.
@@ -138,13 +139,12 @@ function Panel({ up, onClose, onPick, canShow, variant }: Omit<Props, "open"> & 
                         {t.label}
                         {t.confirm && <Flag />}
                       </span>
-                      <span className="spal-line">{t.line}</span>
                     </>
                   );
                   return (
                     <li key={t.id}>
                       {canShow(t) ? (
-                        <button type="button" className="spal-tool is-link" data-tool={t.id} onClick={() => onPick(t)}>
+                        <button type="button" className="spal-tool is-link" data-tool={t.id} title={t.line} onClick={() => onPick(t)}>
                           {name}
                           <span className="spal-see" aria-hidden="true">
                             {SPEC.view}
@@ -154,7 +154,9 @@ function Panel({ up, onClose, onPick, canShow, variant }: Omit<Props, "open"> & 
                           </span>
                         </button>
                       ) : (
-                        <div className="spal-tool">{name}</div>
+                        <div className="spal-tool" title={t.line}>
+                          {name}
+                        </div>
                       )}
                     </li>
                   );
