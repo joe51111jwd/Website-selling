@@ -793,23 +793,13 @@ html.has-opening .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-
   display: none;
 }
 
-/* ── The headline is poured in sand (./sand.ts). The letters start empty (transparent, nothing on
-   screen); the sand canvases (.hf-pour: the falling curtain; .hf-sand: the grains piling in the
-   letters) do the pour; then the sand picture becomes each line's own fill (background-clip:
-   text, set inline), so the edges are the real glyph edges. If the script never finishes, the
-   type shows in ink after 9 s. ── */
-.hf-line-in {
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  background-repeat: no-repeat;
-}
-
+/* ── The headline is poured in sand (./sand.ts). The letters stay transparent: the sand canvases
+   are what you see (.hf-pour: the falling curtain; .hf-sand: the grains in the letters, drawn one
+   by one at device resolution, rough edges and all). If the script never finishes, the type
+   shows in ink after 15 s. ── */
+.hf-line-in,
 .hf-fenced {
   color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  background-repeat: no-repeat;
 }
 
 .hf-root.is-sand-failed .hf-line-in {
@@ -820,30 +810,42 @@ html.has-opening .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-
   color: var(--orange-ink);
 }
 
+.hf-root.is-sand-failed :is(.hf-sand, .hf-pour) {
+  display: none;
+}
+
 .hf-sand {
   position: absolute;
   z-index: 2;
   pointer-events: none;
-  transition: opacity 0.4s var(--ease-out);
+  transition: filter 0.9s var(--ease-out);
 }
 
-.hf-root.is-sanded .hf-sand,
-.hf-root.is-sanded .hf-pour {
-  opacity: 0;
+.hf-sand canvas {
+  position: absolute;
+  left: 0;
+  display: block;
+}
+
+/* once it's settled, the sand sits on the page: a soft contact shadow under the grains */
+.hf-root.is-sanded .hf-sand {
+  filter: drop-shadow(0 1px 0.6px rgb(23 19 15 / 26%)) drop-shadow(0 4px 7px rgb(60 40 20 / 10%));
 }
 
 .hf-pour {
   position: absolute;
-  inset: 0;
+  top: 0;
   z-index: 3;
-  width: 100%;
-  height: 100%;
   pointer-events: none;
+  transition: opacity 0.4s var(--ease-out);
 }
 
-/* the soil reaches the descenders (y, j, g, the comma) */
-.hf-line-in,
-.hf-fenced {
-  padding-bottom: 0.26em;
-  margin-bottom: -0.26em;
+.hf-root.is-sanded .hf-pour {
+  opacity: 0;
+}
+
+@media (max-width: 760px) {
+  .hf-root.is-sanded .hf-sand {
+    filter: none;
+  }
 }

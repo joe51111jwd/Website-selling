@@ -102,5 +102,12 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 - **Real sand, with physics and heavy grain** (the boss: "as realistic as possible with physics… it should look like sand").
   - Done: a falling-sand simulation. Grains pour from the top of the screen, enter the letters, fall, slide down slopes and pile up. The bottom line fills first and each letter fills from the bottom.
   - Every grain has its own colour: soil browns with quartz and dark specks, and orange clay in "every job".
-  - When the pour ends, the sand picture becomes the letters' own fill, so the edges are the real glyph edges.
   - Measured: 60 fps on phone and desktop with the 3D off.
+- **Grain on the edges, no clean mask** (the boss: "It shouldn't look like a grain with a mask over top that's clean. I want to feel the grain texture on the edges… looks like it didn't render properly").
+  - Done: no clean type is ever laid over the sand. The letters are the grains, start to finish.
+  - Each grain is drawn at screen resolution as a small lit pebble: its own colour, shape and size, light on the top left and shade on the bottom right. Gaps between packed grains are dark; gaps facing outside stay open.
+  - The outline is rough. Some edge grains are missing (notches), and loose grains sit on top of and beside the strokes. They land there only once the sand beside them has come to rest.
+  - Grains land on the pile already in each letter, so empty letters never show as ghost outlines. The letters fill from the bottom up.
+  - A soft contact shadow sits under the settled letters on desktop.
+  - Resizes re-lay the sand at once. Reduced motion shows it filled. If the script fails, ink type shows after 15 s.
+  - Measured with screenshots off: 60 fps on desktop (1440×900, DPR 2, 3D off; about 3 ms of script a frame) and on an iPhone-size screen (DPR 3).

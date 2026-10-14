@@ -1,26 +1,33 @@
 // The headline is poured in sand (the boss: "it should look like someone just poured sand over the
-// thing, and it filled up the text… as realistic as possible with physics… a heavy grain texture").
+// thing, and it filled up the text… as realistic as possible with physics… I want to feel the
+// grain texture on the edges of the text").
 //
 // How it works:
-// - The letters start empty: the DOM headline is transparent (fence.css), so nothing shows.
-// - A sand grid covers the headline (one cell = CELL px). Its mask is the glyphs, drawn into an
-//   offscreen canvas one character at a time at the DOM characters' own boxes, so the mask lines up
-//   with the real type. Outside the glyphs is wall.
-// - Sand pours from the top of the screen in a falling curtain (the "stream" canvas). Each grain
-//   that reaches the headline enters a letter at the top of the lowest stroke in its column that
-//   isn't full yet, so the letters fill from the bottom up, bottom line first.
+// - The letters start empty: the DOM headline is transparent (fence.css), so nothing shows. It
+//   stays transparent: the sand canvas is what you see, start to finish. There is no clean type
+//   laid over the grains at the end.
+// - A sand grid covers the headline (one cell = one grain, CELL css px). Its mask is the glyphs,
+//   drawn into an offscreen canvas one character at a time at the DOM characters' own boxes, so it
+//   lines up with the real type. The mask's edge is roughened before the pour: some edge cells are
+//   knocked out (notches) and a few loose grains sit just outside the strokes, so the outline is
+//   made of grains, never a clean line.
+// - Sand pours from the top of the screen in a falling curtain (the "pour" canvas). Each grain that
+//   reaches the headline enters a letter at the top of the lowest stroke in its column that isn't
+//   full yet, so the letters fill from the bottom up, bottom line first.
 // - Inside the letters it's a falling-sand automaton: a grain falls if the cell below is free,
 //   else slides down-left or down-right, so it piles, forms slopes and settles into the corners.
-// - Every grain gets its own colour (dark soil browns with light and dark specks; orange clay in
-//   the key phrase): the texture is the grain itself.
-// - When the pour is done the sand picture becomes the DOM headline's own fill (background-clip:
-//   text), so the edges are the real glyph edges, it stays selectable and it survives resizes.
+// - Every grain is drawn at device resolution as a little lit pebble: its own colour, its own
+//   shape and size, light from the top left, shade on the bottom right. Between packed grains the
+//   gaps are dark; at the edges they're open, so the outline breaks up into grains.
 // Reduced motion: the letters are filled at once.
 
-const CELL = 1.5;
+const DESK_CELL = 2;
+const PHONE_CELL = 1.5;
 const SUBSTEPS = 3;
+const VARIANTS = 14;
 
 type Seg = { y0: number; y1: number };
+type Pat = { a: Float32Array; m: Float32Array };
 
 export function startSand(root: HTMLElement, opts: { phone: boolean }) {
   const h1 = root.querySelector<HTMLElement>(".hf-h1-v");
@@ -37,20 +44,84 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     offs.forEach((f) => f());
   };
 
+  // the grain size: S device px a grain, so every grain is drawn on whole pixels ----------------
+  let dpr = 1;
+  let S = 4;
+  let CELL = 2;
+  let pats: Pat[] = [];
+  let need = new Uint8Array(0); // per pixel: the neighbours a gap pixel faces (1 up, 2 down, 4 left, 8 right)
+  const sizeGrain = () => {
+    dpr = Math.min(3, window.devicePixelRatio || 1);
+    S = Math.max(2, Math.round((opts.phone ? PHONE_CELL : DESK_CELL) * dpr));
+    CELL = S / dpr;
+    // the grain shapes: a lit ellipsoid each, a little off-centre, a little squashed
+    const L = [-0.45, -0.6, 0.66];
+    const ll = Math.hypot(L[0], L[1], L[2]);
+    const [lx, ly, lz] = L.map((v) => v / ll);
+    pats = [];
+    for (let v = 0; v < VARIANTS; v++) {
+      const r = S * (0.38 + Math.random() * 0.16);
+      const ex = 0.8 + Math.random() * 0.4;
+      const ey = 2 - ex;
+      const cx = S / 2 + (Math.random() - 0.5) * 0.4 * S;
+      const cy = S / 2 + (Math.random() - 0.5) * 0.4 * S;
+      // a lumpy outline: the radius wobbles with the angle
+      const k1 = Math.random() * 6.3;
+      const k2 = Math.random() * 6.3;
+      const w1 = 0.08 + Math.random() * 0.1;
+      const w2 = 0.05 + Math.random() * 0.08;
+      const a = new Float32Array(S * S);
+      const m = new Float32Array(S * S);
+      for (let py = 0; py < S; py++) {
+        for (let px = 0; px < S; px++) {
+          let cov = 0;
+          let sh = 0;
+          for (let sy = 0; sy < 4; sy++) {
+            for (let sx = 0; sx < 4; sx++) {
+              const ux = (px + (sx + 0.5) / 4 - cx) / (r * ex);
+              const uy = (py + (sy + 0.5) / 4 - cy) / (r * ey);
+              const an = Math.atan2(uy, ux);
+              const lump = 1 + w1 * Math.sin(2 * an + k1) + w2 * Math.sin(3 * an + k2);
+              const dx = ux / lump;
+              const dy = uy / lump;
+              const d2 = dx * dx + dy * dy;
+              if (d2 >= 1) continue;
+              cov++;
+              const dif = Math.max(0, dx * lx + dy * ly + Math.sqrt(1 - d2) * lz);
+              sh += 0.62 + 0.55 * dif + (dif > 0.95 ? 0.12 : 0);
+            }
+          }
+          a[py * S + px] = cov / 16;
+          m[py * S + px] = cov ? sh / cov : 1;
+        }
+      }
+      pats.push({ a, m });
+    }
+    need = new Uint8Array(S * S);
+    for (let py = 0; py < S; py++) {
+      for (let px = 0; px < S; px++) {
+        const h = px * 2 + 1;
+        const v = py * 2 + 1;
+        need[py * S + px] = (v < S ? 1 : v > S ? 2 : 0) | (h < S ? 4 : h > S ? 8 : 0);
+      }
+    }
+  };
+
   // the grid ---------------------------------------------------------------------------------
   let gx = 0;
   let gy = 0;
   let gw = 0;
   let gh = 0;
   let mask = new Uint8Array(0); // 0 wall, 1 soil, 2 clay
-  let sand = new Uint8Array(0); // 0 empty, 1 sand
+  let sand = new Uint8Array(0); // 0 empty, else the grain's shape + 1
   let col = new Uint32Array(0); // ABGR per cell
   let segs: Seg[][] = []; // per column, glyph runs, bottom first
   let lineOfRow = new Int16Array(0);
   let lineCols: number[][] = [];
+  let spill: number[][] = []; // per line: the loose grains just outside the strokes
   let clayRects: { x0: number; y0: number; x1: number; y1: number }[] = [];
 
-  const SOIL = [0x2a1f16, 0x3b2c20, 0x1c1510, 0x4a3726, 0x241b14, 0x5a4430, 0x33261b, 0x6b5038, 0x7d5f43];
+  const SOIL = [0x2a1f16, 0x3b2c20, 0x1c1510, 0x4a3726, 0x241b14, 0x5a4430, 0x33261b, 0x6b5038, 0x7d5f43, 0x8a6a4a];
   const CLAY = [0xb84f00, 0xd76b22, 0x9c4200, 0xc25a12, 0xa84800, 0xe07a2e];
   const abgr = (rgb: number, k: number) => {
     const r = Math.max(0, Math.min(255, ((rgb >> 16) & 255) * k));
@@ -61,16 +132,18 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
   const grainColor = (m: number) => {
     const r = Math.random();
     if (m === 2) {
-      if (r < 0.06) return abgr(0xf3b27a, 1);
-      if (r < 0.1) return abgr(0x5c2a06, 1);
-      return abgr(CLAY[(Math.random() * CLAY.length) | 0], 0.85 + Math.random() * 0.3);
+      if (r < 0.07) return abgr(0xf3b27a, 0.9 + Math.random() * 0.15);
+      if (r < 0.12) return abgr(0x5c2a06, 1);
+      return abgr(CLAY[(Math.random() * CLAY.length) | 0], 0.82 + Math.random() * 0.32);
     }
-    if (r < 0.1) return abgr(0xc7a77c, 0.75 + Math.random() * 0.45); // light quartz speck
-    if (r < 0.16) return abgr(0x0d0a07, 1); // dark speck
+    if (r < 0.11) return abgr(0xc7a77c, 0.75 + Math.random() * 0.45); // light quartz speck
+    if (r < 0.17) return abgr(0x0d0a07, 1); // dark speck
     return abgr(SOIL[(Math.random() * SOIL.length) | 0], 0.8 + Math.random() * 0.45);
   };
+  const isClay = (x: number, y: number) => clayRects.some((r) => x >= r.x0 && x <= r.x1 && y >= r.y0 && y <= r.y1);
 
   const build = () => {
+    sizeGrain();
     const rr = root.getBoundingClientRect();
     const hb = h1.getBoundingClientRect();
     gx = hb.left - rr.left - 8;
@@ -90,8 +163,7 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     lines.forEach((el, li) => {
       const cs = getComputedStyle(el);
       const fs = parseFloat(cs.fontSize);
-      const font = `${cs.fontWeight} ${fs / CELL}px ${cs.fontFamily}`;
-      m.font = font;
+      m.font = `${cs.fontWeight} ${fs / CELL}px ${cs.fontFamily}`;
       m.textBaseline = "alphabetic";
       const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
       let top = Infinity;
@@ -125,13 +197,71 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
       for (let y = Math.max(0, Math.floor(top) - 1); y <= Math.min(gh - 1, Math.ceil(bottom) + 1); y++) lineOfRow[y] = li;
     });
     const px = m.getImageData(0, 0, gw, gh).data;
-    mask = new Uint8Array(gw * gh);
-    for (let i = 0; i < gw * gh; i++) {
-      const a = px[i * 4 + 3];
-      if (a > 110) mask[i] = px[i * 4 + 2] > px[i * 4] ? 2 : 1;
+    const N = gw * gh;
+    const glyph = new Uint8Array(N);
+    for (let i = 0; i < N; i++) {
+      if (px[i * 4 + 3] > 110) glyph[i] = px[i * 4 + 2] > px[i * 4] ? 2 : 1;
     }
-    sand = new Uint8Array(gw * gh);
-    col = new Uint32Array(gw * gh);
+
+    // the rough edge: knock out some edge cells (and a few behind them), so the outline is notched
+    const nb = (a: Uint8Array, i: number, x: number, y: number) => (x > 0 && a[i - 1] ? 1 : 0) + (x < gw - 1 && a[i + 1] ? 1 : 0) + (y > 0 && a[i - gw] ? 1 : 0) + (y < gh - 1 && a[i + gw] ? 1 : 0);
+    mask = glyph.slice();
+    const knocked = new Uint8Array(N);
+    for (let i = 0; i < N; i++) {
+      if (!glyph[i]) continue;
+      const x = i % gw;
+      const y = (i / gw) | 0;
+      const open = 4 - nb(glyph, i, x, y);
+      if (open && Math.random() < 0.2 + 0.08 * open) {
+        mask[i] = 0;
+        knocked[i] = 1;
+      }
+    }
+    for (let i = 0; i < N; i++) {
+      if (!mask[i]) continue;
+      const x = i % gw;
+      const y = (i / gw) | 0;
+      if (nb(knocked, i, x, y) && Math.random() < 0.14) mask[i] = 0;
+    }
+    // loose grains just outside the strokes: most on the tops of strokes, where poured sand rests
+    const ring = new Uint8Array(N);
+    const loose: number[] = [];
+    for (let i = 0; i < N; i++) {
+      if (glyph[i]) continue;
+      const x = i % gw;
+      const y = (i / gw) | 0;
+      if (!nb(glyph, i, x, y)) continue;
+      ring[i] = 1;
+      const onTop = y < gh - 1 && glyph[i + gw];
+      if (Math.random() < (onTop ? 0.13 : 0.055)) loose.push(i);
+    }
+    for (let i = 0; i < N; i++) {
+      if (glyph[i] || ring[i]) continue;
+      const x = i % gw;
+      const y = (i / gw) | 0;
+      if (nb(ring, i, x, y) && Math.random() < 0.012) loose.push(i);
+    }
+    spill = lines.map(() => []);
+    for (const i of loose) {
+      const y = (i / gw) | 0;
+      let li = -1;
+      for (const d of [0, 1, -1, 2, -2, 3, -3]) {
+        const yy = y + d;
+        if (yy >= 0 && yy < gh && lineOfRow[yy] >= 0) {
+          li = lineOfRow[yy];
+          break;
+        }
+      }
+      if (li >= 0) spill[li].push(i);
+    }
+    spill.forEach((s) => s.sort(() => Math.random() - 0.5));
+
+    sand = new Uint8Array(N);
+    col = new Uint32Array(N);
+    dirty = new Uint8Array(N);
+    dlist = [];
+    awake = new Uint8Array(gh);
+    woken = new Uint8Array(gh);
     segs = [];
     lineCols = lines.map(() => []);
     for (let x = 0; x < gw; x++) {
@@ -156,27 +286,169 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     }
   };
 
-  // the sand canvas (over the headline) ------------------------------------------------------
-  const cv = document.createElement("canvas");
-  cv.className = "hf-sand";
-  cv.setAttribute("aria-hidden", "true");
-  const ctx = cv.getContext("2d")!;
+  // the sand (over the headline), at device resolution, in bands of BAND rows: a frame only
+  // uploads the bands where grains moved -------------------------------------------------------
+  const BAND = 32;
+  const box = document.createElement("div");
+  box.className = "hf-sand";
+  box.setAttribute("aria-hidden", "true");
+  let bands: CanvasRenderingContext2D[] = [];
   let img: ImageData | null = null;
-  let buf32 = new Uint32Array(0);
+  let dev = new Uint32Array(0);
+  let W = 0;
   const place = () => {
-    cv.width = gw;
-    cv.height = gh;
-    cv.style.left = `${gx}px`;
-    cv.style.top = `${gy}px`;
-    cv.style.width = `${gw * CELL}px`;
-    cv.style.height = `${gh * CELL}px`;
-    img = ctx.createImageData(gw, gh);
-    buf32 = new Uint32Array(img.data.buffer);
+    W = gw * S;
+    box.replaceChildren();
+    box.style.left = `${gx}px`;
+    box.style.top = `${gy}px`;
+    box.style.width = `${gw * CELL}px`;
+    box.style.height = `${gh * CELL}px`;
+    bands = [];
+    for (let y = 0; y < gh; y += BAND) {
+      const rows = Math.min(BAND, gh - y);
+      const c = document.createElement("canvas");
+      c.width = W;
+      c.height = rows * S;
+      c.style.top = `${y * CELL}px`;
+      c.style.width = `${gw * CELL}px`;
+      c.style.height = `${rows * CELL}px`;
+      box.appendChild(c);
+      bands.push(c.getContext("2d")!);
+    }
+    bx0 = new Int32Array(bands.length);
+    bx1 = new Int32Array(bands.length);
+    by0 = new Int32Array(bands.length);
+    by1 = new Int32Array(bands.length);
+    img = new ImageData(W, gh * S);
+    dev = new Uint32Array(img.data.buffer);
   };
-  const paint = () => {
+  let bx0 = new Int32Array(0);
+  let bx1 = new Int32Array(0);
+  let by0 = new Int32Array(0);
+  let by1 = new Int32Array(0);
+
+  // one grain: its shape, lit, with dark gaps where it packs against its neighbours and open gaps
+  // where it faces the outside (that's the grainy edge)
+  const paintCell = (i: number) => {
+    const x = i % gw;
+    const y = (i / gw) | 0;
+    const o0 = y * S * W + x * S;
+    const v = sand[i];
+    if (!v) {
+      for (let py = 0; py < S; py++) dev.fill(0, o0 + py * W, o0 + py * W + S);
+      return;
+    }
+    const up = y > 0 && sand[i - gw] ? 1 : 0;
+    const dn = y < gh - 1 && sand[i + gw] ? 2 : 0;
+    const lf = x > 0 && sand[i - 1] ? 4 : 0;
+    const rt = x < gw - 1 && sand[i + 1] ? 8 : 0;
+    const nbs = up | dn | lf | rt;
+    const c = col[i];
+    // the top of a stroke catches the light, the underside is in shade
+    const k = !up ? 1.12 : !dn ? 0.84 : 1;
+    const r = (c & 255) * k;
+    const g = ((c >> 8) & 255) * k;
+    const b = ((c >> 16) & 255) * k;
+    const p = pats[v - 1];
+    for (let py = 0; py < S; py++) {
+      const o = o0 + py * W;
+      for (let px = 0; px < S; px++) {
+        const q = py * S + px;
+        const a = p.a[q];
+        const mm = p.m[q];
+        let R = r * mm;
+        let G = g * mm;
+        let B = b * mm;
+        if (R > 255) R = 255;
+        if (G > 255) G = 255;
+        if (B > 255) B = 255;
+        let A = 255;
+        if (a < 1) {
+          const nq = need[q];
+          if ((nbs & nq) === nq) {
+            // packed: the gap is the shadow between grains
+            R = r * 0.45 + (R - r * 0.45) * a;
+            G = g * 0.45 + (G - g * 0.45) * a;
+            B = b * 0.45 + (B - b * 0.45) * a;
+          } else {
+            A = (a * 255) | 0;
+            if (A < 10) {
+              dev[o + px] = 0;
+              continue;
+            }
+          }
+        }
+        dev[o + px] = (A << 24) | ((B | 0) << 16) | ((G | 0) << 8) | (R | 0);
+      }
+    }
+  };
+  let dirty = new Uint8Array(0);
+  let dlist: number[] = [];
+  const touch = (k: number) => {
+    if (k < 0 || k >= dirty.length || dirty[k]) return;
+    dirty[k] = 1;
+    dlist.push(k);
+  };
+  const mark = (i: number) => {
+    touch(i);
+    touch(i - 1);
+    touch(i + 1);
+    touch(i - gw);
+    touch(i + gw);
+  };
+  const flush = () => {
+    if (!img || !dlist.length) return;
+    bx0.fill(gw);
+    bx1.fill(-1);
+    by0.fill(gh);
+    by1.fill(-1);
+    for (const k of dlist) {
+      dirty[k] = 0;
+      paintCell(k);
+      const x = k % gw;
+      const y = (k / gw) | 0;
+      const b = (y / BAND) | 0;
+      if (x < bx0[b]) bx0[b] = x;
+      if (x > bx1[b]) bx1[b] = x;
+      if (y < by0[b]) by0[b] = y;
+      if (y > by1[b]) by1[b] = y;
+    }
+    dlist.length = 0;
+    for (let b = 0; b < bands.length; b++) {
+      if (bx1[b] < 0) continue;
+      bands[b].putImageData(img, 0, -b * BAND * S, bx0[b] * S, by0[b] * S, (bx1[b] - bx0[b] + 1) * S, (by1[b] - by0[b] + 1) * S);
+    }
+  };
+  const paintAll = () => {
     if (!img) return;
-    for (let i = 0; i < sand.length; i++) buf32[i] = sand[i] ? col[i] : 0;
-    ctx.putImageData(img, 0, 0);
+    for (let i = 0; i < sand.length; i++) paintCell(i);
+    dirty.fill(0);
+    dlist.length = 0;
+    bands.forEach((c, b) => c.putImageData(img!, 0, -b * BAND * S, 0, b * BAND * S, W, Math.min(BAND, gh - b * BAND) * S));
+  };
+
+  const add = (i: number, m: number) => {
+    sand[i] = 1 + ((Math.random() * VARIANTS) | 0);
+    col[i] = grainColor(m);
+    mark(i);
+    wake(i);
+  };
+  // sand that's come to rest: in a stroke, on the floor of it or on more sand (not still falling)
+  const resting = (k: number) => sand[k] > 0 && mask[k] > 0 && (k + gw >= mask.length || !mask[k + gw] || sand[k + gw] > 0);
+  const nearSand = (i: number) => {
+    const x = i % gw;
+    const y = (i / gw) | 0;
+    for (let d = 1; d <= 2; d++) {
+      if (x - d >= 0 && resting(i - d)) return true;
+      if (x + d < gw && resting(i + d)) return true;
+      if (y - d >= 0 && resting(i - d * gw)) return true;
+      if (y + d < gh && resting(i + d * gw)) return true;
+    }
+    return false;
+  };
+  const addLoose = (i: number) => {
+    if (sand[i]) return;
+    add(i, isClay(i % gw, (i / gw) | 0) ? 2 : 1);
   };
 
   // the falling curtain (over the whole hero) ------------------------------------------------
@@ -184,26 +456,48 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
   sv.className = "hf-pour";
   sv.setAttribute("aria-hidden", "true");
   const sctx = sv.getContext("2d")!;
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
-  type Drop = { x: number; y: number; vy: number; tx: number; ty: number; c: string; s: number };
+  type Drop = { x: number; y: number; vy: number; ty: number; c: string; s: number };
   const drops: Drop[] = [];
   const hex = (n: number) => `#${n.toString(16).padStart(6, "0")}`;
 
   // physics ----------------------------------------------------------------------------------
   let flip = false;
+  // only rows where something can move are scanned: a row wakes when a grain lands in it or a
+  // grain leaves it or a row next to it
+  let awake = new Uint8Array(0);
+  let woken = new Uint8Array(0);
+  const wake = (i: number) => {
+    const y = (i / gw) | 0;
+    if (y > 0) woken[y - 1] = 1;
+    woken[y] = 1;
+    if (y < gh - 1) woken[y + 1] = 1;
+  };
+  const move = (i: number, j: number) => {
+    sand[j] = sand[i];
+    col[j] = col[i];
+    sand[i] = 0;
+    mark(i);
+    mark(j);
+    wake(i);
+    wake(j);
+  };
   const stepSand = () => {
     flip = !flip;
+    const t = awake;
+    awake = woken;
+    woken = t;
+    woken.fill(0);
     for (let y = gh - 2; y >= 0; y--) {
+      if (!awake[y]) continue;
       const row = y * gw;
       for (let k = 0; k < gw; k++) {
         const x = flip ? k : gw - 1 - k;
         const i = row + x;
-        if (!sand[i]) continue;
+        // loose grains outside the strokes stay where they landed
+        if (!sand[i] || !mask[i]) continue;
         const d = i + gw;
         if (mask[d] && !sand[d]) {
-          sand[d] = 1;
-          col[d] = col[i];
-          sand[i] = 0;
+          move(i, d);
           continue;
         }
         const dir = Math.random() < 0.5 ? -1 : 1;
@@ -213,9 +507,7 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
           const j = d + s;
           // slide only if the side cell is open too (no tunnelling through a stroke's wall)
           if (mask[j] && !sand[j] && mask[i + s] && !sand[i + s]) {
-            sand[j] = 1;
-            col[j] = col[i];
-            sand[i] = 0;
+            move(i, j);
             break;
           }
         }
@@ -223,74 +515,48 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     }
   };
 
-  // drop a grain into column x: the top of the lowest stroke in that column that isn't full
+  // drop a grain into column x: into the lowest stroke in that column that isn't full, a few
+  // grains above the pile already in it (the falling curtain carries it down to there, so the
+  // empty letters never show before the sand reaches them)
   const entry = (x: number): number => {
     for (const r of segs[x]) {
-      const top = r.y0 * gw + x;
-      if (!sand[top]) return top;
+      if (sand[r.y0 * gw + x]) continue;
+      let y = r.y0;
+      while (y < r.y1 && !sand[(y + 1) * gw + x]) y++;
+      return Math.max(r.y0, y - ((Math.random() * 5) | 0)) * gw + x;
     }
     return -1;
   };
-  // the end: the sand picture becomes the headline's own fill --------------------------------
-  const settle = () => {
-    for (let i = 0; i < mask.length; i++) {
-      if (mask[i] && !sand[i]) {
-        sand[i] = 1;
-        col[i] = grainColor(mask[i]);
-      }
-    }
-    paint();
+  // fill at once (reduced motion, resizes): every stroke cell and every loose grain
+  const fillNow = () => {
+    for (let i = 0; i < mask.length; i++) if (mask[i] && !sand[i]) add(i, mask[i]);
+    spill.forEach((s) => s.forEach(addLoose));
   };
-  // the picture the letters keep: the poured grains, and grains all round them too, so the real
-  // glyph edges (which the grid only approximates) never show a gap
-  const isClay = (x: number, y: number) => clayRects.some((r) => x >= r.x0 && x <= r.x1 && y >= r.y0 && y <= r.y1);
-  const fillAll = () => {
-    for (let i = 0; i < mask.length; i++) {
-      if (sand[i]) continue;
-      const x = i % gw;
-      const y = (i / gw) | 0;
-      sand[i] = 1;
-      col[i] = grainColor(isClay(x, y) ? 2 : 1);
-    }
-    paint();
-  };
-  const handOver = () => {
-    fillAll();
-    const url = cv.toDataURL("image/png");
-    // each line shows its own window onto the one sand picture
-    const rr = root.getBoundingClientRect();
-    lines.forEach((el) => {
-      const b = el.getBoundingClientRect();
-      el.style.backgroundImage = `url(${url})`;
-      el.style.backgroundSize = `${gw * CELL}px ${gh * CELL}px`;
-      el.style.backgroundPosition = `${gx - (b.left - rr.left)}px ${gy - (b.top - rr.top)}px`;
-    });
-    // the key phrase is its own box (inline-block): it needs its own window onto the picture
-    root.querySelectorAll<HTMLElement>(".hf-fenced").forEach((el) => {
-      const b = el.getBoundingClientRect();
-      el.style.backgroundImage = `url(${url})`;
-      el.style.backgroundSize = `${gw * CELL}px ${gh * CELL}px`;
-      el.style.backgroundPosition = `${gx - (b.left - rr.left)}px ${gy - (b.top - rr.top)}px`;
-    });
+  const finish = () => {
     root.classList.remove("is-sand-failed");
     root.classList.add("is-sanded");
-    window.setTimeout(() => {
-      cv.remove();
-      sv.remove();
-    }, 450);
+    window.setTimeout(() => sv.remove(), 450);
   };
 
-  // resizes after the pour: rebuild the grid and refill at once
+  // resizes rebuild the grid and refill at once (a resize mid-pour is caught up at the end)
+  let poured = false;
+  let stale = false;
   let resizeT = 0;
+  const rebuild = () => {
+    build();
+    place();
+    fillNow();
+    paintAll();
+  };
   const onResize = () => {
     window.clearTimeout(resizeT);
     resizeT = window.setTimeout(() => {
-      if (!root.classList.contains("is-sanded")) return;
-      build();
-      place();
-      for (let i = 0; i < mask.length; i++) if (mask[i]) col[i] = grainColor(mask[i]);
-      settle();
-      handOver();
+      if (dead) return;
+      if (!poured) {
+        stale = true;
+        return;
+      }
+      rebuild();
     }, 160);
   };
   window.addEventListener("resize", onResize);
@@ -301,25 +567,33 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     if (dead) return;
     build();
     place();
-    if (/[?&]sandDebug/.test(location.search)) (window as unknown as { __sand: unknown }).__sand = { get gw() { return gw; }, get gh() { return gh; }, mask: () => mask, sand: () => sand, lineCols: () => lineCols.map((c) => c.length), drops: () => drops.length };
+    const prof: number[][] | null = /[?&]sandDebug/.test(location.search) ? [] : null;
+    if (prof) (window as unknown as { __sand: unknown }).__sand = { prof, get gw() { return gw; }, get gh() { return gh; }, get S() { return S; }, mask: () => mask, sand: () => sand, lineCols: () => lineCols.map((c) => c.length), drops: () => drops.length };
     root.appendChild(sv);
-    root.appendChild(cv);
+    root.appendChild(box);
     if (reduced) {
-      for (let i = 0; i < mask.length; i++) if (mask[i]) col[i] = grainColor(mask[i]);
-      settle();
-      handOver();
+      fillNow();
+      paintAll();
+      poured = true;
+      finish();
       return;
     }
-    const rr = root.getBoundingClientRect();
-    sv.width = Math.round(rr.width * dpr);
-    sv.height = Math.round(rr.height * dpr);
+    // the curtain only needs the strip from the top of the screen down to the headline's bottom
+    const pdpr = Math.min(2, window.devicePixelRatio || 1);
+    const cw = gw * CELL;
+    const ch = gy + gh * CELL;
+    sv.style.left = `${gx}px`;
+    sv.style.width = `${cw}px`;
+    sv.style.height = `${ch}px`;
+    sv.width = Math.round(cw * pdpr);
+    sv.height = Math.round(ch * pdpr);
 
     // bottom line first; each line's pour overlaps the next a little
     const order = lines.map((_, i) => lines.length - 1 - i);
     const POUR = opts.phone ? 1150 : 1300;
     const GAP = opts.phone ? 820 : 900;
     const t0 = performance.now();
-    const rate = opts.phone ? 70 : 150; // grains entering per frame at full flow
+    const rate = opts.phone ? 60 : 120; // grains entering per frame at full flow
     let last = t0;
 
     const tick = (now: number) => {
@@ -329,8 +603,7 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
       last = now;
 
       order.forEach((li, k) => {
-        const start = k * GAP;
-        const lt = t - start;
+        const lt = t - k * GAP;
         if (lt < 0 || lt > POUR + 600) return;
         const cols = lineCols[li];
         if (!cols.length) return;
@@ -340,9 +613,16 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
         for (let q = 0; q < n; q++) {
           const x = cols[(Math.random() * cols.length) | 0];
           const e = entry(x);
-          if (e < 0) continue;
-          sand[e] = 1;
-          col[e] = grainColor(mask[e]);
+          if (e >= 0) add(e, mask[e]);
+        }
+        // the strays: grains that bounce off and come to rest on and beside the strokes, only
+        // once there's sand there for them to rest against
+        const s = spill[li];
+        for (let q = s.length - 1; q >= 0; q--) {
+          if (Math.random() > 0.12 || !nearSand(s[q])) continue;
+          addLoose(s[q]);
+          s[q] = s[s.length - 1];
+          s.pop();
         }
         // the visible curtain above the headline
         const vis = Math.round((opts.phone ? 5 : 11) * flow);
@@ -351,12 +631,11 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
           const e = entry(x);
           const ty = e >= 0 ? Math.floor(e / gw) : segs[x][0]?.y0 ?? 0;
           const clay = e >= 0 && mask[e] === 2;
-          const pal = clay ? [0xb84f00, 0xd76b22, 0x9c4200] : [0x2a1f16, 0x3b2c20, 0x4a3726, 0x1c1510];
+          const pal = clay ? [0xb84f00, 0xd76b22, 0x9c4200] : [0x2a1f16, 0x3b2c20, 0x4a3726, 0x1c1510, 0x6b5038];
           drops.push({
-            x: gx + x * CELL + (Math.random() - 0.5) * 3,
+            x: x * CELL + (Math.random() - 0.5) * 3,
             y: -Math.random() * 120,
             vy: 380 + Math.random() * 200,
-            tx: 0,
             ty: gy + ty * CELL,
             c: hex(pal[(Math.random() * pal.length) | 0]),
             s: (opts.phone ? 1.2 : 1.6) + Math.random() * 1.6,
@@ -364,11 +643,16 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
         }
       });
 
+      const ta = performance.now();
       for (let s = 0; s < SUBSTEPS; s++) stepSand();
-      paint();
+      const tb = performance.now();
+      const nd = dlist.length;
+      flush();
+      const tc = performance.now();
+      if (prof) prof.push([tb - ta, tc - tb, nd]);
 
       // the curtain
-      sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      sctx.setTransform(pdpr, 0, 0, pdpr, 0, 0);
       sctx.clearRect(0, 0, sv.width, sv.height);
       for (let i = drops.length - 1; i >= 0; i--) {
         const d = drops[i];
@@ -388,7 +672,7 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
         raf = requestAnimationFrame(tick);
         return;
       }
-      // whatever the pour couldn't reach (under overhangs) settles in, then hand over
+      // whatever the pour couldn't reach (under overhangs) settles in, then it's done
       let n = 0;
       const sprinkle = () => {
         if (dead) return;
@@ -396,19 +680,22 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
         for (let i = 0; i < mask.length; i++) {
           if (mask[i] && !sand[i]) {
             left++;
-            if (Math.random() < 0.35) {
-              sand[i] = 1;
-              col[i] = grainColor(mask[i]);
-            }
+            if (Math.random() < 0.35) add(i, mask[i]);
           }
         }
         for (let s = 0; s < SUBSTEPS; s++) stepSand();
-        paint();
-        if (left > 0 && n++ < 14) raf = requestAnimationFrame(sprinkle);
-        else {
-          settle();
-          handOver();
+        flush();
+        if (left > 0 && n++ < 14) {
+          raf = requestAnimationFrame(sprinkle);
+          return;
         }
+        poured = true;
+        if (stale) rebuild();
+        else {
+          fillNow();
+          flush();
+        }
+        finish();
       };
       raf = requestAnimationFrame(sprinkle);
     };
