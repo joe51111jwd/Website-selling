@@ -111,3 +111,10 @@ Every piece of feedback on the product page, in one place. Each item has a statu
   - A soft contact shadow sits under the settled letters on desktop.
   - Resizes re-lay the sand at once. Reduced motion shows it filled. If the script fails, ink type shows after 15 s.
   - Measured with screenshots off: 60 fps on desktop (1440×900, DPR 2, 3D off; about 3 ms of script a frame) and on an iPhone-size screen (DPR 3).
+- **Smooth, no lag, no chunks** (the boss: "hella lag at the start… chunks out of the text. It just cuts and fills in instantly… grains should never be falling where stuff isn't filling up").
+  - Done: every falling grain is a grain that fills a letter. Each falling drop aims at a column of the line being poured and becomes sand where it lands, on top of the pile. Nothing appears without falling, and nothing falls where the sand isn't rising.
+  - Each line gets exactly the sand it holds, on a clock. The flow eases in and out, and the letters are full when the line's pour ends. Nothing is filled in at the end (measured: 0 grains).
+  - If the browser stalls, the pour waits for it instead of catching up in one lump.
+  - The lag: the 3D scene and the later sections used to start loading in the middle of the pour. They now wait until the sand has settled, unless the visitor scrolls or clicks first. Measured: no long tasks during the pour.
+  - The start: the pour waited 3 s for a signal that never came, so the headline sat empty. Fixed, and the lines' invisible slide-in is gone. The pour now starts about 0.1 s after the page lays out.
+

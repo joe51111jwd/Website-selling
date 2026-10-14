@@ -11,9 +11,11 @@
 //   lines up with the real type. The mask's edge is roughened before the pour: some edge cells are
 //   knocked out (notches) and a few loose grains sit just outside the strokes, so the outline is
 //   made of grains, never a clean line.
-// - Sand pours from the top of the screen in a falling curtain (the "pour" canvas). Each grain that
-//   reaches the headline enters a letter at the top of the lowest stroke in its column that isn't
-//   full yet, so the letters fill from the bottom up, bottom line first.
+// - Sand pours from the top of the screen (the "pour" canvas), bottom line first. Every falling
+//   drop is real sand: it aims at a column of the line being poured and becomes grains where it
+//   lands, on the pile in the lowest stroke of that column that isn't full, so the letters fill
+//   from the bottom up. Each line gets exactly the sand it holds, on a clock, so nothing is ever
+//   filled in at the end.
 // - Inside the letters it's a falling-sand automaton: a grain falls if the cell below is free,
 //   else slides down-left or down-right, so it piles, forms slopes and settles into the corners.
 // - Every grain is drawn at device resolution as a little lit pebble: its own colour, its own
@@ -21,12 +23,14 @@
 //   gaps are dark; at the edges they're open, so the outline breaks up into grains.
 // Reduced motion: the letters are filled at once.
 
+import { holdFirstScreen } from "../../ready";
+
 const DESK_CELL = 2;
 const PHONE_CELL = 1.5;
 const SUBSTEPS = 3;
 const VARIANTS = 14;
 
-type Seg = { y0: number; y1: number };
+type Seg = { y0: number; y1: number; li: number };
 type Pat = { a: Float32Array; m: Float32Array };
 
 export function startSand(root: HTMLElement, opts: { phone: boolean }) {
@@ -38,6 +42,11 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
   let dead = false;
   let raf = 0;
   const offs: (() => void)[] = [];
+  // the rest of the page (the 3D Stage, the later scenes) waits for the sand, so none of its heavy
+  // start-up work lands in the middle of the pour (../../ready.ts); never for more than 10 s
+  const release = holdFirstScreen();
+  const holdT = window.setTimeout(release, 10000);
+  offs.push(() => window.clearTimeout(holdT), release);
   const stop = () => {
     dead = true;
     cancelAnimationFrame(raf);
@@ -117,7 +126,8 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
   let col = new Uint32Array(0); // ABGR per cell
   let segs: Seg[][] = []; // per column, glyph runs, bottom first
   let lineOfRow = new Int16Array(0);
-  let lineCols: number[][] = [];
+  let lineCols: number[][] = []; // per line: the columns with a stroke of that line
+  let lineCells: number[] = []; // per line: how many grains fill it
   let spill: number[][] = []; // per line: the loose grains just outside the strokes
   let clayRects: { x0: number; y0: number; x1: number; y1: number }[] = [];
 
@@ -212,7 +222,7 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
       const x = i % gw;
       const y = (i / gw) | 0;
       const open = 4 - nb(glyph, i, x, y);
-      if (open && Math.random() < 0.2 + 0.08 * open) {
+      if (open && Math.random() < 0.18 + 0.07 * open) {
         mask[i] = 0;
         knocked[i] = 1;
       }
@@ -221,7 +231,7 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
       if (!mask[i]) continue;
       const x = i % gw;
       const y = (i / gw) | 0;
-      if (nb(knocked, i, x, y) && Math.random() < 0.14) mask[i] = 0;
+      if (nb(knocked, i, x, y) && Math.random() < 0.07) mask[i] = 0;
     }
     // loose grains just outside the strokes: most on the tops of strokes, where poured sand rests
     const ring = new Uint8Array(N);
@@ -264,6 +274,14 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     woken = new Uint8Array(gh);
     segs = [];
     lineCols = lines.map(() => []);
+    lineCells = lines.map(() => 0);
+    // every stroke run belongs to a line (the nearest one, for a stray run between lines)
+    const lineAt = (y0: number, y1: number) => {
+      for (let d = 0; d < gh; d++) {
+        for (const y of [y1 + d, y0 - d, y1 - d, y0 + d]) if (y >= 0 && y < gh && lineOfRow[y] >= 0) return lineOfRow[y];
+      }
+      return lines.length - 1;
+    };
     for (let x = 0; x < gw; x++) {
       const runs: Seg[] = [];
       let y = gh - 1;
@@ -271,16 +289,16 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
         if (mask[y * gw + x]) {
           const y1 = y;
           while (y >= 0 && mask[y * gw + x]) y--;
-          runs.push({ y0: y + 1, y1 });
+          runs.push({ y0: y + 1, y1, li: lineAt(y + 1, y1) });
         } else y--;
       }
       segs.push(runs);
       const seen = new Set<number>();
       runs.forEach((r) => {
-        const li = lineOfRow[r.y1] >= 0 ? lineOfRow[r.y1] : lineOfRow[r.y0];
-        if (li >= 0 && !seen.has(li)) {
-          seen.add(li);
-          lineCols[li].push(x);
+        lineCells[r.li] += r.y1 - r.y0 + 1;
+        if (!seen.has(r.li)) {
+          seen.add(r.li);
+          lineCols[r.li].push(x);
         }
       });
     }
@@ -451,17 +469,15 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     add(i, isClay(i % gw, (i / gw) | 0) ? 2 : 1);
   };
 
-  // the falling curtain (over the whole hero) ------------------------------------------------
+  // the falling sand (the strip above the headline) -------------------------------------------
   const sv = document.createElement("canvas");
   sv.className = "hf-pour";
   sv.setAttribute("aria-hidden", "true");
   const sctx = sv.getContext("2d")!;
-  type Drop = { x: number; y: number; vy: number; ty: number; c: string; s: number };
-  const drops: Drop[] = [];
-  const hex = (n: number) => `#${n.toString(16).padStart(6, "0")}`;
 
   // physics ----------------------------------------------------------------------------------
   let flip = false;
+  let moved = 0;
   // only rows where something can move are scanned: a row wakes when a grain lands in it or a
   // grain leaves it or a row next to it
   let awake = new Uint8Array(0);
@@ -473,6 +489,7 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     if (y < gh - 1) woken[y + 1] = 1;
   };
   const move = (i: number, j: number) => {
+    moved++;
     sand[j] = sand[i];
     col[j] = col[i];
     sand[i] = 0;
@@ -515,15 +532,28 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     }
   };
 
-  // drop a grain into column x: into the lowest stroke in that column that isn't full, a few
-  // grains above the pile already in it (the falling curtain carries it down to there, so the
-  // empty letters never show before the sand reaches them)
-  const entry = (x: number): number => {
+  // drop a grain into column x of line li: into the lowest stroke of that line in that column that
+  // isn't full, a few grains above the pile already in it (the falling curtain carries it down to
+  // there, so the empty letters never show before the sand reaches them)
+  const entry = (x: number, li: number): number => {
     for (const r of segs[x]) {
-      if (sand[r.y0 * gw + x]) continue;
+      if (r.li !== li || sand[r.y0 * gw + x]) continue;
       let y = r.y0;
       while (y < r.y1 && !sand[(y + 1) * gw + x]) y++;
       return Math.max(r.y0, y - ((Math.random() * 5) | 0)) * gw + x;
+    }
+    return -1;
+  };
+  // a random column of the line with room left (full columns drop out of the list)
+  let room: number[][] = [];
+  const pick = (li: number): number => {
+    const c = room[li];
+    while (c.length) {
+      const k = (Math.random() * c.length) | 0;
+      const e = entry(c[k], li);
+      if (e >= 0) return e;
+      c[k] = c[c.length - 1];
+      c.pop();
     }
     return -1;
   };
@@ -536,6 +566,7 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     root.classList.remove("is-sand-failed");
     root.classList.add("is-sanded");
     window.setTimeout(() => sv.remove(), 450);
+    release();
   };
 
   // resizes rebuild the grid and refill at once (a resize mid-pour is caught up at the end)
@@ -565,10 +596,14 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
   // the pour ---------------------------------------------------------------------------------
   const run = () => {
     if (dead) return;
+    const tb0 = performance.now();
     build();
     place();
+    const buildMs = performance.now() - tb0;
     const prof: number[][] | null = /[?&]sandDebug/.test(location.search) ? [] : null;
-    if (prof) (window as unknown as { __sand: unknown }).__sand = { prof, get gw() { return gw; }, get gh() { return gh; }, get S() { return S; }, mask: () => mask, sand: () => sand, lineCols: () => lineCols.map((c) => c.length), drops: () => drops.length };
+    const stats = { buildMs: 0, popped: 0, tailFrames: 0 };
+    if (prof) (window as unknown as { __sand: unknown }).__sand = { prof, stats, get gw() { return gw; }, get gh() { return gh; }, get S() { return S; }, cells: () => lineCells, mask: () => mask, sand: () => sand };
+    stats.buildMs = buildMs;
     root.appendChild(sv);
     root.appendChild(box);
     if (reduced) {
@@ -588,116 +623,186 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     sv.width = Math.round(cw * pdpr);
     sv.height = Math.round(ch * pdpr);
 
-    // bottom line first; each line's pour overlaps the next a little
+    // The pour. Every grain you see falling is a grain that fills a letter: each falling drop
+    // carries a few grains, aims at a column of the line being poured, and becomes sand where it
+    // lands, on top of the pile already there. Nothing appears without falling, and nothing falls
+    // where the sand isn't rising.
+    // Bottom line first; each line's pour overlaps the next a little. Each line gets exactly the
+    // sand it holds, on a clock: the flow eases in and out like a bucket tipped and lifted
+    // (smoothstep), so the letters fill evenly and are full when the line's pour ends. The clock
+    // only moves on by a frame's worth at a time: if the browser stalls, the pour waits for it
+    // instead of catching up in one lump.
     const order = lines.map((_, i) => lines.length - 1 - i);
-    const POUR = opts.phone ? 1150 : 1300;
-    const GAP = opts.phone ? 820 : 900;
-    const t0 = performance.now();
-    const rate = opts.phone ? 60 : 120; // grains entering per frame at full flow
-    let last = t0;
+    const POUR = opts.phone ? 1250 : 1400;
+    const GAP = opts.phone ? 1000 : 1100;
+    const END = (order.length - 1) * GAP + POUR;
+    const K = opts.phone ? 2 : 3; // grains a falling drop carries
+    const G = 2200; // px/s², the fall
+    const sent = lines.map(() => 0);
+    // grains on their way to each column, so the last drops aren't sent to a column that's full
+    const pending = new Int32Array(gw);
+    const free = (x: number, li: number) => {
+      let n = 0;
+      for (const r of segs[x]) if (r.li === li) for (let y = r.y0; y <= r.y1; y++) if (!sand[y * gw + x]) n++;
+      return n;
+    };
+    room = lineCols.map((c) => c.slice());
+    let clock = 0;
+    let last = performance.now();
+    let tail = 0;
+
+    type Drop = { x: number; y: number; vy: number; ty: number; aimed: boolean; c: number; li: number; k: number; stray: number; s: number };
+    const drops: Drop[] = [];
+    const SOIL_FALL = ["#2a1f16", "#3b2c20", "#4a3726", "#1c1510", "#6b5038", "#8a6a4a"];
+    const CLAY_FALL = ["#b84f00", "#d76b22", "#9c4200", "#c25a12"];
+    const COLORS = [...SOIL_FALL, ...CLAY_FALL];
+    const drop = (e: number, li: number, k: number, stray = -1) => {
+      const x = e % gw;
+      const row = (e / gw) | 0;
+      const clay = mask[e] === 2 || isClay(x, row);
+      if (stray < 0) pending[x] += k;
+      drops.push({
+        x: x * CELL + (Math.random() - 0.5) * CELL,
+        y: -Math.random() * 60,
+        vy: 380 + Math.random() * 200,
+        ty: gy + row * CELL,
+        aimed: false,
+        c: clay ? SOIL_FALL.length + ((Math.random() * CLAY_FALL.length) | 0) : (Math.random() * SOIL_FALL.length) | 0,
+        li,
+        k,
+        stray,
+        s: CELL * (0.7 + Math.random() * 0.5),
+      });
+    };
+    // a drop lands: its grains go onto the pile in its column (or the next one along, if that
+    // column has filled up meanwhile); any that find no room go back to be poured again
+    const land = (d: Drop) => {
+      if (d.stray >= 0) {
+        addLoose(d.stray);
+        return;
+      }
+      const cx = Math.min(gw - 1, Math.max(0, Math.round(d.x / CELL)));
+      pending[cx] -= d.k;
+      let left = d.k;
+      for (const o of [0, -1, 1, -2, 2, -3, 3]) {
+        const x = cx + o;
+        if (x < 0 || x >= gw) continue;
+        while (left > 0) {
+          const e = entry(x, d.li);
+          if (e < 0) break;
+          add(e, mask[e]);
+          left--;
+        }
+        if (!left) break;
+      }
+      sent[d.li] -= left;
+    };
 
     const tick = (now: number) => {
       if (dead) return;
-      const t = now - t0;
-      const dt = Math.min(0.05, (now - last) / 1000);
+      const adv = Math.min(34, Math.max(0, now - last));
       last = now;
+      clock += adv;
+      const dt = adv / 1000;
 
-      order.forEach((li, k) => {
-        const lt = t - k * GAP;
-        if (lt < 0 || lt > POUR + 600) return;
-        const cols = lineCols[li];
-        if (!cols.length) return;
-        // the flow eases in and out like a bucket tipped and lifted
-        const flow = lt < POUR ? Math.sin(Math.min(1, lt / POUR) * Math.PI) ** 0.6 : 0;
-        const n = Math.round(rate * flow);
-        for (let q = 0; q < n; q++) {
-          const x = cols[(Math.random() * cols.length) | 0];
-          const e = entry(x);
-          if (e >= 0) add(e, mask[e]);
-        }
-        // the strays: grains that bounce off and come to rest on and beside the strokes, only
-        // once there's sand there for them to rest against
-        const s = spill[li];
-        for (let q = s.length - 1; q >= 0; q--) {
-          if (Math.random() > 0.12 || !nearSand(s[q])) continue;
-          addLoose(s[q]);
-          s[q] = s[s.length - 1];
-          s.pop();
-        }
-        // the visible curtain above the headline
-        const vis = Math.round((opts.phone ? 5 : 11) * flow);
-        for (let q = 0; q < vis; q++) {
-          const x = cols[(Math.random() * cols.length) | 0];
-          const e = entry(x);
-          const ty = e >= 0 ? Math.floor(e / gw) : segs[x][0]?.y0 ?? 0;
-          const clay = e >= 0 && mask[e] === 2;
-          const pal = clay ? [0xb84f00, 0xd76b22, 0x9c4200] : [0x2a1f16, 0x3b2c20, 0x4a3726, 0x1c1510, 0x6b5038];
-          drops.push({
-            x: x * CELL + (Math.random() - 0.5) * 3,
-            y: -Math.random() * 120,
-            vy: 380 + Math.random() * 200,
-            ty: gy + ty * CELL,
-            c: hex(pal[(Math.random() * pal.length) | 0]),
-            s: (opts.phone ? 1.2 : 1.6) + Math.random() * 1.6,
-          });
+      if (clock <= END) {
+        order.forEach((li, k) => {
+          const u = Math.min(1, Math.max(0, (clock - k * GAP) / POUR));
+          if (u <= 0) return;
+          const target = Math.round(lineCells[li] * u * u * (3 - 2 * u));
+          while (sent[li] < target) {
+            const e = pick(li);
+            if (e < 0) break;
+            const n = Math.min(K, target - sent[li]);
+            drop(e, li, n);
+            sent[li] += n;
+          }
+        });
+      } else {
+        // the tail: any gap left is topped up from above, a few drops a frame, until it's full
+        if (tail++ % 12 === 0) room = lineCols.map((c) => c.slice());
+        order.forEach((li) => {
+          for (let q = 0; q < 24; q++) {
+            const e = pick(li);
+            if (e < 0) break;
+            // never more than the column can still take, counting the drops already on their way
+            const x = e % gw;
+            if (free(x, li) > pending[x]) drop(e, li, 1);
+          }
+        });
+      }
+      // the strays: grains that bounce off and come to rest on and beside the strokes, only once
+      // there's sand there for them to rest against
+      spill.forEach((sp, li) => {
+        for (let q = sp.length - 1; q >= 0; q--) {
+          if (Math.random() > (tail ? 0.3 : 0.1) || !(tail > 20 || nearSand(sp[q]))) continue;
+          drop(sp[q], li, 1, sp[q]);
+          sp[q] = sp[sp.length - 1];
+          sp.pop();
         }
       });
 
+      // the drops fall; each one re-aims at its column's pile as it nears it, and lands on it
+      for (let i = drops.length - 1; i >= 0; i--) {
+        const d = drops[i];
+        d.vy += G * dt;
+        d.y += d.vy * dt;
+        if (!d.aimed && d.stray < 0 && d.ty - d.y < 60) {
+          d.aimed = true;
+          const e = entry(Math.round(d.x / CELL), d.li);
+          if (e >= 0) d.ty = gy + ((e / gw) | 0) * CELL;
+        }
+        if (d.y >= d.ty) {
+          land(d);
+          drops[i] = drops[drops.length - 1];
+          drops.pop();
+        }
+      }
+
       const ta = performance.now();
-      for (let s = 0; s < SUBSTEPS; s++) stepSand();
+      moved = 0;
+      const steps = Math.min(6, Math.max(1, Math.round((adv / 16.7) * SUBSTEPS)));
+      for (let q = 0; q < steps; q++) stepSand();
       const tb = performance.now();
       const nd = dlist.length;
       flush();
       const tc = performance.now();
-      if (prof) prof.push([tb - ta, tc - tb, nd]);
+      if (prof) prof.push([tb - ta, tc - tb, nd, drops.length]);
 
-      // the curtain
+      // draw the falling drops, one path per colour
       sctx.setTransform(pdpr, 0, 0, pdpr, 0, 0);
       sctx.clearRect(0, 0, sv.width, sv.height);
-      for (let i = drops.length - 1; i >= 0; i--) {
-        const d = drops[i];
-        d.vy += 2200 * dt;
-        d.y += d.vy * dt;
-        if (d.y >= d.ty) {
-          drops.splice(i, 1);
-          continue;
+      for (let c = 0; c < COLORS.length; c++) {
+        sctx.beginPath();
+        let any = false;
+        for (const d of drops) {
+          if (d.c !== c || d.y < -20) continue;
+          any = true;
+          // a grain, a little drawn out by its speed
+          sctx.rect(d.x, d.y, d.s, d.s * (1 + Math.min(1.6, d.vy / 900)));
         }
-        sctx.fillStyle = d.c;
-        sctx.fillRect(d.x, d.y, d.s, d.s * (1 + Math.min(3, d.vy / 700)));
+        if (!any) continue;
+        sctx.fillStyle = COLORS[c];
+        sctx.fill();
       }
 
-      const lastStart = (order.length - 1) * GAP;
-      const done = t > lastStart + POUR + 700 && !drops.length;
-      if (!done) {
+      const full = room.every((c) => !c.length);
+      const quiet = !moved && !drops.length && full && spill.every((sp) => !sp.length);
+      if (clock <= END || (tail < 180 && !quiet)) {
         raf = requestAnimationFrame(tick);
         return;
       }
-      // whatever the pour couldn't reach (under overhangs) settles in, then it's done
-      let n = 0;
-      const sprinkle = () => {
-        if (dead) return;
-        let left = 0;
-        for (let i = 0; i < mask.length; i++) {
-          if (mask[i] && !sand[i]) {
-            left++;
-            if (Math.random() < 0.35) add(i, mask[i]);
-          }
-        }
-        for (let s = 0; s < SUBSTEPS; s++) stepSand();
+      poured = true;
+      stats.tailFrames = tail;
+      if (stale) rebuild();
+      else {
+        // whatever is left (should be nothing) goes in now
+        const before = dlist.length;
+        fillNow();
+        stats.popped = dlist.length - before;
         flush();
-        if (left > 0 && n++ < 14) {
-          raf = requestAnimationFrame(sprinkle);
-          return;
-        }
-        poured = true;
-        if (stale) rebuild();
-        else {
-          fillNow();
-          flush();
-        }
-        finish();
-      };
-      raf = requestAnimationFrame(sprinkle);
+      }
+      finish();
     };
     raf = requestAnimationFrame(tick);
   };
@@ -711,17 +816,23 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     }
     const wait = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
     for (let k = 0; k < 60 && !root.classList.contains("is-laid"); k++) await wait(50);
-    // the headline sizes itself to the screen and its lines slide into place: wait until every
-    // line has landed and the box has stopped changing, so the sand grid matches the real type
-    const lineEls = [...root.querySelectorAll(".hf-line")];
-    for (let k = 0; k < 60 && !lineEls.every((l) => l.classList.contains("is-set")); k++) await wait(50);
+    // the headline sizes itself to the screen and its lines slide into place (engine.ts): the
+    // engine marks one line .is-set once the last line has landed. Then wait for the type to hold
+    // still for two frames, so the sand grid matches the real type
+    for (let k = 0; k < 40 && !root.querySelector(".hf-line.is-set"); k++) await wait(30);
+    const frame = () => new Promise((r) => requestAnimationFrame(r));
+    const sig = () => {
+      const r = h1.getBoundingClientRect();
+      const c = lines[lines.length - 1].getBoundingClientRect();
+      return `${r.width.toFixed(1)}x${r.height.toFixed(1)}@${r.left.toFixed(1)},${r.top.toFixed(1)}|${c.top.toFixed(1)}`;
+    };
     let prev = "";
     for (let k = 0; k < 30; k++) {
-      const r = h1.getBoundingClientRect();
-      const sig = `${r.width.toFixed(1)}x${r.height.toFixed(1)}@${r.left.toFixed(1)},${r.top.toFixed(1)}`;
-      if (sig === prev) break;
-      prev = sig;
-      await wait(90);
+      const now = sig();
+      if (now === prev) break;
+      prev = now;
+      await frame();
+      await frame();
     }
     run();
   };
@@ -730,6 +841,7 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
   // never leave the headline invisible
   const guard = window.setTimeout(() => {
     if (!root.classList.contains("is-sanded")) root.classList.add("is-sand-failed");
+    release();
   }, 15000);
   offs.push(() => window.clearTimeout(guard));
   return stop;

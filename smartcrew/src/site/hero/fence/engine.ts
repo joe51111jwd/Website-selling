@@ -692,7 +692,6 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     const m = (v: PieceMode | undefined, d: PieceMode = "play") => (v ?? d) === "play";
     const mk = (cid: string) => m(typeof eo.markers === "string" ? eo.markers : eo.markers?.[cid as CrewId]);
     const h1 = m(eo.h1);
-    const words = m(eo.words, eo.h1);
     const fence = m(eo.fence);
     const tag = m(eo.tag);
     const sub = m(eo.sub);
@@ -710,16 +709,9 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
     // the headline's biggest line is filed again, whole, the moment it lands (the page's LCP)
     const lcpLine = qa(".hf-line")[g.lcpLine];
     lcpLine?.classList.remove("is-set");
-    let lineEnd = 0;
-    // the sentence closes in on the jobsite: lines above drop in, the fenced line and those below rise
-    qa(".hf-line-in").forEach((ln, i) => {
-      const inFence = i >= g.fenceLine && i <= g.fenceLast;
-      if (!(inFence ? words : h1)) return;
-      const d = i < g.fenceLine ? g.fenceLine - i : i > g.fenceLast ? i - g.fenceLast : i - g.fenceLine;
-      A(ln, [{ transform: `translateY(${i < g.fenceLine ? -122 : 122}%)` }, { transform: "none" }], d * 70, 540, EO);
-      lineEnd = Math.max(lineEnd, d * 70 + 540);
-    });
-    tl.at(lineEnd + 30, () => lcpLine?.classList.add("is-set"));
+    // the lines don't slide in any more: the headline is poured in sand (./sand.ts), which needs
+    // the type at rest from the first frame (the letters are transparent until the sand fills them)
+    tl.at(30, () => lcpLine?.classList.add("is-set"));
     if (fence) {
       if (phone) {
         // transform and opacity only on phones (no stroke-dashoffset)
