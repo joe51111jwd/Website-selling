@@ -98,3 +98,9 @@ Every piece of feedback on the product page, in one place. Each item has a statu
   - Higgsfield was out of credits, so this is built in code instead of a video. It's lighter and stays crisp on phones.
   - Reduced motion shows it filled.
   - Open: tune the timing and texture with the boss, and consider the same treatment for other big headlines.
+
+- **Real sand, with physics and heavy grain** (the boss: "as realistic as possible with physics… it should look like sand").
+  - Done: a falling-sand simulation. Grains pour from the top of the screen, enter the letters, fall, slide down slopes and pile up. The bottom line fills first and each letter fills from the bottom.
+  - Every grain has its own colour: soil browns with quartz and dark specks, and orange clay in "every job".
+  - When the pour ends, the sand picture becomes the letters' own fill, so the edges are the real glyph edges.
+  - Measured: 60 fps on phone and desktop with the 3D off.

@@ -793,44 +793,43 @@ html.has-opening .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-
   display: none;
 }
 
-/* ── The headline is backfilled (the boss: "you don't see the text, then it's like someone's
-   pouring dirt from the top. The dirt fills in all the letters, and then the letters just look like
-   dirt"). The letters start empty: nothing on screen. Dirt pours down from the top of the screen
-   (./pour.ts, grains on a canvas) and the soil rises inside each letter, with a lumpy surface, in
-   strata, bottom line first and up, like a pour into a hole, until the words are made of dirt; "every job" fills with orange clay.
-   The soil layer is twice the line's height (empty above, soil below a bumpy edge); sliding it up
-   is the rise. Reduced motion: filled from the start. ── */
-@property --hf-y {
-  syntax: "<percentage>";
-  inherits: false;
-  initial-value: 0%;
-}
-
-.hf-line-in,
-.hf-fenced {
+/* ── The headline is poured in sand (./sand.ts). The letters start empty (transparent, nothing on
+   screen); the sand canvases (.hf-pour: the falling curtain; .hf-sand: the grains piling in the
+   letters) do the pour; then the sand picture becomes each line's own fill (background-clip:
+   text, set inline), so the edges are the real glyph edges. If the script never finishes, the
+   type shows in ink after 9 s. ── */
+.hf-line-in {
   color: transparent;
-  -webkit-text-stroke: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 2000' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%233b2c20'/%3E%3Cstop offset='0.5' stop-color='%233b2c20'/%3E%3Cstop offset='0.62' stop-color='%231c1510'/%3E%3Cstop offset='0.74' stop-color='%234a3726'/%3E%3Cstop offset='0.86' stop-color='%23241b14'/%3E%3Cstop offset='1' stop-color='%2317130f'/%3E%3C/linearGradient%3E%3Cfilter id='n' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.06 0.5' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0.92 0 0 0 0 0.83 0 0 0 0 0.68 0 0 0 1.4 -0.85'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M0 1012 C60 990 110 1018 170 1000 S290 985 350 1006 S470 1020 540 998 S660 984 730 1004 S860 1022 920 996 S980 992 1000 1004 L1000 2000 L0 2000Z' fill='url(%23g)'/%3E%3Cpath d='M0 1012 C60 990 110 1018 170 1000 S290 985 350 1006 S470 1020 540 998 S660 984 730 1004 S860 1022 920 996 S980 992 1000 1004 L1000 2000 L0 2000Z' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 100% 200%;
-  background-repeat: no-repeat;
-  background-position: 0 var(--hf-y);
   -webkit-background-clip: text;
   background-clip: text;
-  animation: hf-backfill 1.6s cubic-bezier(0.45, 0.05, 0.4, 1) both;
-  animation-delay: calc(0.5s + var(--i, 0) * 0.38s);
+  background-repeat: no-repeat;
 }
 
 .hf-fenced {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 2000' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23d76b22'/%3E%3Cstop offset='0.5' stop-color='%23d76b22'/%3E%3Cstop offset='0.66' stop-color='%23b84f00'/%3E%3Cstop offset='0.8' stop-color='%23c25a12'/%3E%3Cstop offset='1' stop-color='%239c4200'/%3E%3C/linearGradient%3E%3Cfilter id='n' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.06 0.5' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0.92 0 0 0 0 0.83 0 0 0 0 0.68 0 0 0 1.4 -0.85'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M0 1012 C60 990 110 1018 170 1000 S290 985 350 1006 S470 1020 540 998 S660 984 730 1004 S860 1022 920 996 S980 992 1000 1004 L1000 2000 L0 2000Z' fill='url(%23g)'/%3E%3Cpath d='M0 1012 C60 990 110 1018 170 1000 S290 985 350 1006 S470 1020 540 998 S660 984 730 1004 S860 1022 920 996 S980 992 1000 1004 L1000 2000 L0 2000Z' filter='url(%23n)'/%3E%3C/svg%3E");
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-repeat: no-repeat;
 }
 
-@keyframes hf-backfill {
-  from {
-    --hf-y: 0%;
-  }
-  to {
-    --hf-y: 100%;
-  }
+.hf-root.is-sand-failed .hf-line-in {
+  color: var(--ink);
+}
+
+.hf-root.is-sand-failed .hf-fenced {
+  color: var(--orange-ink);
+}
+
+.hf-sand {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 0.4s var(--ease-out);
+}
+
+.hf-root.is-sanded .hf-sand,
+.hf-root.is-sanded .hf-pour {
+  opacity: 0;
 }
 
 .hf-pour {
@@ -840,14 +839,6 @@ html.has-opening .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-
   width: 100%;
   height: 100%;
   pointer-events: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hf-line-in,
-  .hf-fenced {
-    animation: none;
-    --hf-y: 100%;
-  }
 }
 
 /* the soil reaches the descenders (y, j, g, the comma) */
