@@ -48,6 +48,9 @@ export type Group = {
 type RawSpot = [tool: string, box: Box, dot?: [number, number]];
 type RawPage = { screen: string; path: string; crop?: number; spots: RawSpot[] };
 
+// The tour slides its highlight from box to box on one screen far more often than it cuts to a
+// new screen (the boss: "rather than cutting the entire screen, it just moves over the box — way
+// cleaner"), so each group lives on one screen where it can (office keeps two).
 const DESK: Record<string, { icon: IconName; pages: RawPage[] }> = {
   time: {
     icon: "clock",
@@ -77,7 +80,6 @@ const DESK: Record<string, { icon: IconName; pages: RawPage[] }> = {
           ["M3", [824, 740, 94, 30]],
         ],
       },
-      { screen: "web-projects", path: "projects", spots: [["M7", [667, 492, 302, 36]]] },
     ],
   },
   payroll: {
@@ -105,7 +107,6 @@ const DESK: Record<string, { icon: IconName; pages: RawPage[] }> = {
           ["E2", [1203, 295, 162, 26]],
         ],
       },
-      { screen: "web-equipment", path: "equipment", spots: [["E1", [1024, 296, 76, 22]]] },
     ],
   },
   materials: {
@@ -127,7 +128,6 @@ const DESK: Record<string, { icon: IconName; pages: RawPage[] }> = {
     icon: "scheduling",
     pages: [
       { screen: "web-scheduling", path: "scheduling", spots: [["S1", [346, 626, 137, 52]]] },
-      { screen: "web-messaging", path: "messaging", spots: [["C3", [355, 262, 385, 48]]] },
       { screen: "web-pipeline", path: "pipeline", spots: [["G1", [923, 383, 227, 175]]] },
     ],
   },
