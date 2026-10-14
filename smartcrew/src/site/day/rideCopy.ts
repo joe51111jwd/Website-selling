@@ -24,6 +24,12 @@ export const RIDE_COPY = {
   /** 9:20 AM: the two ends of the haul road on the map ground (the demo's places) */
   haulFrom: "Hollis Sand & Gravel pit",
   haulTo: "Riverside Storm Sewer",
+  /** the ride's music: the prompt while the browser holds sound back, and the bar's button */
+  sound: {
+    prompt: "Turn on sound",
+    on: "Turn sound on",
+    off: "Turn sound off",
+  },
   controls: {
     group: "The day's controls",
     play: "Play the day",

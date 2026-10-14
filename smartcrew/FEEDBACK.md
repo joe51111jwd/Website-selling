@@ -118,3 +118,9 @@ Every piece of feedback on the product page, in one place. Each item has a statu
   - The lag: the 3D scene and the later sections used to start loading in the middle of the pour. They now wait until the sand has settled, unless the visitor scrolls or clicks first. Measured: no long tasks during the pour.
   - The start: the pour waited 3 s for a signal that never came, so the headline sat empty. Fixed, and the lines' invisible slide-in is gone. The pour now starts about 0.1 s after the page lays out.
 
+## Music on the ride
+- **"Add some music to the ride. Make it tuff."** The agency owner will get a licensed track. The brief and the marks it gets cut to are in `tools/music/README.md`.
+- Done: the ride has a soundtrack on its own clock. It starts and stops with the ride, follows chapter jumps, stops for the popup, a scroll up, Skip or a hidden tab, and rings out at the end. Measured: within ±40 ms of the picture.
+- Browsers only allow sound after a tap or click, so a visitor who only scrolled sees "Turn on sound" over the control bar. Anyone who clicked earlier just hears it. The bar has a sound on / off button, and the choice is remembered.
+- Now: a placeholder hard trap beat built in code (nothing to license), cut to the ride's marks. The drop lands when the first shot settles (0:02.5). The big drop hits on the profit card (0:35.25) after a build with no 808. Nightfall goes dark, and the final hit lands on "That's SmartCrew." (0:55.5).
+- Open: replace the placeholder with the licensed track when it arrives (no code change). No music on phones or with reduced motion.

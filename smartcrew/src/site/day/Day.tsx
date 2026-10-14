@@ -32,7 +32,8 @@ import { onSignup } from "../../signup/contract";
 import { Cta } from "../ui/Cta";
 import { glideTo, navigatingTo } from "../scroll";
 import { usePhoneLite } from "../phone";
-import { Controls, EASE, Player, bindPlayerKeys, holdPage, presence, usePlayer, type TrackFrame } from "../player";
+import { Controls, EASE, Player, Soundtrack, bindPlayerKeys, holdPage, presence, usePlayer, useSound, type TrackFrame } from "../player";
+import { useFirstScreenDone } from "../ready";
 import { RIDE, PACE, rideChapters, type Ride } from "./ride";
 import { ridePoses } from "./poses";
 import { rideLifePending, startRideLife } from "./rideLife";
@@ -66,6 +67,13 @@ export function getRidePlayer() {
     if (reducedMotion) ridePlayer.seek(RIDE.moments[0].hold[0] + 200);
   }
   return ridePlayer;
+}
+
+let rideSound: Soundtrack | null = null;
+/** The ride's music (public/audio/ride.mp3, on the film's clock); none with reduced motion (no autoplay). */
+export function getRideSound() {
+  if (!rideSound && !reducedMotion) rideSound = new Soundtrack(getRidePlayer(), `${import.meta.env.BASE_URL}audio/ride.mp3`);
+  return rideSound;
 }
 
 /** Phones get the light 2D day (./phone/DayPhone.tsx). */
@@ -253,6 +261,7 @@ function useRide(p: Player): RideActions {
       time: () => p.time(),
       state: () => ({ state: p.state, reason: p.reason, t: p.time(), chapter: p.chapterAt(), held: hold.held, started: p.started }),
       pending: () => rideLifePending(),
+      sound: () => getRideSound()?.debug(),
     };
     return offQ;
   }, [p, actions, hold]);
@@ -364,6 +373,16 @@ function DayStage({ player: p }: { player: Player }) {
   const R = RIDE;
   const v = usePlayer(p);
   const a = useRide(p);
+  // the music: fetched once the first screen is done (it never competes with the hero), so it's
+  // there before the ride starts
+  const st = getRideSound();
+  const sv = useSound(st);
+  const firstDone = useFirstScreenDone();
+  useEffect(() => {
+    if (!st || !firstDone) return;
+    const ric = window.requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 300));
+    ric(() => st.preload());
+  }, [st, firstDone]);
   const grid = useRef<HTMLDivElement>(null);
   const ground = useRef<HTMLDivElement>(null);
   const film = useRef<HTMLDivElement>(null);
@@ -513,6 +532,24 @@ function DayStage({ player: p }: { player: Player }) {
 
       <p className="day-caption">{DAY_UI.caption}</p>
 
+      {/* the browser won't make sound until the visitor taps or clicks: ask, once, while it plays */}
+      {st && (
+        <button
+          type="button"
+          className={`day-sound${v.state === "playing" && sv.on && sv.locked ? " is-on" : ""}`}
+          onClick={() => st.enable()}
+          tabIndex={v.state === "playing" && sv.on && sv.locked ? 0 : -1}
+          aria-hidden={!(v.state === "playing" && sv.on && sv.locked)}
+          data-cursor="link"
+        >
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M3.5 7.6h2.8L10 4.6v10.8l-3.7-3H3.5a.6.6 0 0 1-.6-.6V8.2c0-.3.3-.6.6-.6Z" fill="currentColor" />
+            <path d="M13 7.4a3.7 3.7 0 0 1 0 5.2M15.2 5.3a6.8 6.8 0 0 1 0 9.4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          </svg>
+          {RIDE_COPY.sound.prompt}
+        </button>
+      )}
+
       <Controls
         className="day-controls"
         player={p}
@@ -522,6 +559,7 @@ function DayStage({ player: p }: { player: Player }) {
         onSkip={a.skip}
         onReplay={a.replay}
         onChapter={a.chapter}
+        sound={st ? { on: sv.on, toggle: () => st.toggle(), label: sv.on ? RIDE_COPY.sound.off : RIDE_COPY.sound.on } : undefined}
       >
         <span className={`plc-cta${barCta ? " is-on" : ""}`} inert={!barCta}>
           <Cta source="ride" size="sm" cue={false} />

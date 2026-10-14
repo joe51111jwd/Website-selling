@@ -454,6 +454,53 @@ html[data-ground="dark"] .day-tag {
   transform: translateX(-50%);
 }
 
+/* the ride's music: "Turn on sound", over the bar, while the browser holds sound back */
+.day-sound {
+  position: absolute;
+  left: 50%;
+  bottom: calc(clamp(10px, 2.2svh, 20px) + 64px);
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 0 18px 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font: 650 14.5px/1 var(--font-text);
+  box-shadow: 0 10px 28px rgb(23 19 15 / 22%);
+  opacity: 0;
+  transform: translate3d(-50%, 8px, 0);
+  pointer-events: none;
+  transition:
+    opacity 0.35s var(--ease-out),
+    transform 0.35s var(--ease-out);
+  cursor: pointer;
+}
+
+.day-sound.is-on {
+  opacity: 1;
+  transform: translate3d(-50%, 0, 0);
+  pointer-events: auto;
+}
+
+.day-sound svg {
+  width: 20px;
+  height: 20px;
+}
+
+.day-sound:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+}
+
+html[data-ground="dark"] .day-sound {
+  background: var(--ink-night);
+  color: var(--night);
+}
+
 /* the control bar's small orange door out, while the ride owns the screen */
 .plc-cta {
   display: inline-flex;

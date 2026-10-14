@@ -8,8 +8,11 @@
 //   bindPlayerKeys(p, { active, onSkip });                                         // Space / ← → / Esc
 //   <Controls player={p} copy={…} onPlay onPause onSkip onReplay onChapter />     // the controls
 //   usePlayer(p) → { state, reason, beat, chapter, started, completed }
+//   const st = new Soundtrack(p, url); useSound(st) → { on, locked, ready }       // its music, on its clock
 export { Player, EASE, presence, type Chapter, type PauseReason, type PlayerOpts, type PlayerState, type TrackFrame } from "./player";
 export { holdPage, type Hold, type HoldExit } from "./hold";
 export { bindPlayerKeys } from "./keys";
 export { usePlayer, type PlayerView } from "./usePlayer";
 export { Controls, type ControlsCopy } from "./Controls";
+export { Soundtrack, type SoundView } from "./soundtrack";
+export { useSound } from "./useSound";

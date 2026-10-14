@@ -37,10 +37,15 @@ type Props = {
   tickText?: (i: number) => string;
   /** after Skip: e.g. the film's small orange "Get my free trial" (the page's own door out) */
   children?: ReactNode;
+  /** the film's soundtrack: a sound on / off button before Skip */
+  sound?: { on: boolean; toggle: () => void; label: string };
 };
 
-const Icon = ({ kind }: { kind: "play" | "pause" | "replay" | "prev" | "next" }) => (
+const Icon = ({ kind }: { kind: "play" | "pause" | "replay" | "prev" | "next" | "sound" | "muted" }) => (
   <svg viewBox="0 0 20 20" aria-hidden="true" className="plc-ico">
+    {(kind === "sound" || kind === "muted") && <path d="M3.5 7.6h2.8L10 4.6v10.8l-3.7-3H3.5a.6.6 0 0 1-.6-.6V8.2c0-.3.3-.6.6-.6Z" fill="currentColor" />}
+    {kind === "sound" && <path d="M13 7.4a3.7 3.7 0 0 1 0 5.2M15.2 5.3a6.8 6.8 0 0 1 0 9.4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />}
+    {kind === "muted" && <path d="m13 7.8 4.4 4.4m0-4.4L13 12.2" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />}
     {kind === "play" && <path d="M6.5 4.2v11.6c0 .6.6.9 1.1.6l9-5.8a.7.7 0 0 0 0-1.2l-9-5.8c-.5-.3-1.1 0-1.1.6Z" fill="currentColor" />}
     {kind === "pause" && (
       <>
@@ -72,7 +77,7 @@ function useFills(p: Player, fills: React.RefObject<(HTMLSpanElement | null)[]>)
   }, [p, fills]);
 }
 
-export function Controls({ player: p, copy, onPlay, onPause, onSkip, onReplay, onChapter, className, tickText, children }: Props) {
+export function Controls({ player: p, copy, onPlay, onPause, onSkip, onReplay, onChapter, className, tickText, children, sound }: Props) {
   const v = usePlayer(p);
   const fills = useRef<(HTMLSpanElement | null)[]>([]);
   useFills(p, fills);
@@ -131,6 +136,20 @@ export function Controls({ player: p, copy, onPlay, onPause, onSkip, onReplay, o
           </li>
         ))}
       </ol>
+
+      {sound && !reduced && (
+        <button
+          type="button"
+          className={`plc-btn plc-sound${sound.on ? " is-on" : ""}`}
+          onClick={sound.toggle}
+          aria-label={sound.label}
+          aria-pressed={sound.on}
+          title={sound.label}
+          data-cursor="link"
+        >
+          <Icon kind={sound.on ? "sound" : "muted"} />
+        </button>
+      )}
 
       {reduced ? (
         <button type="button" className="plc-btn plc-step" onClick={() => onChapter(Math.min(n - 1, v.chapter + 1))} disabled={v.chapter === n - 1} aria-label={copy.next} data-cursor="link">
