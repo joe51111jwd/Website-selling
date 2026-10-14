@@ -1,0 +1,200 @@
+/* Version 2's One Day: Andrew's walkthrough, full screen until it ends (Film.tsx). */
+
+.film-section {
+  position: relative;
+  height: 100svh;
+  background: var(--night);
+  color: var(--ink-night);
+}
+
+/* one element in both states: over the section at rest, over the viewport while it plays */
+.film-stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  justify-items: center;
+  gap: 18px;
+  padding: calc(var(--header-h) + 12px) var(--gutter) 22px;
+  background: var(--night);
+}
+
+.film-stage.is-taken {
+  position: fixed;
+  z-index: calc(var(--z-header) + 1);
+  padding-top: 22px;
+}
+
+/* the frame: 16:9, as big as the screen allows */
+.film-frame {
+  position: relative;
+  width: min(100%, calc((100svh - var(--header-h) - 120px) * 16 / 9));
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 30px 80px rgb(0 0 0 / 45%);
+  transition:
+    opacity 0.7s var(--ease-out),
+    transform 0.9s var(--ease-out);
+}
+
+.film-stage.is-taken .film-frame {
+  width: min(100%, calc((100svh - 110px) * 16 / 9));
+}
+
+.film-stage.is-title .film-frame {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.film-vid,
+.film-vid > * {
+  width: 100%;
+  height: 100%;
+}
+
+/* "Enjoy the ride" */
+.film-title {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--display-wght);
+  font-stretch: 96%;
+  font-size: clamp(44px, 4.4vw + 2svh, 112px);
+  letter-spacing: var(--track-head);
+  line-height: 1;
+  color: var(--ink-night);
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+  transition:
+    opacity 0.6s var(--ease-out),
+    transform 0.8s var(--ease-out);
+}
+
+.film-stage.is-title .film-title {
+  opacity: 1;
+  transform: none;
+}
+
+.film-title-sub {
+  font-family: var(--font-text);
+  font-weight: 400;
+  font-size: var(--fs-lead);
+  letter-spacing: 0;
+  color: var(--ink-night-2);
+}
+
+/* the bar under the frame */
+.film-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 48px;
+}
+
+.film-btn {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--line-night);
+  background: transparent;
+  color: var(--ink-night);
+  font: 600 15px/1 var(--font-text);
+  cursor: pointer;
+}
+
+.film-btn--solid {
+  background: var(--ink-night);
+  color: var(--night);
+  border-color: var(--ink-night);
+}
+
+.film-btn:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+}
+
+/* sound: browsers only allow muted autoplay */
+.film-sound {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--orange);
+  color: var(--ink);
+  font: 700 16px/1 var(--font-text);
+  transform: translateX(-50%);
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 35%);
+}
+
+.film-sound svg {
+  width: 22px;
+  height: 22px;
+}
+
+.film-failed {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  margin: 0;
+  color: var(--ink-night);
+  text-align: center;
+}
+
+/* the header steps aside while the video owns the screen */
+html.film-on .site-header {
+  transform: translate3d(0, -100%, 0);
+  visibility: hidden;
+  transition:
+    transform 0.6s var(--ease-in-out),
+    visibility 0s linear 0.6s;
+}
+
+@media (max-width: 760px) {
+  .film-stage {
+    padding: calc(var(--header-h) + 8px) 0 calc(var(--sticky-h) + 16px);
+  }
+
+  .film-stage.is-taken {
+    padding: 0 0 16px;
+    align-content: center;
+  }
+
+  .film-frame,
+  .film-stage.is-taken .film-frame {
+    width: 100%;
+    border-radius: 0;
+  }
+
+  .film-bar {
+    padding: 0 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .film-frame,
+  .film-title {
+    transition: none;
+  }
+}

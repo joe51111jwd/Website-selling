@@ -274,8 +274,8 @@ export const RideFx = memo(function RideFx({ player: p }: { player: Player }) {
     track(".fx-veil", [
       { t: 0, opacity: 0 },
       { t: m4.at.push[0] + 200, opacity: 0, ease: EASE.inOut },
-      { t: m4.at.macro[1], opacity: 0.6 },
-      { t: m5.at.unzoom[0], opacity: 0.6, ease: EASE.inOut },
+      { t: m4.at.macro[1], opacity: 0.8 },
+      { t: m5.at.unzoom[0], opacity: 0.8, ease: EASE.inOut },
       { t: m5.at.unzoom[0] + 450, opacity: 0 },
     ]);
     // the count: every wheel spins forward to its figure, the cents settle last

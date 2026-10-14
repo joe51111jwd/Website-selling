@@ -16,6 +16,8 @@ import { startTracking } from "./lib/track";
 import { startWarmAhead } from "./site/phone/warmAhead";
 import HeroScene from "./site/hero/Hero";
 import DayScene from "./site/day/Day";
+import Film from "./site/film/Film";
+import { VERSION } from "./site/version";
 
 // three.js and the models load in their own chunk once the hero's entrance has played its main
 // beats (useAfterEntrance, src/site/ready.ts), so evaluating it and the first GL work never land
@@ -222,7 +224,8 @@ export default function App() {
       <Header />
       <main className="site">
         <Hero />
-        {dayOn && <Day />}
+        {/* version 2 (?v=video): One Day is Andrew's walkthrough video instead of the ride */}
+        {dayOn && (VERSION === "video" ? <Film /> : <Day />)}
         {LATER.slice(0, later).map((S, i) => (
           // each scene loads on its own: a scene still on its way never blanks the page
           <Suspense key={i} fallback={null}>

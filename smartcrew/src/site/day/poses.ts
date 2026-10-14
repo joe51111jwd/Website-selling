@@ -285,8 +285,8 @@ export function ridePoses(aspect = typeof window !== "undefined" ? window.innerW
   // ── the finale: dolly back to the whole app; the one centred frame ──
   {
     const f = R.finale;
-    const lap = lp(58, 75, 40, { rx: 10, ry: -10, z: -0.4, power: 1 });
-    const phn = ph(38.5, 77, 44, { rx: 4, ry: 16, rz: 1.5, z: 0.6, power: 1 });
+    const lap = lp(60, 75, 40, { rx: 10, ry: -10, z: -0.4, power: 1 });
+    const phn = ph(33.5, 77, 44, { rx: 4, ry: 16, rz: 1.5, z: 0.6, power: 1 });
     F.at(f.screens, { iphone: { screen: "phone-working" }, macbook: { screen: "web-dashboard", dim: 0.08 } });
     F.move(f.settle, "inOut", { iphone: phn, macbook: lap, focus: null, view: { rx: 3, ry: 0 }, light: { key: 0.8, warm: 0.9 } });
     // the ring glides once down the dashboard's sidebar: Dashboard … Reports

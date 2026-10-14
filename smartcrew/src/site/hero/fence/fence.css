@@ -752,3 +752,43 @@ html.has-opening .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-
     transition: none !important;
   }
 }
+
+/* ── The boss's call (FEEDBACK.md #2, #3): no "random polygons", no crew walking in. The fence
+   round the words, its stakes, the button's ring, the crew markers and their clock-in times are
+   retired; the topographic ground and the job's tag stay and come forward. The key phrase keeps a
+   plain emphasis. (The new topographic hero entrance replaces this hero.) ── */
+.hf-fence,
+.hf-ring,
+.hf-ring-s,
+.hf-ring-p,
+.hf-pulse,
+.hf-tape,
+.hf-mk,
+.hf-stamp {
+  display: none !important;
+}
+
+.hf-fenced {
+  color: var(--orange-ink);
+}
+
+.hf-line--fence.is-first {
+  margin-top: -0.12em;
+}
+
+.hf-line--fence.is-last {
+  margin-bottom: -0.1em;
+}
+
+.hf-ground .mi {
+  stroke-opacity: 0.12;
+}
+
+.hf-ground .ma {
+  stroke-opacity: 0.21;
+  stroke-width: 1.1;
+}
+
+.hf-chip-glyph {
+  display: none;
+}

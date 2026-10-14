@@ -513,7 +513,8 @@ async function payroll(R: Ride): Promise<Piece[]> {
   };
   return [
     press(2, S.phone.before, PX.submitTimecard, m.at.tap[0]),
-    stills("macbook", 2, screen, [cx, top, cw, bottom - top], cols, (t) => (t < m.start ? -1 : flipped(t) >= 8 && t > c1 + 400 ? -1 : flipped(t))),
+    // (the screen's own image still says "Review": once flipped, the column stays approved)
+    stills("macbook", 2, screen, [cx, top, cw, bottom - top], cols, (t) => (t < m.start ? -1 : flipped(t))),
     toast,
   ];
 }
