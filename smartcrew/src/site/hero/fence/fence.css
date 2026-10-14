@@ -797,7 +797,7 @@ html.has-opening .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-
    pouring dirt from the top. The dirt fills in all the letters, and then the letters just look like
    dirt"). The letters start empty: nothing on screen. Dirt pours down from the top of the screen
    (./pour.ts, grains on a canvas) and the soil rises inside each letter, with a lumpy surface, in
-   strata, line after line, until the words are made of dirt; "every job" fills with orange clay.
+   strata, bottom line first and up, like a pour into a hole, until the words are made of dirt; "every job" fills with orange clay.
    The soil layer is twice the line's height (empty above, soil below a bumpy edge); sliding it up
    is the rise. Reduced motion: filled from the start. ── */
 @property --hf-y {
@@ -817,7 +817,7 @@ html.has-opening .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-
   -webkit-background-clip: text;
   background-clip: text;
   animation: hf-backfill 1.6s cubic-bezier(0.45, 0.05, 0.4, 1) both;
-  animation-delay: calc(0.5s + var(--i, 0) * 0.45s);
+  animation-delay: calc(0.5s + var(--i, 0) * 0.38s);
 }
 
 .hf-fenced {

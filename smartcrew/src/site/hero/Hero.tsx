@@ -123,7 +123,7 @@ export default function Hero() {
             <span className="hf-h1-v" aria-hidden="true">
               {lines.map((l, i) => (
                 <span className={`hf-line${l.fence ? " hf-line--fence" : ""}${l.first ? " is-first" : ""}${l.last ? " is-last" : ""}`} key={i}>
-                  <span className="hf-line-in" style={{ "--i": i } as CSSProperties}>
+                  <span className="hf-line-in" style={{ "--i": lines.length - 1 - i } as CSSProperties}>
                     {l.pre}
                     {l.fence && <span className="hf-fenced">{l.fence}</span>}
                     {l.post}
