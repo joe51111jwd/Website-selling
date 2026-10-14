@@ -792,3 +792,63 @@ html.has-opening .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-
 .hf-chip-glyph {
   display: none;
 }
+
+/* ── The headline is dug, then backfilled (the boss: "the text is like a box, and then there's
+   dirt that fills up from the top… fills up the text"). Each line starts as an outline, a trench
+   cut in the ground; soil pours in from the top and fills it, line after line, in strata (dark
+   topsoil, a lighter subsoil band, gravel speckle). The key phrase fills with orange clay. Each
+   layer is twice the line's height: soil on top, nothing below; sliding it down is the pour.
+   Reduced motion: filled from the start. ── */
+@property --hf-y {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+
+.hf-line-in,
+.hf-fenced {
+  color: transparent;
+  -webkit-text-stroke: 1.5px color-mix(in srgb, var(--ink) 65%, transparent);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600' preserveAspectRatio='none'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.93 0 0 0 0 0.84 0 0 0 0 0.7 0 0 0 1.5 -0.9'/%3E%3C/filter%3E%3Crect width='600' height='300' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, #2a1f16 0%, #1c1510 18%, #3b2c20 30%, #241b14 40%, #17130f 49.9%, transparent 50%);
+  background-size: 100% 200%;
+  background-repeat: no-repeat;
+  background-position: 0 var(--hf-y);
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: hf-backfill 1.3s cubic-bezier(0.5, 0.05, 0.3, 1) both;
+  animation-delay: calc(0.35s + var(--i, 0) * 0.22s);
+}
+
+.hf-fenced {
+  --hf-y: inherit;
+  -webkit-text-stroke-color: color-mix(in srgb, var(--orange-ink) 75%, transparent);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 600' preserveAspectRatio='none'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0.93 0 0 0 0 0.84 0 0 0 0 0.7 0 0 0 1.5 -0.9'/%3E%3C/filter%3E%3Crect width='600' height='300' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, #d76b22 0%, #b84f00 28%, #c25a12 36%, #9c4200 49.9%, transparent 50%);
+}
+
+@keyframes hf-backfill {
+  from {
+    --hf-y: 100%;
+  }
+  to {
+    --hf-y: 0%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hf-line-in,
+  .hf-fenced {
+    animation: none;
+    --hf-y: 0%;
+  }
+}
+
+/* the soil reaches the descenders (y, j, g, the comma) */
+.hf-line-in,
+.hf-fenced {
+  padding-bottom: 0.26em;
+  margin-bottom: -0.26em;
+}

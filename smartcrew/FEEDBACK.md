@@ -89,3 +89,10 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 - [ ] A review panel passes it: an art director, a conversion lead and technical QA.
 - [ ] `npm run e2e` is green on desktop and on the Facebook in-app iPhone browser.
 - [ ] It is deployed, and the agency owner gets the link.
+
+## Latest (hero type + topo)
+- **Topo lines smooth, not jagged.** Done: contour lines are relaxed before they're drawn, the polygon terraces are gone, and the landform around the copy is softer.
+- **The headline shouldn't be basic text.** "Maybe the text is like a box, and then there's dirt that fills up from the top of the screen."
+  - Done (first cut): each headline line starts as an outline (a dug trench), then soil pours in from the top and fills it, line by line, in strata with a gravel grain. "Every job" fills with orange clay.
+  - Reduced motion shows it filled.
+  - Open: tune the timing and texture with the boss, and consider the same treatment for other big headlines.
