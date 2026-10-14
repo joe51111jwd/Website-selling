@@ -208,7 +208,7 @@ export type SceneClock = {
   /** True while the clock is running or blending: the Stage keeps drawing. */
   moving(now: number): boolean;
 };
-type ClockTrack = { keys: PoseKey[]; clock: SceneClock; portal: number[] };
+type ClockTrack = { keys: PoseKey[]; clock: SceneClock; portal: number[]; lead: PoseKey[] };
 
 const tracks = new Map<string, PoseKey[]>();
 const clockTracks = new Map<string, ClockTrack>();
@@ -220,11 +220,14 @@ const subTimelines = new Map<string, ResolvedKey[]>();
 /**
  * Register a scene's pose keys. Returns an unregister function. With `clock`, the keys are on that
  * clock (their `at` is clock time) and the scene sits in the scroll timeline at its `portal`
- * progress points (default [0]: its top).
+ * progress points (default [0]: its top). `lead`: ordinary scroll keys of a clock-driven scene
+ * (`at` = its progress, `offset` in screens), e.g. a calm pose a little before its portal, so the
+ * scroll into and out of the scene blends through it and never through whatever the clock shows
+ * (a push-in, say) while the visitor scrolls away.
  */
-export function registerPoses(scene: string, keys: PoseKey[], opts: { clock?: SceneClock; portal?: number[] } = {}) {
+export function registerPoses(scene: string, keys: PoseKey[], opts: { clock?: SceneClock; portal?: number[]; lead?: PoseKey[] } = {}) {
   if (opts.clock) {
-    const t: ClockTrack = { keys, clock: opts.clock, portal: opts.portal ?? [0] };
+    const t: ClockTrack = { keys, clock: opts.clock, portal: opts.portal ?? [0], lead: opts.lead ?? [] };
     clockTracks.set(scene, t);
     tracks.delete(scene);
     timelineDirty = true;
@@ -339,6 +342,7 @@ function buildTimeline() {
     const s = placeOf(scene);
     if (!s) return;
     t.portal.forEach((at) => raw.push({ scene, key: { at }, y: s.top + at * s.travel, portal: true }));
+    t.lead.forEach((key) => raw.push({ scene, key, y: s.top + key.at * s.travel + (key.offset ?? 0) * vh }));
   });
   raw.sort((a, b) => a.y - b.y);
   const out: ResolvedKey[] = [];

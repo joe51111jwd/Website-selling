@@ -77,8 +77,7 @@ function DayDesk() {
   const player = getRidePlayer();
   // the Stage plays One Day on the film's clock: its keys are in ms of the film, laid out for the
   // viewport's shape (registered again when it changes). The scene sits in the scroll timeline at
-  // its top and three quarters of a screen earlier (where the ride starts), so while the page glides
-  // in, the devices wait below the frame with One Day's stage
+  // its top (the clock's pose)
   const [aspect, setAspect] = useState(() => window.innerWidth / Math.max(1, window.innerHeight));
   useEffect(() => {
     let t = 0;
@@ -95,7 +94,14 @@ function DayDesk() {
       window.removeEventListener("resize", on);
     };
   }, []);
-  useEffect(() => registerPoses("day", ridePoses(aspect), { clock: player.sceneClock, portal: [-0.75, 0] }), [player, aspect]);
+  useEffect(() => {
+    const keys = ridePoses(aspect);
+    // half a screen before One Day the devices wait out of sight (the film's own first
+    // pose, as a scroll key): scrolling into One Day, or away from it after a jump or an exit, blends
+    // through this calm pose, never through a push-in the clock happens to be showing
+    const wait = { ...keys[0], at: 0, offset: -0.45, ease: "inOut" as const };
+    return registerPoses("day", keys, { clock: player.sceneClock, portal: [0], lead: [wait] });
+  }, [player, aspect]);
   return (
     <Scene id="day" pinnedViewports={1} stage="keep" label={DAY_UI.rail} className="day day--ride">
       <DayStage player={player} />

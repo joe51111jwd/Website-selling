@@ -21,7 +21,8 @@ export type Clock = {
   ghost: boolean;
 };
 
-const DEMO_AFTER = 4000;
+/** The self demo waits this long, settled and untouched (SCROLL_SHOTS §1: was 4 s). */
+const DEMO_AFTER = 3200;
 const GHOST_MS = 900;
 
 export function useClock() {
@@ -60,7 +61,7 @@ export function useClock() {
 }
 
 /**
- * Runs the self demo once: after the scene has been settled on screen for 4 s with nobody
+ * Runs the self demo once: after the scene has been settled on screen for 3.2 s with nobody
  * tapping (a pointer moving over the phone restarts the count, so it never fires under a hand).
  */
 export function useSelfDemo(clock: ReturnType<typeof useClock>, settled: boolean) {
@@ -92,42 +93,57 @@ export function useElapsed(on: boolean, since: number) {
   return s;
 }
 
+/** Where a pinned scene's stage is: -1 still coming up from below, 0 pinned (filling the viewport), 1 scrolled past. */
+export type StagePhase = -1 | 0 | 1;
+
 /**
  * Whether the scene's sticky stage is pinned and filling the viewport (the 3D phone has arrived
- * and holds still), recomputed on scroll and resize. `settleMs` waits for the Stage's spring.
+ * and holds still), and which side of it the page is on. Two IntersectionObservers on hairline
+ * bands at the viewport's top and bottom edges: the scene covers both while pinned. Nothing runs
+ * per scroll event and nothing reads layout. `pinned` waits `settleMs` for the Stage's spring.
  */
-export function usePinned(id: string, settleMs = 260) {
+export function useStagePhase(id: string, settleMs = 260) {
+  const [phase, setPhase] = useState<StagePhase>(-1);
   const [pinned, setPinned] = useState(false);
   useEffect(() => {
     const el = document.getElementById(id);
-    if (!el) return;
-    let raf = 0;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    let top = false;
+    let bottom = false;
+    let elTop = 1;
+    let last: StagePhase | null = null;
     let timer = 0;
-    let last = false;
-    const check = () => {
-      raf = 0;
-      const r = el.getBoundingClientRect();
-      const now = r.top <= 1 && r.bottom >= window.innerHeight - 1;
+    const update = () => {
+      const now: StagePhase = top && bottom ? 0 : elTop > 0 ? -1 : 1;
       if (now === last) return;
       last = now;
+      setPhase(now);
       window.clearTimeout(timer);
-      if (now) timer = window.setTimeout(() => setPinned(true), settleMs);
+      if (now === 0) timer = window.setTimeout(() => setPinned(true), settleMs);
       else setPinned(false);
     };
-    const on = () => {
-      if (!raf) raf = requestAnimationFrame(check);
-    };
-    check();
-    window.addEventListener("scroll", on, { passive: true });
-    window.addEventListener("resize", on);
+    const band = (margin: string, set: (on: boolean) => void) =>
+      new IntersectionObserver(
+        (es) => {
+          for (const e of es) {
+            set(e.isIntersecting);
+            elTop = e.boundingClientRect.top;
+          }
+          update();
+        },
+        { rootMargin: margin, threshold: 0 },
+      );
+    const a = band("0px 0px -99.7% 0px", (on) => (top = on));
+    const b = band("-99.7% 0px 0px 0px", (on) => (bottom = on));
+    a.observe(el);
+    b.observe(el);
     return () => {
-      cancelAnimationFrame(raf);
+      a.disconnect();
+      b.disconnect();
       window.clearTimeout(timer);
-      window.removeEventListener("scroll", on);
-      window.removeEventListener("resize", on);
     };
   }, [id, settleMs]);
-  return pinned;
+  return { phase, pinned };
 }
 
 /** The visitor's local time, "4:13 PM". */
