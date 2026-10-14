@@ -485,19 +485,19 @@ export function mountFence(root: HTMLElement, o: FenceOpts): () => void {
       H,
       step: phone ? 8 : 8,
       rects,
-      polys: [fence, ring],
-      blend: phone ? 18 : 30,
+      // no fence polygons in the ground any more: they bent the contours into angular terraces
+      blend: phone ? 40 : 70,
       first: phone ? 14 : 18,
       falloff: phone ? 80 : 115,
       amp: phone ? 2.2 : 2.6,
-      wobble: 0.24,
+      wobble: 0.12,
       scale: phone ? 210 : 320,
       seed: 11,
       major: 4,
       levels: phone ? 12 : 15,
       tilt: [1.2, -0.8],
       // path budget: ≤ 32 KB desktop, ≤ 14 KB phone
-      eps: phone ? 0.8 : 0.7,
+      eps: phone ? 1.1 : 1.0,
     };
     const topoSvg = q<SVGSVGElement>(".hf-ground svg")!;
     topoSvg.setAttribute("width", String(W));

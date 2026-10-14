@@ -180,7 +180,7 @@ export function* contoursGen(o: TopoInput): Generator<void, TopoOut, void> {
     let n = 0;
     for (const pl of lines) {
       if (++n % 12 === 0) yield;
-      const simp = yield* rdp(pl.pts, o.eps ?? 0.45);
+      const simp = yield* rdp(relax(pl.pts, pl.closed, 4), o.eps ?? 0.45);
       if (simp.length < 3 && !pl.closed) continue;
       if (pl.closed && length(simp) < s * 7) continue; // specks
       d += curve(simp, pl.closed);
@@ -376,6 +376,27 @@ function* rdp(p: Pt[], eps: number): Generator<void, Pt[], void> {
     }
   }
   return p.filter((_, i) => keep[i]);
+}
+
+
+/** Laplacian relaxation: pulls each point toward its neighbours' midpoint, a few passes, so the
+ * marching-squares stair-steps and small kinks melt into a smooth line before simplification. */
+function relax(p: Pt[], closed: boolean, passes: number): Pt[] {
+  const n = p.length;
+  if (n < 4) return p;
+  let a = p.map((q) => [q[0], q[1]] as Pt);
+  for (let k = 0; k < passes; k++) {
+    const b = a.map((q) => [q[0], q[1]] as Pt);
+    for (let i = 0; i < n; i++) {
+      if (!closed && (i === 0 || i === n - 1)) continue;
+      const pr = a[(i - 1 + n) % n];
+      const nx = a[(i + 1) % n];
+      b[i][0] = a[i][0] * 0.5 + (pr[0] + nx[0]) * 0.25;
+      b[i][1] = a[i][1] * 0.5 + (pr[1] + nx[1]) * 0.25;
+    }
+    a = b;
+  }
+  return a;
 }
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
