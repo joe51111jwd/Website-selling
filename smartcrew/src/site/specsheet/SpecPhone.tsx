@@ -3,8 +3,8 @@
 // scrolls sideways), each opens its screen on the phone (the crew app where the group lives in
 // the field, the office app's mobile layout where it doesn't), and quiet dots on the screen name
 // the tools in one line. Swipe the phone to go to the next or the previous group. Outside the app:
-// the title, the count and "Show everything" (the plain list, ./AllTools.tsx). The sticky bar
-// carries the CTA.
+// the title, the count and "Show everything" (the plain list, ./AllTools.tsx), and the CTA in
+// the sticky bar's place (the bar steps aside while it shows).
 //
 // The moment: on arrival (once) the title settles, the chips draw in, the phone rises and its
 // first screen names its first tool; untouched, it walks on by itself (./useTour.ts). The phone
@@ -14,6 +14,7 @@
 import { startTransition, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type TouchEvent } from "react";
 import { SPEC } from "../../content/copy";
 import { Scene } from "../scene/Scene";
+import { Cta } from "../ui/Cta";
 import { PhoneFrame } from "../phone/PhoneFrame";
 import { useArrive, useSteps } from "../phone/useArrive";
 import { CATEGORIES, TOOL_COUNT, type Tool } from "./data";
@@ -251,6 +252,9 @@ function Inner() {
           {g.officeMobile && <Flag />}
         </p>
       </div>
+
+      {/* the CTA sits where the sticky bar would (which steps aside while it shows) */}
+      <Cta source="specsheet" size="lg" block className="spp-cta" />
 
       <AllTools open={all} onClose={() => setAll(false)} onPick={pick} canShow={canShow} variant="phone" />
     </div>

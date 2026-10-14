@@ -24,7 +24,13 @@
   min-height: 540px;
   max-height: 940px;
   padding-top: calc(var(--header-h) + 12px);
-  padding-bottom: calc(var(--sticky-h) + env(safe-area-inset-bottom) + 6px);
+  padding-bottom: calc(env(safe-area-inset-bottom) + 10px);
+}
+
+/* the CTA, in the sticky bar's place */
+.spp-cta {
+  flex: none;
+  margin-top: 6px;
 }
 
 /* ── the words ─────────────────────────────────────────────────────────── */
