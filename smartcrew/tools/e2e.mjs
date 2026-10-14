@@ -849,7 +849,9 @@ async function noWebgl() {
     const page = await open(ctx);
     const h1 = page.getByRole("heading", { level: 1 }).first();
     await h1.waitFor({ state: "visible", timeout: 15000 });
-    await wait(4000);
+    // the Stage only starts once the hero's sand has settled (src/site/ready.ts: holds), so wait
+    // for it to report rather than a fixed time
+    await page.waitForFunction(() => document.documentElement.classList.contains("stage-fallback"), null, { timeout: 20000 }).catch(() => {});
     const state = await page.evaluate(() => ({
       fallback: document.documentElement.classList.contains("stage-fallback"),
       webgl: !!document.createElement("canvas").getContext("webgl2") || !!document.createElement("canvas").getContext("webgl"),
