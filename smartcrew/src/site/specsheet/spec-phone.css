@@ -84,17 +84,22 @@
 .spp-all {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  min-height: 44px;
-  padding: 0 13px;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 16px;
   margin-right: -4px;
-  border: 1px solid var(--line);
+  border: 0;
   border-radius: 999px;
-  background: var(--paper);
-  color: var(--ink);
-  font: 600 14.5px/1 var(--font-text);
+  background: var(--ink);
+  color: var(--paper);
+  font: 650 15px/1 var(--font-text);
   white-space: nowrap;
+  box-shadow: 0 8px 20px -8px rgb(23 19 15 / 45%);
   -webkit-tap-highlight-color: transparent;
+}
+
+.spp-all .spp-glyph {
+  color: var(--orange);
 }
 
 .spp-glyph {

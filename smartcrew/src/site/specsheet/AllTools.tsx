@@ -1,16 +1,17 @@
-// "Show everything": the plain list, for people who want to read. Every tool of the six groups
-// as a grid of six boxes, each tool a short chip (its one plain line is the tooltip; ⚑ where
-// Andrew still has to confirm it). A tool that has a spot in the
-// app is a button: it closes the list and shows that spot. A modal dialog (focus kept inside,
-// Escape or Close shuts it, focus goes back to what opened it), portalled to <body>, the page
-// held still underneath. Desktop: a panel over the section; phones: a sheet up from the bottom.
+// "See all 38 tools": every tool of the six groups as a grid of six boxes, each tool a short chip
+// (its one plain line is the tooltip; ⚑ where Andrew still has to confirm it). Every tool is a
+// button: it starts the flat walkthrough there (./Walk.tsx), which then plays on through all 38;
+// "Walk through all 38" starts it at the first. A modal dialog (focus kept inside, Escape or Close
+// shuts it, focus goes back to what opened it), portalled to <body>, the page held still
+// underneath. Desktop: a panel over the section; phones: a sheet up from the bottom.
 // Open/close is opacity + transform only.
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { SPEC } from "../../content/copy";
 import { lockScroll } from "../scroll";
-import { CATEGORIES, TOOL_COUNT, type Tool } from "./data";
+import { CATEGORIES, TOOL_COUNT } from "./data";
+import { Walk, WALK_COPY, stepOf } from "./Walk";
 
 const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -33,10 +34,8 @@ export function GridGlyph({ className = "spec-glyph" }: { className?: string }) 
 type Props = {
   open: boolean;
   onClose: () => void;
-  /** A tool with a spot was picked: show it (the list closes first). */
-  onPick: (t: Tool) => void;
-  /** Whether a tool has a spot to show. */
-  canShow: (t: Tool) => boolean;
+  /** Open straight into the walkthrough at this step (0 = the first tool). */
+  startAt?: number | null;
   variant: "desk" | "phone";
 };
 
@@ -73,8 +72,10 @@ export function AllTools({ open, ...rest }: Props) {
   return createPortal(<Panel up={up && open} {...rest} />, document.body);
 }
 
-function Panel({ up, onClose, onPick, canShow, variant }: Omit<Props, "open"> & { up: boolean }) {
+function Panel({ up, onClose, startAt = null, variant }: Omit<Props, "open"> & { up: boolean }) {
   const titleId = useId();
+  // null: the grid; a number: the walkthrough, at that step
+  const [walk, setWalk] = useState<number | null>(startAt);
   const panel = useRef<HTMLDivElement>(null);
   const opener = useRef<HTMLElement | null>(typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null);
 
@@ -112,11 +113,33 @@ function Panel({ up, onClose, onPick, canShow, variant }: Omit<Props, "open"> & 
   return (
     <div className={`spal spal--${variant}${up ? " is-up" : ""}`} role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={onKey}>
       <div className="spal-scrim" onClick={onClose} aria-hidden="true" />
-      <div ref={panel} className="spal-panel">
+      <div ref={panel} className={`spal-panel${walk !== null ? " is-walk" : ""}`}>
+        <h2 id={titleId} className="sr-only">
+          {SPEC.allTitle(TOOL_COUNT)}
+        </h2>
+        {walk !== null ? (
+          <Walk start={walk} onBack={() => setWalk(null)} onClose={onClose} variant={variant} />
+        ) : (
+          <Grid titleId={titleId} onClose={onClose} onWalk={setWalk} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Grid({ titleId, onClose, onWalk }: { titleId: string; onClose: () => void; onWalk: (i: number) => void }) {
+  return (
+    <>
         <div className="spal-head">
-          <h2 id={titleId} className="spal-title">
+          <p className="spal-title" aria-hidden="true">
             {SPEC.allTitle(TOOL_COUNT)}
-          </h2>
+          </p>
+          <button type="button" className="spal-walk" onClick={() => onWalk(0)} data-cursor="link">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M6.5 4.2v11.6c0 .6.6.9 1.1.6l9-5.8a.7.7 0 0 0 0-1.2l-9-5.8c-.5-.3-1.1 0-1.1.6Z" fill="currentColor" />
+            </svg>
+            {WALK_COPY.start(TOOL_COUNT)}
+          </button>
           <button type="button" className="spal-x" onClick={onClose} aria-label={`${SPEC.close}: ${SPEC.allTitle(TOOL_COUNT)}`}>
             <span>{SPEC.close}</span>
             <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -143,21 +166,15 @@ function Panel({ up, onClose, onPick, canShow, variant }: Omit<Props, "open"> & 
                   );
                   return (
                     <li key={t.id}>
-                      {canShow(t) ? (
-                        <button type="button" className="spal-tool is-link" data-tool={t.id} title={t.line} onClick={() => onPick(t)}>
-                          {name}
-                          <span className="spal-see" aria-hidden="true">
-                            {SPEC.view}
-                            <svg viewBox="0 0 16 16" fill="none">
-                              <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </span>
-                        </button>
-                      ) : (
-                        <div className="spal-tool" title={t.line}>
-                          {name}
-                        </div>
-                      )}
+                      <button type="button" className="spal-tool is-link" data-tool={t.id} title={t.line} onClick={() => onWalk(stepOf(t.id))}>
+                        {name}
+                        <span className="spal-see" aria-hidden="true">
+                          {SPEC.view}
+                          <svg viewBox="0 0 16 16" fill="none">
+                            <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </span>
+                      </button>
                     </li>
                   );
                 })}
@@ -165,7 +182,6 @@ function Panel({ up, onClose, onPick, canShow, variant }: Omit<Props, "open"> & 
             </section>
           ))}
         </div>
-      </div>
-    </div>
+    </>
   );
 }

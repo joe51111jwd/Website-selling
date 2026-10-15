@@ -2,7 +2,12 @@
 // the web app). The section is the SmartCrew office web app itself, live and clickable: its
 // sidebar is the spec sheet's six groups, each opens the group's real screen, and quiet dots on
 // each screen name the tools in one line. Outside the app only the title, the count ("38 tools in
-// 6 groups") and "Show everything" (the plain list, ./AllTools.tsx) and the CTA.
+// 6 groups"), "See all 38 tools" (big and dark: the list of all 38, where any tool starts the
+// flat walkthrough through all of them, ./AllTools.tsx + ./Walk.tsx) and the CTA.
+//
+// The speed bump (the boss: "it's too easy to accidentally scroll past it"): scrolling down onto
+// the section, the page glides it into place and holds it for a moment (../player/hold.ts: the
+// wheel is absorbed, a clear scroll up lets go, every button still works), then hands it back.
 //
 // The moment (SCROLL_BRIEF.md): as the section arrives, the app boots calmly, once: the window
 // settles, the sidebar draws in, the first screen loads, its dots appear and the first one names
@@ -11,18 +16,22 @@
 //
 // Phones get ./SpecPhone.tsx (the same idea in a 2D iPhone, transform/opacity only).
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CTA, SPEC } from "../../content/copy";
 import { Scene } from "../scene/Scene";
 import { exitKeys, reducedMotion } from "../../three/stage";
+import { sceneY } from "../../three/stage/store";
+import { navigatingTo } from "../scroll";
+import { holdPage } from "../player";
 import { Cta, DemoLink } from "../ui/Cta";
 import { usePhoneLite } from "../phone";
 import { useArrive, useSteps } from "../phone/useArrive";
-import { TOOL_COUNT, CATEGORIES, type Tool } from "./data";
-import { GROUPS, findSpot } from "./tour";
+import { TOOL_COUNT, CATEGORIES } from "./data";
+import { GROUPS } from "./tour";
 import { useTour } from "./useTour";
 import { AppFrame } from "./AppFrame";
 import { AllTools, GridGlyph } from "./AllTools";
+import { WALK_COPY } from "./Walk";
 import { Roll } from "./Roll";
 import SpecPhone from "./SpecPhone";
 import "./specsheet.css";
@@ -46,6 +55,41 @@ const SHAPE = GROUPS.map((g) => g.pages.map((p) => p.spots.length));
 
 /** ms after arrival: 1 the window · 2 the sidebar · 3 the screen · 4 the dots · 5 the first name. */
 const BOOT = [40, 420, 760, 1180, 1620];
+/** The speed bump: how long the section holds the page once it has glided into place, ms. */
+const HOLD_MS = 3000;
+
+/** Scrolling down onto the section: glide it into place and hold it a moment (once per load). */
+function useSpeedBump() {
+  useEffect(() => {
+    if (reducedMotion) return;
+    const hold = holdPage({ y: () => sceneY("specs", 0), onExit: () => {} });
+    let done = false;
+    let lastY = window.scrollY;
+    let t = 0;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const down = y > lastY;
+      lastY = y;
+      if (done || !down || hold.held || document.documentElement.classList.contains("scroll-locked")) return;
+      const top = sceneY("specs", 0);
+      if (top === null) return;
+      // a header link passing through on its way further down doesn't stop here
+      const nav = navigatingTo();
+      if (nav !== null && Math.abs(nav - top) > 2) return;
+      const vh = window.innerHeight;
+      if (y >= top - 0.45 * vh && y < top + 0.08 * vh) {
+        done = true;
+        hold.engage(() => (t = window.setTimeout(() => hold.release(), HOLD_MS)));
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.clearTimeout(t);
+      hold.release();
+    };
+  }, []);
+}
 
 export default function SpecSheet() {
   return usePhoneLite() ? <SpecPhone /> : <SpecDesk />;
@@ -81,18 +125,7 @@ function Desk() {
     resume: 9000,
   });
 
-  const canShow = useCallback((t: Tool) => !!findSpot(t.id), []);
-  const pick = useCallback(
-    (t: Tool) => {
-      const at = findSpot(t.id);
-      setAll(false);
-      if (!at) return;
-      tour.go(at);
-      // focus lands on the spot once the list has gone (its dot names the tool)
-      window.setTimeout(() => document.querySelector<HTMLElement>(`.spx-page.is-on [data-tool="${t.id}"]`)?.focus({ preventScroll: true }), 360);
-    },
-    [tour],
-  );
+  useSpeedBump();
   const count = useMemo(() => SPEC_COUNT.line(CATEGORIES.length), []);
 
   return (
@@ -108,7 +141,10 @@ function Desk() {
           </p>
           <button type="button" className="spec-all" data-all aria-haspopup="dialog" data-cursor="link" onClick={() => setAll(true)}>
             <GridGlyph />
-            <span>{SPEC.all}</span>
+            <span>{WALK_COPY.all(TOOL_COUNT)}</span>
+            <svg className="spec-all-arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
         </div>
       </div>
@@ -132,7 +168,7 @@ function Desk() {
         <p className="t-micro spec-micro">{CTA.micro}</p>
       </div>
 
-      <AllTools open={all} onClose={() => setAll(false)} onPick={pick} canShow={canShow} variant="desk" />
+      <AllTools open={all} onClose={() => setAll(false)} variant="desk" />
     </div>
   );
 }

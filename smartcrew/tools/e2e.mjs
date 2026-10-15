@@ -584,20 +584,33 @@ async function specSheet(device) {
   const page = await open(ctx);
   try {
     await waitScenes(page);
-    const sec = page.locator("section#specs");
     await scrollSection(page, "#specs", 0, device.settle);
     await wait(900);
-    const row = sec.getByRole("button", { name: /^time & crew/i }).first();
-    await row.waitFor({ state: "visible", timeout: 8000 });
-    await press(page, row, { what: "the Time & crew row" });
-    const panel = device.name === "phone" ? page.getByRole("dialog", { name: /time & crew/i }) : page.getByRole("region", { name: /^time & crew$/i });
-    await panel.waitFor({ state: "visible", timeout: 5000 });
-    const tools = await panel.innerText();
-    assert(/clock/i.test(tools), "the expanded section lists no tools");
-    await press(page, page.getByRole("button", { name: /^close time & crew$/i }).first(), { what: "the section's close button" });
-    await panel.waitFor({ state: "hidden", timeout: 5000 });
-    await sec.getByRole("button", { name: /^time & crew/i }).first().waitFor({ state: "visible", timeout: 5000 });
-    return "opens on a section and closes back to the sheet";
+    // "See all 38 tools": big, and it opens every tool
+    const all = page.locator("section#specs").getByRole("button", { name: /^see all \d+ tools/i }).first();
+    await all.waitFor({ state: "visible", timeout: 8000 });
+    await press(page, all, { what: "See all 38 tools" });
+    const dialog = page.getByRole("dialog", { name: /all \d+ tools/i });
+    await dialog.waitFor({ state: "visible", timeout: 5000 });
+    const n = await dialog.locator("[data-tool]").count();
+    assert(n === 38, `the list has ${n} tools, not 38`);
+    // any tool starts the walkthrough there, and it plays on by itself
+    const pick = dialog.locator('[data-tool="E2"]').first();
+    // (on phones the list is a sheet that scrolls: bring the tool into view, as a visitor would)
+    await pick.scrollIntoViewIfNeeded();
+    await wait(300);
+    await press(page, pick, { what: "a tool in the list" });
+    const name = dialog.locator(".swk-name");
+    await name.waitFor({ state: "visible", timeout: 5000 });
+    const first = (await name.innerText()).trim();
+    const count = (await dialog.locator(".swk-count").innerText()).replace(/\s+/g, " ").trim();
+    assert(/^\d+ \/ 38$/.test(count), `the walkthrough's count reads "${count}"`);
+    await wait(4400);
+    const next = (await name.innerText()).trim();
+    assert(next !== first, `the walkthrough didn't move on from "${first}"`);
+    await press(page, dialog.getByRole("button", { name: /^close$/i }).first(), { what: "Close" });
+    await dialog.waitFor({ state: "hidden", timeout: 5000 });
+    return `38 tools; "${first}" (${count}) → "${next}" by itself; closes`;
   } finally {
     await ctx.close();
   }
@@ -1229,7 +1242,7 @@ for (const device of [DESKTOP, PHONE]) {
   await check(D, "every CTA on the page opens the popup", () => everyCta(device), { timeout: 900000 });
   await check(D, "never two orange CTAs on screen at once", () => oneOrangeAtATime(device), { timeout: 300000 });
   await check(D, "popup 3 steps + errors → /book prefilled (no booking)", () => funnel(device), { timeout: 150000 });
-  await check(D, "spec sheet: expand + collapse", () => specSheet(device));
+  await check(D, "spec sheet: all 38 tools → walkthrough", () => specSheet(device));
   await check(D, "Try it: tap Clock In → CTA", () => tryIt(device));
   await check(D, "Your number: slider + picks → popup prefill", () => yourNumber(device));
   await check(D, "FAQ toggles", () => faq(device));

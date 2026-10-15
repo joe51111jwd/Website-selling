@@ -137,3 +137,15 @@ Every piece of feedback on the product page, in one place. Each item has a statu
   - 5:30: three crew phones rise in a fan and buzz, one after another, with Monday's plan.
   - Friday: the week's timecards flip from Review to Approved, row by row, then "14 timecards approved".
 - Same timeline and copy, so the music's marks still land. All records are the demo's own (fictional).
+
+## "Here's everything it does": all 38, a walkthrough, easy to find, hard to miss
+- **"For all the features, when you click on it, it just starts a walkthrough… a flat walkthrough, just clicking through all the different things."** Done: "See all 38 tools" lists every tool, and any of the 38 is a button. Clicking one starts a flat walkthrough there (no 3D) that plays on by itself through all 38, in the sheet's order:
+  - each tool on its real screen, zoomed in on the part that shows it, with an orange ring (and the screen's own label where there is one);
+  - on the same screen the view glides from box to box; a new screen crossfades in;
+  - beside it: the group ("Equipment & safety · 2 of 7"), the tool's name, its one line, crew app / office;
+  - Prev / Pause / Next, ← → and Space, a 38-step bar to jump anywhere; it ends on "That's all 38." and the orange button;
+  - "Walk through all 38" starts it at the first tool. Phones: the same, screen on top, words under it.
+- **"All 38 features need to be there."** Done: all 38 are in the list and in the walkthrough. Before, the tools without a spot in the app tour couldn't be shown; now each has its screen (the closest one for the ⚑ tools, marked "Closest screen").
+- **"Make the part where it says you can see everything more accentuated. It took me looking to find it."** Done: "See all 38 tools" is a big dark button beside the count (orange stays the trial button's). It calls attention to itself once when the section boots. Same on phones.
+- **"It's too easy to accidentally scroll past it."** Done (desktop): scrolling down onto the section, the page glides it into place and holds it for 3 s. The wheel is absorbed, every button still works, and a clear scroll up lets go. Then it hands the page back. Once per visit; reduced motion skips it.
+- The e2e check for this section now tests the new behaviour: 38 tools, a pick starts the walkthrough, it moves on by itself, it closes.
