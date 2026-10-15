@@ -82,7 +82,8 @@ export function Controls({ player: p, copy, onPlay, onPause, onSkip, onReplay, o
   const fills = useRef<(HTMLSpanElement | null)[]>([]);
   useFills(p, fills);
   const reduced = p.reduced;
-  const playing = v.state === "playing";
+  // (scrolling through it is still playing, as far as the visitor is concerned)
+  const playing = v.state === "playing" || (v.state === "paused" && v.reason === "scrub");
   const ended = v.state === "ended";
   const resume = v.state === "paused" && (v.reason === "exit" || v.reason === "skip" || v.reason === "cta" || v.reason === "away");
   const n = p.chapters.length;

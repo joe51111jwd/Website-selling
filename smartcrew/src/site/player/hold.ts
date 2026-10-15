@@ -9,13 +9,18 @@
 //    Page Down / ↓ / Space / End. Nothing moves, nothing jumps (and smooth scrolling never sees it);
 //  · a CLEAR upward scroll lets go (`onExit("up")`) and carries on scrolling: a wheel notch up, a
 //    deliberate trackpad or finger swipe up (small jitters don't count), Page Up / ↑ / Home;
+//  · or, with `scrub`, the scrolling drives the film instead (the boss: "if you scroll on the
+//    animation, you can just scroll through it"): every wheel / swipe / key delta goes to
+//    `scrub(px)` (down > 0); while it returns true the page stays put; when it returns false (the
+//    film is at its end, or its start) the hold lets go (`onExit("down" | "up")`) and that very
+//    input scrolls the page on;
 //  · any other move of the page (the scrollbar dragged, an in-page link, find-in-page, a script)
 //    is the visitor's: the hold lets go at once (`onExit("away")`), never pulls back.
 // The page's own controls (buttons, links) keep working: only scrolling is held.
 
 import { cancelGlide, glideTo, gliding } from "../scroll";
 
-export type HoldExit = "up" | "away";
+export type HoldExit = "up" | "down" | "away";
 
 /** Wheel deltas in px (lines and pages normalised). */
 function wheelPx(e: WheelEvent) {
@@ -46,7 +51,7 @@ export type Hold = {
   readonly held: boolean;
 };
 
-export function holdPage(o: { y: () => number | null; onExit: (dir: HoldExit) => void; glideMs?: number }): Hold {
+export function holdPage(o: { y: () => number | null; onExit: (dir: HoldExit) => void; glideMs?: number; scrub?: (px: number) => boolean }): Hold {
   let held = false;
   let holdY = 0;
   let up = 0;
@@ -65,6 +70,17 @@ export function holdPage(o: { y: () => number | null; onExit: (dir: HoldExit) =>
     const d = wheelPx(e);
     // sideways swipes stay the browser's too (a trackpad's back / forward gesture)
     if (Math.abs(d.x) > Math.abs(d.y)) return;
+    if (o.scrub && !landing) {
+      if (!d.y) return;
+      if (o.scrub(d.y)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      // the film is at its end (or start): let go, and let this event scroll the page
+      exit(d.y > 0 ? "down" : "up");
+      return;
+    }
     const t = performance.now();
     if (d.y < 0 && Math.abs(d.y) >= Math.abs(d.x)) {
       if (t - upAt > BURST_MS) up = 0;
@@ -86,6 +102,20 @@ export function holdPage(o: { y: () => number | null; onExit: (dir: HoldExit) =>
   };
   const onTouchMove = (e: TouchEvent) => {
     if (!held || touchY === null || e.touches.length !== 1) return;
+    if (o.scrub && !landing) {
+      const y = e.touches[0].clientY;
+      const px = (touchY - y) * 1.5;
+      touchY = y;
+      if (!px) return;
+      if (o.scrub(px)) {
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      touchY = null;
+      exit(px > 0 ? "down" : "up");
+      return;
+    }
     const dy = e.touches[0].clientY - touchY;
     if (dy > UP_TOUCH && !landing) {
       // the finger pulls the page down: an upward scroll
@@ -100,6 +130,13 @@ export function holdPage(o: { y: () => number | null; onExit: (dir: HoldExit) =>
 
   const onKey = (e: KeyboardEvent) => {
     if (!held || e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || isField(e.target)) return;
+    if (o.scrub && !landing && ["PageUp", "ArrowUp", "Home", "PageDown", "ArrowDown", "End"].includes(e.key)) {
+      const vh = window.innerHeight;
+      const px = { ArrowUp: -90, ArrowDown: 90, PageUp: -0.8 * vh, PageDown: 0.8 * vh, Home: -1e6, End: 1e6 }[e.key] ?? 0;
+      if (o.scrub(px)) e.preventDefault();
+      else exit(px > 0 ? "down" : "up");
+      return;
+    }
     switch (e.key) {
       case "PageUp":
       case "ArrowUp":

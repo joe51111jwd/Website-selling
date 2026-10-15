@@ -968,18 +968,26 @@ async function ride(device, { kind = "nogl", full = true } = {}) {
     let s = await until(page, (x) => x.state === "playing" && Math.abs(x.y - top) <= 2, "the ride didn't start and hold One Day after a scroll down", 12000);
     out.push("starts on scroll, One Day held");
 
-    // input during the ride: a trackpad-like burst down is absorbed (nothing moves), the clock runs on
+    // input during the ride: a trackpad-like burst down scrolls THROUGH the film (the page stays
+    // put, the day moves on faster than real time), and it plays on once the scrolling stops
     const t1 = s.t;
     for (let i = 0; i < 30; i++) await page.mouse.wheel(0, 9);
-    await wait(700);
+    await wait(300);
     s = await rideState(page);
-    assert(s.y === top && s.state === "playing" && s.t > t1, `scrolling down during the ride moved the page or stopped the ride: ${JSON.stringify(s)}`);
-    out.push("downward input absorbed");
+    assert(s.y === top && s.t - t1 > 2500, `scrolling down during the ride didn't move through the film (or moved the page): ${JSON.stringify(s)}`);
+    s = await until(page, (x) => x.state === "playing" && x.y === top, "the ride didn't play on after the scrolling stopped", 4000);
+    out.push("scrolling moves through the ride, then it plays on");
     // never a still frame: the map ground keeps walking while it plays (a track on the film's clock)
     const walk = () => page.evaluate(() => getComputedStyle(document.querySelector(".day-topo-sheet")).transform);
+    // (polled: headless software WebGL can stall a frame for over a second, and the film's clock
+    // only advances between frames)
     const w0 = await walk();
-    await wait(700);
-    assert(w0 !== (await walk()), "the ground stood still while the ride played");
+    let moved = false;
+    for (let i = 0; i < 12 && !moved; i++) {
+      await wait(400);
+      moved = w0 !== (await walk());
+    }
+    assert(moved, "the ground stood still while the ride played");
     out.push("the ground walks");
     if (!full) {
       await press(page, ctrl.getByRole("button", { name: /^skip$/i }), { what: "Skip" });
@@ -1039,12 +1047,17 @@ async function ride(device, { kind = "nogl", full = true } = {}) {
     assert(await headerShown(), "the header didn't come back when the ride paused for the popup");
     out.push("header away during the ride; the bar's CTA works (pauses, popup, Resume, header back)");
 
-    // a clear scroll up hands the page back, with "Resume the ride"
+    // scrolling up moves the day back; past its start it hands the page back, with "Resume the ride"
     await press(page, ctrl.getByRole("button", { name: /resume the ride/i }), { what: "Resume the ride" });
-    await until(page, (x) => x.state === "playing" && x.held, "Resume didn't play");
+    s = await until(page, (x) => x.state === "playing" && x.held, "Resume didn't play");
+    const t2 = s.t;
     await wheel(page, -60, 3, 30);
-    s = await until(page, (x) => x.state === "paused" && x.reason === "exit" && x.y < top, "a scroll up didn't hand the page back");
-    out.push(`scroll up exits (page at ${s.y - top} px)`);
+    await wait(300);
+    s = await rideState(page);
+    assert(s.y === top && s.t < t2, `scrolling up didn't move the day back: ${JSON.stringify(s)}`);
+    await wheel(page, -120, 40, 25);
+    s = await until(page, (x) => x.state === "paused" && x.reason === "exit" && x.y < top, "scrolling up past the start didn't hand the page back");
+    out.push(`scroll up moves it back, past its start the page goes up (${s.y - top} px)`);
 
     // Skip: the page moves on past One Day, and scrolls normally after. (Back to One Day first,
     // once the smooth scroll of the exit has come to rest: a jump while it still glides is undone.)

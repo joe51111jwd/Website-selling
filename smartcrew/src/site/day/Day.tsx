@@ -16,9 +16,12 @@
 //   ./stageFx.ts    the light: dawn to the Friday-night lamp
 // This file is the controller (trigger, takeover, controls, keys, exits) and the copy.
 //
-// The visitor's own scrolling never fights it (src/site/player/hold.ts): downward input is
-// absorbed while it plays; a clear scroll up hands the page back ("Resume the ride"); any orange
-// button pauses it and opens the popup. Reduced motion: no autoplay, no holding: the moments one
+// The visitor's own scrolling never fights it (src/site/player/hold.ts): it drives the film. While
+// the ride holds the page, scrolling down moves the day forward and scrolling up moves it back,
+// smoothly (the boss: "leave the animation, but … if you scroll on the animation, you can just
+// scroll through it"); when the scrolling stops it plays on from there. Scrolled past its end the
+// page moves on (it counts as watched: Replay); scrolled back past its start the page moves up
+// ("Resume the ride"). Any orange button pauses it and opens the popup. Reduced motion: no autoplay, no holding: the moments one
 // at a time, landed, with the rail and Previous / Next. Phones: ./phone/DayPhone.tsx (2D).
 
 import { lazy, memo, Suspense, useEffect, useMemo, useRef, useState, type RefObject } from "react";
@@ -131,13 +134,77 @@ type RideActions = {
   chapter(i: number): void;
 };
 
+/**
+ * Scrolling through the film: each wheel / swipe / key delta moves a target time (about 3.5
+ * screens of scrolling for the whole day) and the clock eases after it, a frame at a time, so the
+ * day glides forward or back instead of jumping. The film pauses while it's scrolled ("scrub")
+ * and plays on 0.85 s after the scrolling stops; at its ends the scroll belongs to the page.
+ */
+function scrubber(p: Player) {
+  let target = -1;
+  let cur = 0;
+  let raf = 0;
+  let idle = 0;
+  /** the scrolling has taken it to its end */
+  let atEnd = false;
+  const msPerPx = () => p.duration / (window.innerHeight * 3.5);
+  const frame = () => {
+    cur += (target - cur) * 0.2;
+    if (Math.abs(target - cur) < 3) cur = target;
+    p.seek(cur);
+    raf = cur === target ? 0 : requestAnimationFrame(frame);
+  };
+  const resume = () => {
+    // land exactly where the scrolling pointed, then play on from there
+    cancelAnimationFrame(raf);
+    raf = 0;
+    if (target >= 0 && p.state === "paused" && p.reason === "scrub") p.seek(target);
+    target = -1;
+    if (p.state !== "paused" || p.reason !== "scrub") return;
+    if (p.time() >= p.duration - 60) p.end();
+    else p.play("user");
+  };
+  const stop = () => {
+    cancelAnimationFrame(raf);
+    raf = 0;
+    window.clearTimeout(idle);
+    target = -1;
+  };
+  const scrub = (px: number) => {
+    // only while it plays (or is being scrolled); otherwise the hold keeps the page still
+    if (p.reduced || !(p.state === "playing" || (p.state === "paused" && p.reason === "scrub"))) return true;
+    const from = target >= 0 ? target : p.time();
+    if (px > 0 && from >= p.duration - 30) {
+      atEnd = true;
+      return false;
+    }
+    if (px < 0 && from <= 30) return false;
+    atEnd = false;
+    if (p.state === "playing") p.pause("scrub");
+    target = Math.max(0, Math.min(p.duration, from + px * msPerPx()));
+    if (!raf) {
+      cur = p.time();
+      raf = requestAnimationFrame(frame);
+    }
+    window.clearTimeout(idle);
+    idle = window.setTimeout(resume, 850);
+    return true;
+  };
+  return { scrub, stop, reachedEnd: () => atEnd };
+}
+
 function useRide(p: Player): RideActions {
   const { actions, hold } = useMemo(() => {
     const dayTop = () => sceneY("day", 0);
+    const sc = scrubber(p);
     const hold = holdPage({
       y: dayTop,
+      scrub: sc.scrub,
       onExit: (dir) => {
+        const end = sc.reachedEnd() || p.time() >= p.duration - 80;
+        sc.stop();
         if (dir === "up") p.exitUp();
+        else if (dir === "down" && end) p.end();
         else p.pause("away");
       },
     });
@@ -485,7 +552,7 @@ function DayStage({ player: p }: { player: Player }) {
   // THE TAKEOVER: while the ride plays (or the visitor has paused it in place) it owns the screen:
   // the site's header slides away (html.ride-on, ./day.css); the control bar keeps a small orange
   // door out, until the finale's own button comes in
-  const engaged = v.state === "playing" || (v.state === "paused" && v.reason === "user");
+  const engaged = v.state === "playing" || (v.state === "paused" && (v.reason === "user" || v.reason === "scrub"));
   useEffect(() => {
     const html = document.documentElement;
     html.classList.toggle("ride-on", engaged);

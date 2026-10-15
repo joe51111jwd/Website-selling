@@ -149,3 +149,11 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 - **"Make the part where it says you can see everything more accentuated. It took me looking to find it."** Done: "See all 38 tools" is a big dark button beside the count (orange stays the trial button's). It calls attention to itself once when the section boots. Same on phones.
 - **"It's too easy to accidentally scroll past it."** Done (desktop): scrolling down onto the section, the page glides it into place and holds it for 3 s. The wheel is absorbed, every button still works, and a clear scroll up lets go. Then it hands the page back. Once per visit; reduced motion skips it.
 - The e2e check for this section now tests the new behaviour: 38 tools, a pick starts the walkthrough, it moves on by itself, it closes.
+
+## The ride: scroll through it
+- **"Leave the animation, but make it so you can scroll through it. If you do scroll on the animation, you can just scroll through it."** Done (desktop; on phones the ride is already plain page flow):
+  - Scrolling down during the ride moves the film forward, scrolling up moves it back. The page stays on the ride, and the picture eases to where the scroll points (about 3.5 screens of scrolling covers the whole day). The trackpad, the wheel, a touch drag, ↑ ↓, Page Up / Page Down and Home / End all do it.
+  - When the scrolling stops, it plays on from there by itself (after under a second). While it is being scrolled the bar still shows it as playing. The music stops while scrolling and picks up in sync.
+  - Past the end, the page carries on to "Here's everything it does" (the ride counts as finished). Past the start, the page goes back up to the hero.
+  - Pause, Skip, the chapter ticks, the bar's CTA and reduced motion work as before.
+- The e2e ride checks now test this: a scroll burst moves the film on by seconds with the page still, it plays on after, and scrolling up past the start hands the page back.

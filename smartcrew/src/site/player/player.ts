@@ -23,8 +23,9 @@ import type { ClockRead, SceneClock } from "../../three/stage/store";
 
 export type PlayerState = "idle" | "playing" | "paused" | "ended";
 /** Why the film stopped: the visitor paused it, a CTA opened the popup, they scrolled up out of
- * it, pressed Skip / Esc, the tab went to the background, or the page left it some other way. */
-export type PauseReason = "user" | "cta" | "exit" | "skip" | "hidden" | "away";
+ * it, pressed Skip / Esc, the tab went to the background, the page left it some other way, or
+ * they are scrolling through it (it plays on again when they stop). */
+export type PauseReason = "user" | "cta" | "exit" | "skip" | "hidden" | "away" | "scrub";
 
 export type Chapter = {
   /** where the chapter begins (its transition in starts here) */
@@ -254,8 +255,9 @@ export class Player {
 
   pause(reason: PauseReason = "user") {
     if (this.state !== "playing") {
-      // a paused film keeps the strongest reason it has (an exit stays an exit if the popup opens)
-      if (this.state === "paused" && reason !== "hidden" && this.reason === "hidden") this.setState("paused", reason);
+      // a paused film keeps the strongest reason it has (an exit stays an exit if the popup opens);
+      // a pause for the tab or for a scrub gives way to any other
+      if (this.state === "paused" && reason !== "hidden" && (this.reason === "hidden" || this.reason === "scrub")) this.setState("paused", reason);
       return;
     }
     this.all((a) => a.pause());
@@ -333,6 +335,17 @@ export class Player {
     window.setTimeout(() => this.play("replay"), this.opts.jump.fadeOut + 10);
   }
 
+  /** Scrolled through to the end: it's over (Replay), as if it had played to the end. */
+  end() {
+    if (this.state === "ended") return;
+    this.all((a) => a.pause());
+    this.seek(this.duration);
+    this.completed = true;
+    this.setState("ended");
+    this.emitBeat();
+    trackCustom(`${this.name}_complete`, { via: "scroll" });
+  }
+
   /** Mark a skip (the caller hands the page back). */
   skip() {
     if (this.state === "playing") this.pause("skip");
@@ -342,7 +355,8 @@ export class Player {
 
   /** The visitor scrolled up out of it. */
   exitUp() {
-    if (this.state !== "playing") return;
+    // (it may be mid-scroll: scrolled back past its start)
+    if (this.state !== "playing" && !(this.state === "paused" && this.reason === "scrub")) return;
     this.pause("exit");
     trackCustom(`${this.name}_exit_up`, { at: Math.round(this.time() / 1000), chapter: this.chapterAt() + 1 });
   }
