@@ -39,6 +39,8 @@ import { ridePoses } from "./poses";
 import { rideLifePending, startRideLife } from "./rideLife";
 import { RideOdo } from "./RideOdo";
 import { RideFx } from "./Fx";
+import { RideSets } from "./Sets";
+import "./sets.css";
 import { RideGround, nightfallAt } from "./RideGround";
 import { RIDE_COPY } from "./rideCopy";
 import DayPhone from "./phone/DayPhone";
@@ -505,6 +507,7 @@ function DayStage({ player: p }: { player: Player }) {
         <StageAnchor id="day" className="day-stage" />
         {noStage && <NoStage chapter={i} />}
         {!noStage && <RideFx player={p} />}
+        <RideSets player={p} />
 
         <div className="day-copy">
           <RideOdo player={p} ride={R} />

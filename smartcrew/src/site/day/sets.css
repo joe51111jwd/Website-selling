@@ -1,0 +1,687 @@
+/* One Day's set pieces (./Sets.tsx): one big payoff per moment, on the right of the frame, clear of
+   the copy column (left third) and the control bar. Everything is in em of one unit that follows
+   the frame (min of 1vw and 1.8vh), so it holds from 1280×600 to big screens. Only opacity and
+   transform move (tracks on the film's clock). */
+
+.ride-sets {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  font-size: min(1vw, 1.8vh);
+}
+
+/* the ground's own colour over the right of the frame: the devices step back while a piece is up */
+.rs-veil {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: var(--day);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, transparent 33%, #000 50%);
+  mask-image: linear-gradient(90deg, transparent 0, transparent 33%, #000 50%);
+}
+
+/* each piece: centred in the right-hand region */
+.rs-piece {
+  position: absolute;
+  top: 7%;
+  bottom: calc(clamp(10px, 2.2svh, 20px) + 64px);
+  left: 46%;
+  right: 3%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.4em;
+  opacity: 0;
+}
+
+.rs-card {
+  position: relative;
+  border-radius: 1.4em;
+  background: #fff;
+  color: var(--ink);
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 6%),
+    0 1.2em 3.6em rgb(23 19 15 / 16%),
+    0 0.3em 0.8em rgb(23 19 15 / 8%);
+}
+
+.rs-dim {
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+.rs-kicker {
+  margin: 0;
+  font-size: 1.05em;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.rs-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32em 0.8em 0.36em;
+  border-radius: 999px;
+  font-size: 1.05em;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.rs-pill--green {
+  background: #e3f5ea;
+  color: #127a3f;
+}
+
+.rs-pill--red {
+  background: #fde6e6;
+  color: #c4282d;
+}
+
+.rs-pill--grey {
+  background: #efe9e2;
+  color: var(--ink-2);
+}
+
+.rs-av {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 50%;
+  background: #f1ebe4;
+  color: var(--ink);
+  font-size: 0.95em;
+  font-weight: 700;
+}
+
+.rs-row {
+  display: grid;
+  grid-template-columns: 9em 1fr;
+  align-items: baseline;
+  gap: 1em;
+  padding: 0.75em 0;
+  border-top: 1px solid var(--line);
+}
+
+.rs-row dt {
+  margin: 0;
+  font-size: 1.05em;
+  color: var(--ink-3);
+}
+
+.rs-row dd {
+  margin: 0;
+  font-size: 1.25em;
+  font-weight: 600;
+}
+
+.rs-where {
+  margin: 0;
+  font-size: 1.05em;
+  color: var(--ink-3);
+}
+
+.rs-tag {
+  font-size: max(15px, 1.5em);
+}
+
+/* ── 6:42 · the badge ─────────────────────────────────────────────────── */
+
+.rs-badge-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4em 1.6em;
+  width: 38em;
+  padding: 2.2em 2.4em 1.4em;
+}
+
+.rs-badge-av {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.9em;
+  height: 2.9em;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2.2em;
+}
+
+.rs-badge-dot,
+.rs-badge-ring {
+  position: absolute;
+  right: 0.02em;
+  bottom: 0.08em;
+  width: 0.62em;
+  height: 0.62em;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.rs-badge-dot {
+  box-shadow: 0 0 0 0.12em #fff;
+}
+
+.rs-badge-ring {
+  opacity: 0;
+  background: transparent;
+  box-shadow: 0 0 0 0.08em var(--green);
+}
+
+.rs-badge-body {
+  align-self: center;
+}
+
+.rs-badge-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--display-wdth, 100) * 1%);
+  font-weight: 700;
+  font-size: 3.4em;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.rs-badge-role {
+  margin: 0.35em 0 0;
+  font-size: 1.25em;
+  color: var(--ink-2);
+}
+
+.rs-badge-status {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  margin: 0.9em 0 0;
+}
+
+.rs-badge-time {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 2.3em;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.rs-badge-rows {
+  grid-column: 1 / -1;
+  margin: 1.4em 0 0;
+}
+
+/* ── 6:55 · the sheet and the stamp ───────────────────────────────────── */
+
+.rs-sheet-card {
+  width: 34em;
+  padding: 2em 2.4em 7.2em;
+  border-radius: 0.6em;
+  background: #fffdf9;
+}
+
+/* the box the office's stamp lands in */
+.rs-sheet-card::after {
+  content: "";
+  position: absolute;
+  right: 2.4em;
+  bottom: 1.4em;
+  width: 16em;
+  height: 4.6em;
+  border: 1.5px dashed rgb(23 19 15 / 18%);
+  border-radius: 0.4em;
+}
+
+.rs-sheet-title {
+  margin: 0.25em 0 1em;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--display-wdth, 100) * 1%);
+  font-weight: 700;
+  font-size: 2.8em;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.rs-sheet-row {
+  grid-template-columns: 8em 1fr auto;
+}
+
+.rs-tick {
+  display: grid;
+  place-items: center;
+  width: 1.7em;
+  height: 1.7em;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #fff;
+  opacity: 0;
+  align-self: center;
+}
+
+.rs-tick svg {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+.rs-stamp {
+  position: absolute;
+  right: 0.75em;
+  bottom: 0.62em;
+  margin: 0;
+  padding: 0.12em 0.45em 0.16em;
+  border: 0.14em solid var(--orange-ink);
+  border-radius: 0.22em;
+  color: var(--orange-ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 2.6em;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgb(255 253 249 / 72%);
+  opacity: 0;
+}
+
+/* ── 9:20 · the ticket printer ────────────────────────────────────────── */
+
+.rs-print {
+  justify-content: flex-end;
+  gap: 0;
+  padding-bottom: 1em;
+}
+
+.rs-slot {
+  position: relative;
+  z-index: 2;
+  width: 30em;
+  height: 1.7em;
+  border-radius: 0.85em;
+  background: var(--ink);
+  box-shadow: inset 0 -0.25em 0 rgb(255 255 255 / 10%), 0 0.6em 1.4em rgb(23 19 15 / 18%);
+}
+
+.rs-slot::after {
+  content: "";
+  position: absolute;
+  left: 2em;
+  right: 2em;
+  top: 0.75em;
+  height: 0.22em;
+  border-radius: 0.11em;
+  background: #000;
+}
+
+/* the clip over the slot: the paper is fed up out of it */
+.rs-feed {
+  width: 31em;
+  margin-bottom: -0.4em;
+  overflow: hidden;
+  padding: 2em 1.4em 0;
+}
+
+.rs-ticket {
+  position: relative;
+  padding: 1.6em 1.8em 1.4em;
+  background: #fffdf9;
+  color: var(--ink);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  box-shadow: 0 0.8em 2em rgb(23 19 15 / 16%);
+  transform: translate3d(0, 100%, 0);
+}
+
+.rs-ticket hr {
+  margin: 0.9em 0;
+  border: 0;
+  border-top: 0.12em dashed rgb(23 19 15 / 28%);
+}
+
+.rs-tk-co {
+  margin: 0 0 0.5em;
+  font-size: 1em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.rs-tk-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1em;
+  margin: 0;
+  font-size: 1.15em;
+  white-space: nowrap;
+}
+
+.rs-tk-h b {
+  font-size: 1.4em;
+}
+
+.rs-tk-rows {
+  margin: 0;
+  font-size: 1.08em;
+}
+
+.rs-tk-rows div {
+  display: grid;
+  grid-template-columns: 5em 1fr;
+  gap: 0.6em;
+  padding: 0.18em 0;
+}
+
+.rs-tk-rows dt {
+  color: var(--ink-3);
+  text-transform: uppercase;
+  font-size: 0.9em;
+}
+
+.rs-tk-rows dd {
+  margin: 0;
+}
+
+.rs-tk-qty {
+  margin: 0.1em 0 0.3em;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 4.2em;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-align: right;
+}
+
+.rs-tk-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.55em;
+  width: 100%;
+  height: 0.6em;
+  fill: #fffdf9;
+}
+
+.rs-print-tag {
+  margin-bottom: 0.6em;
+  opacity: 0;
+}
+
+/* ── 4:12 · the report ────────────────────────────────────────────────── */
+
+.rs-msg-card {
+  width: 40em;
+  padding: 1.8em 2.2em 2em;
+}
+
+.rs-msg-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  margin: 0;
+  font-size: 1.15em;
+}
+
+.rs-msg-head .rs-dim {
+  margin-left: auto;
+}
+
+.rs-msg-eq {
+  margin: 1.1em 0 0;
+  font-size: 1.05em;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--orange-ink);
+}
+
+.rs-msg-text {
+  min-height: 2.3em;
+  margin: 0.25em 0 0;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--display-wdth, 100) * 1%);
+  font-weight: 700;
+  font-size: 3em;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.rs-ch {
+  opacity: 0;
+}
+
+.rs-msg-foot {
+  margin: 1.1em 0 0;
+}
+
+.rs-msg-foot .rs-pill {
+  font-size: 1.3em;
+  opacity: 0;
+}
+
+/* ── 5:30 · the crew's phones ─────────────────────────────────────────── */
+
+.rs-phones {
+  flex-direction: row;
+  gap: 0;
+}
+
+.rs-ph {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9em;
+  margin: 0 -0.6em;
+  opacity: 0;
+  transform-origin: 50% 90%;
+}
+
+.rs-ph[data-k="1"] {
+  z-index: 1;
+  margin-top: -2em;
+}
+
+.rs-ph-body {
+  position: relative;
+  width: 14.6em;
+  height: 28em;
+  padding: 3.2em 0.9em 0;
+  border-radius: 2.2em;
+  background: linear-gradient(170deg, #2b2621, #15120f 70%);
+  box-shadow:
+    0 0 0 0.45em #0c0a08,
+    0 0 0 0.55em #3a332c,
+    0 1.6em 3em rgb(23 19 15 / 32%);
+}
+
+.rs-ph-notch {
+  position: absolute;
+  left: 50%;
+  top: 0.8em;
+  width: 3.8em;
+  height: 1.1em;
+  margin-left: -1.9em;
+  border-radius: 0.55em;
+  background: #000;
+}
+
+.rs-ph-time {
+  margin: 0 0 0.6em;
+  color: #fff;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 3.6em;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.rs-note {
+  padding: 0.85em 0.9em 0.95em;
+  border-radius: 1.1em;
+  background: rgb(255 255 255 / 92%);
+  color: var(--ink);
+  opacity: 0;
+}
+
+.rs-note-app {
+  display: flex;
+  align-items: center;
+  gap: 0.45em;
+  margin: 0 0 0.45em;
+  font-size: 0.85em;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.rs-note-app span:last-child {
+  margin-left: auto;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.rs-note-ico {
+  display: grid;
+  place-items: center;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 0.4em;
+  background: var(--orange);
+  color: #fff;
+}
+
+.rs-note-ico svg {
+  width: 1.05em;
+  height: 1.05em;
+}
+
+.rs-note-t {
+  margin: 0;
+  font-size: 1.2em;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.rs-note-b {
+  margin: 0.15em 0 0;
+  font-size: 0.95em;
+  line-height: 1.3;
+  color: var(--ink-2);
+}
+
+.rs-ph-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 1.6em;
+  color: var(--ink);
+}
+
+/* ── Friday · payroll ─────────────────────────────────────────────────── */
+
+.rs-pay-card {
+  width: 38em;
+  padding: 1.4em 2em 0.8em;
+}
+
+.rs-pay-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0 0 0.5em;
+  font-size: 1.25em;
+}
+
+.rs-pay-head b {
+  font-family: var(--font-display);
+  font-size: 1.4em;
+  letter-spacing: -0.01em;
+}
+
+.rs-pay-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto 7.6em;
+  align-items: center;
+  gap: 0.9em;
+  margin: 0;
+  padding: 0.62em 0;
+  border-top: 1px solid var(--line);
+  font-size: 1.15em;
+}
+
+.rs-pay-name {
+  font-weight: 600;
+}
+
+.rs-pay-hrs {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+
+.rs-pay-st {
+  position: relative;
+  display: grid;
+  justify-items: end;
+}
+
+.rs-pay-st .rs-pill {
+  grid-area: 1 / 1;
+  font-size: 0.92em;
+}
+
+.rs-pay-ok {
+  opacity: 0;
+}
+
+.rs-pay-sum {
+  width: 38em;
+  color: var(--ink-night, #f4eee7);
+}
+
+.rs-pay-big {
+  margin: 0;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--display-wdth, 100) * 1%);
+  font-weight: 700;
+  font-size: 3em;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  opacity: 0;
+}
+
+.rs-pay-ready {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin: 0.6em 0 0;
+  font-size: 1.35em;
+  font-weight: 600;
+  opacity: 0;
+}
+
+.rs-pay-check {
+  display: grid;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+}
+
+.rs-pay-check svg {
+  width: 1em;
+  height: 1em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ride-sets * {
+    transition: none !important;
+  }
+}

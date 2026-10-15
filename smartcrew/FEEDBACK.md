@@ -124,3 +124,16 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 - Browsers only allow sound after a tap or click, so a visitor who only scrolled sees "Turn on sound" over the control bar. Anyone who clicked earlier just hears it. The bar has a sound on / off button, and the choice is remembered.
 - Now: a placeholder hard trap beat built in code (nothing to license), cut to the ride's marks. The drop lands when the first shot settles (0:02.5). The big drop hits on the profit card (0:35.25) after a build with no 808. Nightfall goes dark, and the final hit lands on "That's SmartCrew." (0:55.5).
 - Open: replace the placeholder with the licensed track when it arrives (no code change). No music on phones or with reduced motion.
+
+## The ride: more variety
+- **"The walkthrough is too repetitive… the idea is good, it just looks too repetitive and not interesting."** (the One Day ride)
+- What was wrong, from a frame-by-frame capture: almost every frame was the same picture. A big clock top-left, the phone and the laptop side by side on the right, and a small change in dense UI (a row slides in, a little tag). Only 5 PM (the big profit card) and Friday broke the pattern.
+- Done: every moment now ends on its own big, readable payoff. It comes off the laptop on the right while the crew's phone stays in view on the left, and each is a different kind of thing:
+  - 6:42: the clock-in row grows into Marcus's on-site badge.
+  - 6:55: the inspection sheet slides up, ticks itself off, and the APPROVED stamp slams into its box.
+  - 9:20: the load ticket prints up out of a slot, top line first, and tears off.
+  - 4:12: the leak report types itself out in huge type, then flies off to the shop as the work order.
+  - 5:00: the profit card (kept).
+  - 5:30: three crew phones rise in a fan and buzz, one after another, with Monday's plan.
+  - Friday: the week's timecards flip from Review to Approved, row by row, then "14 timecards approved".
+- Same timeline and copy, so the music's marks still land. All records are the demo's own (fictional).

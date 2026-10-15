@@ -1,8 +1,9 @@
 // One Day's focal layer (RIDE_SHOTS §2 "Sync"): the DOM that works WITH the devices: the finger's
-// taps, the one tag per moment, the row that lifts off the office screen (6:42), the hauling ticket
-// that drops onto its row (9:20), the request card that flies from the phone into the shop queue
-// (4:12), the profit card that comes through the screen to fill the frame (5:00), the office's
-// cursor and the crew chips the plan fans out to (5:30).
+// taps, the tags, the row that lifts off the office screen (6:42, handing over to the badge), the
+// request card that flies from the phone into the shop queue (4:12), the profit card that comes
+// through the screen to fill the frame (5:00), the office's cursor (5:30). The big payoffs of the
+// other moments (the badge, the stamped sheet, the printed ticket, the typed report, the crew's
+// phones, payroll) are ./Sets.tsx: plain tracks on the clock.
 //
 // Everything here that is tied to a device is placed on the Stage's own frames (onStageFrame), from
 // the same clock sample the devices were drawn at, so the DOM and the 3D can never drift apart (on
@@ -22,7 +23,6 @@ import { RIDE, type Ride } from "./ride";
 import { dayPresence } from "./clock";
 import { RIDE_COPY } from "./rideCopy";
 import { stateScreen } from "./states/registry";
-import { DAY_DATA } from "./states/data";
 
 const clamp01 = (t: number) => Math.max(0, Math.min(1, t));
 const out3 = (t: number) => 1 - Math.pow(1 - clamp01(t), 3);
@@ -54,26 +54,15 @@ function tags(R: Ride): TagSpec[] {
   const fade = (i: number): [number, number] => [m[i].end - 380, m[i].end];
   const row = (b: Box): [number, number] => [b[0], b[1] + b[3] / 2];
   return [
-    { text: DAY2.clockin.office, dev: "macbook", at: [PX.clockRow[0] + 6, PX.clockRow[1]], side: "above", show: [m[0].at.lift[1] - 150, m[0].at.lift[1] + 250], hide: fade(0) },
-    { text: DAY2.pretrip.office, dev: "macbook", at: [PX.inspRow[0] + 6, PX.inspRow[1]], side: "above", show: [m[1].at.ring[0], m[1].at.ring[1]], hide: fade(1) },
     { text: DAY2.load.phone, dev: "iphone", at: [402, 330], side: "right", show: [m[2].at.sent[0] + 50, m[2].at.sent[0] + 350], hide: [m[2].at.rise[0], m[2].at.rise[0] + 300] },
-    { text: DAY2.load.office, dev: "macbook", at: [PX.haulRow[0] + 6, PX.haulRow[1]], side: "above", show: [m[2].at.merge[0] + 100, m[2].at.merge[1] + 100], hide: fade(2) },
     { text: DAY2.leak.office, dev: "macbook", at: row(PX.queueRow), side: "left", show: [m[3].at.ring[0], m[3].at.ring[1]], hide: fade(3) },
     { text: DAY2.plan.office, dev: "macbook", at: [PX.block[0], PX.block[1] + PX.block[3] + 4], side: "right", show: [m[5].at.block[1] + 150, m[5].at.block[1] + 450], hide: fade(5) },
   ];
 }
 
-/** The crew the plan goes out to (data.ts schedulePlan: the pipe crew on Hwy 9). */
-const CREW = [
-  { ini: "ER", name: "Elena" },
-  { ini: "JL", name: "Jake" },
-  { ini: "AW", name: "Andre" },
-];
-
 // ─── the markup ──────────────────────────────────────────────────────────────
 
 const RideFxBody = memo(function RideFxBody({ R }: { R: Ride }) {
-  const L = DAY_DATA.load;
   const crop = (id: string, b: Box, native: { w: number; h: number }) => ({
     width: b[2],
     height: b[3],
@@ -93,58 +82,18 @@ const RideFxBody = memo(function RideFxBody({ R }: { R: Ride }) {
       {/* 6:42: the new row lifts off the office screen */}
       <div className="fx-quad fx-lift-shadow" style={{ width: PX.clockRow[2], height: PX.clockRow[3] }} />
       <div className="fx-quad fx-lift" style={crop("web-dashboard", PX.clockRow, { w: 1440, h: 900 })} />
-      {/* 9:20: the hauling ticket */}
-      <div className="fx-ticket">
-        <p className="fx-ticket-h">
-          <b>Ticket {L.ticket}</b>
-          <span>{L.time}</span>
-        </p>
-        <p className="fx-ticket-r">{L.truck} · {L.driver}</p>
-        <p className="fx-ticket-r">
-          <b>{L.project}</b>
-        </p>
-        <p className="fx-ticket-r">
-          {L.type} · {L.material} · {L.qty}
-        </p>
-        <p className="fx-ticket-f">from {L.from}</p>
-      </div>
       {/* 4:12: the request's card flies from the phone into the shop queue */}
       <div className="fx-quad fx-card" style={crop(stateScreen("phone-d-service-sent"), PX.serviceCard, { w: 402, h: 874 })} />
       {/* 5:00: the profit card comes through the screen */}
       <div className="fx-quad fx-macro-img" style={crop("web-project-detail", PX.profit, { w: 1440, h: 900 })} />
       <ProfitMacro R={R} />
-      {/* 5:30: the office's cursor, its click; the crew chips */}
+      {/* 5:30: the office's cursor, its click */}
       <span className="fx-cursor">
         <svg viewBox="0 0 20 24" aria-hidden="true">
           <path d="M3 2.5v16.2l4.3-4.1 2.9 6.6 2.8-1.2-2.9-6.5h6.1L3 2.5Z" fill="#111" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round" />
         </svg>
         <span className="fx-cursor-ring" />
       </span>
-      {CREW.map((c, k) => (
-        <span key={c.ini} className="fx-chip" data-k={k}>
-          <span className="fx-chip-ini">
-            {c.ini}
-            <span className="fx-chip-dot" />
-          </span>
-          <span className="fx-chip-t">
-            <b>{c.name}</b>
-            <span>{RIDE_COPY.chipWhen}</span>
-          </span>
-        </span>
-      ))}
-      {/* Friday: the payroll toast comes off the office screen, to be read */}
-      <div className="fx-toast">
-        <span className="fx-toast-ok">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6.5 12.4l3.6 3.6 7.4-7.6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-        <span className="fx-toast-t">
-          <b>{DAY_DATA.payroll.title}</b>
-          <span>{DAY_DATA.payroll.meta}</span>
-        </span>
-        <span className="fx-toast-time">{DAY_DATA.payroll.time}</span>
-      </div>
       {tags(R).map((t, k) => (
         <p key={k} className="day-tag fx-tag" data-k={k}>
           <span className="day-tag-dot" />
@@ -231,13 +180,10 @@ type Els = {
   touch: HTMLElement[];
   lift: HTMLElement;
   liftShadow: HTMLElement;
-  ticket: HTMLElement;
   card: HTMLElement;
   macroImg: HTMLElement;
   macro: HTMLElement;
   cursor: HTMLElement;
-  toast: HTMLElement;
-  chips: HTMLElement[];
   tags: HTMLElement[];
 };
 
@@ -315,11 +261,6 @@ export const RideFx = memo(function RideFx({ player: p }: { player: Player }) {
       const a = m4.at.bars[0] + k * 300;
       offs.push(p.track(b, [{ t: 0, transform: "scaleX(0)" }, { t: a, transform: "scaleX(0)", ease: EASE.out }, { t: a + 600, transform: "scaleX(var(--p))" }]));
     });
-    // the chips' dots light once each, in turn
-    el.querySelectorAll<HTMLElement>(".fx-chip-dot").forEach((d, k) => {
-      const a = m5.hold[0] + 300 + k * 450;
-      offs.push(p.track(d, [{ t: 0, opacity: 0, transform: "scale(0.6)" }, { t: a, opacity: 0, transform: "scale(0.6)", ease: EASE.out }, { t: a + 300, opacity: 1, transform: "scale(1)", ease: EASE.inOut }, { t: a + 1100, opacity: 0.55, transform: "scale(1)" }]));
-    });
     return () => offs.forEach((f) => f());
   }, [p, R]);
 
@@ -333,19 +274,16 @@ export const RideFx = memo(function RideFx({ player: p }: { player: Player }) {
       touch: q(".fx-touch"),
       lift: q(".fx-lift")[0],
       liftShadow: q(".fx-lift-shadow")[0],
-      ticket: q(".fx-ticket")[0],
       card: q(".fx-card")[0],
       macroImg: q(".fx-macro-img")[0],
       macro: q(".fx-macro")[0],
       cursor: q(".fx-cursor")[0],
-      toast: q(".fx-toast")[0],
-      chips: q(".fx-chip"),
       tags: q(".fx-tag"),
     };
     const TAPS = taps(R);
     const TAGS = tags(R);
     const m = R.moments;
-    const all = [E.lift, E.liftShadow, E.ticket, E.card, E.macroImg, E.macro, E.cursor, E.toast, ...E.touch, ...E.chips, ...E.tags];
+    const all = [E.lift, E.liftShadow, E.card, E.macroImg, E.macro, E.cursor, ...E.touch, ...E.tags];
     let hidden = false;
     // the box sizes the quads map (measured once: they're fixed by CSS)
     let sizes: Map<HTMLElement, [number, number]> | null = null;
@@ -437,31 +375,10 @@ export const RideFx = memo(function RideFx({ player: p }: { player: Player }) {
           const H = (W * PX.clockRow[3]) / PX.clockRow[2];
           const to = rectQuad(f.w * 0.645 - W / 2, f.h * 0.6 - H / 2, W, H);
           const up = lerpQuad(qd, to, e);
-          const o = 1 - inOut(prog(t, [m[0].end - 380, m[0].end]));
+          const o = 1 - inOut(prog(t, [w[1] - 120, w[1] + 260]));
           const [bw, bh] = size(E.lift);
           put(E.lift, o, quadMatrix(bw, bh, up));
           put(E.liftShadow, o * e * 0.9, quadMatrix(bw, bh, moveQuad(up, 0, 10 + 8 * e, 1.03)));
-        }
-      }
-
-      // ── 9:20: the ticket drops onto its row, then becomes it ──
-      {
-        const a = m[2].at.ticket;
-        const b = m[2].at.merge;
-        const vis = t >= a[0] && t < b[1];
-        const qd = vis ? quadOf(f, "macbook", PX.haulRow) : null;
-        if (!qd) put(E.ticket, 0);
-        else {
-          const [tw, th] = size(E.ticket);
-          // its slot: over the row's left half, its foot on the row
-          const lx = qd[0] + (qd[2] - qd[0]) * 0.05;
-          const ly = (qd[1] + qd[7]) / 2;
-          const home = rectQuad(lx, ly - th + 6, tw, th);
-          const drop = out3(prog(t, a));
-          const fallen = moveQuad(home, 0, -40 * (1 - drop));
-          const mg = inOut(prog(t, b));
-          const qq = lerpQuad(fallen, qd, mg * 0.85);
-          put(E.ticket, Math.min(drop * 1.4, 1) * (1 - inOut(prog(t, [b[0] + 80, b[1]]))), quadMatrix(tw, th, qq));
         }
       }
 
@@ -547,43 +464,6 @@ export const RideFx = memo(function RideFx({ player: p }: { player: Player }) {
             const rt = (t - c[1]) / 500;
             put(E.cursor.lastElementChild as HTMLElement, rt <= 0 || rt >= 1 ? 0 : 1 - rt, `scale(${(0.5 + 1.6 * out3(rt)).toFixed(3)})`);
           }
-        }
-        const ch = m[5].at.chips;
-        const from = t >= ch[0] && t < m[5].end ? f.project("macbook", ...centre(PX.block)) : null;
-        E.chips.forEach((chip, k) => {
-          if (!from) return put(chip, 0);
-          const a0 = ch[0] + k * 120;
-          const e = out3((t - a0) / 620);
-          const [cw, chh] = size(chip);
-          // the column they settle in: left, under the copy, clear of the phone
-          const tx = f.w * 0.045;
-          const ty = f.h * (0.47 + k * 0.095);
-          const sx = from.x - cw / 2;
-          const sy = from.y - chh / 2;
-          // a soft arc, out and up then down to the slot
-          const cx = (sx + tx) / 2;
-          const cy = Math.min(sy, ty) - f.h * (0.08 + 0.03 * k);
-          const x = (1 - e) * (1 - e) * sx + 2 * (1 - e) * e * cx + e * e * tx;
-          const y = (1 - e) * (1 - e) * sy + 2 * (1 - e) * e * cy + e * e * ty;
-          const rot = (1 - e) * (k - 1) * 6;
-          const o = Math.min(clamp01((t - a0) / 180), 1 - inOut(prog(t, [m[5].end - 380, m[5].end])));
-          put(chip, t < a0 ? 0 : o, tr(x, y, ` rotate(${rot.toFixed(2)}deg) scale(${(0.7 + 0.3 * e).toFixed(3)})`));
-        });
-      }
-
-      // ── Friday: the toast comes off the screen ──
-      {
-        const a = m[6].at.toast;
-        const lift: [number, number] = [a[1] + 50, a[1] + 750];
-        const vis = t >= lift[0] && t < R.finale.start + 400;
-        const qd = vis ? quadOf(f, "macbook", [1036, 84, 368, 66]) : null;
-        if (!qd) put(E.toast, 0);
-        else {
-          const [tw, th] = size(E.toast);
-          const e = inOut(prog(t, lift));
-          const to = rectQuad(f.w * 0.7 - tw / 2, f.h * 0.27 - th / 2, tw, th);
-          const o = Math.min(clamp01((t - lift[0]) / 160), 1 - inOut(prog(t, [R.finale.start, R.finale.start + 400])));
-          put(E.toast, o, quadMatrix(tw, th, lerpQuad(qd, to, e)));
         }
       }
 
