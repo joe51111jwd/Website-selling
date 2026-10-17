@@ -15,6 +15,7 @@ export function initStack() {
         const cover = clamp(1 - (b - a) / innerHeight);
         card.style.setProperty('--sink-scale', String(1 - cover * 0.06));
         card.style.setProperty('--sink-light', String(1 - cover * 0.18));
+        card.style.setProperty('--cover', cover.toFixed(3));
       });
     });
   });

@@ -149,6 +149,20 @@ After the second pass still read as boring, every section that had been a list w
 
 **Fallbacks:** with reduced motion turned on, or JavaScript off, nothing pins. The story shows all five steps with every mark drawn, the panels are all open, the chart is fully grown, and the shelf scrolls natively.
 
+### Round four: a Liquid Glass version
+
+James asked for a second version in Apple's Liquid Glass language. It's the same site and content, built with `PUBLIC_THEME=glass`, and deployed separately for comparison.
+
+- **The backdrop** is ink folding through water, in the brand's oxblood, copper and amber. It's drawn in WebGL behind the page, with a faint broadsheet grid that the glass visibly bends. Its mood shifts by section: ember through the problem story, dawn through services and the chart, oxblood at the quote and the footer.
+- **Glass** sits under every panel, button, card and the floating capsule nav. It bends the backdrop at the rim and is flat in the middle, the way Apple's glass lenses. It frosts what's behind it, splits colour slightly at the edge, and carries a rim of light that turns towards the cursor. Tints follow the paper version's bands: clear, amber, smoke and oxblood.
+- **Glass lettering:** the masthead name, the drifting quote and the footer signature are cut from glass. Each one condenses out of a blur the first time it comes into view.
+- **A liquid droplet** follows the mouse and melts into any glass it passes, like iOS controls morphing.
+- **What stays paper:** the slides themselves (hero, story, before/after, notes shelf) stay paper, sitting on glass. The work is still the work.
+
+**Legibility:** glass under text is capped in brightness, so ivory text keeps its contrast whatever flows behind it.
+
+**Fallbacks:** without WebGL2, the same elements get CSS frosted glass. The fixed nav frosts the page's own text in CSS, because the canvas can't bend real text.
+
 ---
 
 ## 7. Tech

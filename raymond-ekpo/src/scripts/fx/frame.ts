@@ -24,6 +24,11 @@ export function schedule() {
   }
 }
 
+/** Run any scroll effects queued for this frame now, so whatever reads the page next sees them. */
+export function flush() {
+  if (queued) run();
+}
+
 /** Run `u` on every scroll or resize frame (and once now). */
 export function onScroll(u: Updater) {
   updaters.add(u);

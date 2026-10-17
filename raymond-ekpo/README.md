@@ -37,17 +37,42 @@ The set pieces are components:
 
 The fit-check rules are at the top of `src/scripts/fx/fit.ts`. Service names and prices still come from `src/content/services/`.
 
+## Two versions: paper and Liquid Glass
+
+The same site and content build in two looks:
+
+| Version | Build | Live |
+| --- | --- | --- |
+| Paper (editorial broadsheet) | `npm run build` | https://raymond-ekpo.vercel.app |
+| Liquid Glass | `npm run build:glass` (sets `PUBLIC_THEME=glass`) | https://raymond-ekpo-glass.vercel.app |
+
+The glass version is Apple's Liquid Glass language, built for the web:
+- A fixed WebGL canvas behind the page draws a slow, domain-warped ink backdrop. Its mood follows the section in view.
+- Over the backdrop, the canvas draws glass under every panel, button, card and the nav capsule. The glass bends the backdrop at its rim, frosts it inside, splits colour slightly, and catches light from the cursor's side.
+- The nameplate, the drifting quote and the footer signature are cut from glass. They condense out of a blur as they appear.
+- A droplet follows the mouse and melts into nearby glass.
+- The page's own text sits on top, so it stays real, selectable and accessible.
+
+Where the code lives:
+- **Renderer:** `src/scripts/glass/` (`engine.ts`, `shaders.ts`, `atlas.ts`).
+- **What becomes glass:** `targets.ts`, which also holds the tint per element and the backdrop moods.
+- **Theme CSS:** `src/styles/glass.css`, scoped to `html[data-theme="glass"]` so the paper build ignores it.
+
+The glass build is `noindex` and its `robots.txt` disallows crawling, because it's an alternative design for review. If WebGL2 isn't available, it falls back to CSS frosted glass. With reduced motion on, the backdrop and droplet stop and the glass is drawn still.
+
 ## Run it
 
 ```bash
 npm install
 npm run dev      # http://localhost:4321
 npm run build    # type-checks, then builds to dist/
+npm run dev:glass     # the Liquid Glass version
+npm run build:glass
 ```
 
 ## Deploy
 
-Live at **https://raymond-ekpo.vercel.app**: Vercel project `raymond-ekpo`, linked to this repo with root directory `raymond-ekpo` (Astro, Node 24). Pushes to any branch get a preview deployment; production currently deploys from `claude/amazing-mayer-qguhx1`, and follows the repo's production branch once the site is merged there.
+Live at **https://raymond-ekpo.vercel.app**: Vercel project `raymond-ekpo`, linked to this repo with root directory `raymond-ekpo` (Astro, Node 24). The glass version is a second project, `raymond-ekpo-glass`, on the same repo and folder. It differs in two environment variables: `PUBLIC_THEME=glass` and `PUBLIC_SITE_URL=https://raymond-ekpo-glass.vercel.app`. Pushes to any branch get a preview deployment; production currently deploys from `claude/amazing-mayer-qguhx1`, and follows the repo's production branch once the site is merged there.
 
 When Raymond's domain is ready: add it to the Vercel project, then change `url` and `plausibleDomain` in `src/site.config.ts` to match.
 

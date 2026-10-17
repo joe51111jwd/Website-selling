@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro check && astro build",
+    "dev:glass": "PUBLIC_THEME=glass astro dev",
+    "build:glass": "PUBLIC_THEME=glass astro build",
     "preview": "astro preview",
     "check": "astro check"
   },

@@ -1,0 +1,605 @@
+/*
+  Liquid Glass theme. Only applies to the glass build (<html data-theme="glass">), so the paper
+  site ignores all of it. The :not(#_) adds id-level weight, which lets these rules win over
+  component styles without !important.
+
+  With the WebGL renderer running (html.glass-gl), glass elements are transparent and the canvas
+  behind the page draws the glass. Without it, the same elements fall back to CSS frosted glass.
+  Glass selectors here match TARGETS in src/scripts/glass/targets.ts.
+*/
+
+:root[data-theme='glass']:not(#_) {
+  --paper: #f4efe6;
+  --ink: #f4efe6;
+  --text: rgb(244 239 230 / 0.84);
+  --muted: rgb(244 239 230 / 0.66);
+  --rule: rgb(244 239 230 / 0.18);
+  --sheet: rgb(255 255 255 / 0.06);
+  --paper-deep: rgb(255 255 255 / 0.08);
+  --oxblood: #f2a898;
+  --oxblood-deep: #f7c4b7;
+  --oxblood-tint: #f8d8cf;
+  --pen: #ff8d7a;
+  --glass-edge: rgb(255 255 255 / 0.16);
+  color-scheme: dark;
+  background: #100e0d;
+
+  /* ---------- page ---------- */
+
+  & body {
+    background: radial-gradient(70% 50% at 20% 10%, #4a1512 0%, transparent 70%),
+      radial-gradient(60% 50% at 85% 40%, #5c3418 0%, transparent 70%),
+      radial-gradient(70% 60% at 30% 90%, #3a0f0d 0%, transparent 70%), #100e0d;
+    background-attachment: fixed;
+    padding-top: 84px;
+  }
+
+  &.glass-gl body {
+    background: transparent;
+  }
+
+  & body::after {
+    display: none;
+  }
+
+  & .glass-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  & ::selection {
+    background: #f2a898;
+    color: #141210;
+  }
+
+  & .skip {
+    background: #f4efe6;
+    color: #141210;
+  }
+
+  /* Paper islands: the slides themselves stay as paper, with the paper palette */
+  & :is(.mk-stage, .face, .cmp-frame, .lab-thumb, .shelf-slide, .peek, .r-slide) {
+    --paper: #f4efe6;
+    --ink: #1b1a17;
+    --text: #3b3833;
+    --muted: #6b655b;
+    --rule: #d9d1c2;
+    --sheet: #fbf8f2;
+    --paper-deep: #ebe4d6;
+    --oxblood: #7a2222;
+    --oxblood-deep: #5e1a1a;
+    --pen: #8e1f1f;
+    color-scheme: light;
+  }
+
+  /* Coloured bands give way to the backdrop */
+  & :is(.band-ink, .band-desk, .band-ox, .story, .footer, .ticker) {
+    background: transparent;
+  }
+
+  /* ---------- the shared glass look (CSS fallback) ---------- */
+
+  &:not(.glass-gl) :is(
+      .bar-inner, .nav-mobile nav, .nav-mobile summary, .btn, .chip span, .shelf-arrow, .story-tabs, .check,
+      .choice-card, .form input, .form select, .form textarea, .hero-figure, .hire a, .ticker, .story-steps,
+      .story-figure, .panel, .fit-sheet, .fit-mini, .stack-inner, .disclosure, .step, .shelf-card, .footer .cta,
+      .service-side, .audit-sheet, .plate, .aside, .success, .note-cta, .cases .empty
+    ) {
+    background: rgb(255 255 255 / 0.07);
+    background-image: none;
+    border: 1px solid var(--glass-edge);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.2),
+      0 24px 48px -28px rgb(0 0 0 / 0.75);
+    -webkit-backdrop-filter: blur(22px) saturate(1.5);
+    backdrop-filter: blur(22px) saturate(1.5);
+    color: var(--ink);
+  }
+
+  &:not(.glass-gl) :is(.btn:not(.btn--ghost, .btn--light, .btn--outline-light), .panel--ox, .stack-card--ox .stack-inner, .step:nth-child(4), .footer .cta, .audit-sheet) {
+    background-color: rgb(122 34 34 / 0.5);
+  }
+
+  &:not(.glass-gl) :is(.panel--desk, .stack-card--desk .stack-inner, .step:nth-child(2)) {
+    background-color: rgb(150 92 40 / 0.32);
+  }
+
+  &:not(.glass-gl) :is(.bar-inner, .nav-mobile nav, .story-steps, .panel--ink, .stack-card--ink .stack-inner, .step:nth-child(3), .fit-sheet, .fit-mini, .ticker, .disclosure, .service-side, .aside, .success, .note-cta, .cases .empty) {
+    background-color: rgb(12 10 9 / 0.55);
+  }
+
+  /* With the renderer running, the canvas draws the glass, so the elements step aside */
+  &.glass-gl .lg {
+    background-color: transparent;
+    background-image: none;
+    border-color: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  /* Fixed chrome floats over the page's own text, which the canvas can't bend, so it also
+     frosts whatever is under it in CSS and carries its own rim */
+  &.glass-gl :is(.bar-inner, .nav-mobile nav).lg {
+    background-color: rgb(18 13 12 / 0.38);
+    -webkit-backdrop-filter: blur(18px) saturate(1.7);
+    backdrop-filter: blur(18px) saturate(1.7);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.28),
+      inset 0 0 0 1px rgb(255 255 255 / 0.1),
+      inset 0 -1px 0 rgb(255 255 255 / 0.06),
+      0 18px 40px -18px rgb(0 0 0 / 0.7);
+  }
+
+  /* ---------- glass lettering ---------- */
+
+  & .nameplate {
+    font-weight: 620;
+    font-size: calc((min(100vw, var(--max)) - 2 * var(--gutter)) / 6.15);
+  }
+
+  & .nameplate .np-word {
+    display: inline;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+  }
+
+  & .nameplate .np-word > span {
+    display: inline;
+    animation: none;
+  }
+
+  & .k-line,
+  & .giant {
+    font-weight: 600;
+  }
+
+  &.glass-gl .lg-text-on,
+  &.glass-gl .lg-text-on * {
+    color: transparent;
+  }
+
+  /* ---------- floating capsule navigation ---------- */
+
+  /* the nameplate is glass art here, so the capsule always carries a readable name */
+  & .bar--plate-visible .wordmark {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* the margin notes sit off the slide, on glass, so they need light ink */
+  & .mk-notes .mk-note {
+    fill: #ff9a86;
+  }
+
+  & .mk-notes .ink {
+    stroke: #ff9a86;
+  }
+
+  & .bar {
+    position: fixed;
+    top: 12px;
+    left: 0;
+    right: 0;
+    background: none;
+    border: 0;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    pointer-events: none;
+  }
+
+  & .bar:has(.nav-mobile[open]) {
+    background: none;
+  }
+
+  & .bar-inner {
+    pointer-events: auto;
+    width: calc(100% - 24px);
+    max-width: 1060px;
+    min-height: 62px;
+    margin: 0 auto;
+    padding: 0 9px 0 26px;
+    border-radius: 999px;
+    transition: max-width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  & .masthead {
+    padding-top: 6px;
+  }
+
+  & .btn-sm {
+    min-height: 44px;
+  }
+
+  & .nav-mobile summary {
+    border-radius: 999px;
+    min-height: 44px;
+  }
+
+  & .nav-mobile nav {
+    top: calc(100% + 10px);
+    left: 0;
+    right: 0;
+    border-radius: 28px;
+    padding: 10px 22px 22px;
+  }
+
+  /* ---------- controls ---------- */
+
+  & .btn {
+    border-radius: 999px;
+    color: #f4efe6;
+    min-height: 54px;
+    padding-inline: 1.6rem;
+    transition:
+      background-color 0.25s ease,
+      transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  & .btn:hover {
+    transform: translateY(-1px);
+  }
+
+  & .btn:hover,
+  &.glass-gl .btn.lg:hover {
+    background-color: rgb(255 255 255 / 0.1);
+  }
+
+  & .btn:active {
+    transform: scale(0.97);
+  }
+
+  & .chip span {
+    border-radius: 999px;
+    color: var(--ink);
+  }
+
+  & .chip:hover span,
+  &.glass-gl .chip:hover span.lg {
+    background-color: rgb(255 255 255 / 0.08);
+  }
+
+  & .chip input:checked + span,
+  &.glass-gl .chip input:checked + span.lg {
+    background-color: #f4efe6;
+    color: #141210;
+  }
+
+  & .shelf-arrow {
+    border-radius: 50%;
+  }
+
+  & .shelf-arrow:hover,
+  &.glass-gl .shelf-arrow.lg:hover {
+    background-color: rgb(255 255 255 / 0.12);
+    color: #f4efe6;
+  }
+
+  & .story-tabs {
+    width: calc(100% - 2 * var(--gutter));
+    max-width: calc(var(--max) - 2 * var(--gutter));
+    margin-inline: auto;
+    padding: 12px 28px 14px;
+    border-radius: 999px;
+  }
+
+  & .cursor span {
+    background: rgb(20 18 16 / 0.55);
+    color: #f4efe6;
+    border: 1px solid rgb(255 255 255 / 0.3);
+    -webkit-backdrop-filter: blur(12px) saturate(1.6);
+    backdrop-filter: blur(12px) saturate(1.6);
+  }
+
+  & .form :is(input[type='text'], input[type='email'], input[type='url'], select, textarea) {
+    border-radius: 14px;
+    color: #f4efe6;
+  }
+
+  & .form select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23f4efe6' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+
+  &.glass-gl .form select.lg {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23f4efe6' stroke-width='1.5'/%3E%3C/svg%3E");
+  }
+
+  & .form option {
+    background: #1b1a17;
+    color: #f4efe6;
+  }
+
+  & ::placeholder {
+    color: rgb(244 239 230 / 0.45);
+  }
+
+  & .form.was-validated :is(input, select, textarea):invalid,
+  &.glass-gl .form.was-validated .lg:invalid,
+  & :is(.form-error, .form-invalid) {
+    background-color: rgb(242 168 152 / 0.14);
+  }
+
+  & :is(.choice-card, .check) {
+    border-radius: 20px;
+  }
+
+  & :is(.choice-card, .check):has(input:checked),
+  &.glass-gl :is(.choice-card, .check).lg:has(input:checked) {
+    box-shadow: inset 0 0 0 2px #f2a898;
+  }
+
+  /* ---------- hero ---------- */
+
+  & .hero-figure {
+    padding: 20px;
+    border-radius: 32px;
+  }
+
+  & .hire {
+    border-top: 0;
+  }
+
+  & .hire-title {
+    border-bottom: 0;
+    padding-bottom: 16px;
+  }
+
+  & .hire ol {
+    gap: 10px;
+  }
+
+  & .hire a,
+  & .hire li + li a {
+    padding: 18px 20px 20px;
+    border-radius: 24px;
+  }
+
+  & .hire a:hover,
+  &.glass-gl .hire a.lg:hover {
+    background-color: rgb(255 255 255 / 0.08);
+  }
+
+  /* ---------- ticker ---------- */
+
+  & .ticker {
+    border-radius: 0;
+    border-inline: 0;
+  }
+
+  & .ticker::before,
+  & .ticker::after {
+    display: none;
+  }
+
+  /* ---------- the pinned story ---------- */
+
+  & .story-steps {
+    padding: clamp(24px, 3vw, 38px);
+    border-radius: 32px;
+  }
+
+  & .story-figure {
+    padding: clamp(12px, 1.6vw, 20px);
+    border-radius: 32px;
+  }
+
+  & .story-step-title,
+  & .story-title {
+    color: #f4efe6;
+  }
+
+  /* ---------- statement ---------- */
+
+  /* unread words stay above 3:1 against the dark backdrop */
+  &.js .w {
+    color: rgb(244 239 230 / 0.44);
+  }
+
+  &.js .w.on {
+    color: #f4efe6;
+  }
+
+  /* ---------- services ---------- */
+
+  & .panel {
+    --bg: transparent;
+    --fg: #f4efe6;
+    --soft: rgb(244 239 230 / 0.7);
+    --line: rgb(244 239 230 / 0.2);
+    --accent: #f2a898;
+    border-radius: 32px;
+  }
+
+  & .panel--ox {
+    --accent: #f8d0c5;
+  }
+
+  & .panel-btn {
+    color: #f4efe6;
+  }
+
+  & :is(.sheet-seal, .side-seal, .fit-seal, .plate .seal) {
+    mix-blend-mode: normal;
+    color: #f2a898;
+  }
+
+  /* ---------- fit check ---------- */
+
+  & .fit-sheet {
+    transform: none;
+    border-radius: 32px;
+  }
+
+  & .fit-line--ghost span {
+    background: rgb(255 255 255 / 0.1);
+  }
+
+  & .fit-mini {
+    border-radius: 22px;
+  }
+
+  /* ---------- before & after ---------- */
+
+  & .lab-tabs button[aria-selected='true'] .lab-thumb {
+    border-color: #f2a898;
+    box-shadow: 0 18px 30px -18px rgb(0 0 0 / 0.8);
+  }
+
+  /* ---------- approach ---------- */
+
+  & .stack-card {
+    --bg: transparent;
+    --fg: #f4efe6;
+    --soft: rgb(244 239 230 / 0.78);
+    --accent: #f2a898;
+  }
+
+  & .stack-card--ox {
+    --accent: #f8d0c5;
+  }
+
+  & .stack-inner {
+    border-radius: 38px;
+    filter: none;
+  }
+
+  /* as the next card lands on top, this one's words fade so they don't show through the glass */
+  & .stack-num,
+  & .stack-text {
+    opacity: clamp(0, calc(1.6 - var(--cover, 0) * 2.4), 1);
+  }
+
+  & .disclosure {
+    border-radius: 30px;
+  }
+
+  & .disclosure-label {
+    background: #f4efe6;
+    color: #141210;
+    border-radius: 999px;
+    padding: 4px 12px;
+  }
+
+  /* ---------- process chart ---------- */
+
+  & .step {
+    --fill: transparent;
+    border-radius: 24px;
+    color: rgb(244 239 230 / 0.84);
+  }
+
+  & .step-num {
+    color: #f2a898;
+  }
+
+  & .step-title {
+    color: #f4efe6;
+  }
+
+  @media (min-width: 900px) {
+    /* the bars grow in height, so the glass grows with them */
+    & .step {
+      clip-path: none;
+      height: calc(var(--h) * var(--g, 1));
+      overflow: hidden;
+    }
+  }
+
+  & .trend-dot {
+    background: #141210;
+  }
+
+  & .trend-dot:last-of-type {
+    background: #f2a898;
+  }
+
+  /* ---------- notes shelf ---------- */
+
+  & .shelf-card {
+    padding: 14px 14px 22px;
+    border-radius: 30px;
+  }
+
+  & .shelf-meta {
+    padding-inline: 8px;
+  }
+
+  /* ---------- footer ---------- */
+
+  & .footer {
+    margin-top: var(--section);
+  }
+
+  & .footer .cta {
+    padding: clamp(36px, 5vw, 64px) clamp(24px, 4vw, 56px);
+    border-radius: 40px;
+    margin-bottom: 40px;
+  }
+
+  & .footer .cta-kicker {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  & .footer .btn--light {
+    color: #f4efe6;
+  }
+
+  & .giant {
+    color: #f4efe6;
+  }
+
+  /* ---------- inner pages ---------- */
+
+  & .service-side {
+    transform: none;
+    border-radius: 32px;
+  }
+
+  & .service-side::before,
+  & .plate::before {
+    display: none;
+  }
+
+  & .audit-sheet {
+    width: calc(100% - 2 * var(--gutter));
+    max-width: calc(var(--max) - 2 * var(--gutter));
+    margin-inline: auto;
+    padding: clamp(32px, 5vw, 64px);
+    border-radius: 40px;
+  }
+
+  & .audit {
+    padding-block: var(--section);
+  }
+
+  & .plate {
+    transform: none;
+    border-radius: 32px;
+  }
+
+  & .aside {
+    border-radius: 30px;
+  }
+
+  & :is(.success, .note-cta) {
+    border-radius: 30px;
+  }
+
+  & .cases .empty {
+    padding: clamp(28px, 4vw, 48px);
+    border-radius: 32px;
+  }
+
+  & .peek {
+    border-radius: 18px;
+  }
+}

@@ -6,7 +6,8 @@ export const site = {
   role: 'Investor Narrative Specialist',
   // The live domain. Used for canonical URLs, the sitemap and share images.
   // Points at the Vercel deployment until Raymond's own domain (e.g. raymondekpo.com) is connected.
-  url: 'https://raymond-ekpo.vercel.app',
+  // PUBLIC_SITE_URL overrides it for other builds, such as the Liquid Glass version.
+  url: (import.meta.env?.PUBLIC_SITE_URL as string | undefined) || 'https://raymond-ekpo.vercel.app',
   description:
     'Raymond Ekpo helps pre-seed and seed founders in the US and UK build the investment narrative behind their raise: the thesis, the storyline and the deck.',
 

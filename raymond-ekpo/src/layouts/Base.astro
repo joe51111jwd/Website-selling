@@ -1,10 +1,12 @@
 ---
 import '../styles/global.css';
+import '../styles/glass.css';
 import serifFont from '@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-normal.woff2?url';
 import sansFont from '@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2?url';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { site } from '../site.config';
+import { glass } from '../theme';
 
 interface Props {
   title: string;
@@ -16,11 +18,11 @@ interface Props {
   noindex?: boolean;
 }
 
-const { title, description = site.description, home = false, cta = true, type = 'website', schema = [], noindex = false } =
-  Astro.props;
+const { title, description = site.description, home = false, cta = true, type = 'website', schema = [] } = Astro.props;
+const noindex = Astro.props.noindex || glass;
 
 const canonical = new URL(Astro.url.pathname, site.url).href;
-const ogImage = new URL('/og.png', site.url).href;
+const ogImage = new URL(glass ? '/og-glass.png' : '/og.png', site.url).href;
 const fullTitle = home ? title : `${title} · ${site.name}`;
 
 const person = {
@@ -46,14 +48,14 @@ const jsonLd = {
 ---
 
 <!doctype html>
-<html lang="en-GB">
+<html lang="en-GB" data-theme={glass ? 'glass' : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
-    <meta name="theme-color" content="#f4efe6" />
+    <meta name="theme-color" content={glass ? '#100e0d' : '#f4efe6'} />
     <meta name="author" content={site.name} />
     <script is:inline>
       // Reveal-on-scroll only hides things when scripts run; if the motion script never starts, show everything
@@ -101,6 +103,7 @@ const jsonLd = {
     }
   </head>
   <body>
+    {glass && <canvas class="glass-canvas" aria-hidden="true" />}
     <a class="skip" href="#main">Skip to content</a>
     <Header home={home} />
     <main id="main">
@@ -110,6 +113,7 @@ const jsonLd = {
     <script>
       import '../scripts/track';
       import '../scripts/motion';
+      import '../scripts/glass/boot';
     </script>
   </body>
 </html>
