@@ -635,6 +635,13 @@ async function painPicker(device) {
       return said();
     };
     const opened = (id) => sec.getByTestId(`feature-card-${id}`).first().getAttribute("aria-expanded");
+    // a pick scrolls the opened card into view; a visitor scrolls back up to the picker to try again
+    const toPicker = async () => {
+      await wait(1200);
+      const y = await input.evaluate((el) => Math.round(el.getBoundingClientRect().top + scrollY - innerHeight * 0.35));
+      await scrollTo(page, Math.max(0, y), device.settle);
+    };
+    const input = sec.getByRole("textbox", { name: /type your own/i });
     // a chip
     const chip = sec.getByRole("button", { name: /^lost haul tickets$/i }).first();
     await chip.scrollIntoViewIfNeeded();
@@ -644,20 +651,19 @@ async function painPicker(device) {
     assert((await chip.getAttribute("aria-pressed")) === "true", "the chip doesn't show as picked");
     assert((await opened("materials")) === "true", "Materials & Hauling's card didn't open");
     // typed, sent with Enter
-    const input = sec.getByRole("textbox", { name: /type your own/i });
-    await input.scrollIntoViewIfNeeded();
+    await toPicker();
     await input.fill("my guys forget to clock out");
     await input.press("Enter");
     const a2 = await saysSoon(/time tracking/i);
     assert(/we have a feature for that/i.test(a2) && /time tracking/i.test(a2), `"my guys forget to clock out" answered "${a2}"`);
     assert((await opened("time")) === "true", "Time Tracking's card didn't open");
-    // no match: the trial button
+    // no match: the trial button, right under the field
+    await toPicker();
     await input.fill("my dog keeps barking at night");
     await input.press("Enter");
     const cta = answer.getByRole("button", { name: /get my free trial/i }).first();
     await cta.waitFor({ state: "visible", timeout: 5000 });
     const a3 = await said();
-    await cta.scrollIntoViewIfNeeded();
     await press(page, cta, { what: "the no-match CTA" });
     await expectPopup(page);
     const s = (await signups(page)).pop();
