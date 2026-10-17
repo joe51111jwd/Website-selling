@@ -1,4 +1,5 @@
 import { config } from "../config";
+import { attribution } from "./lead";
 import { LOOK } from "./look";
 
 // Meta Pixel, GA4 and Microsoft Clarity, each loaded only when its ID is set in config.ts. Every
@@ -51,19 +52,78 @@ export function startTracking() {
     window.gtag("js", new Date());
     window.gtag("config", config.gaId);
   }
-  if (config.clarityId) {
-    // Clarity's own loader: queue calls until the tag arrives
-    const c = function (...args: unknown[]) {
-      (c.q = c.q || []).push(args);
-    } as NonNullable<Window["clarity"]>;
-    window.clarity = window.clarity || c;
-    const s = document.createElement("script");
-    s.async = true;
-    s.src = `https://www.clarity.ms/tag/${config.clarityId}`;
-    document.head.appendChild(s);
-    // so heatmaps and recordings can be split by look (classic vs glass)
-    window.clarity("set", "look", LOOK);
+  if (config.clarityId) startClarity(config.clarityId);
+}
+
+/**
+ * Microsoft Clarity, tagged so its recordings line up with the click simulator's page model (which
+ * splits the page by section id): which look, which ad, how far down by section, and which button
+ * in which section was tapped.
+ */
+function startClarity(id: string) {
+  // Clarity's own loader: queue calls until the tag arrives
+  const c = function (...args: unknown[]) {
+    (c.q = c.q || []).push(args);
+  } as NonNullable<Window["clarity"]>;
+  window.clarity = window.clarity || c;
+  const s = document.createElement("script");
+  s.async = true;
+  s.src = `https://www.clarity.ms/tag/${id}`;
+  document.head.appendChild(s);
+  const clarity = window.clarity;
+
+  // the look (classic, glass or focus) and the ad, so heatmaps can be split by either
+  clarity("set", "look", LOOK);
+  const q = new URLSearchParams(location.search);
+  const kept = attribution();
+  for (const k of ["utm_source", "utm_campaign", "utm_content"] as const) {
+    const v = q.get(k) || kept[k];
+    if (v) clarity("set", k, v.slice(0, 255));
   }
+
+  // how far down, by section: "reach_<id>" the first time a section crosses the middle of the
+  // screen (pixel scroll depth varies too much by phone to compare)
+  const reached = new Set<string>();
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        const sid = (e.target as HTMLElement).id;
+        if (!e.isIntersecting || reached.has(sid)) continue;
+        reached.add(sid);
+        clarity("event", `reach_${sid}`);
+      }
+    },
+    { rootMargin: "-50% 0px -50% 0px" },
+  );
+  const watched = new WeakSet<Element>();
+  let queued = 0;
+  const scan = () => {
+    queued = 0;
+    document.querySelectorAll("section.scene[id]").forEach((el) => {
+      if (watched.has(el)) return;
+      watched.add(el);
+      io.observe(el);
+    });
+  };
+  scan();
+  new MutationObserver(() => (queued ||= requestAnimationFrame(scan))).observe(document.body, { childList: true, subtree: true });
+
+  // every trial button and demo link, by where it was tapped: cta_trial:top, cta_trial:sticky,
+  // cta_demo:faq… (the tap is seen on its way down, then named when the popup is asked for)
+  let zone = "page";
+  document.addEventListener(
+    "click",
+    (e) => {
+      const t = e.target instanceof Element ? e.target : null;
+      if (!t) return;
+      zone = t.closest(".sticky-bar") ? "sticky" : t.closest("header") ? "header" : t.closest("section[id]")?.id || "page";
+    },
+    true,
+  );
+  window.addEventListener("smartcrew:signup", (e) => {
+    const intent = (e as CustomEvent<{ intent?: string }>).detail?.intent ?? "trial";
+    clarity("event", `cta_${intent}:${zone}`);
+  });
 }
 
 const clean = (d: TrackData) => Object.fromEntries(Object.entries(d).filter(([, v]) => v !== undefined && v !== ""));
@@ -94,7 +154,8 @@ export function trackCustom(name: string, data: TrackData = {}) {
   const d = clean(data);
   window.fbq?.("trackCustom", name, d);
   window.gtag?.("event", name, d);
-  // Clarity events carry a name only: recordings can be filtered by "popup_open", "Lead" and so on
-  window.clarity?.("event", name);
+  // Clarity events carry a name only: recordings can be filtered by "popup_open", "Lead" and so on;
+  // a step rides in the name (step_complete_1, step_complete_2)
+  window.clarity?.("event", d.step !== undefined ? `${name}_${d.step}` : name);
   echo(name, d);
 }
