@@ -1,0 +1,375 @@
+---
+// About, in the glass build: who he is beside a glass card with the facts, the short version said
+// very large (its words light up as you read), what he believes and how he works.
+import { site } from '../../../site.config';
+import PageHead from '../PageHead.astro';
+
+interface Props {
+  beliefs: { title: string; body: string }[];
+  ways: { title: string; body: string }[];
+}
+
+const { beliefs, ways } = Astro.props;
+const quote = 'A pitch deck is a positioning problem with a different buyer.'.split(' ');
+---
+
+<PageHead eyebrow="About" title="I work on the part of a raise" dim="that happens before the slides." light="0.85 0.8 0.4 -0.7" />
+
+<section class="l-wrap l-me" data-light="0.6 0.2 0.55 0.8" aria-label="Who I am">
+  <aside class="l-card" aria-label={`${site.name} at a glance`}>
+    {
+      site.portrait ? (
+        <img src={site.portrait} alt={site.name} class="l-card-photo" width="640" height="800" />
+      ) : (
+        <span class="l-card-orb" aria-hidden="true">
+          RE
+        </span>
+      )
+    }
+    <p class="l-card-name">{site.name}</p>
+    <p class="l-card-role">{site.role}</p>
+    <dl class="l-card-facts">
+      <div>
+        <dt>Works with</dt>
+        <dd>Pre-seed and seed founders</dd>
+      </div>
+      <div>
+        <dt>Raising from</dt>
+        <dd>US and UK investors</dd>
+      </div>
+      <div>
+        <dt>Also</dt>
+        <dd>Founder, <a href={site.firm.url} rel="noopener" target="_blank">{site.firm.name}</a></dd>
+      </div>
+    </dl>
+    <ul class="l-card-links">
+      <li><a href={site.x.url} rel="me noopener" target="_blank" data-contact="x" class="l-btn l-btn--sm">X {site.x.handle}</a></li>
+      <li><a href={site.linkedin} rel="me noopener" target="_blank" data-contact="linkedin" class="l-btn l-btn--sm">LinkedIn</a></li>
+    </ul>
+  </aside>
+
+  <div class="prose l-me-prose">
+    <p class="l-me-lead">
+      I’m Raymond Ekpo. I help pre-seed and seed founders in the US and UK explain why their company is worth investing
+      in: the thesis, the storyline, and the claims that hold it up.
+    </p>
+
+    <h2>Where this comes from</h2>
+    <p>
+      I spent several years studying how markets work, mostly by watching capable companies stall for reasons nobody
+      inside them could name. That work became <a href={site.firm.url} rel="noopener" target="_blank">{site.firm.name}</a>,
+      the growth strategy firm I run. The job there is to establish what’s actually in the way and write it down in a
+      form people can argue with.
+    </p>
+    <p>
+      The same problem turns up at the very start of a company, in a different form. A founder knows the product, the
+      customers and the market better than anyone, and still struggles to say why it’s an investment. That’s a different
+      question from why it’s a good product.
+    </p>
+  </div>
+</section>
+
+<section class="l-quote" data-light="1 0.5 0.9 0.2" aria-label="The short version">
+  <div class="l-wrap">
+    <blockquote class="l-quote-text" data-words>
+      <p>
+        {
+          quote.map((w) => (
+            <>
+              <span class:list={['w', { 'w--warm': w === 'different' || w === 'buyer.' }]}>{w}</span>{' '}
+            </>
+          ))
+        }
+      </p>
+    </blockquote>
+  </div>
+</section>
+
+<section class="l-wrap l-beliefs" data-light="0.7 0.2 0.4 -0.5" aria-labelledby="beliefs-title">
+  <p class="l-eyebrow">Beliefs</p>
+  <h2 id="beliefs-title" class="l-h2 l-sec-title">How I think about <span class="l-dim">fundraising narratives.</span></h2>
+  <ol class="l-beliefs-grid">
+    {
+      beliefs.map((b, i) => (
+        <li class="l-belief">
+          <span class="l-belief-n" aria-hidden="true">
+            {String(i + 1).padStart(2, '0')}
+          </span>
+          <h3 class="l-belief-title">{b.title}</h3>
+          <p>{b.body}</p>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<section class="l-wrap l-ways" data-light="0.6 0.85 0.6 0.4" aria-labelledby="ways-title">
+  <p class="l-eyebrow">Practice</p>
+  <h2 id="ways-title" class="l-h2 l-sec-title">How I <span class="l-dim">work.</span></h2>
+  <ol class="l-ways-list">
+    {
+      ways.map((w) => (
+        <li>
+          <h3 class="l-way-title">{w.title}</h3>
+          <p>{w.body}</p>
+        </li>
+      ))
+    }
+  </ol>
+  <a href="/services" class="l-btn l-btn--lg l-ways-next">See the services and prices</a>
+</section>
+
+<style>
+  .l-me {
+    display: grid;
+    gap: 56px;
+    padding-bottom: clamp(60px, 8vw, 110px);
+  }
+
+  @media (min-width: 1000px) {
+    .l-me {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      gap: 64px;
+    }
+    .l-me-prose {
+      margin-left: calc(100% / 8);
+    }
+    .l-card {
+      position: sticky;
+      top: 100px;
+      align-self: start;
+    }
+  }
+
+  .l-card {
+    display: grid;
+    justify-items: start;
+    padding: 30px;
+    border-radius: 38px;
+    background:
+      radial-gradient(90% 60% at 0% 0%, rgb(255 106 61 / 0.22), transparent 60%),
+      rgb(30 24 22 / 0.46);
+    -webkit-backdrop-filter: blur(30px) saturate(1.9);
+    backdrop-filter: blur(30px) saturate(1.9);
+    box-shadow: var(--glass-rim), var(--glass-drop);
+  }
+
+  .l-card-orb {
+    display: grid;
+    place-items: center;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background:
+      radial-gradient(100% 100% at 30% 20%, rgb(255 255 255 / 0.4), transparent 50%),
+      linear-gradient(160deg, rgb(255 130 80 / 0.7), rgb(110 18 10 / 0.8));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.55),
+      inset 0 -8px 16px rgb(0 0 0 / 0.3),
+      0 18px 36px -12px rgb(255 90 50 / 0.55);
+    color: #fff6ef;
+    font-weight: 600;
+    font-size: 1.7rem;
+    letter-spacing: -0.04em;
+  }
+
+  .l-card-photo {
+    width: 100%;
+    height: auto;
+    border-radius: 24px;
+  }
+
+  .l-card-name {
+    margin: 28px 0 0;
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    color: var(--fg);
+  }
+
+  .l-card-role {
+    margin: 4px 0 0;
+    color: var(--fg-3);
+  }
+
+  .l-card-facts {
+    width: 100%;
+    margin: 24px 0 0;
+  }
+
+  .l-card-facts div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 13px 0;
+    border-top: 1px solid var(--line);
+    font-size: 0.95rem;
+  }
+
+  .l-card-facts dt {
+    color: var(--fg-3);
+  }
+
+  .l-card-facts dd {
+    margin: 0;
+    text-align: right;
+    color: var(--fg);
+  }
+
+  .l-card-facts a {
+    color: var(--fg);
+  }
+
+  .l-card-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .l-me-lead {
+    font-size: clamp(1.35rem, 2vw, 1.7rem);
+    font-weight: 500;
+    line-height: 1.32;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+  }
+
+  .l-quote {
+    padding-block: clamp(110px, 15vw, 220px);
+  }
+
+  .l-quote-text {
+    margin: 0;
+  }
+
+  .l-quote-text p {
+    margin: 0;
+    max-width: 14em;
+    font-size: clamp(2.6rem, 6.6vw, 6.6rem);
+    font-weight: 600;
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+    color: var(--fg);
+  }
+
+  .w {
+    transition: color 0.6s ease;
+  }
+
+  :global(.js) .w {
+    color: rgb(246 242 236 / 0.42);
+  }
+
+  :global(.js) .w.on {
+    color: var(--fg);
+  }
+
+  :global(.js) .w--warm.on {
+    color: var(--ember-soft);
+  }
+
+  .l-sec-title {
+    margin-top: 22px;
+    max-width: 12em;
+  }
+
+  .l-beliefs {
+    padding-bottom: clamp(100px, 12vw, 170px);
+  }
+
+  .l-beliefs-grid {
+    display: grid;
+    gap: 16px;
+    margin: clamp(40px, 5vw, 64px) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 900px) {
+    .l-beliefs-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .l-belief {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 340px;
+    padding: 30px;
+    border-radius: 34px;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(28px) saturate(1.8);
+    backdrop-filter: blur(28px) saturate(1.8);
+    box-shadow: var(--glass-rim), var(--glass-drop);
+    overflow: hidden;
+  }
+
+  .l-belief-n {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--ember-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .l-belief-title {
+    margin: 0;
+    padding-top: clamp(48px, 7vw, 96px);
+    font-size: clamp(1.7rem, 2.6vw, 2.3rem);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    color: var(--fg);
+  }
+
+  .l-belief p {
+    margin: 14px 0 0;
+    color: var(--fg-2);
+  }
+
+  .l-ways {
+    padding-bottom: clamp(30px, 5vw, 70px);
+  }
+
+  .l-ways-list {
+    margin: clamp(40px, 5vw, 64px) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .l-ways-list li {
+    display: grid;
+    gap: 10px 48px;
+    padding: 28px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  @media (min-width: 900px) {
+    .l-ways-list li {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      align-items: baseline;
+    }
+  }
+
+  .l-way-title {
+    margin: 0;
+    font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    color: var(--fg);
+  }
+
+  .l-ways-list p {
+    margin: 0;
+    max-width: 36em;
+    font-size: 1.08rem;
+  }
+
+  .l-ways-next {
+    margin-top: 40px;
+  }
+</style>

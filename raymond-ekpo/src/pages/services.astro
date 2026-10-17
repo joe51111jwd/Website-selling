@@ -8,6 +8,8 @@ import Pen from '../components/Pen.astro';
 import Seal from '../components/Seal.astro';
 import ServicePanels from '../components/ServicePanels.astro';
 import FitCheck from '../components/FitCheck.astro';
+import GlassPage from '../components/liquid/pages/ServicesPage.astro';
+import { glass } from '../theme';
 
 const services = await getServices();
 const rendered = await Promise.all(services.map((s) => render(s)));
@@ -67,140 +69,148 @@ const schema = [
   description="Pitch deck rewrite ($2,500), pitch deck creation ($3,500–$5,000), investor Q&A preparation ($750–$1,000) and investor research ($1,000–$2,000) for pre-seed and seed founders."
   schema={schema}
 >
-  <PageHead kicker="Services">
-    <Fragment slot="title">Four engagements, <em>each with a <span class="pen-wrap">clear end.<Pen kind="underline" load delay={0.9} /></span></em></Fragment>
-    <Fragment slot="lead">
-      Fixed scopes and public prices. Each one starts from the investment case and ends with something you can take
-      into your next investor meeting.
-    </Fragment>
-  </PageHead>
-
-  <section class="wrap overview" aria-labelledby="overview-title">
-    <h2 id="overview-title" class="sr-only">The four engagements at a glance</h2>
-    <ServicePanels services={services} />
-  </section>
-
-  <section class="band-desk fit-band" aria-labelledby="fit-title">
-    <div class="wrap">
-      <p class="kicker"><span class="num">§</span> Fit check</p>
-      <h2 id="fit-title" class="display h2 fit-h">Not sure which? <em>Five answers will tell you.</em></h2>
-      <FitCheck services={services} />
-    </div>
-  </section>
-
   {
-    services.map((s, i) => {
-      const { Content } = rendered[i];
-      return (
-        <section id={s.id} class="service wrap" aria-labelledby={`${s.id}-title`}>
-          <div class="service-grid">
-            <div class="service-side" style={`--tilt: ${[-1.2, 1, -0.8, 1.2][i % 4]}deg`}>
-              <div class="side-seal">
-                <Seal id={`svc-${s.id}`} center={pad(i + 1)} />
-              </div>
-              <p class="service-no">
-                <span class="caps">Term</span> <span class="figures">No. {pad(i + 1)}</span>
+    glass ? (
+      <GlassPage services={services} faqs={faqs} />
+    ) : (
+      <>
+        <PageHead kicker="Services">
+          <Fragment slot="title">Four engagements, <em>each with a <span class="pen-wrap">clear end.<Pen kind="underline" load delay={0.9} /></span></em></Fragment>
+          <Fragment slot="lead">
+            Fixed scopes and public prices. Each one starts from the investment case and ends with something you can take
+            into your next investor meeting.
+          </Fragment>
+        </PageHead>
+
+        <section class="wrap overview" aria-labelledby="overview-title">
+          <h2 id="overview-title" class="sr-only">The four engagements at a glance</h2>
+          <ServicePanels services={services} />
+        </section>
+
+        <section class="band-desk fit-band" aria-labelledby="fit-title">
+          <div class="wrap">
+            <p class="kicker"><span class="num">§</span> Fit check</p>
+            <h2 id="fit-title" class="display h2 fit-h">Not sure which? <em>Five answers will tell you.</em></h2>
+            <FitCheck services={services} />
+          </div>
+        </section>
+
+        {
+          services.map((s, i) => {
+            const { Content } = rendered[i];
+            return (
+              <section id={s.id} class="service wrap" aria-labelledby={`${s.id}-title`}>
+                <div class="service-grid">
+                  <div class="service-side" style={`--tilt: ${[-1.2, 1, -0.8, 1.2][i % 4]}deg`}>
+                    <div class="side-seal">
+                      <Seal id={`svc-${s.id}`} center={pad(i + 1)} />
+                    </div>
+                    <p class="service-no">
+                      <span class="caps">Term</span> <span class="figures">No. {pad(i + 1)}</span>
+                    </p>
+                    <h2 id={`${s.id}-title`} class="display service-title">
+                      {s.data.title}
+                    </h2>
+                    <p class="service-price figures">{s.data.price}</p>
+                    <p class="meta">{s.data.priceNote}</p>
+                    <a
+                      href={`/work-with-me?service=${s.id}`}
+                      class="btn service-cta"
+                      data-cta={s.data.cta}
+                      data-cta-location="services page"
+                    >
+                      {s.data.cta} <span class="arrow" aria-hidden="true">→</span>
+                    </a>
+                  </div>
+
+                  <div class="service-body">
+                    <p class="best-for">
+                      <span class="caps">Best for</span>
+                      {s.data.bestFor}
+                    </p>
+                    <div class="prose service-prose">
+                      <Content />
+                    </div>
+
+                    <div class="service-lists">
+                      <div>
+                        <h3 class="caps list-head">What it covers</h3>
+                        <ul class="dash-list">
+                          {s.data.covers.map((c) => (
+                            <li>{c}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div>
+                        <h3 class="caps list-head">What you receive</h3>
+                        <ul class="dash-list">
+                          {s.data.receive.map((c) => (
+                            <li>{c}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <p class="needs">
+                      <span class="caps">What I need from you</span>
+                      {s.data.needs}
+                    </p>
+                    {s.data.note && <p class="service-note">{s.data.note}</p>}
+                  </div>
+                </div>
+              </section>
+            );
+          })
+        }
+
+        <section id="mini-audit" class="band-ink audit" aria-labelledby="audit-title">
+          <div class="wrap audit-sheet">
+            <div>
+              <p class="caps audit-kicker">Complimentary</p>
+              <h2 id="audit-title" class="display audit-title">The mini-audit</h2>
+            </div>
+            <div class="audit-body">
+              <p>
+                If you already have a deck, send it over and I’ll write back with a short note on the three changes I’d make
+                first, and why. No call needed, and no obligation to work together afterwards.
               </p>
-              <h2 id={`${s.id}-title`} class="display service-title">
-                {s.data.title}
-              </h2>
-              <p class="service-price figures">{s.data.price}</p>
-              <p class="meta">{s.data.priceNote}</p>
+              <p class="meta">
+                I only do a few each month, for founders raising pre-seed or seed in the next six months, so I may decline if
+                it isn’t a fit or the month is full. I’ll tell you either way.
+              </p>
               <a
-                href={`/work-with-me?service=${s.id}`}
-                class="btn service-cta"
-                data-cta={s.data.cta}
+                href="/work-with-me?type=audit"
+                class="btn btn--light"
+                data-cta="Request a free deck audit"
                 data-cta-location="services page"
               >
-                {s.data.cta} <span class="arrow" aria-hidden="true">→</span>
+                Request a mini-audit <span class="arrow" aria-hidden="true">→</span>
               </a>
-            </div>
-
-            <div class="service-body">
-              <p class="best-for">
-                <span class="caps">Best for</span>
-                {s.data.bestFor}
-              </p>
-              <div class="prose service-prose">
-                <Content />
-              </div>
-
-              <div class="service-lists">
-                <div>
-                  <h3 class="caps list-head">What it covers</h3>
-                  <ul class="dash-list">
-                    {s.data.covers.map((c) => (
-                      <li>{c}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3 class="caps list-head">What you receive</h3>
-                  <ul class="dash-list">
-                    {s.data.receive.map((c) => (
-                      <li>{c}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <p class="needs">
-                <span class="caps">What I need from you</span>
-                {s.data.needs}
-              </p>
-              {s.data.note && <p class="service-note">{s.data.note}</p>}
             </div>
           </div>
         </section>
-      );
-    })
-  }
 
-  <section id="mini-audit" class="band-ink audit" aria-labelledby="audit-title">
-    <div class="wrap audit-sheet">
-      <div>
-        <p class="caps audit-kicker">Complimentary</p>
-        <h2 id="audit-title" class="display audit-title">The mini-audit</h2>
-      </div>
-      <div class="audit-body">
-        <p>
-          If you already have a deck, send it over and I’ll write back with a short note on the three changes I’d make
-          first, and why. No call needed, and no obligation to work together afterwards.
-        </p>
-        <p class="meta">
-          I only do a few each month, for founders raising pre-seed or seed in the next six months, so I may decline if
-          it isn’t a fit or the month is full. I’ll tell you either way.
-        </p>
-        <a
-          href="/work-with-me?type=audit"
-          class="btn btn--light"
-          data-cta="Request a free deck audit"
-          data-cta-location="services page"
-        >
-          Request a mini-audit <span class="arrow" aria-hidden="true">→</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <section id="faq" class="wrap faq" aria-labelledby="faq-title">
-    <div class="faq-grid">
-      <div>
-        <p class="kicker">Questions</p>
-        <h2 id="faq-title" class="display h2">Before you <em>enquire.</em></h2>
-      </div>
-      <dl class="faq-list">
-        {
-          faqs.map((f) => (
+        <section id="faq" class="wrap faq" aria-labelledby="faq-title">
+          <div class="faq-grid">
             <div>
-              <dt class="display">{f.q}</dt>
-              <dd>{f.a}</dd>
+              <p class="kicker">Questions</p>
+              <h2 id="faq-title" class="display h2">Before you <em>enquire.</em></h2>
             </div>
-          ))
-        }
-      </dl>
-    </div>
-  </section>
+            <dl class="faq-list">
+              {
+                faqs.map((f) => (
+                  <div>
+                    <dt class="display">{f.q}</dt>
+                    <dd>{f.a}</dd>
+                  </div>
+                ))
+              }
+            </dl>
+          </div>
+        </section>
+      </>
+    )
+  }
 </Base>
 
 <style>

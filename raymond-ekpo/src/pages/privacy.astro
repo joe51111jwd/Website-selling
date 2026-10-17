@@ -2,18 +2,28 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { site } from '../site.config';
+import LPageHead from '../components/liquid/PageHead.astro';
+import { glass } from '../theme';
 ---
 
 <Base title="Privacy notice" description={`How ${site.name} handles the information you share through this site.`}>
-  <PageHead kicker="Privacy">
-    <Fragment slot="title">Privacy notice</Fragment>
-    <Fragment slot="lead">Short, because this site collects very little. Last updated October 2026.</Fragment>
-  </PageHead>
+  {
+    glass ? (
+      <LPageHead eyebrow="Privacy" title="Privacy notice." drops={false} light="0.5 0.85 0.3 -0.6">
+        <Fragment slot="lead">Short, because this site collects very little. Last updated October 2026.</Fragment>
+      </LPageHead>
+    ) : (
+      <PageHead kicker="Privacy">
+        <Fragment slot="title">Privacy notice</Fragment>
+        <Fragment slot="lead">Short, because this site collects very little. Last updated October 2026.</Fragment>
+      </PageHead>
+    )
+  }
 
   <div class="wrap">
     <div class="prose privacy">
       <p>
-        This site is run by {site.name}. If you have a question about your information, email
+        This site is run by {site.name}. If you have a question about your information, email{' '}
         <a href={`mailto:${site.email}`}>{site.email}</a>.
       </p>
 
@@ -58,7 +68,7 @@ import { site } from '../site.config';
       <p>
         You can ask to see the information I hold about you, to correct it or to delete it, and you can object to how
         it’s used. Email <a href={`mailto:${site.email}`}>{site.email}</a>. If you’re unhappy with how I’ve handled your
-        information, you can complain to the Information Commissioner’s Office at
+        information, you can complain to the Information Commissioner’s Office at{' '}
         <a href="https://ico.org.uk" rel="noopener" target="_blank">ico.org.uk</a>.
       </p>
     </div>

@@ -1,0 +1,344 @@
+---
+// The work index in the glass build: the analyses as glass cards, each showing the slide's headline
+// before and after the rewrite, then client case studies (or, until a founder agrees to one being
+// published, a note saying so).
+import type { WorkEntry } from '../../../lib/content';
+import { readingMinutes } from '../../../lib/content';
+import PageHead from '../PageHead.astro';
+
+interface Props {
+  notes: WorkEntry[];
+  cases: WorkEntry[];
+}
+
+const { notes, cases } = Astro.props;
+---
+
+<PageHead eyebrow="Work" title="The work," dim="and the thinking behind it.">
+  <Fragment slot="lead">
+    Analyses of the slides and arguments that decide most early-stage raises. The examples are invented composites, not
+    clients, and they’re labelled that way. Client case studies are published only with the founder’s permission, and
+    only with outcomes that can be checked.
+  </Fragment>
+</PageHead>
+
+<section class="l-wrap l-notes" data-light="0.75 0.8 0.35 -0.4" aria-labelledby="notes-title">
+  <div class="l-row-head">
+    <h2 id="notes-title" class="l-row-title">Notes &amp; analyses</h2>
+    <span class="l-row-meta">{notes.length} notes</span>
+  </div>
+  <div class="l-notes-grid">
+    {
+      notes.map((n, i) => (
+        <article class:list={['l-note', { 'l-note--lead': i === 0 }]}>
+          <div class="l-note-top">
+            <span class="l-tag">{n.data.topic}</span>
+            <span class="l-note-time">{readingMinutes(n.body)} min read</span>
+          </div>
+          <h3 class="l-note-title">
+            <a href={`/work/${n.id}`} class="l-note-link">
+              {n.data.title}
+            </a>
+          </h3>
+          <p class="l-note-dek">{n.data.dek}</p>
+          {n.data.example && (
+            <div class="l-note-diff" aria-label={`The ${n.data.example.slide.toLowerCase()} slide's headline, before and after`} role="group">
+              <p class="l-note-was">
+                <span class="l-note-label">Before</span>
+                <s>{n.data.example.before.headline}</s>
+              </p>
+              <p class="l-note-now">
+                <span class="l-note-label">After</span>
+                {n.data.example.after.headline}
+              </p>
+            </div>
+          )}
+          <span class="l-note-go" aria-hidden="true">
+            Read the analysis <span>→</span>
+          </span>
+        </article>
+      ))
+    }
+  </div>
+</section>
+
+<section class="l-wrap l-cases" data-light="0.6 0.25 0.7 0.6" aria-labelledby="cases-title">
+  <div class="l-row-head">
+    <h2 id="cases-title" class="l-row-title">Client case studies</h2>
+  </div>
+  {
+    cases.length > 0 ? (
+      <div class="l-notes-grid">
+        {cases.map((c) => (
+          <article class="l-note">
+            <div class="l-note-top">
+              <span class="l-tag">{c.data.sector ?? c.data.topic}</span>
+              {c.data.stage && <span class="l-note-time">{c.data.stage}</span>}
+            </div>
+            <h3 class="l-note-title">
+              <a href={`/work/${c.id}`} class="l-note-link">
+                {c.data.title}
+              </a>
+            </h3>
+            <p class="l-note-dek">{c.data.dek}</p>
+            <span class="l-note-go" aria-hidden="true">
+              Read the case study <span>→</span>
+            </span>
+          </article>
+        ))}
+      </div>
+    ) : (
+      <div class="l-empty">
+        <p class="l-empty-title">
+          Client work appears here <span class="l-dim">with the founder’s permission.</span>
+        </p>
+        <div class="l-empty-body">
+          <p>
+            Fundraising is confidential, and most founders would rather their deck wasn’t public while they’re raising.
+            If you’d like to see examples of my work before you enquire, ask, and I’ll share what I can.
+          </p>
+          <a href="/work-with-me" class="l-btn l-btn--primary" data-cta="Ask for examples" data-cta-location="work page">
+            Ask for examples
+          </a>
+        </div>
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .l-notes {
+    padding-bottom: clamp(90px, 11vw, 150px);
+  }
+
+  .l-row-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding-bottom: 18px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .l-row-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+  }
+
+  .l-row-meta {
+    font-size: 0.9rem;
+    color: var(--fg-3);
+  }
+
+  .l-notes-grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  @media (min-width: 720px) {
+    .l-notes-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .l-note--lead {
+      grid-column: span 2;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .l-notes-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .l-note {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 28px;
+    border-radius: 32px;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(28px) saturate(1.8);
+    backdrop-filter: blur(28px) saturate(1.8);
+    box-shadow: var(--glass-rim), var(--glass-drop);
+    transition:
+      transform 0.6s var(--ease),
+      background-color 0.4s ease;
+  }
+
+  .l-note:hover {
+    transform: translateY(-4px);
+    background-color: rgb(44 32 27 / 0.5);
+  }
+
+  .l-note--lead {
+    background:
+      radial-gradient(70% 90% at 100% 0%, rgb(255 106 61 / 0.22), transparent 60%),
+      var(--glass);
+  }
+
+  .l-note-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .l-note-time {
+    font-size: 0.85rem;
+    color: var(--fg-3);
+  }
+
+  .l-note-title {
+    margin: 8px 0 0;
+    max-width: 16em;
+    font-size: clamp(1.45rem, 2vw, 1.8rem);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+    color: var(--fg);
+    text-wrap: balance;
+  }
+
+  .l-note--lead .l-note-title {
+    font-size: clamp(1.9rem, 3.4vw, 3rem);
+    line-height: 1;
+    letter-spacing: -0.045em;
+  }
+
+  .l-note-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* the whole card is the link */
+  .l-note-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .l-note-link:focus-visible {
+    outline: none;
+  }
+
+  .l-note-link:focus-visible::after {
+    outline: 2px solid var(--ember-soft);
+    outline-offset: 3px;
+  }
+
+  .l-note-dek {
+    margin: 0;
+    max-width: 34em;
+    color: var(--fg-2);
+    font-size: 0.98rem;
+  }
+
+  .l-note-diff {
+    display: grid;
+    gap: 10px;
+    margin-top: 6px;
+    padding: 18px;
+    border-radius: 20px;
+    background: rgb(0 0 0 / 0.24);
+    box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.4), inset 0 0 0 1px rgb(255 255 255 / 0.05);
+  }
+
+  .l-note-diff p {
+    display: grid;
+    grid-template-columns: 4.2em 1fr;
+    gap: 10px;
+    align-items: baseline;
+    margin: 0;
+    font-size: 0.94rem;
+    line-height: 1.35;
+  }
+
+  .l-note-label {
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+
+  .l-note-was s {
+    color: var(--fg-3);
+    text-decoration-color: rgb(255 106 61 / 0.7);
+    text-decoration-thickness: 1.5px;
+  }
+
+  .l-note-now {
+    color: var(--fg);
+    font-weight: 500;
+  }
+
+  .l-note-now .l-note-label {
+    color: var(--ember-soft);
+  }
+
+  .l-note-go {
+    margin-top: auto;
+    padding-top: 8px;
+    color: var(--fg);
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+
+  .l-note-go span {
+    display: inline-block;
+    transition: transform 0.4s var(--ease);
+  }
+
+  .l-note:hover .l-note-go span {
+    transform: translateX(5px);
+  }
+
+  .l-cases {
+    padding-bottom: clamp(40px, 6vw, 80px);
+  }
+
+  .l-empty {
+    display: grid;
+    gap: 28px;
+    padding: clamp(28px, 4vw, 52px);
+    border-radius: 36px;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(28px) saturate(1.8);
+    backdrop-filter: blur(28px) saturate(1.8);
+    box-shadow: var(--glass-rim), var(--glass-drop);
+  }
+
+  @media (min-width: 1000px) {
+    .l-empty {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: 56px;
+      align-items: end;
+    }
+  }
+
+  .l-empty-title {
+    margin: 0;
+    font-size: clamp(2rem, 3.8vw, 3.4rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    color: var(--fg);
+    text-wrap: balance;
+  }
+
+  .l-empty-body {
+    display: grid;
+    gap: 22px;
+    justify-items: start;
+  }
+
+  .l-empty-body p {
+    margin: 0;
+  }
+</style>

@@ -5,6 +5,8 @@ import { site } from '../site.config';
 import Pen from '../components/Pen.astro';
 import Seal from '../components/Seal.astro';
 import StackCards from '../components/StackCards.astro';
+import GlassPage from '../components/liquid/pages/AboutPage.astro';
+import { glass } from '../theme';
 
 const beliefs = [
   {
@@ -50,109 +52,117 @@ const schema = [
   description="Raymond Ekpo is an Investor Narrative Specialist who helps pre-seed and seed founders explain why their company is worth investing in. He also runs Maneuver & Co."
   schema={schema}
 >
-  <PageHead kicker="About">
-    <Fragment slot="title"
-      >I work on the part of a raise <em
-        >that happens <span class="pen-wrap">before<Pen kind="underline" load delay={1} /></span> the slides.</em
-      ></Fragment
-    >
-  </PageHead>
-
-  <div class="wrap about">
-    <aside class="byline" aria-label="Raymond Ekpo at a glance">
-      {
-        site.portrait ? (
-          <img src={site.portrait} alt={site.name} class="portrait" width="640" height="800" />
-        ) : (
-          <div class="plate" aria-hidden="true">
-            <Seal id="about" center="R.E." class="plate-seal" />
-            <span class="plate-name display">Raymond Ekpo</span>
-            <span class="plate-role caps">{site.role}</span>
-          </div>
-        )
-      }
-      <dl class="byline-facts">
-        <div>
-          <dt class="caps">Works with</dt>
-          <dd>Pre-seed and seed founders</dd>
-        </div>
-        <div>
-          <dt class="caps">Raising from</dt>
-          <dd>US and UK investors</dd>
-        </div>
-        <div>
-          <dt class="caps">Also</dt>
-          <dd>Founder, <a href={site.firm.url} rel="noopener" target="_blank">{site.firm.name}</a></dd>
-        </div>
-      </dl>
-      <ul class="byline-links">
-        <li><a href={site.x.url} rel="me noopener" target="_blank" data-contact="x" class="link">X {site.x.handle}</a></li>
-        <li><a href={site.linkedin} rel="me noopener" target="_blank" data-contact="linkedin" class="link">LinkedIn</a></li>
-      </ul>
-    </aside>
-
-    <div class="prose about-prose">
-      <p>
-        I’m Raymond Ekpo. I help pre-seed and seed founders in the US and UK explain why their company is worth
-        investing in: the thesis, the storyline, and the claims that hold it up.
-      </p>
-
-      <h2>Where this comes from</h2>
-      <p>
-        I spent several years studying how markets work, mostly by watching capable companies stall for reasons nobody
-        inside them could name. That work became <a href={site.firm.url} rel="noopener" target="_blank"
-          >{site.firm.name}</a
-        >, the growth strategy firm I run. The job there is to establish what’s actually in the way and write it down in
-        a form people can argue with.
-      </p>
-      <p>
-        The same problem turns up at the very start of a company, in a different form. A founder knows the product, the
-        customers and the market better than anyone, and still struggles to say why it’s an investment. That’s a
-        different question from why it’s a good product.
-      </p>
-    </div>
-  </div>
-
-  <section class="band-ox quote" aria-label="The short version">
-    <div class="wrap">
-      <blockquote class="big-quote" data-inview>
-        <p class="display">
-          A pitch deck is a positioning problem <em
-            >with a <span class="pen-wrap">different buyer.<Pen kind="underline" delay={0.5} /></span></em
+  {
+    glass ? (
+      <GlassPage beliefs={beliefs} ways={ways} />
+    ) : (
+      <>
+        <PageHead kicker="About">
+          <Fragment slot="title"
+            >I work on the part of a raise <em
+              >that happens <span class="pen-wrap">before<Pen kind="underline" load delay={1} /></span> the slides.</em
+            ></Fragment
           >
-        </p>
-      </blockquote>
-    </div>
-  </section>
+        </PageHead>
 
-  <section class="beliefs" aria-labelledby="beliefs-title">
-    <div class="wrap">
-      <p class="kicker"><span class="num">§</span> Beliefs</p>
-      <h2 id="beliefs-title" class="display h2 beliefs-title">How I think about <em>fundraising narratives.</em></h2>
-      <div class="belief-stack">
-        <StackCards items={beliefs} label="Belief" />
-      </div>
-    </div>
-  </section>
+        <div class="wrap about">
+          <aside class="byline" aria-label="Raymond Ekpo at a glance">
+            {
+              site.portrait ? (
+                <img src={site.portrait} alt={site.name} class="portrait" width="640" height="800" />
+              ) : (
+                <div class="plate" aria-hidden="true">
+                  <Seal id="about" center="R.E." class="plate-seal" />
+                  <span class="plate-name display">Raymond Ekpo</span>
+                  <span class="plate-role caps">{site.role}</span>
+                </div>
+              )
+            }
+            <dl class="byline-facts">
+              <div>
+                <dt class="caps">Works with</dt>
+                <dd>Pre-seed and seed founders</dd>
+              </div>
+              <div>
+                <dt class="caps">Raising from</dt>
+                <dd>US and UK investors</dd>
+              </div>
+              <div>
+                <dt class="caps">Also</dt>
+                <dd>Founder, <a href={site.firm.url} rel="noopener" target="_blank">{site.firm.name}</a></dd>
+              </div>
+            </dl>
+            <ul class="byline-links">
+              <li><a href={site.x.url} rel="me noopener" target="_blank" data-contact="x" class="link">X {site.x.handle}</a></li>
+              <li><a href={site.linkedin} rel="me noopener" target="_blank" data-contact="linkedin" class="link">LinkedIn</a></li>
+            </ul>
+          </aside>
 
-  <section class="wrap ways" aria-labelledby="ways-title">
-    <p class="kicker"><span class="num">§</span> Practice</p>
-    <h2 id="ways-title" class="display h2">How I <em>work.</em></h2>
-    <ol class="way-list">
-      {
-        ways.map((w, i) => (
-          <li data-reveal style={`--rd: ${i * 0.08}s`}>
-            <span class="way-num">{['i', 'ii', 'iii'][i]}.</span>
-            <h3 class="display way-title">{w.title}</h3>
-            <p>{w.body}</p>
-          </li>
-        ))
-      }
-    </ol>
-    <p class="about-next">
-      <a href="/services" class="btn btn--ghost">See the services and prices <span class="arrow" aria-hidden="true">→</span></a>
-    </p>
-  </section>
+          <div class="prose about-prose">
+            <p>
+              I’m Raymond Ekpo. I help pre-seed and seed founders in the US and UK explain why their company is worth
+              investing in: the thesis, the storyline, and the claims that hold it up.
+            </p>
+
+            <h2>Where this comes from</h2>
+            <p>
+              I spent several years studying how markets work, mostly by watching capable companies stall for reasons nobody
+              inside them could name. That work became <a href={site.firm.url} rel="noopener" target="_blank"
+                >{site.firm.name}</a
+              >, the growth strategy firm I run. The job there is to establish what’s actually in the way and write it down in
+              a form people can argue with.
+            </p>
+            <p>
+              The same problem turns up at the very start of a company, in a different form. A founder knows the product, the
+              customers and the market better than anyone, and still struggles to say why it’s an investment. That’s a
+              different question from why it’s a good product.
+            </p>
+          </div>
+        </div>
+
+        <section class="band-ox quote" aria-label="The short version">
+          <div class="wrap">
+            <blockquote class="big-quote" data-inview>
+              <p class="display">
+                A pitch deck is a positioning problem <em
+                  >with a <span class="pen-wrap">different buyer.<Pen kind="underline" delay={0.5} /></span></em
+                >
+              </p>
+            </blockquote>
+          </div>
+        </section>
+
+        <section class="beliefs" aria-labelledby="beliefs-title">
+          <div class="wrap">
+            <p class="kicker"><span class="num">§</span> Beliefs</p>
+            <h2 id="beliefs-title" class="display h2 beliefs-title">How I think about <em>fundraising narratives.</em></h2>
+            <div class="belief-stack">
+              <StackCards items={beliefs} label="Belief" />
+            </div>
+          </div>
+        </section>
+
+        <section class="wrap ways" aria-labelledby="ways-title">
+          <p class="kicker"><span class="num">§</span> Practice</p>
+          <h2 id="ways-title" class="display h2">How I <em>work.</em></h2>
+          <ol class="way-list">
+            {
+              ways.map((w, i) => (
+                <li data-reveal style={`--rd: ${i * 0.08}s`}>
+                  <span class="way-num">{['i', 'ii', 'iii'][i]}.</span>
+                  <h3 class="display way-title">{w.title}</h3>
+                  <p>{w.body}</p>
+                </li>
+              ))
+            }
+          </ol>
+          <p class="about-next">
+            <a href="/services" class="btn btn--ghost">See the services and prices <span class="arrow" aria-hidden="true">→</span></a>
+          </p>
+        </section>
+      </>
+    )
+  }
 </Base>
 
 <style>

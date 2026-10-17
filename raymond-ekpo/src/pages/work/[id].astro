@@ -4,6 +4,8 @@ import Base from '../../layouts/Base.astro';
 import CompareSlider from '../../components/CompareSlider.astro';
 import { getWork, readingMinutes, type WorkEntry } from '../../lib/content';
 import { site } from '../../site.config';
+import GlassPage from '../../components/liquid/pages/NotePage.astro';
+import { glass } from '../../theme';
 
 export async function getStaticPaths() {
   const all = await getWork();
@@ -39,98 +41,106 @@ const schema = [
 ---
 
 <Base title={d.title} description={d.dek} type="article" schema={schema}>
-  <article>
-    <header class="wrap note-head">
-      <p class="kicker">
-        <a href="/work" class="crumb">Work</a>
-        <span aria-hidden="true">/</span>
-        <span>{d.topic}</span>
-      </p>
-      <h1 class="display h1 note-title fade-in" style="--fd: 0.1s">{d.title}</h1>
-      <p class="lead note-dek fade-in" style="--fd: 0.3s">{d.dek}</p>
-      <p class="note-meta meta">
-        <time datetime={d.date.toISOString()}>{date}</time>
-        <span aria-hidden="true">·</span>
-        <span>{readingMinutes(entry.body)} min read</span>
-        {d.illustrative && <span class="tag">Illustrative example</span>}
-      </p>
-    </header>
+  {
+    glass ? (
+      <GlassPage entry={entry} next={next} />
+    ) : (
+      <>
+        <article>
+          <header class="wrap note-head">
+            <p class="kicker">
+              <a href="/work" class="crumb">Work</a>
+              <span aria-hidden="true">/</span>
+              <span>{d.topic}</span>
+            </p>
+            <h1 class="display h1 note-title fade-in" style="--fd: 0.1s">{d.title}</h1>
+            <p class="lead note-dek fade-in" style="--fd: 0.3s">{d.dek}</p>
+            <p class="note-meta meta">
+              <time datetime={d.date.toISOString()}>{date}</time>
+              <span aria-hidden="true">·</span>
+              <span>{readingMinutes(entry.body)} min read</span>
+              {d.illustrative && <span class="tag">Illustrative example</span>}
+            </p>
+          </header>
 
-    {
-      isCase && (
-        <div class="wrap">
-          <dl class="facts">
-            {d.client && (
-              <div>
-                <dt class="caps">Client</dt>
-                <dd>{d.client}</dd>
+          {
+            isCase && (
+              <div class="wrap">
+                <dl class="facts">
+                  {d.client && (
+                    <div>
+                      <dt class="caps">Client</dt>
+                      <dd>{d.client}</dd>
+                    </div>
+                  )}
+                  {d.stage && (
+                    <div>
+                      <dt class="caps">Stage</dt>
+                      <dd>{d.stage}</dd>
+                    </div>
+                  )}
+                  {d.sector && (
+                    <div>
+                      <dt class="caps">Sector</dt>
+                      <dd>{d.sector}</dd>
+                    </div>
+                  )}
+                  {d.outcome && (
+                    <div>
+                      <dt class="caps">Outcome</dt>
+                      <dd>{d.outcome}</dd>
+                    </div>
+                  )}
+                </dl>
               </div>
-            )}
-            {d.stage && (
-              <div>
-                <dt class="caps">Stage</dt>
-                <dd>{d.stage}</dd>
+            )
+          }
+
+          {
+            d.example && (
+              <div class="wrap note-example">
+                <CompareSlider example={d.example} />
               </div>
-            )}
-            {d.sector && (
-              <div>
-                <dt class="caps">Sector</dt>
-                <dd>{d.sector}</dd>
-              </div>
-            )}
-            {d.outcome && (
-              <div>
-                <dt class="caps">Outcome</dt>
-                <dd>{d.outcome}</dd>
-              </div>
-            )}
-          </dl>
-        </div>
-      )
-    }
+            )
+          }
 
-    {
-      d.example && (
-        <div class="wrap note-example">
-          <CompareSlider example={d.example} />
-        </div>
-      )
-    }
+          <div class="wrap note-body">
+            <div class="prose">
+              <Content />
+            </div>
 
-    <div class="wrap note-body">
-      <div class="prose">
-        <Content />
-      </div>
+            <aside class="note-cta" aria-label="Work with me">
+              <p class="caps">Does your deck do this?</p>
+              <p class="display note-cta-title">Send it over for a <em>complimentary mini-audit.</em></p>
+              <p>I’ll write back with the three changes I’d make first.</p>
+              <a
+                href="/work-with-me?type=audit"
+                class="btn"
+                data-cta="Request a free deck audit"
+                data-cta-location={`note: ${entry.id}`}
+              >
+                Request a mini-audit <span class="arrow" aria-hidden="true">→</span>
+              </a>
+            </aside>
+          </div>
 
-      <aside class="note-cta" aria-label="Work with me">
-        <p class="caps">Does your deck do this?</p>
-        <p class="display note-cta-title">Send it over for a <em>complimentary mini-audit.</em></p>
-        <p>I’ll write back with the three changes I’d make first.</p>
-        <a
-          href="/work-with-me?type=audit"
-          class="btn"
-          data-cta="Request a free deck audit"
-          data-cta-location={`note: ${entry.id}`}
-        >
-          Request a mini-audit <span class="arrow" aria-hidden="true">→</span>
-        </a>
-      </aside>
-    </div>
-
-    {
-      next.id !== entry.id && (
-        <nav class="wrap next" aria-label="Next note">
-          <a href={`/work/${next.id}`} class="next-link">
-            <span class="caps">Next · {next.data.topic}</span>
-            <span class="display next-title">{next.data.title}</span>
-            <span class="arrow next-arrow" aria-hidden="true">
-              →
-            </span>
-          </a>
-        </nav>
-      )
-    }
-  </article>
+          {
+            next.id !== entry.id && (
+              <nav class="wrap next" aria-label="Next note">
+                <a href={`/work/${next.id}`} class="next-link">
+                  <span class="caps">Next · {next.data.topic}</span>
+                  <span class="display next-title">{next.data.title}</span>
+                  <span class="arrow next-arrow" aria-hidden="true">
+                    →
+                  </span>
+                </a>
+              </nav>
+            )
+          }
+        </article>
+      </>
+    )
+  }
 </Base>
 
 <style>

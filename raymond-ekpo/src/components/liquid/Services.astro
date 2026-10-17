@@ -1,0 +1,306 @@
+---
+// Services as a side-by-side comparison, the way Apple lays out a product line: a glass tile, the
+// name, who it's for, the price, what's included and the next step. Prices come from
+// src/content/services. The services page shows the same grid without the heading or the audit
+// banner (head and audit false), since it has its own.
+import { getServices } from '../../lib/content';
+
+interface Props {
+  head?: boolean;
+  audit?: boolean;
+}
+
+const { head = true, audit = true } = Astro.props;
+const services = await getServices();
+const icons: Record<string, string> = {
+  rewrite: 'M5 5h14v10H5zM8 19h8M9 9h6M9 12h3',
+  creation: 'M5 5h14v10H5zM8 19h8M12 7.5v5M9.5 10h5',
+  'qa-prep': 'M4 6h11v7H8l-4 3zM15 9h5v7l-3-2h-5v-1',
+  'investor-research': 'M10.5 4.5a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM15 15l5 5',
+};
+---
+
+<section
+  class:list={['l-svc', { 'l-svc--bare': !head }]}
+  id={head ? 'services' : undefined}
+  data-light="0.6 0.15 0.35 -0.9"
+  aria-labelledby="svc-title"
+>
+  <div class="l-wrap">
+    {
+      head ? (
+        <div class="l-svc-head">
+          <p class="l-eyebrow">Services</p>
+          <h2 id="svc-title" class="l-h2">
+            Four ways to work together. <span class="l-dim">Every price is public.</span>
+          </h2>
+        </div>
+      ) : (
+        <h2 id="svc-title" class="sr-only">
+          The four engagements at a glance
+        </h2>
+      )
+    }
+
+    <div class="l-svc-grid">
+      {
+        services.map((s) => (
+          <article class="l-svc-col" aria-labelledby={`svc-${s.id}`}>
+            <div class="l-tile" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d={icons[s.id] ?? icons.rewrite} />
+              </svg>
+            </div>
+            <h3 id={`svc-${s.id}`} class="l-svc-name">
+              {s.data.title}
+            </h3>
+            <p class="l-svc-for">{s.data.for}</p>
+            <p class="l-svc-price">{s.data.price}</p>
+            <p class="l-svc-note">{s.data.priceNote}</p>
+            <ul class="l-svc-list">
+              {s.data.covers.slice(0, 3).map((c) => (
+                <li>{c}</li>
+              ))}
+            </ul>
+            <div class="l-svc-cta">
+              <a href={`/work-with-me?service=${s.id}`} class="l-btn l-btn--sm l-btn--primary" data-cta={s.data.cta} data-cta-location="service column">
+                {s.data.cta}
+              </a>
+              <a href={`/services#${s.id}`} class="l-svc-more">
+                What’s included <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+
+    {
+      audit && (
+        <a href="/work-with-me?type=audit" class="l-audit" data-cta="Request a free deck audit" data-cta-location="services banner">
+          <span class="l-audit-tag">Complimentary</span>
+          <span class="l-audit-text">Already have a deck? Send it, and I’ll write back with the three changes I’d make first.</span>
+          <span class="l-audit-go">
+            Request a mini-audit <span aria-hidden="true">→</span>
+          </span>
+        </a>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .l-svc {
+    padding-block: clamp(110px, 13vw, 190px) clamp(60px, 8vw, 110px);
+  }
+
+  .l-svc--bare {
+    padding-block: 0 clamp(60px, 8vw, 110px);
+  }
+
+  .l-svc--bare .l-svc-grid {
+    margin-top: 0;
+  }
+
+  .l-svc-head {
+    display: grid;
+    gap: 22px;
+  }
+
+  .l-svc-head .l-h2 {
+    max-width: 12em;
+  }
+
+  .l-svc-grid {
+    display: grid;
+    margin-top: clamp(48px, 6vw, 80px);
+  }
+
+  .l-svc-col {
+    display: flex;
+    flex-direction: column;
+    padding: 30px 0 34px;
+    border-top: 1px solid var(--line);
+  }
+
+  .l-tile {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background:
+      radial-gradient(120% 120% at 30% 15%, rgb(255 255 255 / 0.22), transparent 55%),
+      linear-gradient(160deg, rgb(255 130 80 / 0.45), rgb(120 20 12 / 0.55));
+    -webkit-backdrop-filter: blur(12px) saturate(1.8);
+    backdrop-filter: blur(12px) saturate(1.8);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.5),
+      inset 0 0 0 1px rgb(255 255 255 / 0.14),
+      inset 0 -6px 12px rgb(0 0 0 / 0.25),
+      0 14px 30px -10px rgb(255 90 50 / 0.45);
+  }
+
+  .l-tile svg {
+    width: 28px;
+    height: 28px;
+    fill: none;
+    stroke: #fff6ef;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .l-svc-name {
+    margin: 26px 0 0;
+    font-size: 1.55rem;
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--fg);
+  }
+
+  .l-svc-for {
+    margin: 10px 0 0;
+    min-height: 3em;
+    font-size: 0.98rem;
+    line-height: 1.5;
+    color: var(--fg-3);
+  }
+
+  .l-svc-price {
+    margin: 22px 0 0;
+    font-size: clamp(2rem, 2.8vw, 2.6rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .l-svc-note {
+    margin: 8px 0 0;
+    font-size: 0.86rem;
+    color: var(--fg-3);
+  }
+
+  .l-svc-list {
+    list-style: none;
+    margin: 26px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .l-svc-list li {
+    position: relative;
+    padding-left: 26px;
+    font-size: 0.96rem;
+    line-height: 1.45;
+    color: var(--fg-2);
+  }
+
+  .l-svc-list li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.35em;
+    width: 12px;
+    height: 7px;
+    border-left: 1.6px solid var(--ember-soft);
+    border-bottom: 1.6px solid var(--ember-soft);
+    transform: rotate(-45deg);
+  }
+
+  .l-svc-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 18px;
+    margin-top: auto;
+    padding-top: 30px;
+  }
+
+  .l-svc-more {
+    color: var(--fg);
+    text-decoration: none;
+    font-size: 0.94rem;
+    font-weight: 500;
+  }
+
+  .l-svc-more:hover {
+    color: var(--ember-soft);
+  }
+
+  @media (min-width: 700px) {
+    .l-svc-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 40px;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .l-svc-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      column-gap: 0;
+    }
+    .l-svc-col {
+      padding-inline: 28px;
+      border-top: 0;
+      border-left: 1px solid var(--line);
+    }
+    .l-svc-col:first-child {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+
+  .l-audit {
+    display: grid;
+    gap: 10px 24px;
+    align-items: center;
+    margin-top: clamp(40px, 5vw, 64px);
+    padding: 22px 28px;
+    border-radius: 30px;
+    background: linear-gradient(100deg, rgb(255 106 61 / 0.18), rgb(120 20 12 / 0.22) 60%, rgb(30 24 22 / 0.4));
+    -webkit-backdrop-filter: blur(24px) saturate(1.8);
+    backdrop-filter: blur(24px) saturate(1.8);
+    box-shadow: var(--glass-rim), var(--glass-drop);
+    color: var(--fg);
+    text-decoration: none;
+    transition: transform 0.5s var(--ease);
+  }
+
+  .l-audit:hover {
+    transform: scale(1.01);
+  }
+
+  .l-audit-tag {
+    justify-self: start;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.12);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3);
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .l-audit-text {
+    font-size: 1.08rem;
+    line-height: 1.45;
+    color: var(--fg-2);
+  }
+
+  .l-audit-go {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 900px) {
+    .l-audit {
+      grid-template-columns: auto 1fr auto;
+      border-radius: 999px;
+    }
+  }
+</style>

@@ -46,21 +46,19 @@ The same site and content build in two looks:
 | Paper (editorial broadsheet) | `npm run build` | https://raymond-ekpo.vercel.app |
 | Liquid Glass | `npm run build:glass` (sets `PUBLIC_THEME=glass`) | https://raymond-ekpo-glass.vercel.app |
 
-The glass version is Apple's Liquid Glass language on ivory paper, with ink in the water underneath:
+The glass version is a dark, keynote-style design: near-black, lit by ember light, with drops of liquid glass moving over each page's headline.
 
-- **Ink:** a real-time fluid simulation drops oxblood ink that sinks into plumes. It's coloured by how much light it absorbs and slides with the page. Sections opt in with `data-ink` (plus `data-ink-x`, `data-ink-y`, `data-ink-every`, `data-ink-first`), and `data-ink-zone` elements mark where it's allowed to show. `data-world="dark"` turns a section into black water where the ink glows, and `data-world="light"` adds caustic light.
-- **Glass:** elements with `data-glass="kind"` (kinds in `targets.ts`) or matching a selector there turn transparent, and the canvas draws glass under them. Each surface has a squircle bevel with Snell refraction per colour, frost, Fresnel rim reflections, a key light and a cursor light.
-- **Glass lettering:** `data-glass-text` lines become solid glass letters from signed distance fields. They refract the ink and cast a shadow, and the text stays in the page for selection and screen readers.
-- **Under the lens** (`components/glass/LensStory.astro`): a loupe sweeps a founder's slide and rewrites it line by line. The slide is drawn in `slide.ts`, and the scroll choreography is in `lens.ts`.
-- **Liquid controls:** `data-liquid` groups (the price dock, the fit check's answers) get a glass thumb that springs between items (`liquid.ts`).
-- **Nav:** in Chromium the capsule bends the page behind it through an SVG displacement map (`navlens.ts`). Elsewhere it's frosted glass.
+- **Light:** a fixed WebGL2 canvas draws a field of ember light behind the page. Sections set it with `data-light="strength focusX focusY angle"`, and it eases towards whichever section is in the middle of the screen.
+- **Liquid glass drops:** at the top of every page (`data-drops`), a few drops drift over the headline (`data-headline`, split into `.hw` words that the renderer draws into the scene). They're metaballs with a domed profile. Light bends through them by Snell's law, separately for red, green and blue, so they magnify the letters with fringed edges. They also carry softbox reflections, a rim light, a shadow and a focused caustic, and they merge when they meet. On the home page one follows the cursor and gathers the others, and a click splashes them.
+- **Glass controls:** iOS-style segmented controls and the floating tab bar have a glass thumb that springs between items and stretches as it moves (`data-seg`, `segments.ts`). In Chromium, elements marked `data-lens-glass` (the tab bar and the main buttons) bend what's behind them through an SVG displacement map (`lensfilter.ts`). Elsewhere they're frosted glass. Over a light surface (`data-surface="light"`), the bars thicken so their labels stay readable.
+- **Type:** General Sans by the Indian Type Foundry (free licence via Fontshare), self-hosted in `public/fonts/`.
 
 Where the code lives:
-- **Renderer:** `src/scripts/glass/`. `engine.ts` runs the frame, `fluid.ts` is the ink, `shaders.ts` holds the world and glass passes, and `sdf.ts` is the lettering.
-- **Home page:** `src/components/home/GlassHome.astro`, with its sections in `src/components/glass/`. The paper home is `PaperHome.astro`, untouched.
-- **Theme CSS:** `src/styles/glass.css`, scoped to `html[data-theme="glass"]` so the paper build ignores it.
+- **Renderer:** `src/scripts/liquid/`. `engine.ts` runs the frame, `shaders.ts` holds the light and glass passes, `drops.ts` is the drop physics, and `headline.ts` draws the title into the scene.
+- **Pages:** `src/components/liquid/` holds the home sections, the top bar and tab bar, the footer and the page head. `src/components/liquid/pages/` holds services, work, notes and about. Each page file in `src/pages/` picks the paper or glass body with `glass` from `src/theme.ts`, and keeps the data and structured data both builds share. The enquiry form is the same markup in both, restyled for glass.
+- **Theme CSS:** `src/styles/liquid.css`, scoped to `html[data-theme="glass"]` so the paper build ignores it.
 
-The glass build is `noindex` and its `robots.txt` disallows crawling, because it's an alternative design for review. Without WebGL2 it falls back to CSS frosted glass. With reduced motion on, the ink settles out of sight and is shown still. In dev, `?sim=8` speeds up the ink, and `window.__glass.warm(n)` runs n steps, for screenshots from slow software renderers.
+The glass build is `noindex` and its `robots.txt` disallows crawling, because it's an alternative design for review. Without WebGL2 the light is a still CSS gradient and the headline stays as plain text. With reduced motion on, the light holds still, the drops sit in place, and nothing pins or slides. In dev, `window.__liquid.warm(n)` runs n seconds of drop physics at once, for screenshots from slow software renderers.
 
 ## Run it
 

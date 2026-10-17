@@ -165,6 +165,18 @@ James's verdict on round four: too basic, it looked AI-generated, the red-pen "f
 
 **Legibility and fallbacks:** text on glass sits on milky frost, and dark glass carries pale text. Without WebGL2, every glass element gets CSS frosted glass, the name is set in solid serif, and the slide shows as its rewritten picture. With reduced motion on, the ink settles out of sight and is shown still, and nothing drifts.
 
+### Round six: rebuilt from the ground up
+
+James's verdict on round five: not right, start again, and it shouldn't look like anything before it. Round six keeps the content, the conversion plan and the fit-check logic, and replaces everything visual. Ivory paper, serif type, ink and the lens story are gone.
+
+- **Dark, lit like a keynote.** A near-black page and one typeface, General Sans, set very large and tight. A single ember light moves as you read, because each section sets where it falls.
+- **The glass is liquid.** At the top of every page, drops of liquid glass drift over the headline and bend it. They magnify the letters with fringed edges, merge when they touch and pull apart again. On the home page one follows the cursor and gathers the others, and a click splashes them. Everything else is frosted glass over the light.
+- **iOS-style navigation.** A floating glass tab bar sits at the bottom of the screen (Home, Services, Work, About, Enquire), with a liquid thumb, and tucks itself smaller as you read down. Segmented controls with the same thumb run the "You write / They hear / Rewrite" cards, the fit check, and the before/after on each note.
+- **The fit check is a plan you build.** The same five questions, answered on segmented controls, fill a glass pass with the engagements that fit, in order, and their fees.
+- **Inner pages in the same system.** Services shows the four side by side, then the fit check, then each engagement in full under a glass bar that tracks where you are, the mini-audit, and the questions as glass accordions. Work shows the analyses as glass cards with each slide's headline before and after. Each note has its slide with a Before/After switch. About has a glass card with the facts, the short version lit word by word, and the beliefs as three glass cards.
+
+**Legibility and fallbacks:** body text never sits on moving glass. Only the headline does, and it stays real text in the page for selection and screen readers. The bars thicken over light surfaces. Without WebGL2, a still gradient replaces the light and the headline is plain text. With reduced motion on, nothing pins, slides or drifts.
+
 ---
 
 ## 7. Tech

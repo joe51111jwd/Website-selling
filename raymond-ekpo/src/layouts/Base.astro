@@ -1,10 +1,12 @@
 ---
 import '../styles/global.css';
-import '../styles/glass.css';
+import '../styles/liquid.css';
 import serifFont from '@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-normal.woff2?url';
 import sansFont from '@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2?url';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import LiquidChrome from '../components/liquid/Chrome.astro';
+import LiquidFooter from '../components/liquid/Footer.astro';
 import { site } from '../site.config';
 import { glass } from '../theme';
 
@@ -55,7 +57,7 @@ const jsonLd = {
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
-    <meta name="theme-color" content={glass ? '#100e0d' : '#f4efe6'} />
+    <meta name="theme-color" content={glass ? '#070606' : '#f4efe6'} />
     <meta name="author" content={site.name} />
     <script is:inline>
       // Reveal-on-scroll only hides things when scripts run; if the motion script never starts, show everything
@@ -103,17 +105,17 @@ const jsonLd = {
     }
   </head>
   <body>
-    {glass && <canvas class="glass-canvas" aria-hidden="true" />}
+    {glass && <canvas class="liquid-canvas" aria-hidden="true" />}
     <a class="skip" href="#main">Skip to content</a>
-    <Header home={home} />
+    {glass ? <LiquidChrome /> : <Header home={home} />}
     <main id="main">
       <slot />
     </main>
-    <Footer cta={cta} />
+    {glass ? <LiquidFooter cta={cta} /> : <Footer cta={cta} />}
     <script>
       import '../scripts/track';
       import '../scripts/motion';
-      import '../scripts/glass/boot';
+      import '../scripts/liquid/boot';
     </script>
   </body>
 </html>

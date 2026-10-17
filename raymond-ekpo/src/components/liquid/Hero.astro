@@ -1,0 +1,36 @@
+---
+// The opener: the line, set very large into the scene, with drops of liquid glass drifting over
+// it. They bend the letters beneath them, melt together when they meet, gather round the cursor
+// and scatter when you click. The words are split so the renderer can set each one where the page
+// does (headline.ts); the text itself stays in the page.
+const words = ['Investors', 'fund', 'what', 'they', 'can', 'explain', 'to', 'someone', 'else.'];
+---
+
+<section class="l-hero" data-drops data-light="0.95 0.86 0.86 -0.5" aria-labelledby="hero-title">
+  <div class="l-wrap l-hero-in">
+    <p class="l-eyebrow l-rise" style="--d: 0.1s">Investor narrative · Pre-seed &amp; seed · US &amp; UK</p>
+    <h1 id="hero-title" class="l-hero-title" data-headline>
+      {
+        words.map((w) => (
+          <>
+            <span class:list={['hw', { 'hw--warm': w === 'explain' }]}>{w}</span>{' '}
+          </>
+        ))
+      }
+    </h1>
+    <div class="l-hero-foot">
+      <p class="l-hero-lead l-rise" style="--d: 0.5s">
+        I build the investment narrative behind pre-seed and seed rounds: the thesis, the storyline, and only then the
+        deck. So the people you pitch can repeat your story to the people they answer to.
+      </p>
+      <div class="l-btns l-rise" style="--d: 0.65s">
+        <a href="/work-with-me" class="l-btn l-btn--primary l-btn--lg" data-lens-glass="3" data-cta="Discuss your raise" data-cta-location="hero">
+          Discuss your raise
+        </a>
+        <a href="/work-with-me?type=audit" class="l-btn l-btn--lg" data-lens-glass="5" data-cta="Request a free deck audit" data-cta-location="hero">
+          Free deck audit
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
