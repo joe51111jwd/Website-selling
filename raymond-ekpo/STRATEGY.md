@@ -29,7 +29,7 @@ The brief asks for something between "independent strategy advisory" and "invest
 | Neutomni | Numbered index list for work | Notes and analyses are numbered rows with their topic and read time. |
 | Neutomni | Giant cropped wordmark in the footer | The name returns at the bottom on an oxblood field. This is the one large block of accent colour, and it sits where people decide to get in touch. |
 
-**What we leave out:** WebGL, page-curl effects, drag sliders, 3D objects, sky gradients, scroll-jacking and illustrated portraits. The brief rules out "unnecessary animations" and "trendy". There is no motion beyond hover states, and the copy carries the site.
+**What we leave out:** WebGL, page-curl effects, 3D objects, sky gradients, scroll-jacking and illustrated portraits. The brief rules out "unnecessary animations" and "trendy". Motion is used only where it says something about the work (see section 6). All of it switches off with the reduced-motion setting, and the page reads fine without JavaScript.
 
 ---
 
@@ -114,6 +114,19 @@ The brief says every claim about past projects must be accurate and verifiable. 
 - **Body and UI:** Schibsted Grotesk, which was drawn for a news publisher.
 - **Fonts are self-hosted.** Nothing loads from Google, which matters for UK GDPR, and everything is preloaded.
 - **Layout:** 12-column grid, 1320px max, mobile-first, 16px minimum side gutter.
+
+### Art direction: the editor's red pen
+
+After the first pass read as too quiet, the style was built around one idea that is also the service: **Raymond red-pens your deck.**
+
+- **Hero, Fig. 1.** A traction slide sits on a small stack of paper. As the page loads, a red pen strikes the headline, writes the rewrite above it, circles "2,000+ users" and adds margin notes ("A total, not a rate.", "Says who?"). It shows the job in four seconds.
+- **The pen recurs.** "Explain" is underlined in the hero headline, "public" is circled next to the prices, and "A deck designer." is struck out above "The thinking a deck is made of." The fit list is ticked and crossed by hand.
+- **A narrative ticker.** A slow market-style ticker shows what investors discount (▼, struck through, e.g. "If we capture just 1%") and what they reward (▲, e.g. "A rate, a cohort, a source").
+- **Term sheets on a desk.** The four services are printed as tilted sheets of ruled paper on a tan desk band. Each has a round ink seal and straightens when you hover over it.
+- **Before & after lab.** Five slides, chosen by tab. Each arrives as the original, then the rewrite wipes across it. Founders can drag the handle back and forth.
+- **A rising chart.** The four process steps are bars that grow as they scroll in, darkening from paper to ink to oxblood ("the room"). A dashed trend line is then drawn across their tops.
+- **Rhythm of bands.** The page alternates ivory, ink, desk tan and oxblood instead of running one long ivory scroll: ticker and problem on ink, services on the desk, the pull quote on oxblood, notes on ink, and the footer on oxblood.
+- **Reading moments.** A one-paragraph statement darkens word by word as it is read. The nameplate rises in on load and its double rule is drawn. The notes index shows a preview of the rewritten slide that follows the cursor. Figures are captioned like a research note ("Fig. 1", "Fig. 2").
 
 ---
 

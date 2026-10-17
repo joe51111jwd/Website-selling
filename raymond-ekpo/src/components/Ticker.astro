@@ -1,0 +1,146 @@
+---
+// A market ticker for narrative quality: what falls (▼) and what rises (▲) in an investor's eyes.
+const items: [string, 'up' | 'down', string][] = [
+  ['TAM', 'down', '“If we capture just 1%”'],
+  ['MARKET', 'up', 'Built from the buyer up'],
+  ['USERS', 'down', '“2,000+ sign-ups”'],
+  ['TRACTION', 'up', 'A rate, a cohort, a source'],
+  ['COMP', 'down', '“No direct competitors”'],
+  ['COMP', 'up', 'What buyers use today'],
+  ['WHY NOW', 'down', '“AI is changing everything”'],
+  ['WHY NOW', 'up', 'A date, a cost, a shift'],
+  ['ASK', 'down', '“To accelerate growth”'],
+  ['ASK', 'up', 'Milestones, not percentages'],
+  ['THESIS', 'up', 'One paragraph, said out loud'],
+];
+---
+
+<div class="ticker" role="region" aria-label="What investors discount, and what they reward">
+  <div class="ticker-track">
+    {
+      [0, 1].map((copy) => (
+        <ul class="ticker-list" aria-hidden={copy === 1 ? 'true' : undefined}>
+          {items.map(([sym, dir, text]) => (
+            <li class:list={['tk', `tk--${dir}`]}>
+              <span class="tk-sym">{sym}</span>
+              <span class="tk-dir" aria-hidden="true">
+                {dir === 'up' ? '▲' : '▼'}
+              </span>
+              <span class="sr-only">{dir === 'up' ? 'rewarded:' : 'discounted:'}</span>
+              <span class="tk-text">{text}</span>
+            </li>
+          ))}
+        </ul>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .ticker {
+    position: relative;
+    overflow: hidden;
+    background: var(--ink);
+    color: var(--paper);
+    border-top: 1px solid rgb(244 239 230 / 0.12);
+    border-bottom: 1px solid rgb(244 239 230 / 0.12);
+  }
+
+  .ticker::before,
+  .ticker::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .ticker::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--ink), transparent);
+  }
+
+  .ticker::after {
+    right: 0;
+    background: linear-gradient(-90deg, var(--ink), transparent);
+  }
+
+  .ticker-track {
+    display: flex;
+    width: max-content;
+    animation: ticker 70s linear infinite;
+  }
+
+  .ticker:hover .ticker-track {
+    animation-play-state: paused;
+  }
+
+  .ticker-list {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .tk {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 17px 30px;
+    white-space: nowrap;
+    border-right: 1px solid rgb(244 239 230 / 0.14);
+    font-size: 0.9rem;
+  }
+
+  .tk-sym {
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    font-size: 0.74rem;
+  }
+
+  .tk-dir {
+    font-size: 0.7rem;
+  }
+
+  .tk--up .tk-dir {
+    color: #b9d3a4;
+  }
+
+  .tk--down .tk-dir {
+    color: #e2a99b;
+  }
+
+  .tk-text {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: rgb(244 239 230 / 0.82);
+  }
+
+  .tk--down .tk-text {
+    text-decoration: line-through;
+    text-decoration-color: rgb(226 169 155 / 0.7);
+    text-decoration-thickness: 1px;
+  }
+
+  @keyframes ticker {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticker {
+      overflow-x: auto;
+    }
+    .ticker-track {
+      animation: none;
+    }
+    .ticker::before,
+    .ticker::after {
+      display: none;
+    }
+  }
+</style>

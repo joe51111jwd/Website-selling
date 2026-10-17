@@ -2,6 +2,38 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { site } from '../site.config';
+import Pen from '../components/Pen.astro';
+import Seal from '../components/Seal.astro';
+
+const beliefs = [
+  {
+    title: 'Investors are buyers too.',
+    body: 'They’re buying a share of an outcome, and before they commit they have to explain it to someone else, whether that’s their partners, their co-investors or their own judgement. A narrative has to survive being retold without you in the room.',
+  },
+  {
+    title: 'Clarity beats ambition.',
+    body: 'A smaller claim you can defend earns more trust than a bigger one you can’t. Overclaiming is the quickest way for a deck to lose an investor’s confidence, and they’re trained to spot it.',
+  },
+  {
+    title: 'The thinking comes first.',
+    body: 'If the investment case can’t be written as a clear paragraph, layout won’t fix it. So I write before I design, and every slide has to earn its place in the argument.',
+  },
+];
+
+const ways = [
+  {
+    title: 'I do the work myself.',
+    body: 'The person who reads your enquiry is the person who writes your narrative, from start to finish.',
+  },
+  {
+    title: 'In writing, wherever it helps.',
+    body: 'A thesis you can read, forward and argue with is worth more than a call you have to remember. When a conversation would make the work better, we have one.',
+  },
+  {
+    title: 'No promises I can’t keep.',
+    body: 'Nobody can guarantee a raise. What I can do is make sure the investors you meet understand what you’re building and why it could matter.',
+  },
+];
 
 const schema = [
   {
@@ -18,22 +50,26 @@ const schema = [
   schema={schema}
 >
   <PageHead kicker="About">
-    <Fragment slot="title">I work on the part of a raise <em>that happens before the slides.</em></Fragment>
+    <Fragment slot="title"
+      >I work on the part of a raise <em
+        >that happens <span class="pen-wrap">before<Pen kind="underline" load delay={1} /></span> the slides.</em
+      ></Fragment
+    >
   </PageHead>
 
-  <div class="wrap about rule-top">
+  <div class="wrap about">
     <aside class="byline" aria-label="Raymond Ekpo at a glance">
       {
         site.portrait ? (
           <img src={site.portrait} alt={site.name} class="portrait" width="640" height="800" />
         ) : (
           <div class="plate" aria-hidden="true">
-            <span class="plate-mono">R.E.</span>
+            <Seal id="about" center="R.E." class="plate-seal" />
+            <span class="plate-name display">Raymond Ekpo</span>
+            <span class="plate-role caps">{site.role}</span>
           </div>
         )
       }
-      <p class="byline-name display">{site.name}</p>
-      <p class="byline-role caps">{site.role}</p>
       <dl class="byline-facts">
         <div>
           <dt class="caps">Works with</dt>
@@ -73,52 +109,65 @@ const schema = [
         customers and the market better than anyone, and still struggles to say why it’s an investment. That’s a
         different question from why it’s a good product.
       </p>
-      <blockquote class="about-quote">
-        <p class="display">A pitch deck is a positioning problem with a different buyer.</p>
-      </blockquote>
-
-      <h2>How I think about fundraising narratives</h2>
-      <p>
-        <strong>Investors are buyers too.</strong> They’re buying a share of an outcome, and before they commit they have
-        to explain it to someone else, whether that’s their partners, their co-investors or their own judgement. A
-        narrative has to survive being retold without you in the room.
-      </p>
-      <p>
-        <strong>Clarity beats ambition.</strong> A smaller claim you can defend earns more trust than a bigger one you
-        can’t. Overclaiming is the quickest way for a deck to lose an investor’s confidence, and they’re trained to spot
-        it.
-      </p>
-      <p>
-        <strong>The thinking comes first.</strong> If the investment case can’t be written as a clear paragraph, layout
-        won’t fix it. So I write before I design, and every slide has to earn its place in the argument.
-      </p>
-
-      <h2>How I work</h2>
-      <p>
-        I do the work myself. The person who reads your enquiry is the person who writes your narrative, from start to
-        finish.
-      </p>
-      <p>
-        I work in writing wherever it helps. A thesis you can read, forward and argue with is worth more than a call you
-        have to remember. When a conversation would make the work better, we have one.
-      </p>
-      <p>
-        And I don’t promise what I can’t control. Nobody can guarantee a raise. What I can do is make sure the investors
-        you meet understand what you’re building and why it could matter.
-      </p>
-
-      <p class="about-next">
-        <a href="/services" class="link">See the services and prices <span class="arrow" aria-hidden="true">→</span></a>
-      </p>
     </div>
   </div>
+
+  <section class="band-ox quote" aria-label="The short version">
+    <div class="wrap">
+      <blockquote class="big-quote" data-inview>
+        <p class="display">
+          A pitch deck is a positioning problem <em
+            >with a <span class="pen-wrap">different buyer.<Pen kind="underline" delay={0.5} /></span></em
+          >
+        </p>
+      </blockquote>
+    </div>
+  </section>
+
+  <section class="band-ink beliefs" aria-labelledby="beliefs-title">
+    <div class="wrap">
+      <p class="kicker"><span class="num">§</span> Beliefs</p>
+      <h2 id="beliefs-title" class="display h2 beliefs-title">How I think about <em>fundraising narratives.</em></h2>
+      <ol class="belief-list">
+        {
+          beliefs.map((b, i) => (
+            <li data-reveal style={`--rd: ${i * 0.1}s`}>
+              <span class="belief-num figures" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3 class="display belief-title">{b.title}</h3>
+              <p>{b.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="wrap ways" aria-labelledby="ways-title">
+    <p class="kicker"><span class="num">§</span> Practice</p>
+    <h2 id="ways-title" class="display h2">How I <em>work.</em></h2>
+    <ol class="way-list">
+      {
+        ways.map((w, i) => (
+          <li data-reveal style={`--rd: ${i * 0.08}s`}>
+            <span class="way-num">{['i', 'ii', 'iii'][i]}.</span>
+            <h3 class="display way-title">{w.title}</h3>
+            <p>{w.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="about-next">
+      <a href="/services" class="btn btn--ghost">See the services and prices <span class="arrow" aria-hidden="true">→</span></a>
+    </p>
+  </section>
 </Base>
 
 <style>
   .about {
     display: grid;
     gap: 56px;
-    padding-top: 32px;
   }
 
   @media (min-width: 1000px) {
@@ -126,33 +175,57 @@ const schema = [
       grid-template-columns: 4fr 8fr;
       gap: 64px;
     }
-    .byline {
-      position: sticky;
-      top: 100px;
-      align-self: start;
-    }
     .about-prose {
       margin-left: calc(100% / 8);
     }
   }
 
+  /* The byline plate: a sheet with the seal pressed into it */
   .plate {
+    position: relative;
     display: grid;
-    place-items: center;
+    justify-items: center;
+    align-content: center;
+    gap: 14px;
     aspect-ratio: 4 / 5;
     max-width: 360px;
+    padding: 28px;
     background: var(--sheet);
-    border: 1px solid var(--rule);
-    border-top: 3px solid var(--oxblood);
     color: var(--oxblood);
-    box-shadow: 0 18px 40px -30px rgb(27 26 23 / 0.35);
+    transform: rotate(-1.4deg);
+    box-shadow:
+      0 1px 0 rgb(27 26 23 / 0.06),
+      0 30px 54px -30px rgb(27 26 23 / 0.45);
   }
 
-  .plate-mono {
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: clamp(5rem, 9vw, 7.5rem);
-    letter-spacing: -0.04em;
+  .plate::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(transparent 0 31px, rgb(122 34 34 / 0.045) 31px 32px);
+    pointer-events: none;
+  }
+
+  .plate :global(.plate-seal) {
+    position: relative;
+    width: 62%;
+    height: auto;
+    aspect-ratio: 1;
+    transform: rotate(-10deg);
+    mix-blend-mode: multiply;
+  }
+
+  .plate-name {
+    position: relative;
+    margin-top: 10px;
+    font-size: 1.9rem;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .plate-role {
+    position: relative;
+    color: var(--oxblood);
   }
 
   .portrait {
@@ -164,34 +237,34 @@ const schema = [
     filter: grayscale(0.15);
   }
 
-  /* On phones the byline stays small so the writing starts sooner */
   @media (max-width: 999px) {
     .plate {
-      max-width: 132px;
-      aspect-ratio: 1;
+      aspect-ratio: auto;
+      max-width: 420px;
+      grid-template-columns: 96px 1fr;
+      justify-items: start;
+      align-items: center;
+      gap: 4px 20px;
+      padding: 22px;
     }
-    .plate-mono {
-      font-size: 3.2rem;
+    .plate :global(.plate-seal) {
+      width: 96px;
+      grid-row: span 2;
+    }
+    .plate-name {
+      margin-top: 0;
+      align-self: end;
+    }
+    .plate-role {
+      align-self: start;
     }
     .portrait {
       max-width: 200px;
     }
   }
 
-  .byline-name {
-    font-size: 2rem;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    margin-top: 22px;
-  }
-
-  .byline-role {
-    color: var(--oxblood);
-    margin-top: 6px;
-  }
-
   .byline-facts {
-    margin: 22px 0 0;
+    margin: 28px 0 0;
     max-width: 360px;
     border-top: 3px double var(--ink);
   }
@@ -228,8 +301,10 @@ const schema = [
   }
 
   .about-prose > p:first-child {
-    font-size: 1.3rem;
-    line-height: 1.55;
+    font-family: var(--serif);
+    font-size: clamp(1.5rem, 2.4vw, 2rem);
+    line-height: 1.3;
+    letter-spacing: -0.012em;
     color: var(--ink);
   }
 
@@ -241,21 +316,126 @@ const schema = [
     color: inherit;
   }
 
-  .about-quote {
-    margin: 2em 0;
-    padding: 20px 0 0;
-    border-top: 3px solid var(--oxblood);
+  .quote {
+    margin-top: var(--section);
+    padding-block: clamp(88px, 12vw, 168px);
   }
 
-  .about-quote p {
-    font-size: clamp(1.8rem, 3vw, 2.5rem);
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+  .big-quote {
+    margin: 0;
+    --pen: #f4efe6;
+  }
+
+  .big-quote p {
+    font-size: clamp(2.5rem, 6.6vw, 6.4rem);
+    line-height: 1;
+    letter-spacing: -0.035em;
+    color: var(--paper);
+    max-width: 13.5em;
+  }
+
+  .big-quote em {
+    color: #f0cfc6;
+  }
+
+  .beliefs {
+    padding-block: clamp(88px, 11vw, 152px);
+  }
+
+  .beliefs-title {
+    max-width: 14em;
+  }
+
+  .belief-list {
+    list-style: none;
+    margin: clamp(48px, 6vw, 80px) 0 0;
+    padding: 0;
+    display: grid;
+  }
+
+  @media (min-width: 900px) {
+    .belief-list {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .belief-list li + li {
+      border-left: 1px solid rgb(244 239 230 / 0.16);
+      padding-left: 32px;
+    }
+    .belief-list li {
+      padding-right: 32px;
+    }
+  }
+
+  .belief-list li {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    padding-block: 24px;
+    border-top: 1px solid rgb(244 239 230 / 0.16);
+  }
+
+  @media (min-width: 900px) {
+    .belief-list li {
+      border-top: 0;
+    }
+  }
+
+  .belief-num {
+    font-family: var(--serif);
+    font-size: clamp(4.5rem, 8vw, 7.5rem);
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    color: transparent;
+    -webkit-text-stroke: 1px #e2a99b;
+  }
+
+  .belief-title {
+    font-size: clamp(1.6rem, 2.3vw, 2rem);
+    line-height: 1.12;
+    letter-spacing: -0.016em;
+  }
+
+  .ways {
+    padding-top: var(--section);
+  }
+
+  .way-list {
+    list-style: none;
+    margin: clamp(40px, 5vw, 64px) 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0 36px;
+  }
+
+  @media (min-width: 900px) {
+    .way-list {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .way-list li {
+    padding: 24px 0 30px;
+    border-top: 1px solid var(--ink);
+  }
+
+  .way-num {
+    display: block;
+    font-family: var(--serif);
     font-style: italic;
-    color: var(--ink);
+    font-size: clamp(2.6rem, 4vw, 3.4rem);
+    line-height: 1;
+    color: var(--oxblood);
+    margin-bottom: 16px;
+  }
+
+  .way-title {
+    font-size: 1.6rem;
+    line-height: 1.15;
+    letter-spacing: -0.014em;
+    margin-bottom: 10px;
   }
 
   .about-next {
-    margin-top: 2.5em;
+    margin-top: 40px;
   }
 </style>

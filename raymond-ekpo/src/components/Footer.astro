@@ -85,7 +85,7 @@ const year = new Date().getFullYear();
     </div>
   </div>
 
-  <div class="giant" aria-hidden="true">
+  <div class="giant" aria-hidden="true" data-inview>
     <span>Raymond Ekpo</span>
   </div>
 </footer>
@@ -234,6 +234,17 @@ const year = new Date().getFullYear();
 
   .giant span {
     display: block;
+    transform: translateY(-0.04em);
+  }
+
+  /* The name rises out of the bottom edge as the footer arrives */
+  :global(.js) .giant span {
+    transform: translateY(75%);
+    transition: transform 1.4s cubic-bezier(0.2, 0.75, 0.15, 1);
+  }
+
+  :global(.js) .giant:global(.is-in) span,
+  :global(.reveal-all) .giant span {
     transform: translateY(-0.04em);
   }
 </style>

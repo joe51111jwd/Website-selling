@@ -3,6 +3,8 @@ import Base from '../../layouts/Base.astro';
 import PageHead from '../../components/PageHead.astro';
 import WorkIndex from '../../components/WorkIndex.astro';
 import { getWork } from '../../lib/content';
+import Pen from '../../components/Pen.astro';
+import NarrativeLab from '../../components/NarrativeLab.astro';
 
 const notes = await getWork('analysis');
 const cases = await getWork('case-study');
@@ -13,13 +15,21 @@ const cases = await getWork('case-study');
   description="How Raymond Ekpo thinks about pitch decks and investor narratives: analyses of the market, traction, competition, why-now and ask slides, with before-and-after rewrites."
 >
   <PageHead kicker="Work">
-    <Fragment slot="title">The work, <em>and the thinking behind it.</em></Fragment>
+    <Fragment slot="title">The work, <em>and the <span class="pen-wrap">thinking<Pen kind="circle" load delay={1} /></span> behind it.</em></Fragment>
     <Fragment slot="lead">
       Analyses of the slides and arguments that decide most early-stage raises. The examples are invented composites,
       not clients, and they’re labelled that way. Client case studies are published only with the founder’s permission,
       and only with outcomes that can be checked.
     </Fragment>
   </PageHead>
+
+  <section class="wrap block lab-block" aria-labelledby="lab-title">
+    <div class="block-head">
+      <h2 id="lab-title" class="caps">Before &amp; after</h2>
+      <span class="meta">Drag across a slide</span>
+    </div>
+    <NarrativeLab entries={notes} />
+  </section>
 
   <section class="wrap block" aria-labelledby="notes-title">
     <div class="block-head">
@@ -29,7 +39,8 @@ const cases = await getWork('case-study');
     <WorkIndex entries={notes} />
   </section>
 
-  <section class="wrap block" aria-labelledby="cases-title">
+  <section class="band-ink cases" aria-labelledby="cases-title">
+    <div class="wrap">
     <div class="block-head">
       <h2 id="cases-title" class="caps">Client case studies</h2>
     </div>
@@ -45,16 +56,44 @@ const cases = await getWork('case-study');
             Fundraising is confidential, and most founders would rather their deck wasn’t public while they’re raising.
             If you’d like to see examples of my work before you enquire, ask, and I’ll share what I can.
           </p>
-          <a href="/work-with-me" class="link" data-cta="Ask for examples" data-cta-location="work page">
+          <a href="/work-with-me" class="btn btn--light" data-cta="Ask for examples" data-cta-location="work page">
             Ask for examples <span class="arrow" aria-hidden="true">→</span>
           </a>
         </div>
       )
     }
+    </div>
   </section>
 </Base>
 
 <style>
+  .lab-block {
+    margin-bottom: clamp(72px, 9vw, 120px);
+  }
+
+  .cases {
+    margin-top: clamp(72px, 9vw, 120px);
+    padding-block: clamp(72px, 9vw, 128px);
+  }
+
+  .cases .block-head h2 {
+    color: #e2a99b;
+  }
+
+  .cases .empty {
+    border-color: rgb(244 239 230 / 0.4);
+  }
+
+  .cases .empty-title em {
+    color: #e2a99b;
+  }
+
+  .cases .empty-title {
+    font-size: clamp(2.2rem, 4.4vw, 4rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+  }
+
   .block + .block {
     margin-top: clamp(72px, 9vw, 120px);
   }

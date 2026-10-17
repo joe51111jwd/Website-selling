@@ -24,7 +24,14 @@ const isCurrent = (href: string) => path === href || path.startsWith(href + '/')
           <span class="dateline-mid">For founders preparing to raise</span>
           <span>Pre-seed &amp; seed · US &amp; UK</span>
         </div>
-        <p class="nameplate display">{site.name}</p>
+        <p class="nameplate display">
+          <span class="sr-only">{site.name}</span>
+          <span aria-hidden="true"
+            ><span class="np-word"><span style="--i: 0">Raymond</span></span>{' '}<span class="np-word"
+              ><span style="--i: 1">Ekpo</span></span
+            ></span
+          >
+        </p>
         <div class="double-rule" aria-hidden="true" />
       </div>
     </section>
@@ -155,10 +162,39 @@ const isCurrent = (href: string) => path === href || path.startsWith(href + '/')
     text-align: center;
   }
 
+  .np-word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+    padding: 0 0.04em 0.2em;
+    margin: 0 -0.04em -0.2em;
+  }
+
+  .np-word > span {
+    display: inline-block;
+    animation: rise 1.15s cubic-bezier(0.2, 0.75, 0.15, 1) both;
+    animation-delay: calc(0.05s + var(--i) * 0.12s);
+  }
+
   .double-rule {
     border-top: 3px solid var(--ink);
     border-bottom: 1px solid var(--ink);
     height: 6px;
+    transform-origin: left;
+    animation: rule-draw 1.2s cubic-bezier(0.7, 0, 0.2, 1) 0.2s both;
+  }
+
+  @keyframes rule-draw {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .np-word > span,
+    .double-rule {
+      animation: none;
+    }
   }
 
   .bar {

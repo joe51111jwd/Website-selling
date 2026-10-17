@@ -2,7 +2,9 @@
 
 Personal site for Raymond Ekpo, who helps pre-seed and seed founders in the US and UK build the investment narrative behind their raise. Editorial broadsheet design (ivory, ink, oxblood) after Niccolò Miranda's Awwwards Site of the Month, with moves from Neutomni. The reasoning is in [STRATEGY.md](STRATEGY.md).
 
-Built with [Astro](https://astro.build): static HTML, no framework JavaScript. The only scripts are the enquiry form and a few lines that send clicks to Plausible.
+Built with [Astro](https://astro.build): static HTML, no framework JavaScript. Three small scripts: the enquiry form, Plausible click tracking, and `src/scripts/motion.ts` (scroll reveals, the word-by-word statement, the before/after sliders and lab tabs, and the notes hover preview). Everything respects reduced motion, and the pages read fine with JavaScript off.
+
+The signature pieces are components: `Markup.astro` (the red-penned hero slide), `Ticker.astro`, `TermSheet.astro` with `Seal.astro`, `CompareSlider.astro` and `NarrativeLab.astro` (before/after), and `Pen.astro` (hand-drawn underline, circle, strike, tick and cross, drawn on load or on scroll).
 
 ## Run it
 

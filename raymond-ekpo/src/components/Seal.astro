@@ -1,0 +1,52 @@
+---
+// A round ink seal with the name set around the edge, used as a mark on term sheets.
+interface Props {
+  id: string;
+  center: string;
+  class?: string;
+}
+
+const { id, center, class: cls } = Astro.props;
+---
+
+<svg class:list={['seal', cls]} viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+  <defs>
+    <path id={`seal-${id}`} d="M50,50 m-35,0 a35,35 0 1,1 70,0 a35,35 0 1,1 -70,0"></path>
+  </defs>
+  <circle cx="50" cy="50" r="46.5" class="seal-ring"></circle>
+  <circle cx="50" cy="50" r="25" class="seal-ring seal-ring--in"></circle>
+  <text class="seal-text"><textPath href={`#seal-${id}`}>RAYMOND EKPO · INVESTOR NARRATIVE ·</textPath></text>
+  <text x="50" y="57.5" text-anchor="middle" class="seal-center">{center}</text>
+</svg>
+
+<style>
+  .seal {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .seal-ring {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+  }
+
+  .seal-ring--in {
+    stroke-width: 0.9;
+  }
+
+  .seal-text {
+    fill: currentColor;
+    font: 600 8.4px/1 var(--sans);
+    letter-spacing: 1.55px;
+  }
+
+  .seal-center {
+    fill: currentColor;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 22px;
+  }
+</style>

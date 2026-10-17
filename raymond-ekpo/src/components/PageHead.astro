@@ -7,23 +7,54 @@ const { kicker } = Astro.props;
 ---
 
 <header class="page-head wrap">
-  <p class="kicker">{kicker}</p>
-  <h1 class="display h1 page-title"><slot name="title" /></h1>
-  {Astro.slots.has('lead') && <p class="lead page-lead"><slot name="lead" /></p>}
+  <p class="kicker fade-in" style="--fd: 0.05s"><span class="num">§</span> {kicker}</p>
+  <h1 class="display h1 page-title fade-in" style="--fd: 0.15s"><slot name="title" /></h1>
+  {
+    Astro.slots.has('lead') && (
+      <p class="lead page-lead fade-in" style="--fd: 0.35s">
+        <slot name="lead" />
+      </p>
+    )
+  }
   <slot />
+  <div class="page-rule" aria-hidden="true"></div>
 </header>
 
 <style>
   .page-head {
     padding-top: clamp(48px, 7vw, 104px);
-    padding-bottom: clamp(48px, 6vw, 88px);
+    margin-bottom: clamp(48px, 6vw, 88px);
   }
 
   .page-title {
-    max-width: 14em;
+    max-width: 13em;
+    font-size: clamp(2.9rem, 7vw, 6.4rem);
+    line-height: 0.96;
+    letter-spacing: -0.034em;
   }
 
   .page-lead {
-    margin-top: clamp(20px, 2.4vw, 30px);
+    margin-top: clamp(22px, 2.6vw, 34px);
+  }
+
+  .page-rule {
+    height: 6px;
+    margin-top: clamp(44px, 6vw, 80px);
+    border-top: 3px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    transform-origin: left;
+    animation: rule-draw 1.2s cubic-bezier(0.7, 0, 0.2, 1) 0.3s both;
+  }
+
+  @keyframes rule-draw {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page-rule {
+      animation: none;
+    }
   }
 </style>

@@ -3,17 +3,23 @@ import { pad, readingMinutes, type WorkEntry } from '../lib/content';
 
 interface Props {
   entries: WorkEntry[];
+  dark?: boolean;
 }
 
-const { entries } = Astro.props;
+const { entries, dark = false } = Astro.props;
 ---
 
-<ol class="index">
+<ol class:list={['index', { 'index--dark': dark }]} data-preview-list>
   {
     entries.map((e, i) => (
       <li>
-        <a href={`/work/${e.id}`} class="row">
-          <span class="row-num figures">{pad(i + 1)}.</span>
+        <a
+          href={`/work/${e.id}`}
+          class="row"
+          data-preview={e.data.example?.after.headline ?? e.data.dek}
+          data-preview-label={e.data.example ? `${e.data.example.slide} · the rewrite` : e.data.topic}
+        >
+          <span class="row-num figures">{pad(i + 1)}</span>
           <span class="row-main">
             <span class="row-title">{e.data.title}</span>
             <span class="row-dek">{e.data.dek}</span>
@@ -40,13 +46,13 @@ const { entries } = Astro.props;
   }
 
   .row {
+    position: relative;
     display: grid;
-    grid-template-columns: 2.6rem 1fr;
+    grid-template-columns: 3rem 1fr;
     gap: 6px 16px;
-    padding: 24px 0;
+    padding: 26px 0;
     color: inherit;
     text-decoration: none;
-    transition: background-color 0.2s ease;
   }
 
   li {
@@ -59,41 +65,59 @@ const { entries } = Astro.props;
 
   @media (min-width: 900px) {
     .row {
-      grid-template-columns: 4rem 1fr 13rem 2rem;
+      grid-template-columns: 6rem 1fr 13rem 2rem;
       gap: 32px;
-      padding: 28px 12px;
-      margin-inline: -12px;
+      padding: 32px 0;
       align-items: baseline;
     }
   }
 
-  .row:hover {
+  /* An oxblood wash that wipes in from the left on hover */
+  .row::before {
+    content: '';
+    position: absolute;
+    inset: 0 -12px;
     background: var(--paper-deep);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+    z-index: -1;
+  }
+
+  .row:hover::before {
+    transform: scaleX(1);
+  }
+
+  li {
+    position: relative;
+    z-index: 0;
   }
 
   .row-num {
     font-family: var(--serif);
     font-style: italic;
-    font-size: 1.25rem;
+    font-size: clamp(1.4rem, 2.6vw, 2.6rem);
+    line-height: 1;
     color: var(--oxblood);
   }
 
   .row-main {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
+    transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .row:hover .row-main {
+    transform: translateX(10px);
   }
 
   .row-title {
     font-family: var(--serif);
-    font-size: clamp(1.4rem, 2.3vw, 1.9rem);
-    line-height: 1.15;
-    letter-spacing: -0.015em;
+    font-size: clamp(1.5rem, 2.8vw, 2.3rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
     color: var(--ink);
-  }
-
-  .row:hover .row-title {
-    color: var(--oxblood);
   }
 
   .row-dek {
@@ -120,9 +144,9 @@ const { entries } = Astro.props;
 
   .row-arrow {
     display: none;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     color: var(--ink);
-    transition: transform 0.2s ease;
+    transition: transform 0.3s ease;
   }
 
   @media (min-width: 900px) {
@@ -132,7 +156,42 @@ const { entries } = Astro.props;
   }
 
   .row:hover .row-arrow {
-    transform: translateX(4px);
+    transform: translateX(6px);
     color: var(--oxblood);
+  }
+
+  .index--dark {
+    border-bottom-color: rgb(244 239 230 / 0.5);
+  }
+
+  .index--dark li {
+    border-top-color: rgb(244 239 230 / 0.16);
+  }
+
+  .index--dark li:first-child {
+    border-top-color: rgb(244 239 230 / 0.5);
+  }
+
+  .index--dark .row::before {
+    background: rgb(244 239 230 / 0.06);
+  }
+
+  .index--dark .row-num {
+    color: #e2a99b;
+  }
+
+  .index--dark .row-title,
+  .index--dark .row-meta,
+  .index--dark .row-arrow {
+    color: var(--paper);
+  }
+
+  .index--dark .row-dek,
+  .index--dark .meta {
+    color: rgb(244 239 230 / 0.6);
+  }
+
+  .index--dark .row:hover .row-arrow {
+    color: #e2a99b;
   }
 </style>

@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { getServices } from '../lib/content';
 import { site } from '../site.config';
+import Pen from '../components/Pen.astro';
 
 const services = await getServices();
 ---
@@ -13,14 +14,14 @@ const services = await getServices();
   cta={false}
 >
   <PageHead kicker="Work with me">
-    <Fragment slot="title">Tell me about <em>your raise.</em></Fragment>
+    <Fragment slot="title">Tell me about <em><span class="pen-wrap">your raise.<Pen kind="underline" load delay={0.9} /></span></em></Fragment>
     <Fragment slot="lead">
       A few questions about the company, the round and where you need help. It takes about five minutes, and your
       answers go straight into my first read.
     </Fragment>
   </PageHead>
 
-  <div class="wrap contact rule-top">
+  <div class="wrap contact">
     <aside class="aside">
       <div class="aside-block">
         <h2 class="caps aside-head">What happens next</h2>
@@ -278,7 +279,6 @@ const services = await getServices();
   .contact {
     display: grid;
     gap: 48px;
-    padding-top: 32px;
   }
 
   @media (min-width: 1000px) {
@@ -293,18 +293,31 @@ const services = await getServices();
     }
   }
 
+  /* What happens next, on an ink card beside the form */
   .aside {
     display: grid;
     gap: 32px;
     font-size: 0.98rem;
+    padding: clamp(26px, 3vw, 38px);
+    background: var(--ink);
+    color: rgb(244 239 230 / 0.78);
+  }
+
+  .aside .link {
+    color: var(--paper);
+    text-decoration-color: rgb(244 239 230 / 0.35);
+  }
+
+  .aside .link:hover {
+    text-decoration-color: var(--paper);
   }
 
   .aside-head {
     font-family: var(--sans);
-    color: var(--oxblood);
+    color: #e2a99b;
     padding-bottom: 10px;
     margin-bottom: 12px;
-    border-bottom: 1px solid var(--rule);
+    border-bottom: 1px solid rgb(244 239 230 / 0.18);
   }
 
   .next-steps {
@@ -318,7 +331,7 @@ const services = await getServices();
     counter-increment: step;
     display: grid;
     grid-template-columns: 2rem 1fr;
-    color: var(--ink);
+    color: var(--paper);
   }
 
   .next-steps li + li {
@@ -329,7 +342,7 @@ const services = await getServices();
     content: counter(step, decimal-leading-zero);
     font-family: var(--serif);
     font-style: italic;
-    color: var(--oxblood);
+    color: #e2a99b;
   }
 
   /* Form */

@@ -8,7 +8,7 @@ interface Props {
 const { num, label, id } = Astro.props;
 ---
 
-<header class="section-head">
+<header class="section-head" data-reveal>
   <p class="kicker">
     {num && <span class="num">§ {num}</span>}
     <span>{label}</span>

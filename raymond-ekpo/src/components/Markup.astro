@@ -1,0 +1,190 @@
+---
+// The hero figure: a traction slide on a small stack of paper, red-penned as the page loads.
+---
+
+<figure class="markup">
+  <svg viewBox="8 30 552 300" class="mk" role="img" aria-labelledby="mk-title mk-desc">
+    <title id="mk-title">A traction slide, red-penned</title>
+    <desc id="mk-desc">
+      The headline “Strong early traction” is struck out and rewritten as “Paying clinics up 3× in six months”, with
+      the margin note “Lead with the claim”. “2,000+ users” is circled with the note “A total, not a rate”. The
+      press and partnership bullets are struck out with the note “Says who?”
+    </desc>
+    <defs>
+      <filter id="mk-shadow" x="-20%" y="-20%" width="140%" height="150%">
+        <feDropShadow dx="0" dy="10" stdDeviation="11" flood-color="#1b1a17" flood-opacity="0.16"></feDropShadow>
+      </filter>
+    </defs>
+
+    <g filter="url(#mk-shadow)">
+      <rect x="54" y="66" width="380" height="248" rx="2" transform="rotate(4.2 244 190)" class="mk-sheet mk-sheet--3"></rect>
+      <rect x="40" y="54" width="380" height="248" rx="2" transform="rotate(-3.2 230 178)" class="mk-sheet mk-sheet--2"></rect>
+    </g>
+
+    <g transform="rotate(-1.1 214 165)">
+      <rect x="24" y="40" width="380" height="250" rx="2" class="mk-slide" filter="url(#mk-shadow)"></rect>
+      <text x="48" y="70" class="mk-label">07 · TRACTION</text>
+      <text x="48" y="150" class="mk-old">Strong early traction</text>
+      <text x="58" y="192" class="mk-li">• 2,000+ users</text>
+      <text x="58" y="222" class="mk-li">• Featured in the press</text>
+      <text x="58" y="252" class="mk-li">• Partnerships with leading clinics</text>
+      <text x="48" y="278" class="mk-foot">SEED ROUND · 2026</text>
+
+      <path class="ink s1" pathLength="1" d="M42 141 C 120 136, 232 143, 350 135"></path>
+      <path class="ink s2" pathLength="1" d="M51 126 C 54 121, 57 117, 60 112 C 63 117, 66 121, 69 126"></path>
+      <text x="72" y="110" class="mk-new s3">Paying clinics up 3× in six months</text>
+      <path
+        class="ink s5"
+        pathLength="1"
+        d="M168 175 C 140 167, 62 168, 49 183 C 40 196, 92 204, 132 202 C 178 200, 188 186, 172 176 C 162 170, 142 169, 122 170"
+      ></path>
+      <path class="ink ink--thin s7" pathLength="1" d="M54 217 C 110 214, 180 219, 234 215"></path>
+      <path class="ink ink--thin s8" pathLength="1" d="M54 247 C 140 244, 250 249, 328 244"></path>
+    </g>
+
+    <g class="mk-notes">
+      <text class="mk-note s4" x="436" y="98"><tspan x="436">Lead with</tspan><tspan x="436" dy="20">the claim.</tspan></text>
+      <path class="ink ink--thin s4" pathLength="1" d="M430 102 C 418 99, 400 99, 384 103"></path>
+      <path class="ink ink--thin s4" pathLength="1" d="M392 97 L 383 103 L 392 109"></path>
+
+      <text class="mk-note s6" x="436" y="176"><tspan x="436">A total,</tspan><tspan x="436" dy="20">not a rate.</tspan></text>
+      <path class="ink ink--thin s6" pathLength="1" d="M430 180 C 360 166, 260 170, 192 184"></path>
+      <path class="ink ink--thin s6" pathLength="1" d="M202 177 L 191 184 L 203 190"></path>
+
+      <text class="mk-note s9" x="436" y="250">Says who?</text>
+      <path class="ink ink--thin s9" pathLength="1" d="M430 245 C 400 241, 370 242, 342 244"></path>
+      <path class="ink ink--thin s9" pathLength="1" d="M351 238 L 341 244 L 352 250"></path>
+    </g>
+  </svg>
+  <figcaption class="fig"><b>Fig. 1</b> A traction slide, red-penned. Illustrative.</figcaption>
+</figure>
+
+<style>
+  .markup {
+    margin: 0;
+  }
+
+  .mk {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .mk-sheet--2 {
+    fill: #f3eee4;
+    stroke: #d9d0c0;
+  }
+
+  .mk-sheet--3 {
+    fill: #e9e1d2;
+    stroke: #d4cab8;
+  }
+
+  .mk-slide {
+    fill: #fffefa;
+    stroke: #dcd4c5;
+  }
+
+  .mk-label {
+    font: 600 10.5px Arial, Helvetica, sans-serif;
+    letter-spacing: 2px;
+    fill: #8b8b8b;
+  }
+
+  .mk-old {
+    font: 700 27px Arial, Helvetica, sans-serif;
+    fill: #2d3a4a;
+    letter-spacing: -0.3px;
+  }
+
+  .mk-li {
+    font: 400 15px Arial, Helvetica, sans-serif;
+    fill: #555;
+  }
+
+  .mk-foot {
+    font: 600 8.5px Arial, Helvetica, sans-serif;
+    letter-spacing: 1.5px;
+    fill: #a3a3a3;
+  }
+
+  .mk-new,
+  .mk-note {
+    font-family: var(--serif);
+    font-style: italic;
+    fill: #8e1f1f;
+  }
+
+  .mk-new {
+    font-size: 21.5px;
+    letter-spacing: -0.2px;
+  }
+
+  .mk-note {
+    font-size: 17px;
+  }
+
+  .ink {
+    fill: none;
+    stroke: #8e1f1f;
+    stroke-width: 2.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .ink--thin {
+    stroke-width: 1.8;
+  }
+
+  /* The edit, in order: strike, caret, rewrite, note, circle, note, strikes, note */
+  .ink {
+    stroke-dasharray: 1;
+    animation: draw var(--t, 0.5s) cubic-bezier(0.6, 0, 0.25, 1) var(--d) both;
+  }
+
+  .mk-new {
+    animation: write 0.9s cubic-bezier(0.5, 0, 0.3, 1) var(--d) both;
+  }
+
+  .mk-note {
+    animation: note 0.6s ease var(--d) both;
+  }
+
+  .s1 { --d: 0.9s; --t: 0.45s; }
+  .s2 { --d: 1.35s; --t: 0.25s; }
+  .s3 { --d: 1.55s; }
+  .s4 { --d: 2.35s; --t: 0.4s; }
+  .s5 { --d: 2.75s; --t: 0.7s; }
+  .s6 { --d: 3.35s; --t: 0.45s; }
+  .s7 { --d: 3.8s; --t: 0.3s; }
+  .s8 { --d: 4.05s; --t: 0.35s; }
+  .s9 { --d: 4.45s; --t: 0.35s; }
+
+  @keyframes write {
+    from {
+      clip-path: inset(-20% 100% -20% 0);
+    }
+    to {
+      clip-path: inset(-20% 0 -20% 0);
+    }
+  }
+
+  @keyframes note {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ink,
+    .mk-new,
+    .mk-note {
+      animation: none;
+    }
+  }
+</style>

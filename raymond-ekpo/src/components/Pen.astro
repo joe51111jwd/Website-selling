@@ -1,0 +1,36 @@
+---
+// A hand-drawn red-pen stroke. Place it inside a .pen-wrap (or any positioned box).
+// `load` draws it on page load; otherwise it draws when its [data-inview]/[data-reveal] parent scrolls in.
+interface Props {
+  kind: 'underline' | 'circle' | 'strike' | 'tick' | 'cross';
+  load?: boolean;
+  delay?: number;
+  class?: string;
+}
+
+const { kind, load = false, delay, class: cls } = Astro.props;
+
+const shapes = {
+  underline: { vb: '0 0 300 24', d: 'M3 15 C 52 8, 104 5, 160 9 S 252 18, 297 8' },
+  circle: {
+    vb: '0 0 220 90',
+    d: 'M176 14 C 128 0, 36 6, 14 38 C -2 66, 70 86, 136 80 C 196 74, 222 42, 192 20 C 170 6, 132 4, 100 8',
+  },
+  strike: { vb: '0 0 300 20', d: 'M2 12 C 70 7, 170 13, 298 6' },
+  tick: { vb: '0 0 24 24', d: 'M3 13.5 C 5 15, 7 17, 9 19.5 C 12 14, 16 8, 21.5 3.5' },
+  cross: { vb: '0 0 24 24', d: 'M5 5 C 10 10, 14 14, 19 19 M19 5 C 14 10, 10 14, 5 19' },
+};
+
+const { vb, d } = shapes[kind];
+---
+
+<svg
+  class:list={['pen', `pen--${kind}`, { 'pen--load': load }, cls]}
+  viewBox={vb}
+  preserveAspectRatio="none"
+  aria-hidden="true"
+  focusable="false"
+  style={delay !== undefined ? `--d: ${delay}s` : undefined}
+>
+  <path d={d} pathLength="1"></path>
+</svg>

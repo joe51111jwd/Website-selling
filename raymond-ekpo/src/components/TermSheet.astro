@@ -1,6 +1,7 @@
 ---
 import type { Service } from '../lib/content';
 import { pad } from '../lib/content';
+import Seal from './Seal.astro';
 
 interface Props {
   service: Service;
@@ -9,9 +10,12 @@ interface Props {
 
 const { service, n } = Astro.props;
 const { title, price, priceNote, youGet } = service.data;
+// Each sheet lies on the desk at its own slight angle
+const tilt = [-1.6, 1.1, 1.4, -1.2][(n - 1) % 4];
 ---
 
-<article class="sheet">
+<article class="sheet" style={`--tilt: ${tilt}deg`} data-reveal>
+  <div class="sheet-seal"><Seal id={service.id} center={pad(n)} /></div>
   <header class="sheet-top">
     <span class="caps">Term sheet</span>
     <span class="sheet-no figures">No. {pad(n)}</span>
@@ -26,43 +30,99 @@ const { title, price, priceNote, youGet } = service.data;
       <dt class="caps">You get</dt>
       <dd>{youGet}</dd>
     </div>
-    <div class="sheet-fee">
-      <dt class="caps">Fee</dt>
-      <dd>
-        <span class="price figures">{price}</span>
-        <span class="price-note">{priceNote}</span>
-      </dd>
-    </div>
   </dl>
+  <div class="sheet-fee">
+    <span class="caps">Fee</span>
+    <span class="price figures">{price}</span>
+    <span class="price-note">{priceNote}</span>
+  </div>
   <footer class="sheet-foot">
     <a href={`/services#${service.id}`} class="link">What’s included <span class="arrow" aria-hidden="true">→</span></a>
+    <a
+      href={`/work-with-me?service=${service.id}`}
+      class="sheet-cta"
+      data-cta={service.data.cta}
+      data-cta-location="term sheet">Enquire</a
+    >
   </footer>
 </article>
 
 <style>
   .sheet {
+    position: relative;
     display: flex;
     flex-direction: column;
     background: var(--sheet);
-    border: 1px solid var(--rule);
-    padding: clamp(22px, 2.6vw, 34px);
+    padding: clamp(24px, 2.8vw, 38px);
+    transform: rotate(var(--tilt));
     box-shadow:
-      0 1px 0 rgb(27 26 23 / 0.04),
-      0 18px 40px -28px rgb(27 26 23 / 0.35);
+      0 1px 0 rgb(27 26 23 / 0.06),
+      0 2px 4px rgb(27 26 23 / 0.04),
+      0 28px 50px -28px rgb(27 26 23 / 0.45);
     transition:
-      border-color 0.2s ease,
-      transform 0.2s ease;
+      transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+      box-shadow 0.45s ease;
   }
 
-  .sheet:hover {
-    border-color: var(--ink);
+  /* Ruled like ledger paper, very faintly */
+  .sheet::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(transparent 0 31px, rgb(122 34 34 / 0.045) 31px 32px);
+    pointer-events: none;
+  }
+
+  :global(.js) .sheet[data-reveal] {
+    transform: translateY(26px) rotate(var(--tilt));
+  }
+
+  :global(.js) .sheet[data-reveal]:global(.is-in),
+  :global(.reveal-all) .sheet[data-reveal] {
+    transform: rotate(var(--tilt));
+  }
+
+  .sheet:hover,
+  :global(.js) .sheet[data-reveal]:global(.is-in):hover {
+    transform: translateY(-8px) rotate(0deg);
+    box-shadow:
+      0 1px 0 rgb(27 26 23 / 0.06),
+      0 40px 70px -30px rgb(27 26 23 / 0.5);
+  }
+
+  .sheet-seal {
+    position: absolute;
+    top: -26px;
+    right: -18px;
+    width: 92px;
+    height: 92px;
+    color: var(--oxblood);
+    opacity: 0.88;
+    transform: rotate(-14deg);
+    mix-blend-mode: multiply;
+    transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  @media (max-width: 760px) {
+    .sheet-seal {
+      top: -20px;
+      right: -4px;
+      width: 74px;
+      height: 74px;
+    }
+  }
+
+  .sheet:hover .sheet-seal {
+    transform: rotate(8deg) scale(1.04);
   }
 
   .sheet-top {
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     padding-bottom: 10px;
+    padding-right: 64px;
     border-bottom: 3px double var(--ink);
     color: var(--ink);
   }
@@ -74,13 +134,15 @@ const { title, price, priceNote, youGet } = service.data;
   }
 
   .sheet-title {
-    font-size: clamp(1.7rem, 2.4vw, 2.15rem);
-    line-height: 1.08;
-    letter-spacing: -0.02em;
-    margin: 22px 0 18px;
+    position: relative;
+    font-size: clamp(1.9rem, 2.8vw, 2.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    margin: 24px 0 18px;
   }
 
   .sheet-terms {
+    position: relative;
     margin: 0;
     flex: 1;
   }
@@ -106,31 +168,66 @@ const { title, price, priceNote, youGet } = service.data;
   }
 
   .sheet-fee {
-    border-bottom: 1px solid var(--rule);
+    position: relative;
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    column-gap: 16px;
     align-items: baseline;
+    padding: 16px 0 14px;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
   }
 
-  .sheet-fee dd {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 4px 14px;
+  .sheet-fee .caps {
+    color: var(--muted);
   }
 
   .price {
     font-family: var(--serif);
-    font-size: 1.85rem;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
+    font-size: clamp(2rem, 3vw, 2.7rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
     color: var(--ink);
   }
 
   .price-note {
+    grid-column: 2;
+    margin-top: 6px;
     font-size: 0.85rem;
     color: var(--muted);
   }
 
   .sheet-foot {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding-top: 20px;
+  }
+
+  .sheet-cta {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--oxblood);
+    text-decoration: none;
+    padding: 4px 14px 5px;
+    border: 1px solid var(--oxblood);
+    border-radius: 999px;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .sheet-cta:hover {
+    background: var(--oxblood);
+    color: var(--paper);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sheet,
+    .sheet:hover {
+      transform: rotate(var(--tilt));
+    }
   }
 </style>
