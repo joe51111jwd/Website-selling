@@ -150,6 +150,28 @@ html.look-focus .num-micro {
   color: var(--ink-3);
 }
 
+/* narrower laptops (the picks stack their label over the track): the hint stays under the track,
+   not inside it (in the glass look it lands in the segmented track as a sixth segment and the
+   white pill misses its option) */
+@media (min-width: 761px) and (max-width: 1180px) {
+  html.look-focus .num-hint {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    margin-top: 7px;
+    white-space: nowrap;
+  }
+  html.look-focus .num-pick:has(.num-hint) {
+    margin-bottom: 36px;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) and (max-height: 640px) {
+  html.look-focus .num-pick:has(.num-hint) {
+    margin-bottom: 0;
+  }
+}
+
 /* tablets in portrait (one column): the card under the inputs, with a little room */
 @media (min-width: 761px) and (max-width: 1000px) {
   html.look-focus .num-grid-wrap {
@@ -190,7 +212,18 @@ html.look-focus .ncv-unit {
   color: var(--ink-3);
 }
 
+/* the crew count: smaller, so the dollar figure is the one big number (and the room it gives
+   back pays for the card) */
+html.look-focus .ncv {
+  margin-top: clamp(10px, 2svh, 18px);
+}
+
+html.look-focus .ncv-read {
+  height: 34px;
+}
+
 html.look-focus .ncv-n {
+  font-size: 36px;
   color: var(--ink-2);
 }
 
@@ -206,12 +239,11 @@ html.look-focus .nph-out > * {
 
 html.look-focus .nph-big {
   grid-row: 1;
-  padding: 12px 6px 12px;
 }
 
 html.look-focus .nph-formula {
   grid-row: 2;
-  margin-top: 8px;
+  margin-top: 11px;
 }
 
 html.look-focus .nph-cta.cta {
@@ -222,14 +254,16 @@ html.look-focus .nph-micro {
   grid-row: 4;
 }
 
+/* the card overhangs the figure's row (negative margins on the card only), so it costs the
+   one-screen layout almost no height */
 html.look-focus .nph-out::before,
 html.look-focus .nph-out::after {
   content: "";
   grid-row: 1;
   grid-column: 1;
   z-index: -1;
-  margin-inline: -10px;
-  border-radius: var(--lg-r);
+  margin: -9px -12px -6px;
+  border-radius: 22px;
   pointer-events: none;
 }
 
@@ -254,6 +288,23 @@ html.look-focus .nph-out::after {
   mask-composite: exclude;
 }
 
+html.look-focus .nph-out {
+  padding-top: clamp(16px, 2.8svh, 22px);
+}
+
 html.look-focus .nph-odo {
-  font-size: clamp(46px, 13.6vw, 58px);
+  font-size: clamp(44px, 13vw, 54px);
+}
+
+/* short phones (in-app browsers with tall toolbars): tighter still, so the button stays on screen */
+@media (max-width: 760px) and (max-height: 640px) {
+  html.look-focus .ncv-read {
+    height: 30px;
+  }
+  html.look-focus .ncv-n {
+    font-size: 32px;
+  }
+  html.look-focus .nph-odo {
+    font-size: 43px;
+  }
 }

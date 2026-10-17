@@ -1,16 +1,18 @@
 /* Watch it work in the focus look (src/styles/focus.css; builds on ./glass.css). The one point is
-   the moment playing now. The rows still play one at a time as they scroll in (./Watch.tsx: same
-   timing, same stagger, nothing holds the page); here the row that is playing lights up on a
-   liquid-glass strip (a near-solid sheet with the light-catching rim) and its headline comes up to
-   full ink, then it settles back as the next one plays. Rows still to come are faint (ink-3, the
-   far end not landed yet, as in every look); rows already played rest quiet (ink-2, soft fills,
-   no shadows). The headline above is big and calm, centred, with room round the section; the
-   close ("Want this for your crew?" and the button) sits centred under the board.
+   the moment playing now. The rows still play as they scroll in (./Watch.tsx: same timing, same
+   stagger, nothing holds the page); here the newest row in play lights up on a liquid-glass strip
+   (a near-solid sheet with the light-catching rim), its headline in full ink, and settles back
+   once it has played; when a newer row comes in, the light moves on to it, so one row at most is
+   bright. Rows still to come are faint (ink-3, the far end not landed yet, as in every look);
+   rows already played rest quiet (ink-2, soft fills, no shadows). The headline above is big and
+   calm, centred, with room round the section; the close ("Want this for your crew?" and the
+   button) sits centred under the board.
 
    While another section is in focus (src/site/focus.ts dims this one), a row that comes into view
-   waits at its start (its animations paused, so it looks like a row still to come) and plays
-   once this section takes focus, so the play is never spent behind the dim. Nothing is hidden
-   that isn't hidden in the other looks before its row plays. Reduced motion: the end state, still. */
+   waits at its start (its animations paused, so it looks like a row still to come; the newest one
+   already lit) and plays once this section takes focus, so the play is never spent behind the
+   dim. Nothing is hidden that isn't hidden in the other looks before its row plays. Reduced
+   motion: the end state, still, every row quiet. */
 
 /* ── room round the section ── */
 
@@ -160,6 +162,40 @@ html.look-focus .ww-caption {
   }
   html.look-focus .ww-office {
     min-height: 40px;
+  }
+}
+
+/* ── shorter still (1440×660, 13" at 1280×600): the headline scales with the height and the sub
+   takes one line, and below 640 px the rows tighten a little, so the board and the close still
+   fit under the header as they do in the glass look ── */
+
+@media (min-width: 761px) and (max-height: 680px) {
+  html.look-focus .ww-title {
+    font-size: min(var(--focus-h2), 8.6svh);
+  }
+  html.look-focus .ww-sub {
+    max-width: none;
+    margin-top: 6px;
+  }
+  html.look-focus .ww-caption {
+    margin-top: 4px;
+  }
+}
+
+@media (min-width: 761px) and (max-height: 640px) {
+  html.look-focus .ww-item,
+  html.look-focus .ww-item:last-child {
+    padding-block: 3px;
+  }
+  html.look-focus .ww-office {
+    min-height: 38px;
+  }
+  html.look-focus .ww-chip {
+    min-height: 30px;
+    padding-block: 4px;
+  }
+  html.look-focus .ww-wire {
+    height: 32px;
   }
 }
 

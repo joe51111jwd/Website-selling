@@ -316,3 +316,24 @@ html.look-glass .nph {
 html.look-glass .nph-pick {
   margin-top: clamp(8px, 1.6svh, 14px);
 }
+
+/* narrower laptops (the picks stack their label over the track): the hint stays under the track,
+   not inside it as a sixth segment (which also put the white pill on the wrong option) */
+@media (min-width: 761px) and (max-width: 1180px) {
+  html.look-glass .num-hint {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    margin-top: 7px;
+    white-space: nowrap;
+  }
+  html.look-glass .num-pick:has(.num-hint) {
+    margin-bottom: 36px;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) and (max-height: 640px) {
+  html.look-glass .num-pick:has(.num-hint) {
+    margin-bottom: 0;
+  }
+}
