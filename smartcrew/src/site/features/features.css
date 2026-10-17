@@ -1,0 +1,1337 @@
+/* 3 · "Everything. Built for dirt." (Features.tsx). The head, the pain picker, then the six cards
+   beside the office web app (desktop) or as an accordion (phones). The app's chrome speaks the
+   app's own voice (Inter, as the recreated screens do); everything else is the page's. Motion:
+   one entrance as the section arrives, then hover / focus / state changes only, opacity and
+   transform (the desktop accordion's height is the one layout transition, in the cards column).
+   Prefix: ft-. */
+
+.ft {
+  --ft-h: clamp(470px, calc(100svh - var(--header-h) - 24px), 860px);
+  --ft-col: clamp(316px, 27vw, 372px);
+  --ft-gap: clamp(16px, 1.5vw, 24px);
+  --ft-app-font: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
+  padding-block: clamp(56px, 8svh, 112px) clamp(56px, 8svh, 112px);
+}
+
+/* ── the entrance (once, as the section arrives) ─────────────────────── */
+
+.ft [data-ft-in],
+.ft-cards--desk .ft-card {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  transition:
+    opacity 0.7s var(--ease-out),
+    transform 0.9s var(--ease-out);
+}
+
+.ft-cards[data-ft-in] {
+  opacity: 1;
+  transform: none;
+}
+
+.ft-in[data-in] [data-ft-in],
+.ft-in[data-in] .ft-cards--desk .ft-card {
+  opacity: 1;
+  transform: none;
+}
+
+.ft-in[data-in] [data-ft-in="2"] {
+  transition-delay: 0.12s;
+}
+
+.ft-in[data-in] .ft-cards--desk .ft-card {
+  transition:
+    opacity 0.6s var(--ease-out) calc(0.22s + var(--i) * 0.06s),
+    transform 0.8s var(--ease-out) calc(0.22s + var(--i) * 0.06s),
+    background-color 0.25s,
+    border-color 0.25s,
+    box-shadow 0.3s,
+    grid-template-rows 0.45s var(--ease-out);
+}
+
+.ft-in[data-in] [data-ft-in="4"] {
+  transition-delay: 0.3s;
+}
+
+/* phones: the cards come in with the picker (no per-card stagger) */
+.ft-cards--phone[data-ft-in] {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+}
+
+.ft-in[data-in] .ft-cards--phone[data-ft-in] {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ft [data-ft-in],
+  .ft-cards--desk .ft-card {
+    transform: none !important;
+  }
+}
+
+/* ── the head ────────────────────────────────────────────────────────── */
+
+.ft-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px 40px;
+}
+
+.ft-kicker {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-label) * 1%);
+  font-weight: 650;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-feature-settings: "case" 1;
+  color: var(--orange-ink);
+}
+
+.ft-title {
+  margin-top: 14px;
+  color: var(--ink);
+}
+
+.ft-sub {
+  margin-top: 12px;
+  max-width: 34em;
+}
+
+/* "See all 38 tools": the section's secondary, dark and quiet next to the orange */
+.ft-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  min-height: 48px;
+  padding: 0 18px 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--ground);
+  font: 600 15.5px/1 var(--font-text);
+  cursor: pointer;
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 8%) inset,
+    0 10px 24px -14px rgb(23 19 15 / 60%);
+  transition:
+    background-color 0.2s,
+    transform 0.2s var(--ease-out);
+}
+
+.ft-all:hover {
+  background: #2b241d;
+}
+
+.ft-all:active {
+  transform: translateY(1px);
+}
+
+.ft-all:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.ft-all-glyph {
+  width: 16px;
+  height: 16px;
+  color: var(--orange-2);
+}
+
+.ft-all-arrow {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.25s var(--ease-out);
+}
+
+.ft-all:hover .ft-all-arrow {
+  transform: translateX(2px);
+}
+
+/* ── the pain picker ─────────────────────────────────────────────────── */
+
+.ft-pain {
+  margin-top: clamp(22px, 3.2svh, 40px);
+}
+
+.ft-pain-q {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: var(--sub-wght);
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: var(--track-sub);
+  color: var(--ink);
+}
+
+.ft-pain-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.ft-chips {
+  display: contents;
+}
+
+.ft-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 500 15px/1.15 var(--font-text);
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.ft-chip:hover {
+  border-color: #cdbfb0;
+}
+
+.ft-chip[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--ground);
+}
+
+.ft-chip:focus-visible,
+.ft-type-go:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.ft-type {
+  display: flex;
+  align-items: center;
+  flex: 0 1 300px;
+  min-width: 220px;
+  min-height: 40px;
+  padding: 0 4px 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.ft-type:focus-within {
+  border-color: var(--ink-3);
+  box-shadow: 0 0 0 3px rgb(23 19 15 / 8%);
+}
+
+.ft-type-in {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 400 15px/1 var(--font-text);
+  outline: none;
+}
+
+.ft-type-in::placeholder {
+  color: var(--ink-3);
+  opacity: 1;
+}
+
+.ft-type-go {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.ft-type-go svg {
+  width: 16px;
+  height: 16px;
+}
+
+.ft-type-go:disabled {
+  background: var(--ground-2);
+  color: var(--ink-3);
+  cursor: default;
+}
+
+/* the answer: one line under the picker (its row is kept, so nothing below jumps) */
+.ft-answer {
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+  padding-block: 8px;
+}
+
+.ft-answer-yes,
+.ft-answer-no {
+  animation: ft-say 0.45s var(--ease-out) both;
+}
+
+.ft-answer-yes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16.5px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+
+.ft-answer-check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+}
+
+.ft-answer-check svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ft-answer-name {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.ft-answer-no {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+}
+
+.ft-answer-no p {
+  max-width: 36em;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+@keyframes ft-say {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ft-answer-yes,
+  .ft-answer-no {
+    animation-name: ft-fade;
+  }
+  @keyframes ft-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+/* ── the cards ───────────────────────────────────────────────────────── */
+
+.ft-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ft-card {
+  display: grid;
+  grid-template-rows: auto 0fr;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 42%);
+  transition:
+    background-color 0.25s,
+    border-color 0.25s,
+    box-shadow 0.3s,
+    grid-template-rows 0.45s var(--ease-out);
+}
+
+.ft-card:hover {
+  background: var(--paper);
+}
+
+.ft-card.is-open {
+  grid-template-rows: auto 1fr;
+  background: var(--paper);
+  border-color: rgb(23 19 15 / 15%);
+  box-shadow:
+    0 1px 2px rgb(23 19 15 / 6%),
+    0 14px 32px -18px rgb(23 19 15 / 28%);
+}
+
+.ft-card-h {
+  margin: 0;
+  font: inherit;
+}
+
+.ft-card-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px 11px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ft-card-btn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.ft-card-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--ground-2);
+  color: var(--ink-2);
+  transition: background-color 0.25s, color 0.25s;
+}
+
+.ft-card.is-open .ft-card-icon {
+  background: var(--ink);
+  color: #fff;
+}
+
+.ft-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ft-card-name {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: var(--sub-wght);
+  font-size: 17.5px;
+  line-height: 1.15;
+  letter-spacing: var(--track-sub);
+  color: var(--ink);
+}
+
+.ft-card-line {
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
+.ft-card-chev {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--ink-3);
+  transition: transform 0.3s var(--ease-out), opacity 0.2s;
+}
+
+.ft-card.is-open .ft-card-chev {
+  transform: rotate(180deg);
+}
+
+.ft-card-panel {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ft-card-panel-in {
+  padding: 0 16px 16px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.ft-card.is-open .ft-card-panel-in {
+  opacity: 1;
+  transition: opacity 0.4s 0.12s;
+}
+
+.ft-card-match {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink-2);
+  animation: ft-say 0.45s var(--ease-out) both;
+}
+
+.ft-card-match-check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+}
+
+.ft-card-match-check svg {
+  width: 11px;
+  height: 11px;
+}
+
+.ft-card-sub {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.18;
+  letter-spacing: var(--track-sub);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.ft-card-copy {
+  margin-top: 6px;
+  font-size: 14.5px;
+  line-height: 1.48;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.ft-ticks {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ft-ticks li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14.5px;
+  line-height: 1.35;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.ft-ticks svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  color: var(--orange);
+}
+
+.ft-card-cta {
+  width: 100%;
+  margin-top: 16px;
+}
+
+/* ── desktop: the cards beside the app ───────────────────────────────── */
+
+.ft-in.is-desk .ft-body {
+  display: grid;
+  grid-template-columns: var(--ft-col) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: var(--ft-gap);
+  height: var(--ft-h);
+}
+
+.ft-cards--desk {
+  height: 100%;
+  overflow: hidden;
+  overflow: clip;
+}
+
+/* the open card's chevron goes (one is always open) */
+.ft-cards--desk .ft-card.is-open .ft-card-chev {
+  opacity: 0;
+}
+
+.ft-cards--desk .ft-card.is-open .ft-card-btn {
+  cursor: default;
+}
+
+/* shorter laptop screens: everything a notch tighter; below 740 px the closed cards keep their
+   name only (the open one its subhead) */
+.ft-cards--desk .ft-card {
+  flex: none;
+}
+
+@media (max-height: 840px) {
+  .ft-cards--desk {
+    gap: 5px;
+  }
+  .ft-cards--desk .ft-card-btn {
+    padding-block: 7px;
+  }
+  .ft-cards--desk .ft-card-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+  .ft-cards--desk .ft-card-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+  .ft-cards--desk .ft-card-name {
+    font-size: 16.5px;
+  }
+  .ft-cards--desk .ft-card-line {
+    font-size: 13px;
+  }
+  .ft-cards--desk .ft-card-panel-in {
+    padding: 2px 14px 12px;
+  }
+  .ft-cards--desk .ft-card-match {
+    margin-bottom: 5px;
+    font-size: 13px;
+  }
+  .ft-cards--desk .ft-card-sub {
+    font-size: 17.5px;
+  }
+  .ft-cards--desk .ft-card-copy {
+    margin-top: 4px;
+    font-size: 13.5px;
+    line-height: 1.45;
+  }
+  .ft-cards--desk .ft-ticks {
+    margin-top: 8px;
+    gap: 2px;
+  }
+  .ft-cards--desk .ft-ticks li {
+    font-size: 13.5px;
+  }
+  .ft-cards--desk .ft-card-cta {
+    --cta-h: 46px;
+    margin-top: 10px;
+  }
+}
+
+@media (max-height: 740px) {
+  .ft-cards--desk {
+    gap: 4px;
+  }
+  .ft-cards--desk .ft-card-line {
+    display: none;
+  }
+  .ft-cards--desk .ft-card-btn {
+    padding-block: 4px;
+  }
+  .ft-cards--desk .ft-card-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+  }
+}
+
+/* ── the app window ──────────────────────────────────────────────────── */
+
+.ft-app {
+  position: relative;
+  min-width: 0;
+  height: 100%;
+}
+
+.ft-app--wait {
+  border: 1px solid rgb(23 19 15 / 10%);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.ft-win {
+  display: grid;
+  grid-template-rows: 36px minmax(0, 1fr);
+  height: 100%;
+  border: 1px solid rgb(23 19 15 / 13%);
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+  overflow: clip;
+  box-shadow:
+    0 1px 2px rgb(23 19 15 / 6%),
+    0 24px 52px -20px rgb(23 19 15 / 26%);
+  font-family: var(--ft-app-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+.ft-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 14px;
+  background: #f3efea;
+  border-bottom: 1px solid #e5ded5;
+}
+
+.ft-lights {
+  display: flex;
+  gap: 7px;
+  flex: none;
+}
+
+.ft-lights i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #dbd3c9;
+}
+
+.ft-crumb {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  color: #8b8279;
+  white-space: nowrap;
+}
+
+.ft-crumb-sep {
+  color: #c4bab0;
+}
+
+.ft-crumb-c {
+  color: #1d1d1d;
+  font-weight: 600;
+}
+
+.ft-body-app {
+  display: grid;
+  grid-template-columns: clamp(164px, 12.8vw, 198px) minmax(0, 1fr);
+  min-height: 0;
+}
+
+/* the app's sidebar: every screen */
+.ft-side {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid #ececec;
+  background: #fff;
+  overflow: hidden;
+  overflow: clip;
+}
+
+.ft-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 0 16px;
+  border-bottom: 1px solid #ececec;
+}
+
+.ft-logo-mark {
+  position: relative;
+  width: 17px;
+  height: 20px;
+  overflow: hidden;
+  flex: none;
+}
+
+.ft-logo-mark img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 20px;
+  width: auto;
+  max-width: none;
+}
+
+.ft-logo-word {
+  font-size: 14px;
+  font-weight: 640;
+  letter-spacing: -0.005em;
+  color: #000;
+}
+
+.ft-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+}
+
+.ft-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  height: clamp(30px, 4.4svh, 37px);
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #575757;
+  font: 450 13.5px/1 var(--ft-app-font);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.ft-nav-item .sc-icon {
+  flex: none;
+  color: #6b6b6b;
+}
+
+.ft-nav-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ft-nav-item.is-sub {
+  padding-left: 29px;
+  font-size: 12.5px;
+  height: clamp(27px, 3.9svh, 33px);
+}
+
+.ft-nav-item.is-sub::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #e6e6e6;
+}
+
+.ft-nav-item:hover {
+  background: #f6f6f6;
+  color: #111;
+}
+
+.ft-nav-item.is-on {
+  background: #f1f1f1;
+  color: #111;
+  font-weight: 620;
+  box-shadow: inset 0 0 0 1px #e7e7e7;
+}
+
+.ft-nav-item.is-on .sc-icon {
+  color: #111;
+}
+
+/* the open feature's screens: a thin orange mark at the sidebar's edge */
+.ft-nav-item::after {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--orange);
+  transform: scaleY(0);
+  transition: transform 0.35s var(--ease-out);
+}
+
+.ft-nav-item.is-mine::after {
+  transform: none;
+}
+
+.ft-nav-item:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+
+.ft-side-note {
+  margin-top: auto;
+  padding: 12px 16px 14px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #9a9a9a;
+}
+
+/* the screen */
+.ft-main {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  overflow: clip;
+  background: #fff;
+  contain: layout paint;
+}
+
+.ft-page {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, 8px, 0);
+  transition:
+    opacity 0.25s ease,
+    transform 0.4s var(--ease-out),
+    visibility 0s linear 0.4s;
+}
+
+.ft-page.is-on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.45s var(--ease-out) 0.05s,
+    transform 0.6s var(--ease-out) 0.05s,
+    visibility 0s;
+}
+
+.ft-scr {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+/* the page runs to the window's foot, like the real app's */
+.ft-scr > .sc.sc-web {
+  height: var(--ft-nh);
+}
+
+/* things on the screen that open another screen */
+.ft-link {
+  position: absolute;
+  z-index: 2;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: box-shadow 0.2s, background-color 0.2s;
+}
+
+.ft-link:hover,
+.ft-link:focus-visible {
+  outline: none;
+  background: rgb(23 19 15 / 3%);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3.5px rgb(23 19 15 / 70%);
+}
+
+.ft-link-hint {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #17130f;
+  color: #fff;
+  font: 600 11.5px/1 var(--ft-app-font);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate3d(0, 3px, 0);
+  transition: opacity 0.2s, transform 0.25s var(--ease-out);
+  pointer-events: none;
+}
+
+.ft-link-hint svg {
+  width: 12px;
+  height: 12px;
+}
+
+.ft-link:hover .ft-link-hint,
+.ft-link:focus-visible .ft-link-hint {
+  opacity: 1;
+  transform: none;
+}
+
+/* hotspots: a dot and its name; pointing at it rings the thing and gives its one line */
+.ft-spot {
+  --i: 0;
+}
+
+.ft-ring {
+  position: absolute;
+  z-index: 3;
+  border: 2px solid var(--orange);
+  border-radius: 9px;
+  box-shadow: 0 0 0 4px rgb(255 122 1 / 14%);
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+
+.ft-spot.is-on .ft-ring {
+  opacity: 1;
+}
+
+/* the hotspot's name: a small dark tag with a pulsing orange dot, on the box's edge */
+.ft-spot-btn {
+  position: absolute;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 22px;
+  padding: 0 10px 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(23 19 15 / 88%);
+  color: #fff;
+  font: 600 11.5px/1 var(--ft-app-font);
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 4px 12px -4px rgb(23 19 15 / 45%);
+  transition: background-color 0.2s;
+}
+
+.ft-spot.is-on .ft-spot-btn {
+  z-index: 6;
+  background: #17130f;
+}
+
+.ft-spot-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px var(--ink);
+}
+
+.ft-spot-dot {
+  position: relative;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--orange);
+}
+
+.ft-spot-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--orange);
+  opacity: 0;
+  animation: ft-pulse 2.8s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
+  animation-delay: calc(var(--i) * -0.9s);
+}
+
+.ft-spot.is-on .ft-spot-dot::after {
+  animation: none;
+}
+
+@keyframes ft-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  70%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ft-spot-dot::after {
+    animation: none;
+  }
+}
+
+.ft-spot-tip {
+  position: absolute;
+  z-index: 7;
+  width: max-content;
+  max-width: 270px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff;
+  color: #2a2420;
+  font: 450 13px/1.42 var(--ft-app-font);
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 9%),
+    0 14px 30px -10px rgb(23 19 15 / 35%);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, -4px, 0);
+  transition:
+    opacity 0.2s,
+    transform 0.25s var(--ease-out),
+    visibility 0s linear 0.25s;
+  pointer-events: none;
+}
+
+.ft-spot.is-up .ft-spot-tip {
+  transform: translate3d(0, 4px, 0);
+}
+
+.ft-spot.is-on .ft-spot-tip {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.25s,
+    transform 0.3s var(--ease-out),
+    visibility 0s;
+}
+
+/* the crew's phone beside the window (field screens) */
+.ft-phone {
+  position: absolute;
+  z-index: 8;
+  right: clamp(-28px, -1.6vw, -12px);
+  bottom: -12px;
+  height: clamp(230px, 47%, 400px);
+  aspect-ratio: 430 / 900;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, 22px, 0);
+  transition:
+    opacity 0.3s ease,
+    transform 0.5s var(--ease-out),
+    visibility 0s linear 0.5s;
+  pointer-events: none;
+}
+
+.ft-phone.is-on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.5s var(--ease-out) 0.15s,
+    transform 0.7s var(--ease-out) 0.15s,
+    visibility 0s;
+}
+
+.ft-phone .pf {
+  filter: drop-shadow(0 18px 26px rgb(23 19 15 / 28%));
+}
+
+.ft-phone-tag {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-2);
+  font: 600 12px/1 var(--font-text);
+  white-space: nowrap;
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 6px 14px -8px rgb(23 19 15 / 35%);
+}
+
+/* ── phones ──────────────────────────────────────────────────────────── */
+
+.ft-in.is-phone .ft-head {
+  display: block;
+}
+
+.ft-in.is-phone .ft-title {
+  margin-top: 12px;
+}
+
+.ft-in.is-phone .ft-sub {
+  margin-top: 10px;
+}
+
+.ft-in.is-phone .ft-pain {
+  margin-top: 26px;
+}
+
+.ft-in.is-phone .ft-pain-q {
+  font-size: 18px;
+}
+
+.ft-in.is-phone .ft-chip {
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 15px;
+}
+
+.ft-in.is-phone .ft-type {
+  flex: 1 1 100%;
+  max-width: none;
+  min-height: 48px;
+  padding-right: 6px;
+}
+
+.ft-in.is-phone .ft-type-in {
+  height: 46px;
+  font-size: 16px; /* no zoom on focus (iOS) */
+}
+
+.ft-in.is-phone .ft-type-go {
+  width: 36px;
+  height: 36px;
+}
+
+.ft-in.is-phone .ft-answer {
+  min-height: 0;
+  padding-block: 14px 4px;
+}
+
+.ft-in.is-phone .ft-answer:empty {
+  padding: 0;
+}
+
+.ft-in.is-phone .ft-answer-no .cta {
+  width: 100%;
+}
+
+.ft-in.is-phone .ft-body {
+  margin-top: 18px;
+}
+
+.ft-cards--phone {
+  gap: 8px;
+}
+
+.ft-cards--phone .ft-card {
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.ft-cards--phone .ft-card-btn {
+  min-height: 64px;
+  padding: 12px 14px 12px 12px;
+}
+
+.ft-cards--phone .ft-card-name {
+  font-size: 18px;
+}
+
+.ft-cards--phone .ft-card-line {
+  font-size: 14px;
+}
+
+/* the panel opens at once on phones (no height animation); its content fades in */
+.ft-cards--phone .ft-card-panel-in {
+  transition: none;
+}
+
+.ft-cards--phone .ft-card.is-open .ft-card-panel-in {
+  animation: ft-fade-in 0.35s var(--ease-out) both;
+}
+
+@keyframes ft-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.ft-cards--phone .ft-card:not(.is-open) .ft-card-panel {
+  display: none;
+}
+
+.ft-cards--phone .ft-card-sub {
+  font-size: 19px;
+}
+
+.ft-cards--phone .ft-card-copy,
+.ft-cards--phone .ft-ticks li {
+  font-size: 15.5px;
+}
+
+.ft-shot {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ft-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ft-shot-hint {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 14px 0 11px;
+  border-radius: 999px;
+  background: rgb(23 19 15 / 90%);
+  color: #fff;
+  font: 600 14px/1 var(--font-text);
+  box-shadow: 0 6px 16px -6px rgb(23 19 15 / 50%);
+}
+
+.ft-shot-hint svg {
+  width: 14px;
+  height: 14px;
+  color: var(--orange-2);
+}
+
+.ft-shot:active .ft-shot-hint {
+  transform: scale(0.98);
+}
+
+.ft-shot:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.ft-cards--phone .ft-card-cta {
+  margin-top: 18px;
+}
+
+.ft-foot {
+  margin-top: 20px;
+}
+
+.ft-foot .ft-all {
+  width: 100%;
+  justify-content: center;
+  min-height: 52px;
+}

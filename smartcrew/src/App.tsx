@@ -1,7 +1,8 @@
-// The SmartCrew product page: "One Day". One fixed 3D Stage behind the page; the scenes in
-// BRIEF order on top of it; the header, the phone's sticky CTA bar and the trial popup around them.
-// Phones (src/site/phone.ts) get the light build: no Stage (three.js never loads), no Lenis, no
-// custom cursor; the hero and One Day render their 2D phone versions.
+// The SmartCrew product page, in Andrew's round-4 order (his Oct 16 doc): the fold, Replace 5 apps,
+// Everything. Built for dirt., Watch it work, Play with it, the cost calculator, testimonials, Why
+// us and the FAQ; the header, the phone's sticky CTA bar and the trial popup around them. All 2D:
+// the 3D Stage is off (STAGE_ON below), so three.js never loads and scenes that still carry pose
+// keys show their poster stills. Phones (src/site/phone.ts) also get no Lenis and no custom cursor.
 
 import { lazy, memo, startTransition, Suspense, useEffect, useState, type ComponentType } from "react";
 import { MotionConfig } from "motion/react";
@@ -15,9 +16,11 @@ import { setStageMounted, watchLayout } from "./three/stage/store";
 import { startTracking } from "./lib/track";
 import { startWarmAhead } from "./site/phone/warmAhead";
 import HeroScene from "./site/hero/Hero";
-import DayScene from "./site/day/Day";
-import Film from "./site/film/Film";
-import { VERSION } from "./site/version";
+import ReplaceScene from "./site/replace/Replace";
+import { SceneBoundary } from "./site/SceneBoundary";
+
+/** Round 4: the 3D Stage is off (no ride, every section is DOM). Flip to bring it back. */
+const STAGE_ON = false;
 
 // three.js and the models load in their own chunk once the hero's entrance has played its main
 // beats (useAfterEntrance, src/site/ready.ts), so evaluating it and the first GL work never land
@@ -28,8 +31,8 @@ const Stage = lazy(() => import("./three/stage/Stage"));
 const Cursor = lazy(() => import("./cursor/Cursor"));
 
 /**
- * The scenes after One Day, in page order, each in its own chunk (with its CSS and its phone
- * version), so the first screen's JS is only the hero and One Day: less to download and evaluate
+ * The scenes after Replace 5 apps, in page order, each in its own chunk (with its CSS and its phone
+ * version), so the first screen's JS is only the hero and Replace 5 apps: less to download and evaluate
  * at boot. They are fetched and mounted after the hero's entrance, never in the middle of it
  * (useLateScenes, src/site/ready.ts).
  */
@@ -40,11 +43,11 @@ function lateScene(load: () => Promise<SceneModule>) {
   return { get, C: lazy(get) };
 }
 const LATER_SCENES = [
-  lateScene(() => import("./site/specsheet/SpecSheet")),
+  lateScene(() => import("./site/features/Features")),
+  lateScene(() => import("./site/watch/Watch")),
   lateScene(() => import("./site/try/TryIt")),
   lateScene(() => import("./site/number/YourNumber")),
   lateScene(() => import("./site/proof/Proof")),
-  lateScene(() => import("./site/apps/FiveApps")),
   lateScene(() => import("./site/offer/Offer")),
   lateScene(() => import("./site/faq/Faq")),
   lateScene(() => import("./site/footer/Footer")),
@@ -52,9 +55,9 @@ const LATER_SCENES = [
 
 const LATER: ComponentType[] = LATER_SCENES.map((sc) => memo(sc.C));
 // App re-renders when the first screen is done; the scenes subscribe to what they need
-// themselves, so they don't re-render with it (One Day's seven screens)
+// themselves, so they don't re-render with it
 const Hero = memo(HeroScene);
-const Day = memo(DayScene);
+const Replace = memo(ReplaceScene);
 const hashOnLoad = typeof location !== "undefined" && location.hash.length > 1 ? location.hash.slice(1) : "";
 
 const idle = (f: () => void) =>
@@ -62,11 +65,11 @@ const idle = (f: () => void) =>
 const cancelIdle = (id: number) => (typeof window.cancelIdleCallback === "function" ? window.cancelIdleCallback(id) : clearTimeout(id));
 
 /**
- * PHONE MODE: the boot renders the hero alone, so the first frame comes fast; One Day (the very
+ * PHONE MODE: the boot renders the hero alone, so the first frame comes fast; Replace 5 apps (the very
  * next screen) follows at once as a low-priority transition (rendered in 5 ms slices while the
  * hero's fonts arrive). A #hash on load renders it at boot. Desktop renders it at boot.
  */
-function useDayOnPhone() {
+function useNextOnPhone() {
   const [on, setOn] = useState(() => !phoneAtLoad || !!hashOnLoad);
   useEffect(() => {
     if (!on) startTransition(() => setOn(true));
@@ -75,14 +78,14 @@ function useDayOnPhone() {
 }
 
 /**
- * The scenes after One Day mount after the first screen, as low-priority transitions (React
+ * The scenes after Replace 5 apps mount after the first screen, as low-priority transitions (React
  * renders them in 5 ms slices; each chunk's stylesheet restyles the page as it lands), so none of
  * it lands in the middle of the hero's entrance as a long task:
  * - desktop: all at once (their chunks in parallel) once the entrance's main beats are over
  *   (READY + 1.2 s: the button has landed and its fence has closed; at once on the first input),
  *   so the header's FAQ link and the 3D Stage's later keys are there within a couple of seconds;
  * - phones: one by one in idle time once the first screen is done (DONE: the entrance has played
- *   out, or the visitor has started scrolling); they are seven screens of One Day further down,
+ *   out, or the visitor has started scrolling); they start a screen further down,
  *   all in within ~2 s.
  * A #hash on load mounts them at once.
  */
@@ -124,7 +127,7 @@ function useLateScenes() {
 /**
  * Desktop: the entrance's main beats are over: the hero's button has landed and its own fence has
  * closed round it (READY + 1.2 s), or the visitor has started using the page (DONE). The 3D Stage
- * and the scenes after One Day start their work then, so their chunks' evaluation, their styles
+ * and the later scenes start their work then, so their chunks' evaluation, their styles
  * and the first GL work never land on the headline's or the button's fence while they draw
  * (those two draw on the main thread on desktop). At once for a #hash on load.
  */
@@ -174,8 +177,8 @@ export default function App() {
   useHashOnLoad();
   const phone = usePhone();
   const later = useLateScenes();
-  const dayOn = useDayOnPhone();
-  const stageWanted = stageAllowed && (!phone || forceStage3d);
+  const nextOn = useNextOnPhone();
+  const stageWanted = STAGE_ON && stageAllowed && (!phone || forceStage3d);
   const stageGo = useStageGo();
   const stageOn = stageWanted && stageGo;
   // scenes, anchors and pose keys are measured by the store (no three.js), with or without the Stage
@@ -224,13 +227,19 @@ export default function App() {
       <Header />
       <main className="site">
         <Hero />
-        {/* version 2 (?v=video): One Day is Andrew's walkthrough video instead of the ride */}
-        {dayOn && (VERSION === "video" ? <Film /> : <Day />)}
+        {nextOn && (
+          <SceneBoundary>
+            <Replace />
+          </SceneBoundary>
+        )}
         {LATER.slice(0, later).map((S, i) => (
-          // each scene loads on its own: a scene still on its way never blanks the page
-          <Suspense key={i} fallback={null}>
-            <S />
-          </Suspense>
+          // each scene loads on its own: a scene still on its way never blanks the page, and one
+          // that fails drops out alone
+          <SceneBoundary key={i}>
+            <Suspense fallback={null}>
+              <S />
+            </Suspense>
+          </SceneBoundary>
         ))}
       </main>
       <StickyBar />

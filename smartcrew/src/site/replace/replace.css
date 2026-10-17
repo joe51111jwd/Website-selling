@@ -1,0 +1,547 @@
+/* 2 · Replace 5 apps (Replace.tsx). A dark panel on the light ground: kicker, headline, sub, the
+   six cards, the wiring into the SmartCrew box, the small print, the orange button.
+   Layouts: ≥ 1180 px one row of six; 761–1179 px three above the box, three below; phones two
+   columns with the box under them. Prefix: rp-. */
+
+.rp {
+  --rp-card: #1f1b17;
+  --rp-card-line: #332c25;
+  --rp-disc-ring: var(--rp-card);
+  padding-block: clamp(12px, 2.2vw, 32px) clamp(56px, 7vw, 112px);
+}
+
+.rp-panel {
+  position: relative;
+  isolation: isolate;
+  border-radius: 28px;
+  padding: clamp(40px, 2.8vw + 2.4svh, 72px) clamp(24px, 3.2vw, 48px) clamp(36px, 2.6vw + 1.6svh, 60px);
+  background: var(--night);
+  color: var(--ink-night);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 4%),
+    0 30px 70px -40px rgb(23 19 15 / 55%);
+}
+
+/* ── head ─────────────────────────────────────────────────────────────── */
+
+.rp-head {
+  text-align: center;
+}
+
+.rp-kicker {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-label) * 1%);
+  font-weight: 650;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-feature-settings: "case" 1;
+  color: var(--orange);
+}
+
+.rp-h2 {
+  margin: 16px auto 0;
+  max-width: 22em;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-head) * 1%);
+  font-weight: var(--display-wght);
+  font-size: clamp(31px, 2.15vw + 1.4svh + 6px, 58px);
+  line-height: 1.04;
+  letter-spacing: var(--track-head);
+  word-spacing: var(--display-word);
+  text-wrap: balance;
+  color: #fffaf4;
+}
+
+/* the parenthesis steps back a shade: the promise reads first, the bonus second */
+.rp-h2-aside {
+  color: var(--ink-night-2);
+}
+
+.rp-sub {
+  margin: 18px auto 0;
+  max-width: 41em;
+  font-size: var(--fs-lead);
+  line-height: 1.5;
+  color: var(--ink-night-2);
+  text-wrap: pretty;
+}
+
+/* ── the net: cards, wiring, box ──────────────────────────────────────── */
+
+.rp-net {
+  position: relative;
+  margin-top: clamp(30px, 2.6vw + 1svh, 52px);
+}
+
+.rp-cards {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(10px, 0.9vw, 14px);
+}
+
+.rp-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: 20px clamp(10px, 0.95vw, 16px) 16px;
+  border: 1px solid var(--rp-card-line);
+  border-radius: 16px;
+  background: var(--rp-card);
+  text-align: center;
+}
+
+.rp-ico {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 12px;
+  border: 1px solid #3a322a;
+  background: #26211c;
+  color: #f4eee7;
+}
+
+.rp-ico-svg {
+  width: 24px;
+  height: 24px;
+}
+
+.rp-name {
+  margin-top: 14px;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: var(--sub-wght);
+  font-size: clamp(16.5px, 0.35vw + 12.5px, 19px);
+  line-height: 1.15;
+  letter-spacing: var(--track-sub);
+  color: #fffaf4;
+  text-wrap: balance;
+}
+
+.rp-line {
+  flex: 1 0 auto;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-night-2);
+  text-wrap: pretty;
+}
+
+/* the apps it replaces: a dashed tear-off line, a quiet label, the logos */
+.rp-was {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  align-self: stretch;
+  margin-top: 16px;
+  padding-top: 13px;
+  border-top: 1px dashed #3a322a;
+}
+
+.rp-was-label {
+  font-size: 12.5px;
+  line-height: 1;
+  color: var(--ink-night-3);
+}
+
+.rp-apps {
+  display: flex;
+  align-items: center;
+}
+
+.rp-app {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 2px var(--rp-disc-ring);
+}
+
+.rp-app + .rp-app {
+  margin-left: -4px;
+}
+
+.rp-app img {
+  width: 19px;
+  height: 19px;
+  object-fit: contain;
+}
+
+.rp-letter {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--ink-2);
+  transform: translateY(-0.5px);
+}
+
+.rp-glyph,
+.rp-ticket {
+  display: block;
+  width: 17px;
+  height: 20px;
+}
+
+/* the name, on hover (desktop): a small dark tag above the disc */
+@media (hover: hover) {
+  .rp-app::after {
+    content: attr(data-name);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    z-index: 2;
+    padding: 5px 8px 6px;
+    border-radius: 7px;
+    background: #f4eee7;
+    color: var(--ink);
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, 3px);
+    transition:
+      opacity var(--dur-1) var(--ease-out),
+      transform var(--dur-1) var(--ease-out);
+  }
+  .rp-app:hover {
+    z-index: 2;
+  }
+  .rp-app:hover::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* the box everything runs into */
+.rp-hub {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  min-width: 300px;
+  margin: 76px auto 0;
+  padding: 20px 44px 18px;
+  border: 1.5px solid #4a3f35;
+  border-radius: 18px;
+  background: var(--rp-card);
+  text-align: center;
+  transition:
+    border-color 520ms var(--ease-out),
+    box-shadow 720ms var(--ease-out);
+}
+
+.rp-hub-logo {
+  display: block;
+  height: 30px;
+  width: auto;
+  margin-inline: auto;
+}
+
+.rp-hub-line {
+  margin-top: 9px;
+  font-size: 15px;
+  line-height: 1.3;
+  color: var(--ink-night-2);
+}
+
+/* wiring (./Wires.tsx): drawn once, then at rest */
+.rp-wires {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.rp-wire {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0.85;
+}
+
+.rp-port,
+.rp-entry {
+  fill: var(--orange);
+  opacity: 0;
+}
+
+.rp-port {
+  stroke: var(--night);
+  stroke-width: 2;
+}
+
+.rp-net.is-wired .rp-wire {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 950ms cubic-bezier(0.55, 0, 0.3, 1) var(--d, 0s);
+}
+
+.rp-net.is-wired .rp-port {
+  opacity: 1;
+  transition: opacity 200ms var(--ease-out) var(--d, 0s);
+}
+
+.rp-net.is-wired .rp-entry {
+  opacity: 1;
+  transition: opacity 240ms var(--ease-out) calc(var(--d, 0s) + 880ms);
+}
+
+/* the lines arrive: the box lights, once */
+.rp-net.is-wired .rp-hub {
+  border-color: var(--orange);
+  box-shadow:
+    0 0 0 5px rgb(255 122 1 / 8%),
+    0 20px 44px -26px rgb(255 122 1 / 34%);
+  transition-delay: 1080ms;
+}
+
+/* ── small print and the button ───────────────────────────────────────── */
+
+.rp-fine {
+  margin: clamp(26px, 2.6vw, 38px) auto 0;
+  max-width: 780px;
+  text-align: center;
+  font-size: var(--fs-micro);
+  line-height: 1.5;
+  color: var(--ink-night-3);
+  text-wrap: pretty;
+}
+
+.rp-fine p + p {
+  margin-top: 2px;
+}
+
+.rp-act {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 28px;
+  margin-top: clamp(20px, 2vw, 28px);
+}
+
+.rp .rp-demo {
+  color: var(--ink-night);
+  text-decoration-color: rgb(244 238 231 / 32%);
+}
+
+.rp .rp-demo:hover {
+  text-decoration-color: var(--orange);
+}
+
+/* the parenthesis stays whole wherever it fits on a line */
+@media (min-width: 600px) {
+  .rp-h2-aside {
+    white-space: nowrap;
+  }
+}
+
+/* ── wide: the headline's last words on their own line ───────────────── */
+
+@media (min-width: 1180px) {
+  .rp-h2 {
+    max-width: none;
+  }
+  .rp-h2-tail {
+    display: block;
+  }
+}
+
+/* ── 761–1179: three cards above the box, three below ─────────────────── */
+
+@media (min-width: 761px) and (max-width: 1179px) {
+  .rp-net {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 14px;
+  }
+  .rp-cards {
+    display: contents;
+  }
+  .rp-card:nth-child(-n + 3) {
+    grid-row: 1;
+  }
+  .rp-card:nth-child(n + 4) {
+    grid-row: 3;
+  }
+  .rp-hub {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    margin: 64px auto;
+  }
+}
+
+/* ── phones ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  .rp {
+    padding-block: 8px 56px;
+  }
+  .rp-wrap {
+    padding-inline: 8px;
+  }
+  .rp-panel {
+    border-radius: 24px;
+    padding: 44px 14px 22px;
+  }
+  .rp-head {
+    padding-inline: 8px;
+  }
+  .rp-kicker {
+    font-size: 12.5px;
+  }
+  .rp-h2 {
+    margin-top: 14px;
+    font-size: clamp(30px, 8.2vw, 38px);
+  }
+  .rp-sub {
+    margin-top: 14px;
+    font-size: 16.5px;
+  }
+  .rp-net {
+    margin-top: 28px;
+  }
+  /* one compact column: icon, name and the replaced apps on one line, the line under them; a
+     single orange spine runs down through the icons into the box (./Wires.tsx) */
+  .rp-cards {
+    z-index: auto;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .rp-card {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "ico name was"
+      "ico line line";
+    align-items: center;
+    column-gap: 12px;
+    padding: 14px 14px 15px;
+    border-radius: 14px;
+    text-align: left;
+  }
+  .rp-ico {
+    grid-area: ico;
+    align-self: start;
+    position: relative;
+    z-index: 3;
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+  .rp-ico-svg {
+    width: 22px;
+    height: 22px;
+  }
+  .rp-name {
+    grid-area: name;
+    margin: 0;
+    font-size: 17px;
+    text-wrap: wrap;
+  }
+  .rp-line {
+    grid-area: line;
+    margin-top: 3px;
+    font-size: 14.5px;
+    line-height: 1.42;
+  }
+  .rp-was {
+    grid-area: was;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .rp-was-label {
+    font-size: 12px;
+  }
+  .rp-app {
+    width: 28px;
+    height: 28px;
+  }
+  .rp-app img {
+    width: 17px;
+    height: 17px;
+  }
+  .rp-hub {
+    min-width: 0;
+    width: min(100%, 300px);
+    margin-top: 44px;
+    padding: 18px 20px 16px;
+  }
+  .rp-hub-logo {
+    height: 26px;
+  }
+  .rp-fine {
+    margin-top: 22px;
+    padding-inline: 6px;
+    font-size: 13px;
+  }
+  .rp-act {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    margin-top: 20px;
+  }
+  .rp-act .cta {
+    display: flex;
+    width: 100%;
+  }
+  .rp-act .rp-demo {
+    align-self: center;
+  }
+
+  /* phones: the lines fade in (opacity only), the box lights with them */
+  .rp-wire {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+  .rp-net.is-wired .rp-wire {
+    opacity: 0.85;
+    transition: opacity 600ms var(--ease-out) var(--d, 0s);
+  }
+  .rp-net.is-wired .rp-entry {
+    transition-delay: 300ms;
+  }
+  .rp-net.is-wired .rp-hub {
+    transition-delay: 350ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-wire,
+  .rp-net.is-wired .rp-wire {
+    stroke-dashoffset: 0;
+    opacity: 0.85;
+    transition: none;
+  }
+  .rp-port,
+  .rp-entry {
+    opacity: 1;
+    transition: none;
+  }
+  .rp-hub,
+  .rp-net.is-wired .rp-hub {
+    border-color: var(--orange);
+    transition: none;
+  }
+}

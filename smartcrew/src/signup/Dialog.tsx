@@ -5,6 +5,7 @@ import "./signup.css";
 import { SIZES, openSignup, type Estimate, type Intent, type SignupRequest, type Size } from "./contract";
 import {
   EMPTY_DRAFT,
+  LAST_STEP,
   STEP_FIELDS,
   buildLead,
   check,
@@ -28,10 +29,11 @@ import { Flag } from "./Flag";
 import { fly } from "./pulse";
 import faceUrl from "./assets/andrew-face.webp";
 
-// The popup (BRIEF "Popup", CRO.md §4, PLAYBOOK §5). It feels like setting up an account: the
-// visitor names his company and watches his own SmartCrew fill in beside the form. It never says
-// "account created" or "trial started"; the call with Andrew is disclosed before anything personal
-// is typed. Steps: 1 crew size + company · 2 name + email · 3 mobile. Then /book.
+// The popup (BRIEF "Popup", CRO.md §4, PLAYBOOK §5). Andrew: "it's gonna feel like building an
+// account": the visitor starts a free trial, names his company and watches his own SmartCrew fill in
+// beside the form. It never says "account created" or "trial started", and it never reads like a
+// callback request; that the trial is set up on a call with Andrew is said before anything personal
+// is typed. Steps: 1 employees + company · 2 name, work email, cell phone (the lead). Then /book.
 
 const LITE = typeof window !== "undefined" && window.matchMedia("(pointer: coarse), (max-width: 760px)").matches;
 /** Blur in and out on laptops only; animated filters are expensive on phones. */
@@ -51,7 +53,8 @@ function useMedia(q: string) {
   return m;
 }
 
-const PULSE_TARGET = ["company", "admin", "call"] as const;
+/** Where each step's pulse lands in the preview: step 1 → the account, step 2 → the setup call. */
+const PULSE_TARGET = ["company", "call"] as const;
 
 /** The page's scroll lock (phones apply it after the sheet's slide; see the effect). */
 let lockTimer = 0;
@@ -117,7 +120,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
     const saved = loadProgress();
     const draft: Draft = { ...EMPTY_DRAFT, ...(saved?.draft ?? {}) };
     if (req.size) draft.size = req.size;
-    const st = saved ? Math.min(Math.max(saved.step, 0), 2) : 0;
+    const st = saved ? Math.min(Math.max(saved.step, 0), LAST_STEP) : 0;
     setD(draft);
     setStep(st);
     setDir(1);
@@ -266,8 +269,8 @@ export default function Dialog({ req, opener, onClose }: Props) {
   const sizeLocked = sizeSaved && !editSize && !!d.size;
   const firstEmpty = (): Field => {
     if (step === 0) return !sizeLocked && !d.size ? "size" : "company";
-    if (step === 1) return d.name.trim() ? "email" : "name";
-    return "phone";
+    if (!d.name.trim()) return "name";
+    return check("email", d, intent) ? "email" : "phone";
   };
   const focusField = (f: Field | undefined) => {
     if (!f) return;
@@ -284,6 +287,20 @@ export default function Dialog({ req, opener, onClose }: Props) {
     if (e.key === "Escape") {
       e.preventDefault();
       close();
+      return;
+    }
+    // Enter in a filled-in field moves on to the step's next field still to do (the form submits
+    // once nothing is left, or to show what's wrong)
+    if (e.key === "Enter" && e.target instanceof HTMLInputElement && e.target.type !== "checkbox") {
+      const f = e.target.dataset.field as Field | undefined;
+      const fs = STEP_FIELDS[step] ?? [];
+      const i = f ? fs.indexOf(f) : -1;
+      if (i < 0 || check(f!, d, intent)) return;
+      const next = fs.slice(i + 1).find((x) => check(x, d, intent));
+      if (next) {
+        e.preventDefault();
+        focusField(next);
+      }
       return;
     }
     if (e.key !== "Tab" || !panel.current) return;
@@ -354,11 +371,11 @@ export default function Dialog({ req, opener, onClose }: Props) {
     const button = (e.nativeEvent as SubmitEvent).submitter ?? e.currentTarget.querySelector("[type=submit]");
     const target = panel.current?.querySelector(`[data-pulse~="${PULSE_TARGET[step]}"]`) ?? null;
     fly(button, target);
-    if (step < 2) {
+    if (step < LAST_STEP) {
       const ns = step + 1;
-      if (ns === 2) warmBooking();
+      if (ns === LAST_STEP) warmBooking();
       saveProgress({ lead_id: leadId, intent, step: ns, draft: d, estimate, submitted });
-      void postStage(buildLead({ lead_id: leadId, intent, source, stage: step === 0 ? "start" : "email", draft: d, estimate }));
+      void postStage(buildLead({ lead_id: leadId, intent, source, stage: "start", draft: d, estimate }));
       setDir(1);
       setStep(ns);
       stepStart.current = Date.now();
@@ -376,10 +393,10 @@ export default function Dialog({ req, opener, onClose }: Props) {
     setSysError("");
     const lead = buildLead({ lead_id: leadId, intent, source, stage: "complete", draft: d, estimate });
     saveForBooking(lead);
-    saveProgress({ lead_id: leadId, intent, step: 2, draft: d, estimate, submitted: true });
+    saveProgress({ lead_id: leadId, intent, step: LAST_STEP, draft: d, estimate, submitted: true });
     const post = postStage(lead);
     if (!submitted) {
-      track("Lead", { content_name: intent === "demo" ? "Book a demo" : "Founding Member trial", content_category: d.size, entry_source: source }, leadId);
+      track("Lead", { content_name: intent === "demo" ? "Book a demo" : "Free trial", content_category: d.size, entry_source: source }, leadId);
     }
     setSubmitted(true);
     await Promise.all([wait(reduce ? 250 : 950), Promise.race([post, wait(1500)])]);
@@ -412,18 +429,19 @@ export default function Dialog({ req, opener, onClose }: Props) {
   };
 
   const company = d.company.trim();
-  const kicker = intent === "demo" ? "Demo with Andrew" : "Founding Member trial";
+  const last = step === LAST_STEP;
+  const kicker = intent === "demo" ? "Demo with Andrew" : "Free trial";
   const titles = [
     intent === "demo" ? "Book your demo with Andrew" : "Set up your SmartCrew",
     company.length >= 2 ? `Who's setting up ${company}?` : "Who's setting this up?",
-    "Where can Andrew reach you?",
   ];
+  // said before anything personal is typed: the trial is set up on a call (as a sign-up, not a callback)
   const honest =
     intent === "demo" ? (
       <>Next: pick a time for your demo with Andrew.</>
     ) : (
       <>
-        Next: {aCall()} with Andrew to set up your trial.
+        Your free trial starts with {aCall()} with Andrew.
         {!config.callLengthConfirmed && <Flag note="Andrew to confirm the call length (his Cal.com event is 45 minutes today)" />}
       </>
     );
@@ -492,12 +510,12 @@ export default function Dialog({ req, opener, onClose }: Props) {
                   </AnimatePresence>
                   <span className="su-kicker">{kicker}</span>
                   <span className="su-steplabel" aria-live="polite">
-                    Step {step + 1} of 3
-                    {sizeLocked && step === 0 ? <span className="su-steplabel-x"> · crew size saved</span> : null}
+                    Step {step + 1} of {STEP_FIELDS.length}
+                    {sizeLocked && step === 0 ? <span className="su-steplabel-x"> · company size saved</span> : null}
                   </span>
                 </div>
-                <div className="su-progress" role="progressbar" aria-label="Setup progress" aria-valuemin={0} aria-valuemax={3} aria-valuenow={step}>
-                  {[0, 1, 2].map((i) => (
+                <div className="su-progress" role="progressbar" aria-label="Setup progress" aria-valuemin={0} aria-valuemax={STEP_FIELDS.length} aria-valuenow={step}>
+                  {STEP_FIELDS.map((_, i) => (
                     <span key={i} className="su-seg">
                       <motion.i initial={false} animate={{ scaleX: fill(i) }} transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 140, damping: 22 }} />
                     </span>
@@ -539,7 +557,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
                               </svg>
                             </span>
                             <span className="su-done-text">
-                              Crew size <b>{d.size}</b>
+                              Employees <b>{d.size}</b>
                               {estimate ? (
                                 <>
                                   {" · "}your estimate <b>{money(estimate.annual)} a year</b>
@@ -553,7 +571,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
                         ) : (
                           <fieldset className={`su-field${errors.size ? " has-err" : ""}`}>
                             <legend className="su-label" id={`${ids}-size`}>
-                              How many people are in your crew?
+                              How many employees?
                               <span className="su-label-hint">Field and office</span>
                             </legend>
                             <div className="su-chips" role="radiogroup" aria-labelledby={`${ids}-size`} aria-describedby={errors.size ? `${ids}-size-err` : undefined}>
@@ -610,71 +628,69 @@ export default function Dialog({ req, opener, onClose }: Props) {
                           onBlur={() => onBlur("name")}
                           input={{ name: "name", autoComplete: "name", autoCapitalize: "words", enterKeyHint: "next", maxLength: 80, spellCheck: false }}
                         />
-                        <TextField
-                          id={`${ids}-email`}
-                          field="email"
-                          label="Email"
-                          hint="We'll send your call details here. Gmail is fine."
-                          value={d.email}
-                          error={errors.email}
-                          ok={ok.email}
-                          onChange={(v) => set("email", v.replace(/\s/g, ""))}
-                          onFocus={() => setFocus("email")}
-                          onBlur={() => onBlur("email")}
-                          input={{ type: "email", name: "email", autoComplete: "email", inputMode: "email", autoCapitalize: "off", spellCheck: false, enterKeyHint: "next", maxLength: 120 }}
-                          after={
-                            typo ? (
-                              <p className="su-typo">
-                                Did you mean <b>{typo}</b>?{" "}
-                                <button
-                                  type="button"
-                                  className="su-link"
-                                  onClick={() => {
-                                    set("email", typo);
-                                    setOk((o) => ({ ...o, email: true }));
-                                    focusField("email");
-                                  }}
-                                >
-                                  Use this
-                                </button>
-                              </p>
-                            ) : null
-                          }
-                        />
-                      </div>
-                    )}
-
-                    {step === 2 && (
-                      <div className="su-fields">
-                        <TextField
-                          id={`${ids}-tel`}
-                          field="phone"
-                          label="Mobile number"
-                          hint="For your call with Andrew."
-                          value={d.phone}
-                          error={errors.phone}
-                          ok={ok.phone}
-                          onChange={(v) => set("phone", formatPhone(v))}
-                          onFocus={() => setFocus("phone")}
-                          onBlur={() => onBlur("phone")}
-                          input={{ type: "tel", name: "tel", autoComplete: "tel", inputMode: "tel", enterKeyHint: "done", maxLength: 20, placeholder: "(555) 123-4567" }}
-                        />
-                        <label className="su-check">
-                          <input type="checkbox" name="sms_consent" checked={d.sms} onChange={(e) => set("sms", e.target.checked)} />
-                          <span className="su-box" aria-hidden="true">
-                            <svg width="12" height="12" viewBox="0 0 12 12">
-                              <path d="M2.5 6.2 5 8.6l4.6-5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </span>
-                          <span>
-                            Text me call reminders from SmartCrew <span className="su-opt">(optional)</span>
-                          </span>
-                        </label>
-                        {/* the consent terms, one quiet line under the opt-in (the box says who and why) */}
-                        <p className="su-fine">
-                          About 3 texts per booking. Msg &amp; data rates may apply. Reply STOP to opt out.
-                          <Flag note="SMS consent wording: Andrew/counsel to confirm (sender number, frequency)" />
-                        </p>
+                        <div className="su-row">
+                          <TextField
+                            id={`${ids}-email`}
+                            field="email"
+                            label="Work email"
+                            note="Gmail is fine"
+                            value={d.email}
+                            error={errors.email}
+                            ok={ok.email}
+                            onChange={(v) => set("email", v.replace(/\s/g, ""))}
+                            onFocus={() => setFocus("email")}
+                            onBlur={() => onBlur("email")}
+                            input={{ type: "email", name: "email", autoComplete: "email", inputMode: "email", autoCapitalize: "off", spellCheck: false, enterKeyHint: "next", maxLength: 120 }}
+                            after={
+                              typo ? (
+                                <p className="su-typo">
+                                  Did you mean <b>{typo}</b>?{" "}
+                                  <button
+                                    type="button"
+                                    className="su-link"
+                                    onClick={() => {
+                                      set("email", typo);
+                                      setOk((o) => ({ ...o, email: true }));
+                                      focusField("email");
+                                    }}
+                                  >
+                                    Use this
+                                  </button>
+                                </p>
+                              ) : null
+                            }
+                          />
+                          <TextField
+                            id={`${ids}-tel`}
+                            field="phone"
+                            label="Cell phone"
+                            value={d.phone}
+                            error={errors.phone}
+                            ok={ok.phone}
+                            onChange={(v) => set("phone", formatPhone(v))}
+                            onFocus={() => setFocus("phone")}
+                            onBlur={() => onBlur("phone")}
+                            input={{ type: "tel", name: "tel", autoComplete: "tel", inputMode: "tel", enterKeyHint: "done", maxLength: 20, placeholder: "(555) 123-4567" }}
+                          />
+                        </div>
+                        <div className="su-sms">
+                          <label className="su-check">
+                            <input type="checkbox" name="sms_consent" checked={d.sms} onChange={(e) => set("sms", e.target.checked)} />
+                            <span className="su-box" aria-hidden="true">
+                              <svg width="12" height="12" viewBox="0 0 12 12">
+                                <path d="M2.5 6.2 5 8.6l4.6-5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </span>
+                            <span>
+                              Text me call reminders from SmartCrew <span className="su-opt">(optional)</span>
+                            </span>
+                          </label>
+                          {/* the consent terms, one quiet line under the opt-in (the box says who and why) */}
+                          <p className="su-fine">
+                            About 3 texts per booking. Msg &amp; data rates may apply. Reply STOP to opt out.
+                            <Flag note="SMS consent wording: Andrew/counsel to confirm (sender number, frequency)" />
+                          </p>
+                        </div>
                       </div>
                     )}
 
@@ -685,32 +701,21 @@ export default function Dialog({ req, opener, onClose }: Props) {
                 <div className="su-foot">
                     <AnimatePresence mode="wait" initial={false}>
                     <motion.div
-                      key={step < 2 ? "honest" : "next"}
+                      key={last ? "next" : "honest"}
                       className="su-pre"
                       initial={{ opacity: 0, y: reduce ? 0 : 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: reduce ? 0 : -4 }}
                       transition={{ duration: reduce ? 0 : 0.22 }}
                     >
-                      {step < 2 ? (
-                        <p className="su-honest" id={`${ids}-honest`}>
-                          <img src={faceUrl} alt="" width={28} height={28} />
+                      <p className={`su-honest${last ? " su-honest--next" : ""}`} id={`${ids}-honest`}>
+                        <img src={faceUrl} alt="" width={28} height={28} />
+                        {last ? (
+                          <span>{intent === "demo" ? "Next: pick a time for your demo with Andrew." : "Next: pick a time with Andrew to set up your free trial."}</span>
+                        ) : (
                           <span>{honest}</span>
-                        </p>
-                      ) : (
-                        <div className="su-next" id={`${ids}-honest`}>
-                          <img src={faceUrl} alt="" width={32} height={32} />
-                          <p>
-                            {intent === "demo" ? (
-                              <b>Next: pick a time for your demo with Andrew.</b>
-                            ) : (
-                              <>
-                                <b>Next: pick a time for your call with Andrew.</b> <span className="su-next-more">Your Founding Member trial gets set up on that call.</span>
-                              </>
-                            )}
-                          </p>
-                        </div>
-                      )}
+                        )}
+                      </p>
                     </motion.div>
                     </AnimatePresence>
                     <div className="su-actions">
@@ -725,21 +730,21 @@ export default function Dialog({ req, opener, onClose }: Props) {
                             <span className="su-spin" aria-hidden="true" />
                             Saving…
                           </>
-                        ) : step < 2 ? (
+                        ) : !last ? (
                           <>
                             Continue
                             <Arrow />
                           </>
                         ) : (
                           <>
-                            {intent === "demo" ? "Pick my demo time" : "Pick my call time"}
+                            {intent === "demo" ? "Pick my demo time" : "Start my free trial"}
                             <Arrow />
                           </>
                         )}
                       </button>
-                      {step === 2 ? (
+                      {last ? (
                         <p className="su-legal">
-                          By continuing, you agree to SmartCrew's{" "}
+                          {intent === "demo" ? "By continuing" : "By starting your trial"}, you agree to SmartCrew's{" "}
                           <a href={config.termsUrl} target="_blank" rel="noopener noreferrer">
                             Terms
                           </a>{" "}
@@ -781,7 +786,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
               <span className="su-pill-ring" aria-hidden="true">
                 <svg width="22" height="22" viewBox="0 0 22 22">
                   <circle cx="11" cy="11" r="9" fill="none" stroke="rgb(255 255 255 / 18%)" strokeWidth="2.4" />
-                  <circle cx="11" cy="11" r="9" fill="none" stroke="var(--orange)" strokeWidth="2.4" strokeLinecap="round" strokeDasharray={`${(pill.step / 3) * 56.5} 56.5`} transform="rotate(-90 11 11)" />
+                  <circle cx="11" cy="11" r="9" fill="none" stroke="var(--orange)" strokeWidth="2.4" strokeLinecap="round" strokeDasharray={`${(pill.step / STEP_FIELDS.length) * 56.5} 56.5`} transform="rotate(-90 11 11)" />
                 </svg>
               </span>
               <span>
@@ -836,6 +841,8 @@ function TextField(p: {
   id: string;
   field: Field;
   label: string;
+  /** A short aside on the label's line ("Gmail is fine"); read as a description, not the name. */
+  note?: string;
   hint?: ReactNode;
   value: string;
   error?: string;
@@ -846,11 +853,11 @@ function TextField(p: {
   input: InputProps;
   after?: ReactNode;
 }) {
-  const describedBy = [p.hint ? `${p.id}-hint` : "", p.error ? `${p.id}-err` : ""].filter(Boolean).join(" ") || undefined;
+  const describedBy = [p.note ? `${p.id}-note` : "", p.hint ? `${p.id}-hint` : "", p.error ? `${p.id}-err` : ""].filter(Boolean).join(" ") || undefined;
   return (
     <div className={`su-field${p.error ? " has-err" : ""}${p.ok && !p.error ? " is-ok" : ""}`}>
-      <label className="su-label" htmlFor={p.id}>
-        {p.label}
+      <div className="su-label">
+        <label htmlFor={p.id}>{p.label}</label>
         <AnimatePresence>
           {p.ok && !p.error && (
             <motion.span className="su-ok" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 26 }}>
@@ -861,7 +868,12 @@ function TextField(p: {
             </motion.span>
           )}
         </AnimatePresence>
-      </label>
+        {p.note && (
+          <span className="su-label-hint" id={`${p.id}-note`}>
+            {p.note}
+          </span>
+        )}
+      </div>
       <input
         id={p.id}
         className="su-input"

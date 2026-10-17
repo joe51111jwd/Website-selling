@@ -1,6 +1,6 @@
-// "People in the field": the big drag slider. The track is the crew itself: 150 slots in a neat
+// "People in the field": the big drag slider. The track is the crew itself: 100 slots in a neat
 // grid (5 rows, filled column by column, so the filled edge follows the thumb), each person a tiny
-// SmartCrew hard-hat mark. Empty until the visitor drags ("Drag to your crew size").
+// SmartCrew hard-hat mark. It starts at the preset crew (./calc.ts PRESET); the visitor drags to theirs.
 // Pointer: drag anywhere on the grid (touch waits for a sideways move so the page still scrolls);
 // keyboard: arrows ±1, Page Up/Down ±10, Home/End.
 // Arrival (once, the crew 35 % in view): the empty slots ripple in column by column and, at 1.4 s,
@@ -13,7 +13,7 @@ import { CALC } from "../../content/copy";
 import { CREW_MAX } from "./calc";
 
 const ROWS = 5;
-const COLS = CREW_MAX / ROWS; // 30
+const COLS = CREW_MAX / ROWS; // 20
 const CELL = 10; // svg units per slot
 const HAT_W = 7.6;
 const HAT_H = (HAT_W * LOGO_DATA.mark.height) / LOGO_DATA.mark.width;

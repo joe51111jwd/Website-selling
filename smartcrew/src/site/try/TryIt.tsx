@@ -4,10 +4,9 @@
 // own phone becomes the SmartCrew app (./TryPhone.tsx; no 3D, nothing scroll-driven). Either way:
 // tap → clocked in, the timer runs → "That's the whole training."
 
-import { lazy, Suspense, useMemo } from "react";
+import { lazy, Suspense } from "react";
 import { Scene } from "../scene/Scene";
 import { usePhoneLite } from "../phone";
-import { TRY_VIEWPORTS, tryPoses } from "./poses";
 import { TryDesk } from "./TryDesk";
 import "./try.css";
 
@@ -18,10 +17,12 @@ export default function TryIt() {
   return usePhoneLite() ? <TryItPhone /> : <TryItDesk />;
 }
 
+// Round 4: the page is 2D, so desktop shows the live app in a DOM phone (./TryDomPhone.tsx) that
+// takes taps wherever it sits on screen (the agency owner: "You should be able to click it
+// whenever"); the scene is one screen tall and nothing holds the page.
 function TryItDesk() {
-  const poses = useMemo(() => tryPoses(), []);
   return (
-    <Scene id="try" pinnedViewports={TRY_VIEWPORTS} poses={poses} label="Try the crew app" className="try try--desk">
+    <Scene id="try" pinnedViewports={1} stage="keep" label="Try the crew app" className="try try--desk">
       <TryDesk />
     </Scene>
   );

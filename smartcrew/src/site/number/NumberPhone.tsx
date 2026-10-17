@@ -1,8 +1,9 @@
 // 4 · Your number, PHONE MODE (BRIEF ROUND 3; scratchpad design/v2/phone/PHONE.md): one screen,
 // slider + result + CTA. The headline, the crew (one canvas of hard hats, ./CrewCanvas.tsx), the
 // two picks, then the visitor's own number and the orange CTA that carries it into the popup.
-// Same arithmetic and honesty as the desktop (OFFER.md §6): every input is the visitor's, nothing
-// is pre-selected, we only multiply and show the working. No scroll-driven JS: on arrival (once)
+// Same arithmetic and honesty as the desktop (OFFER.md §6): it starts from the presets (round 4,
+// ./calc.ts PRESET) so a number is there at once, we only multiply and show the working, and only
+// a number the visitor has made their own goes with the lead. No scroll-driven JS: on arrival (once)
 // the empty crew ripples in and, at 1.4 s, the knob nudges once (CSS); everything else moves only
 // when the visitor touches it. The hour meter (SCROLL_SHOTS §2): his dollars appear once his
 // inputs have settled (250 ms after the last change), the wheels rolling up to them (transform).
@@ -16,7 +17,7 @@ import { SceneCta } from "../try/SceneCta";
 import { useStaged } from "../try/warm";
 import { CrewCanvas } from "./CrewCanvas";
 import { Odometer } from "./Odometer";
-import { DAYS_DEFAULT, annualCost, grouped, money, parseDays, weekly } from "./calc";
+import { DAYS_DEFAULT, PRESET, annualCost, grouped, money, parseDays, weekly } from "./calc";
 import { useSettled } from "./settle";
 import "./number-phone.css";
 
@@ -25,9 +26,8 @@ const COPY = {
    * matches the minutes label; the wage is the hourly cost itself) */
   rate: "Hourly cost per person",
   rateNote: "with taxes + insurance",
-  /** The guide in the result's place until his number is there: what to set next. Nothing is
-   * pre-selected (OFFER.md §6: no anchor we'd have to defend), but every input shows a result at
-   * once: the crew, then the hours it pays for, then the dollars. */
+  /** The guide in the result's place if an input is cleared (round 4 starts from the presets, so
+   * normally the dollars are there): what to set next. */
   next: {
     crew: "Start: drag to your crew size",
     minutes: "Next: tap minutes lost a day",
@@ -104,9 +104,10 @@ function Money({ value }: { value: number }) {
 }
 
 export default function NumberPhone() {
-  const [crew, setCrew] = useState<number | null>(null);
-  const [minutes, setMinutes] = useState<number | null>(null);
-  const [rate, setRate] = useState<number | null>(null);
+  // round 4: a number at once, from the presets (./calc.ts PRESET); the visitor changes them to theirs
+  const [crew, setCrew] = useState<number | null>(PRESET.crew);
+  const [minutes, setMinutes] = useState<number | null>(PRESET.minutes);
+  const [rate, setRate] = useState<number | null>(PRESET.rate);
   const [daysText, setDaysText] = useState(String(DAYS_DEFAULT));
   const days = parseDays(daysText);
   const annual = annualCost({ crew, minutes, rate, days });
@@ -142,11 +143,12 @@ export default function NumberPhone() {
     return () => window.clearTimeout(t);
   }, [annual]);
 
+  // the presets are ours: the number goes with the lead only once the visitor has made it theirs
   const request = (): SignupRequest => ({
     intent: "trial",
     source: "calculator",
-    size: crew ? sizeFor(crew) : undefined,
-    estimate: complete
+    size: interacted.current && crew ? sizeFor(crew) : undefined,
+    estimate: interacted.current && complete
       ? {
           crew: crew!,
           minutes: minutes!,

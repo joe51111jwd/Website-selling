@@ -10,7 +10,9 @@ import markUrl from "./assets/mark.svg";
 // A small, dedicated copy of the real app's look (src/screens: white shell, Inter, the sidebar,
 // the company + login in the top bar). It's labelled a preview; Andrew sets up the real one.
 
-const CREW_DOTS: Record<Size, number> = { "1–5": 3, "6–20": 7, "21–50": 10, "51–100": 12, "100+": 13 };
+/** How many people marks the Workforce card shows per bucket (it holds 13); bigger buckets add a "+". */
+const CREW_DOTS: Record<Size, number> = { "1–5": 3, "6–12": 6, "13–25": 9, "26–50": 11, "51–100": 13, "101–250": 13, "250+": 13 };
+const MORE: Size[] = ["26–50", "51–100", "101–250", "250+"];
 
 const NAV: { label: string; icon: IconName }[] = [
   { label: "Dashboard", icon: "home" },
@@ -46,13 +48,13 @@ function Full({ draft, intent, focus, saving }: Props) {
   const reduce = useReducedMotion() ?? false;
   const { company, first, email, done, count } = useFacts(draft);
   const dots = draft.size ? CREW_DOTS[draft.size] : 0;
-  const callLabel = intent === "demo" ? "Demo with Andrew" : "Setup call with Andrew";
+  const callLabel = intent === "demo" ? "Demo with Andrew" : "Trial setup with Andrew";
 
   const rows: { key: string; label: string; value: ReactNode; ok: boolean }[] = [
     { key: "company", label: "Company", value: company, ok: done.company },
-    { key: "crew", label: "Crew size", value: draft.size ? `${draft.size} people` : "", ok: done.size },
+    { key: "crew", label: "Employees", value: draft.size ?? "", ok: done.size },
     { key: "admin", label: "Admin", value: first, ok: done.admin },
-    { key: "mobile", label: "Mobile", value: draft.phone, ok: done.mobile },
+    { key: "mobile", label: "Cell phone", value: draft.phone, ok: done.mobile },
   ];
 
   return (
@@ -112,7 +114,7 @@ function Full({ draft, intent, focus, saving }: Props) {
                       exit={{ opacity: 0, y: reduce ? 0 : -10, filter: "blur(4px)" }}
                       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      {draft.size ? `${draft.size} crew members` : "How big is the crew?"}
+                      {draft.size ? `${draft.size} employees` : "How many employees?"}
                     </motion.span>
                   </AnimatePresence>
                 </div>
@@ -149,7 +151,7 @@ function Full({ draft, intent, focus, saving }: Props) {
                     ))}
                   </AnimatePresence>
                   {!dots && !done.admin && <span className="su-skel su-skel--avs" />}
-                  {draft.size && (draft.size === "21–50" || draft.size === "51–100" || draft.size === "100+") && (
+                  {draft.size && MORE.includes(draft.size) && (
                     <motion.span className="su-av-more" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
                       +
                     </motion.span>
@@ -249,8 +251,8 @@ function Tilt({ children, reduce }: { children: ReactNode; reduce: boolean }) {
 }
 
 /** Phones: the same idea as ONE line of the app's top bar on the dark strip above the form
- * ("Hart Excavating · 6–20 crew", tagged as a preview). One count only on a phone: the header's
- * "Step x of 3" (no second progress ring here). */
+ * ("Hart Excavating · 13–25 people", tagged as a preview). One count only on a phone: the header's
+ * "Step x of 2" (no second progress ring here). */
 function Compact({ draft, focus, hidden }: Props) {
   const company = draft.company.trim();
   return (
@@ -265,7 +267,7 @@ function Compact({ draft, focus, hidden }: Props) {
               {company || <span className="su-pvc-ph">Your company</span>}
               <Caret on={focus === "company"} />
             </b>
-            {draft.size && <span className="su-pvc-size">{`\u00a0· ${draft.size} crew`}</span>}
+            {draft.size && <span className="su-pvc-size">{`\u00a0· ${draft.size} people`}</span>}
           </p>
           <span className="su-pvc-tag">
             <span className="su-pv-live" aria-hidden="true" />

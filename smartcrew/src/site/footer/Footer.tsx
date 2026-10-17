@@ -1,6 +1,6 @@
-// Footer (BRIEF §8, PLAYBOOK S10): quiet, on the night ground the page started on. The day ends
-// the way the intro began: a dashed geofence closes, this time around the logo. Contact, log in,
-// privacy/terms, the trademark and demo notes, and the XDR model credit only if a scene shows it.
+// Footer (BRIEF §8, PLAYBOOK S10): quiet, on the night ground. The logo (no dashed fence round it:
+// "no random polygons"), contact, log in, privacy/terms, the trademark and demo notes, and the XDR
+// model credit only if a scene shows it.
 
 import { useEffect, useRef, useState } from "react";
 import { FLAG, FOOTER_SCENE } from "../../content/copy";
@@ -10,9 +10,6 @@ import { devicesInUse, onStageChange } from "../../three/stage/store";
 import { Scene } from "../scene/Scene";
 import { useSeen } from "../offer/useSeen";
 import "./footer.css";
-
-// the intro's "Hwy 9 Culvert" geofence (index.html .i-zone), reused around the mark
-const FENCE = "978,392 1148,362 1238,428 1220,548 1062,580 962,508";
 
 /** True once any scene's keys show the Pro Display XDR (its CC-BY licence asks for the credit). */
 function useXdrInUse() {
@@ -47,34 +44,6 @@ export default function Footer() {
                 aria-label="SmartCrew, back to the top"
               >
                 <span className="ftr-mark">
-                  <svg
-                    className="ftr-fence"
-                    viewBox="946 346 308 250"
-                    aria-hidden="true"
-                  >
-                    <defs>
-                      <mask
-                        id="ftr-fence-draw"
-                        maskUnits="userSpaceOnUse"
-                        x="946"
-                        y="346"
-                        width="308"
-                        height="250"
-                      >
-                        <polygon
-                          className="ftr-fence-draw"
-                          points={FENCE}
-                          pathLength={1}
-                        />
-                      </mask>
-                    </defs>
-                    <polygon className="ftr-fence-zone" points={FENCE} />
-                    <polygon
-                      className="ftr-fence-line"
-                      points={FENCE}
-                      mask="url(#ftr-fence-draw)"
-                    />
-                  </svg>
                   <Logo className="ftr-mark-svg" variant="mark" decorative />
                 </span>
                 <Logo
@@ -101,7 +70,7 @@ export default function Footer() {
           <div className="ftr-base">
             <ul className="ftr-legal">
               <li>
-                {/* ⚑ the live pages predate this flow (SMS consent, Founding Member trial) */}
+                {/* ⚑ the live pages predate this flow (SMS consent, the free-trial sign-up) */}
                 <a href={config.privacyUrl}>
                   {FOOTER_SCENE.privacy}
                   <span

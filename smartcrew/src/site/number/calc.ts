@@ -1,8 +1,13 @@
-// Your number's arithmetic (OFFER.md §6). The visitor supplies every input; this only multiplies:
-// people × minutes a day ÷ 60 × workdays × hourly cost. Nothing here is a claim.
+// Your number's arithmetic (OFFER.md §6). This only multiplies: people × minutes a day ÷ 60 ×
+// workdays × hourly cost. Nothing here is a claim.
 
-export const CREW_MAX = 150;
+/** Andrew's doc: "cap it at 100 people". */
+export const CREW_MAX = 100;
 export const DAYS_DEFAULT = 250;
+/** Round 4 (James: show a number at once): a starting crew, minutes and hourly cost, so a real
+ * figure is there before any input; the visitor changes them to theirs. Only the inputs they touch
+ * travel with the lead (see `mine`). */
+export const PRESET = { crew: 20, minutes: 15, rate: 35 } as const;
 
 export type Inputs = { crew: number | null; minutes: number | null; rate: number | null; days: number | null };
 

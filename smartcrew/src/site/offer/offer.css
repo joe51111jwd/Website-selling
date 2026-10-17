@@ -1,516 +1,182 @@
-/* 7 · Andrew + the offer. Three columns on laptops: his words, his photo, his receipt (the focal
-   point) with the CTA directly under it. Phones stack them: Andrew first, then the receipt. */
+/* 8 · Why us, round 4 (./Offer.tsx): Andrew's photo beside his founder letter on laptops, the photo
+   on top on phones. The rest of the letter opens in place under "Read more". */
 
-/* natural height, tight to its content: the slip and its CTA set the height; no empty band
-   above "No sales team." or below the button (BRIEF round 2 §7) */
-.offer .scene-body {
-  display: flex;
-}
-
-.offer-grid {
-  position: relative;
+.why-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr) clamp(300px, 25vw, 360px);
-  grid-template-areas: "story photo deal";
-  column-gap: clamp(16px, 2.2vw, 36px);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  column-gap: clamp(28px, 5vw, 88px);
   align-items: center;
-  width: 100%;
-  padding-top: calc(var(--header-h) + clamp(4px, 1.4svh, 16px));
-  padding-bottom: clamp(8px, 2svh, 22px);
+  padding-block: clamp(72px, 11svh, 120px);
 }
 
-/* ── Andrew ─────────────────────────────────────────────────────────────── */
-
-/* his words start level with the top of his receipt (not centred against it), so the scene
-   opens on "No sales team." right under the header, with no empty band above it */
-.offer-story {
-  grid-area: story;
-  align-self: start;
-  padding-block: calc(clamp(10px, 2.4svh, 28px) + 10px) clamp(12px, 2svh, 24px);
-  max-width: 30rem;
+/* the photo: a static cut-out standing in a warm panel (Andrew sends a new headshot) */
+.why-photo {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  margin: 0;
+  aspect-ratio: 5 / 5.4;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  background: linear-gradient(180deg, var(--ground-2), #ebe2d8);
 }
 
-.offer-title {
-  font-size: clamp(32px, 2.4vw + 1.6svh + 4px, 60px);
-  line-height: 1;
+.why-photo img {
+  width: 92%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: bottom;
 }
 
-.offer-title-line {
-  display: block;
-  transition:
-    opacity 0.7s var(--ease-out) var(--d, 0ms),
-    transform 0.9s var(--ease-out) var(--d, 0ms);
+.why-story {
+  max-width: 36rem;
 }
 
-/* "No sales team. No BDR." read as the things you don't get; "Just Andrew." is the point */
-.offer-title-line.is-muted {
-  color: var(--ink-3);
+.why-kicker {
+  margin: 0;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  color: var(--orange-ink);
 }
 
-.offer-lines {
-  margin-top: clamp(16px, 3.4svh, 30px);
-  max-width: 25.5rem;
+.why-title {
+  margin-top: 10px;
+}
+
+.why-letter {
+  margin-top: clamp(18px, 3svh, 28px);
+  font-size: clamp(16.5px, 0.25vw + 14px, 18.5px);
+  line-height: 1.55;
   color: var(--ink-2);
 }
 
-.offer-lines li {
-  transition:
-    opacity 0.7s var(--ease-out) var(--d, 0ms),
-    transform 0.9s var(--ease-out) var(--d, 0ms);
+.why-letter p {
+  margin: 0 0 0.9em;
 }
 
-.offer-lines li + li {
-  margin-top: 0.55em;
+/* the rest of the letter: open and closed by its height (grid rows), no layout reads */
+.why-rest {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.45s var(--ease-out);
 }
 
-/* the founder's own CTA (PLAYBOOK S7): a demo with him, under his story */
-.offer-demo {
-  margin-top: clamp(14px, 2.6svh, 26px);
-  transition: opacity 0.7s var(--ease-out) var(--d, 0ms);
+.why-rest.is-open {
+  grid-template-rows: 1fr;
 }
 
-.offer-demo .link {
-  font-size: 16px;
+.why-rest-in {
+  min-height: 0;
+  overflow: hidden;
 }
 
-.offer-grid:not(.is-seen) .offer-demo {
-  opacity: 0;
-}
-
-.offer-grid:not(.is-seen) .offer-title-line,
-.offer-grid:not(.is-seen) .offer-lines li {
-  opacity: 0;
-  transform: translateY(0.45em);
-}
-
-/* the cut-out stands on the ground at the bottom of the scene and fades into it; it slips
-   under the receipt so the slip reads as his */
-.offer-photo {
-  grid-area: photo;
-  align-self: end;
-  justify-self: end;
-  position: relative;
-  z-index: 0;
-  margin: 0 calc(-1 * clamp(30px, 5vw, 84px)) 0 0;
-  height: min(68svh, 470px);
-  aspect-ratio: 456 / 420;
-  pointer-events: none;
-}
-
-.offer-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: 50% 100%;
-  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 98%);
-  mask-image: linear-gradient(to bottom, #000 70%, transparent 98%);
-}
-
-/* ── the deal: receipt + CTA ───────────────────────────────────────────── */
-
-.offer-deal {
-  grid-area: deal;
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  padding-block: clamp(10px, 2.4svh, 28px);
-}
-
-.offer-actions {
-  display: flex;
-  flex-direction: column;
+.why-more {
+  display: inline-flex;
   align-items: center;
-  gap: 2px;
-  margin-top: clamp(12px, 2.4svh, 22px);
-  transition: filter 0.2s var(--ease-out);
+  gap: 6px;
+  min-height: 40px;
+  font-weight: 600;
+  color: var(--ink);
 }
 
-/* slid up under the frosted header: out of sight, so the FAQ's close CTA can take over (Offer.tsx).
-   A filter, not `opacity`: the button still counts as on screen for primaryCta.ts, so the header's
-   own CTA doesn't flash in between the two. */
-.offer-actions.is-under {
-  filter: opacity(0);
-  pointer-events: none;
+.why-more-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s var(--ease-out);
 }
 
-.offer-cta {
-  width: 100%;
+.why-more[aria-expanded="true"] .why-more-icon {
+  transform: rotate(180deg);
 }
 
-
-/* ── the receipt ───────────────────────────────────────────────────────── */
-
-.rcpt {
-  --rcpt-paper: #fffefb;
-  --rcpt-ink: #231d17;
-  --rcpt-ink-2: #6f6358;
-  --rcpt-fs: clamp(12.5px, 0.25vw + 1.05svh + 3px, 14px);
-  position: relative;
-  width: 100%;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
+.why-sign {
+  display: grid;
+  justify-items: start;
+  margin-top: clamp(14px, 2.4svh, 22px);
+  color: var(--ink);
 }
 
-/* the slot: everything below its centre line is still inside the printer */
-.rcpt-feed {
-  position: relative;
-  clip-path: inset(-120px -120px 0 -120px);
+.why-signoff {
+  font-size: 16px;
+  color: var(--ink-2);
 }
 
-.rcpt[data-phase="torn"] .rcpt-feed,
-.rcpt[data-phase="signed"] .rcpt-feed,
-.rcpt[data-phase="static"] .rcpt-feed {
-  clip-path: none;
+.why-sig {
+  width: 150px;
+  height: auto;
+  margin-top: 6px;
 }
 
-.rcpt-paper {
-  position: relative;
-  color: var(--rcpt-ink);
-  transform-origin: 50% 0;
-  filter: drop-shadow(0 1px 1px rgb(23 19 15 / 9%)) drop-shadow(0 14px 22px rgb(23 19 15 / 9%));
+.why-by {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--ink-3);
 }
 
-.rcpt[data-phase="idle"] .rcpt-paper,
-.rcpt[data-phase="printing"] .rcpt-paper {
-  transform: translateY(calc(100% + 12px));
-  will-change: transform;
+.why-act {
+  margin-top: clamp(22px, 3.4svh, 32px);
 }
 
-/* settled on the table, a hair off square */
-.rcpt[data-phase="static"] .rcpt-paper {
-  transform: rotate(-0.9deg);
-}
-
-.rcpt-edge {
-  display: block;
-  width: 100%;
-  height: 8px;
-  fill: var(--rcpt-paper);
-}
-
-.rcpt-edge--top {
-  margin-bottom: -1px;
-}
-
-.rcpt-edge--bottom {
-  margin-top: -1px;
-}
-
-.rcpt-body {
-  background: linear-gradient(to bottom, var(--rcpt-paper), #fdfbf7);
-  padding: clamp(8px, 1.6svh, 14px) clamp(18px, 1.6vw, 24px) clamp(6px, 1.2svh, 10px);
-  font-size: var(--rcpt-fs);
-  line-height: 1.36;
-  letter-spacing: 0;
-}
-
-.rcpt-row {
-  position: relative;
-}
-
-.rcpt-head {
-  display: flex;
-  justify-content: center;
-  padding-top: 2px;
-}
-
-.rcpt-logo {
-  height: calc(var(--rcpt-fs) * 1.1);
-}
-
-.rcpt-title {
-  margin-top: 0.3em;
-  text-align: center;
-  font-family: var(--font-display);
-  font-stretch: 108%;
-  font-weight: 700;
-  font-size: calc(var(--rcpt-fs) * 1.2);
-  letter-spacing: -0.015em;
-}
-
-.rcpt-meta {
-  text-align: center;
-  font-size: calc(var(--rcpt-fs) * 0.86);
-  color: var(--rcpt-ink-2);
-}
-
-/* rules are printed dashes, like the real thing */
-.rcpt-rule {
-  height: calc(var(--rcpt-fs) * 0.85);
-  background: linear-gradient(90deg, rgb(35 29 23 / 55%) 55%, transparent 0) 0 50% / 6px 1px repeat-x;
-}
-
-.rcpt-rule--double {
-  background:
-    linear-gradient(rgb(35 29 23 / 80%), rgb(35 29 23 / 80%)) 0 calc(50% - 1.5px) / 100% 1px no-repeat,
-    linear-gradient(rgb(35 29 23 / 80%), rgb(35 29 23 / 80%)) 0 calc(50% + 1.5px) / 100% 1px no-repeat;
-}
-
-.rcpt-h {
-  font-weight: 700;
-  margin-bottom: 0.1em;
-}
-
-.rcpt-line {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 14px;
-  font-weight: 500;
-}
-
-.rcpt-item {
-  min-width: 0;
-}
-
-.rcpt-val {
-  flex: none;
-  color: var(--rcpt-ink-2);
-  font-weight: 500;
-}
-
-.rcpt-sub {
-  padding-left: 0.9em;
-  margin-top: -0.1em;
-  font-size: calc(var(--rcpt-fs) * 0.9);
-  color: var(--rcpt-ink-2);
-}
-
-.rcpt-total {
-  font-family: var(--font-display);
-  font-stretch: 108%;
-  font-weight: 750;
-  font-size: calc(var(--rcpt-fs) * 1.32);
-  letter-spacing: -0.02em;
-  padding-block: 0.05em;
-}
-
-.rcpt-total .rcpt-val {
-  color: var(--rcpt-ink);
-  font-weight: 750;
-}
-
-/* ⚑ placeholders: visibly not final (dashed, hatched, orange ink) */
-.rcpt-flag {
-  color: var(--orange-ink);
-}
-
-.rcpt-line.rcpt-flag {
-  margin: 0.2em -0.35em 0;
-  padding: 0 0.35em;
-  border-radius: 3px;
-  outline: 1px dashed rgb(184 79 0 / 45%);
-  outline-offset: -1px;
-  background: repeating-linear-gradient(-45deg, rgb(255 122 1 / 7%) 0 4px, transparent 4px 8px);
-}
-
-.rcpt-flag .rcpt-val,
-.rcpt-flag-mark {
-  color: var(--orange-ink);
-  font-weight: 700;
-}
-
-.rcpt-note {
-  text-align: center;
-  font-size: calc(var(--rcpt-fs) * 0.84);
-  line-height: 1.35;
-  text-wrap: balance;
-}
-
-.rcpt-note-item {
-  white-space: nowrap;
-}
-
-/* "× ____ Andrew" like a card slip */
-.rcpt-sign {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  margin-top: calc(var(--rcpt-fs) * 0.15);
-}
-
-.rcpt-x {
-  font-size: calc(var(--rcpt-fs) * 1.05);
-  color: var(--rcpt-ink-2);
-  padding-bottom: 2px;
-}
-
-.rcpt-sig {
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-  border-bottom: 1px solid rgb(35 29 23 / 45%);
-  padding: 0 0 2px 4px;
-}
-
-.rcpt-sig-svg {
-  height: calc(var(--rcpt-fs) * 2.3);
-  width: auto;
-  color: #1b1712;
-  clip-path: inset(-6px 100% -6px -6px);
-  transition: clip-path 0.95s cubic-bezier(0.55, 0.05, 0.35, 1);
-}
-
-.rcpt[data-phase="signed"] .rcpt-sig-svg,
-.rcpt[data-phase="static"] .rcpt-sig-svg {
-  clip-path: inset(-6px -6px -6px -6px);
-}
-
-.rcpt-by {
-  margin-top: 3px;
-  padding-left: calc(var(--rcpt-fs) + 8px);
-  font-size: calc(var(--rcpt-fs) * 0.82);
-  color: var(--rcpt-ink-2);
-}
-
-/* the printer's mouth: a dark lip the paper rises out of; gone once the slip is torn off */
-.rcpt-slot {
-  position: absolute;
-  left: -14px;
-  right: -14px;
-  bottom: -6px;
-  height: 12px;
-  border-radius: 7px;
-  background: linear-gradient(#2c261f, #15120f);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 9%),
-    0 8px 16px -8px rgb(23 19 15 / 45%);
-  transition:
-    opacity 0.45s var(--ease-out),
-    transform 0.45s var(--ease-out);
-}
-
-.rcpt[data-phase="torn"] .rcpt-slot,
-.rcpt[data-phase="signed"] .rcpt-slot,
-.rcpt[data-phase="static"] .rcpt-slot {
-  opacity: 0;
-  transform: translateY(8px) scaleX(0.96);
-}
-
-/* a status light: blinks while printing */
-.rcpt-led {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  width: 4px;
-  height: 4px;
-  margin-top: -2px;
-  border-radius: 50%;
-  background: #4a4038;
-}
-
-.rcpt[data-phase="printing"] .rcpt-led {
-  background: #f4eee7;
-  box-shadow: 0 0 5px rgb(244 238 231 / 60%);
-  animation: rcpt-blink 0.36s steps(2, jump-none) infinite;
-}
-
-@keyframes rcpt-blink {
-  50% {
-    opacity: 0.35;
-  }
-}
-
-/* ── short laptops ─────────────────────────────────────────────────────── */
-
-
-/* ── narrow laptops and tablets: his words over his photo, the receipt beside ── */
-
-@media (min-width: 761px) and (max-width: 960px) {
-  .offer-grid {
-    grid-template-columns: minmax(0, 1fr) clamp(300px, 42vw, 360px);
-    grid-template-areas:
-      "story deal"
-      "photo deal";
-    grid-template-rows: auto minmax(0, 1fr);
-    align-items: end;
+/* the words come up once, the first time they are seen */
+@media (prefers-reduced-motion: no-preference) {
+  .why-photo,
+  .why-story > * {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 0.6s var(--ease-out),
+      transform 0.8s var(--ease-out);
   }
 
-  .offer-story {
-    align-self: end;
-    padding-block: 32px 0;
+  .why-story > :nth-child(2) {
+    transition-delay: 0.06s;
   }
 
-  .offer-photo {
-    justify-self: center;
-    margin: 0;
-    height: min(42svh, 420px);
+  .why-story > :nth-child(n + 3) {
+    transition-delay: 0.14s;
   }
 
-  .offer-deal {
-    align-self: center;
-  }
-}
-
-/* ── phones: Andrew's face first, his words over the fade, then his receipt ── */
-
-@media (max-width: 760px) {
-  .offer-grid {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "photo"
-      "story"
-      "deal";
-    align-items: start;
-    padding-top: calc(var(--header-h) + 8px);
-    /* the sticky bar steps aside while the offer's own CTA is up, so no room is kept for it */
-    padding-bottom: 20px;
-  }
-
-  .offer-photo {
-    justify-self: center;
-    margin: 0;
-    height: min(38svh, 256px);
-  }
-
-  .offer-story {
-    position: relative;
-    z-index: 1;
-    margin-top: -56px;
-    padding-block: 0;
-  }
-
-  .offer-title {
-    font-size: clamp(34px, 9.4vw, 40px);
-  }
-
-  .offer-lines {
-    margin-top: 14px;
-    font-size: 16.5px;
-  }
-
-  .offer-demo {
-    margin-top: 12px;
-  }
-
-  .offer-deal {
-    padding-block: 36px 0;
-    width: min(100%, 348px);
-    justify-self: center;
-  }
-
-  .rcpt {
-    --rcpt-fs: 13.25px;
-  }
-
-  /* the feed seen from the paper's side (Receipt.tsx): the paper stays put, the lip travels down
-     it as each row prints, and only what is printed shows above the lip */
-  .rcpt[data-phase="idle"] .rcpt-paper,
-  .rcpt[data-phase="printing"] .rcpt-paper {
+  .is-seen .why-photo,
+  .is-seen .why-story > * {
+    opacity: 1;
     transform: none;
   }
 
-  .rcpt[data-phase="idle"] .rcpt-feed,
-  .rcpt[data-phase="printing"] .rcpt-feed {
-    clip-path: inset(-120px -120px calc(100% - var(--printed, 0px)) -120px);
+  .why-rest {
+    transition: grid-template-rows 0.45s var(--ease-out);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .why-rest {
+    transition: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .why-grid {
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: 56px 64px;
   }
 
-  .rcpt[data-phase="idle"] .rcpt-slot,
-  .rcpt[data-phase="printing"] .rcpt-slot {
-    top: calc(var(--printed, 0px) - 6px);
-    bottom: auto;
-    transition: none;
+  .why-photo {
+    aspect-ratio: 4 / 3;
+    max-height: 300px;
+  }
+
+  .why-photo img {
+    width: auto;
+    height: 100%;
+  }
+
+  .why-story {
+    margin-top: 28px;
+  }
+
+  .why-cta {
+    width: 100%;
   }
 }

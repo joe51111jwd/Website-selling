@@ -3,7 +3,8 @@
 // different things… all 38 features need to be there").
 //
 // It starts at the tool that was clicked in "See all 38 tools" (./AllTools.tsx) and plays on by
-// itself through every tool of the six groups, in the sheet's order. Each step shows the tool's
+// itself through every tool of the six groups (the page's six feature cards, ../features/data.ts),
+// in the cards' order. Each step shows the tool's
 // screen flat (no 3D), zoomed in on the part that shows it, with an orange ring on it; on the same
 // screen the view glides from box to box (the boss liked the highlight moving over the boxes
 // rather than cutting); a new screen crossfades in. Beside it: the group, the tool's name and its
@@ -17,7 +18,9 @@ import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, use
 import { SPEC } from "../../content/copy";
 import type { Box } from "../../content/moments";
 import { Cta } from "../ui/Cta";
-import { CATEGORIES, TOOL_COUNT, type Category, type Tool } from "./data";
+import { TOOL_COUNT, type Category, type Tool } from "./data";
+// grouped as the page's six feature cards (src/site/features): Time Tracking … Crew Management
+import { FEATURE_CATEGORIES as CATEGORIES } from "../features/data";
 import { screenComp, warmScreen } from "./screens";
 
 /** New words this view needs (not in copy.ts yet: for the copy review). */

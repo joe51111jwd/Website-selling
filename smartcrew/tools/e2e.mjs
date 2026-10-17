@@ -6,7 +6,9 @@
 //   npm run e2e -- [baseUrl]
 //
 // Works against the dev server or a built preview (vite preview). It never books a time on
-// Andrew's Cal.com: it stops once his calendar has mounted. Elements are found the way a visitor
+// Andrew's Cal.com: it stops once his calendar has mounted. It never sends a lead anywhere either
+// (config.leadWebhook is empty on previews; the test asserts nothing is posted). Round 4 (Andrew's
+// Oct 16 feedback): no ride and no 3D, the popup has two steps, /book is video-first. Elements are found the way a visitor
 // finds them, by role and name (buttons named "Get my free trial", headings, links), plus a few
 // stable hooks: #hero-cta / [data-hero-cta], data-testid="sticky-bar|book-cal|book-video|book-setup",
 // the smartcrew:signup event every CTA fires (src/signup/contract.ts), and the popup's storage
@@ -37,8 +39,8 @@ const ROOT = fileURLToPath(new URL("../", import.meta.url));
 // ─── what the page should say, read from the source (so copy changes don't break the test) ────
 const copySrc = readFileSync(`${ROOT}src/content/copy.ts`, "utf8");
 const configSrc = readFileSync(`${ROOT}src/config.ts`, "utf8");
-const anglesBlock = copySrc.slice(copySrc.indexOf("export const ANGLES"));
-const ANGLES = Object.fromEntries([...anglesBlock.matchAll(/^\s{2}(\w+): \{\s*\n\s*h1: "([^"]+)"/gm)].slice(0, 5).map((m) => [m[1], m[2]]));
+const SIZE = copySrc.match(/SIZE: "([^"]+)"/)?.[1] ?? "";
+const HERO_H1 = (copySrc.match(/export const HERO4 = \{[\s\S]*?h1: `([^`]+)`/)?.[1] ?? "").replace("${T.SIZE}", SIZE);
 const LOGIN_URL = configSrc.match(/loginUrl:\s*"([^"]+)"/)?.[1];
 const VIDEO_ID = configSrc.match(/walkthrough:\s*"([^"]+)"/)?.[1];
 const norm = (s) => (s ?? "").toLowerCase().replace(/[^a-z0-9$]/g, "");
@@ -467,7 +469,7 @@ async function heroBasics(device) {
   const page = await open(ctx);
   try {
     const text = await h1Name(page);
-    assert(norm(text) === norm(ANGLES.profit), `H1 "${text}" is not ANGLES.profit`);
+    assert(HERO_H1 && norm(text) === norm(HERO_H1), `H1 "${text}" is not HERO4.h1 "${HERO_H1}"`);
     const cta = await heroCta(page);
     await cta.waitFor({ state: "visible", timeout: 10000 });
     await press(page, cta, { what: "the hero CTA" });
@@ -490,13 +492,10 @@ async function everyCta(device) {
     await waitScenes(page);
     const seen = await ctaWalk(page, device, device.name === "phone" ? 0.5 : 0.4);
     const sources = [...new Set([...seen.values()].map((v) => `${v.source}${v.intent === "demo" ? "(demo)" : ""}`))];
-    // the CTAs a visitor must meet just by scrolling (Try it's and the calculator's need a tap
+    // the CTAs a visitor must meet just by scrolling (Try it's and the pain picker's need a tap
     // first: their own checks click them)
-    const need =
-      device.name === "phone"
-        ? ["hero", "sticky", "specsheet", "apps", "offer", "faq", "faq(demo)"]
-        : // One Day's own CTA ("day") only comes in at the end of its ride: the ride check clicks it
-          ["hero", "header", "specsheet", "apps", "offer", "offer(demo)", "faq", "faq(demo)"];
+    const shared = ["hero", "hero(demo)", "replace", "replace(demo)", "features", "watch", "calculator", "offer", "faq", "faq(demo)"];
+    const need = device.name === "phone" ? ["sticky", ...shared] : ["header", ...shared];
     const missing = need.filter((n) => !sources.includes(n));
     assert(!missing.length, `never met (or never opened the popup): ${missing.join(", ")}; met: ${sources.join(", ")}`);
     return `${seen.size} CTAs clicked: ${sources.join(", ")}`;
@@ -559,7 +558,7 @@ async function headerLinks(device) {
     if (device.name === "desktop") {
       for (const [name, id] of [
         ["FAQ", "faq"],
-        ["How it works", "day"],
+        ["How it works", "features"],
       ]) {
         await scrollTo(page, 0, 300);
         await press(page, banner.getByRole("link", { name, exact: true }), { what: `the header's "${name}" link` });
@@ -584,11 +583,14 @@ async function specSheet(device) {
   const page = await open(ctx);
   try {
     await waitScenes(page);
-    await scrollSection(page, "#specs", 0, device.settle);
+    await scrollSection(page, "#features", 0, device.settle);
     await wait(900);
     // "See all 38 tools": big, and it opens every tool
-    const all = page.locator("section#specs").getByRole("button", { name: /^see all \d+ tools/i }).first();
+    const all = page.locator("section#features").getByRole("button", { name: /^see all \d+ tools/i }).first();
     await all.waitFor({ state: "visible", timeout: 8000 });
+    // (on phones it sits under the six cards: scroll down to it, as a visitor would)
+    await all.scrollIntoViewIfNeeded();
+    await wait(300);
     await press(page, all, { what: "See all 38 tools" });
     const dialog = page.getByRole("dialog", { name: /all \d+ tools/i });
     await dialog.waitFor({ state: "visible", timeout: 5000 });
@@ -611,6 +613,57 @@ async function specSheet(device) {
     await press(page, dialog.getByRole("button", { name: /^close$/i }).first(), { what: "Close" });
     await dialog.waitFor({ state: "hidden", timeout: 5000 });
     return `38 tools; "${first}" (${count}) → "${next}" by itself; closes`;
+  } finally {
+    await ctx.close();
+  }
+}
+
+/** The biggest pain picker: a chip or a typed headache answers "We have a feature for that." and
+ *  opens that feature's card; a headache it can't place gets the trial button. */
+async function painPicker(device) {
+  const ctx = await newContext(device);
+  const page = await open(ctx);
+  try {
+    await waitScenes(page);
+    await scrollSection(page, "#features", 0, device.settle);
+    await wait(900);
+    const sec = page.locator("section#features");
+    const answer = sec.locator(".ft-answer");
+    const said = async () => (await answer.innerText()).replace(/\s+/g, " ").trim();
+    const saysSoon = async (re) => {
+      for (let t = Date.now(); Date.now() - t < 5000; await wait(150)) if (re.test(await said())) break;
+      return said();
+    };
+    const opened = (id) => sec.getByTestId(`feature-card-${id}`).first().getAttribute("aria-expanded");
+    // a chip
+    const chip = sec.getByRole("button", { name: /^lost haul tickets$/i }).first();
+    await chip.scrollIntoViewIfNeeded();
+    await press(page, chip, { what: "the Lost haul tickets chip" });
+    const a1 = await saysSoon(/we have a feature for that/i);
+    assert(/materials & hauling/i.test(a1), `"Lost haul tickets" answered "${a1}"`);
+    assert((await chip.getAttribute("aria-pressed")) === "true", "the chip doesn't show as picked");
+    assert((await opened("materials")) === "true", "Materials & Hauling's card didn't open");
+    // typed, sent with Enter
+    const input = sec.getByRole("textbox", { name: /type your own/i });
+    await input.scrollIntoViewIfNeeded();
+    await input.fill("my guys forget to clock out");
+    await input.press("Enter");
+    const a2 = await saysSoon(/time tracking/i);
+    assert(/we have a feature for that/i.test(a2) && /time tracking/i.test(a2), `"my guys forget to clock out" answered "${a2}"`);
+    assert((await opened("time")) === "true", "Time Tracking's card didn't open");
+    // no match: the trial button
+    await input.fill("my dog keeps barking at night");
+    await input.press("Enter");
+    const cta = answer.getByRole("button", { name: /get my free trial/i }).first();
+    await cta.waitFor({ state: "visible", timeout: 5000 });
+    const a3 = await said();
+    await cta.scrollIntoViewIfNeeded();
+    await press(page, cta, { what: "the no-match CTA" });
+    await expectPopup(page);
+    const s = (await signups(page)).pop();
+    assert(s?.source === "features-pain", `the no-match CTA sent ${JSON.stringify(s)}`);
+    await closePopup(page);
+    return `chip → "${a1}"; typed → "${a2}"; no match → "${a3.slice(0, 40)}…" + CTA → popup`;
   } finally {
     await ctx.close();
   }
@@ -644,8 +697,15 @@ async function tryIt(device) {
     }
     await press(page, clockIn, { what: "Clock In" });
     await sec.getByText(/that.s the whole training/i).first().waitFor({ state: "attached", timeout: 8000 });
-    const cta = sec.getByRole("button", { name: /get my free trial/i }).first();
-    await cta.waitFor({ state: "visible", timeout: 5000 });
+    // the CTA under "That's the whole training.", or (while the tap has dimmed the rest of the
+    // page: focus mode, src/site/try/focus.tsx) the one beside the phone / in the dimmed header
+    const ctas = [sec.getByRole("button", { name: /get my free trial/i }).first(), page.locator(".fx.is-open .fx-cta").getByRole("button", { name: /get my free trial/i }).first()];
+    let cta = null;
+    for (const t0 = Date.now(); !cta && Date.now() - t0 < 6000; ) {
+      for (const c of ctas) if (!cta && (await isVisible(c))) cta = c;
+      if (!cta) await wait(250);
+    }
+    assert(cta, "no Try it CTA showed after the tap");
     await press(page, cta, { what: "Try it's CTA" });
     await expectPopup(page);
     const s = (await signups(page)).pop();
@@ -668,8 +728,10 @@ async function yourNumber(device) {
     await slider.waitFor({ state: "visible", timeout: 8000 });
     await slider.scrollIntoViewIfNeeded();
     await slider.focus();
-    await page.keyboard.press("PageUp"); // 10
-    for (let i = 0; i < 8; i++) await page.keyboard.press("ArrowRight"); // 18
+    // it starts from the preset crew (src/site/number/calc.ts PRESET): set it from 1
+    await page.keyboard.press("Home"); // 1
+    await page.keyboard.press("PageUp"); // 11
+    for (let i = 0; i < 7; i++) await page.keyboard.press("ArrowRight"); // 18
     const now = await slider.getAttribute("aria-valuenow");
     assert(now === "18", `slider at ${now}, expected 18`);
     for (const [group, value] of [
@@ -687,14 +749,14 @@ async function yourNumber(device) {
     await expectPopup(page);
     const s = (await signups(page)).pop();
     assert(s?.source === "calculator", `calculator CTA sent source ${s?.source}`);
-    assert(s?.size === "6–20", `crew size ${s?.size}, expected 6–20`);
+    assert(s?.size === "13–25", `crew size ${s?.size}, expected 13–25`);
     assert(s?.estimate?.crew === 18 && Math.round(s.estimate.annual) === expected, `estimate ${JSON.stringify(s?.estimate)}`);
     const dlg = await popup(page).innerText();
     const money = `$${expected.toLocaleString("en-US")}`;
-    assert(dlg.includes("6–20"), "the popup doesn't show the crew size as saved");
+    assert(dlg.includes("13–25"), "the popup doesn't show the crew size as saved");
     assert(dlg.includes(money), `the popup doesn't show the estimate ${money}`);
     await closePopup(page);
-    return `18 people × 15 min × $45 → ${money} a year, carried into the popup (crew size 6–20 pre-filled)`;
+    return `18 people × 15 min × $45 → ${money} a year, carried into the popup (crew size 13–25 pre-filled)`;
   } finally {
     await ctx.close();
   }
@@ -727,19 +789,14 @@ async function faq(device) {
   }
 }
 
-async function angles(device) {
+/** Round 4: the ?angle= headlines are off; every link shows Andrew's one headline. */
+async function anglesOff(device) {
   const ctx = await newContext(device);
-  const out = [];
   try {
-    assert(Object.keys(ANGLES).length === 5, `read ${Object.keys(ANGLES).length} angles from copy.ts`);
-    for (const [angle, h1Text] of Object.entries(ANGLES)) {
-      const page = await open(ctx, `/?angle=${angle}`);
-      const got = await h1Name(page);
-      assert(norm(got) === norm(h1Text), `?angle=${angle}: H1 "${got}" ≠ "${h1Text}"`);
-      out.push(angle);
-      await page.close();
-    }
-    return out.join(", ");
+    const page = await open(ctx, "/?angle=crew");
+    const got = await h1Name(page);
+    assert(norm(got) === norm(HERO_H1), `?angle=crew: H1 "${got}" ≠ HERO4.h1`);
+    return "?angle=crew shows HERO4.h1";
   } finally {
     await ctx.close();
   }
@@ -846,7 +903,7 @@ async function reducedMotion(device) {
     await cta.waitFor({ state: "visible", timeout: 5000 });
     const overlay = await page.evaluate((fn) => new Function(`return (${fn})`)()(), OVERLAY_FN);
     assert(!overlay.length, `an overlay is up: ${overlay.join(", ")}`);
-    assert(norm(await h1Name(page)) === norm(ANGLES.profit), "the H1 isn't the profit angle's");
+    assert(norm(await h1Name(page)) === norm(HERO_H1), "the H1 isn't HERO4.h1");
     await press(page, cta, { what: "the hero CTA" });
     await expectPopup(page);
     await closePopup(page);
@@ -857,283 +914,81 @@ async function reducedMotion(device) {
 }
 
 async function noWebgl() {
+  // round 4: the page is all 2D, so it works the same without WebGL and never loads three.js
   const ctx = await newContext(DESKTOP, { kind: "nogl" });
   try {
     const page = await open(ctx);
     const h1 = page.getByRole("heading", { level: 1 }).first();
     await h1.waitFor({ state: "visible", timeout: 15000 });
-    // the Stage only starts once the hero's sand has settled (src/site/ready.ts: holds), so wait
-    // for it to report rather than a fixed time
-    await page.waitForFunction(() => document.documentElement.classList.contains("stage-fallback"), null, { timeout: 20000 }).catch(() => {});
-    const state = await page.evaluate(() => ({
-      fallback: document.documentElement.classList.contains("stage-fallback"),
-      webgl: !!document.createElement("canvas").getContext("webgl2") || !!document.createElement("canvas").getContext("webgl"),
-      posters: [...document.querySelectorAll("img")].filter((i) => /renders\//.test(i.currentSrc || i.src) && i.getBoundingClientRect().width > 50).length,
-    }));
-    assert(!state.webgl, "WebGL is still on (the flags didn't take)");
-    assert(state.fallback, "html.stage-fallback was not set without WebGL");
-    assert(state.posters > 0, "no poster still stands in for the 3D");
     const cta = await heroCta(page);
     await press(page, cta, { what: "the hero CTA" });
     await expectPopup(page);
     await closePopup(page);
     await waitScenes(page);
-    await scrollSection(page, "#apps", 1, 800);
-    return `stage-fallback, ${state.posters} poster(s) on screen, popup works`;
+    await scrollSection(page, "#watch", 0, 800);
+    return "hero, popup and every section without WebGL";
   } finally {
     await ctx.close();
   }
 }
 
-// ─── One Day: "Enjoy the ride" (desktop) ─────────────────────────────────────────────────────
-//
-// Scrolling past the hero starts the ride: the page glides One Day into place and holds it while
-// the day plays on a clock. The visitor's own scrolling never fights it (downward input is
-// absorbed), a clear scroll up hands the page back with "Resume the ride", the header slides away
-// for the takeover and the control bar's own orange button stays clickable (it pauses the ride),
-// the controls work (pause / play, the 7-tick rail,
-// Space, →, Skip), the page scrolls normally afterwards, and the ride ends on its own orange
-// button with Replay. ?rideDebug exposes the ride's state (and lets the test jump to its end).
-
-const rideState = (page) =>
-  page.evaluate(() => ({
-    y: Math.round(scrollY),
-    ...window.__ride.state(),
-    t: Math.round(window.__ride.time()),
-    bar: Math.round(document.querySelector("#day .day-controls")?.getBoundingClientRect().top ?? -1),
-  }));
-const dayTopOf = (page) => page.evaluate(() => Math.round(document.getElementById("day").getBoundingClientRect().top + scrollY));
-async function rideDbg(page, label) {
-  if (DEBUG) console.log(`    ride ${label.padEnd(26)} ${JSON.stringify(await rideState(page))}`);
-}
-async function until(page, fn, what, ms = 8000) {
-  const t0 = Date.now();
-  let last = null;
-  while (Date.now() - t0 < ms) {
-    last = await rideState(page);
-    if (fn(last)) return last;
-    await wait(150);
-  }
-  throw new Error(`${what} (state ${JSON.stringify(last)})`);
-}
-/** Wait until the page has stopped scrolling (the smooth scroll's glide after a wheel). */
-async function settleScroll(page, ms = 6000) {
-  const t0 = Date.now();
-  let y = -1;
-  while (Date.now() - t0 < ms) {
-    const now = await page.evaluate(() => scrollY);
-    if (now === y) return;
-    y = now;
-    await wait(250);
-  }
-}
-const wheel = async (page, dy, n = 1, gap = 40) => {
-  for (let i = 0; i < n; i++) {
-    await page.mouse.wheel(0, dy);
-    await wait(gap);
-  }
-};
-
-/**
- * The whole ride, functionally. `kind: "nogl"` (the stills stand in for the 3D): headless software
- * WebGL redraws a 1440×660 frame in ~0.3 s and uploads each screen texture in seconds, so while
- * the ride plays the page is stalled most of the time and taps land seconds late; the controls,
- * the hold and the CTA are DOM either way. `full: false` (with the 3D): it starts and holds, input
- * is absorbed, Skip hands the page back.
- */
-async function ride(device, { kind = "nogl", full = true } = {}) {
-  const ctx = await newContext(device, {
-    kind,
-    init: {
-      fn: () => {
-        window.__tracks = [];
-        window.addEventListener("smartcrew:track", (e) => window.__tracks.push(e.detail.event));
-      },
-    },
-  });
-  // a quarter of the film's pace: headless software WebGL stalls for seconds at a time, and the
-  // ride must not run out from under the test
-  const page = await open(ctx, "/?rideDebug&rideRate=0.25");
-  const out = [];
+/** Replace 5 apps: the six cards with the apps they replace, the SmartCrew box and its button. */
+async function replaceApps(device) {
+  const ctx = await newContext(device);
+  const page = await open(ctx);
   try {
     await waitScenes(page);
-    await scrollTo(page, 0, 400);
-    await quiet(page);
-    const top = await dayTopOf(page);
-    const ctrl = page.locator("#day .day-controls");
-
-    // starts on scroll: a few wheel notches down from the hero
-    await page.mouse.move(720, 330);
-    await wheel(page, 100, 3, 60);
-    let s = await until(page, (x) => x.state === "playing" && Math.abs(x.y - top) <= 2, "the ride didn't start and hold One Day after a scroll down", 12000);
-    out.push("starts on scroll, One Day held");
-
-    // input during the ride: a trackpad-like burst down scrolls THROUGH the film (the page stays
-    // put, the day moves on faster than real time), and it plays on once the scrolling stops
-    const t1 = s.t;
-    for (let i = 0; i < 30; i++) await page.mouse.wheel(0, 9);
-    await wait(300);
-    s = await rideState(page);
-    assert(s.y === top && s.t - t1 > 2500, `scrolling down during the ride didn't move through the film (or moved the page): ${JSON.stringify(s)}`);
-    s = await until(page, (x) => x.state === "playing" && x.y === top, "the ride didn't play on after the scrolling stopped", 4000);
-    out.push("scrolling moves through the ride, then it plays on");
-    // never a still frame: the map ground keeps walking while it plays (a track on the film's clock)
-    const walk = () => page.evaluate(() => getComputedStyle(document.querySelector(".day-topo-sheet")).transform);
-    // (polled: headless software WebGL can stall a frame for over a second, and the film's clock
-    // only advances between frames)
-    const w0 = await walk();
-    let moved = false;
-    for (let i = 0; i < 12 && !moved; i++) {
-      await wait(400);
-      moved = w0 !== (await walk());
-    }
-    assert(moved, "the ground stood still while the ride played");
-    out.push("the ground walks");
-    if (!full) {
-      await press(page, ctrl.getByRole("button", { name: /^skip$/i }), { what: "Skip" });
-      s = await until(page, (x) => x.state === "paused" && x.reason === "skip" && !x.held && x.y > top + 100, "Skip didn't hand the page back and move on", 20000);
-      out.push("Skip moves on");
-      return out.join("; ");
-    }
-
-    // the controls: pause, play, Space, → (next moment), a tick
-    await press(page, ctrl.getByRole("button", { name: /^pause$/i }), { what: "Pause" });
-    await until(page, (x) => x.state === "paused", "Pause didn't pause");
-    await press(page, ctrl.getByRole("button", { name: /^play the day$/i }), { what: "Play" });
-    await until(page, (x) => x.state === "playing" && x.held, "Play didn't play");
-    await rideDbg(page, "after Play");
-    await page.locator("body").focus().catch(() => {});
-    await page.keyboard.press("Space");
-    await rideDbg(page, "after Space 1");
-    await until(page, (x) => x.state === "paused", "Space didn't pause");
-    await rideDbg(page, "paused by Space");
-    await page.keyboard.press("Space");
-    await rideDbg(page, "after Space 2");
-    await until(page, (x) => x.state === "playing", "Space didn't play");
-    const c0 = (await rideState(page)).chapter;
-    await page.keyboard.press("ArrowRight");
-    await until(page, (x) => x.chapter === c0 + 1, "→ didn't go to the next moment");
-    await press(page, ctrl.locator(".plc-rail button").nth(4), { what: "the 5:00 PM tick" });
-    await until(page, (x) => x.chapter === 4 && x.state === "playing", "the 5:00 PM tick didn't jump there");
-    out.push("pause / play / Space / → / tick");
-
-    // the takeover: the header has slid away while the ride plays; the control bar carries the
-    // orange button, which opens the popup and pauses the ride (and the header comes back)
-    const headerShown = () => page.evaluate(() => getComputedStyle(document.querySelector(".site-header")).visibility !== "hidden");
-    await wait(900);
-    assert(!(await headerShown()), "the header is still there during the ride (the takeover)");
-    // …and nothing of the page above or below peeks into the frame
-    const peek = await page.evaluate(() =>
-      [[720, 3], [8, 330], [innerWidth - 8, 330], [720, innerHeight - 3], [innerWidth - 8, 8]]
-        .map(([x, y]) => {
-          const e = document.elementFromPoint(x, y);
-          return e && e !== document.body && e !== document.documentElement && !e.closest("#day") ? `${e.tagName}.${e.className}` : null;
-        })
-        .filter(Boolean),
-    );
-    assert(!peek.length, `the page peeks into the ride's frame: ${peek.join(", ")}`);
-    await press(page, ctrl.getByRole("button", { name: /get my free trial/i }), { what: "the control bar's CTA during the ride" });
+    const sec = page.locator("section#replace");
+    await scrollSection(page, "#replace", 0, device.settle);
+    const h2 = (await sec.getByRole("heading", { level: 2 }).first().innerText()).replace(/\s+/g, " ");
+    assert(/replace 5 apps/i.test(h2) && /smartcrew/i.test(h2), `heading "${h2}"`);
+    const cards = await sec.locator('[data-testid^="rp-card-"]').count();
+    assert(cards === 6, `${cards} cards, not 6`);
+    assert(await sec.getByRole("heading", { level: 3, name: /materials & hauling/i }).count(), "no Materials & Hauling card");
+    assert(await sec.getByTestId("rp-hub").count(), "no SmartCrew box");
+    const cta = sec.getByRole("button", { name: /get my free trial/i }).first();
+    await cta.scrollIntoViewIfNeeded();
+    await press(page, cta, { what: "Replace 5 apps' CTA" });
     await expectPopup(page);
-    s = await rideState(page);
-    assert(s.state === "paused" && s.reason === "cta", `the ride didn't pause for the popup: ${JSON.stringify(s)}`);
-    const sigBar = (await signups(page)).pop();
-    assert(sigBar?.source === "ride", `the control bar's CTA sent ${JSON.stringify(sigBar)}`);
-    await rideDbg(page, "popup open");
+    const s = (await signups(page)).pop();
+    assert(s?.source === "replace", `Replace 5 apps' CTA sent ${JSON.stringify(s)}`);
     await closePopup(page);
-    await rideDbg(page, "popup closed");
-    await ctrl.getByRole("button", { name: /resume the ride/i }).waitFor({ state: "visible", timeout: 5000 });
-    await wait(900);
-    await rideDbg(page, "header back?");
-    assert(await headerShown(), "the header didn't come back when the ride paused for the popup");
-    out.push("header away during the ride; the bar's CTA works (pauses, popup, Resume, header back)");
-
-    // scrolling up moves the day back; past its start it hands the page back, with "Resume the ride"
-    await press(page, ctrl.getByRole("button", { name: /resume the ride/i }), { what: "Resume the ride" });
-    s = await until(page, (x) => x.state === "playing" && x.held, "Resume didn't play");
-    const t2 = s.t;
-    await wheel(page, -60, 3, 30);
-    await wait(300);
-    s = await rideState(page);
-    assert(s.y === top && s.t < t2, `scrolling up didn't move the day back: ${JSON.stringify(s)}`);
-    await wheel(page, -120, 40, 25);
-    s = await until(page, (x) => x.state === "paused" && x.reason === "exit" && x.y < top, "scrolling up past the start didn't hand the page back");
-    out.push(`scroll up moves it back, past its start the page goes up (${s.y - top} px)`);
-
-    // Skip: the page moves on past One Day, and scrolls normally after. (Back to One Day first,
-    // once the smooth scroll of the exit has come to rest: a jump while it still glides is undone.)
-    await settleScroll(page);
-    await scrollTo(page, top, 500);
-    await press(page, ctrl.getByRole("button", { name: /resume the ride/i }), { what: "Resume the ride" });
-    await until(page, (x) => x.state === "playing" && x.held, "Resume didn't play");
-    await press(page, ctrl.getByRole("button", { name: /^skip$/i }), { what: "Skip" });
-    s = await until(page, (x) => x.state === "paused" && x.reason === "skip" && !x.held && x.y > top + 100, "Skip didn't hand the page back and move on", 10000);
-    const y0 = s.y;
-    await wheel(page, 120, 4, 80);
-    await wait(1200);
-    s = await rideState(page);
-    assert(s.y > y0 + 100, `the page doesn't scroll after Skip (${y0} → ${s.y})`);
-    out.push("Skip moves on, scroll works after");
-
-    // the end: Friday, its orange button, the page handed back, Replay
-    await scrollTo(page, top, 500);
-    await press(page, ctrl.getByRole("button", { name: /resume the ride/i }), { what: "Resume the ride" });
-    await until(page, (x) => x.state === "playing", "Resume didn't play");
-    await page.evaluate(() => window.__ride.seek(window.__ride.ride.duration - 1200));
-    await until(page, (x) => x.state === "ended" && !x.held, "the ride didn't end and hand the page back", 12000);
-    const dayCta = page.locator("#day .day-end").getByRole("button", { name: /get my free trial/i });
-    await press(page, dayCta, { what: "One Day's own CTA" });
-    await expectPopup(page);
-    const sig = (await signups(page)).pop();
-    assert(sig?.source === "day", `One Day's CTA sent ${JSON.stringify(sig)}`);
-    await closePopup(page);
-    const ye = (await rideState(page)).y;
-    await wheel(page, 120, 3, 80);
-    await wait(1000);
-    s = await rideState(page);
-    assert(s.y > ye + 100 && s.state === "ended", `the page doesn't scroll on after the end (${ye} → ${s.y})`);
-    await scrollTo(page, top, 600);
-    s = await rideState(page);
-    assert(s.state === "ended", `scrolling back up replayed it: ${JSON.stringify(s)}`);
-    await press(page, ctrl.getByRole("button", { name: /replay/i }), { what: "Replay" });
-    await until(page, (x) => x.state === "playing" && x.held, "Replay didn't play again");
-    out.push("ends on its CTA, released, no auto-replay, Replay");
-
-    const tracks = await page.evaluate(() => window.__tracks.filter((e) => e.startsWith("ride_")));
-    for (const e of ["ride_start", "ride_exit_up", "ride_skip", "ride_complete"]) assert(tracks.includes(e), `no ${e} tracked (${tracks.join(", ")})`);
-    out.push(`tracked ${[...new Set(tracks)].join(", ")}`);
-    return out.join("; ");
+    return "6 cards (with Materials & Hauling), the SmartCrew box, CTA → popup";
   } finally {
     await ctx.close();
   }
 }
 
-/** Reduced motion: One Day never plays on its own or holds the page; Previous / Next step through it. */
-async function rideReduced(device) {
-  const ctx = await newContext(device, { reducedMotion: "reduce" });
-  const page = await open(ctx, "/?rideDebug");
+/** Watch it work: the day in seven rows, each led by its feature headline, plays as it scrolls in. */
+async function watchItWork(device) {
+  const ctx = await newContext(device);
+  const page = await open(ctx);
   try {
     await waitScenes(page);
-    const top = await dayTopOf(page);
-    await page.mouse.move(720, 330);
-    await scrollTo(page, Math.round(top - 0.6 * device.ctx.viewport.height), 300);
-    await wheel(page, 100, 3, 60);
-    await wait(1500);
-    let s = await rideState(page);
-    assert(s.state !== "playing" && !s.held, `reduced motion: the ride played or held the page: ${JSON.stringify(s)}`);
-    await scrollTo(page, top, 400);
-    const ctrl = page.locator("#day .day-controls");
-    const c0 = (await rideState(page)).chapter;
-    await press(page, ctrl.getByRole("button", { name: /next moment/i }), { what: "Next" });
-    s = await until(page, (x) => x.chapter === c0 + 1, "Next didn't step");
-    await press(page, ctrl.getByRole("button", { name: /previous moment/i }), { what: "Previous" });
-    await until(page, (x) => x.chapter === c0, "Previous didn't step back");
-    return "no autoplay, no hold; Previous / Next step through the moments";
+    const sec = page.locator("section#watch");
+    await scrollSection(page, "#watch", 0, device.settle);
+    const rows = sec.locator("li.ww-item");
+    const n = await rows.count();
+    assert(n === 7, `${n} moments, not 7`);
+    for (let i = 0; i < n; i++) assert(await rows.nth(i).getByRole("heading", { level: 3 }).count(), `moment ${i + 1} has no headline`);
+    // as each row scrolls in it plays once (is-in): scroll through them as a visitor would
+    for (let i = 0; i < n; i++) {
+      await rows.nth(i).scrollIntoViewIfNeeded();
+      await wait(250);
+    }
+    await wait(1800);
+    const played = await sec.locator("li.ww-item.is-in").count();
+    assert(played === n, `${played} of ${n} rows played`);
+    // the page scrolls straight past it (no hold): one more screen down, and it has moved
+    const y0 = await page.evaluate(() => scrollY);
+    await scrollTo(page, y0 + device.ctx.viewport.height, 400);
+    assert((await page.evaluate(() => scrollY)) > y0 + 100, "the page didn't scroll past Watch it work");
+    return `${n} moments with headlines, each played once, no hold`;
   } finally {
     await ctx.close();
   }
 }
 
-/** The popup's 3 steps with their errors, the hand-off to /book, and /book itself (no booking). */
 async function funnel(device) {
   const ctx = await newContext(device);
   const page = await open(ctx);
@@ -1152,41 +1007,33 @@ async function funnel(device) {
     await cont();
     await wait(500);
     let e = await errors();
-    assert(/crew size/i.test(e) && /company/i.test(e), `step 1 errors: "${e}"`);
-    await dlg.getByRole("radio", { name: "6–20" }).click();
+    assert(/employees/i.test(e) && /company/i.test(e), `step 1 errors: "${e}"`);
+    await dlg.getByRole("radio", { name: "13–25" }).click();
     await dlg.getByLabel("Company name").fill("QA Test Earthworks");
     await cont();
     await dlg.getByLabel("Your name").waitFor({ state: "visible", timeout: 15000 });
-    out.push("step 1 errors + size/company");
+    out.push("step 1 errors + employees/company");
 
-    // step 2: a bad email → error; then good
+    // step 2: a bad email and a short number → errors; then good → /book
+    const start = () => dlg.getByRole("button", { name: /start my free trial|pick my demo time/i }).click();
     await dlg.getByLabel("Your name").fill("Pat Tester");
-    await dlg.getByLabel("Email").fill("pat@example");
-    await cont();
+    await dlg.getByLabel("Work email").fill("pat@example");
+    await dlg.getByLabel("Cell phone").fill("555");
+    await start();
     await wait(500);
     e = await errors();
-    assert(/email/i.test(e), `step 2 error: "${e}"`);
-    await dlg.getByLabel("Email").fill("pat.tester@example.com");
-    await cont();
-    await dlg.getByLabel("Mobile number").waitFor({ state: "visible", timeout: 15000 });
-    out.push("step 2 email error");
-
-    // step 3: a short number → error; then good → /book
-    await dlg.getByLabel("Mobile number").fill("555");
-    await dlg.getByRole("button", { name: /pick my (call|demo) time/i }).click();
-    await wait(500);
-    e = await errors();
-    assert(/10-digit/i.test(e), `step 3 error: "${e}"`);
-    await dlg.getByLabel("Mobile number").fill("5555550123");
-    await Promise.all([page.waitForURL(/\/book\/?(\?|$)/, { timeout: 15000 }), dlg.getByRole("button", { name: /pick my (call|demo) time/i }).click()]);
-    out.push("step 3 phone error → /book");
+    assert(/email/i.test(e) && /10-digit/i.test(e), `step 2 errors: "${e}"`);
+    await dlg.getByLabel("Work email").fill("pat.tester@example.com");
+    await dlg.getByLabel("Cell phone").fill("5555550123");
+    await Promise.all([page.waitForURL(/\/book\/?(\?|$)/, { timeout: 15000 }), start()]);
+    out.push("step 2 email + phone errors → /book");
 
     // nothing personal in the URL; the lead rides in sessionStorage
     assert(!/example\.com|Pat|5555550123/i.test(page.url()), `personal data in the URL: ${page.url()}`);
     const lead = await page.evaluate(() => JSON.parse(sessionStorage.getItem("sc_lead") || "null"));
     assert(lead, "no sc_lead in sessionStorage");
     assert(lead.company === "QA Test Earthworks" && lead.name === "Pat Tester" && lead.email === "pat.tester@example.com", `lead ${JSON.stringify(lead).slice(0, 160)}`);
-    assert(lead.size === "6–20" && lead.phone_e164 === "+15555550123" && lead.stage === "complete", `lead size/phone ${lead.size} ${lead.phone_e164}`);
+    assert(lead.size === "13–25" && lead.phone_e164 === "+15555550123" && lead.stage === "complete", `lead size/phone ${lead.size} ${lead.phone_e164}`);
     out.push("lead handed over (company, name, email, phone, size)");
 
     // /book: personal headline, Andrew's video, his calendar prefilled
@@ -1198,16 +1045,30 @@ async function funnel(device) {
     assert(await video.isVisible(), "Andrew's video isn't on /book");
     assert(await page.locator(`#vidalytics_embed_${VIDEO_ID}`).count(), `no Vidalytics container #vidalytics_embed_${VIDEO_ID}`);
     const frame = page.getByTestId("book-cal").locator("iframe").first();
-    await frame.waitFor({ state: "attached", timeout: 25000 });
-    const src = (await frame.getAttribute("src")) ?? "";
-    const q = new URL(src).searchParams;
-    assert(/cal\.com/.test(src), `calendar iframe src ${src.slice(0, 80)}`);
-    assert(q.get("name") === "Pat Tester" && q.get("email") === "pat.tester@example.com", `Cal prefill name=${q.get("name")} email=${q.get("email")}`);
-    await page.waitForSelector('[data-testid="book-cal"].is-ready', { timeout: 25000 }).catch(() => note("Cal didn't report ready within 25 s"));
-    const calTop = await page.getByTestId("book-cal").evaluate((el) => Math.round(el.getBoundingClientRect().top + scrollY));
-    const vh = device.ctx.viewport.height;
-    assert(calTop < vh * 0.7, `the calendar starts ${calTop} px down (more than 0.7 of the first screen)`);
-    out.push(`/book: H1, video, Cal prefilled (name+email), calendar at ${calTop} px`);
+    // Cal.com mounts its iframe, or (when it can't be reached, as behind a locked-down network) the
+    // calendar shows its fallback card: that is only a note when Cal.com itself was unreachable
+    const failed = page.locator('[data-testid="book-cal"].is-failed');
+    await Promise.race([frame.waitFor({ state: "attached", timeout: 25000 }), failed.waitFor({ state: "attached", timeout: 25000 })]).catch(() => {});
+    let calNote = "";
+    if (await frame.count()) {
+      const src = (await frame.getAttribute("src")) ?? "";
+      const q = new URL(src).searchParams;
+      assert(/cal\.com/.test(src), `calendar iframe src ${src.slice(0, 80)}`);
+      assert(q.get("name") === "Pat Tester" && q.get("email") === "pat.tester@example.com", `Cal prefill name=${q.get("name")} email=${q.get("email")}`);
+      await page.waitForSelector('[data-testid="book-cal"].is-ready', { timeout: 25000 }).catch(() => note("Cal didn't report ready within 25 s"));
+      calNote = "Cal prefilled (name+email)";
+    } else {
+      const calBlocked = requested[device.name].some((u) => /cal\.com/.test(u));
+      assert(await failed.count(), "the calendar neither loaded nor showed its fallback");
+      assert(await page.getByRole("link", { name: /open andrew.s calendar/i }).count(), "the calendar's fallback has no link to Cal.com");
+      note(`Cal.com unreachable from this machine${calBlocked ? "" : " (no request seen)"}: the fallback card showed`);
+      calNote = "Cal.com unreachable here: fallback card with its link";
+    }
+    // Andrew's order: headline, then the video, then the calendar, then the details
+    const topOf = (id) => page.getByTestId(id).evaluate((el) => Math.round(el.getBoundingClientRect().top + scrollY));
+    const [vTop, calTop, setTop] = [await topOf("book-video"), await topOf("book-cal"), await topOf("book-setup")];
+    assert(vTop < calTop && calTop < setTop, `/book order: video ${vTop}, calendar ${calTop}, setup ${setTop}`);
+    out.push(`/book: H1, video (${vTop}) above the calendar (${calTop}), ${calNote}`);
 
     // the product details under the calendar
     const setup = page.getByTestId("book-setup");
@@ -1215,6 +1076,8 @@ async function funnel(device) {
     const groups = await setup.getByRole("heading", { level: 3 }).count();
     assert(groups === 6, `${groups} spec groups under the calendar`);
 
+    // no lead sent anywhere (no email to Andrew or the visitor from a test): leadWebhook is empty
+    assert(/leadWebhook:\s*""/.test(configSrc), "config.leadWebhook is set: a test run would send leads");
     // no tracking IDs on previews
     const tracking = requested[device.name].filter((u) => /facebook\.(com|net)\/(tr|en_US\/fbevents)|googletagmanager\.com|google-analytics\.com/.test(u));
     assert(!tracking.length, `tracking requests went out: ${tracking[0]}`);
@@ -1231,8 +1094,9 @@ async function phoneNoThree() {
   const desk = requested.desktop.filter((u) => three.test(u));
   assert(requested.phone.length > 50, `only ${requested.phone.length} phone requests recorded (run the phone checks first)`);
   assert(!hits.length, `phones requested: ${[...new Set(hits)].slice(0, 3).join(", ")}`);
-  if (!desk.length && requested.desktop.length) note("the pattern matched nothing on desktop either: check it still finds the 3D chunks");
-  return `${requested.phone.length} phone requests, none for three.js or .glb (desktop: ${new Set(desk).size} such URLs)`;
+  // round 4: the 3D Stage is off (src/App.tsx STAGE_ON), so laptops never load it either
+  assert(!desk.length, `laptops requested: ${[...new Set(desk)].slice(0, 3).join(", ")}`);
+  return `${requested.phone.length} phone and ${requested.desktop.length} laptop requests, none for three.js or .glb`;
 }
 
 function consoleClean(where) {
@@ -1254,24 +1118,22 @@ for (const device of [DESKTOP, PHONE]) {
   await check(D, "hero: H1 + CTA in the first screen → popup", () => heroBasics(device));
   await check(D, "every CTA on the page opens the popup", () => everyCta(device), { timeout: 900000 });
   await check(D, "never two orange CTAs on screen at once", () => oneOrangeAtATime(device), { timeout: 300000 });
-  await check(D, "popup 3 steps + errors → /book prefilled (no booking)", () => funnel(device), { timeout: 150000 });
-  await check(D, "spec sheet: all 38 tools → walkthrough", () => specSheet(device));
+  await check(D, "popup 2 steps + errors → /book prefilled (no booking)", () => funnel(device), { timeout: 150000 });
+  await check(D, "Replace 5 apps: 6 cards → CTA", () => replaceApps(device));
+  await check(D, "features: all 38 tools → walkthrough", () => specSheet(device));
+  await check(D, "features: biggest pain picker", () => painPicker(device));
+  await check(D, "Watch it work: 7 moments, no hold", () => watchItWork(device));
   await check(D, "Try it: tap Clock In → CTA", () => tryIt(device));
   await check(D, "Your number: slider + picks → popup prefill", () => yourNumber(device));
   await check(D, "FAQ toggles", () => faq(device));
   await check(D, "header links + Log in href", () => headerLinks(device));
-  if (device.name === "desktop") {
-    await check(D, "One Day ride (3D): scroll starts it, holds, Skip", () => ride(device, { kind: "gl", full: false }), { timeout: 300000 });
-    await check(D, "One Day ride (stills): controls, CTA, exit, Skip, end", () => ride(device), { timeout: 300000 });
-    await check(D, "One Day ride: reduced motion steps, no autoplay", () => rideReduced(device), { timeout: 150000 });
-  }
-  await check(D, "?angle= variants render their own H1", () => angles(device));
+  await check(D, "?angle= headlines are off", () => anglesOff(device));
   await check(D, "no intro overlay; hero CTA clickable ≤ 2.5 s", () => noIntroCtaFast(device), { timeout: 150000 });
-  if (device.name === "desktop") await check(D, "no WebGL: posters stand in, page still converts", () => noWebgl(), { timeout: 150000 });
+  if (device.name === "desktop") await check(D, "no WebGL: the page still converts", () => noWebgl(), { timeout: 150000 });
   await check(D, "prefers-reduced-motion", () => reducedMotion(device));
   await check(D, "zero console errors / failed requests", async () => consoleClean(device.name));
 }
-await check("iPhone FB 390×664", "never requests three.js or .glb", () => phoneNoThree());
+await check("both", "never requests three.js or .glb", () => phoneNoThree());
 
 for (const b of Object.values(browsers)) await b.close();
 

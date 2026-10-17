@@ -102,7 +102,8 @@
 
 .su-progress {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 6px;
   margin-top: 14px;
 }
@@ -177,8 +178,15 @@
   line-height: 1.35;
   color: var(--ink-2);
 }
-.su-honest img,
-.su-next img {
+.su-honest span {
+  text-wrap: pretty;
+}
+/* the last step: what happens when he presses the button, said plainly */
+.su-honest--next {
+  color: var(--ink);
+  font-weight: 600;
+}
+.su-honest img {
   flex: none;
   border-radius: 50%;
   object-fit: cover;
@@ -211,6 +219,9 @@
   font-weight: 600;
   line-height: 1.2;
   color: var(--ink);
+}
+.su-label label {
+  cursor: pointer;
 }
 .su-label-hint {
   font-weight: 400;
@@ -316,15 +327,17 @@
   text-decoration-color: var(--ink);
 }
 
-/* crew-size chips: a radio group; the dark fill slides between them */
+/* employee-count chips: a radio group; the dark fill slides between them. Seven buckets sit as two
+   full rows, four over three (a 12-column grid: spans of 3, then 4), so nothing is squeezed */
 .su-chips {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 8px;
 }
 .su-chip {
+  grid-column: span 3;
   position: relative;
-  height: 50px;
+  height: 48px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--paper);
@@ -338,6 +351,9 @@
     border-color 0.18s,
     transform 0.12s,
     color 0.18s;
+}
+.su-chip:nth-child(n + 5) {
+  grid-column: span 4;
 }
 .su-chip:hover {
   border-color: #d3c6b8;
@@ -411,7 +427,6 @@
   font-weight: 500;
   color: var(--ink);
   cursor: pointer;
-  margin-top: -4px;
 }
 .su-check input {
   position: absolute;
@@ -448,7 +463,7 @@
   font-weight: 400;
 }
 .su-fine {
-  margin: -14px 0 0 34px;
+  margin: 0 0 0 34px;
   font-size: 12.5px;
   line-height: 1.4;
   color: var(--ink-3);
@@ -465,34 +480,38 @@
   vertical-align: super;
 }
 
-.su-body[data-step="2"] .su-fields {
+/* step 2: name on its own line, then work email and cell phone side by side (email gets the room),
+   then the text-reminder opt-in. One column on phones and narrow laptops' popups (container query). */
+.su-body {
+  container-type: inline-size;
+}
+.su-body[data-step="1"] .su-fields {
   gap: 16px;
   margin-top: 22px;
+}
+.su-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+@container (min-width: 440px) {
+  .su-row {
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+}
+.su-sms {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: -6px;
 }
 
 /* ── actions ─────────────────────────────────────────────────────────────── */
 
 .su-pre {
   padding-top: 16px;
-}
-.su-next {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin: 0 0 14px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: #f1e9df;
-}
-.su-next p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.4;
-  color: var(--ink-2);
-}
-.su-next b {
-  color: var(--ink);
-  font-weight: 650;
 }
 .su-sys {
   margin: 0 0 12px;
@@ -1119,13 +1138,21 @@
   .su-head {
     padding-top: 20px;
   }
-  .su-body[data-step="2"] .su-fields {
+  .su-body[data-step="1"] .su-fields {
     margin-top: 16px;
     gap: 12px;
   }
-  .su-next {
-    padding: 10px 12px;
-    margin-bottom: 12px;
+  .su-body[data-step="1"] .su-input {
+    height: 48px;
+  }
+  .su-body[data-step="1"] .su-label {
+    margin-bottom: 6px;
+  }
+  .su-sms {
+    margin-top: -4px;
+  }
+  .su-check {
+    min-height: 34px;
   }
   .su-step {
     padding-top: 20px;
@@ -1277,17 +1304,6 @@
   .su-dialog.is-kb .su-foot {
     padding-top: 10px;
   }
-  .su-next {
-    align-items: center;
-    padding: 10px 12px;
-    margin-bottom: 12px;
-  }
-  .su-next p {
-    font-size: 13.5px;
-  }
-  .su-next-more {
-    display: none;
-  }
   .su-legal {
     font-size: 12.5px;
   }
@@ -1303,14 +1319,8 @@
   .su-fine {
     margin-left: 0;
   }
-
-  /* the hint sits on its own line under the question here: no leading middot */
   .su-label-hint {
-    flex-basis: 100%;
     font-size: 14px;
-  }
-  .su-label-hint::before {
-    content: none;
   }
   .su-pvc {
     overflow: hidden;

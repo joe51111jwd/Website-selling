@@ -92,7 +92,8 @@ export default function TryPhone() {
           on={clock.on}
           secs={secs}
           ghost={clock.ghost}
-          live={arrived}
+          // takes taps as soon as it is built, wherever it sits on screen (not only once it has arrived)
+          live={arrived || stage >= 4}
           stage={stage - 1}
           breathe={isIn && !clock.on && !clock.touched && !clock.demoed}
           onClockIn={() => clock.clockIn("visitor")}

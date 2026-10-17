@@ -106,12 +106,34 @@ function useFloat(layer: React.RefObject<HTMLDivElement | null>, k: number, acti
   }, [layer, k, active, also]);
 }
 
+/** The section is mostly on screen (the DOM phone has no pin to wait for). */
+function useInView(id: string, threshold = 0.5) {
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    const el = document.getElementById(id);
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setSeen(true);
+      return;
+    }
+    const io = new IntersectionObserver(([e]) => setSeen(e.isIntersecting), { threshold });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [id, threshold]);
+  return seen;
+}
+
 export function TryDesk() {
   const anchor = useRef<HTMLDivElement>(null);
   const layer = useRef<HTMLDivElement>(null);
   const fit = useFit(anchor);
-  const { phase, pinned } = useStagePhase("try");
-  const awake = useWake("try");
+  const { phase: stagePhase, pinned: stagePinned } = useStagePhase("try");
+  const no3d = useNo3D();
+  // without the 3D phone (round 4: always) there is no pin: "settled" means mostly on screen
+  const seen = useInView("try");
+  const pinned = no3d ? seen : stagePinned;
+  const phase = no3d ? (seen ? 0 : -1) : stagePhase;
+  // the 3D phone's wake (its black plate lifts as the scene comes up); the DOM phone is always on
+  useWake("try");
   const clock = useClock();
   const secs = useElapsed(clock.on, clock.since);
   // the caption has come (it then stays, except while the phone is away below the frame)
@@ -119,7 +141,6 @@ export function TryDesk() {
   const [breathed, setBreathed] = useState(false);
   const [stamp, setStamp] = useState("");
   const timerRef = useRef<ReturnType<typeof startScreenTimer> | null>(null);
-  const no3d = useNo3D();
   const onClockIn = () => clock.clockIn("visitor");
   const onClockOut = clock.clockOut;
   const doneRef = useRef<HTMLDivElement>(null);
@@ -131,7 +152,8 @@ export function TryDesk() {
     if (pinned) setCaptioned(true);
   }, [pinned]);
   useSelfDemo(clock, pinned);
-  useFloat(layer, fit.k, pinned, holeRef);
+  // the 3D phone floats a little; the DOM phone holds still
+  useFloat(layer, fit.k, pinned && !no3d, holeRef);
 
   // one breath of the Clock In circle, the first time the scene settles untouched
   // (on the live app over the screen: it is on top by then)
@@ -163,7 +185,8 @@ export function TryDesk() {
   useEffect(() => timerRef.current?.draw(secs), [secs]);
 
   const k = fit.k;
-  const live = pinned && k > 0;
+  // the DOM phone takes taps wherever it is on screen; the 3D one only once it holds still
+  const live = k > 0 && (no3d || pinned);
   const app = {
     on: clock.on,
     secs,
@@ -250,7 +273,8 @@ export function TryDesk() {
                 <div ref={hit} className="try-hit" data-cursor="hide" style={{ width: BODY.w * k, height: BODY.h * k, borderRadius: BODY.r * k }}>
                   <Suspense fallback={null}>
                     {no3d ? (
-                      <TryDomPhone k={k} awake={awake} {...app} />
+                      // the DOM phone is on from the start: no black screen while it scrolls in
+                      <TryDomPhone k={k} awake {...app} />
                     ) : (
                       <div
                         className="try-scr"

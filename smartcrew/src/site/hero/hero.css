@@ -1,0 +1,93 @@
+/* The fold, round 4 (./Hero.tsx, ./land.ts). Builds on ./fence/fence.css (the ground, the sand,
+   the button and the logos); these rules only change the layout: the copy column sits centred
+   between the header and the logos, the headline is fitted by ./land.ts (--fs on .hf-h1), and the
+   demo link is stacked under the button instead of hanging beside it. */
+
+.hf4 .hf-root {
+  display: flex;
+  flex-direction: column;
+}
+
+.hf4 .hf-copy {
+  position: relative;
+  top: auto;
+  flex: 1;
+  justify-content: center;
+  padding-top: calc(var(--header-h) + clamp(4px, 2svh, 20px));
+  padding-bottom: clamp(64px, 11svh, 104px);
+}
+
+.hf4 .hf-eyebrow {
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+
+.hf4 .hf-h1 {
+  margin-top: clamp(10px, 2.2svh, 20px);
+  line-height: 1;
+}
+
+.hf4 .hf-sub {
+  max-width: 32em;
+  font-size: clamp(16.5px, 0.3vw + 13.5px, 19px);
+}
+
+.hf4 .hf-act {
+  flex-direction: column;
+}
+
+.hf4 .hf-root .hf-demo {
+  position: static;
+  height: auto;
+  min-height: 40px;
+  margin: clamp(6px, 1.4svh, 12px) 0 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.hf4 .hf-foot {
+  justify-content: center;
+}
+
+@media (max-width: 760px) {
+  /* phones: the fold is as tall as its content, so the dark Replace 5 apps panel peeks in under
+     the logos and invites the scroll */
+  .hf4 .hf-root {
+    display: block;
+    min-height: 0;
+    padding-bottom: 8px;
+  }
+
+  .hf4 .hf-copy {
+    flex: none;
+    padding-top: calc(var(--header-h) + 14px);
+    padding-bottom: 0;
+  }
+
+  .hf4 .hf-eyebrow {
+    font-size: 13.5px;
+  }
+
+  .hf4 .hf-h1 {
+    margin-top: 10px;
+  }
+
+  .hf4 .hf-sub {
+    margin-top: 14px;
+    font-size: 15.5px;
+  }
+
+  .hf4 .hf-act {
+    margin-top: 18px;
+    align-items: stretch;
+  }
+
+  .hf4 .hf-root .hf-demo {
+    align-self: center;
+    margin-top: 6px;
+  }
+
+  .hf4 .hf-foot {
+    margin-top: 22px;
+  }
+}

@@ -78,7 +78,7 @@ function Hero() {
               or book a demo with Andrew
             </a>
           </div>
-          <p className="cdemo-micro">Founding Member trial · starts with a 30-minute call with Andrew · no contract</p>
+          <p className="cdemo-micro">No contract, cancel anytime.</p>
         </div>
         <figure className="cdemo-figure">
           <div ref={device} className="cdemo-device" data-cursor="loupe" data-loupe-src={DASH}>

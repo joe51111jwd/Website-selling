@@ -4,6 +4,28 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## Round 4: Andrew's feedback (Oct 16 doc, Loom and call), with the agency owner's calls (Oct 17)
+
+This round replaces the plan below it: the One Day ride and the 3D Stage are cut, so the ride,
+Five apps walkthrough and Stage items further down are superseded. Summary of the sources:
+/mnt/project-files/smartcrew/andrew-feedback-round-1.md.
+
+1. **Done. The fold.** Andrew's headline and subhead verbatim, Title Case as he typed it; "Featured at ConExpo" above it; the green chip, the job tag, the Founding Member line and the "Watch a day" cue cut; "or book a demo with Andrew" stacked under the orange button; the logo strip kept. The headline pours in sand in about a second (it was about 3 s).
+2. **Done. Replace 5 apps (and dozens of spreadsheets) with SmartCrew.** Right after the fold: six dark cards (with Materials & Hauling), the apps' colour logos, lines into one SmartCrew box, Andrew's Premium small print, the orange button. busybusy, ExakTime and Fleetio have letter marks until Andrew sends logo files ⚑.
+3. **Done. Everything. Built for dirt.** Feature cards with a name and one sentence; clicking one opens a subhead, short copy, a few features and clickable screens. The full app's sidebar shows every item (the sales pipeline included). A "biggest pain" picker: pick a preset pain or type your own, and it points to the feature for it.
+4. **Done. Watch it work.** The ride is cut everywhere ("boring, takes time, gets people off the site"). The same day is told in a few seconds of normal scrolling: seven rows, each led by the feature headline, the crew's tap flowing into the office row.
+5. **Done. Play with it.** The crew phone takes taps wherever it is on screen (laptop and phone). The 3-second scroll hold is gone.
+6. **Done. Cost calculator.** Capped at 100 people; a number shows at once from a preset crew (20), minutes (15) and hourly cost ($35), and changes as the visitor sets theirs. Only a number the visitor changed goes with the lead. The American Payroll Association figure is left out (Andrew: only if it stays simple).
+7. **Done. Testimonials.** Two quote cards, Katie's first, then Phil Drish's at the same size with the family disclosure ⚑. Initials until Andrew sends photos. No other quotes exist, and none are written.
+8. **Done. Why us.** A static photo and Andrew's founder story from smartcrewhq.com (first three paragraphs, "Read more" for the rest, signed). "No sales team. No BDR. Just Andrew." and the receipt are cut. ⚑ His letter says "5-50"; the page uses {SIZE} (5–100) to match his new headline. The letter's "book a free call with me… Guaranteed." close is left off.
+9. **Done. FAQ.** "Founding Member" and "Andrew does every call" wording removed ("we" instead). Waiting: Andrew's new FAQ copy.
+10. **Done. "Founding Member" is gone from the whole funnel** (page, sticky bar, popup, /book, small print). {PROGRAM} is "Free trial".
+11. **Done. Sign-up popup: two steps.** Step 1 employees (1–5 … 250+) and company name; step 2 name, work email, cell phone. It reads as setting up an account, not "Andrew will reach out". The trial still starts with a call.
+12. **Done. /book.** Headline, then Andrew's video front and centre, then the calendar under it.
+13. **Rules for this round:** no email to Andrew or leads from tests (leadWebhook stays empty); no ?angle= headlines; no GTM work yet.
+14. **Done. Footer.** The dashed hexagon round the logo is gone (the standing "no random polygons" rule), and the trademark line spells ExakTime and Fleetio as the Replace cards do.
+15. **Waiting on Andrew:** FAQ copy, new headshot, logo files, access to the real app, testimonial photos, Katie's company (JW or JCR Excavating) and permission.
+
 ## Open now
 
 1. **The intro: scrapped.** The dark map intro was "useless and confusing". Done: it is removed completely (markup, script, CSS, dark screen).

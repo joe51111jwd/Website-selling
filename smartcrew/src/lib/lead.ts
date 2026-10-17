@@ -1,18 +1,19 @@
 import { config } from "../config";
-import type { Estimate, Intent, Size } from "../signup/contract";
+import { isSize, type Estimate, type Intent, type Size } from "../signup/contract";
 
 // The trial form's data: validated step by step, posted to the webhook after every step (so
-// Andrew can follow up with anyone who stops halfway), and carried to /book in sessionStorage so
-// his calendar opens already filled in. Email and phone never go in a URL.
+// Andrew can follow up with anyone who stops halfway; config.leadWebhook empty = nothing is sent),
+// and carried to /book in sessionStorage so his calendar opens already filled in. Email and phone
+// never go in a URL.
 
-/** What the visitor types, step by step: 1 size + company · 2 name + email · 3 mobile. */
+/** What the visitor types, step by step: 1 employees + company · 2 name + work email + cell phone. */
 export type Draft = {
   size?: Size;
   company: string;
   name: string;
   email: string;
   phone: string;
-  /** Unticked by default: texts only with an explicit yes. */
+  /** Text reminders. Unticked by default: texts only with an explicit yes. */
   sms: boolean;
 };
 
@@ -37,7 +38,8 @@ export type Attribution = {
   referrer?: string;
 };
 
-export type Stage = "start" | "email" | "complete";
+/** "start": step 1 done (size + company) · "complete": step 2 done (name, email, phone): the lead. */
+export type Stage = "start" | "complete";
 
 /** The lead as it is posted and handed to /book. */
 export type Lead = Draft & {
@@ -63,19 +65,23 @@ export const digits = (v: string) => v.replace(/\D/g, "").replace(/^1(?=\d{10}$)
 export function check(field: Field, d: Draft, intent: Intent = "trial"): string | undefined {
   switch (field) {
     case "size":
-      return d.size ? undefined : "Pick your crew size to continue.";
+      return d.size ? undefined : "Pick how many employees you have.";
     case "company":
       return d.company.trim().length >= 2 ? undefined : intent === "demo" ? "Add your company name." : "Add your company name. Andrew sets up your trial under it.";
     case "name":
-      return d.name.trim().length >= 2 ? undefined : "Add your name so Andrew knows who he's talking to.";
+      return d.name.trim().length >= 2 ? undefined : "Add your name.";
     case "email":
+      if (!d.email.trim()) return "Add your work email.";
       return EMAIL_RE.test(d.email.trim()) ? undefined : "That email looks off. Check for a typo?";
     case "phone":
-      return digits(d.phone).length === 10 ? undefined : "Enter a 10-digit mobile number, like (555) 123-4567.";
+      if (!d.phone.trim()) return "Add your cell number.";
+      return digits(d.phone).length === 10 ? undefined : "Enter a 10-digit number.";
   }
 }
 
-export const STEP_FIELDS: Field[][] = [["size", "company"], ["name", "email"], ["phone"]];
+export const STEP_FIELDS: Field[][] = [["size", "company"], ["name", "email", "phone"]];
+/** The popup's last step (0-based): finishing it is the lead. */
+export const LAST_STEP = STEP_FIELDS.length - 1;
 
 export function validateStep(step: number, d: Draft, intent: Intent = "trial"): Errors {
   const e: Errors = {};
@@ -151,7 +157,8 @@ export const initials = (name: string) =>
 // ─── storage (every read and write survives private mode) ───────────────────
 
 const ATTR_KEY = "sc_attr";
-const PROGRESS_KEY = "sc_signup_v1";
+// v2: the two-step form with the new size buckets (a v1 save from the three-step form is ignored)
+const PROGRESS_KEY = "sc_signup_v2";
 const LEAD_KEY = "sc_lead";
 const BOOKING_KEY = "sc_booking";
 
@@ -230,7 +237,12 @@ export type Progress = {
   ts: number;
 };
 
-export const loadProgress = () => readJSON<Progress>(session, PROGRESS_KEY);
+export function loadProgress(): Progress | null {
+  const p = readJSON<Progress>(session, PROGRESS_KEY);
+  if (!p?.draft) return null;
+  if (p.draft.size !== undefined && !isSize(p.draft.size)) p.draft = { ...p.draft, size: undefined };
+  return { ...p, step: Math.min(Math.max(p.step | 0, 0), LAST_STEP) };
+}
 export const saveProgress = (p: Omit<Progress, "ts">) => writeJSON(session, PROGRESS_KEY, { ...p, ts: Date.now() });
 
 export function newLeadId() {

@@ -1,5 +1,7 @@
-/* /book: Andrew's video on the dark side, his calendar on the light side. Scoped under .bk-;
-   tokens from src/styles/tokens.css. Radii by role: 22 ticket, 14 video, 12 controls, 999 pills. */
+/* /book: one column, top to bottom. The headline and Andrew's video, big and centred on the dark
+   band (the video is what gets them to book); his calendar right under it on the light ground;
+   then what the call covers and what they're setting up. Scoped under .bk-; tokens from
+   src/styles/tokens.css. Radii by role: 22 ticket, 14 video, 12 controls, 999 pills. */
 
 html,
 body {
@@ -12,10 +14,9 @@ body {
 }
 
 .bk {
-  --bk-left: clamp(420px, calc(100vw - 840px), 620px);
   --bk-pad: 48px;
-  display: grid;
-  grid-template-columns: var(--bk-left) minmax(0, 1fr);
+  /* the room the video leaves in the first screen for the bar, headline and caption */
+  --bk-reserve: 330px;
   min-height: 100vh;
   min-height: 100svh;
   background: var(--ground);
@@ -38,30 +39,25 @@ body {
   outline-offset: 3px;
 }
 
-/* ── dark side: logo, headline, Andrew's video ───────────────────────────── */
+/* ── 1 · the dark band: bar, headline, Andrew's video ────────────────────── */
 
-.bk-dark {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  height: 100svh;
-  display: flex;
-  flex-direction: column;
-  padding: 30px var(--bk-pad) 30px;
-  overflow: hidden;
+.bk-hero {
+  padding: 0 var(--bk-pad) 40px;
   color: #fff;
   background:
-    radial-gradient(80% 50% at 85% 105%, rgb(255 122 1 / 20%), transparent 65%),
-    radial-gradient(60% 40% at 0% 0%, rgb(255 236 214 / 7%), transparent 70%),
+    radial-gradient(60% 46% at 50% 100%, rgb(255 122 1 / 12%), transparent 70%),
     var(--night);
 }
-.bk-brand {
-  flex: none;
+.bk-bar {
   display: flex;
   align-items: center;
-  height: 28px;
+  gap: 24px;
+  max-width: 1200px;
+  height: 72px;
+  margin: 0 auto;
 }
 .bk-logo {
+  flex: none;
   display: inline-flex;
   padding: 4px 0;
   border-radius: 6px;
@@ -72,12 +68,84 @@ body {
   width: auto;
 }
 
-.bk-intro {
-  margin: auto 0;
-  padding-top: 20px;
+/* progress, on the dark: your details (done) → pick a time (now) */
+.bk-progress {
   display: flex;
-  flex-direction: column;
-  min-height: 0;
+  align-items: center;
+  gap: 10px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: rgb(255 255 255 / 62%);
+  white-space: nowrap;
+}
+.bk-progress li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.bk-progress .is-now {
+  color: #fff;
+  font-weight: 650;
+}
+.bk-progress-line {
+  position: relative;
+  width: 44px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 18%);
+  overflow: hidden;
+}
+.bk-progress-line i {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  transform-origin: 0 50%;
+}
+.bk-tick {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+}
+.bk-now-dot {
+  position: relative;
+  width: 9px;
+  height: 9px;
+  margin: 0 4px 0 4px;
+  border-radius: 50%;
+  background: var(--orange);
+  animation: bk-live 2.2s ease-out infinite;
+}
+@keyframes bk-live {
+  0% {
+    box-shadow: 0 0 0 0 rgb(255 122 1 / 55%);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 9px rgb(255 122 1 / 0%);
+  }
+}
+.bk-help {
+  flex: none;
+  font-size: 13.5px;
+  color: rgb(255 255 255 / 55%) !important;
+  text-decoration: none;
+}
+.bk-help:hover {
+  color: #fff !important;
+}
+
+.bk-intro {
+  max-width: 960px;
+  margin: 0 auto;
+  padding-top: 16px;
+  text-align: center;
 }
 .bk-kicker {
   margin: 0 0 12px;
@@ -87,21 +155,23 @@ body {
   color: rgb(255 255 255 / 64%);
 }
 .bk-h1 {
-  margin: 0;
+  margin: 0 auto;
+  max-width: 24em;
   font-family: var(--font-display);
   font-stretch: 112%;
   font-weight: 720;
-  font-size: clamp(30px, 2.75vw, 42px);
-  line-height: 1.04;
-  letter-spacing: -0.026em;
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 .bk-sub {
-  margin: 14px 0 0;
-  max-width: 44ch;
+  margin: 14px auto 0;
+  max-width: 56ch;
   font-size: 16px;
   line-height: 1.5;
   color: rgb(255 255 255 / 70%);
+  text-wrap: balance;
 }
 /* ⚑ markers: review builds only (src/lib/flags.ts) */
 html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
@@ -118,12 +188,14 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   cursor: help;
   vertical-align: super;
 }
-.bk-light .sc-flag {
+.bk-main .sc-flag {
   color: var(--orange-ink);
 }
 
+/* the video: as big as the first screen allows (16:9), never wider than 880 px */
 .bk-video {
-  margin: 24px 0 0;
+  width: min(100%, 880px, max(560px, calc((100svh - var(--bk-reserve)) * 16 / 9)));
+  margin: 28px auto 0;
 }
 .bk-video-frame {
   position: relative;
@@ -131,8 +203,8 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   border-radius: 14px;
   background: #0b0a09;
   box-shadow:
-    0 0 0 1px rgb(255 255 255 / 9%),
-    0 30px 60px -24px rgb(0 0 0 / 80%);
+    0 0 0 1px rgb(255 255 255 / 10%),
+    0 40px 80px -30px rgb(0 0 0 / 85%);
   isolation: isolate;
 }
 .bk-poster {
@@ -145,9 +217,9 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
 }
 .bk-poster img {
   position: absolute;
-  right: 4%;
+  right: 8%;
   bottom: 0;
-  height: 88%;
+  height: 90%;
   width: auto;
   opacity: 0.92;
 }
@@ -157,26 +229,31 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   top: 50%;
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
-  margin: -28px 0 0 -28px;
+  width: 72px;
+  height: 72px;
+  margin: -36px 0 0 -36px;
   border-radius: 50%;
-  background: rgb(255 255 255 / 92%);
+  background: rgb(255 255 255 / 94%);
   color: var(--ink);
-  box-shadow: 0 10px 30px rgb(0 0 0 / 35%);
+  box-shadow: 0 12px 34px rgb(0 0 0 / 40%);
+  transition: transform 0.2s var(--ease-out);
+}
+.bk-poster-go:hover ~ .bk-poster .bk-poster-play,
+.bk-video-frame:hover .bk-poster-play {
+  transform: scale(1.06);
 }
 .bk-poster-note {
   position: absolute;
-  left: 22px;
+  left: 28px;
   top: 50%;
   transform: translateY(-50%);
   max-width: 36%;
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.4;
   color: rgb(255 255 255 / 72%);
 }
 .bk-poster-play svg {
-  margin-left: 3px;
+  margin-left: 4px;
 }
 .bk-vid {
   position: relative;
@@ -211,98 +288,37 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   border-radius: 50%;
   object-fit: cover;
 }
-
-/* ── light side: progress, calendar, what the call covers ────────────────── */
-
-.bk-light {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 24px 32px 0;
-}
-.bk-top {
-  display: flex;
+/* a quiet way straight down to the calendar, for anyone who'd rather book first */
+.bk-jump {
+  display: inline-flex;
   align-items: center;
-  gap: 16px;
-  min-height: 34px;
-}
-.bk-progress {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--ink-2);
+  gap: 6px;
+  margin-left: auto;
+  padding: 6px 2px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 84%) !important;
+  text-decoration: none;
   white-space: nowrap;
 }
-.bk-progress li {
-  display: flex;
-  align-items: center;
-  gap: 7px;
+.bk-jump:hover {
+  color: #fff !important;
 }
-.bk-progress .is-now {
-  color: var(--ink);
-  font-weight: 650;
+.bk-jump svg {
+  transition: transform 0.2s var(--ease-out);
 }
-.bk-progress-line {
-  position: relative;
-  width: 44px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--line);
-  overflow: hidden;
-}
-.bk-progress-line i {
-  position: absolute;
-  inset: 0;
-  background: var(--ink);
-  transform-origin: 0 50%;
-}
-.bk-tick {
-  display: grid;
-  place-items: center;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: var(--ink);
-  color: #fff;
-}
-.bk-now-dot {
-  position: relative;
-  width: 9px;
-  height: 9px;
-  margin: 0 4px 0 4px;
-  border-radius: 50%;
-  background: var(--orange);
-  animation: bk-live 2.2s ease-out infinite;
-}
-@keyframes bk-live {
-  0% {
-    box-shadow: 0 0 0 0 rgb(255 122 1 / 55%);
-  }
-  70%,
-  100% {
-    box-shadow: 0 0 0 9px rgb(255 122 1 / 0%);
-  }
-}
-.bk-help {
-  margin-left: auto;
-  font-size: 13.5px;
-  color: var(--ink-3) !important;
-  text-decoration: none;
-}
-.bk-help:hover {
-  color: var(--ink) !important;
+.bk-jump:hover svg {
+  transform: translateY(2px);
 }
 
+/* ── 2 · the light ground: Andrew's calendar, then what the call covers ───── */
+
+.bk-main {
+  padding: 36px var(--bk-pad) 0;
+}
 .bk-stage {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding-top: 14px;
+  max-width: 1000px;
+  margin: 0 auto;
+  scroll-margin-top: 16px;
 }
 
 .bk-est {
@@ -323,9 +339,11 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
 
 .bk-cal {
   position: relative;
+  display: flow-root;
   min-height: 560px;
 }
-.bk-cal.is-ready {
+.bk-cal.is-ready,
+.bk-cal.is-failed {
   min-height: 0;
 }
 .bk-cal-embed {
@@ -794,118 +812,127 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   color: var(--ink-2);
 }
 
-/* ── laptops: short screens ──────────────────────────────────────────────── */
+/* ── laptops: short screens (the video still fits the first screen) ─────── */
 
-@media (max-height: 700px) and (min-width: 1001px) {
-  .bk-dark {
-    padding-top: 24px;
-    padding-bottom: 22px;
+@media (max-height: 760px) and (min-width: 761px) {
+  .bk {
+    --bk-reserve: 300px;
+  }
+  .bk-bar {
+    height: 60px;
   }
   .bk-intro {
-    padding-top: 10px;
+    max-width: 1100px;
+    padding-top: 6px;
   }
-  .bk-video {
-    margin-top: 18px;
+  .bk-kicker {
+    margin-bottom: 8px;
+  }
+  .bk-h1 {
+    max-width: none;
+    font-size: clamp(28px, 2.4vw, 34px);
   }
   .bk-sub {
+    margin-top: 8px;
     font-size: 15px;
-    margin-top: 10px;
   }
-  .bk-light {
-    padding-top: 18px;
-  }
-}
-@media (max-height: 620px) and (min-width: 1001px) {
-  .bk-h1 {
-    font-size: 30px;
+  .bk-video {
+    margin-top: 20px;
   }
   .bk-cap {
     margin-top: 10px;
   }
+  .bk-hero {
+    padding-bottom: 28px;
+  }
 }
 
-/* ── tablets and phones: stacked, video first, calendar right under it ──── */
+/* ── tablets ─────────────────────────────────────────────────────────────── */
 
 @media (max-width: 1000px) {
   .bk {
     --bk-pad: 24px;
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .bk-dark {
-    position: relative;
-    height: auto;
-    padding-bottom: 28px;
-  }
-  .bk-intro {
-    margin: 0;
-    max-width: 640px;
-  }
-  .bk-light {
-    padding: 18px var(--bk-pad) 0;
   }
 }
+
+/* ── phones: the same order; the video the full width of the screen ─────── */
 
 @media (max-width: 760px) {
   .bk {
     --bk-pad: 16px;
   }
-  /* one compact band: logo, headline, Andrew's video (captioned), so his calendar starts inside
-     the first screen; the headline already says "Last step", so the progress row goes */
-  .bk-dark {
-    padding: calc(env(safe-area-inset-top, 0px) + 10px) var(--bk-pad) 12px;
+  .bk-hero {
+    padding: 0 0 14px;
   }
-  .bk-brand {
-    height: 22px;
+  .bk-bar {
+    height: auto;
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) var(--bk-pad) 0;
   }
   .bk-logo-svg {
     height: 18px;
   }
+  /* the headline already says "Last step"; the email is in the footer */
+  .bk-progress,
+  .bk-help {
+    display: none;
+  }
   .bk-intro {
-    padding-top: 10px;
+    padding: 14px var(--bk-pad) 0;
+    text-align: left;
   }
   .bk-kicker {
     font-size: 13px;
     margin-bottom: 6px;
   }
   .bk-h1 {
+    margin: 0;
+    max-width: none;
     font-size: 26px;
-    line-height: 1.06;
+    line-height: 1.08;
+    text-wrap: pretty;
   }
   .bk-sub {
-    display: none;
+    margin: 8px 0 0;
+    font-size: 14.5px;
+    line-height: 1.45;
+    text-wrap: pretty;
   }
   .bk-video {
-    margin-top: 10px;
+    width: 100%;
+    margin-top: 16px;
   }
   .bk-video-frame {
-    border-radius: 12px;
+    border-radius: 0;
+    box-shadow: none;
   }
   .bk-poster-play {
-    width: 48px;
-    height: 48px;
-    margin: -24px 0 0 -24px;
+    width: 60px;
+    height: 60px;
+    margin: -30px 0 0 -30px;
+  }
+  .bk-poster-note {
+    left: 16px;
+    font-size: 13px;
   }
   .bk-cap {
     gap: 8px;
-    margin-top: 7px;
+    margin-top: 10px;
+    padding: 0 var(--bk-pad);
     font-size: 12.5px;
   }
   .bk-cap img {
     width: 20px;
     height: 20px;
   }
-  /* Cal's frame brings its own top margin */
-  .bk-light {
-    padding: 0 var(--bk-pad);
-  }
-  .bk-top {
+  .bk-jump {
     display: none;
   }
-  .bk-stage {
-    padding-top: 0;
+  /* Cal's frame brings its own top margin */
+  .bk-main {
+    padding: 0 var(--bk-pad);
   }
   .bk-est {
-    margin-top: 10px;
+    margin-top: 14px;
     margin-bottom: 10px;
     padding: 9px 12px;
     font-size: 14px;
@@ -918,13 +945,16 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   .bk-skel {
     grid-template-columns: 1fr;
     height: 480px;
-    margin: 0 var(--bk-pad);
+    margin: 14px var(--bk-pad) 0;
   }
   .bk-skel-cal {
     border-right: 0;
   }
   .bk-skel-times {
     display: none;
+  }
+  .bk-fallback {
+    margin: 16px var(--bk-pad) 0;
   }
   .bk-after {
     grid-template-columns: 1fr;
@@ -951,7 +981,7 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
     color: var(--ink-2);
   }
   .bk-ticket {
-    margin-top: 4px;
+    margin-top: 16px;
     border-radius: 18px;
   }
   .bk-ticket-top {
@@ -993,5 +1023,9 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   .bk-skel-grid span,
   .bk-skel-times span {
     animation: none;
+  }
+  .bk-poster-play,
+  .bk-jump svg {
+    transition: none;
   }
 }

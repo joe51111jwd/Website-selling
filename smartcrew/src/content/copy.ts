@@ -4,7 +4,6 @@
 // hasn't approved is marked with FLAG (⚑) and shown visibly on the page.
 
 import type { MomentId } from "./moments";
-import { SHOW_FLAGS } from "../lib/flags";
 
 /** Visible marker for copy Andrew must confirm before launch. */
 export const FLAG = "⚑";
@@ -15,8 +14,8 @@ export const T = {
   SIZE: "5–100",
   /** {N}: call length in minutes, must equal the Cal.com event. */
   N: 30,
-  /** {PROGRAM} */
-  PROGRAM: "Founding Member trial",
+  /** {PROGRAM}: round 4, "Founding Member" is cut everywhere (Andrew's doc); his own CTA word. */
+  PROGRAM: "Free trial",
   EMAIL: "hello@smartcrewhq.com",
   /** The demo company every screen shows. */
   COMPANY: "Cedar Ridge Earthworks",
@@ -29,9 +28,9 @@ export const CTA = {
   primary: "Get my free trial",
   demo: "Book a demo with Andrew",
   demoLink: "or book a demo with Andrew",
-  /** Under the primary button in the hero, the offer and the final CTA. */
+  /** Under the FAQ's last button and the spec sheet's (round 4: the hero has none, per Andrew). */
   // (a no-break space keeps "No contract" together: a line never ends on a lone "No")
-  micro: `${T.PROGRAM}. Starts with a ${T.N}-minute call with Andrew. No\u00a0contract, cancel anytime.`,
+  micro: "No\u00a0contract, cancel anytime.",
   /** One-tap links at the peaks of the One Day scene (profit and payroll moments). */
   inline: "Want this for your crew? Get my free trial",
 };
@@ -40,7 +39,7 @@ export const CTA = {
 export const HEADER = {
   logoLabel: "SmartCrew, back to the top",
   nav: [
-    { label: "How it works", href: "#day" },
+    { label: "How it works", href: "#features" },
     { label: "FAQ", href: "#faq" },
   ],
   cta: "Get my free trial",
@@ -48,7 +47,7 @@ export const HEADER = {
 
 export const STICKY = {
   title: T.PROGRAM,
-  sub: "Starts with a call with Andrew",
+  sub: "No contract, cancel anytime",
   cta: "Get my free trial",
 };
 
@@ -138,6 +137,24 @@ export const HERO = {
   micro: `${T.PROGRAM} · starts with a ${T.N}-minute call with Andrew · no\u00a0contract`,
 };
 
+/**
+ * The fold, round 4 (Andrew's Oct 16 doc, verbatim; Title Case as he typed it, the agency owner's
+ * call). `fence` is the phrase set in orange clay; `lines` are the explicit line breaks (desktop,
+ * phone), and `lines.x.join(" ")` must equal `h1`. "Featured at ConExpo" is Andrew's own line
+ * (his video, 0:23), cleared by the agency owner. The ?angle= headlines are off.
+ */
+export const HERO4 = {
+  featured: "Featured at ConExpo",
+  h1: `The Simplest All-In-One Software For Heavy Civil & Dirtwork Companies With ${T.SIZE} Employees`,
+  fence: "Heavy Civil & Dirtwork",
+  lines: {
+    desk: ["The Simplest All-In-One Software", "For Heavy Civil & Dirtwork Companies", `With ${T.SIZE} Employees`],
+    phone: ["The Simplest", "All-In-One Software", "For Heavy Civil &", "Dirtwork Companies", `With ${T.SIZE} Employees`],
+  },
+  sub: "Ditch the apps and spreadsheet madness for one simple software your crew will actually use.",
+  usedBy: "Used by",
+};
+
 /** The six contractors on the live site ("Used by", AMBER: Andrew confirms permission). Aspect = w/h of the file. */
 export const LOGOS: { name: string; src: string; aspect: number }[] = [
   { name: "Drish Construction", src: "logos/drish.webp", aspect: 2.16 },
@@ -171,11 +188,7 @@ export const APPS = {
   footnote: "Trademarks belong to their owners. QuickBooks is integrated, not replaced.",
 };
 
-export const OFFER = {
-  andrew: "No sales team. No BDR. Just Andrew.",
-};
-
-export const FAQ_TITLE = "Questions contractors ask Andrew";
+export const FAQ_TITLE = "Questions contractors ask";
 
 export const FOOTER = {
   /** CC-BY-4.0 credit, shown in the footer only if a scene ever shows the XDR (none does today). */
@@ -231,10 +244,11 @@ export const CALC = {
   year: "a year",
   /** "about $561 a week" */
   week: (w: string) => `about ${w} a week`,
-  framing: "That’s what loose time costs you at the numbers you picked.",
+  /** Round 4: the calculator starts from presets (site/number/calc.ts PRESET). */
+  framing: "That’s what loose time costs at these numbers. Change them to yours.",
   built: "SmartCrew is built to close this gap: GPS fills in the timecards and every hour goes on a cost code.",
   /** ⚑ Andrew confirms he opens the call with the visitor's number (PLAYBOOK S3). */
-  ctaMicro: "Andrew will go over your number with you on the call.",
+  ctaMicro: "We’ll go over your number with you on the call.",
   privacy: "Your numbers stay on this screen unless you continue.",
 };
 
@@ -247,7 +261,7 @@ export const PROOF = {
   label: "What contractors say",
   phil: {
     before: "SmartCrew is literally saving us",
-    /** The figure as it appears in the quote ("~" kept). Rolls up from $0k as it enters. */
+    /** The figure as it appears in the quote ("~" kept), set in bold on its card. */
     figure: { prefix: "~$", digits: "150", suffix: "k" },
     figureRest: "per YEAR",
     after: "in profit. Highest ROI of any software we’ve ever bought. I cannot believe we didn’t start using this sooner.",
@@ -314,48 +328,41 @@ export const ANDREW = {
   photo: "andrew/andrew-cutout.webp",
   /** A small round crop of the same photo, for "Andrew answers" beside the FAQ. */
   face: "andrew/andrew-face.webp",
-  /** ⚑ The only cut-out we have is 456×420 px (soft on retina). Andrew sends a real field photo. */
+  /** ⚑ The only cut-out we have is 456×420 px (soft on retina). Andrew sends a new headshot. */
   photoAlt: "Andrew Drish, founder of SmartCrew",
-  /** [V] verbatim. */
-  title: OFFER.andrew,
-  /** Three lines condensed from his founder letter [L] (first person, his words, shortened). */
-  story: [
-    "At 13, my dad put me in a trench and handed me a shovel.",
-    "Then I spent 20 years in the tech world.",
-    "When my family’s company needed better software, I built SmartCrew.",
-  ],
 };
 
-/** The offer as a receipt (BRIEF §7, beat 8; PLAYBOOK §3.5). Every unflagged line is GREEN. */
-export const RECEIPT = {
-  aria: `Your ${T.PROGRAM}, as a receipt`,
-  title: T.PROGRAM,
-  get: "What you get",
-  included: "Included",
-  items: [
-    { item: "The full SmartCrew system", sub: "Crew app + office" },
-    { item: "Set up with you in a few days", sub: "Tailored to how you work" },
-    { item: "Your crew on it without training" },
-    { item: "Andrew on your call" },
-    { item: "Real humans for support" },
-    { item: "No contract, cancel anytime" },
-  ] as { item: string; sub?: string }[],
-  costs: "What it costs you",
-  call: `One ${T.N}-minute call`,
-  callValue: `${T.N} min`,
-  /** "Free Trial" is Andrew's own CTA [L, A-ad]; no trial length, no card terms (RED). */
-  total: "To try it",
-  totalValue: "$0",
-  /**
-   * PLAYBOOK §3.4 proposals, shown only as visibly flagged placeholders until Andrew approves
-   * (P4 founding rate, P1 reason why, P2 capacity, P3 guarantee). false hides every one of them.
-   */
-  showProposals: SHOW_FLAGS,
-  proposalItem: "Founding rate, locked while you stay",
-  proposalWhy: "Why it’s free: [Andrew’s reason]",
-  proposalNotes: ["[N] new setups a month", "Guarantee: [name + terms]"],
+/**
+ * 8 · Why us, round 4 (Andrew's Loom 2:48–3:03: a static image, not every sales call on him, "we've
+ * got a founder story… rip that and put that in here and have a little drop"). The letter is his
+ * founder story from smartcrewhq.com, word for word, with three changes: two typos fixed ("business.."
+ * and "don't want to spent"), "managing your entire business is" → "in", and his "5-50" set to {SIZE}
+ * to match his new headline (⚑ in FEEDBACK.md). Its close ("book a free call with me… Guaranteed.")
+ * is left off: the page's buttons do that job, and a guarantee needs terms (RED). The first `lead`
+ * paragraphs show; "Read more" opens the rest.
+ */
+export const WHY = {
+  kicker: "Why us",
+  title: "Why we built SmartCrew",
+  lead: 3,
+  letter: [
+    "When I was 13, I started working for my dad in our small, family construction business.",
+    "The first day, he put me in a trench, handed me a shovel and said, “Son - I’m gonna teach you how to run a shovel this summer so you learn that you don’t want to spend the rest of your life doing this.”",
+    "It was the worst summer of my life... and the most important gift of my life. Because it taught me to value working hard AND smart.",
+    "That led me to spending 20 years in the tech world where I built, invested in and advised three of the fastest growing tech companies in America, according to Inc Magazine.",
+    "Recently, my dad was trying to retire but the family didn’t have the cash to buy him out. So they asked if I could help them leverage technology to make their business more profitable.",
+    "I looked at the market for software and was SHOCKED to see how bad everything was.",
+    "You have cheap time tracking apps that don’t actually help you manage the business (BusyBusy, ExakTime, WorkMax, etc.) Or bloated, expensive enterprise tools that cost $25k+ to get started (HCSS, Viewpoint, Procore, etc.)",
+    `There is NOTHING specifically designed for a construction company with ${T.SIZE} employees. So you’re stuck trying to patch everything together with 3-4 separate softwares, none of which work together.`,
+    `That’s why we’re building the simplest all-in-one software for ${T.SIZE} person construction companies.`,
+    "I know software. And the BEST software is about reduction and simplicity. Not complexity.",
+    "That’s what makes SmartCrew so unique. We’ve simplified everything to create LESS work for you by managing your entire business in one simple platform.",
+  ],
+  more: "Read more",
+  less: "Show less",
+  signoff: "Respectfully,",
   signedBy: "Andrew Drish, founder",
-  signatureAlt: "Signed, Andrew",
+  signatureAlt: "Andrew’s signature",
 };
 
 /** Section 8 (PLAYBOOK §S8): answers start with the fact; GREEN/AMBER only. */
@@ -363,7 +370,7 @@ export const FAQS: { id: string; q: string; a: string; flag?: string }[] = [
   {
     id: "why-call",
     q: "Why a call?",
-    a: "Because we set your trial up around how you already work. On the call, Andrew shows you how SmartCrew fits your company, or tells you honestly if it doesn’t. Then he sets up your Founding Member trial.",
+    a: "Because we set your trial up around how you already work. On the call, we show you how SmartCrew fits your company, or tell you honestly if it doesn’t. Then we set up your free trial.",
     /** P1: Andrew adds his own reason the trial is free and set up on a call. */
     flag: "Andrew’s own reason goes here",
   },
@@ -376,7 +383,7 @@ export const FAQS: { id: string; q: string; a: string; flag?: string }[] = [
     id: "quickbooks",
     q: "Does it work with QuickBooks?",
     // AMBER: "QuickBooks integration for payroll" only, until Andrew confirms how it syncs
-    a: "Yes. SmartCrew has QuickBooks integration for payroll. Andrew will show you how it fits your setup on the call.",
+    a: "Yes. SmartCrew has QuickBooks integration for payroll. We’ll show you how it fits your setup on the call.",
   },
   {
     id: "setup",
@@ -387,12 +394,12 @@ export const FAQS: { id: string; q: string; a: string; flag?: string }[] = [
   {
     id: "cost",
     q: "What does it cost?",
-    a: "It depends on the features and your crew size. Andrew goes over it with you on the call. No contracts, cancel anytime.",
+    a: "It depends on the features and your crew size. We go over it with you on the call. No contracts, cancel anytime.",
   },
 ];
 
 export const FAQ_CLOSE = {
-  line: "Anything else, Andrew answers on the call.",
+  line: "Anything else, we answer on the call.",
 };
 
 export const FOOTER_SCENE = {
@@ -404,7 +411,7 @@ export const FOOTER_SCENE = {
   terms: "Terms",
   demo: "Product screens show a demo account. Names and numbers are made up.",
   trademarks:
-    "busybusy, QuickBooks, ExactTime, fleet.io, HubSpot, Close, Dropbox, Google Drive, Slack and WhatsApp are trademarks of their owners. Apple, iPhone and MacBook are trademarks of Apple Inc. Naming them doesn’t imply an endorsement.",
+    "busybusy, QuickBooks, ExakTime, Fleetio, HubSpot, Close, Dropbox, Google Drive, Google Sheets, Slack and WhatsApp are trademarks of their owners. Apple, iPhone and MacBook are trademarks of Apple Inc. Naming them doesn’t imply an endorsement.",
   /** Shown only when the Stage actually uses the Pro Display XDR model. */
   xdr: FOOTER.xdrCredit,
   copyright: "© 2026 SmartCrew",

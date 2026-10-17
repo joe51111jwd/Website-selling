@@ -1,5 +1,5 @@
 // "People in the field" on phones (PHONE MODE): the same big drag slider as the desktop's
-// CrewSlider, but the crew is ONE canvas, not 150 SVG groups. Each person is a tiny SmartCrew hard
+// CrewSlider, but the crew is ONE canvas, not 100 SVG groups. Each person is a tiny SmartCrew hard
 // hat; a new one pops in orange and settles to ink, a removed one fades; the empty slots are survey
 // dots that ripple in, column by column, the first time the scene arrives. The canvas only redraws
 // while something is still moving (a short rAF burst after each change), never on scroll.
@@ -48,7 +48,7 @@ export function CrewCanvas({
   onDrag?: (on: boolean) => void;
   /** the scene has arrived: the empty slots ripple in (once; CSS) */
   arrived: boolean;
-  /** rows of the grid (columns = 150 / rows); the grid fills column by column so its edge follows the thumb */
+  /** rows of the grid (columns = 100 / rows); the grid fills column by column so its edge follows the thumb */
   rows: number;
 }) {
   const cols = Math.ceil(CREW_MAX / rows);

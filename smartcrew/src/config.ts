@@ -15,10 +15,10 @@ export const config = {
   callLengthConfirmed: false,
 
   /**
-   * Where the trial form posts its lead, once per step ("start", "email", "complete"). Sent as a
-   * plain form post (application/x-www-form-urlencoded, no CORS preflight, survives the jump to
-   * /book), which Zapier, Make, GoHighLevel and Google Apps Script all read. Empty: the lead is only
-   * carried to the booking page.
+   * Where the trial form posts its lead, once per step ("start" after step 1, "complete" after
+   * step 2). Sent as a plain form post (application/x-www-form-urlencoded, no CORS preflight,
+   * survives the jump to /book), which Zapier, Make, GoHighLevel and Google Apps Script all read.
+   * Empty: the lead is only carried to the booking page.
    */
   leadWebhook: "",
 
@@ -32,7 +32,7 @@ export const config = {
   /**
    * Andrew's videos, as they are today (Vidalytics account 5_H1Y3QY): the 85-second explainer
    * from the smartcrewhq.com home page, and the screen-share walkthrough from smartcrewhq.com/demo,
-   * which stands in on the booking page until the Founding Member video is recorded.
+   * which stands in on the booking page until Andrew records the free-trial video.
    */
   vidalytics: { account: "5_H1Y3QY", explainer: "0IR575Ertss_OqdW", walkthrough: "Lz1Z_A8eimAA04gJ" },
 

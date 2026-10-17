@@ -16,6 +16,14 @@
   display: flex;
 }
 
+/* round 4: one plain screen (no pin), so the body needs a height of its own for the phone to fit */
+.try--desk > .scene-body {
+  display: flex;
+  height: 100vh;
+  height: 100svh;
+  min-height: 620px;
+}
+
 .try-grid {
   --try-col: min(40vw, 520px);
   display: grid;

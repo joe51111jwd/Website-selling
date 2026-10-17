@@ -1,6 +1,6 @@
 // ⚑ markers: copy Andrew (or counsel) still has to approve. They are for his review, not for the
 // people the ads send: on the production/ad build every marker is hidden, and lines that are
-// only an unapproved proposal (the receipt's founding-rate lock, flagged extra tools, …) are left
+// only an unapproved proposal (flagged extra tools, …) are left
 // out. Review builds show them: the dev server, a build made with VITE_SHOW_FLAGS=1, or any page
 // opened with ?review (it sticks for the session, so the popup and /book keep showing them).
 //

@@ -11,13 +11,15 @@ import { Setup } from "./Setup";
 import faceUrl from "../signup/assets/andrew-face.webp";
 import bustUrl from "../signup/assets/andrew-bust.webp";
 
-// /book, "Last step: pick a time with Andrew" (BRIEF /book, BOOKING.md, PLAYBOOK §6). Two jobs, in
-// order: he books before leaving, then he shows up. Andrew's walkthrough plays on the dark side;
-// his calendar sits on the light side, already filled in from the popup. After booking, the
-// calendar turns into the ticket for the call.
+// /book, "Last step: pick a time with Andrew to set up your free trial" (BRIEF /book, BOOKING.md,
+// PLAYBOOK §6). Andrew: "we want all the attention going on to the video at this point because the
+// video is actually what's gonna be the conversion mechanism that gets them to book." So, one
+// column, top to bottom: the headline, his video big and centred, his calendar right under it
+// (already filled in from the popup), then what the call covers and what they're setting up.
+// After booking, the calendar turns into the ticket for the call.
 
 const LITE = typeof window !== "undefined" && window.matchMedia("(pointer: coarse), (max-width: 760px)").matches;
-/** Phones: a compact band (headline, Andrew's video) so his calendar starts in the first screen. */
+/** Phones: the same order in one column, the video the full width of the screen. */
 const PHONE = typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches;
 const blur = (px: number): { filter?: string } => (LITE ? {} : { filter: `blur(${px}px)` });
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -53,10 +55,9 @@ export default function Book() {
     track("ViewContent", { content_name: "Book a call", intent: lead?.intent ?? "direct" }, lead?.lead_id ? `${lead.lead_id}-book` : undefined);
   }, [lead]);
 
-  // Andrew's video after first paint, so the headline and calendar come first. Touch screens:
-  // after the calendar has loaded (phones: a beat later still), so the player's scripts don't
-  // compete with the booking for the main thread; the poster (Andrew, a play mark) holds the spot
-  // meanwhile, and a tap on it loads the player at once.
+  // Andrew's video right after first paint. Touch screens: once the calendar has loaded (or after
+  // a short wait), so the player's scripts and Cal's don't land on the main thread at once; the
+  // poster (Andrew, a play mark) holds the spot meanwhile, and a tap on it loads the player at once.
   const video = useRef(false);
   const [vidOn, setVidOn] = useState(false);
   const mountVideo = () => {
@@ -66,13 +67,13 @@ export default function Book() {
     mountVidalytics(config.vidalytics.walkthrough, () => setVideoFailed(true));
   };
   useEffect(() => {
-    const id = window.setTimeout(mountVideo, PHONE && !booking ? 4000 : LITE && !booking ? 2000 : 60);
+    const id = window.setTimeout(mountVideo, LITE && !booking ? 2500 : 60);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
     if (!LITE || cal === "loading") return;
-    const id = window.setTimeout(mountVideo, PHONE ? 1200 : 0);
+    const id = window.setTimeout(mountVideo, PHONE ? 600 : 0);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cal]);
@@ -86,7 +87,7 @@ export default function Book() {
       onViewed: () => trackCustom("cal_booker_viewed"),
       onBooked: (b) => {
         const full = { ...b, lead_id: lead?.lead_id };
-        track("Schedule", { content_name: demo ? "Demo with Andrew" : "Founding Member call" }, b.uid ?? lead?.lead_id);
+        track("Schedule", { content_name: demo ? "Demo with Andrew" : "Free trial setup call" }, b.uid ?? lead?.lead_id);
         saveBooking(full);
         try {
           history.replaceState(null, "", `${location.pathname}?status=booked`);
@@ -111,10 +112,10 @@ export default function Book() {
         ? `${first}, pick a time for your demo with Andrew.`
         : "Pick a time for your demo with Andrew."
       : first
-        ? `Last step, ${first}: pick a time with Andrew.`
-        : "Last step: pick a time with Andrew.";
+        ? `Last step, ${first}: pick a time with Andrew to set up your free trial.`
+        : "Last step: pick a time with Andrew to set up your free trial.";
 
-  const kicker = demo ? (company ? `Demo with Andrew for ${company}` : "Demo with Andrew") : company ? `Founding Member trial for ${company}` : "Founding Member trial";
+  const kicker = demo ? (company ? `Demo with Andrew for ${company}` : "Demo with Andrew") : company ? `Free trial for ${company}` : "Free trial";
 
   const sub = demo ? (
     <>
@@ -123,78 +124,19 @@ export default function Book() {
     </>
   ) : (
     <>
-      Your Founding Member trial is set up on {aCall()} with Andrew. Watch how SmartCrew works while you pick a time.
+      Watch how SmartCrew works, then pick a time below for {aCall()} with Andrew.
       {!config.callLengthConfirmed && <Flag note="Andrew to confirm the call length (his Cal.com event is 45 minutes today)" />}
     </>
   );
 
   return (
     <div className={`bk${booking ? " is-booked" : ""}`}>
-      <section className="bk-dark">
-        <header className="bk-brand">
+      {/* 1 · the headline and Andrew's video, front and centre */}
+      <section className="bk-hero" aria-labelledby="bk-h1">
+        <header className="bk-bar">
           <a href="../" className="bk-logo" aria-label="SmartCrew, back to the product page">
             <Logo tone="white" decorative className="bk-logo-svg" />
           </a>
-        </header>
-
-        <div className="bk-intro">
-          <motion.p className="bk-kicker" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduce ? 0 : 0.5, ease, delay: 0.05 }}>
-            {kicker}
-          </motion.p>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.h1
-              key={h1}
-              className="bk-h1"
-              initial={{ opacity: 0, y: reduce ? 0 : "0.3em", ...blur(reduce ? 0 : 12) }}
-              animate={{ opacity: 1, y: 0, ...blur(0) }}
-              exit={{ opacity: 0, y: reduce ? 0 : "-0.2em", ...blur(reduce ? 0 : 8) }}
-              transition={{ duration: reduce ? 0 : 0.6, ease }}
-            >
-              {h1}
-            </motion.h1>
-          </AnimatePresence>
-          {!booking && (
-            <motion.p className="bk-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5, delay: 0.2 }}>
-              {sub}
-            </motion.p>
-          )}
-
-          <motion.figure
-            id="bk-video"
-            className="bk-video"
-            data-testid="book-video"
-            initial={{ opacity: 0, y: reduce ? 0 : 18, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 120, damping: 20, delay: 0.18 }}
-          >
-            <div className="bk-video-frame">
-              <div className="bk-poster" aria-hidden="true">
-                <img src={bustUrl} alt="" />
-                {videoFailed ? (
-                  <span className="bk-poster-note">Andrew's video didn't load here.</span>
-                ) : (
-                  <span className="bk-poster-play">
-                    <svg width="18" height="18" viewBox="0 0 18 18">
-                      <path d="M5 3.2v11.6L14.6 9z" fill="currentColor" />
-                    </svg>
-                  </span>
-                )}
-              </div>
-              <div id={`vidalytics_embed_${config.vidalytics.walkthrough}`} className="bk-vid" />
-              {!vidOn && (
-                <button type="button" className="bk-poster-go" onClick={mountVideo} aria-label="Play Andrew’s walkthrough" />
-              )}
-            </div>
-            <figcaption className="bk-cap">
-              <img src={faceUrl} alt="" width={26} height={26} />
-              Andrew Drish, founder, walks through SmartCrew.
-            </figcaption>
-          </motion.figure>
-        </div>
-      </section>
-
-      <section className="bk-light" aria-label={booking ? "Your call" : "Pick a time"}>
-        <header className="bk-top">
           <ol className="bk-progress" aria-label="Progress">
             <li className="is-done">
               <Tick /> Your details
@@ -212,7 +154,80 @@ export default function Book() {
           </a>
         </header>
 
-        <div className="bk-stage">
+        <div className="bk-intro">
+          <motion.p className="bk-kicker" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduce ? 0 : 0.5, ease, delay: 0.05 }}>
+            {kicker}
+          </motion.p>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.h1
+              key={h1}
+              id="bk-h1"
+              className="bk-h1"
+              initial={{ opacity: 0, y: reduce ? 0 : "0.3em", ...blur(reduce ? 0 : 12) }}
+              animate={{ opacity: 1, y: 0, ...blur(0) }}
+              exit={{ opacity: 0, y: reduce ? 0 : "-0.2em", ...blur(reduce ? 0 : 8) }}
+              transition={{ duration: reduce ? 0 : 0.6, ease }}
+            >
+              {h1}
+            </motion.h1>
+          </AnimatePresence>
+          {!booking && (
+            <motion.p className="bk-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5, delay: 0.2 }}>
+              {sub}
+            </motion.p>
+          )}
+        </div>
+
+        <motion.figure
+          id="bk-video"
+          className="bk-video"
+          data-testid="book-video"
+          initial={{ opacity: 0, y: reduce ? 0 : 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduce ? 0 : 0.7, ease, delay: reduce ? 0 : 0.15 }}
+        >
+          <div className="bk-video-frame">
+            <div className="bk-poster" aria-hidden="true">
+              <img src={bustUrl} alt="" />
+              {videoFailed ? (
+                <span className="bk-poster-note">Andrew's video didn't load here.</span>
+              ) : (
+                <span className="bk-poster-play">
+                  <svg width="22" height="22" viewBox="0 0 18 18">
+                    <path d="M5 3.2v11.6L14.6 9z" fill="currentColor" />
+                  </svg>
+                </span>
+              )}
+            </div>
+            <div id={`vidalytics_embed_${config.vidalytics.walkthrough}`} className="bk-vid" />
+            {!vidOn && <button type="button" className="bk-poster-go" onClick={mountVideo} aria-label="Play Andrew’s walkthrough" />}
+          </div>
+          <figcaption className="bk-cap">
+            <img src={faceUrl} alt="" width={26} height={26} />
+            <span>Andrew Drish, founder, walks through SmartCrew.</span>
+            {!booking && (
+              <a
+                className="bk-jump"
+                href="#bk-cal"
+                onClick={(e) => {
+                  e.preventDefault();
+                  trackCustom("jump_to_calendar");
+                  document.getElementById("bk-cal")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+                }}
+              >
+                Pick a time
+                <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                  <path d="M6 2v7.5M2.8 6.6 6 9.8l3.2-3.2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </a>
+            )}
+          </figcaption>
+        </motion.figure>
+      </section>
+
+      {/* 2 · his calendar right under the video; 3 · the supporting blocks under the calendar */}
+      <section className="bk-main" aria-label={booking ? "Your call" : "Pick a time"}>
+        <div className="bk-stage" id="bk-cal">
           <AnimatePresence mode="wait" initial={false}>
             {booking ? (
               <Ticket key="ticket" booking={booking} lead={lead} fresh={fresh} reduce={reduce} demo={demo} />
@@ -232,28 +247,28 @@ export default function Book() {
               </motion.div>
             )}
           </AnimatePresence>
-
-          <div className="bk-after">
-            <div className="bk-covers">
-              <h2>
-                On the call
-                <Flag note="Andrew to confirm what the call covers" />
-              </h2>
-              <ol>
-                <li>You tell Andrew how you track time, equipment and job costs today.</li>
-                <li>He shows you SmartCrew on a job like yours.</li>
-                <li>If it fits, he sets up your Founding Member trial. If it doesn't, he'll tell you.</li>
-              </ol>
-            </div>
-            <ul className="bk-assure">
-              <li>Most companies are fully set up within a few days.</li>
-              <li>A real person answers, by phone, chat or email.</li>
-              <li>No contracts. Cancel anytime.</li>
-            </ul>
-          </div>
-
-          <Setup compact={PHONE} />
         </div>
+
+        <div className="bk-after">
+          <div className="bk-covers">
+            <h2>
+              On the call
+              <Flag note="Andrew to confirm what the call covers" />
+            </h2>
+            <ol>
+              <li>You tell Andrew how you track time, equipment and job costs today.</li>
+              <li>He shows you SmartCrew on a job like yours.</li>
+              <li>If it fits, he sets up your free trial. If it doesn't, he'll tell you.</li>
+            </ol>
+          </div>
+          <ul className="bk-assure">
+            <li>Most companies are fully set up within a few days.</li>
+            <li>A real person answers, by phone, chat or email.</li>
+            <li>No contracts. Cancel anytime.</li>
+          </ul>
+        </div>
+
+        <Setup compact={PHONE} />
 
         <footer className="bk-foot">
           <span>© {new Date().getFullYear()} SmartCrew</span>

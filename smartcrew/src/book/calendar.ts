@@ -36,7 +36,7 @@ const endOf = (b: Booking) => b.end ?? new Date(Date.parse(b.start) + 30 * 60e3)
 
 const details = () =>
   [
-    "Your Founding Member trial setup call with Andrew Drish, founder of SmartCrew.",
+    "Your free trial setup call with Andrew Drish, founder of SmartCrew.",
     "Have these handy: your crew count, how you do timecards today, and your last payroll.",
     "Need a different time? Use the link in your confirmation email.",
   ].join("\n");

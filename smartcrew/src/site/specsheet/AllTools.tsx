@@ -1,4 +1,4 @@
-// "See all 38 tools": every tool of the six groups as a grid of six boxes, each tool a short chip
+// "See all 38 tools": every tool of the six groups (the page's six feature cards) as a grid of six boxes, each tool a short chip
 // (its one plain line is the tooltip; ⚑ where Andrew still has to confirm it). Every tool is a
 // button: it starts the flat walkthrough there (./Walk.tsx), which then plays on through all 38;
 // "Walk through all 38" starts it at the first. A modal dialog (focus kept inside, Escape or Close
@@ -10,7 +10,9 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { SPEC } from "../../content/copy";
 import { lockScroll } from "../scroll";
-import { CATEGORIES, TOOL_COUNT } from "./data";
+import { TOOL_COUNT } from "./data";
+// grouped as the page's six feature cards (src/site/features)
+import { FEATURE_CATEGORIES as CATEGORIES } from "../features/data";
 import { Walk, WALK_COPY, stepOf } from "./Walk";
 
 const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

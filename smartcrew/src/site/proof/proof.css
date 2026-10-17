@@ -1,218 +1,153 @@
-/* 5 · Proof. One quote per screen, typographic, nothing else. */
+/* 5 · Testimonials, round 4: two quote cards (./Proof.tsx). */
 
-.proof-grid {
+.proof4 .proof-wrap {
+  padding-block: clamp(72px, 12svh, 128px);
+}
+
+.proof-title {
+  max-width: 18em;
+}
+
+.proof-cards {
   display: grid;
-  align-items: center;
-  height: 100%;
-  padding-top: var(--header-h);
-  padding-bottom: clamp(12px, 3svh, 32px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 28px);
+  margin: clamp(28px, 4svh, 44px) 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.proof-q {
-  grid-area: 1 / 1;
+.proof-card {
+  display: flex;
+}
+
+.proof-card figure {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   margin: 0;
-  max-width: 76rem;
-  will-change: transform, opacity;
+  padding: clamp(24px, 2.6vw, 36px);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
 }
 
-/* Katie rises into the lower part of the screen as Phil lifts out of the upper part, so the
-   join into Five apps (whose headline sits at the top of its screen) has no empty band */
-.proof-katie {
-  align-self: end;
-  margin-bottom: clamp(20px, 8svh, 84px);
+.proof-mark-open {
+  display: block;
+  height: 0.5em;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 72px;
+  line-height: 1;
+  color: var(--orange);
 }
 
 /* the quote in the display face, a little lighter than the headlines: it's someone talking */
-.proof-quote p {
+.proof-text {
+  flex: 1;
+  margin: 18px 0 0;
+}
+
+.proof-text p {
+  margin: 0;
   font-family: var(--font-display);
-  font-stretch: 108%;
+  font-stretch: 100%;
   font-weight: 560;
-  font-size: clamp(21px, 1vw + 2.2svh + 2px, 40px);
-  line-height: 1.16;
-  letter-spacing: -0.022em;
+  font-size: clamp(20px, 0.7vw + 13px, 26px);
+  line-height: 1.24;
+  letter-spacing: var(--track-quote);
   color: var(--ink);
   text-wrap: pretty;
 }
 
-.proof-lead,
-.proof-rest {
-  display: block;
-}
-
-.proof-rest {
-  max-width: 30em;
-}
-
-/* hanging quotation mark: the text keeps its left edge */
-.proof-open {
-  display: inline-block;
-  width: 0.46em;
-  margin-left: -0.46em;
-  text-align: right;
-  padding-right: 0.04em;
-}
-
-/* the figure: set like the One Day times (big number, small unit), on its own line */
-.proof-figure {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 0.32em;
-  margin: 0.1em 0 0.12em;
-}
-
-.proof-num {
-  position: relative;
-  display: inline-flex;
-  align-items: flex-start;
-  font-size: clamp(74px, 8.4vw + 7.6svh, 210px);
-  line-height: 1;
-  letter-spacing: var(--track-time);
-  /* the tilde and the dollar sit a touch tighter to the digits */
-  margin-left: -0.04em;
-}
-
-.proof-per {
-  font-family: var(--font-display);
-  font-stretch: 112%;
+.proof-fig {
   font-weight: 700;
-  font-size: clamp(22px, 1.5vw + 2.2svh, 52px);
-  letter-spacing: -0.02em;
-  line-height: 1;
+  color: var(--orange-ink);
+  white-space: nowrap;
 }
 
-/* survey paint under the figure, sprayed once it lands */
-.proof-mark {
-  position: absolute;
-  left: 0.1em;
-  top: 0.86em;
-  height: 0.1em;
-  width: calc(100% - 0.12em);
-  overflow: visible;
-  pointer-events: none;
-}
-
-/* ink, not orange: orange is kept for the CTA and the geofence signals */
-.proof-mark path {
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 4.5;
-  stroke-linecap: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-
-.proof-figure.is-on .proof-mark path {
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset 0.75s cubic-bezier(0.65, 0, 0.35, 1) 1.45s;
-}
-
-/* the odometer reels */
-.odo {
-  display: inline-flex;
-}
-
-.odo-col {
-  position: relative;
-  display: inline-block;
-  height: 1em;
-  overflow: clip;
-  -webkit-mask-image: linear-gradient(transparent, #000 9%, #000 91%, transparent);
-  mask-image: linear-gradient(transparent, #000 9%, #000 91%, transparent);
-}
-
-.odo-size {
-  visibility: hidden;
-}
-
-.odo-reel {
-  position: absolute;
-  left: 0;
-  top: 0;
+.proof-by {
   display: flex;
-  flex-direction: column;
-  transform: translateY(calc(var(--odo-y, 0) * 1em));
-  transition-property: transform;
-  transition-timing-function: cubic-bezier(0.14, 0.72, 0.18, 1);
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
 }
 
-.odo-reel > span {
-  display: block;
-  height: 1em;
-  line-height: 1;
-  text-align: center;
-}
-
-/* who said it */
-.proof-cite {
-  display: block;
-  margin-top: clamp(18px, 4svh, 40px);
-  font-size: clamp(15px, 0.3vw + 12px, 17.5px);
-  line-height: 1.4;
+/* the photo's place: initials until Andrew sends the photos */
+.proof-face {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--ground-2);
+  border: 1px solid var(--line);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--ink-2);
 }
 
 .proof-who {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 0.4em;
+  flex-direction: column;
+  line-height: 1.3;
 }
 
 .proof-name {
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink);
 }
 
 .proof-co {
-  color: var(--ink-2);
-}
-
-.proof-name + .proof-co::before {
-  content: "· ";
+  font-size: 15px;
   color: var(--ink-3);
 }
 
-.proof-disclose {
-  display: block;
-  margin-top: 4px;
-  font-size: 13.5px;
+.proof-note {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
   color: var(--ink-3);
-  max-width: 44em;
 }
 
-/* Katie: the second beat, one big sentence */
-.proof-quote .proof-katie-text {
-  max-width: 19em;
-  font-size: clamp(28px, 1.9vw + 2.6svh + 2px, 64px);
-  font-weight: 620;
-  line-height: 1.08;
-  letter-spacing: var(--track-quote);
-  word-spacing: var(--display-word);
+/* the cards come up once as they arrive */
+@media (prefers-reduced-motion: no-preference) {
+  .proof-card {
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 0.5s var(--ease-out),
+      transform 0.6s var(--ease-out);
+  }
+
+  .proof-card + .proof-card {
+    transition-delay: 0.1s;
+  }
+
+  .is-in .proof-card {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @media (max-width: 760px) {
-  .proof-grid {
-    padding-bottom: calc(var(--sticky-h) + 10px);
+  .proof4 .proof-wrap {
+    padding-block: 56px 64px;
   }
-  .proof-quote p {
-    font-size: clamp(19px, 5vw, 22px);
-    line-height: 1.22;
+
+  .proof-cards {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .proof-num {
-    font-size: clamp(60px, 18.5vw, 84px);
+
+  .proof-card figure {
+    padding: 22px 20px 20px;
   }
-  .proof-per {
-    font-size: clamp(19px, 5.4vw, 24px);
-  }
-  .proof-open {
-    /* no room to hang on a phone's gutter */
-    width: auto;
-    margin-left: 0;
-  }
-  .proof-quote .proof-katie-text {
-    font-size: clamp(27px, 7.6vw, 34px);
-  }
-  .proof-disclose {
-    font-size: 12.5px;
+
+  .proof-mark-open {
+    font-size: 60px;
   }
 }

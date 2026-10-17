@@ -1,7 +1,9 @@
 // 4 · Your number (BRIEF §4, beat 5; OFFER.md §6): "What's loose time costing you?"
-// The visitor drags their crew size (the crew fills in as tiny hard-hat marks), picks the minutes
-// lost per person a day and the hourly cost, and their own number rolls up with the working shown.
-// We only multiply; we never claim SmartCrew saves it. The CTA carries the number into the popup.
+// A number is there at once (round 4, James): a preset crew, minutes and hourly cost (./calc.ts
+// PRESET). The visitor drags their crew size (the crew fills in as tiny hard-hat marks), picks the
+// minutes lost per person a day and the hourly cost, and their own number rolls up with the working
+// shown. We only multiply; we never claim SmartCrew saves it. The CTA carries the number into the
+// popup once it is theirs (they changed something).
 // The scroll moment is the "hour meter" (scratchpad design/v2/scroll/SCROLL_SHOTS.md §2): as the
 // crew comes into view the empty slots ripple in and the meter keys on (every wheel turns once);
 // at 1.4 s the knob nudges once; when his inputs settle (250 ms after the last change) the wheels
@@ -16,7 +18,7 @@ import { exitKeys } from "../../three/stage";
 import { SceneCta } from "../try/SceneCta";
 import { CrewSlider } from "./CrewSlider";
 import { Odometer } from "./Odometer";
-import { DAYS_DEFAULT, annualCost, money, parseDays, weekly } from "./calc";
+import { DAYS_DEFAULT, PRESET, annualCost, money, parseDays, weekly } from "./calc";
 import { useSettled } from "./settle";
 import { usePhoneLite } from "../phone";
 import NumberPhone from "./NumberPhone";
@@ -67,9 +69,9 @@ function Chips<T extends number>({
 }
 
 function Calculator() {
-  const [crew, setCrew] = useState<number | null>(null);
-  const [minutes, setMinutes] = useState<number | null>(null);
-  const [rate, setRate] = useState<number | null>(null);
+  const [crew, setCrew] = useState<number | null>(PRESET.crew);
+  const [minutes, setMinutes] = useState<number | null>(PRESET.minutes);
+  const [rate, setRate] = useState<number | null>(PRESET.rate);
   const [daysText, setDaysText] = useState(String(DAYS_DEFAULT));
   const days = parseDays(daysText);
   const annual = annualCost({ crew, minutes, rate, days });
@@ -100,11 +102,12 @@ function Calculator() {
     return () => window.clearTimeout(t);
   }, [annual]);
 
+  // the presets are ours: the number goes with the lead only once the visitor has made it theirs
   const request = (): SignupRequest => ({
     intent: "trial",
     source: "calculator",
-    size: crew ? sizeFor(crew) : undefined,
-    estimate: complete ? { crew: crew!, minutes: minutes!, rate: rate!, days: days!, annual: Math.round(annual!) } : undefined,
+    size: interacted.current && crew ? sizeFor(crew) : undefined,
+    estimate: interacted.current && complete ? { crew: crew!, minutes: minutes!, rate: rate!, days: days!, annual: Math.round(annual!) } : undefined,
   });
 
   const blank = <span className="num-blank">–</span>;

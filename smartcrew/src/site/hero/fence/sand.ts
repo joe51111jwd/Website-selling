@@ -27,13 +27,19 @@ import { holdFirstScreen } from "../../ready";
 
 const DESK_CELL = 2;
 const PHONE_CELL = 1.5;
+const FAST_PHONE_CELL = 1;
 const SUBSTEPS = 3;
 const VARIANTS = 14;
 
 type Seg = { y0: number; y1: number; li: number };
 type Pat = { a: Float32Array; m: Float32Array };
 
-export function startSand(root: HTMLElement, opts: { phone: boolean }) {
+/**
+ * `fast` (round 4, Andrew: "maybe a one second animation where it lands there"; the agency owner:
+ * "a faster version of the sand"): every line pours at once, so the whole headline lands in about
+ * a second instead of one line after another.
+ */
+export function startSand(root: HTMLElement, opts: { phone: boolean; fast?: boolean }) {
   const h1 = root.querySelector<HTMLElement>(".hf-h1-v");
   const lines = [...root.querySelectorAll<HTMLElement>(".hf-line-in")];
   if (!h1 || !lines.length) return () => {};
@@ -61,7 +67,8 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
   let need = new Uint8Array(0); // per pixel: the neighbours a gap pixel faces (1 up, 2 down, 4 left, 8 right)
   const sizeGrain = () => {
     dpr = Math.min(3, window.devicePixelRatio || 1);
-    S = Math.max(2, Math.round((opts.phone ? PHONE_CELL : DESK_CELL) * dpr));
+    // the fast pour's phone headline is set smaller (five lines): finer grains keep it readable
+    S = Math.max(2, Math.round((opts.phone ? (opts.fast ? FAST_PHONE_CELL : PHONE_CELL) : DESK_CELL) * dpr));
     CELL = S / dpr;
     // the grain shapes: a lit ellipsoid each, a little off-centre, a little squashed
     const L = [-0.45, -0.6, 0.66];
@@ -633,8 +640,8 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
     // only moves on by a frame's worth at a time: if the browser stalls, the pour waits for it
     // instead of catching up in one lump.
     const order = lines.map((_, i) => lines.length - 1 - i);
-    const POUR = opts.phone ? 1250 : 1400;
-    const GAP = opts.phone ? 1000 : 1100;
+    const POUR = opts.fast ? 640 : opts.phone ? 1250 : 1400;
+    const GAP = opts.fast ? 70 : opts.phone ? 1000 : 1100;
     const END = (order.length - 1) * GAP + POUR;
     const K = opts.phone ? 2 : 3; // grains a falling drop carries
     const G = 2200; // px/s², the fall
@@ -664,7 +671,7 @@ export function startSand(root: HTMLElement, opts: { phone: boolean }) {
       drops.push({
         x: x * CELL + (Math.random() - 0.5) * CELL,
         y: -Math.random() * 60,
-        vy: 380 + Math.random() * 200,
+        vy: opts.fast ? 760 + Math.random() * 260 : 380 + Math.random() * 200,
         ty: gy + row * CELL,
         aimed: false,
         c: clay ? SOIL_FALL.length + ((Math.random() * CLAY_FALL.length) | 0) : (Math.random() * SOIL_FALL.length) | 0,
