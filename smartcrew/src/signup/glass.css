@@ -1,0 +1,334 @@
+/* The popup in the glass look (src/styles/glass.css; James, Oct 17: "relatively clean… all in on a
+   liquid glass… super minimal"). Scoped to html.look-glass, so the classic popup is untouched.
+
+   Laptops: a strong glass sheet floating over a blurred, lightly tinted page; the preview sits in a
+   soft warm well inside it instead of on a dark panel. Phones: a full-height sheet on the page's
+   aurora, the form a glass sheet rising from the bottom (no backdrop blur on phones: the sheet
+   covers the page, and a blur under a sliding sheet is the costliest thing a phone can paint).
+   Everywhere: fields are soft filled wells with an orange glow on focus, the size chips a segmented
+   track with a white glass pill for the pick, the button the page's orange liquid pill. */
+
+/* ── controls (all widths) ─────────────────────────────────────────────────── */
+
+html.look-glass .su-input {
+  border-color: transparent;
+  border-radius: var(--g-r-sm);
+  background: var(--g-well);
+  box-shadow: inset 0 1px 2px rgb(64 40 18 / 6%);
+  transition:
+    background 0.18s,
+    box-shadow 0.18s;
+}
+html.look-glass .su-input:hover {
+  border-color: transparent;
+  background: rgb(120 96 72 / 10%);
+}
+html.look-glass .su-input:focus,
+html.look-glass .su-input:focus:hover {
+  border-color: transparent;
+  background: rgb(255 255 255 / 94%);
+  box-shadow:
+    0 0 0 1.5px rgb(255 122 1 / 62%),
+    0 0 0 5px rgb(255 122 1 / 15%),
+    0 10px 26px -12px rgb(255 108 0 / 38%);
+}
+html.look-glass .su-input:focus-visible {
+  border-radius: var(--g-r-sm);
+}
+html.look-glass .su-input::placeholder {
+  color: #ab9f93;
+}
+html.look-glass .su-field.has-err .su-input {
+  border-color: transparent;
+  background: rgb(180 35 24 / 6%);
+  box-shadow: inset 0 0 0 1.5px rgb(180 35 24 / 40%);
+}
+html.look-glass .su-field.has-err .su-input:focus {
+  background: rgb(255 255 255 / 94%);
+  box-shadow:
+    0 0 0 1.5px rgb(180 35 24 / 60%),
+    0 0 0 5px rgb(180 35 24 / 12%);
+}
+
+/* employee count: one segmented track, the pick a white glass pill that slides between them */
+html.look-glass .su-chips {
+  gap: 4px;
+  padding: 4px;
+  border-radius: 26px;
+  background: var(--g-well);
+  box-shadow: inset 0 1px 2px rgb(64 40 18 / 6%);
+  transition: background 0.18s;
+}
+html.look-glass .su-chip {
+  height: 44px;
+  border-color: transparent;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-2);
+  transition:
+    background 0.18s,
+    transform 0.12s,
+    color 0.18s;
+}
+html.look-glass .su-chip:hover {
+  border-color: transparent;
+  background: rgb(255 255 255 / 42%);
+}
+html.look-glass .su-chip.is-on {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink);
+}
+html.look-glass .su-chip-bg {
+  inset: -1px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff, rgb(255 255 255 / 90%));
+  box-shadow:
+    var(--g-edge),
+    0 1px 2px rgb(64 40 18 / 10%),
+    0 6px 16px -6px rgb(64 40 18 / 26%);
+}
+html.look-glass .su-chip:focus-visible {
+  border-radius: 999px;
+}
+html.look-glass .su-field.has-err .su-chips {
+  background: rgb(180 35 24 / 6%);
+  box-shadow: inset 0 0 0 1.5px rgb(180 35 24 / 34%);
+}
+html.look-glass .su-field.has-err .su-chip {
+  border-color: transparent;
+}
+
+/* size already given on the page: a quiet line in a well */
+html.look-glass .su-done {
+  border-radius: var(--g-r-sm);
+  background: var(--g-well);
+}
+html.look-glass .su-done-tick {
+  background: rgb(28 122 67 / 12%);
+  color: var(--su-ok);
+}
+
+/* text reminders opt-in */
+html.look-glass .su-box {
+  border-color: transparent;
+  background: rgb(255 255 255 / 82%);
+  box-shadow:
+    inset 0 0 0 1.5px rgb(120 96 72 / 26%),
+    0 1px 2px rgb(64 40 18 / 6%);
+  transition:
+    background 0.15s,
+    box-shadow 0.15s,
+    color 0.15s;
+}
+html.look-glass .su-check input:checked + .su-box {
+  border-color: transparent;
+  background: var(--ink);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 16%),
+    0 2px 6px -2px rgb(23 19 15 / 40%);
+}
+
+/* the button: the page's orange liquid pill (html.look-glass .cta in src/styles/glass.css) */
+html.look-glass .su-btn {
+  border-radius: 999px;
+  background:
+    radial-gradient(120% 110% at 50% -36%, rgb(255 255 255 / 52%), rgb(255 255 255 / 0%) 56%),
+    linear-gradient(180deg, #ff9236 0%, #ff7a01 56%, #f37000 100%);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 72%),
+    inset 0 0 0 1px rgb(255 255 255 / 16%),
+    inset 0 -3px 6px rgb(176 66 0 / 20%),
+    0 1px 2px rgb(120 48 0 / 16%),
+    0 14px 30px -12px rgb(255 108 0 / 58%);
+}
+html.look-glass .su-btn:hover {
+  transform: none;
+  filter: none;
+}
+@media (hover: hover) {
+  html.look-glass .su-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03) saturate(1.04);
+    box-shadow:
+      inset 0 1px 1px rgb(255 255 255 / 80%),
+      inset 0 0 0 1px rgb(255 255 255 / 18%),
+      inset 0 -3px 6px rgb(176 66 0 / 18%),
+      0 2px 4px rgb(120 48 0 / 14%),
+      0 20px 38px -12px rgb(255 108 0 / 62%);
+  }
+}
+html.look-glass .su-btn:active {
+  transform: scale(0.985);
+  filter: brightness(0.98);
+  box-shadow:
+    inset 0 1px 2px rgb(176 66 0 / 22%),
+    inset 0 0 0 1px rgb(255 255 255 / 14%),
+    0 1px 2px rgb(120 48 0 / 16%),
+    0 8px 18px -10px rgb(255 108 0 / 50%);
+}
+html.look-glass .su-btn:focus-visible {
+  border-radius: 999px;
+}
+
+/* ── the header: step, progress, back, close ────────────────────────────────── */
+
+html.look-glass .su-seg {
+  background: rgb(120 96 72 / 13%);
+}
+html.look-glass .su-back:hover {
+  background: var(--g-well);
+}
+html.look-glass .su-close {
+  background: rgb(255 255 255 / 62%);
+  color: var(--ink-2);
+  box-shadow:
+    var(--g-edge),
+    0 4px 14px -6px rgb(64 40 18 / 30%);
+  transition:
+    background 0.18s,
+    color 0.18s;
+}
+html.look-glass .su-close:hover {
+  background: rgb(255 255 255 / 92%);
+  color: var(--ink);
+}
+
+/* ── laptops: a glass sheet over the blurred page ──────────────────────────── */
+
+@media (min-width: 761px) {
+  html.look-glass .su-scrim {
+    background: rgb(70 48 28 / 18%);
+    -webkit-backdrop-filter: blur(20px) saturate(120%);
+    backdrop-filter: blur(20px) saturate(120%);
+  }
+  /* strong glass, over a faint wash of the ground so the page's orange button behind it reads as
+     a soft glow rather than a stain under the fields */
+  html.look-glass .su-dialog {
+    border-radius: var(--g-r);
+    background:
+      var(--g-fill-strong),
+      linear-gradient(rgb(251 248 244 / 36%), rgb(251 248 244 / 36%));
+    box-shadow:
+      var(--g-edge),
+      0 2px 6px rgb(64 40 18 / 6%),
+      0 50px 110px -40px rgb(64 40 18 / 48%);
+    -webkit-backdrop-filter: blur(32px) saturate(125%);
+    backdrop-filter: blur(32px) saturate(125%);
+  }
+
+  /* the preview: a soft warm well inside the sheet, the white app window floating in it */
+  html.look-glass .su-side {
+    margin: 10px 10px 10px 0;
+    border-radius: calc(var(--g-r) - 10px);
+    background:
+      radial-gradient(90% 60% at 82% 108%, rgb(255 150 64 / 30%), rgb(255 150 64 / 0%) 66%),
+      radial-gradient(80% 55% at 0% -6%, rgb(255 214 176 / 50%), rgb(255 214 176 / 0%) 70%),
+      radial-gradient(60% 50% at 100% 30%, rgb(198 211 224 / 34%), rgb(198 211 224 / 0%) 70%),
+      rgb(120 96 72 / 6%);
+    box-shadow: inset 0 1px 2px rgb(64 40 18 / 5%);
+    color: var(--ink-2);
+  }
+  html.look-glass .su-pv {
+    padding: 22px 24px 18px;
+  }
+  html.look-glass .su-pv-label {
+    color: var(--ink-2);
+  }
+  html.look-glass .su-pv-note {
+    color: var(--ink-3);
+  }
+  html.look-glass .su-stage-glow {
+    background: rgb(96 56 20 / 30%);
+  }
+  html.look-glass .su-win {
+    box-shadow:
+      0 2px 4px rgb(64 40 18 / 6%),
+      0 40px 70px -28px rgb(64 40 18 / 42%);
+  }
+  html.look-glass .su-close {
+    top: 22px;
+    right: 22px;
+  }
+}
+
+/* the resume pill (laptops, after closing halfway): a small glass capsule */
+html.look-glass .su-pill {
+  background: var(--g-fill);
+  color: var(--ink);
+  box-shadow:
+    var(--g-edge),
+    0 14px 36px -14px rgb(64 40 18 / 36%);
+  -webkit-backdrop-filter: var(--g-blur);
+  backdrop-filter: var(--g-blur);
+}
+html.look-glass .su-pill-go:hover {
+  background: rgb(255 255 255 / 55%);
+}
+html.look-glass .su-pill-ring circle:first-child {
+  stroke: rgb(120 96 72 / 20%);
+}
+html.look-glass .su-pill-x {
+  color: var(--ink-3) !important;
+}
+html.look-glass .su-pill-x:hover {
+  color: var(--ink) !important;
+  background: var(--g-well) !important;
+}
+
+/* ── phones: a full-height sheet on the aurora ─────────────────────────────── */
+
+@media (max-width: 760px) {
+  html.look-glass .su-dialog {
+    background:
+      radial-gradient(56% 50% at 92% 4%, rgb(255 158 76 / 42%), rgb(255 158 76 / 0%) 70%),
+      radial-gradient(50% 46% at 4% 30%, rgb(255 210 166 / 58%), rgb(255 210 166 / 0%) 70%),
+      radial-gradient(50% 44% at 80% 82%, rgb(198 211 224 / 62%), rgb(198 211 224 / 0%) 70%),
+      radial-gradient(42% 40% at 10% 96%, rgb(255 186 130 / 34%), rgb(255 186 130 / 0%) 70%),
+      var(--ground);
+  }
+  html.look-glass .su-head,
+  html.look-glass .su-kicker,
+  html.look-glass .su-back {
+    color: var(--ink);
+  }
+  html.look-glass .su-steplabel {
+    color: var(--ink-3);
+  }
+  html.look-glass .su-seg i {
+    background: var(--ink);
+  }
+  html.look-glass .su-pvc-bar {
+    padding-left: 14px;
+    border-radius: 999px;
+    background: var(--g-fill);
+    box-shadow:
+      var(--g-edge),
+      0 8px 24px -14px rgb(64 40 18 / 30%);
+  }
+  html.look-glass .su-body {
+    border-radius: var(--g-r) var(--g-r) 0 0;
+    background: var(--g-fill-strong);
+    box-shadow:
+      var(--g-edge),
+      0 -14px 36px -20px rgb(64 40 18 / 32%);
+  }
+  /* the step's content fades out under the button instead of under a ground-coloured shadow
+     (the sheet is translucent, so a solid fade would show as a band) */
+  html.look-glass .su-foot {
+    box-shadow: none;
+  }
+  html.look-glass .su-scroll {
+    -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 14px), transparent);
+    mask-image: linear-gradient(180deg, #000 calc(100% - 14px), transparent);
+  }
+  html.look-glass .su-chip {
+    height: 46px;
+  }
+  html.look-glass .su-chips {
+    gap: 3px;
+    padding: 3px;
+    border-radius: 26px;
+  }
+}

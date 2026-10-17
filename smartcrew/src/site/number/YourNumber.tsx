@@ -23,6 +23,7 @@ import { useSettled } from "./settle";
 import { usePhoneLite } from "../phone";
 import NumberPhone from "./NumberPhone";
 import "./number.css";
+import "./glass.css";
 
 function Chips<T extends number>({
   label,

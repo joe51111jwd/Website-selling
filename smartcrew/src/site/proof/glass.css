@@ -1,0 +1,19 @@
+/* Testimonials in the glass look (src/styles/glass.css): the two quotes as glass cards, no rule
+   round them; the initials sit in a soft well. */
+
+html.look-glass .proof-card figure {
+  border: 0;
+  border-radius: var(--g-r);
+  background: var(--g-fill);
+  box-shadow: var(--g-shadow);
+}
+
+html.look-glass .proof-face {
+  border: 0;
+  background: var(--g-well);
+  color: var(--ink-2);
+}
+
+html.look-glass .proof-note {
+  color: var(--ink-3);
+}

@@ -1,0 +1,35 @@
+/* Why us in the glass look (src/styles/glass.css): Andrew's photo stands in a glass frame; the
+   letter reads on the aurora with nothing round it. */
+
+html.look-glass .why-photo {
+  border-radius: var(--g-r);
+  background:
+    radial-gradient(70% 60% at 50% 0%, rgb(255 255 255 / 70%), rgb(255 255 255 / 0%) 70%),
+    var(--g-fill-soft);
+  box-shadow: var(--g-shadow);
+}
+
+html.look-glass .why-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+}
+
+html.look-glass .why-kicker::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 0 3px rgb(255 122 1 / 16%);
+}
+
+html.look-glass .why-more {
+  padding: 0 16px;
+  margin-left: -2px;
+  border-radius: 999px;
+  background: var(--g-fill);
+  box-shadow: var(--g-edge), 0 6px 16px -12px rgb(64 40 18 / 30%);
+  text-decoration: none;
+}

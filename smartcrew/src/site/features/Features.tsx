@@ -26,6 +26,7 @@ import { Cards } from "./Cards";
 import { PainPicker, type Answer } from "./PainPicker";
 import "../specsheet/all-tools.css";
 import "./features.css";
+import "./glass.css";
 
 const AppWindow = lazy(() => import("./AppWindow"));
 

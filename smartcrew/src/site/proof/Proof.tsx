@@ -9,6 +9,7 @@ import { FLAG, PROOF } from "../../content/copy";
 import { Scene } from "../scene/Scene";
 import { useArrive } from "../phone/useArrive";
 import "./proof.css";
+import "./glass.css";
 
 const P = PROOF.phil;
 const K = PROOF.katie;

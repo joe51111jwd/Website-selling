@@ -1,0 +1,366 @@
+/* /book in the glass look (src/styles/glass.css; James, Oct 17: "relatively clean… all in on a
+   liquid glass… just have the main focus points"). Scoped to html.look-glass, which the page gets
+   from the look the visitor arrived with (src/lib/look.ts, kept in sessionStorage).
+
+   The dark band goes: the whole page sits on the product page's warm aurora, the headline in ink.
+   Three focus points, each a calm glass card: Andrew's video (a dark screen in a glass bezel, so
+   it is still the first thing the eye lands on), his calendar (the loading skeleton and the
+   fallback card; the live Cal.com booker brings its own white card), and what you're setting up.
+   Everything else is text on the ground: no rules, no dark blocks. */
+
+/* ── the ground: the product page's aurora (it has a .backdrop element; /book doesn't) ─── */
+
+html.look-glass,
+html.look-glass body {
+  background: var(--ground);
+}
+html.look-glass body {
+  background: transparent;
+}
+html.look-glass body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  height: 100lvh;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(56% 50% at 92% 4%, rgb(255 158 76 / 42%), rgb(255 158 76 / 0%) 70%),
+    radial-gradient(50% 46% at 4% 30%, rgb(255 210 166 / 58%), rgb(255 210 166 / 0%) 70%),
+    radial-gradient(50% 44% at 80% 82%, rgb(198 211 224 / 62%), rgb(198 211 224 / 0%) 70%),
+    radial-gradient(42% 40% at 10% 96%, rgb(255 186 130 / 34%), rgb(255 186 130 / 0%) 70%),
+    var(--ground);
+}
+html.look-glass .bk {
+  background: transparent;
+}
+
+/* ── 1 · bar, headline, video ──────────────────────────────────────────────── */
+
+html.look-glass .bk-hero {
+  padding-bottom: 8px;
+  background: none;
+  color: var(--ink);
+}
+html.look-glass .bk-logo-svg .logo-word {
+  fill: var(--ink);
+}
+
+/* where they are: a small glass pill, the "now" dot as on the product page's eyebrow */
+html.look-glass .bk-progress {
+  gap: 10px;
+  padding: 7px 14px 7px 10px;
+  border-radius: 999px;
+  background: var(--g-fill);
+  box-shadow:
+    var(--g-edge),
+    0 6px 18px -12px rgb(64 40 18 / 30%);
+  color: var(--ink-3);
+}
+html.look-glass .bk-progress .is-now {
+  color: var(--ink);
+}
+html.look-glass .bk-progress-line {
+  background: rgb(120 96 72 / 16%);
+}
+html.look-glass .bk-progress-line i {
+  background: var(--ink-3);
+}
+html.look-glass .bk-tick {
+  background: rgb(28 122 67 / 13%);
+  color: #1c7a43;
+}
+html.look-glass .bk-now-dot {
+  box-shadow: 0 0 0 3px rgb(255 122 1 / 16%);
+}
+html.look-glass .bk-help {
+  color: var(--ink-3) !important;
+}
+html.look-glass .bk-help:hover {
+  color: var(--ink) !important;
+}
+
+html.look-glass .bk-kicker {
+  color: var(--ink-3);
+}
+html.look-glass .bk-sub {
+  color: var(--ink-3);
+}
+html.look-glass .bk .sc-flag {
+  color: var(--orange-ink);
+}
+
+/* the video: a dark screen in a glass bezel, the caption inside it */
+html.look-glass .bk-video {
+  width: min(100%, 900px, max(580px, calc((100svh - var(--bk-reserve) - 16px) * 16 / 9 + 20px)));
+  padding: 10px 10px 4px;
+  border-radius: var(--g-r);
+  background: var(--g-fill);
+  box-shadow:
+    var(--g-edge),
+    var(--g-drop-lg);
+}
+html.look-glass .bk-video-frame {
+  border-radius: calc(var(--g-r) - 10px);
+  box-shadow: none;
+}
+html.look-glass .bk-poster-play {
+  background: rgb(255 255 255 / 86%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 96%),
+    0 14px 34px -8px rgb(0 0 0 / 45%);
+}
+html.look-glass .bk-cap {
+  margin: 0;
+  padding: 10px 6px 8px;
+  color: var(--ink-3);
+}
+html.look-glass .bk-jump {
+  color: var(--ink-2) !important;
+}
+html.look-glass .bk-jump:hover {
+  color: var(--ink) !important;
+}
+
+/* ── 2 · the calendar ──────────────────────────────────────────────────────── */
+
+html.look-glass .bk-main {
+  padding-top: 48px;
+}
+/* the visitor's own estimate: a plain line over the calendar, the figure the only colour */
+html.look-glass .bk-est {
+  padding: 0 4px;
+  background: none;
+  text-align: center;
+}
+html.look-glass .bk-est b {
+  color: var(--orange-ink);
+}
+
+/* loading: a glass card in Cal's own shape */
+html.look-glass .bk-skel {
+  border: 0;
+  border-radius: var(--g-r);
+  background: var(--g-fill);
+  box-shadow:
+    var(--g-edge),
+    var(--g-drop);
+}
+html.look-glass .bk-skel-cal {
+  border-right: 0;
+}
+html.look-glass .bk-skel-bar,
+html.look-glass .bk-skel-grid span,
+html.look-glass .bk-skel-times span {
+  border-radius: 10px;
+  background: rgb(120 96 72 / 9%);
+}
+html.look-glass .bk-skel-grid span {
+  border-radius: 50%;
+}
+
+/* didn't load (blocked, offline): the way out, on one glass card */
+html.look-glass .bk-fallback {
+  padding: 32px 34px;
+  border: 0;
+  border-radius: var(--g-r);
+  background: var(--g-fill);
+  box-shadow:
+    var(--g-edge),
+    var(--g-drop);
+}
+html.look-glass .bk-fallback a:not(.bk-btn) {
+  color: var(--ink);
+  text-decoration-color: rgb(23 19 15 / 30%);
+  text-underline-offset: 3px;
+}
+
+/* buttons: the one action is the page's orange liquid pill; the rest white glass pills */
+html.look-glass .bk-btn {
+  height: 50px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  background:
+    radial-gradient(120% 110% at 50% -36%, rgb(255 255 255 / 52%), rgb(255 255 255 / 0%) 56%),
+    linear-gradient(180deg, #ff9236 0%, #ff7a01 56%, #f37000 100%);
+  color: var(--ink) !important;
+  font-weight: 680;
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 72%),
+    inset 0 0 0 1px rgb(255 255 255 / 16%),
+    inset 0 -3px 6px rgb(176 66 0 / 20%),
+    0 1px 2px rgb(120 48 0 / 16%),
+    0 14px 30px -12px rgb(255 108 0 / 58%);
+  transition:
+    transform 0.16s var(--ease-out),
+    filter 0.2s,
+    box-shadow 0.2s;
+}
+html.look-glass .bk-btn:hover {
+  filter: none;
+}
+@media (hover: hover) {
+  html.look-glass .bk-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03) saturate(1.04);
+  }
+}
+html.look-glass .bk-btn:active {
+  transform: scale(0.985);
+  filter: brightness(0.98);
+}
+html.look-glass .bk-btn--ghost {
+  background: rgb(255 255 255 / 72%);
+  color: var(--ink) !important;
+  font-weight: 600;
+  box-shadow:
+    var(--g-edge),
+    0 1px 2px rgb(64 40 18 / 6%),
+    0 8px 20px -12px rgb(64 40 18 / 30%);
+}
+@media (hover: hover) {
+  html.look-glass .bk-btn--ghost:hover {
+    filter: none;
+    background: rgb(255 255 255 / 92%);
+  }
+}
+html.look-glass .bk-btn--sm {
+  height: 44px;
+  padding: 0 16px;
+}
+
+/* ── the ticket (booked) ───────────────────────────────────────────────────── */
+
+html.look-glass .bk-ticket {
+  border-radius: var(--g-r);
+  background: var(--g-fill-strong);
+  box-shadow:
+    var(--g-edge),
+    var(--g-drop-lg);
+}
+html.look-glass .bk-ticket-check {
+  background: rgb(28 122 67 / 12%);
+  color: #1c7a43;
+  box-shadow: 0 0 0 6px rgb(28 122 67 / 6%);
+}
+/* no notches or dashed tear line: space does it */
+html.look-glass .bk-ticket-perf {
+  height: 4px;
+  background: none;
+}
+html.look-glass .bk-ticket-perf::after {
+  display: none;
+}
+html.look-glass .bk-handy li {
+  background: var(--g-well);
+}
+
+/* ── 3 · under the calendar ───────────────────────────────────────────────── */
+
+html.look-glass .bk-after {
+  margin-top: 64px;
+  padding-top: 0;
+  border-top: 0;
+}
+/* the steps: bare numerals, no black discs */
+html.look-glass .bk-covers li::before {
+  top: 0.05em;
+  width: auto;
+  height: auto;
+  background: none;
+  color: var(--ink-3);
+  font-family: var(--font-display);
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+html.look-glass .bk-covers li {
+  padding-left: 26px;
+}
+html.look-glass .bk-assure li::before {
+  border-color: var(--ink-3);
+}
+
+/* what you're setting up: the spec sheet in brief, on one glass card (no rules between rows) */
+html.look-glass .bk-setup {
+  margin-top: 56px;
+  padding: 28px 32px 26px;
+  border-radius: var(--g-r);
+  background: var(--g-fill);
+  box-shadow:
+    var(--g-edge),
+    var(--g-drop);
+}
+html.look-glass .bk-setup-head {
+  padding-bottom: 14px;
+}
+html.look-glass .bk-setup-list {
+  border-top: 0;
+  border-bottom: 0;
+}
+html.look-glass .bk-setup-row {
+  padding: 9px 0;
+}
+html.look-glass .bk-setup-row + .bk-setup-row {
+  border-top: 0;
+}
+html.look-glass .bk-setup-tools {
+  color: var(--ink-2);
+}
+html.look-glass .bk-setup-apps {
+  margin-top: 16px;
+  color: var(--ink-3);
+}
+
+html.look-glass .bk-foot {
+  margin-top: 48px;
+}
+
+/* ── phones ───────────────────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  html.look-glass .bk-hero {
+    padding-bottom: 4px;
+  }
+  /* the video stays as wide as the screen allows: a thin bezel, 8 px from each edge */
+  html.look-glass .bk-video {
+    width: auto;
+    margin: 16px 8px 0;
+    padding: 5px 5px 2px;
+    border-radius: 22px;
+  }
+  html.look-glass .bk-video-frame {
+    border-radius: 17px;
+  }
+  html.look-glass .bk-cap {
+    padding: 8px 8px 7px;
+  }
+  html.look-glass .bk-main {
+    padding-top: 0;
+  }
+  html.look-glass .bk-est {
+    margin: 22px 0 14px;
+    text-align: left;
+  }
+  html.look-glass .bk-skel {
+    border-radius: var(--g-r);
+  }
+  html.look-glass .bk-fallback {
+    padding: 24px 22px;
+  }
+  html.look-glass .bk-after {
+    margin-top: 40px;
+  }
+  html.look-glass .bk-setup {
+    margin: 36px -4px 0;
+    padding: 22px 20px 20px;
+    width: auto;
+  }
+  html.look-glass .bk-setup-row {
+    padding: 8px 0;
+  }
+}

@@ -1,0 +1,51 @@
+/* The footer in the glass look (src/styles/glass.css): no night panel; quiet ink type on the
+   aurora, set off by space and one soft glass band. */
+
+html.look-glass .ftr-scene {
+  background: none;
+  color: var(--ink-2);
+}
+
+html.look-glass .ftr {
+  margin: clamp(24px, 5svh, 56px) auto 0;
+  max-width: calc(var(--max) + var(--gutter) * 2);
+  padding-inline: clamp(0px, 1vw, 12px);
+}
+
+html.look-glass .ftr-in {
+  padding-block: clamp(26px, 4svh, 40px);
+  border-radius: var(--g-r) var(--g-r) 0 0;
+  background: var(--g-fill-soft);
+  box-shadow: var(--g-edge);
+}
+
+html.look-glass .ftr .logo-word {
+  fill: var(--ink);
+}
+
+html.look-glass .ftr-tag {
+  color: var(--ink-3);
+}
+
+html.look-glass .ftr a {
+  color: var(--ink);
+}
+
+html.look-glass .ftr a:hover {
+  color: var(--orange-ink);
+}
+
+html.look-glass .ftr-base {
+  border-top: 0;
+  padding-top: 0;
+}
+
+html.look-glass .ftr-legal a,
+html.look-glass .ftr-copy,
+html.look-glass .ftr-notes {
+  color: var(--ink-3);
+}
+
+html.look-glass .ftr .flag {
+  color: var(--orange-ink);
+}

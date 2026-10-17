@@ -2,6 +2,7 @@ import { startTransition, useCallback, useEffect, useId, useLayoutEffect, useRef
 import { AnimatePresence, motion, useReducedMotion, type Transition } from "motion/react";
 import "../styles/tokens.css";
 import "./signup.css";
+import "./glass.css";
 import { SIZES, openSignup, type Estimate, type Intent, type SignupRequest, type Size } from "./contract";
 import {
   EMPTY_DRAFT,

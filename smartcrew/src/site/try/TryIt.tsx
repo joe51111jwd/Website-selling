@@ -9,6 +9,7 @@ import { Scene } from "../scene/Scene";
 import { usePhoneLite } from "../phone";
 import { TryDesk } from "./TryDesk";
 import "./try.css";
+import "./glass.css";
 
 // the phone layout carries the app's own UI kit (Inter, the screens' CSS): only phones load it
 const TryPhone = lazy(() => import("./TryPhone"));

@@ -1,0 +1,318 @@
+/* Your number in the glass look (src/styles/glass.css). The two picks are iOS-style segmented
+   controls: one soft track, the chosen option a white glass pill with a soft shadow that slides to
+   the option tapped (no black blocks, no borders). The crew slider's knob is a glass capsule on a
+   soft track. On laptops the visitor's number sits on one glass card, the page's focal point here;
+   the formula under it is quiet, its workdays field a small well instead of a dashed rule.
+   Phones: the same controls; the number stays bare (no room for a card on one screen). */
+
+/* ── the segmented controls (laptops .num-chips, phones .nph-chips) ── */
+
+html.look-glass .num-chips,
+html.look-glass .nph-chips {
+  --n: 4;
+  --i: 0;
+  --seg-in: 3px;
+  position: relative;
+  gap: 0;
+  border-radius: 999px;
+  background: var(--g-well);
+  box-shadow: inset 0 1px 2px rgb(64 40 18 / 7%);
+}
+
+/* laptops: equal segments, as wide as the widest label */
+html.look-glass .num-chips {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+
+html.look-glass .num-chip,
+html.look-glass .nph-chip {
+  position: relative;
+  z-index: 1;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-weight: 600;
+  transition:
+    color 0.2s var(--ease-out),
+    transform 0.12s var(--ease-out);
+}
+
+html.look-glass .num-chip {
+  min-width: 62px;
+  padding: 0 18px;
+}
+
+html.look-glass .nph-chip {
+  height: 44px;
+}
+
+html.look-glass .num-chip:hover {
+  border: 0;
+  color: var(--ink);
+}
+
+html.look-glass .num-chip.is-on,
+html.look-glass .nph-chip.is-on {
+  background: transparent;
+  color: var(--ink);
+  font-weight: 680;
+}
+
+/* the white glass pill under the chosen option (it slides there) */
+html.look-glass .num-chips::before,
+html.look-glass .nph-chips::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: var(--seg-in);
+  top: var(--seg-in);
+  bottom: var(--seg-in);
+  width: calc(100% / var(--n) - 2 * var(--seg-in));
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff, rgb(255 255 255 / 88%));
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 1px 2px rgb(64 40 18 / 10%),
+    0 6px 16px -6px rgb(64 40 18 / 30%);
+  transform: translateX(calc(var(--i) * (100% + 2 * var(--seg-in))));
+  transition:
+    transform 0.42s cubic-bezier(0.3, 1.2, 0.5, 1),
+    opacity 0.2s var(--ease-out);
+  pointer-events: none;
+}
+
+html.look-glass .num-chips:has(> .num-chip:nth-of-type(5)),
+html.look-glass .nph-chips:has(> .nph-chip:nth-of-type(5)) {
+  --n: 5;
+}
+
+html.look-glass .num-chips:has(> .num-chip:nth-of-type(2).is-on),
+html.look-glass .nph-chips:has(> .nph-chip:nth-of-type(2).is-on) {
+  --i: 1;
+}
+
+html.look-glass .num-chips:has(> .num-chip:nth-of-type(3).is-on),
+html.look-glass .nph-chips:has(> .nph-chip:nth-of-type(3).is-on) {
+  --i: 2;
+}
+
+html.look-glass .num-chips:has(> .num-chip:nth-of-type(4).is-on),
+html.look-glass .nph-chips:has(> .nph-chip:nth-of-type(4).is-on) {
+  --i: 3;
+}
+
+html.look-glass .num-chips:has(> .num-chip:nth-of-type(5).is-on),
+html.look-glass .nph-chips:has(> .nph-chip:nth-of-type(5).is-on) {
+  --i: 4;
+}
+
+html.look-glass .num-chips:not(:has(> .is-on))::before,
+html.look-glass .nph-chips:not(:has(> .is-on))::before {
+  opacity: 0;
+}
+
+/* without :has() the pill can't find its option: the chosen chip is the pill itself */
+@supports not selector(:has(a)) {
+  html.look-glass .num-chips::before,
+  html.look-glass .nph-chips::before {
+    display: none;
+  }
+  html.look-glass .num-chip.is-on,
+  html.look-glass .nph-chip.is-on {
+    background: #fff;
+    box-shadow:
+      0 1px 2px rgb(64 40 18 / 10%),
+      0 6px 16px -6px rgb(64 40 18 / 30%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.look-glass .num-chips::before,
+  html.look-glass .nph-chips::before {
+    transition: none;
+  }
+}
+
+html.look-glass .num-pick-k {
+  font-weight: 600;
+}
+
+html.look-glass .num-hint {
+  color: var(--ink-3);
+}
+
+/* the input to set next (phones, only if one is cleared): an orange-tinted track */
+html.look-glass .nph-pick.is-next .nph-chips {
+  background: rgb(255 122 1 / 10%);
+}
+
+html.look-glass .nph-pick.is-next .nph-chip {
+  border: 0;
+}
+
+/* ── the crew slider: a soft track, a glass knob ── */
+
+html.look-glass .num-track::before,
+html.look-glass .num-track-fill,
+html.look-glass .ncv-track::before,
+html.look-glass .ncv-fill {
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 3px;
+}
+
+html.look-glass .num-track::before,
+html.look-glass .ncv-track::before {
+  background: rgb(120 96 72 / 14%);
+  box-shadow: inset 0 1px 1px rgb(64 40 18 / 6%);
+}
+
+html.look-glass .num-track-fill,
+html.look-glass .ncv-fill {
+  background: rgb(23 19 15 / 78%);
+}
+
+/* the stake up through the crew: a quiet marker */
+html.look-glass .num-stake,
+html.look-glass .ncv-stake {
+  background: rgb(23 19 15 / 30%);
+}
+
+html.look-glass .num-knob,
+html.look-glass .ncv-knob {
+  left: -22px;
+  top: -15px;
+  width: 44px;
+  height: 30px;
+  border-radius: 999px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #fff, rgb(255 255 255 / 0%) 70%),
+    linear-gradient(180deg, rgb(255 255 255 / 96%), rgb(250 246 241 / 90%));
+  color: var(--ink-2);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -1px 0 rgb(64 40 18 / 5%),
+    0 1px 2px rgb(64 40 18 / 14%),
+    0 8px 20px -6px rgb(64 40 18 / 34%);
+}
+
+/* ── the result: one glass card on laptops ── */
+
+html.look-glass .num-out {
+  padding: clamp(26px, 4svh, 44px) clamp(26px, 3vw, 44px);
+  border-radius: var(--g-r);
+  background: var(--g-fill);
+  box-shadow: var(--g-shadow);
+}
+
+html.look-glass .num-week {
+  color: var(--ink-2);
+}
+
+/* the working: quiet */
+html.look-glass .num-formula,
+html.look-glass .nph-formula {
+  color: var(--ink-3);
+}
+
+html.look-glass .num-formula {
+  font-size: 14px;
+}
+
+html.look-glass .num-formula strong {
+  font-weight: 650;
+  color: var(--ink-2);
+}
+
+/* the workdays field: a small well (no dashed rule) */
+html.look-glass .num-days input,
+html.look-glass .nph-days input {
+  border: 0;
+  border-radius: 7px;
+  background: var(--g-well);
+  color: var(--ink-2);
+  transition:
+    background-color 0.18s var(--ease-out),
+    box-shadow 0.18s var(--ease-out);
+}
+
+html.look-glass .num-days input {
+  width: 4.2ch;
+  padding: 1px 3px;
+}
+
+html.look-glass .num-days input:hover,
+html.look-glass .nph-days input:hover {
+  border: 0;
+  background: rgb(120 96 72 / 13%);
+}
+
+html.look-glass .num-days input:focus,
+html.look-glass .nph-days input:focus {
+  border: 0;
+  background: rgb(255 122 1 / 9%);
+  box-shadow: 0 0 0 2px rgb(255 122 1 / 45%);
+}
+
+html.look-glass .num-blank,
+html.look-glass .nph-blank {
+  border: 0;
+  border-radius: 6px;
+  background: var(--g-well);
+}
+
+html.look-glass .num-framing,
+html.look-glass .num-built {
+  color: var(--ink-3);
+}
+
+/* ── tablets in portrait (one column): the card keeps to the column ── */
+
+@media (min-width: 761px) and (max-width: 1000px) {
+  html.look-glass .num-out {
+    margin-top: 8px;
+  }
+}
+
+/* ── phones (the desktop build at phone width, and PHONE MODE) ── */
+
+@media (max-width: 760px) {
+  html.look-glass .num-out {
+    padding: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+  html.look-glass .num-chip {
+    min-width: 0;
+    height: 44px;
+    padding: 0 6px;
+  }
+  html.look-glass .num-chips {
+    display: flex;
+  }
+  html.look-glass .num-formula {
+    font-size: 13px;
+  }
+}
+
+/* short phones: the controls tighten with the rest, the track still a full 40 px */
+@media (max-width: 760px) and (max-height: 640px) {
+  html.look-glass .num-chip,
+  html.look-glass .nph-chip {
+    height: 40px;
+  }
+}
+
+/* PHONE MODE: the taller glass header and the 44 px segments take a little room; the gaps above
+   the headline and between the picks give it back, so the CTA sits where it does in classic */
+html.look-glass .nph {
+  padding-top: calc(var(--header-h) + clamp(4px, 1.4svh, 14px));
+}
+
+html.look-glass .nph-pick {
+  margin-top: clamp(8px, 1.6svh, 14px);
+}

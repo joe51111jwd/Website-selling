@@ -14,9 +14,11 @@ import { Logo } from "../../brand/Logo";
 import { Scene } from "../scene/Scene";
 import { Cta, DemoLink } from "../ui/Cta";
 import { usePhoneLite } from "../phone";
+import { GLASS } from "../../lib/look";
 import { AppMark, CardIcon } from "./glyphs";
 import { Wires } from "./Wires";
 import "./replace.css";
+import "./glass.css";
 
 /**
  * True once the wiring is where the visitor is looking. Desktop: the box is mostly on screen (the
@@ -57,7 +59,7 @@ export default function Replace() {
   return (
     <Scene id="replace" pinnedViewports={0} stage="keep" label={REPLACE.label} className="rp">
       <div className="wrap rp-wrap">
-        <div className="rp-panel" data-cursor-tone="dark">
+        <div className="rp-panel" data-cursor-tone={GLASS ? undefined : "dark"}>
           <header className="rp-head">
             <p className="rp-kicker">{REPLACE.kicker}</p>
             <h2 className="rp-h2" id="rp-title">

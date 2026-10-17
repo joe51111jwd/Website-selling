@@ -1,0 +1,258 @@
+/* Replace 5 apps in the glass look (src/styles/glass.css). No dark panel: the head, the six cards
+   and the hub sit straight on the aurora in ink. The cards are light glass with bare glyphs and
+   the replaced apps as small white bubbles (no tear-off line); the wires are thin and soft with no
+   node dots; the SmartCrew hub is the one glowing glass piece, so the eye runs six → one.
+   Phones: the spine runs behind the glass cards (seen in the gaps, faint through the glass) into
+   the hub. */
+
+/* ── the panel goes: everything floats on the ground ─────────────────── */
+
+html.look-glass .rp-panel {
+  padding-inline: 0;
+  padding-bottom: 0;
+  background: none;
+  color: var(--ink);
+  box-shadow: none;
+}
+
+html.look-glass .rp-kicker {
+  color: var(--orange-ink);
+}
+
+html.look-glass .rp-h2 {
+  color: var(--ink);
+}
+
+html.look-glass .rp-h2-aside {
+  color: var(--ink-3);
+}
+
+html.look-glass .rp-sub {
+  color: var(--ink-3);
+}
+
+/* ── the six cards ───────────────────────────────────────────────────── */
+
+html.look-glass .rp-net {
+  margin-top: clamp(36px, 3vw + 1svh, 60px);
+}
+
+html.look-glass .rp-cards {
+  gap: clamp(12px, 1.1vw, 18px);
+}
+
+html.look-glass .rp-card {
+  padding: 26px clamp(12px, 1.05vw, 18px) 20px;
+  border: 0;
+  border-radius: var(--g-r-md);
+  background: var(--g-fill);
+  box-shadow: var(--g-shadow);
+}
+
+html.look-glass .rp-ico {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--ink-3);
+}
+
+html.look-glass .rp-ico-svg {
+  width: 28px;
+  height: 28px;
+}
+
+html.look-glass .rp-name {
+  margin-top: 16px;
+  color: var(--ink);
+}
+
+html.look-glass .rp-line {
+  color: var(--ink-3);
+}
+
+/* the apps it replaces: a quiet label and the logos as white bubbles, no dashed line */
+html.look-glass .rp-was {
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+html.look-glass .rp-was-label {
+  color: var(--ink-3);
+  opacity: 0.85;
+}
+
+html.look-glass .rp-apps {
+  gap: 4px;
+}
+
+html.look-glass .rp-app {
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgb(64 40 18 / 4%),
+    0 1px 2px rgb(64 40 18 / 8%),
+    0 4px 10px -4px rgb(64 40 18 / 22%);
+}
+
+html.look-glass .rp-app + .rp-app {
+  margin-left: 0;
+}
+
+@media (hover: hover) {
+  html.look-glass .rp-app::after {
+    background: rgb(255 255 255 / 92%);
+    color: var(--ink);
+    box-shadow: var(--g-edge), 0 8px 20px -10px rgb(64 40 18 / 40%);
+  }
+}
+
+/* ── the wires: thin, soft, no dots ──────────────────────────────────── */
+
+html.look-glass .rp-wire {
+  stroke: rgb(255 122 1 / 58%);
+  stroke-width: 1.25;
+}
+
+html.look-glass .rp-port,
+html.look-glass .rp-entry {
+  display: none;
+}
+
+/* ── the hub: the one glowing glass piece ────────────────────────────── */
+
+html.look-glass .rp-hub {
+  padding: 26px 60px 23px;
+  border: 0;
+  border-radius: var(--g-r);
+  background: var(--g-fill-strong);
+  box-shadow: var(--g-edge), var(--g-drop);
+  transition: box-shadow 720ms var(--ease-out);
+}
+
+html.look-glass .rp-hub-logo {
+  height: 33px;
+}
+
+html.look-glass .rp-hub-logo .logo-word {
+  fill: var(--ink);
+}
+
+html.look-glass .rp-hub-line {
+  color: var(--ink-3);
+}
+
+/* the lines arrive: the hub lights, once */
+html.look-glass .rp-net.is-wired .rp-hub {
+  box-shadow:
+    var(--g-edge),
+    inset 0 -16px 30px -18px rgb(255 122 1 / 24%),
+    0 0 0 8px rgb(255 122 1 / 7%),
+    0 0 60px -6px rgb(255 122 1 / 40%),
+    0 28px 60px -22px rgb(214 92 0 / 50%);
+  transition-delay: 1080ms;
+}
+
+/* ── small print and the button ──────────────────────────────────────── */
+
+html.look-glass .rp-fine {
+  margin-top: clamp(32px, 3vw, 44px);
+  color: var(--ink-3);
+  opacity: 0.8;
+}
+
+html.look-glass .rp .rp-demo {
+  color: var(--ink-2);
+  text-decoration-color: rgb(23 19 15 / 0%);
+}
+
+html.look-glass .rp .rp-demo:hover {
+  color: var(--ink);
+  text-decoration-color: rgb(23 19 15 / 35%);
+}
+
+/* ── phones ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  html.look-glass .rp-wrap {
+    padding-inline: var(--gutter);
+  }
+  html.look-glass .rp-panel {
+    padding: 36px 0 8px;
+    border-radius: 0;
+  }
+  html.look-glass .rp-head {
+    padding-inline: 0;
+  }
+  html.look-glass .rp-net {
+    margin-top: 30px;
+  }
+  /* the cards sit over the spine, which shows in the gaps between them */
+  html.look-glass .rp-cards {
+    z-index: 1;
+    gap: 14px;
+  }
+  html.look-glass .rp-wires {
+    z-index: 0;
+  }
+  html.look-glass .rp-wire {
+    stroke: rgb(255 122 1 / 80%);
+    stroke-width: 1.5;
+  }
+  html.look-glass .rp-card {
+    column-gap: 12px;
+    padding: 16px 14px 17px 12px;
+    border-radius: var(--g-r-md);
+  }
+  html.look-glass .rp-ico {
+    width: 40px;
+    height: 40px;
+    border-radius: 0;
+  }
+  html.look-glass .rp-ico-svg {
+    width: 26px;
+    height: 26px;
+  }
+  html.look-glass .rp-name {
+    margin: 0;
+  }
+  html.look-glass .rp-was {
+    gap: 6px;
+    margin: 0;
+  }
+  /* the bubbles huddle on phones, each ringed in white, so the name keeps its line */
+  html.look-glass .rp-apps {
+    gap: 0;
+  }
+  html.look-glass .rp-app {
+    box-shadow:
+      0 0 0 1.5px #fff,
+      0 1px 2px rgb(64 40 18 / 8%),
+      0 4px 10px -4px rgb(64 40 18 / 24%);
+  }
+  html.look-glass .rp-app + .rp-app {
+    margin-left: -3px;
+  }
+  html.look-glass .rp-hub {
+    margin-top: 48px;
+    padding: 20px 20px 18px;
+  }
+  html.look-glass .rp-hub-logo {
+    height: 28px;
+  }
+  html.look-glass .rp-fine {
+    margin-top: 28px;
+  }
+  html.look-glass .rp-net.is-wired .rp-hub {
+    transition-delay: 350ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.look-glass .rp-hub,
+  html.look-glass .rp-net.is-wired .rp-hub {
+    transition: none;
+  }
+}

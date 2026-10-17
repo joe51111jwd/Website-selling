@@ -1,0 +1,175 @@
+/* Try it in the glass look (src/styles/glass.css). The phone stays the hero: on laptops it stands
+   on a soft glass halo, the instruction carries one orange dot, and the two quiet facts sit in a
+   single glass note beside it. Focus mode (./focus.tsx) frosts the page instead of dimming it flat:
+   the page behind blurs under a light warm tint and the phone stays sharp on top. On phones the app
+   still fills the screen; the page around it is clear (the aurora shows) and the note that slides
+   up after the tap is glass. The app's own UI inside the phone is untouched. */
+
+/* ── laptops: the halo behind the phone ── */
+
+/* a glass disc centred on the phone (the frame is the phone and its caption: 1.8 × 2.2 units, the
+   phone 0.79 × 1.63), so the phone stands over it, its top and chin just past the rim */
+html.look-glass .try-frame::before,
+html.look-glass .try-frame::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* the glow round it: light, no edge */
+html.look-glass .try-frame::before {
+  width: 136%;
+  aspect-ratio: 1;
+  background: radial-gradient(closest-side, rgb(255 255 255 / 46%), rgb(255 255 255 / 18%) 55%, rgb(255 255 255 / 0%));
+}
+
+/* the disc */
+html.look-glass .try-frame::after {
+  width: 78%;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(110% 80% at 50% 0%, rgb(255 255 255 / 48%), rgb(255 255 255 / 0%) 62%),
+    linear-gradient(180deg, rgb(255 255 255 / 30%), rgb(255 255 255 / 8%));
+  box-shadow:
+    var(--g-edge),
+    0 30px 80px -40px rgb(64 40 18 / 22%);
+}
+
+/* the caption and the phone over the halo */
+html.look-glass .try-cap,
+html.look-glass .try-ov {
+  z-index: 1;
+}
+
+/* the phone's body (no 3D): a softer, warmer shadow and a thin light on its rim */
+html.look-glass .try-dom {
+  box-shadow:
+    inset 0 0 0 1.5px #3a332c,
+    inset 0 1px 0 1.5px rgb(255 255 255 / 10%),
+    0 2px 6px rgb(64 40 18 / 12%),
+    0 44px 80px -30px rgb(64 40 18 / 46%);
+}
+
+/* ── the copy: the instruction after one orange dot (was an ink tick) ── */
+
+html.look-glass .try-prompt {
+  color: var(--ink-3);
+}
+
+html.look-glass .try-prompt strong::before {
+  width: 8px;
+  height: 8px;
+  margin: 0 11px 0.16em 1px;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 0 4px rgb(255 122 1 / 16%);
+}
+
+html.look-glass .try-done-2 {
+  color: var(--ink-3);
+}
+
+/* ── the two facts: one glass note ── */
+
+html.look-glass .try-facts {
+  gap: 16px;
+  max-width: 19rem;
+  margin-top: 16svh;
+  padding: 22px 24px 24px;
+  border-radius: var(--g-r-md);
+  background: var(--g-fill);
+  box-shadow: var(--g-shadow);
+}
+
+html.look-glass .try-facts li {
+  font-size: 14.5px;
+}
+
+@media (min-width: 761px) and (max-width: 1000px) {
+  html.look-glass .try-facts {
+    margin-top: 2svh;
+    padding-top: 20px;
+  }
+}
+
+/* ── focus mode: a frosted scrim, not a flat dim ── */
+
+/* The blur sits on the four hit bands round the phone (a backdrop blur can't be faded by a parent's
+   opacity, so the layer itself stays opaque and its parts fade). The tint comes from the hole's
+   spread shadow alone, so the bands and the hole's rounded corners match. */
+html.look-glass .fx {
+  --fx-dim: rgb(52 36 22 / 20%);
+  opacity: 1;
+  transition: visibility 0s linear 0.3s;
+}
+
+html.look-glass .fx.is-open {
+  opacity: 1;
+  transition: none;
+}
+
+html.look-glass .fx--phone {
+  --fx-dim: rgb(52 36 22 / 24%);
+}
+
+html.look-glass .fx-hole,
+html.look-glass .fx-b {
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-out);
+}
+
+html.look-glass .fx.is-open .fx-hole,
+html.look-glass .fx.is-open .fx-b {
+  opacity: 1;
+}
+
+html.look-glass .fx-b {
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  backdrop-filter: blur(16px) saturate(130%);
+}
+
+/* a soft light round the phone where the frost meets it */
+html.look-glass .fx--desk .fx-hole {
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 30%),
+    0 0 40px 6px rgb(255 255 255 / 34%),
+    0 0 10px 200vmax var(--fx-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.look-glass .fx,
+  html.look-glass .fx-hole,
+  html.look-glass .fx-b {
+    transition: none;
+  }
+}
+
+/* ── phones: the app fills the screen; the page round it is clear ── */
+
+html.look-glass .try--phone .scene-body {
+  background: transparent;
+}
+
+html.look-glass .tp-app {
+  border-radius: 28px 28px 0 0;
+  box-shadow:
+    0 -1px 0 rgb(255 255 255 / 90%),
+    0 -14px 36px -8px rgb(64 40 18 / 16%);
+}
+
+html.look-glass .tp-prompt {
+  color: var(--ink-3);
+}
+
+/* the note after the tap: glass (fill only; no blur in the flow on phones) */
+html.look-glass .tp-sheet {
+  border-radius: 28px 28px 0 0;
+  background: linear-gradient(180deg, rgb(255 253 250 / 94%), rgb(250 245 238 / 97%));
+  box-shadow:
+    var(--g-edge),
+    0 -16px 40px -12px rgb(64 40 18 / 26%);
+}

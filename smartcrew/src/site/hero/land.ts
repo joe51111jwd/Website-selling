@@ -7,6 +7,7 @@
 //
 // PHONE MODE: the same, with the phone's line breaks; transform and opacity only, no rAF.
 
+import { GLASS } from "../../lib/look";
 import { markFirstScreenDone, markPageReady } from "../ready";
 import { contoursSliced, type Rect, type TopoInput } from "./fence/topo";
 
@@ -107,7 +108,8 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
 
   function layout() {
     fit();
-    ground();
+    // the glass look has no contour ground (src/styles/glass.css)
+    if (!GLASS) ground();
   }
 
   /** The entrance: the fold comes up once, top to bottom. */

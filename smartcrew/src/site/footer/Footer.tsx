@@ -10,6 +10,7 @@ import { devicesInUse, onStageChange } from "../../three/stage/store";
 import { Scene } from "../scene/Scene";
 import { useSeen } from "../offer/useSeen";
 import "./footer.css";
+import "./glass.css";
 
 /** True once any scene's keys show the Pro Display XDR (its CC-BY licence asks for the credit). */
 function useXdrInUse() {

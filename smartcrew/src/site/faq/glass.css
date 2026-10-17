@@ -1,0 +1,74 @@
+/* FAQ in the glass look (src/styles/glass.css): each question is its own glass row with room
+   between them instead of rules; the open one is a touch brighter. The close (the devices,
+   Andrew's line, the last button) sits in one glass card. */
+
+html.look-glass .faq-list {
+  display: grid;
+  gap: 10px;
+  border-top: 0;
+}
+
+html.look-glass .faq-item {
+  border-bottom: 0;
+  border-radius: var(--g-r-md);
+  background: var(--g-fill-soft);
+  box-shadow: var(--g-edge), 0 10px 30px -22px rgb(64 40 18 / 30%);
+}
+
+html.look-glass .faq-item.is-open {
+  background: var(--g-fill);
+  box-shadow: var(--g-shadow);
+}
+
+html.look-glass .faq-q {
+  padding-inline: 22px 14px;
+}
+
+html.look-glass .faq-q:hover .faq-q-text {
+  transform: none;
+}
+
+html.look-glass .faq-icon {
+  border: 0;
+  background: var(--g-well);
+  color: var(--ink-2);
+}
+
+html.look-glass .faq-q:hover .faq-icon {
+  background: rgb(120 96 72 / 12%);
+}
+
+html.look-glass .faq-item.is-open .faq-icon {
+  background: rgb(255 122 1 / 14%);
+  color: var(--orange-ink);
+}
+
+html.look-glass .faq-a-text {
+  padding: 0 56px 20px 22px;
+}
+
+html.look-glass .faq-close {
+  padding: clamp(20px, 2.6vw, 32px);
+  border-radius: var(--g-r);
+  background: var(--g-fill);
+  box-shadow: var(--g-shadow);
+}
+
+html.look-glass .faq-face {
+  box-shadow: var(--g-edge), 0 4px 12px -6px rgb(64 40 18 / 30%);
+}
+
+@media (max-width: 760px) {
+  html.look-glass .faq-list {
+    gap: 8px;
+  }
+  html.look-glass .faq-q {
+    padding-inline: 18px 12px;
+  }
+  html.look-glass .faq-a-text {
+    padding: 0 18px 16px;
+  }
+  html.look-glass .faq-close {
+    padding: 18px 16px 16px;
+  }
+}
