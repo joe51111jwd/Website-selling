@@ -16,7 +16,9 @@ npm run build    # type-checks, then builds to dist/
 
 ## Deploy
 
-Any static host. On Vercel or Netlify, set the root directory to `raymond-ekpo`; the framework is detected as Astro (build `npm run build`, output `dist`). Node 22.22 or later.
+Live at **https://raymond-ekpo.vercel.app**: Vercel project `raymond-ekpo`, linked to this repo with root directory `raymond-ekpo` (Astro, Node 24). Pushes to any branch get a preview deployment; production currently deploys from `claude/amazing-mayer-qguhx1`, and follows the repo's production branch once the site is merged there.
+
+When Raymond's domain is ready: add it to the Vercel project, then change `url` and `plausibleDomain` in `src/site.config.ts` to match.
 
 ## Pages
 

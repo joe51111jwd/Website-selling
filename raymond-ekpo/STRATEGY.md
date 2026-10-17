@@ -149,7 +149,7 @@ After the first pass read as too quiet, the style was built around one idea that
 
 These are written to the brief and to his firm's stated practices, but each one is a promise on his behalf:
 
-1. **Domain.** `raymondekpo.com` is a placeholder in `src/site.config.ts`. It doesn't resolve today.
+1. **Domain.** The site is live at `raymond-ekpo.vercel.app`, and `src/site.config.ts` points there. `raymondekpo.com` doesn't resolve today. When Raymond has a domain, connect it in Vercel and update `url` and `plausibleDomain`.
 2. **Email.** The site uses `raymond@maneuverandco.co`, from his firm site. Swap it if he wants a personal address.
 3. **Form endpoint.** FormSubmit asks him to confirm his address on the first submission. Alternatively, create a Formspree form and paste its URL.
 4. **"Reply within two business days."** This is taken from his firm's intake page.

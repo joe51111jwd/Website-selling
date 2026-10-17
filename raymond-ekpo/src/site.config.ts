@@ -5,7 +5,8 @@ export const site = {
   name: 'Raymond Ekpo',
   role: 'Investor Narrative Specialist',
   // The live domain. Used for canonical URLs, the sitemap and share images.
-  url: 'https://raymondekpo.com',
+  // Points at the Vercel deployment until Raymond's own domain (e.g. raymondekpo.com) is connected.
+  url: 'https://raymond-ekpo.vercel.app',
   description:
     'Raymond Ekpo helps pre-seed and seed founders in the US and UK build the investment narrative behind their raise: the thesis, the storyline and the deck.',
 
@@ -30,7 +31,7 @@ export const site = {
   bookingUrl: '',
 
   // The domain as added in Plausible. Leave empty to turn analytics off.
-  plausibleDomain: 'raymondekpo.com',
+  plausibleDomain: 'raymond-ekpo.vercel.app',
 
   // A portrait in /public, e.g. '/raymond-ekpo.jpg'. Leave empty for the typographic plate.
   portrait: '',
