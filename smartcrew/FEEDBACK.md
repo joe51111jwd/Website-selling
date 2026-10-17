@@ -4,6 +4,29 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## The focus look (the agency owner, Oct 17)
+
+"Make liquid glasses best you can … the minimal example … angelo.so … accentuating that one main
+point and also not overcrowding … don't edit [what] we have now, make a second version with this
+minimalistic focus on one thing at a time concept." Built as a third look: `?look=focus`. It builds on
+the glass look (both classes are on) and goes further; classic and glass are unchanged.
+
+1. **Done. One point per screen.** Each section is reduced to its one point (the headline, one
+   visual, one action) with room round it (`--focus-gap`); the rest of the section stays, word for
+   word, but goes quiet (smaller, lighter ink, fewer containers). The calculator's dollar figure,
+   the testimonials and the offer each sit on one liquid-glass card.
+2. **Done. One section at a time.** src/site/focus.ts marks the section filling most of the screen;
+   the others dim to 30% round it (never hidden, still tappable; the footer never dims). Their
+   buttons still count as on screen for the header and the phone bar.
+3. **Done. Liquid glass where it can't hurt:** a deeper aurora that drifts slowly on laptops (still
+   with reduced motion), bright rimmed glass sheets, near-solid fills under text, the orange button
+   solid, no blur on phones. Rules: src/styles/focus.css, each section's focus.css.
+4. **Checks:** all 34 e2e checks pass in all three looks (`--look=focus`).
+5. **Waiting on the agency owner:** which look becomes the default and whether Andrew sees it;
+   angelo.so screenshots (the site is blocked from our sandbox; its markup was used); the liquid-glass
+   skill he will send, to refine it. Open design notes: the gap between the testimonials and the
+   offer is large on laptops; the Replace tiles are tall on phones (16px body text kept).
+
 ## The glass look (the agency owner, Oct 17)
 
 "Relatively clean… too many edges… all in on a liquid glass and making it like super minimal in a
