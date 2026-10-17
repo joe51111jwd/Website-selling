@@ -1,8 +1,10 @@
 ---
 // The hero figure: a traction slide on a small stack of paper, red-penned as the page loads.
+// Once the edit has played, visitors with a mouse can pick up the pen and mark it up themselves.
 ---
 
-<figure class="markup">
+<figure class="markup" data-draw>
+  <div class="mk-stage" data-cursor="Draw">
   <svg viewBox="8 30 552 300" class="mk" role="img" aria-labelledby="mk-title mk-desc">
     <title id="mk-title">A traction slide, red-penned</title>
     <desc id="mk-desc">
@@ -56,10 +58,70 @@
       <path class="ink ink--thin s9" pathLength="1" d="M351 238 L 341 244 L 352 250"></path>
     </g>
   </svg>
-  <figcaption class="fig"><b>Fig. 1</b> A traction slide, red-penned. Illustrative.</figcaption>
+  <canvas class="mk-canvas" aria-hidden="true"></canvas>
+  </div>
+  <figcaption class="fig mk-cap">
+    <b>Fig. 1</b>
+    <span>A traction slide, red-penned. Illustrative.</span>
+    <span class="mk-hint" hidden>Your turn: pick up the pen and mark it up.</span>
+    <button type="button" class="mk-clear" hidden>Clear your marks</button>
+  </figcaption>
 </figure>
 
 <style>
+  .mk-stage {
+    position: relative;
+    transform: perspective(1400px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .mk-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  :global(.can-draw) .mk-canvas {
+    pointer-events: auto;
+    cursor: crosshair;
+    touch-action: pan-y;
+  }
+
+  .mk-cap {
+    flex-wrap: wrap;
+  }
+
+  .mk-hint {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--oxblood);
+    animation: fade-in 0.8s ease both;
+    --fd: 0s;
+  }
+
+  .mk-hint[hidden],
+  .mk-clear[hidden] {
+    display: none;
+  }
+
+  .mk-clear {
+    padding: 2px 10px 3px;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: none;
+    font: 500 0.8rem var(--sans);
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .mk-clear:hover {
+    border-color: var(--ink);
+  }
+
   .markup {
     margin: 0;
   }

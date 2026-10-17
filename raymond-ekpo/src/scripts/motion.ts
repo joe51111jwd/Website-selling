@@ -1,9 +1,28 @@
 // Scroll reveals, the word-by-word statement, before/after sliders, the narrative lab tabs
-// and the hover previews on the notes index. Everything degrades to a static page.
+// and the hover previews on the notes index, plus the set pieces in ./fx. Everything degrades
+// to a static page.
+import { still } from './fx/frame';
+import { initCursor } from './fx/cursor';
+import { initStory } from './fx/story';
+import { initPanels } from './fx/panels';
+import { initFit } from './fx/fit';
+import { initStack } from './fx/stack';
+import { initKinetic } from './fx/kinetic';
+import { initChart } from './fx/chart';
+import { initShelf } from './fx/shelf';
+import { initDraw } from './fx/draw';
 
 (window as unknown as { __motion: boolean }).__motion = true;
 
-const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+initStory();
+initPanels();
+initFit();
+initStack();
+initKinetic();
+initChart();
+initShelf();
+initDraw();
+initCursor();
 
 /* Reveal blocks as they enter the viewport */
 const io = new IntersectionObserver(

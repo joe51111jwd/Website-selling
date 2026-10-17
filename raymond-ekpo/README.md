@@ -2,9 +2,40 @@
 
 Personal site for Raymond Ekpo, who helps pre-seed and seed founders in the US and UK build the investment narrative behind their raise. Editorial broadsheet design (ivory, ink, oxblood) after Niccolò Miranda's Awwwards Site of the Month, with moves from Neutomni. The reasoning is in [STRATEGY.md](STRATEGY.md).
 
-Built with [Astro](https://astro.build): static HTML, no framework JavaScript. Three small scripts: the enquiry form, Plausible click tracking, and `src/scripts/motion.ts` (scroll reveals, the word-by-word statement, the before/after sliders and lab tabs, and the notes hover preview). Everything respects reduced motion, and the pages read fine with JavaScript off.
+Built with [Astro](https://astro.build): static HTML, no framework JavaScript. Lenis provides the smooth scrolling. The scripts are small and live in `src/scripts`:
 
-The signature pieces are components: `Markup.astro` (the red-penned hero slide), `Ticker.astro`, `TermSheet.astro` with `Seal.astro`, `CompareSlider.astro` and `NarrativeLab.astro` (before/after), and `Pen.astro` (hand-drawn underline, circle, strike, tick and cross, drawn on load or on scroll).
+- `enquiry.ts` is the form.
+- `track.ts` sends goals to Plausible.
+- `motion.ts` runs the scroll reveals, the word-by-word statement, the before/after sliders and the hover previews.
+- `fx/` holds one file per set piece:
+  - `frame.ts`: Lenis and the scroll-progress helpers
+  - `story.ts`: the pinned markup story
+  - `panels.ts`: the service panels
+  - `fit.ts`: the fit check
+  - `stack.ts`: the stacking cards
+  - `chart.ts`: the pinned process chart
+  - `shelf.ts`: the notes shelf
+  - `kinetic.ts`: the drifting quote
+  - `draw.ts`: the hero tilt and red pen
+  - `cursor.ts`: the cursor label
+
+Everything respects reduced motion, and the pages read fine with JavaScript off.
+
+The set pieces are components:
+
+- `MarkupStory.astro`: § 01
+- `ServicePanels.astro`
+- `FitCheck.astro`
+- `NarrativeLab.astro` with `CompareSlider.astro`
+- `StackCards.astro`
+- `ProcessChart.astro`
+- `NotesShelf.astro`
+- `Markup.astro`: the hero slide
+- `Ticker.astro`
+- `TermSheet.astro` and `Seal.astro`
+- `Pen.astro`: hand-drawn underline, circle, strike, tick and cross
+
+The fit-check rules are at the top of `src/scripts/fx/fit.ts`. Service names and prices still come from `src/content/services/`.
 
 ## Run it
 

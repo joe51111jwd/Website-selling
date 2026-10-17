@@ -58,6 +58,7 @@ const jsonLd = {
     <script is:inline>
       // Reveal-on-scroll only hides things when scripts run; if the motion script never starts, show everything
       document.documentElement.classList.add('js');
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('still');
       setTimeout(function () { if (!window.__motion) document.documentElement.classList.add('reveal-all'); }, 2500);
     </script>
 

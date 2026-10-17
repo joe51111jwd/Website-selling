@@ -1,0 +1,256 @@
+---
+// "From first message to the room", as a chart that grows while it is pinned: each step is a
+// bar, a counter climbs to 100, and a trend line is drawn across the tops.
+import { pad } from '../lib/content';
+
+interface Props {
+  num?: string;
+}
+
+const { num = '06' } = Astro.props;
+
+const steps = [
+  {
+    title: 'Enquiry',
+    body: 'Tell me about the company, the round and where the story feels weak. Share the deck if you have one.',
+    h: 58,
+  },
+  {
+    title: 'First read',
+    body: 'I read everything myself and reply with a straight answer: whether I can help, which service fits, or whether you need me at all yet.',
+    h: 70,
+  },
+  {
+    title: 'The narrative',
+    body: 'We agree the thesis in writing, then build or rebuild the storyline and the slides around it.',
+    h: 84,
+  },
+  {
+    title: 'The room',
+    body: 'You walk in able to explain the company and defend it. With Q&A preparation, you’ve already rehearsed the hard questions.',
+    h: 100,
+  },
+];
+// Dots sit just above each bar's top: x at the bar centre, y as a share of the plot height
+const dots = steps.map((s, i) => [12.5 + i * 25, 100 - s.h - 6]);
+---
+
+<section class="chart-sec" data-chart aria-labelledby="process-title">
+  <div class="chart-stage wrap">
+    <header class="chart-head">
+      <div class="chart-title">
+        <p class="kicker"><span class="num">§ {num}</span> How it works</p>
+        <h2 id="process-title" class="display h2">From first message <em>to the room.</em></h2>
+      </div>
+      <p class="readiness" aria-hidden="true">
+        <span class="readiness-num figures"><span data-count>100</span><sup>%</sup></span>
+        <span class="caps">Ready for the room</span>
+      </p>
+    </header>
+
+    <figure class="chart">
+      <div class="plot">
+        <ol class="steps">
+          {
+            steps.map((s, i) => (
+              <li class="step" style={`--h: ${s.h}%; --n: ${i}`}>
+                <span class="step-num figures">{pad(i + 1)}</span>
+                <h3 class="display step-title">{s.title}</h3>
+                <p>{s.body}</p>
+              </li>
+            ))
+          }
+        </ol>
+        <svg class="trend" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <polyline points={dots.map(([x, y]) => `${x},${y}`).join(' ')}></polyline>
+        </svg>
+        {dots.map(([x, y]) => <span class="trend-dot" style={`left: ${x}%; top: ${y}%`} aria-hidden="true" />)}
+      </div>
+      <figcaption class="fig"><b>Fig. 2</b> Readiness for the room, rising with every step.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .chart-sec {
+    position: relative;
+    padding-block: var(--section);
+  }
+
+  .chart-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 24px 64px;
+    padding-top: 20px;
+    margin-bottom: clamp(28px, 4vw, 48px);
+    border-top: 1px solid var(--ink);
+  }
+
+  .chart-head .kicker {
+    margin-bottom: 18px;
+  }
+
+  .readiness {
+    display: grid;
+    justify-items: start;
+    gap: 4px;
+    color: var(--ink);
+  }
+
+  .readiness-num {
+    font-family: var(--serif);
+    font-size: clamp(4rem, 9vw, 8.5rem);
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    color: var(--oxblood);
+  }
+
+  .readiness-num sup {
+    font-size: 0.4em;
+    vertical-align: top;
+    margin-left: 2px;
+  }
+
+  .chart {
+    margin: 0;
+  }
+
+  .plot {
+    position: relative;
+  }
+
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .step {
+    --fill: var(--paper-deep);
+    position: relative;
+    background: var(--fill);
+    padding: 24px;
+  }
+
+  .step:nth-child(2) {
+    --fill: #dccfb8;
+  }
+
+  .step:nth-child(3) {
+    --fill: var(--ink);
+    color: rgb(244 239 230 / 0.8);
+  }
+
+  .step:nth-child(4) {
+    --fill: var(--oxblood);
+    color: rgb(244 239 230 / 0.88);
+  }
+
+  .step:nth-child(n + 3) .step-title,
+  .step:nth-child(n + 3) .step-num {
+    color: var(--paper);
+  }
+
+  .step-num {
+    display: block;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--oxblood);
+    margin-bottom: 10px;
+  }
+
+  .step-title {
+    font-size: clamp(1.7rem, 2.3vw, 2.2rem);
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+
+  .trend,
+  .trend-dot {
+    display: none;
+  }
+
+  .fig {
+    margin-top: 14px;
+  }
+
+  @media (min-width: 900px) {
+    .steps {
+      grid-template-columns: repeat(4, 1fr);
+      align-items: end;
+      height: clamp(440px, 56vh, 600px);
+      border-bottom: 1px solid var(--ink);
+    }
+
+    .step {
+      height: var(--h);
+      padding: 22px 24px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      /* grows from the baseline; the script sets --g from 0 to 1 */
+      clip-path: inset(calc((1 - var(--g, 1)) * 100%) 0 0 0);
+    }
+
+    .trend {
+      display: block;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .trend polyline {
+      fill: none;
+      stroke: var(--oxblood);
+      stroke-width: 2;
+      stroke-dasharray: 6 6;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .trend-dot {
+      display: block;
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      margin: -7px 0 0 -7px;
+      border-radius: 50%;
+      background: var(--paper);
+      border: 2px solid var(--oxblood);
+      transition: transform 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
+    }
+
+    .trend-dot:last-of-type {
+      background: var(--oxblood);
+    }
+
+    :global(.js:not(.still)) .trend-dot {
+      transform: scale(0);
+    }
+
+    :global(.js:not(.still)) .trend-dot:global(.on) {
+      transform: none;
+    }
+
+    /* Pinned while the bars grow */
+    :global(.js:not(.still)) .chart-sec {
+      height: 300vh;
+      padding: 0;
+    }
+
+    :global(.js:not(.still)) .chart-stage {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 72px;
+    }
+  }
+</style>

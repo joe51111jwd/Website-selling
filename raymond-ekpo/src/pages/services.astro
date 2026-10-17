@@ -6,6 +6,8 @@ import { getServices, pad } from '../lib/content';
 import { site } from '../site.config';
 import Pen from '../components/Pen.astro';
 import Seal from '../components/Seal.astro';
+import ServicePanels from '../components/ServicePanels.astro';
+import FitCheck from '../components/FitCheck.astro';
 
 const services = await getServices();
 const rendered = await Promise.all(services.map((s) => render(s)));
@@ -71,29 +73,20 @@ const schema = [
       Fixed scopes and public prices. Each one starts from the investment case and ends with something you can take
       into your next investor meeting.
     </Fragment>
-    <nav class="jump" aria-label="Services on this page">
-      <ol>
-        {
-          services.map((s, i) => (
-            <li>
-              <a href={`#${s.id}`}>
-                <span class="jump-num figures">{pad(i + 1)}</span>
-                <span class="jump-title">{s.data.title}</span>
-                <span class="jump-price figures">{s.data.price}</span>
-              </a>
-            </li>
-          ))
-        }
-        <li>
-          <a href="#mini-audit">
-            <span class="jump-num">+</span>
-            <span class="jump-title">Complimentary mini-audit</span>
-            <span class="jump-price">Free</span>
-          </a>
-        </li>
-      </ol>
-    </nav>
   </PageHead>
+
+  <section class="wrap overview" aria-labelledby="overview-title">
+    <h2 id="overview-title" class="sr-only">The four engagements at a glance</h2>
+    <ServicePanels services={services} />
+  </section>
+
+  <section class="band-desk fit-band" aria-labelledby="fit-title">
+    <div class="wrap">
+      <p class="kicker"><span class="num">§</span> Fit check</p>
+      <h2 id="fit-title" class="display h2 fit-h">Not sure which? <em>Five answers will tell you.</em></h2>
+      <FitCheck services={services} />
+    </div>
+  </section>
 
   {
     services.map((s, i) => {
@@ -211,68 +204,18 @@ const schema = [
 </Base>
 
 <style>
-  .jump {
-    margin-top: clamp(36px, 5vw, 64px);
-    border-top: 3px double var(--ink);
+  .overview {
+    margin-bottom: var(--section);
   }
 
-  .jump ol {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
+  .fit-band {
+    padding-block: var(--section);
+    margin-bottom: var(--section);
   }
 
-  @media (min-width: 900px) {
-    .jump ol {
-      grid-template-columns: repeat(5, 1fr);
-    }
-    .jump li + li a {
-      border-left: 1px solid var(--rule);
-      padding-left: 20px;
-    }
-  }
-
-  .jump a {
-    display: grid;
-    grid-template-columns: 2rem 1fr auto;
-    gap: 10px;
-    align-items: baseline;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--rule);
-    text-decoration: none;
-    color: var(--ink);
-    height: 100%;
-  }
-
-  @media (min-width: 900px) {
-    .jump a {
-      grid-template-columns: 1fr;
-      gap: 6px;
-      padding: 18px 16px 18px 0;
-      border-bottom: 0;
-    }
-  }
-
-  .jump a:hover .jump-title {
-    color: var(--oxblood);
-  }
-
-  .jump-num {
-    font-family: var(--serif);
-    font-style: italic;
-    color: var(--oxblood);
-  }
-
-  .jump-title {
-    font-family: var(--serif);
-    font-size: 1.15rem;
-    line-height: 1.2;
-  }
-
-  .jump-price {
-    font-size: 0.9rem;
-    color: var(--muted);
+  .fit-h {
+    max-width: 16em;
+    margin-bottom: clamp(36px, 5vw, 64px);
   }
 
   .service {

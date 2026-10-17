@@ -1,0 +1,274 @@
+---
+// The notes as a shelf of slides you drag sideways, after the bookshelf slider on the
+// Awwwards reference. Each card shows the rewritten headline the note argues for.
+import { pad, readingMinutes, type WorkEntry } from '../lib/content';
+
+interface Props {
+  entries: WorkEntry[];
+}
+
+const { entries } = Astro.props;
+---
+
+<div class="shelf" data-shelf>
+  <div class="shelf-track" data-cursor="Drag" tabindex="0" aria-label="Notes and analyses, scroll sideways">
+    {
+      entries.map((e, i) => (
+        <a
+          href={`/work/${e.id}`}
+          class="shelf-card"
+          draggable="false"
+          style={`--tilt: ${[-1.4, 1, -0.6, 1.3, -1][i % 5]}deg`}
+        >
+          <div class="shelf-slide">
+            <span class="shelf-label">
+              {e.data.example ? `${e.data.example.slide} · the rewrite` : e.data.topic}
+            </span>
+            <p class="shelf-head">{e.data.example?.after.headline ?? e.data.dek}</p>
+            {e.data.example && (
+              <ol class="shelf-points">
+                {e.data.example.after.points.map((pt) => (
+                  <li>{pt}</li>
+                ))}
+              </ol>
+            )}
+            <span class="shelf-before">
+              <span class="caps">Was</span> “{e.data.example?.before.headline ?? e.data.topic}”
+            </span>
+          </div>
+          <div class="shelf-meta">
+            <span class="shelf-num figures">{pad(i + 1)}</span>
+            <h3 class="display shelf-title">{e.data.title}</h3>
+            <p class="shelf-dek">{e.data.dek}</p>
+            <span class="shelf-read">
+              {readingMinutes(e.body)} min read <span aria-hidden="true">→</span>
+            </span>
+          </div>
+        </a>
+      ))
+    }
+  </div>
+  <div class="shelf-bar wrap">
+    <span class="shelf-progress" aria-hidden="true"><span></span></span>
+    <div class="shelf-arrows">
+      <button type="button" class="shelf-arrow" data-dir="-1" aria-label="Previous notes">←</button>
+      <button type="button" class="shelf-arrow" data-dir="1" aria-label="More notes">→</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .shelf {
+    position: relative;
+  }
+
+  .shelf-track {
+    display: flex;
+    gap: clamp(18px, 2.4vw, 32px);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    padding: 26px var(--gutter) 36px;
+    scrollbar-width: none;
+    cursor: grab;
+  }
+
+  @media (min-width: 1320px) {
+    .shelf-track {
+      padding-inline: calc((100vw - var(--max)) / 2 + var(--gutter));
+      scroll-padding-inline: calc((100vw - var(--max)) / 2 + var(--gutter));
+    }
+  }
+
+  .shelf-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .shelf-track:focus-visible {
+    outline: 2px solid #e2a99b;
+    outline-offset: -6px;
+  }
+
+  .shelf.dragging .shelf-track {
+    cursor: grabbing;
+    scroll-snap-type: none;
+  }
+
+  .shelf.dragging .shelf-card {
+    pointer-events: none;
+  }
+
+  .shelf-card {
+    flex: 0 0 clamp(280px, 28vw, 410px);
+    min-width: 0;
+    scroll-snap-align: start;
+    display: grid;
+    gap: 22px;
+    color: var(--paper);
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  .shelf-slide {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: clamp(300px, 24vw, 360px);
+    padding: clamp(18px, 2vw, 28px);
+    background: var(--sheet);
+    color: var(--ink);
+    transform: rotate(var(--tilt));
+    box-shadow: 0 30px 60px -34px rgb(0 0 0 / 0.7);
+    transition:
+      transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
+      box-shadow 0.5s ease;
+  }
+
+  .shelf-card:hover .shelf-slide,
+  .shelf-card:focus-visible .shelf-slide {
+    transform: translateY(-10px) rotate(0deg);
+    box-shadow: 0 46px 80px -34px rgb(0 0 0 / 0.8);
+  }
+
+  .shelf-label {
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+  }
+
+  .shelf-head {
+    margin-top: 12px;
+    font-family: var(--serif);
+    font-size: clamp(1.45rem, 2.3vw, 2.15rem);
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .shelf-points {
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+    counter-reset: sp;
+  }
+
+  .shelf-points li {
+    counter-increment: sp;
+    display: grid;
+    grid-template-columns: 2em 1fr;
+    padding: 7px 0;
+    border-top: 1px solid var(--rule);
+    font-size: 0.82rem;
+    line-height: 1.35;
+    color: var(--text);
+  }
+
+  .shelf-points li::before {
+    content: counter(sp, decimal-leading-zero);
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--oxblood);
+  }
+
+  .shelf-before {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid var(--rule);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.8rem;
+    color: #6b6b6b;
+    text-decoration: line-through;
+    text-decoration-color: #a3241f;
+  }
+
+  .shelf-before .caps {
+    text-decoration: none;
+    display: inline-block;
+    margin-right: 6px;
+    font-family: var(--sans);
+    font-size: 0.6rem;
+    color: #a3241f;
+  }
+
+  .shelf-meta {
+    display: grid;
+    gap: 8px;
+  }
+
+  .shelf-num {
+    font-family: var(--serif);
+    font-style: italic;
+    color: #e2a99b;
+  }
+
+  .shelf-title {
+    font-size: clamp(1.4rem, 2vw, 1.75rem);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    color: var(--paper);
+  }
+
+  .shelf-dek {
+    font-size: 0.95rem;
+    color: rgb(244 239 230 / 0.66);
+  }
+
+  .shelf-read {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--paper);
+  }
+
+  .shelf-card:hover .shelf-title {
+    color: #e2a99b;
+  }
+
+  .shelf-bar {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .shelf-progress {
+    flex: 1;
+    height: 2px;
+    background: rgb(244 239 230 / 0.16);
+    overflow: hidden;
+  }
+
+  .shelf-progress span {
+    display: block;
+    height: 100%;
+    background: #e2a99b;
+    transform-origin: left;
+    transform: scaleX(var(--seen, 0.3));
+  }
+
+  .shelf-arrows {
+    display: flex;
+    gap: 10px;
+  }
+
+  .shelf-arrow {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid rgb(244 239 230 / 0.4);
+    background: none;
+    color: var(--paper);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .shelf-arrow:hover {
+    background: var(--paper);
+    color: var(--ink);
+  }
+</style>

@@ -119,14 +119,35 @@ The brief says every claim about past projects must be accurate and verifiable. 
 
 After the first pass read as too quiet, the style was built around one idea that is also the service: **Raymond red-pens your deck.**
 
-- **Hero, Fig. 1.** A traction slide sits on a small stack of paper. As the page loads, a red pen strikes the headline, writes the rewrite above it, circles "2,000+ users" and adds margin notes ("A total, not a rate.", "Says who?"). It shows the job in four seconds.
-- **The pen recurs.** "Explain" is underlined in the hero headline, "public" is circled next to the prices, and "A deck designer." is struck out above "The thinking a deck is made of." The fit list is ticked and crossed by hand.
+- **Hero, Fig. 1.** A traction slide sits on a small stack of paper. As the page loads, a red pen strikes the headline, writes the rewrite above it, circles "2,000+ users" and adds margin notes ("A total, not a rate.", "Says who?"). The slide leans towards the cursor. Once the edit has played, visitors with a mouse can pick up the pen and mark it up themselves.
+- **The pen recurs.** "Explain" is underlined in the hero headline, "public" is circled next to the prices, and "A deck designer." is struck out above "The thinking a deck is made of."
 - **A narrative ticker.** A slow market-style ticker shows what investors discount (▼, struck through, e.g. "If we capture just 1%") and what they reward (▲, e.g. "A rate, a cohort, a source").
-- **Term sheets on a desk.** The four services are printed as tilted sheets of ruled paper on a tan desk band. Each has a round ink seal and straightens when you hover over it.
-- **Before & after lab.** Five slides, chosen by tab. Each arrives as the original, then the rewrite wipes across it. Founders can drag the handle back and forth.
-- **A rising chart.** The four process steps are bars that grow as they scroll in, darkening from paper to ink to oxblood ("the room"). A dashed trend line is then drawn across their tops.
-- **Rhythm of bands.** The page alternates ivory, ink, desk tan and oxblood instead of running one long ivory scroll: ticker and problem on ink, services on the desk, the pull quote on oxblood, notes on ink, and the footer on oxblood.
-- **Reading moments.** A one-paragraph statement darkens word by word as it is read. The nameplate rises in on load and its double rule is drawn. The notes index shows a preview of the rewritten slide that follows the cursor. Figures are captioned like a research note ("Fig. 1", "Fig. 2").
+- **Rhythm of bands.** The page alternates ivory, ink, desk tan and oxblood instead of running one long ivory scroll.
+
+### Round three: no plain lists
+
+After the second pass still read as boring, every section that had been a list was turned into something you do or watch. This follows what this month's Awwwards winners do: LPAS's expanding service panels and Neutomni's set pieces. It also follows James's own pinned showcase chapters.
+
+| Section | Was | Now |
+| --- | --- | --- |
+| § 01 The problem | Four columns | **A pinned story.** One draft market slide stays on screen while the page scrolls. Each of the four problems marks it up in turn: the headline is struck ("So why is it an investment?"), the claims are circled, investor questions pop up as speech bubbles, and three "PASS" stamps land. Then the slide turns over to show the rewrite. Progress tabs with filling bars sit along the bottom, after James's Showcase. |
+| § 02 Services | Four term-sheet cards | **Expanding panels.** Four spines in paper, desk tan, ink and oxblood. Hovering over or clicking a spine unfolds it into the full term sheet (for, you get, covers, fee, CTA) while the others fold away. On phones they become an accordion. |
+| § 03 Fit check | A two-column "good fit / not a fit" list | **A term sheet that writes itself.** Five quick questions (round, deck, meetings, investor list, timing) draft a sheet on the right: the engagements that fit, in order, the indicative fee, and an enquiry link with those services already ticked. Series A and later is told plainly that it's probably not a fit. On phones, a summary bar follows the questions. |
+| § 04 Before & after | Pill tabs | The tabs are **slide thumbnails**, like a presentation app's slide sorter, above the drag-to-compare slide. |
+| The line | A pull quote | **Kinetic type.** Three huge lines drift in opposite directions as they pass through the screen. |
+| § 05 Approach | A four-column list | **Stacking cards.** Each principle is a full-width card that pins and piles on the last, which sinks back and darkens. |
+| § 06 Process | Bars that animated in once | **A pinned chart.** The bars grow as you scroll, a "Ready for the room" counter climbs to 100%, and a trend line is drawn across the tops. |
+| § 07 Notes | An index list | **A shelf of slides** you drag sideways, after the bookshelf slider on the Miranda reference. Each card shows the rewritten headline, with the original struck through beneath it. |
+
+**Site-wide:**
+- Lenis smooth scrolling.
+- Page-to-page transitions that slide the new page in.
+- A cursor label that says what you can do: "Drag", "Open" or "Draw".
+- The Services page opens with the panels and the fit check.
+- The Work page puts the notes on the shelf.
+- The About page's beliefs are stacking cards.
+
+**Fallbacks:** with reduced motion turned on, or JavaScript off, nothing pins. The story shows all five steps with every mark drawn, the panels are all open, the chart is fully grown, and the shelf scrolls natively.
 
 ---
 

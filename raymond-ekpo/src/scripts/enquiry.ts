@@ -32,8 +32,8 @@ export function initEnquiry() {
   if (params.get('type') === 'audit') {
     radios.forEach((r) => (r.checked = r.value === 'Mini-audit'));
   }
-  const service = params.get('service');
-  if (service) {
+  // ?service=rewrite, or several from the fit check: ?service=rewrite,qa-prep
+  for (const service of (params.get('service') ?? '').split(',').filter(Boolean)) {
     const box = form.querySelector<HTMLInputElement>(`input[data-service="${CSS.escape(service)}"]`);
     if (box) box.checked = true;
   }

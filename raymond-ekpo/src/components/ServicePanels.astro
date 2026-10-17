@@ -1,0 +1,414 @@
+---
+// The four services as expanding panels: a narrow spine for each, and the open one unfolds
+// into a full term sheet. Hover or click a spine to open it; on phones they stack.
+import type { Service } from '../lib/content';
+import { pad } from '../lib/content';
+import Seal from './Seal.astro';
+
+interface Props {
+  services: Service[];
+}
+
+const { services } = Astro.props;
+const tones = ['paper', 'desk', 'ink', 'ox'];
+---
+
+<div class="panels" data-panels>
+  {
+    services.map((s, i) => (
+      <article class:list={['panel', `panel--${tones[i % 4]}`, { 'is-open': i === 0 }]}>
+        <button
+          type="button"
+          class="spine"
+          aria-expanded={i === 0 ? 'true' : 'false'}
+          aria-controls={`panel-${s.id}`}
+          data-cursor="Open"
+        >
+          <span class="spine-num figures">{pad(i + 1)}</span>
+          <span class="spine-title" role="heading" aria-level="3">
+            {s.data.title}
+          </span>
+          <span class="spine-price figures">{s.data.price}</span>
+          <span class="spine-plus" aria-hidden="true">
+            +
+          </span>
+        </button>
+
+        <div class="panel-body" id={`panel-${s.id}`}>
+          <div class="panel-inner">
+            <div class="panel-seal">
+              <Seal id={`p-${s.id}`} center={pad(i + 1)} />
+            </div>
+            <p class="panel-kicker caps">Term sheet · No. {pad(i + 1)}</p>
+            <p class="display panel-title" aria-hidden="true">
+              {s.data.title}
+            </p>
+
+            <div class="panel-grid">
+              <dl class="panel-terms">
+                <div>
+                  <dt class="caps">For</dt>
+                  <dd>{s.data.for}</dd>
+                </div>
+                <div>
+                  <dt class="caps">You get</dt>
+                  <dd>{s.data.youGet}</dd>
+                </div>
+                <div>
+                  <dt class="caps">Covers</dt>
+                  <dd>
+                    <ul>
+                      {s.data.covers.slice(0, 3).map((c) => (
+                        <li>{c}</li>
+                      ))}
+                    </ul>
+                  </dd>
+                </div>
+              </dl>
+
+              <div class="panel-fee">
+                <span class="caps">Fee</span>
+                <span class="panel-price figures">{s.data.price}</span>
+                <span class="panel-note">{s.data.priceNote}</span>
+                <div class="panel-ctas">
+                  <a
+                    href={`/work-with-me?service=${s.id}`}
+                    class="btn panel-btn"
+                    data-cta={s.data.cta}
+                    data-cta-location="service panel"
+                  >
+                    {s.data.cta} <span class="arrow" aria-hidden="true">→</span>
+                  </a>
+                  <a href={`/services#${s.id}`} class="panel-more">
+                    Everything included
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    ))
+  }
+</div>
+
+<style>
+  .panels {
+    display: grid;
+    gap: 10px;
+  }
+
+  .panel {
+    --fg: var(--ink);
+    --soft: var(--muted);
+    --line: var(--rule);
+    --accent: var(--oxblood);
+    position: relative;
+    overflow: hidden;
+    color: var(--fg);
+    background: var(--bg);
+  }
+
+  .panel--paper {
+    --bg: var(--sheet);
+    background-image: repeating-linear-gradient(transparent 0 31px, rgb(122 34 34 / 0.05) 31px 32px);
+  }
+
+  .panel--desk {
+    --bg: #e6dccb;
+    --soft: #5e584e;
+  }
+
+  .panel--ink {
+    --bg: var(--ink);
+    --fg: var(--paper);
+    --soft: rgb(244 239 230 / 0.62);
+    --line: rgb(244 239 230 / 0.18);
+    --accent: #e2a99b;
+  }
+
+  .panel--ox {
+    --bg: var(--oxblood);
+    --fg: var(--paper);
+    --soft: rgb(244 239 230 / 0.7);
+    --line: rgb(244 239 230 / 0.25);
+    --accent: #f0cfc6;
+  }
+
+  /* The spine: number, title and price, the part you click */
+  .spine {
+    display: grid;
+    grid-template-columns: 2.4rem 1fr auto 1.4rem;
+    align-items: baseline;
+    gap: 12px;
+    width: 100%;
+    padding: 22px clamp(18px, 3vw, 28px);
+    background: none;
+    border: 0;
+    color: var(--fg);
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+  }
+
+  .spine-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--accent);
+  }
+
+  .spine-title {
+    font-family: var(--serif);
+    font-size: clamp(1.35rem, 2.2vw, 1.7rem);
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+  }
+
+  .spine-price {
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--soft);
+    white-space: nowrap;
+  }
+
+  .spine-plus {
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--accent);
+    transition: transform 0.4s ease;
+  }
+
+  .panel.is-open .spine-plus {
+    transform: rotate(45deg);
+  }
+
+  .panel-inner {
+    position: relative;
+    padding: 4px clamp(18px, 3vw, 28px) 30px;
+  }
+
+  .panel-seal {
+    position: absolute;
+    top: 6px;
+    right: clamp(14px, 3vw, 28px);
+    width: 84px;
+    height: 84px;
+    color: var(--accent);
+    transform: rotate(-12deg);
+    opacity: 0.9;
+  }
+
+  .panel-kicker {
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+
+  .panel-title {
+    font-size: clamp(2.3rem, 5vw, 4.6rem);
+    line-height: 0.96;
+    letter-spacing: -0.035em;
+    color: var(--fg);
+    max-width: 9em;
+    padding-right: 90px;
+  }
+
+  .panel-grid {
+    display: grid;
+    gap: 28px;
+    margin-top: clamp(22px, 3vw, 36px);
+  }
+
+  .panel-terms {
+    margin: 0;
+  }
+
+  .panel-terms > div {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 14px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .panel-terms dt {
+    color: var(--soft);
+    padding-top: 0.25em;
+  }
+
+  .panel-terms dd {
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.5;
+  }
+
+  .panel-terms ul {
+    margin: 0;
+    padding-left: 1.1em;
+  }
+
+  .panel-terms li + li {
+    margin-top: 4px;
+  }
+
+  .panel-fee {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 3px double var(--fg);
+  }
+
+  .panel-fee .caps {
+    color: var(--soft);
+  }
+
+  .panel-price {
+    font-family: var(--serif);
+    font-size: clamp(2.6rem, 5vw, 4.4rem);
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+
+  .panel-note {
+    color: var(--soft);
+    font-size: 0.9rem;
+  }
+
+  .panel-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 20px;
+    margin-top: 18px;
+  }
+
+  .panel--ink .panel-btn,
+  .panel--ox .panel-btn {
+    background: var(--paper);
+    border-color: var(--paper);
+    color: var(--oxblood);
+  }
+
+  .panel-more {
+    color: var(--fg);
+    font-weight: 600;
+    text-underline-offset: 0.3em;
+    text-decoration-color: var(--line);
+  }
+
+  /* Phones and scripts off: a stack; with scripts, closed panels fold away */
+  :global(.js) .panel-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.6s cubic-bezier(0.7, 0, 0.2, 1);
+  }
+
+  :global(.js) .panel-body > .panel-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  :global(.js) .panel.is-open .panel-body {
+    grid-template-rows: 1fr;
+  }
+
+  /* padding doesn't fold away with the row, so it goes when the panel closes */
+  @media (max-width: 999px) {
+    :global(.js) .panel:not(.is-open) .panel-inner {
+      padding-block: 0;
+    }
+    :global(.js) .panel-inner {
+      transition: padding 0.6s cubic-bezier(0.7, 0, 0.2, 1);
+    }
+  }
+
+  /* Wide screens: spines stand up side by side and the open panel takes the room */
+  @media (min-width: 1000px) {
+    :global(.js) .panels {
+      display: flex;
+      height: clamp(600px, 76vh, 760px);
+      gap: 10px;
+    }
+
+    :global(.js) .panel {
+      display: flex;
+      flex: 0 0 104px;
+      transition: flex-grow 0.85s cubic-bezier(0.7, 0, 0.2, 1);
+    }
+
+    :global(.js) .panel.is-open {
+      flex: 1 1 0;
+    }
+
+    :global(.js) .spine {
+      flex: 0 0 104px;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr auto auto;
+      justify-items: center;
+      align-items: start;
+      padding: 26px 0 24px;
+      border-right: 1px solid transparent;
+    }
+
+    :global(.js) .panel.is-open .spine {
+      border-right-color: var(--line);
+    }
+
+    :global(.js) .spine-title {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-size: clamp(1.5rem, 2vw, 1.9rem);
+      white-space: nowrap;
+      align-self: end;
+      margin: 18px 0;
+    }
+
+    :global(.js) .spine-price {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+
+    :global(.js) .panel-body {
+      display: block;
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    :global(.js) .panel-inner {
+      /* fixed to the open width, so nothing reflows while the panel slides open */
+      width: calc(min(100vw, var(--max)) - 2 * var(--gutter) - 446px);
+      height: 100%;
+      overflow: hidden;
+      padding: 30px 40px 32px;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      transform: translateX(-24px);
+      transition:
+        opacity 0.35s ease,
+        transform 0.5s ease;
+    }
+
+    :global(.js) .panel.is-open .panel-inner {
+      opacity: 1;
+      transform: none;
+      transition-delay: 0.35s;
+    }
+
+    :global(.js) .panel-grid {
+      grid-template-columns: 1.15fr 1fr;
+      gap: 40px;
+      margin-top: auto;
+    }
+
+    :global(.js) .panel-seal {
+      top: 26px;
+      right: 40px;
+      width: 104px;
+      height: 104px;
+    }
+  }
+
+</style>

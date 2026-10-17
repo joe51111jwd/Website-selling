@@ -1,0 +1,441 @@
+---
+// Five questions; the answers draft a term sheet on the right with the engagements that fit,
+// the indicative fee, and an enquiry link with those services already ticked.
+import type { Service } from '../lib/content';
+import Seal from './Seal.astro';
+import { site } from '../site.config';
+
+interface Props {
+  services: Service[];
+}
+
+const services = Astro.props.services.map((s) => ({
+  id: s.id,
+  title: s.data.title,
+  price: s.data.price,
+  min: s.data.priceMin,
+  max: s.data.priceMax,
+}));
+
+const questions = [
+  {
+    id: 'round',
+    label: 'Which round are you raising?',
+    options: [
+      ['pre-seed', 'Pre-seed'],
+      ['seed', 'Seed'],
+      ['later', 'Series A or later'],
+    ],
+  },
+  {
+    id: 'deck',
+    label: 'Do you have a deck?',
+    options: [
+      ['yes', 'Yes, it needs work'],
+      ['no', 'Not yet'],
+    ],
+  },
+  {
+    id: 'meetings',
+    label: 'Investor meetings?',
+    options: [
+      ['booked', 'Booked, or about to be'],
+      ['not-yet', 'Not yet'],
+    ],
+  },
+  {
+    id: 'list',
+    label: 'Do you know who to pitch?',
+    options: [
+      ['yes', 'Yes, I have a list'],
+      ['no', 'Not really'],
+    ],
+  },
+  {
+    id: 'timing',
+    label: 'When do conversations start?',
+    options: [
+      ['now', 'Now, or within 3 months'],
+      ['soon', 'In 3 to 6 months'],
+      ['later', 'Later than that'],
+    ],
+  },
+];
+---
+
+<div class="fit" data-fit data-services={JSON.stringify(services)} data-email={site.email}>
+  <form class="fit-q" aria-label="Fit check">
+    {
+      questions.map((q, i) => (
+        <fieldset class="fit-field" data-reveal style={`--rd: ${i * 0.06}s`}>
+          <legend>
+            <span class="fit-num figures">{String(i + 1).padStart(2, '0')}</span>
+            {q.label}
+          </legend>
+          <div class="chips">
+            {q.options.map(([value, label]) => (
+              <label class="chip">
+                <input type="radio" name={q.id} value={value} />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ))
+    }
+    <a href="#fit-sheet" class="fit-mini" data-fit-mini hidden aria-hidden="true" tabindex="-1">
+      <span class="fit-mini-title" data-fit-mini-title></span>
+      <span class="fit-mini-sum figures" data-fit-mini-sum></span>
+      <span class="fit-mini-go">See it ↓</span>
+    </a>
+  </form>
+
+  <aside class="fit-sheet" id="fit-sheet" aria-live="polite" aria-label="Your draft term sheet">
+    <div class="fit-seal"><Seal id="fit" center="RE" /></div>
+    <header class="fit-top">
+      <span class="caps">Your term sheet</span>
+      <span class="fit-status" data-fit-status>Draft · 0 of 5</span>
+    </header>
+    <p class="display fit-title" data-fit-title>Answer the questions to draft it.</p>
+    <ol class="fit-lines" data-fit-lines>
+      <li class="fit-line fit-line--ghost"><span></span><span></span></li>
+      <li class="fit-line fit-line--ghost"><span></span><span></span></li>
+      <li class="fit-line fit-line--ghost"><span></span><span></span></li>
+    </ol>
+    <div class="fit-total" data-fit-total hidden>
+      <span class="caps">Indicative fee</span>
+      <span class="fit-sum figures" data-fit-sum></span>
+    </div>
+    <p class="fit-verdict" data-fit-verdict>
+      Each answer adds or removes a line. Nothing is sent anywhere until you choose to get in touch.
+    </p>
+    <div class="fit-ctas" data-fit-ctas hidden>
+      <a href="/work-with-me" class="btn" data-fit-go data-cta="Fit check: discuss" data-cta-location="fit check">
+        Discuss this <span class="arrow" aria-hidden="true">→</span>
+      </a>
+      <a
+        href="/work-with-me?type=audit"
+        class="fit-audit"
+        data-fit-audit
+        hidden
+        data-cta="Request a free deck audit"
+        data-cta-location="fit check">Or start with a free mini-audit</a
+      >
+    </div>
+  </aside>
+</div>
+
+<style>
+  .fit {
+    display: grid;
+    gap: 40px;
+  }
+
+  @media (min-width: 1000px) {
+    .fit {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: 56px;
+      align-items: start;
+    }
+    .fit-sheet {
+      position: sticky;
+      top: 104px;
+    }
+  }
+
+  .fit-q {
+    display: grid;
+    gap: 6px;
+  }
+
+  .fit-field {
+    border: 0;
+    margin: 0;
+    padding: 22px 0 24px;
+    border-top: 1px solid var(--ink);
+  }
+
+  .fit-field legend {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    float: left;
+    width: 100%;
+    margin-bottom: 16px;
+    font-family: var(--serif);
+    font-size: clamp(1.45rem, 2.2vw, 1.9rem);
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+
+  .fit-num {
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--oxblood);
+  }
+
+  .chips {
+    clear: both;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .chip {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .chip input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  .chip span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 10px 20px;
+    border: 1px solid var(--ink);
+    border-radius: 999px;
+    font-size: 1rem;
+    color: var(--ink);
+    background: transparent;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .chip:hover span {
+    background: rgb(27 26 23 / 0.06);
+  }
+
+  .chip input:checked + span {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .chip input:focus-visible + span {
+    outline: 2px solid var(--oxblood);
+    outline-offset: 3px;
+  }
+
+  /* The term sheet that writes itself */
+  .fit-sheet {
+    position: relative;
+    padding: clamp(26px, 3vw, 38px);
+    background: var(--sheet);
+    background-image: repeating-linear-gradient(transparent 0 31px, rgb(122 34 34 / 0.05) 31px 32px);
+    box-shadow:
+      0 1px 0 rgb(27 26 23 / 0.06),
+      0 40px 70px -36px rgb(27 26 23 / 0.5);
+    transform: rotate(0.8deg);
+  }
+
+  .fit-seal {
+    position: absolute;
+    top: -26px;
+    right: -14px;
+    width: 92px;
+    height: 92px;
+    color: var(--oxblood);
+    transform: rotate(-14deg);
+    opacity: 0.88;
+    mix-blend-mode: multiply;
+  }
+
+  /* On phones the sheet sits below the questions, so a summary rides along with them */
+  .fit-mini {
+    position: sticky;
+    bottom: 12px;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 12px;
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: var(--ink);
+    color: var(--paper);
+    text-decoration: none;
+    box-shadow: 0 16px 30px -14px rgb(27 26 23 / 0.6);
+    animation: fade-in 0.4s ease both;
+    --fd: 0s;
+  }
+
+  .fit-mini[hidden] {
+    display: none;
+  }
+
+  .fit-mini-title {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    line-height: 1.2;
+  }
+
+  .fit-mini-sum {
+    font-weight: 600;
+    color: #e2a99b;
+  }
+
+  .fit-mini-go {
+    grid-column: 1 / -1;
+    font-size: 0.8rem;
+    color: rgb(244 239 230 / 0.7);
+  }
+
+  @media (min-width: 1000px) {
+    .fit-mini {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .fit-top {
+      padding-right: 56px;
+      flex-wrap: wrap;
+    }
+    .fit-seal {
+      top: -20px;
+      right: -4px;
+      width: 72px;
+      height: 72px;
+    }
+  }
+
+  .fit-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 0 70px 12px 0;
+    border-bottom: 3px double var(--ink);
+    color: var(--ink);
+  }
+
+  .fit-status {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--oxblood);
+  }
+
+  .fit-title {
+    margin: 22px 0 18px;
+    font-size: clamp(1.7rem, 2.6vw, 2.3rem);
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+  }
+
+  .fit-lines {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .fit-sheet :global(.fit-line) {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: baseline;
+    padding: 13px 0;
+    border-top: 1px solid var(--rule);
+    animation: fit-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: calc(var(--n, 0) * 0.08s);
+  }
+
+  .fit-sheet :global(.fit-line b) {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 1.25rem;
+    color: var(--ink);
+  }
+
+  .fit-sheet :global(.fit-line i) {
+    font-style: normal;
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+
+  .fit-sheet :global(.fit-line small) {
+    grid-column: 1 / -1;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+
+  .fit-sheet :global(.fit-line--free b) {
+    font-style: italic;
+    color: var(--oxblood);
+  }
+
+  .fit-line--ghost span {
+    display: block;
+    height: 12px;
+    border-radius: 2px;
+    background: rgb(27 26 23 / 0.07);
+  }
+
+  .fit-line--ghost span:last-child {
+    width: 72px;
+  }
+
+  @keyframes fit-in {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+  }
+
+  .fit-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding: 16px 0 6px;
+    border-top: 1px solid var(--ink);
+  }
+
+  .fit-total[hidden] {
+    display: none;
+  }
+
+  .fit-total .caps {
+    color: var(--muted);
+  }
+
+  .fit-sum {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 3vw, 2.6rem);
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+
+  .fit-verdict {
+    margin-top: 16px;
+    color: var(--ink);
+  }
+
+  .fit-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+    margin-top: 22px;
+  }
+
+  .fit-ctas[hidden],
+  .fit-audit[hidden] {
+    display: none;
+  }
+
+  .fit-audit {
+    font-weight: 600;
+    color: var(--ink);
+    text-underline-offset: 0.3em;
+    text-decoration-color: var(--rule);
+  }
+
+  .fit-audit:hover {
+    text-decoration-color: var(--oxblood);
+  }
+</style>

@@ -1,0 +1,612 @@
+---
+// § 01 as a pinned story. One draft slide stays on screen while the page scrolls; each of the
+// four problems red-pens it in turn, then the slide turns over to show the rewrite.
+// Every mark carries its step (data-s) and when it is drawn within that step (data-a → data-b).
+import type { Service } from '../lib/content';
+
+interface Props {
+  services: Service[];
+}
+
+const byId = Object.fromEntries(Astro.props.services.map((s) => [s.id, s]));
+
+const steps = [
+  {
+    tab: 'Thesis',
+    title: 'There’s no thesis.',
+    body: 'The slides are in the right order and nothing connects them. The investor finishes the deck knowing what you do, and not why it’s an investment.',
+    fix: 'rewrite',
+  },
+  {
+    tab: 'Claims',
+    title: 'The claims can’t be checked.',
+    body: 'A top-down market size, “no direct competitors”, growth with no rate attached. Investors discount claims they can’t test, and everything near them.',
+    fix: 'creation',
+  },
+  {
+    tab: 'Defence',
+    title: 'The founder can’t defend it.',
+    body: 'The deck says one thing and the answers in the meeting say another. The first hard question about an assumption decides how the rest of the hour goes.',
+    fix: 'qa-prep',
+  },
+  {
+    tab: 'Audience',
+    title: 'It goes to the wrong people.',
+    body: 'A good story sent to investors who don’t back your stage, sector or geography gets a polite no that teaches you nothing.',
+    fix: 'investor-research',
+  },
+  {
+    tab: 'Rewrite',
+    title: 'Fix the argument, and the slide follows.',
+    body: 'That’s the work: find the investment case in what you’ve built, make every claim defensible, then put it on slides you can stand behind in the room.',
+    fix: '',
+  },
+];
+
+// A hand-drawn wavy underline under "2,000+ users and growing fast"
+let wave = 'M70 316';
+for (let x = 70, i = 0; x < 418; x += 14, i++) wave += ` Q ${x + 7} ${i % 2 ? 322 : 310} ${x + 14} 316`;
+---
+
+<section class="story" data-story aria-labelledby="story-title">
+  <div class="story-stage">
+    <header class="story-head wrap">
+      <p class="kicker"><span class="num">§ 01</span> The problem</p>
+      <h2 id="story-title" class="display story-title">
+        Most decks describe the company. <em>Few make the case for investing in it.</em>
+      </h2>
+    </header>
+
+    <div class="story-body wrap">
+      <ol class="story-steps">
+        {
+          steps.map((s, i) => (
+            <li class="story-step" data-step={i}>
+              <span class="story-num figures" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3 class="display story-step-title">{s.title}</h3>
+              <p>{s.body}</p>
+              {s.fix && byId[s.fix] ? (
+                <a href={`/services#${s.fix}`} class="story-fix">
+                  <span class="caps">Fixed by</span>
+                  <span>
+                    {byId[s.fix].data.title} <span aria-hidden="true">→</span>
+                  </span>
+                </a>
+              ) : (
+                <a href="#services" class="story-fix">
+                  <span class="caps">The work</span>
+                  <span>
+                    See the four ways to work together <span aria-hidden="true">↓</span>
+                  </span>
+                </a>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+
+      <figure class="story-figure">
+        <div class="flip">
+          <!-- The draft, as it arrives -->
+          <svg class="face face--front" viewBox="-40 -60 880 600" role="img" aria-labelledby="draft-title">
+            <title id="draft-title">
+              A draft market slide, “A $100B+ market opportunity”, marked up: the headline struck out, the market size and
+              “no direct competitors” circled, investor questions added, and stamped “Pass” three times.
+            </title>
+            <defs>
+              <filter id="st-shadow" x="-10%" y="-10%" width="120%" height="130%">
+                <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#1b1a17" flood-opacity="0.22"></feDropShadow>
+              </filter>
+            </defs>
+            <rect x="0" y="0" width="800" height="480" class="d-slide" filter="url(#st-shadow)"></rect>
+            <text x="56" y="64" class="d-label">04 · MARKET</text>
+            <text x="56" y="138" class="d-head">A $100B+ market opportunity</text>
+            <text x="70" y="206" class="d-li">• Global healthcare software is worth $100B+</text>
+            <text x="70" y="256" class="d-li">• No direct competitors</text>
+            <text x="70" y="306" class="d-li">• 2,000+ users and growing fast</text>
+            <text x="70" y="356" class="d-li">• Capturing just 1% means $1B in revenue</text>
+            <text x="56" y="446" class="d-foot">SEED ROUND · 2026 · CONFIDENTIAL</text>
+            <text x="744" y="446" class="d-foot">4</text>
+
+            <!-- 1 · no thesis -->
+            <path class="ink" data-s="1" data-a="0.05" data-b="0.35" pathLength="1" d="M48 126 C 200 119, 430 131, 668 121"></path>
+            <text class="note" data-s="1" data-a="0.35" data-b="0.6" x="300" y="86">So why is it an investment?</text>
+            <path class="ink ink--thin" data-s="1" data-a="0.55" data-b="0.75" pathLength="1" d="M296 80 C 270 80, 262 92, 266 104"></path>
+
+            <!-- 2 · claims that can't be checked -->
+            <path
+              class="ink"
+              data-s="2"
+              data-a="0.05"
+              data-b="0.4"
+              pathLength="1"
+              d="M238 102 C 210 88, 110 90, 88 112 C 70 132, 140 146, 196 143 C 252 140, 262 118, 240 104 C 224 95, 196 92, 170 94"
+            ></path>
+            <text class="note" data-s="2" data-a="0.35" data-b="0.55" x="250" y="176">Top-down. Says who?</text>
+            <path
+              class="ink"
+              data-s="2"
+              data-a="0.45"
+              data-b="0.8"
+              pathLength="1"
+              d="M318 240 C 290 228, 110 228, 70 244 C 48 254, 90 270, 200 270 C 300 270, 344 260, 330 246 C 320 237, 290 234, 260 234"
+            ></path>
+            <text class="note" data-s="2" data-a="0.75" data-b="0.95" x="360" y="262">Then there’s no market?</text>
+
+            <!-- 3 · the questions the founder has to answer -->
+            <path class="ink ink--thin" data-s="3" data-a="0" data-b="0.3" pathLength="1" d={wave}></path>
+            <g class="pop bubble" data-s="3" data-a="0.15" data-b="0.35">
+              <rect x="508" y="-38" width="276" height="48" rx="24"></rect>
+              <path d="M560 8 L 548 30 L 584 10 Z"></path>
+              <text x="530" y="-7">How did you size this?</text>
+            </g>
+            <g class="pop bubble" data-s="3" data-a="0.4" data-b="0.6">
+              <rect x="560" y="188" width="262" height="48" rx="24"></rect>
+              <path d="M572 220 L 546 236 L 590 232 Z"></path>
+              <text x="582" y="219">Who do they use today?</text>
+            </g>
+            <g class="pop bubble" data-s="3" data-a="0.65" data-b="0.85">
+              <rect x="470" y="290" width="300" height="48" rx="24"></rect>
+              <path d="M480 316 L 446 316 L 486 330 Z"></path>
+              <text x="492" y="321">Paying users, or sign-ups?</text>
+            </g>
+
+            <!-- 4 · sent to the wrong investors -->
+            <g transform="rotate(-9 560 400)"><g class="pop stamp" data-s="4" data-a="0.05" data-b="0.25">
+              <rect x="420" y="372" width="300" height="58" rx="4"></rect>
+              <text x="570" y="410" text-anchor="middle">PASS · NOT OUR STAGE</text>
+            </g></g>
+            <g transform="rotate(7 220 330)"><g class="pop stamp" data-s="4" data-a="0.3" data-b="0.5">
+              <rect x="80" y="300" width="300" height="58" rx="4"></rect>
+              <text x="230" y="338" text-anchor="middle">PASS · NOT OUR SECTOR</text>
+            </g></g>
+            <g transform="rotate(-14 640 150)"><g class="pop stamp stamp--big" data-s="4" data-a="0.55" data-b="0.75">
+              <rect x="540" y="104" width="200" height="92" rx="6"></rect>
+              <text x="640" y="170" text-anchor="middle">PASS</text>
+            </g></g>
+          </svg>
+
+          <!-- The rewrite, on the back -->
+          <div class="face face--back" aria-label="The rewritten slide">
+            <div class="r-slide">
+              <p class="r-label">04 · Market · The rewrite</p>
+              <p class="r-head">6,000 clinics we can reach today, <em>£21M a year</em> at our current price</p>
+              <ol>
+                <li>Independent UK physio clinics with 2 to 10 practitioners, which is who buys today</li>
+                <li>£3,500 average annual contract, from 41 paying clinics</li>
+                <li>Next, the same buyer in Ireland and the Netherlands, then clinic groups</li>
+              </ol>
+              <p class="r-foot">Illustrative. The company and numbers are invented to show the reasoning.</p>
+            </div>
+          </div>
+        </div>
+      </figure>
+    </div>
+
+    <nav class="story-tabs wrap" aria-label="Steps">
+      {
+        steps.map((s, i) => (
+          <button type="button" class="story-tab" data-tab={i}>
+            <span class="story-tab-name">
+              <span class="figures">{String(i + 1).padStart(2, '0')}</span> <span class="story-tab-word">{s.tab}</span>
+            </span>
+            <span class="story-tab-track">
+              <span class="story-tab-fill" />
+            </span>
+          </button>
+        ))
+      }
+    </nav>
+  </div>
+</section>
+
+<style>
+  /* ---------- Static layout (no script, or reduced motion): everything shown ---------- */
+  .story {
+    position: relative;
+    background: var(--ink);
+    color: rgb(244 239 230 / 0.8);
+    padding-block: clamp(72px, 9vw, 120px);
+  }
+
+  .story-head .kicker {
+    color: #e2a99b;
+  }
+
+  .story-title {
+    font-size: clamp(1.9rem, 3.4vw, 3.2rem);
+    line-height: 1.04;
+    letter-spacing: -0.024em;
+    color: var(--paper);
+    max-width: 22em;
+  }
+
+  .story-title em {
+    color: #e2a99b;
+  }
+
+  .story-body {
+    display: grid;
+    gap: 40px;
+    margin-top: 40px;
+  }
+
+  .story-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 32px;
+  }
+
+  .story-num {
+    display: block;
+    font-family: var(--serif);
+    font-size: clamp(3.5rem, 6vw, 6rem);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: transparent;
+    -webkit-text-stroke: 1px #e2a99b;
+    margin-bottom: 10px;
+  }
+
+  .story-step-title {
+    font-size: clamp(1.7rem, 2.8vw, 2.5rem);
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    color: var(--paper);
+    margin-bottom: 14px;
+  }
+
+  .story-step p {
+    max-width: 30em;
+  }
+
+  .story-fix {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid rgb(244 239 230 / 0.2);
+    color: var(--paper);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .story-fix .caps {
+    color: rgb(244 239 230 / 0.5);
+    font-size: 0.66rem;
+  }
+
+  .story-fix:hover span:last-child {
+    color: #e2a99b;
+  }
+
+  .story-figure {
+    margin: 0;
+    perspective: 1800px;
+  }
+
+  .flip {
+    position: relative;
+    transform-style: preserve-3d;
+  }
+
+  .face {
+    display: block;
+    width: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .face--front {
+    overflow: visible;
+  }
+
+  .face--back {
+    margin-top: 32px;
+  }
+
+  .story-tabs {
+    display: none;
+  }
+
+  /* The draft slide */
+  .d-slide {
+    fill: #fffefa;
+  }
+
+  .d-label {
+    font: 600 13px Arial, Helvetica, sans-serif;
+    letter-spacing: 2.5px;
+    fill: #8b8b8b;
+  }
+
+  .d-head {
+    font: 700 40px Arial, Helvetica, sans-serif;
+    fill: #2d3a4a;
+    letter-spacing: -0.4px;
+  }
+
+  .d-li {
+    font: 400 22px Arial, Helvetica, sans-serif;
+    fill: #555;
+  }
+
+  .d-foot {
+    font: 600 11px Arial, Helvetica, sans-serif;
+    letter-spacing: 2px;
+    fill: #a8a8a8;
+  }
+
+  .ink {
+    fill: none;
+    stroke: #a3241f;
+    stroke-width: 3.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .ink--thin {
+    stroke-width: 2.4;
+  }
+
+  .note {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 24px;
+    fill: #a3241f;
+  }
+
+  .bubble rect,
+  .bubble path {
+    fill: var(--ink);
+  }
+
+  .bubble text {
+    font: 500 19px var(--sans);
+    fill: var(--paper);
+  }
+
+  .stamp rect {
+    fill: none;
+    stroke: #a3241f;
+    stroke-width: 4;
+  }
+
+  .stamp text {
+    font: 700 22px var(--sans);
+    letter-spacing: 3px;
+    fill: #a3241f;
+  }
+
+  .stamp--big text {
+    font-size: 54px;
+    letter-spacing: 8px;
+  }
+
+  .stamp {
+    opacity: 0.86;
+    mix-blend-mode: multiply;
+  }
+
+  /* The rewrite */
+  .r-slide {
+    container-type: inline-size;
+    aspect-ratio: 800 / 480;
+    padding: 7cqi 7cqi 5cqi;
+    background: var(--sheet);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.6);
+  }
+
+  .r-label {
+    font-size: clamp(9px, 1.6cqi, 13px);
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--oxblood);
+    margin-bottom: 2.4cqi;
+  }
+
+  .r-head {
+    font-family: var(--serif);
+    font-size: clamp(18px, 4.8cqi, 44px);
+    line-height: 1.06;
+    letter-spacing: -0.024em;
+    color: var(--ink);
+    margin-bottom: 3.4cqi;
+    max-width: 18em;
+  }
+
+  .r-head em {
+    color: var(--oxblood);
+  }
+
+  .r-slide ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: r;
+  }
+
+  .r-slide li {
+    counter-increment: r;
+    display: grid;
+    grid-template-columns: 2.4em 1fr;
+    padding: 1.4cqi 0;
+    border-top: 1px solid var(--rule);
+    font-size: clamp(11px, 2.2cqi, 18px);
+    line-height: 1.35;
+  }
+
+  .r-slide li::before {
+    content: counter(r, decimal-leading-zero);
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--oxblood);
+  }
+
+  .r-foot {
+    margin-top: auto;
+    font-size: clamp(9px, 1.4cqi, 12px);
+    color: var(--muted);
+  }
+
+  /* ---------- Pinned story (scripts on, motion allowed) ---------- */
+  :global(.js:not(.still)) .story {
+    height: 620vh;
+    padding: 0;
+  }
+
+  :global(.js:not(.still)) .story-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding-top: clamp(84px, 9vh, 110px);
+    padding-bottom: 20px;
+    overflow: hidden;
+  }
+
+  :global(.js:not(.still)) .story-title {
+    font-size: clamp(1.5rem, 2.5vw, 2.4rem);
+  }
+
+  :global(.js:not(.still)) .story-body {
+    margin-top: clamp(16px, 3vh, 32px);
+    min-height: 0;
+    align-items: center;
+  }
+
+  @media (min-width: 900px) {
+    :global(.js:not(.still)) .story-body {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      gap: 44px;
+    }
+  }
+
+  :global(.js:not(.still)) .story-steps {
+    display: grid;
+    grid-template-areas: 'step';
+  }
+
+  :global(.js:not(.still)) .story-step {
+    grid-area: step;
+    opacity: 0;
+    transform: translateY(26px);
+    transition:
+      opacity 0.5s ease,
+      transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+    pointer-events: none;
+  }
+
+  :global(.js:not(.still)) .story-step.is-active {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  :global(.js:not(.still)) .flip {
+    transition: transform 0.05s linear;
+  }
+
+  :global(.js:not(.still)) .face--back {
+    position: absolute;
+    inset: 0;
+    margin: auto 0;
+    height: fit-content;
+    transform: rotateY(180deg);
+  }
+
+  :global(.js:not(.still)) .ink {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+
+  :global(.js:not(.still)) .note,
+  :global(.js:not(.still)) .pop {
+    opacity: 0;
+  }
+
+  .pop {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  :global(.js:not(.still)) .story-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+
+  .story-tab {
+    display: grid;
+    gap: 8px;
+    padding: 10px 0 0;
+    background: none;
+    border: 0;
+    color: rgb(244 239 230 / 0.55);
+    font: 500 0.85rem var(--sans);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .story-tab .figures {
+    color: #e2a99b;
+    margin-right: 4px;
+  }
+
+  .story-tab.is-active {
+    color: var(--paper);
+  }
+
+  .story-tab-track {
+    display: block;
+    height: 2px;
+    background: rgb(244 239 230 / 0.16);
+    overflow: hidden;
+  }
+
+  .story-tab-fill {
+    display: block;
+    height: 100%;
+    background: #e2a99b;
+    transform-origin: left;
+    transform: scaleX(var(--fill, 0));
+  }
+
+  @media (max-width: 899px) {
+    :global(.js:not(.still)) .story-body {
+      grid-template-rows: auto 1fr;
+      align-items: start;
+      gap: 18px;
+    }
+    :global(.js:not(.still)) .story-figure {
+      order: -1;
+    }
+    :global(.js:not(.still)) .story-num {
+      display: none;
+    }
+    :global(.js:not(.still)) .story-step-title {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+    :global(.js:not(.still)) .story-step p {
+      font-size: 0.95rem;
+    }
+    :global(.js:not(.still)) .story-tab-name {
+      font-size: 0.7rem;
+    }
+    :global(.js:not(.still)) .story-tab-word {
+      display: none;
+    }
+  }
+</style>

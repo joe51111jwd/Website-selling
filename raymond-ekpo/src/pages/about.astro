@@ -4,6 +4,7 @@ import PageHead from '../components/PageHead.astro';
 import { site } from '../site.config';
 import Pen from '../components/Pen.astro';
 import Seal from '../components/Seal.astro';
+import StackCards from '../components/StackCards.astro';
 
 const beliefs = [
   {
@@ -124,23 +125,13 @@ const schema = [
     </div>
   </section>
 
-  <section class="band-ink beliefs" aria-labelledby="beliefs-title">
+  <section class="beliefs" aria-labelledby="beliefs-title">
     <div class="wrap">
       <p class="kicker"><span class="num">§</span> Beliefs</p>
       <h2 id="beliefs-title" class="display h2 beliefs-title">How I think about <em>fundraising narratives.</em></h2>
-      <ol class="belief-list">
-        {
-          beliefs.map((b, i) => (
-            <li data-reveal style={`--rd: ${i * 0.1}s`}>
-              <span class="belief-num figures" aria-hidden="true">
-                {String(i + 1).padStart(2, '0')}
-              </span>
-              <h3 class="display belief-title">{b.title}</h3>
-              <p>{b.body}</p>
-            </li>
-          ))
-        }
-      </ol>
+      <div class="belief-stack">
+        <StackCards items={beliefs} label="Belief" />
+      </div>
     </div>
   </section>
 
@@ -344,6 +335,10 @@ const schema = [
 
   .beliefs-title {
     max-width: 14em;
+  }
+
+  .belief-stack {
+    margin-top: clamp(40px, 6vw, 72px);
   }
 
   .belief-list {

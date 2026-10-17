@@ -5,6 +5,7 @@ import WorkIndex from '../../components/WorkIndex.astro';
 import { getWork } from '../../lib/content';
 import Pen from '../../components/Pen.astro';
 import NarrativeLab from '../../components/NarrativeLab.astro';
+import NotesShelf from '../../components/NotesShelf.astro';
 
 const notes = await getWork('analysis');
 const cases = await getWork('case-study');
@@ -31,15 +32,15 @@ const cases = await getWork('case-study');
     <NarrativeLab entries={notes} />
   </section>
 
-  <section class="wrap block" aria-labelledby="notes-title">
-    <div class="block-head">
+  <section class="band-ink shelf-band" aria-labelledby="notes-title">
+    <div class="wrap block-head">
       <h2 id="notes-title" class="caps">Notes &amp; analyses</h2>
-      <span class="meta">{notes.length} notes</span>
+      <span class="meta">{notes.length} notes · drag the shelf</span>
     </div>
-    <WorkIndex entries={notes} />
+    <NotesShelf entries={notes} />
   </section>
 
-  <section class="band-ink cases" aria-labelledby="cases-title">
+  <section class="cases" aria-labelledby="cases-title">
     <div class="wrap">
     <div class="block-head">
       <h2 id="cases-title" class="caps">Client case studies</h2>
@@ -56,7 +57,7 @@ const cases = await getWork('case-study');
             Fundraising is confidential, and most founders would rather their deck wasn’t public while they’re raising.
             If you’d like to see examples of my work before you enquire, ask, and I’ll share what I can.
           </p>
-          <a href="/work-with-me" class="btn btn--light" data-cta="Ask for examples" data-cta-location="work page">
+          <a href="/work-with-me" class="btn" data-cta="Ask for examples" data-cta-location="work page">
             Ask for examples <span class="arrow" aria-hidden="true">→</span>
           </a>
         </div>
@@ -71,21 +72,20 @@ const cases = await getWork('case-study');
     margin-bottom: clamp(72px, 9vw, 120px);
   }
 
+  .shelf-band {
+    padding-block: clamp(64px, 8vw, 112px) clamp(48px, 6vw, 80px);
+  }
+
+  .shelf-band .block-head h2 {
+    color: #e2a99b;
+  }
+
+  .shelf-band .meta {
+    color: rgb(244 239 230 / 0.6);
+  }
+
   .cases {
-    margin-top: clamp(72px, 9vw, 120px);
-    padding-block: clamp(72px, 9vw, 128px);
-  }
-
-  .cases .block-head h2 {
-    color: #e2a99b;
-  }
-
-  .cases .empty {
-    border-color: rgb(244 239 230 / 0.4);
-  }
-
-  .cases .empty-title em {
-    color: #e2a99b;
+    padding-top: clamp(72px, 9vw, 120px);
   }
 
   .cases .empty-title {

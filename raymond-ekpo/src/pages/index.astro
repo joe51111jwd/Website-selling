@@ -1,42 +1,23 @@
 ---
 import Base from '../layouts/Base.astro';
 import SectionHead from '../components/SectionHead.astro';
-import TermSheet from '../components/TermSheet.astro';
-import WorkIndex from '../components/WorkIndex.astro';
 import Markup from '../components/Markup.astro';
 import Ticker from '../components/Ticker.astro';
 import NarrativeLab from '../components/NarrativeLab.astro';
 import Pen from '../components/Pen.astro';
+import MarkupStory from '../components/MarkupStory.astro';
+import ServicePanels from '../components/ServicePanels.astro';
+import FitCheck from '../components/FitCheck.astro';
+import StackCards from '../components/StackCards.astro';
+import ProcessChart from '../components/ProcessChart.astro';
+import NotesShelf from '../components/NotesShelf.astro';
 import { getServices, getWork, pad } from '../lib/content';
 import { site } from '../site.config';
 
 const services = await getServices();
 const notes = await getWork('analysis');
 
-const problems = [
-  {
-    title: 'There’s no thesis.',
-    body: 'The slides are in the right order and nothing connects them. The investor finishes the deck knowing what you do, and not why it’s an investment.',
-    fix: 'rewrite',
-  },
-  {
-    title: 'The claims can’t be checked.',
-    body: 'A top-down market size, “no direct competitors”, growth with no rate attached. Investors discount claims they can’t test, and everything near them.',
-    fix: 'creation',
-  },
-  {
-    title: 'The founder can’t defend it.',
-    body: 'The deck says one thing and the answers in the meeting say another. The first hard question about an assumption decides how the rest of the hour goes.',
-    fix: 'qa-prep',
-  },
-  {
-    title: 'It goes to the wrong people.',
-    body: 'A good story sent to investors who don’t back your stage, sector or geography gets a polite no that teaches you nothing.',
-    fix: 'investor-research',
-  },
-];
 
-const byId = Object.fromEntries(services.map((s) => [s.id, s]));
 
 const principles = [
   {
@@ -57,28 +38,6 @@ const principles = [
   },
 ];
 
-const steps = [
-  {
-    title: 'Enquiry',
-    body: 'Tell me about the company, the round and where the story feels weak. Share the deck if you have one.',
-    h: 58,
-  },
-  {
-    title: 'First read',
-    body: 'I read everything myself and reply with a straight answer on whether I can help, which service fits, or whether you need me at all yet.',
-    h: 70,
-  },
-  {
-    title: 'The narrative',
-    body: 'We agree the thesis in writing, then build or rebuild the storyline and the slides around it.',
-    h: 84,
-  },
-  {
-    title: 'The room',
-    body: 'You go into meetings able to explain the company, and defend it. With Q&A preparation, you’ve rehearsed the hard questions first.',
-    h: 100,
-  },
-];
 
 // The statement that darkens word by word as it scrolls past. *Asterisks* mark the italic phrase.
 const statement =
@@ -130,7 +89,6 @@ const schema = [
   },
 ];
 ---
-
 <Base title={`${site.name} · ${site.role} for pre-seed and seed founders`} home schema={schema}>
   <!-- Front page -->
   <section class="hero wrap" aria-labelledby="hero-title">
@@ -207,41 +165,8 @@ const schema = [
 
   <Ticker />
 
-  <!-- § 01 The problem -->
-  <section class="band-ink" aria-labelledby="problem-title">
-    <div class="wrap section problem">
-      <SectionHead num="01" label="The problem" id="problem-title">
-        <Fragment slot="title">Most decks describe the company. <em>Few make the case for investing in it.</em></Fragment>
-        <Fragment slot="lead">
-          An investor reading your deck is asking one question: could this become big enough, fast enough, to matter to
-          the fund? Twelve accurate slides in the standard order don’t answer it by themselves. When a raise stalls on
-          the story, it’s usually for one of four reasons.
-        </Fragment>
-      </SectionHead>
-
-      <ol class="reasons">
-        {
-          problems.map((p, i) => (
-            <li class="reason" data-reveal style={`--rd: ${i * 0.1}s`}>
-              <span class="reason-num figures" aria-hidden="true">
-                {pad(i + 1)}
-              </span>
-              <h3 class="display reason-title">{p.title}</h3>
-              <p>{p.body}</p>
-              {byId[p.fix] && (
-                <a href={`/services#${p.fix}`} class="reason-fix">
-                  <span class="caps">Fixed by</span>
-                  <span>
-                    {byId[p.fix].data.title} <span aria-hidden="true">→</span>
-                  </span>
-                </a>
-              )}
-            </li>
-          ))
-        }
-      </ol>
-    </div>
-  </section>
+  <!-- § 01 The problem, as a pinned slide that gets red-penned -->
+  <MarkupStory services={services} />
 
   <!-- The short version -->
   <section class="wrap statement" aria-label="The short version">
@@ -256,26 +181,22 @@ const schema = [
     </p>
   </section>
 
-  <!-- § 02 Services, on the desk -->
-  <section class="band-desk" aria-labelledby="services-title">
-    <div class="wrap section">
-      <SectionHead num="02" label="Services" id="services-title">
-        <Fragment slot="title"
-          >Four ways to work together. <em
-            >Every price is <span class="pen-wrap">public.<Pen kind="circle" delay={0.6} /></span></em
-          ></Fragment
-        >
-        <Fragment slot="lead">
-          So you can decide whether this is worth a conversation without having one first. Each engagement starts from
-          the investment case and ends with something you can take into your next meeting.
-        </Fragment>
-      </SectionHead>
+  <!-- § 02 Services, as expanding term sheets -->
+  <section class="wrap section" id="services" aria-labelledby="services-title">
+    <SectionHead num="02" label="Services" id="services-title">
+      <Fragment slot="title"
+        >Four ways to work together. <em
+          >Every price is <span class="pen-wrap">public.<Pen kind="circle" delay={0.6} /></span></em
+        ></Fragment
+      >
+      <Fragment slot="lead">
+        Open a term sheet to see who it’s for, what it covers and what it costs. So you can decide whether this is
+        worth a conversation without having one first.
+      </Fragment>
+    </SectionHead>
+    <ServicePanels services={services} />
 
-      <div class="sheets">
-        {services.map((s, i) => <TermSheet service={s} n={i + 1} />)}
-      </div>
-
-      <div class="audit-strip" data-reveal>
+    <div class="audit-strip" data-reveal>
         <span class="tag audit-tag">Complimentary</span>
         <p class="audit-text">
           Already have a deck? Send it over and I’ll write back with the <em>three changes I’d make first.</em> A few each
@@ -290,43 +211,56 @@ const schema = [
           Request a mini-audit <span class="arrow" aria-hidden="true">→</span>
         </a>
       </div>
+  </section>
+
+  <!-- § 03 Fit check: a term sheet drafted from five answers -->
+  <section class="band-desk" aria-labelledby="fit-title">
+    <div class="wrap section">
+      <SectionHead num="03" label="Fit check" id="fit-title">
+        <Fragment slot="title">Twenty seconds. <em>Five answers. Your term sheet.</em></Fragment>
+        <Fragment slot="lead">
+          Tell me where the raise stands and the sheet drafts itself: which engagements fit, in what order, and what
+          they cost. If I’m not the right person, it says so.
+        </Fragment>
+      </SectionHead>
+      <FitCheck services={services} />
     </div>
   </section>
 
-  <!-- § 03 Before and after -->
+  <!-- § 04 Before and after -->
   <section class="wrap section" aria-labelledby="lab-title">
-    <SectionHead num="03" label="Before & after" id="lab-title">
-      <Fragment slot="title">Drag across a slide. <em>See what changes.</em></Fragment>
+    <SectionHead num="04" label="Before & after" id="lab-title">
+      <Fragment slot="title">Pick a slide. <em>Drag to see what changes.</em></Fragment>
       <Fragment slot="lead">
         Five slides that decide most first meetings, as they usually arrive and as they read after a rewrite. The
         examples are invented; the reasoning is the work.
       </Fragment>
     </SectionHead>
-    <div data-reveal>
+    <div data-reveal data-cursor="Drag">
       <NarrativeLab entries={notes} />
     </div>
   </section>
 
-  <!-- The line -->
+  <!-- The line, drifting -->
   <section class="band-ox quote-band" aria-label="How I see it">
-    <div class="wrap">
-      <blockquote class="big-quote" data-inview>
-        <p class="display">
-          A pitch deck is a positioning problem <em
-            >with a <span class="pen-wrap">different buyer.<Pen kind="underline" delay={0.5} /></span></em
-          >
-        </p>
-        <footer class="quote-foot">
-          <span class="caps">Raymond Ekpo</span>
-          <a href="/about" class="quote-link">How I think about fundraising narratives →</a>
-        </footer>
-      </blockquote>
+    <blockquote class="kinetic" data-inview>
+      <p class="display">
+        <span class="k-line" data-drift="-1">A pitch deck is a</span>
+        <span class="k-line" data-drift="1">positioning problem</span>
+        <span class="k-line k-line--em" data-drift="-0.6"
+          ><em>with a <span class="pen-wrap">different buyer.<Pen kind="underline" delay={0.4} /></span></em></span
+        >
+      </p>
+    </blockquote>
+    <div class="wrap quote-foot">
+      <span class="caps">Raymond Ekpo</span>
+      <a href="/about" class="quote-link">How I think about fundraising narratives →</a>
     </div>
   </section>
 
-  <!-- § 04 Approach -->
-  <section class="wrap section" aria-labelledby="approach-title">
-    <SectionHead num="04" label="The approach" id="approach-title">
+  <!-- § 05 Approach, as cards that pile up -->
+  <section class="wrap section approach" aria-labelledby="approach-title">
+    <SectionHead num="05" label="The approach" id="approach-title">
       <Fragment slot="title"
         ><span class="sr-only">Not a deck designer. </span><span aria-hidden="true" class="pen-wrap struck"
           >A deck designer.<Pen kind="strike" delay={0.5} /></span
@@ -337,18 +271,7 @@ const schema = [
         anyone opens a slide template.
       </Fragment>
     </SectionHead>
-
-    <ol class="principles">
-      {
-        principles.map((p, i) => (
-          <li data-reveal style={`--rd: ${i * 0.08}s`}>
-            <span class="principle-num">{['i', 'ii', 'iii', 'iv'][i]}.</span>
-            <h3 class="display principle-title">{p.title}</h3>
-            <p>{p.body}</p>
-          </li>
-        ))
-      }
-    </ol>
+    <StackCards items={principles} />
 
     <aside class="disclosure" data-reveal aria-labelledby="disclosure-title">
       <p class="disclosure-label caps" id="disclosure-title">Disclosure</p>
@@ -360,106 +283,21 @@ const schema = [
     </aside>
   </section>
 
-  <!-- § 05 Process -->
-  <section class="wrap section" aria-labelledby="process-title">
-    <SectionHead num="05" label="How it works" id="process-title">
-      <Fragment slot="title">From first message <em>to the room.</em></Fragment>
-    </SectionHead>
+  <!-- § 06 Process, pinned while it grows -->
+  <ProcessChart />
 
-    <figure class="chart" data-inview>
-      <ol class="steps">
-        {
-          steps.map((s, i) => (
-            <li class="step" style={`--h: ${s.h}%; --n: ${i}`}>
-              <span class="step-num figures">{pad(i + 1)}</span>
-              <h3 class="display step-title">{s.title}</h3>
-              <p>{s.body}</p>
-            </li>
-          ))
-        }
-      </ol>
-      <svg class="trend" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <polyline points="12.5,44 37.5,33 62.5,21 87.5,7"></polyline>
-      </svg>
-      {
-        [
-          [12.5, 44],
-          [37.5, 33],
-          [62.5, 21],
-          [87.5, 7],
-        ].map(([x, y], i) => (
-          <span class="trend-dot" style={`left: ${x}%; top: calc(${y} * 6px); --n: ${i}`} aria-hidden="true" />
-        ))
-      }
-      <figcaption class="fig chart-fig"><b>Fig. 2</b> Readiness for the room, rising.</figcaption>
-    </figure>
-  </section>
-
-  <!-- § 06 Notes -->
-  <section class="band-ink" aria-labelledby="notes-title">
-    <div class="wrap section">
-      <SectionHead num="06" label="Notes & analyses" id="notes-title">
+  <!-- § 07 Notes, on a shelf -->
+  <section class="band-ink notes" aria-labelledby="notes-title">
+    <div class="wrap">
+      <SectionHead num="07" label="Notes & analyses" id="notes-title">
         <Fragment slot="title">How I think about <em>investor narratives.</em></Fragment>
         <Fragment slot="lead">
           Short analyses of the slides that decide most first meetings: what founders usually write, what investors
-          hear, and what to write instead.
+          hear, and what to write instead. Drag the shelf.
         </Fragment>
       </SectionHead>
-      <WorkIndex entries={notes} dark />
-      <p class="more">
-        <a href="/work" class="more-link">All work <span class="arrow" aria-hidden="true">→</span></a>
-      </p>
     </div>
-  </section>
-
-  <!-- § 07 Fit -->
-  <section class="wrap section" aria-labelledby="fit-title">
-    <SectionHead num="07" label="Fit" id="fit-title">
-      <Fragment slot="title">Is this for you? <em>Here’s how to tell.</em></Fragment>
-    </SectionHead>
-
-    <div class="fit">
-      <div class="fit-col" data-inview>
-        <h3 class="fit-head">A good fit if</h3>
-        <ul class="fit-list">
-          {
-            [
-              'You’re raising a pre-seed or seed round, from US or UK investors, in the next few months.',
-              'You have something real to point to, such as a product, early customers, a strong team or a sharp insight into a market.',
-              'You have a deck that isn’t getting the response the company deserves, or you’re about to write your first.',
-              'You want to understand the reasoning, not just receive slides.',
-            ].map((t, i) => (
-              <li>
-                <span class="fit-mark">
-                  <Pen kind="tick" delay={0.2 + i * 0.18} />
-                </span>
-                {t}
-              </li>
-            ))
-          }
-        </ul>
-      </div>
-      <div class="fit-col fit-col--no" data-inview>
-        <h3 class="fit-head">Probably not a fit if</h3>
-        <ul class="fit-list">
-          {
-            [
-              'You want the slides made prettier and nothing else touched. A designer is better value for that.',
-              'You need someone to guarantee a raise, or to make the numbers look bigger than they are.',
-              'You’re raising a Series A or later. This work is built for the earliest rounds.',
-              'You’re looking to buy introductions to investors.',
-            ].map((t, i) => (
-              <li>
-                <span class="fit-mark">
-                  <Pen kind="cross" delay={0.4 + i * 0.18} />
-                </span>
-                {t}
-              </li>
-            ))
-          }
-        </ul>
-      </div>
-    </div>
+    <NotesShelf entries={notes} />
   </section>
 </Base>
 
@@ -606,97 +444,6 @@ const schema = [
     color: var(--oxblood);
   }
 
-  /* ---------- § 01 on ink ---------- */
-  .reasons {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 0;
-  }
-
-  @media (min-width: 700px) {
-    .reasons {
-      grid-template-columns: 1fr 1fr;
-      row-gap: 48px;
-    }
-  }
-
-  @media (min-width: 1100px) {
-    .reasons {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-
-  .reason {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    padding: 28px 0;
-    border-top: 1px solid rgb(244 239 230 / 0.16);
-  }
-
-  @media (min-width: 700px) {
-    .reason {
-      padding: 0 28px;
-      border-top: 0;
-      border-left: 1px solid rgb(244 239 230 / 0.16);
-    }
-    .reason:nth-child(odd) {
-      border-left: 0;
-      padding-left: 0;
-    }
-  }
-
-  @media (min-width: 1100px) {
-    .reason:nth-child(odd) {
-      border-left: 1px solid rgb(244 239 230 / 0.16);
-      padding-left: 28px;
-    }
-    .reason:first-child {
-      border-left: 0;
-      padding-left: 0;
-    }
-  }
-
-  .reason-num {
-    font-family: var(--serif);
-    font-size: clamp(4.5rem, 8vw, 7.5rem);
-    line-height: 0.85;
-    letter-spacing: -0.04em;
-    color: transparent;
-    -webkit-text-stroke: 1px #e2a99b;
-    margin-bottom: 8px;
-  }
-
-  .reason-title {
-    font-size: clamp(1.45rem, 2vw, 1.75rem);
-    line-height: 1.15;
-    letter-spacing: -0.012em;
-  }
-
-  .reason-fix {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding-top: 16px;
-    border-top: 1px solid rgb(244 239 230 / 0.16);
-    color: var(--paper);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-  }
-
-  .reason-fix .caps {
-    color: rgb(244 239 230 / 0.5);
-    font-size: 0.66rem;
-  }
-
-  .reason-fix:hover span:last-child {
-    color: #e2a99b;
-  }
-
   /* ---------- The statement ---------- */
   .statement {
     padding-block: clamp(96px, 13vw, 180px);
@@ -736,20 +483,7 @@ const schema = [
     color: var(--oxblood);
   }
 
-  /* ---------- § 02 on the desk ---------- */
-  .sheets {
-    display: grid;
-    gap: 40px;
-    padding: 18px 6px 0;
-  }
-
-  @media (min-width: 760px) {
-    .sheets {
-      grid-template-columns: 1fr 1fr;
-      gap: 56px 44px;
-    }
-  }
-
+  /* ---------- § 02 services ---------- */
   .audit-strip {
     display: grid;
     gap: 18px;
@@ -785,36 +519,54 @@ const schema = [
     color: var(--oxblood);
   }
 
-  /* ---------- The quote band ---------- */
+  /* ---------- The drifting quote ---------- */
   .quote-band {
     padding-block: clamp(88px, 12vw, 168px);
+    overflow: hidden;
   }
 
-  .big-quote {
+  .kinetic {
     margin: 0;
     --pen: #f4efe6;
   }
 
-  .big-quote p {
-    font-size: clamp(2.5rem, 6.6vw, 6.4rem);
-    line-height: 1;
-    letter-spacing: -0.035em;
+  .kinetic p {
+    display: grid;
+    justify-items: center;
+    font-size: clamp(3rem, 9.6vw, 10rem);
+    line-height: 0.95;
+    letter-spacing: -0.045em;
     color: var(--paper);
-    max-width: 13.5em;
+    text-align: center;
   }
 
-  .big-quote em {
+  .k-line {
+    display: block;
+    white-space: nowrap;
+    will-change: transform;
+  }
+
+  @media (max-width: 700px) {
+    .kinetic p {
+      font-size: clamp(2.2rem, 10.4vw, 3rem);
+      padding-inline: var(--gutter);
+    }
+    .k-line {
+      white-space: normal;
+    }
+  }
+
+  .k-line--em em {
     color: #f0cfc6;
   }
 
   .quote-foot {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
     gap: 12px 28px;
     align-items: baseline;
-    margin-top: clamp(32px, 4vw, 48px);
-    padding-top: 18px;
-    border-top: 1px solid rgb(244 239 230 / 0.35);
+    margin-top: clamp(32px, 4vw, 56px);
     color: var(--paper);
   }
 
@@ -832,51 +584,9 @@ const schema = [
     text-decoration-color: var(--paper);
   }
 
-  /* ---------- § 04 approach ---------- */
+  /* ---------- § 05 approach ---------- */
   .struck {
     color: var(--muted);
-  }
-
-  .principles {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 0 36px;
-  }
-
-  @media (min-width: 700px) {
-    .principles {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-
-  @media (min-width: 1100px) {
-    .principles {
-      grid-template-columns: repeat(4, 1fr);
-    }
-  }
-
-  .principles li {
-    padding: 26px 0 32px;
-    border-top: 1px solid var(--ink);
-  }
-
-  .principle-num {
-    display: block;
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: clamp(2.6rem, 4vw, 3.6rem);
-    line-height: 1;
-    color: var(--oxblood);
-    margin-bottom: 18px;
-  }
-
-  .principle-title {
-    font-size: 1.55rem;
-    line-height: 1.15;
-    letter-spacing: -0.014em;
-    margin-bottom: 12px;
   }
 
   .disclosure {
@@ -905,229 +615,8 @@ const schema = [
     max-width: 52em;
   }
 
-  /* ---------- § 05 the rising chart ---------- */
-  .chart {
-    position: relative;
-    margin: 0;
-  }
-
-  .steps {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 12px;
-  }
-
-  .step {
-    --fill: var(--paper-deep);
-    position: relative;
-    background: var(--fill);
-    padding: 26px 24px 28px;
-  }
-
-  .step:nth-child(2) {
-    --fill: #dccfb8;
-  }
-
-  .step:nth-child(3) {
-    --fill: var(--ink);
-    color: rgb(244 239 230 / 0.8);
-  }
-
-  .step:nth-child(4) {
-    --fill: var(--oxblood);
-    color: rgb(244 239 230 / 0.88);
-  }
-
-  .step:nth-child(n + 3) .step-title,
-  .step:nth-child(n + 3) .step-num {
-    color: var(--paper);
-  }
-
-  .step-num {
-    display: block;
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: 1.2rem;
-    color: var(--oxblood);
-    margin-bottom: 12px;
-  }
-
-  .step-title {
-    font-size: clamp(1.7rem, 2.2vw, 2.1rem);
-    letter-spacing: -0.018em;
-    margin-bottom: 10px;
-  }
-
-  .trend,
-  .trend-dot {
-    display: none;
-  }
-
-  .chart-fig {
-    margin-top: 14px;
-  }
-
-  @media (min-width: 900px) {
-    .steps {
-      grid-template-columns: repeat(4, 1fr);
-      align-items: end;
-      height: 600px;
-      padding-top: 80px;
-      gap: 10px;
-      border-bottom: 1px solid var(--ink);
-    }
-    .step {
-      height: var(--h);
-      padding: 28px 26px;
-    }
-    .trend {
-      display: block;
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 600px;
-      overflow: visible;
-      pointer-events: none;
-    }
-    .trend polyline {
-      fill: none;
-      stroke: var(--oxblood);
-      stroke-width: 2;
-      stroke-dasharray: 6 6;
-      vector-effect: non-scaling-stroke;
-    }
-    .trend-dot {
-      display: block;
-      position: absolute;
-      width: 13px;
-      height: 13px;
-      margin: -6.5px 0 0 -6.5px;
-      border-radius: 50%;
-      background: var(--paper);
-      border: 2px solid var(--oxblood);
-    }
-    .trend-dot:last-of-type {
-      background: var(--oxblood);
-      width: 17px;
-      height: 17px;
-      margin: -8.5px 0 0 -8.5px;
-    }
-  }
-
-  /* The bars rise, then the line is drawn across their tops */
-  :global(.js) .chart .step {
-    clip-path: inset(100% 0 0 0);
-    transition: clip-path 0.95s cubic-bezier(0.7, 0, 0.2, 1) calc(var(--n) * 0.14s);
-  }
-
-  :global(.js) .chart:global(.is-in) .step,
-  :global(.reveal-all) .chart .step {
-    clip-path: inset(0);
-  }
-
-  :global(.js) .chart .trend {
-    clip-path: inset(0 100% 0 0);
-    transition: clip-path 1.1s cubic-bezier(0.6, 0, 0.3, 1) 0.9s;
-  }
-
-  :global(.js) .chart:global(.is-in) .trend,
-  :global(.reveal-all) .chart .trend {
-    clip-path: inset(0 0 0 0);
-  }
-
-  :global(.js) .chart .trend-dot {
-    transform: scale(0);
-    transition: transform 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) calc(1s + var(--n) * 0.22s);
-  }
-
-  :global(.js) .chart:global(.is-in) .trend-dot,
-  :global(.reveal-all) .chart .trend-dot {
-    transform: none;
-  }
-
-  /* ---------- § 06 notes ---------- */
-  .more {
-    margin-top: 32px;
-  }
-
-  .more-link {
-    color: var(--paper);
-    font-weight: 600;
-    text-decoration: underline;
-    text-decoration-color: rgb(244 239 230 / 0.35);
-    text-underline-offset: 0.3em;
-  }
-
-  .more-link:hover {
-    text-decoration-color: var(--paper);
-  }
-
-  /* ---------- § 07 fit ---------- */
-  .fit {
-    display: grid;
-    gap: 48px;
-  }
-
-  @media (min-width: 900px) {
-    .fit {
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-    }
-    .fit-col {
-      padding-right: 48px;
-    }
-    .fit-col--no {
-      padding-left: 48px;
-      padding-right: 0;
-      border-left: 1px solid var(--rule);
-    }
-  }
-
-  .fit-head {
-    font-size: clamp(1.7rem, 2.6vw, 2.3rem);
-    letter-spacing: -0.02em;
-    padding-bottom: 16px;
-    margin-bottom: 8px;
-    border-bottom: 3px double var(--ink);
-  }
-
-  .fit-col--no .fit-head {
-    color: var(--muted);
-  }
-
-  .fit-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .fit-list li {
-    display: grid;
-    grid-template-columns: 2.2rem 1fr;
-    gap: 6px;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--rule);
-    font-size: 1.05rem;
-    color: var(--ink);
-  }
-
-  .fit-mark {
-    position: relative;
-    width: 22px;
-    height: 22px;
-    margin-top: 2px;
-  }
-
-  .fit-mark :global(.pen) {
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .fit-col--no .fit-mark {
-    --pen: var(--muted);
+  /* ---------- § 07 notes ---------- */
+  .notes {
+    padding-block: var(--section) clamp(56px, 7vw, 96px);
   }
 </style>
