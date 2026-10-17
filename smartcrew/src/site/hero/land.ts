@@ -2,9 +2,8 @@
 // second animation where it lands there"). Much smaller than the old fence engine (./fence/engine.ts,
 // kept for the lab): no fence, no crew, no tag. Once the fonts are in it fits the headline to the
 // screen, lays the topographic ground round the copy (./fence/topo.ts, built in slices), and plays
-// a short entrance round the sand pour (./fence/sand.ts in its fast mode, which waits for the
-// .is-laid / .is-set marks set here): the line above the headline, the sub, the button and the
-// logos come up within about half a second, so the button is clickable at once.
+// a short entrance: the line above the headline, the headline (plain type, no sand pour), the sub,
+// the button and the logos come up within about half a second, so the button is clickable at once.
 //
 // PHONE MODE: the same, with the phone's line breaks; transform and opacity only, no rAF.
 
@@ -111,7 +110,7 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
     ground();
   }
 
-  /** The entrance: everything but the headline (the sand pours that) comes up, once. */
+  /** The entrance: the fold comes up once, top to bottom. */
   function enter() {
     const up = (el: Element | null, at: number, dur = 520, dy = 10) => {
       if (!el || reduced) return;
@@ -124,11 +123,11 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
       );
     };
     up(q(".hf-eyebrow"), 60, 520, 6);
+    up(q(".hf-h1"), 100, 560, 8);
     up(q(".hf-sub"), 160);
     up(q(".hf-act"), 240);
     up(q(".hf-foot"), 380, 600, 6);
     timers.push(window.setTimeout(markPageReady, reduced ? 0 : CTA_LANDED));
-    // DONE: the sand holds it until it has settled (../ready.ts); this only says the rest is in
     timers.push(window.setTimeout(markFirstScreenDone, reduced ? 0 : 900));
   }
 
@@ -141,13 +140,12 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
     if (!alive) return;
     layout();
     root.classList.add("is-laid");
-    // the sand pour starts once a line is marked set (./fence/sand.ts)
     root.querySelectorAll(".hf-line").forEach((l) => l.classList.add("is-set"));
     enter();
   };
   void start();
 
-  // a resize re-fits the headline and re-lays the ground (the sand re-lays itself)
+  // a resize re-fits the headline and re-lays the ground
   let rt = 0;
   let lastW = root.clientWidth;
   let lastH = root.clientHeight;

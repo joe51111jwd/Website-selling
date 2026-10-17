@@ -9,42 +9,16 @@
 //   the entrance as a long task.
 //
 // The hero marks both (src/site/hero/fence/engine.ts); with reduced motion, at once. Safety timers
-// mark them anyway, so nothing downstream can wait forever. The sand pour holds both until the
-// sand has settled (see HOLDS below).
+// mark them anyway, so nothing downstream can wait forever.
 
 import { useSyncExternalStore } from "react";
 
 let ready = false;
 const subs = new Set<() => void>();
 
-// HOLDS: the hero's sand pour (src/site/hero/fence/sand.ts) holds both signals back while the sand
-// is falling, so the 3D Stage, the later scenes and the phones' warm-ahead never start their work
-// (long tasks) in the middle of the pour. Marks that arrive while held wait for the release; the
-// visitor's own input still marks DONE at once.
-let holds = 0;
-let wantReady = false;
-let wantDone = false;
-
-/** Hold READY and DONE back until the returned release is called (idempotent). */
-export function holdFirstScreen(): () => void {
-  holds++;
-  let open = true;
-  return () => {
-    if (!open) return;
-    open = false;
-    if (--holds > 0) return;
-    if (wantReady) markPageReady();
-    if (wantDone) markFirstScreenDone();
-  };
-}
-
 /** Mark the page ready (idempotent). */
 export function markPageReady() {
   if (ready) return;
-  if (holds) {
-    wantReady = true;
-    return;
-  }
   ready = true;
   subs.forEach((f) => f());
   subs.clear();
@@ -86,15 +60,10 @@ const INPUTS = ["scroll", "touchstart", "wheel", "keydown", "pointerdown"] as co
 
 /** Mark the first screen done (idempotent). */
 export function markFirstScreenDone() {
-  if (done) return;
-  if (holds) {
-    wantDone = true;
-    return;
-  }
   doneNow();
 }
 
-/** The visitor has started using the page: done, held or not. */
+/** The visitor has started using the page. */
 function doneNow() {
   if (done) return;
   done = true;

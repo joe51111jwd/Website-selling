@@ -1,8 +1,8 @@
 // 1 · The fold, round 4 (Andrew's Oct 16 doc and video). Only what earns its place above the
 // fold: "Featured at ConExpo", Andrew's headline and subhead, the orange "Get my free trial" with
 // "or book a demo with Andrew" stacked under it, and the "Used by" logos, on the topographic
-// ground. The headline pours in sand in about a second (./fence/sand.ts, fast mode), with "Heavy
-// Civil & Dirtwork" in orange clay. Cut this round: the eyebrow (now in the headline), the green
+// ground. The headline is plain type, "Heavy Civil & Dirtwork" in orange (the agency owner, Oct 17:
+// "just do normal text and not the pour because it could be hard to read"). Cut this round: the eyebrow (now in the headline), the green
 // job tag and chip ("the green really pulls my eye away from the headline"), the Founding Member
 // line, and the "Watch a day" cue (the ride is gone).
 //
@@ -17,7 +17,6 @@ import { Cta, DemoLink } from "../ui/Cta";
 import { watchHeroCta } from "../shell/heroCta";
 import { usePhoneLite } from "../phone";
 import { mountLanding } from "./land";
-import { startSand } from "./fence/sand";
 import "./fence/fence.css";
 import "./hero.css";
 
@@ -52,8 +51,6 @@ export default function Hero() {
   // the header's CTA and the phone's sticky bar appear once this button has scrolled away
   useEffect(() => watchHeroCta(act.current), [lite]);
   useLayoutEffect(() => mountLanding(root.current!, { phone: lite, reduced: reducedMotion }), [lite]);
-  // the sand that pours into the headline, in about a second (once per load)
-  useEffect(() => startSand(root.current!, { phone: lite, fast: true }), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Scene id="top" pinnedViewports={lite ? 0 : 1} stage="keep" label="SmartCrew" className="hero hf hf4">
