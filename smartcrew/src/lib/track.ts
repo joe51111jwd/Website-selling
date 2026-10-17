@@ -1,7 +1,9 @@
 import { config } from "../config";
+import { LOOK } from "./look";
 
-// Meta Pixel and GA4, loaded only when their IDs are set in config.ts. Every event is also
-// re-dispatched on window as "smartcrew:track" so QA scripts (and a future CAPI relay) can see it.
+// Meta Pixel, GA4 and Microsoft Clarity, each loaded only when its ID is set in config.ts. Every
+// event is also re-dispatched on window as "smartcrew:track" so QA scripts (and a future CAPI relay)
+// can see it.
 
 type Fbq = ((...args: unknown[]) => void) & { queue?: unknown[]; loaded?: boolean; version?: string; callMethod?: (...a: unknown[]) => void; push?: unknown };
 declare global {
@@ -10,6 +12,7 @@ declare global {
     _fbq?: Fbq;
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
+    clarity?: ((...args: unknown[]) => void) & { q?: unknown[] };
   }
 }
 
@@ -48,6 +51,19 @@ export function startTracking() {
     window.gtag("js", new Date());
     window.gtag("config", config.gaId);
   }
+  if (config.clarityId) {
+    // Clarity's own loader: queue calls until the tag arrives
+    const c = function (...args: unknown[]) {
+      (c.q = c.q || []).push(args);
+    } as NonNullable<Window["clarity"]>;
+    window.clarity = window.clarity || c;
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = `https://www.clarity.ms/tag/${config.clarityId}`;
+    document.head.appendChild(s);
+    // so heatmaps and recordings can be split by look (classic vs glass)
+    window.clarity("set", "look", LOOK);
+  }
 }
 
 const clean = (d: TrackData) => Object.fromEntries(Object.entries(d).filter(([, v]) => v !== undefined && v !== ""));
@@ -69,6 +85,7 @@ export function track(event: StandardEvent, data: TrackData = {}, eventID?: stri
   if (eventID) window.fbq?.("track", event, d, { eventID });
   else window.fbq?.("track", event, d);
   window.gtag?.("event", event.toLowerCase(), eventID ? { ...d, event_id: eventID } : d);
+  window.clarity?.("event", event);
   echo(event, d, eventID);
 }
 
@@ -77,5 +94,7 @@ export function trackCustom(name: string, data: TrackData = {}) {
   const d = clean(data);
   window.fbq?.("trackCustom", name, d);
   window.gtag?.("event", name, d);
+  // Clarity events carry a name only: recordings can be filtered by "popup_open", "Lead" and so on
+  window.clarity?.("event", name);
   echo(name, d);
 }

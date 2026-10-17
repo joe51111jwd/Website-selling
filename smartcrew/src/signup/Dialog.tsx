@@ -473,6 +473,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
               ref={panel}
               className={`su-dialog${kb ? " is-kb" : ""}`}
               data-cursor-tone="light"
+              data-clarity-mask="True"
               role="dialog"
               aria-modal="true"
               aria-labelledby={`${ids}-title`}

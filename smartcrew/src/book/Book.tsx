@@ -130,7 +130,8 @@ export default function Book() {
   );
 
   return (
-    <div className={`bk${booking ? " is-booked" : ""}`}>
+    // masked in Clarity recordings: the headline, the kicker and the booked ticket carry the visitor's name
+    <div className={`bk${booking ? " is-booked" : ""}`} data-clarity-mask="True">
       {/* 1 · the headline and Andrew's video, front and centre */}
       <section className="bk-hero" aria-labelledby="bk-h1">
         <header className="bk-bar">

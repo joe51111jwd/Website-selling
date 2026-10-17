@@ -30,6 +30,14 @@ export const config = {
   gaId: "",
 
   /**
+   * Microsoft Clarity project ID (free heatmaps, scroll maps and session recordings: where people
+   * click, how far they scroll, where they stall). Empty on previews like the IDs above, so test
+   * visits don't fill the heatmaps. The sign-up popup and /book are masked, so names, emails and
+   * phone numbers never leave the browser.
+   */
+  clarityId: "",
+
+  /**
    * Andrew's videos, as they are today (Vidalytics account 5_H1Y3QY): the 85-second explainer
    * from the smartcrewhq.com home page, and the screen-share walkthrough from smartcrewhq.com/demo,
    * which stands in on the booking page until Andrew records the free-trial video.
