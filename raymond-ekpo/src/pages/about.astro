@@ -1,0 +1,261 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { site } from '../site.config';
+
+const schema = [
+  {
+    '@type': 'ProfilePage',
+    url: `${site.url}/about`,
+    mainEntity: { '@id': `${site.url}/#person` },
+  },
+];
+---
+
+<Base
+  title="About"
+  description="Raymond Ekpo is an Investor Narrative Specialist who helps pre-seed and seed founders explain why their company is worth investing in. He also runs Maneuver & Co."
+  schema={schema}
+>
+  <PageHead kicker="About">
+    <Fragment slot="title">I work on the part of a raise <em>that happens before the slides.</em></Fragment>
+  </PageHead>
+
+  <div class="wrap about rule-top">
+    <aside class="byline" aria-label="Raymond Ekpo at a glance">
+      {
+        site.portrait ? (
+          <img src={site.portrait} alt={site.name} class="portrait" width="640" height="800" />
+        ) : (
+          <div class="plate" aria-hidden="true">
+            <span class="plate-mono">R.E.</span>
+          </div>
+        )
+      }
+      <p class="byline-name display">{site.name}</p>
+      <p class="byline-role caps">{site.role}</p>
+      <dl class="byline-facts">
+        <div>
+          <dt class="caps">Works with</dt>
+          <dd>Pre-seed and seed founders</dd>
+        </div>
+        <div>
+          <dt class="caps">Raising from</dt>
+          <dd>US and UK investors</dd>
+        </div>
+        <div>
+          <dt class="caps">Also</dt>
+          <dd>Founder, <a href={site.firm.url} rel="noopener" target="_blank">{site.firm.name}</a></dd>
+        </div>
+      </dl>
+      <ul class="byline-links">
+        <li><a href={site.x.url} rel="me noopener" target="_blank" data-contact="x" class="link">X {site.x.handle}</a></li>
+        <li><a href={site.linkedin} rel="me noopener" target="_blank" data-contact="linkedin" class="link">LinkedIn</a></li>
+      </ul>
+    </aside>
+
+    <div class="prose about-prose">
+      <p>
+        I’m Raymond Ekpo. I help pre-seed and seed founders in the US and UK explain why their company is worth
+        investing in: the thesis, the storyline, and the claims that hold it up.
+      </p>
+
+      <h2>Where this comes from</h2>
+      <p>
+        I spent several years studying how markets work, mostly by watching capable companies stall for reasons nobody
+        inside them could name. That work became <a href={site.firm.url} rel="noopener" target="_blank"
+          >{site.firm.name}</a
+        >, the growth strategy firm I run. The job there is to establish what’s actually in the way and write it down in
+        a form people can argue with.
+      </p>
+      <p>
+        The same problem turns up at the very start of a company, in a different form. A founder knows the product, the
+        customers and the market better than anyone, and still struggles to say why it’s an investment. That’s a
+        different question from why it’s a good product.
+      </p>
+      <blockquote class="about-quote">
+        <p class="display">A pitch deck is a positioning problem with a different buyer.</p>
+      </blockquote>
+
+      <h2>How I think about fundraising narratives</h2>
+      <p>
+        <strong>Investors are buyers too.</strong> They’re buying a share of an outcome, and before they commit they have
+        to explain it to someone else, whether that’s their partners, their co-investors or their own judgement. A
+        narrative has to survive being retold without you in the room.
+      </p>
+      <p>
+        <strong>Clarity beats ambition.</strong> A smaller claim you can defend earns more trust than a bigger one you
+        can’t. Overclaiming is the quickest way for a deck to lose an investor’s confidence, and they’re trained to spot
+        it.
+      </p>
+      <p>
+        <strong>The thinking comes first.</strong> If the investment case can’t be written as a clear paragraph, layout
+        won’t fix it. So I write before I design, and every slide has to earn its place in the argument.
+      </p>
+
+      <h2>How I work</h2>
+      <p>
+        I do the work myself. The person who reads your enquiry is the person who writes your narrative, from start to
+        finish.
+      </p>
+      <p>
+        I work in writing wherever it helps. A thesis you can read, forward and argue with is worth more than a call you
+        have to remember. When a conversation would make the work better, we have one.
+      </p>
+      <p>
+        And I don’t promise what I can’t control. Nobody can guarantee a raise. What I can do is make sure the investors
+        you meet understand what you’re building and why it could matter.
+      </p>
+
+      <p class="about-next">
+        <a href="/services" class="link">See the services and prices <span class="arrow" aria-hidden="true">→</span></a>
+      </p>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .about {
+    display: grid;
+    gap: 56px;
+    padding-top: 32px;
+  }
+
+  @media (min-width: 1000px) {
+    .about {
+      grid-template-columns: 4fr 8fr;
+      gap: 64px;
+    }
+    .byline {
+      position: sticky;
+      top: 100px;
+      align-self: start;
+    }
+    .about-prose {
+      margin-left: calc(100% / 8);
+    }
+  }
+
+  .plate {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 4 / 5;
+    max-width: 360px;
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--oxblood);
+    color: var(--oxblood);
+    box-shadow: 0 18px 40px -30px rgb(27 26 23 / 0.35);
+  }
+
+  .plate-mono {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(5rem, 9vw, 7.5rem);
+    letter-spacing: -0.04em;
+  }
+
+  .portrait {
+    width: 100%;
+    max-width: 360px;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    filter: grayscale(0.15);
+  }
+
+  /* On phones the byline stays small so the writing starts sooner */
+  @media (max-width: 999px) {
+    .plate {
+      max-width: 132px;
+      aspect-ratio: 1;
+    }
+    .plate-mono {
+      font-size: 3.2rem;
+    }
+    .portrait {
+      max-width: 200px;
+    }
+  }
+
+  .byline-name {
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-top: 22px;
+  }
+
+  .byline-role {
+    color: var(--oxblood);
+    margin-top: 6px;
+  }
+
+  .byline-facts {
+    margin: 22px 0 0;
+    max-width: 360px;
+    border-top: 3px double var(--ink);
+  }
+
+  .byline-facts > div {
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .byline-facts dt {
+    color: var(--muted);
+    padding-top: 0.25em;
+  }
+
+  .byline-facts dd {
+    margin: 0;
+    color: var(--ink);
+    font-size: 0.98rem;
+  }
+
+  .byline-facts a {
+    color: var(--oxblood);
+  }
+
+  .byline-links {
+    list-style: none;
+    margin: 20px 0 0;
+    padding: 0;
+    display: flex;
+    gap: 24px;
+  }
+
+  .about-prose > p:first-child {
+    font-size: 1.3rem;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+
+  /* No drop cap on "I’m": the apostrophe would drop with it */
+  .about-prose > p:first-child::first-letter {
+    float: none;
+    font: inherit;
+    padding: 0;
+    color: inherit;
+  }
+
+  .about-quote {
+    margin: 2em 0;
+    padding: 20px 0 0;
+    border-top: 3px solid var(--oxblood);
+  }
+
+  .about-quote p {
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-style: italic;
+    color: var(--ink);
+  }
+
+  .about-next {
+    margin-top: 2.5em;
+  }
+</style>

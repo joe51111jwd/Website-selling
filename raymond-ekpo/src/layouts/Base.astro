@@ -1,0 +1,108 @@
+---
+import '../styles/global.css';
+import serifFont from '@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-normal.woff2?url';
+import sansFont from '@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2?url';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../site.config';
+
+interface Props {
+  title: string;
+  description?: string;
+  home?: boolean;
+  cta?: boolean;
+  type?: 'website' | 'article';
+  schema?: Record<string, unknown>[];
+  noindex?: boolean;
+}
+
+const { title, description = site.description, home = false, cta = true, type = 'website', schema = [], noindex = false } =
+  Astro.props;
+
+const canonical = new URL(Astro.url.pathname, site.url).href;
+const ogImage = new URL('/og.png', site.url).href;
+const fullTitle = home ? title : `${title} · ${site.name}`;
+
+const person = {
+  '@type': 'Person',
+  '@id': `${site.url}/#person`,
+  name: site.name,
+  jobTitle: site.role,
+  url: site.url,
+  email: `mailto:${site.email}`,
+  sameAs: [site.x.url, site.linkedin],
+  worksFor: { '@type': 'Organization', name: site.firm.name, url: site.firm.url },
+  knowsAbout: ['Pitch decks', 'Investor narrative', 'Startup fundraising', 'Pre-seed', 'Seed funding', 'Positioning'],
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    person,
+    { '@type': 'WebSite', '@id': `${site.url}/#website`, url: site.url, name: site.name, publisher: { '@id': `${site.url}/#person` } },
+    ...schema,
+  ],
+};
+---
+
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    <meta name="theme-color" content="#f4efe6" />
+    <meta name="author" content={site.name} />
+
+    <link rel="preload" href={serifFont} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={sansFont} as="font" type="font/woff2" crossorigin />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Raymond Ekpo, Investor Narrative Specialist. Investors fund what they can explain to someone else." />
+    <meta property="og:locale" content="en_GB" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content={site.x.handle} />
+    <meta name="twitter:creator" content={site.x.handle} />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+    {
+      site.plausibleDomain && (
+        <>
+          <script defer data-domain={site.plausibleDomain} src="https://plausible.io/js/script.js" />
+          <script is:inline>
+            window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments); };
+          </script>
+        </>
+      )
+    }
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <Header home={home} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer cta={cta} />
+    <script>
+      import '../scripts/track';
+    </script>
+  </body>
+</html>

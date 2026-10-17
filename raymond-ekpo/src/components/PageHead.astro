@@ -1,0 +1,29 @@
+---
+interface Props {
+  kicker: string;
+}
+
+const { kicker } = Astro.props;
+---
+
+<header class="page-head wrap">
+  <p class="kicker">{kicker}</p>
+  <h1 class="display h1 page-title"><slot name="title" /></h1>
+  {Astro.slots.has('lead') && <p class="lead page-lead"><slot name="lead" /></p>}
+  <slot />
+</header>
+
+<style>
+  .page-head {
+    padding-top: clamp(48px, 7vw, 104px);
+    padding-bottom: clamp(48px, 6vw, 88px);
+  }
+
+  .page-title {
+    max-width: 14em;
+  }
+
+  .page-lead {
+    margin-top: clamp(20px, 2.4vw, 30px);
+  }
+</style>

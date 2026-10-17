@@ -1,0 +1,494 @@
+---
+import { render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { getServices, pad } from '../lib/content';
+import { site } from '../site.config';
+
+const services = await getServices();
+const rendered = await Promise.all(services.map((s) => render(s)));
+
+const faqs = [
+  {
+    q: 'Do you guarantee I’ll raise?',
+    a: 'No, and be wary of anyone who does. Whether a round closes depends on the company, the market and the timing. The narrative is the part I can improve, which is whether investors understand what you’re building and why it could be big.',
+  },
+  {
+    q: 'Are you a pitch deck designer?',
+    a: 'Not primarily. The decks I deliver look professional, but the work is the thinking behind them: the thesis, the structure and the claims. If your narrative is already strong and you only need design, a designer is better value.',
+  },
+  {
+    q: 'Do you take a percentage of the round?',
+    a: 'No. Fees are fixed and listed on this page. They don’t change with the size of your raise, and I don’t sell introductions to investors.',
+  },
+  {
+    q: 'Who does the work?',
+    a: 'I do. The person who reads your enquiry is the person who writes your narrative. Nothing is handed to someone junior after we agree to work together.',
+  },
+  {
+    q: 'Is my deck kept confidential?',
+    a: 'Yes. I read it myself and don’t share it. If you’d like an NDA in place before sending anything, say so in your enquiry.',
+  },
+  {
+    q: 'Do you work with founders outside the US and UK?',
+    a: 'The work is focused on raises from US and UK investors. Where you’re based matters less than who you’re raising from.',
+  },
+];
+
+const schema = [
+  ...services.map((s) => ({
+    '@type': 'Service',
+    '@id': `${site.url}/services#${s.id}`,
+    name: s.data.title,
+    description: s.data.bestFor,
+    provider: { '@id': `${site.url}/#person` },
+    areaServed: ['US', 'GB'],
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'USD',
+      ...(s.data.priceMin === s.data.priceMax
+        ? { price: s.data.priceMin }
+        : { priceSpecification: { '@type': 'PriceSpecification', priceCurrency: 'USD', minPrice: s.data.priceMin, maxPrice: s.data.priceMax } }),
+    },
+  })),
+  {
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+];
+---
+
+<Base
+  title="Services and prices"
+  description="Pitch deck rewrite ($2,500), pitch deck creation ($3,500–$5,000), investor Q&A preparation ($750–$1,000) and investor research ($1,000–$2,000) for pre-seed and seed founders."
+  schema={schema}
+>
+  <PageHead kicker="Services">
+    <Fragment slot="title">Four engagements, <em>each with a clear end.</em></Fragment>
+    <Fragment slot="lead">
+      Fixed scopes and public prices. Each one starts from the investment case and ends with something you can take
+      into your next investor meeting.
+    </Fragment>
+    <nav class="jump" aria-label="Services on this page">
+      <ol>
+        {
+          services.map((s, i) => (
+            <li>
+              <a href={`#${s.id}`}>
+                <span class="jump-num figures">{pad(i + 1)}</span>
+                <span class="jump-title">{s.data.title}</span>
+                <span class="jump-price figures">{s.data.price}</span>
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <a href="#mini-audit">
+            <span class="jump-num">+</span>
+            <span class="jump-title">Complimentary mini-audit</span>
+            <span class="jump-price">Free</span>
+          </a>
+        </li>
+      </ol>
+    </nav>
+  </PageHead>
+
+  {
+    services.map((s, i) => {
+      const { Content } = rendered[i];
+      return (
+        <section id={s.id} class="service wrap" aria-labelledby={`${s.id}-title`}>
+          <div class="service-grid">
+            <div class="service-side">
+              <p class="service-no">
+                <span class="caps">Term</span> <span class="figures">No. {pad(i + 1)}</span>
+              </p>
+              <h2 id={`${s.id}-title`} class="display service-title">
+                {s.data.title}
+              </h2>
+              <p class="service-price figures">{s.data.price}</p>
+              <p class="meta">{s.data.priceNote}</p>
+              <a
+                href={`/work-with-me?service=${s.id}`}
+                class="btn service-cta"
+                data-cta={s.data.cta}
+                data-cta-location="services page"
+              >
+                {s.data.cta} <span class="arrow" aria-hidden="true">→</span>
+              </a>
+            </div>
+
+            <div class="service-body">
+              <p class="best-for">
+                <span class="caps">Best for</span>
+                {s.data.bestFor}
+              </p>
+              <div class="prose service-prose">
+                <Content />
+              </div>
+
+              <div class="service-lists">
+                <div>
+                  <h3 class="caps list-head">What it covers</h3>
+                  <ul class="dash-list">
+                    {s.data.covers.map((c) => (
+                      <li>{c}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 class="caps list-head">What you receive</h3>
+                  <ul class="dash-list">
+                    {s.data.receive.map((c) => (
+                      <li>{c}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <p class="needs">
+                <span class="caps">What I need from you</span>
+                {s.data.needs}
+              </p>
+              {s.data.note && <p class="service-note">{s.data.note}</p>}
+            </div>
+          </div>
+        </section>
+      );
+    })
+  }
+
+  <section id="mini-audit" class="wrap audit" aria-labelledby="audit-title">
+    <div class="audit-sheet">
+      <div>
+        <p class="caps audit-kicker">Complimentary</p>
+        <h2 id="audit-title" class="display audit-title">The mini-audit</h2>
+      </div>
+      <div class="audit-body">
+        <p>
+          If you already have a deck, send it over and I’ll write back with a short note on the three changes I’d make
+          first, and why. No call needed, and no obligation to work together afterwards.
+        </p>
+        <p class="meta">
+          I only do a few each month, for founders raising pre-seed or seed in the next six months, so I may decline if
+          it isn’t a fit or the month is full. I’ll tell you either way.
+        </p>
+        <a
+          href="/work-with-me?type=audit"
+          class="btn btn--ghost"
+          data-cta="Request a free deck audit"
+          data-cta-location="services page"
+        >
+          Request a mini-audit <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="wrap faq" aria-labelledby="faq-title">
+    <div class="faq-grid">
+      <div>
+        <p class="kicker">Questions</p>
+        <h2 id="faq-title" class="display h2">Before you <em>enquire.</em></h2>
+      </div>
+      <dl class="faq-list">
+        {
+          faqs.map((f) => (
+            <div>
+              <dt class="display">{f.q}</dt>
+              <dd>{f.a}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .jump {
+    margin-top: clamp(36px, 5vw, 64px);
+    border-top: 3px double var(--ink);
+  }
+
+  .jump ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+  }
+
+  @media (min-width: 900px) {
+    .jump ol {
+      grid-template-columns: repeat(5, 1fr);
+    }
+    .jump li + li a {
+      border-left: 1px solid var(--rule);
+      padding-left: 20px;
+    }
+  }
+
+  .jump a {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    gap: 10px;
+    align-items: baseline;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+    color: var(--ink);
+    height: 100%;
+  }
+
+  @media (min-width: 900px) {
+    .jump a {
+      grid-template-columns: 1fr;
+      gap: 6px;
+      padding: 18px 16px 18px 0;
+      border-bottom: 0;
+    }
+  }
+
+  .jump a:hover .jump-title {
+    color: var(--oxblood);
+  }
+
+  .jump-num {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--oxblood);
+  }
+
+  .jump-title {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    line-height: 1.2;
+  }
+
+  .jump-price {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .service {
+    scroll-margin-top: 80px;
+  }
+
+  .service-grid {
+    display: grid;
+    gap: 32px;
+    padding-top: 28px;
+    padding-bottom: clamp(64px, 8vw, 112px);
+    border-top: 1px solid var(--ink);
+  }
+
+  @media (min-width: 1000px) {
+    .service-grid {
+      grid-template-columns: 4fr 8fr;
+      gap: 64px;
+    }
+    .service-side {
+      position: sticky;
+      top: 96px;
+      align-self: start;
+    }
+  }
+
+  .service-no {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    color: var(--oxblood);
+    font-family: var(--serif);
+    font-style: italic;
+    margin-bottom: 14px;
+  }
+
+  .service-no .caps {
+    font-family: var(--sans);
+    font-style: normal;
+  }
+
+  .service-title {
+    font-size: clamp(2.2rem, 3.6vw, 3.2rem);
+    line-height: 1.02;
+    letter-spacing: -0.024em;
+  }
+
+  .service-price {
+    font-family: var(--serif);
+    font-size: clamp(1.8rem, 2.6vw, 2.3rem);
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-top: 22px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .service-cta {
+    margin-top: 24px;
+  }
+
+  .best-for {
+    display: grid;
+    gap: 8px;
+    font-family: var(--serif);
+    font-size: clamp(1.35rem, 2vw, 1.65rem);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    max-width: 30em;
+  }
+
+  .best-for .caps,
+  .needs .caps {
+    font-family: var(--sans);
+    color: var(--oxblood);
+    letter-spacing: 0.14em;
+  }
+
+  .service-prose {
+    margin-top: 24px;
+  }
+
+  .service-prose :global(p:first-child::first-letter) {
+    float: none;
+    font-size: inherit;
+    padding: 0;
+    color: inherit;
+    font-family: inherit;
+    line-height: inherit;
+  }
+
+  .service-lists {
+    display: grid;
+    gap: 32px;
+    margin-top: 40px;
+  }
+
+  @media (min-width: 760px) {
+    .service-lists {
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+  }
+
+  .list-head {
+    font-family: var(--sans);
+    color: var(--ink);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    border-bottom: 3px double var(--ink);
+  }
+
+  .needs {
+    display: grid;
+    gap: 8px;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    color: var(--ink);
+    max-width: 40em;
+  }
+
+  .service-note {
+    margin-top: 24px;
+    padding-left: 20px;
+    border-left: 3px solid var(--oxblood);
+    color: var(--ink);
+    max-width: 40em;
+  }
+
+  .audit {
+    scroll-margin-top: 80px;
+  }
+
+  .audit-sheet {
+    display: grid;
+    gap: 24px;
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    padding: clamp(24px, 4vw, 48px);
+    box-shadow: 0 18px 40px -30px rgb(27 26 23 / 0.35);
+  }
+
+  @media (min-width: 1000px) {
+    .audit-sheet {
+      grid-template-columns: 4fr 8fr;
+      gap: 64px;
+    }
+  }
+
+  .audit-kicker {
+    color: var(--oxblood);
+    margin-bottom: 10px;
+  }
+
+  .audit-title {
+    font-size: clamp(2rem, 3.4vw, 2.9rem);
+    letter-spacing: -0.022em;
+    font-style: italic;
+  }
+
+  .audit-body {
+    display: grid;
+    gap: 16px;
+    justify-items: start;
+    max-width: 40em;
+  }
+
+  .audit-body p:first-child {
+    font-size: 1.15rem;
+    color: var(--ink);
+  }
+
+  .audit-body .btn {
+    margin-top: 8px;
+  }
+
+  .faq {
+    padding-top: var(--section);
+    scroll-margin-top: 80px;
+  }
+
+  .faq-grid {
+    display: grid;
+    gap: 32px;
+    border-top: 1px solid var(--ink);
+    padding-top: 24px;
+  }
+
+  @media (min-width: 1000px) {
+    .faq-grid {
+      grid-template-columns: 4fr 8fr;
+      gap: 64px;
+    }
+  }
+
+  .faq-list {
+    margin: 0;
+  }
+
+  .faq-list > div {
+    padding: 22px 0 26px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .faq-list > div:first-child {
+    border-top: 0;
+    padding-top: 6px;
+  }
+
+  .faq-list dt {
+    font-size: 1.45rem;
+    line-height: 1.2;
+    letter-spacing: -0.012em;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+
+  .faq-list dd {
+    margin: 0;
+    max-width: 40em;
+  }
+</style>

@@ -1,0 +1,97 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import WorkIndex from '../../components/WorkIndex.astro';
+import { getWork } from '../../lib/content';
+
+const notes = await getWork('analysis');
+const cases = await getWork('case-study');
+---
+
+<Base
+  title="Work: notes and analyses on investor narratives"
+  description="How Raymond Ekpo thinks about pitch decks and investor narratives: analyses of the market, traction, competition, why-now and ask slides, with before-and-after rewrites."
+>
+  <PageHead kicker="Work">
+    <Fragment slot="title">The work, <em>and the thinking behind it.</em></Fragment>
+    <Fragment slot="lead">
+      Analyses of the slides and arguments that decide most early-stage raises. The examples are invented composites,
+      not clients, and they’re labelled that way. Client case studies are published only with the founder’s permission,
+      and only with outcomes that can be checked.
+    </Fragment>
+  </PageHead>
+
+  <section class="wrap block" aria-labelledby="notes-title">
+    <div class="block-head">
+      <h2 id="notes-title" class="caps">Notes &amp; analyses</h2>
+      <span class="meta">{notes.length} notes</span>
+    </div>
+    <WorkIndex entries={notes} />
+  </section>
+
+  <section class="wrap block" aria-labelledby="cases-title">
+    <div class="block-head">
+      <h2 id="cases-title" class="caps">Client case studies</h2>
+    </div>
+    {
+      cases.length > 0 ? (
+        <WorkIndex entries={cases} />
+      ) : (
+        <div class="empty">
+          <p class="display empty-title">
+            Client work appears here <em>with the founder’s permission.</em>
+          </p>
+          <p>
+            Fundraising is confidential, and most founders would rather their deck wasn’t public while they’re raising.
+            If you’d like to see examples of my work before you enquire, ask, and I’ll share what I can.
+          </p>
+          <a href="/work-with-me" class="link" data-cta="Ask for examples" data-cta-location="work page">
+            Ask for examples <span class="arrow" aria-hidden="true">→</span>
+          </a>
+        </div>
+      )
+    }
+  </section>
+</Base>
+
+<style>
+  .block + .block {
+    margin-top: clamp(72px, 9vw, 120px);
+  }
+
+  .block-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 14px;
+  }
+
+  .block-head h2 {
+    font-family: var(--sans);
+    color: var(--oxblood);
+  }
+
+  .empty {
+    display: grid;
+    gap: 18px;
+    justify-items: start;
+    padding: clamp(28px, 4vw, 48px) 0;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .empty-title {
+    font-size: clamp(1.7rem, 2.8vw, 2.4rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    max-width: 22em;
+  }
+
+  .empty-title em {
+    color: var(--oxblood);
+  }
+
+  .empty p:not(.empty-title) {
+    max-width: 40em;
+  }
+</style>

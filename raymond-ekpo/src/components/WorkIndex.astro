@@ -1,0 +1,138 @@
+---
+import { pad, readingMinutes, type WorkEntry } from '../lib/content';
+
+interface Props {
+  entries: WorkEntry[];
+}
+
+const { entries } = Astro.props;
+---
+
+<ol class="index">
+  {
+    entries.map((e, i) => (
+      <li>
+        <a href={`/work/${e.id}`} class="row">
+          <span class="row-num figures">{pad(i + 1)}.</span>
+          <span class="row-main">
+            <span class="row-title">{e.data.title}</span>
+            <span class="row-dek">{e.data.dek}</span>
+          </span>
+          <span class="row-meta">
+            <span class="caps">{e.data.topic}</span>
+            <span class="meta">{readingMinutes(e.body)} min read</span>
+          </span>
+          <span class="row-arrow" aria-hidden="true">
+            →
+          </span>
+        </a>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .index {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr;
+    gap: 6px 16px;
+    padding: 24px 0;
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+  }
+
+  li {
+    border-top: 1px solid var(--rule);
+  }
+
+  li:first-child {
+    border-top-color: var(--ink);
+  }
+
+  @media (min-width: 900px) {
+    .row {
+      grid-template-columns: 4rem 1fr 13rem 2rem;
+      gap: 32px;
+      padding: 28px 12px;
+      margin-inline: -12px;
+      align-items: baseline;
+    }
+  }
+
+  .row:hover {
+    background: var(--paper-deep);
+  }
+
+  .row-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.25rem;
+    color: var(--oxblood);
+  }
+
+  .row-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .row-title {
+    font-family: var(--serif);
+    font-size: clamp(1.4rem, 2.3vw, 1.9rem);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+
+  .row:hover .row-title {
+    color: var(--oxblood);
+  }
+
+  .row-dek {
+    color: var(--muted);
+    font-size: 0.98rem;
+    max-width: 44em;
+  }
+
+  .row-meta {
+    grid-column: 2;
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+    color: var(--ink);
+  }
+
+  @media (min-width: 900px) {
+    .row-meta {
+      grid-column: auto;
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  .row-arrow {
+    display: none;
+    font-size: 1.3rem;
+    color: var(--ink);
+    transition: transform 0.2s ease;
+  }
+
+  @media (min-width: 900px) {
+    .row-arrow {
+      display: block;
+    }
+  }
+
+  .row:hover .row-arrow {
+    transform: translateX(4px);
+    color: var(--oxblood);
+  }
+</style>

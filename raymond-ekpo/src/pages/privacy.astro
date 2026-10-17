@@ -1,0 +1,86 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { site } from '../site.config';
+---
+
+<Base title="Privacy notice" description={`How ${site.name} handles the information you share through this site.`}>
+  <PageHead kicker="Privacy">
+    <Fragment slot="title">Privacy notice</Fragment>
+    <Fragment slot="lead">Short, because this site collects very little. Last updated October 2026.</Fragment>
+  </PageHead>
+
+  <div class="wrap">
+    <div class="prose privacy">
+      <p>
+        This site is run by {site.name}. If you have a question about your information, email
+        <a href={`mailto:${site.email}`}>{site.email}</a>.
+      </p>
+
+      <h2>What I collect</h2>
+      <p>
+        Only what you choose to send: your name, email address and the answers you give in the enquiry form, including
+        any link to your deck. If you email me directly, I receive whatever you include in that email.
+      </p>
+
+      <h2>Why, and on what basis</h2>
+      <p>
+        I use it to reply to your enquiry and, if we decide to work together, to scope and deliver the work. Under UK
+        GDPR, the basis is taking steps at your request before entering into a contract, and my legitimate interest in
+        responding to people who contact me.
+      </p>
+
+      <h2>Your deck</h2>
+      <p>
+        I ask for a view-only link rather than an attachment so that you stay in control of access. I read it myself,
+        don’t share it, and use it only for your enquiry and any work we agree. You can revoke the link at any time.
+      </p>
+
+      <h2>Who else handles it</h2>
+      <p>
+        The enquiry form is delivered to my inbox by a form service, which processes your answers only to pass them on.
+        I don’t sell or share your information with anyone else, and I don’t use it for marketing lists.
+      </p>
+
+      <h2>Analytics and cookies</h2>
+      <p>
+        This site uses Plausible Analytics to count visits and see which pages are useful. Plausible doesn’t use cookies
+        and doesn’t collect personal data; everything it reports is aggregated. This site sets no cookies.
+      </p>
+
+      <h2>How long I keep it</h2>
+      <p>
+        Only as long as I need it to respond and follow up, or for the length of any engagement and the records that
+        go with it. I’ll delete it sooner if you ask.
+      </p>
+
+      <h2>Your rights</h2>
+      <p>
+        You can ask to see the information I hold about you, to correct it or to delete it, and you can object to how
+        it’s used. Email <a href={`mailto:${site.email}`}>{site.email}</a>. If you’re unhappy with how I’ve handled your
+        information, you can complain to the Information Commissioner’s Office at
+        <a href="https://ico.org.uk" rel="noopener" target="_blank">ico.org.uk</a>.
+      </p>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .privacy {
+    border-top: 1px solid var(--ink);
+    padding-top: 32px;
+  }
+
+  .privacy > p:first-child::first-letter {
+    float: none;
+    font: inherit;
+    padding: 0;
+    color: inherit;
+  }
+
+  @media (min-width: 1000px) {
+    .privacy {
+      margin-left: calc(4 / 12 * 100% + 21px);
+    }
+  }
+</style>

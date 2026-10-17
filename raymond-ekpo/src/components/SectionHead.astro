@@ -1,0 +1,20 @@
+---
+interface Props {
+  num?: string;
+  label: string;
+  id?: string;
+}
+
+const { num, label, id } = Astro.props;
+---
+
+<header class="section-head">
+  <p class="kicker">
+    {num && <span class="num">§ {num}</span>}
+    <span>{label}</span>
+  </p>
+  <div class="head-body">
+    <h2 class="display h2" id={id}><slot name="title" /></h2>
+    {Astro.slots.has('lead') && <p class="lead"><slot name="lead" /></p>}
+  </div>
+</header>

@@ -1,0 +1,239 @@
+---
+import { site } from '../site.config';
+
+interface Props {
+  cta?: boolean;
+}
+
+const { cta = true } = Astro.props;
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  {
+    cta && (
+      <section class="wrap" aria-labelledby="cta-title">
+        <div class="cta">
+        <p class="kicker cta-kicker">
+          <span class="num">§</span> Work with me
+        </p>
+        <div class="cta-grid">
+          <h2 id="cta-title" class="display cta-title">
+            Raising in the next six months? <em>Let’s look at your narrative.</em>
+          </h2>
+          <div class="cta-side">
+            <p>
+              Tell me about the company, the round and where the story feels weak. I read every enquiry myself and reply
+              within {site.replyTime}.
+            </p>
+            <div class="btn-row">
+              <a href="/work-with-me" class="btn btn--light" data-cta="Discuss your raise" data-cta-location="footer">
+                Discuss your raise <span class="arrow" aria-hidden="true">→</span>
+              </a>
+              <a
+                href="/work-with-me?type=audit"
+                class="btn btn--outline-light"
+                data-cta="Request a free deck audit"
+                data-cta-location="footer"
+              >
+                Request a free deck audit
+              </a>
+            </div>
+          </div>
+        </div>
+        </div>
+      </section>
+    )
+  }
+
+  <div class="wrap">
+    <div class="footer-grid">
+    <div class="footer-about">
+      <p class="footer-name">{site.name}</p>
+      <p>{site.role}. I help pre-seed and seed founders in the US and UK tell a compelling story to investors.</p>
+    </div>
+    <nav class="footer-col" aria-label="Footer">
+      <p class="caps">Pages</p>
+      <ul>
+        <li><a href="/services">Services</a></li>
+        <li><a href="/work">Work</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/work-with-me">Work with me</a></li>
+      </ul>
+    </nav>
+    <div class="footer-col">
+      <p class="caps">Elsewhere</p>
+      <ul>
+        <li><a href={`mailto:${site.email}`} data-contact="email">{site.email}</a></li>
+        <li><a href={site.x.url} rel="me noopener" target="_blank" data-contact="x">X {site.x.handle}</a></li>
+        <li><a href={site.linkedin} rel="me noopener" target="_blank" data-contact="linkedin">LinkedIn</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <p class="caps">Also</p>
+      <p>
+        I run <a href={site.firm.url} rel="noopener" target="_blank">{site.firm.name}</a>, {site.firm.line}.
+      </p>
+    </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="footer-base">
+      <span>© {year} {site.name}</span>
+      <a href="/privacy">Privacy</a>
+    </div>
+  </div>
+
+  <div class="giant" aria-hidden="true">
+    <span>Raymond Ekpo</span>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--oxblood);
+    color: rgb(244 239 230 / 0.82);
+    overflow: hidden;
+    margin-top: var(--section);
+  }
+
+  .footer-grid a,
+  .footer-base a {
+    color: var(--paper);
+  }
+
+  .cta {
+    padding-top: clamp(64px, 9vw, 120px);
+    padding-bottom: clamp(56px, 8vw, 104px);
+    border-bottom: 1px solid rgb(244 239 230 / 0.25);
+  }
+
+  .cta-kicker {
+    color: var(--paper);
+    border-top: 1px solid rgb(244 239 230 / 0.55);
+    padding-top: 18px;
+  }
+
+  .cta-grid {
+    display: grid;
+    gap: 32px;
+  }
+
+  @media (min-width: 900px) {
+    .cta-grid {
+      grid-template-columns: 7fr 5fr;
+      gap: 64px;
+      align-items: end;
+    }
+  }
+
+  .cta-title {
+    color: var(--paper);
+    font-size: clamp(2.3rem, 5vw, 4.25rem);
+    line-height: 1.02;
+    letter-spacing: -0.026em;
+  }
+
+  .cta-title em {
+    color: var(--oxblood-tint);
+  }
+
+  .cta-side p {
+    font-size: 1.125rem;
+    margin-bottom: 28px;
+    max-width: 30em;
+  }
+
+  .footer-grid {
+    display: grid;
+    gap: 36px;
+    padding-top: 56px;
+    padding-bottom: 40px;
+    font-size: 0.95rem;
+  }
+
+  @media (min-width: 700px) {
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .footer-grid {
+      grid-template-columns: 4fr 2fr 3fr 3fr;
+      gap: 40px;
+    }
+  }
+
+  .footer-name {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    color: var(--paper);
+    letter-spacing: -0.015em;
+    margin-bottom: 8px;
+  }
+
+  .footer-about p:last-child {
+    max-width: 26em;
+  }
+
+  .footer-col .caps {
+    color: var(--paper);
+    margin-bottom: 14px;
+    opacity: 0.7;
+  }
+
+  .footer-col ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .footer-col li + li {
+    margin-top: 8px;
+  }
+
+  .footer-col a,
+  .footer-base a {
+    text-decoration: underline;
+    text-decoration-color: rgb(244 239 230 / 0.3);
+    text-underline-offset: 0.25em;
+    overflow-wrap: anywhere;
+  }
+
+  .footer-col a:hover,
+  .footer-base a:hover {
+    text-decoration-color: var(--paper);
+  }
+
+  .footer-base {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-top: 18px;
+    padding-bottom: 18px;
+    border-top: 1px solid rgb(244 239 230 / 0.25);
+    font-size: 0.85rem;
+  }
+
+  /* The name again, cropped at the bottom edge, after Neutomni's footer */
+  .giant {
+    font-family: var(--serif);
+    font-variation-settings: 'opsz' 60;
+    font-size: min(17.4vw, 15.5rem);
+    line-height: 1;
+    letter-spacing: -0.05em;
+    color: var(--paper);
+    white-space: nowrap;
+    text-align: center;
+    height: 0.7em;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .giant span {
+    display: block;
+    transform: translateY(-0.04em);
+  }
+</style>

@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+---
+
+<Base title="Page not found" noindex>
+  <PageHead kicker="404">
+    <Fragment slot="title">This page <em>didn’t make the final cut.</em></Fragment>
+    <Fragment slot="lead">It may have moved, or the link may be wrong. These are the pages people usually want.</Fragment>
+    <div class="btn-row lost">
+      <a href="/" class="btn">Home <span class="arrow" aria-hidden="true">→</span></a>
+      <a href="/services" class="btn btn--ghost">Services and prices</a>
+      <a href="/work" class="btn btn--ghost">Work</a>
+    </div>
+  </PageHead>
+</Base>
+
+<style>
+  .lost {
+    margin-top: 36px;
+  }
+</style>

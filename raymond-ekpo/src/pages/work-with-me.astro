@@ -1,0 +1,636 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { getServices } from '../lib/content';
+import { site } from '../site.config';
+
+const services = await getServices();
+---
+
+<Base
+  title="Work with me"
+  description="Tell Raymond Ekpo about your company, your round and where the story feels weak, or request a complimentary pitch deck mini-audit."
+  cta={false}
+>
+  <PageHead kicker="Work with me">
+    <Fragment slot="title">Tell me about <em>your raise.</em></Fragment>
+    <Fragment slot="lead">
+      A few questions about the company, the round and where you need help. It takes about five minutes, and your
+      answers go straight into my first read.
+    </Fragment>
+  </PageHead>
+
+  <div class="wrap contact rule-top">
+    <aside class="aside">
+      <div class="aside-block">
+        <h2 class="caps aside-head">What happens next</h2>
+        <ol class="next-steps">
+          <li>I read your answers myself, along with your deck if you share one.</li>
+          <li>You hear back within {site.replyTime}, with a straight answer on fit.</li>
+          <li>If it’s a fit, we agree the scope in writing and you get a fixed quote before anything starts.</li>
+        </ol>
+      </div>
+
+      <div class="aside-block">
+        <h2 class="caps aside-head">Sharing your deck</h2>
+        <p>
+          Send a view-only link (DocSend, Google Drive, Pitch, Papermark or similar) rather than an attachment. That way you
+          control access and can revoke it at any time. I read it myself and don’t share it.
+        </p>
+      </div>
+
+      {
+        site.bookingUrl && (
+          <div class="aside-block">
+            <h2 class="caps aside-head">Prefer to talk first?</h2>
+            <p>
+              <a href={site.bookingUrl} class="link" rel="noopener" target="_blank" data-cta="Book a call" data-cta-location="contact page">
+                Book a 20-minute call <span class="arrow" aria-hidden="true">→</span>
+              </a>
+            </p>
+          </div>
+        )
+      }
+
+      <div class="aside-block">
+        <h2 class="caps aside-head">Prefer email?</h2>
+        <p><a href={`mailto:${site.email}`} class="link" data-contact="email">{site.email}</a></p>
+      </div>
+    </aside>
+
+    <div class="form-col">
+      <form id="enquiry" class="form" novalidate data-endpoint={site.formEndpoint}>
+        <fieldset class="choice">
+          <legend class="caps legend">What would you like?</legend>
+          <div class="choice-grid">
+            <label class="choice-card">
+              <input type="radio" name="Request" value="Project enquiry" checked />
+              <span class="choice-title display">Discuss a project</span>
+              <span class="choice-text">A rewrite, a new deck, Q&amp;A preparation or investor research.</span>
+            </label>
+            <label class="choice-card">
+              <input type="radio" name="Request" value="Mini-audit" />
+              <span class="choice-title display">Request a mini-audit <span class="tag">Free</span></span>
+              <span class="choice-text">Three changes I’d make to your current deck, in writing.</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="caps legend"><span class="legend-num">01</span> You</legend>
+          <div class="row-2">
+            <div class="field">
+              <label for="f-name">Your name</label>
+              <input id="f-name" name="name" type="text" autocomplete="name" required />
+            </div>
+            <div class="field">
+              <label for="f-email">Email</label>
+              <input id="f-email" name="email" type="email" autocomplete="email" required />
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="caps legend"><span class="legend-num">02</span> The company</legend>
+          <div class="row-2">
+            <div class="field">
+              <label for="f-company">Company name</label>
+              <input id="f-company" name="Company" type="text" autocomplete="organization" required />
+            </div>
+            <div class="field">
+              <label for="f-website">Website <span class="optional">Optional</span></label>
+              <input id="f-website" name="Website" type="url" inputmode="url" placeholder="https://" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-what">What the company does, in one sentence</label>
+            <input id="f-what" name="What the company does" type="text" required />
+          </div>
+          <div class="row-2">
+            <div class="field">
+              <label for="f-sector">Sector</label>
+              <select id="f-sector" name="Sector" required>
+                <option value="">Choose one</option>
+                <option>B2B software</option>
+                <option>Fintech</option>
+                <option>Health</option>
+                <option>Climate</option>
+                <option>Consumer</option>
+                <option>Marketplace</option>
+                <option>Deep tech</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-based">Where the company is based</label>
+              <select id="f-based" name="Based in" required>
+                <option value="">Choose one</option>
+                <option>United States</option>
+                <option>United Kingdom</option>
+                <option>Elsewhere</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="caps legend"><span class="legend-num">03</span> The round</legend>
+          <div class="row-3">
+            <div class="field">
+              <label for="f-stage">Stage</label>
+              <select id="f-stage" name="Stage" required>
+                <option value="">Choose one</option>
+                <option>Pre-seed</option>
+                <option>Seed</option>
+                <option>Not sure yet</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-size">Target raise</label>
+              <select id="f-size" name="Target raise" required>
+                <option value="">Choose one</option>
+                <option>Under $500k</option>
+                <option>$500k to $1M</option>
+                <option>$1M to $3M</option>
+                <option>Over $3M</option>
+                <option>Not decided</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="f-timing">Investor conversations start</label>
+              <select id="f-timing" name="Timing" required>
+                <option value="">Choose one</option>
+                <option>Already raising</option>
+                <option>Within 3 months</option>
+                <option>In 3 to 6 months</option>
+                <option>Later than 6 months</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-traction">Traction so far <span class="optional">Optional</span></label>
+            <textarea id="f-traction" name="Traction" rows="3" placeholder="Revenue, users, pilots, letters of intent, whatever you have"
+            ></textarea>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="caps legend"><span class="legend-num">04</span> Where you need help</legend>
+          <div class="field" data-project-only>
+            <p class="label" id="services-label">Which of these might fit? <span class="optional">Pick any</span></p>
+            <div class="checks" role="group" aria-labelledby="services-label">
+              {
+                services.map((s) => (
+                  <label class="check">
+                    <input type="checkbox" name="Services" value={s.data.title} data-service={s.id} />
+                    <span>
+                      {s.data.title} <span class="check-price figures">{s.data.price}</span>
+                    </span>
+                  </label>
+                ))
+              }
+              <label class="check">
+                <input type="checkbox" name="Services" value="Not sure yet" />
+                <span>Not sure yet</span>
+              </label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-hardest">What’s the hardest part of the story to tell right now?</label>
+            <textarea
+              id="f-hardest"
+              name="Hardest part of the story"
+              rows="5"
+              required
+              placeholder="Write it the way you’d say it out loud. Detail here saves a round trip later."></textarea>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend class="caps legend"><span class="legend-num">05</span> Your deck</legend>
+          <div class="field">
+            <label for="f-deck">
+              Link to your deck
+              <span class="optional" data-deck-optional>Optional</span>
+              <span class="required-note" data-deck-required hidden>Needed for a mini-audit</span>
+            </label>
+            <input id="f-deck" name="Deck link" type="url" inputmode="url" placeholder="https://docsend.com/view/…" />
+            <p class="hint">A view-only link you can revoke later. Make sure it opens without a request for access.</p>
+          </div>
+          <div class="field">
+            <label for="f-source">How did you hear about me? <span class="optional">Optional</span></label>
+            <select id="f-source" name="Heard via">
+              <option value="">Choose one</option>
+              <option>X</option>
+              <option>LinkedIn</option>
+              <option>A referral</option>
+              <option>Search</option>
+              <option>Maneuver &amp; Co.</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <div class="honey" aria-hidden="true">
+          <label for="f-honey">Leave this field empty</label>
+          <input id="f-honey" name="_honey" type="text" tabindex="-1" autocomplete="off" />
+          <input name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <div class="submit-row">
+          <button type="submit" class="btn submit" data-label-project="Send enquiry" data-label-audit="Request mini-audit">
+            <span class="submit-label">Send enquiry</span> <span class="arrow" aria-hidden="true">→</span>
+          </button>
+          <p class="meta">
+            Your answers are used only to reply to you. See the <a href="/privacy" class="link">privacy notice</a>.
+          </p>
+        </div>
+
+        <p class="form-error" role="alert" hidden>
+          That didn’t send. Check your connection and try again, or email <strong>{site.email}</strong> and paste your
+          answers in.
+        </p>
+        <p class="form-invalid" role="alert" hidden>A few answers are missing. They’re marked above.</p>
+      </form>
+
+      <div class="success" id="enquiry-success" tabindex="-1" hidden>
+        <p class="caps success-kicker">Received</p>
+        <p class="display success-title">That’s in. <em>Thank you.</em></p>
+        <p>
+          I read every enquiry myself. You’ll hear back within {site.replyTime}, either way. If you shared a deck link,
+          please keep it live until then.
+        </p>
+        <p>
+          While you wait, the <a href="/work" class="link">notes and analyses</a> show how I think about the slides that
+          decide most first meetings.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { initEnquiry } from '../scripts/enquiry';
+    initEnquiry();
+  </script>
+</Base>
+
+<style>
+  .contact {
+    display: grid;
+    gap: 48px;
+    padding-top: 32px;
+  }
+
+  @media (min-width: 1000px) {
+    .contact {
+      grid-template-columns: 4fr 8fr;
+      gap: 64px;
+    }
+    .aside {
+      position: sticky;
+      top: 100px;
+      align-self: start;
+    }
+  }
+
+  .aside {
+    display: grid;
+    gap: 32px;
+    font-size: 0.98rem;
+  }
+
+  .aside-head {
+    font-family: var(--sans);
+    color: var(--oxblood);
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .next-steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+
+  .next-steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    color: var(--ink);
+  }
+
+  .next-steps li + li {
+    margin-top: 10px;
+  }
+
+  .next-steps li::before {
+    content: counter(step, decimal-leading-zero);
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--oxblood);
+  }
+
+  /* Form */
+  .form {
+    display: grid;
+    gap: 40px;
+  }
+
+  fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+    display: grid;
+    gap: 20px;
+  }
+
+  .legend {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    width: 100%;
+    padding: 0 0 12px;
+    margin-bottom: 20px;
+    color: var(--ink);
+    border-bottom: 3px double var(--ink);
+  }
+
+  .legend-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1rem;
+    letter-spacing: 0;
+    color: var(--oxblood);
+  }
+
+  .choice-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  @media (min-width: 640px) {
+    .choice-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .choice-card {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    padding: 20px 20px 20px 52px;
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+
+  .choice-card:hover {
+    border-color: var(--muted);
+  }
+
+  .choice-card:has(input:checked) {
+    border-color: var(--oxblood);
+    box-shadow: inset 0 0 0 1px var(--oxblood);
+  }
+
+  .choice-card input {
+    position: absolute;
+    left: 20px;
+    top: 24px;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--oxblood);
+  }
+
+  .choice-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.35rem;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+
+  .choice-title .tag {
+    font-size: 0.8rem;
+    color: var(--oxblood);
+  }
+
+  .choice-text {
+    font-size: 0.92rem;
+    color: var(--muted);
+  }
+
+  .row-2,
+  .row-3 {
+    display: grid;
+    gap: 20px;
+  }
+
+  @media (min-width: 640px) {
+    .row-2 {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (min-width: 800px) {
+    .row-3 {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
+
+  .field {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+  }
+
+  .field label,
+  .label {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    align-items: baseline;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+
+  .optional,
+  .required-note {
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .required-note {
+    color: var(--oxblood);
+  }
+
+  input[type='text'],
+  input[type='email'],
+  input[type='url'],
+  select,
+  textarea {
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 14px;
+    font: 400 1rem/1.4 var(--sans);
+    color: var(--ink);
+    background: var(--sheet);
+    border: 1px solid #c9c0af;
+    border-radius: 2px;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  select {
+    padding-right: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%231b1a17' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+
+  ::placeholder {
+    color: #9a9387;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--ink);
+    box-shadow: 0 0 0 3px rgb(122 34 34 / 0.18);
+  }
+
+  .form.was-validated :is(input, select, textarea):invalid {
+    border-color: var(--oxblood);
+    background: #fbf3ef;
+  }
+
+  .hint {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .checks {
+    display: grid;
+    gap: 8px;
+  }
+
+  @media (min-width: 640px) {
+    .checks {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .check {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    cursor: pointer;
+    font-weight: 400;
+    font-size: 0.98rem;
+    color: var(--ink);
+  }
+
+  .check:has(input:checked) {
+    border-color: var(--oxblood);
+  }
+
+  .check input {
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+    flex-shrink: 0;
+    accent-color: var(--oxblood);
+  }
+
+  .check-price {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .honey {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .submit-row {
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+    padding-top: 8px;
+  }
+
+  .submit {
+    min-width: 220px;
+  }
+
+  .submit[disabled] {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .form-error,
+  .form-invalid {
+    padding: 14px 16px;
+    border-left: 3px solid var(--oxblood);
+    background: #fbf3ef;
+    color: var(--ink);
+  }
+
+  .success {
+    display: grid;
+    gap: 16px;
+    padding: clamp(28px, 4vw, 48px);
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--oxblood);
+    outline: none;
+  }
+
+  .success[hidden],
+  .form[hidden],
+  [hidden] {
+    display: none;
+  }
+
+  .success-kicker {
+    color: var(--oxblood);
+  }
+
+  .success-title {
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
+    line-height: 1.04;
+    letter-spacing: -0.024em;
+  }
+
+  .success-title em {
+    color: var(--oxblood);
+  }
+
+  .success p:not(.display, .caps) {
+    max-width: 36em;
+  }
+</style>

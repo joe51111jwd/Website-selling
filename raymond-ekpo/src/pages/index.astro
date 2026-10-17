@@ -1,0 +1,903 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionHead from '../components/SectionHead.astro';
+import TermSheet from '../components/TermSheet.astro';
+import SlideCompare from '../components/SlideCompare.astro';
+import WorkIndex from '../components/WorkIndex.astro';
+import { getServices, getWork, pad, readingMinutes } from '../lib/content';
+import { site } from '../site.config';
+
+const services = await getServices();
+const notes = await getWork('analysis');
+const [featured, ...rest] = notes;
+
+const problems = [
+  {
+    title: 'There’s no thesis.',
+    body: 'The slides are in the right order and nothing connects them. The investor finishes the deck knowing what you do, and not why it’s an investment.',
+    fix: 'rewrite',
+  },
+  {
+    title: 'The claims can’t be checked.',
+    body: 'A top-down market size, “no direct competitors”, growth with no rate attached. Investors discount claims they can’t test, and everything near them.',
+    fix: 'creation',
+  },
+  {
+    title: 'The founder can’t defend it.',
+    body: 'The deck says one thing and the answers in the meeting say another. The first hard question about an assumption decides how the rest of the hour goes.',
+    fix: 'qa-prep',
+  },
+  {
+    title: 'It goes to the wrong people.',
+    body: 'A good story sent to investors who don’t back your stage, sector or geography gets a polite no that teaches you nothing.',
+    fix: 'investor-research',
+  },
+];
+
+const byId = Object.fromEntries(services.map((s) => [s.id, s]));
+
+const principles = [
+  {
+    title: 'Thesis before slides.',
+    body: 'Every engagement starts with the investment case written out in plain sentences. If it doesn’t hold up as a paragraph, no layout will rescue it.',
+  },
+  {
+    title: 'Read it the way the investor will.',
+    body: 'Investors aren’t asking whether the company is good. They’re asking what has to be true for it to be big, and whether you’ve shown it’s becoming true. The narrative is built around that question.',
+  },
+  {
+    title: 'Every claim earns its place.',
+    body: 'Market size from the bottom up. Traction as a rate, not a total. Competitors named honestly. A claim you can defend is worth more than a bigger one you can’t.',
+  },
+  {
+    title: 'You have to own it.',
+    body: 'You’re the one in the room, so the story has to sound like you under questioning. You’ll understand the reasoning behind every slide, not just the slide.',
+  },
+];
+
+const steps = [
+  {
+    title: 'Enquiry',
+    body: 'Tell me about the company, the round and where the story feels weak. Share the deck if you have one.',
+    h: 58,
+  },
+  {
+    title: 'First read',
+    body: 'I read everything myself and reply with a straight answer on whether I can help, which service fits, or whether you need me at all yet.',
+    h: 70,
+  },
+  {
+    title: 'The narrative',
+    body: 'We agree the thesis in writing, then build or rebuild the storyline and the slides around it.',
+    h: 84,
+  },
+  {
+    title: 'The room',
+    body: 'You go into meetings able to explain the company, and defend it. With Q&A preparation, you’ve rehearsed the hard questions first.',
+    h: 100,
+  },
+];
+
+const offers = services.map((s) => ({
+  '@type': 'Offer',
+  name: s.data.title,
+  description: s.data.youGet,
+  url: `${site.url}/services#${s.id}`,
+  priceCurrency: 'USD',
+  ...(s.data.priceMin === s.data.priceMax
+    ? { price: s.data.priceMin }
+    : {
+        priceSpecification: {
+          '@type': 'PriceSpecification',
+          priceCurrency: 'USD',
+          minPrice: s.data.priceMin,
+          maxPrice: s.data.priceMax,
+        },
+      }),
+}));
+
+const schema = [
+  {
+    '@type': 'ProfessionalService',
+    '@id': `${site.url}/#practice`,
+    name: `${site.name}, ${site.role}`,
+    url: site.url,
+    description: site.description,
+    founder: { '@id': `${site.url}/#person` },
+    areaServed: [
+      { '@type': 'Country', name: 'United States' },
+      { '@type': 'Country', name: 'United Kingdom' },
+    ],
+    audience: { '@type': 'BusinessAudience', audienceType: 'Pre-seed and seed-stage startup founders' },
+    makesOffer: offers,
+  },
+];
+---
+
+<Base title={`${site.name} · ${site.role} for pre-seed and seed founders`} home schema={schema}>
+  <!-- Front page -->
+  <section class="hero wrap" aria-labelledby="hero-title">
+    <div class="hero-grid">
+      <div class="hero-main">
+        <p class="kicker">For pre-seed and seed founders preparing to raise</p>
+        <h1 id="hero-title" class="display h1 hero-title">
+          Investors fund what they can <em>explain to someone else.</em>
+        </h1>
+        <p class="lead hero-lead">
+          I help founders turn what they’ve built into an investment case that investors can follow, test and retell to
+          their partners. The narrative comes first, then the deck.
+        </p>
+        <div class="btn-row hero-ctas">
+          <a href="/work-with-me" class="btn" data-cta="Discuss your raise" data-cta-location="hero">
+            Discuss your raise <span class="arrow" aria-hidden="true">→</span>
+          </a>
+          <a
+            href="/work-with-me?type=audit"
+            class="btn btn--ghost"
+            data-cta="Request a free deck audit"
+            data-cta-location="hero"
+          >
+            Request a free deck audit
+          </a>
+        </div>
+        <ul class="hero-notes meta">
+          <li>Fixed, public prices</li>
+          <li>I read every enquiry myself</li>
+          <li>Reply within {site.replyTime}</li>
+        </ul>
+      </div>
+
+      <aside class="hero-index" aria-labelledby="hire-title">
+        <p class="caps hero-index-title" id="hire-title">What you can hire me for</p>
+        <ol>
+          {
+            services.map((s, i) => (
+              <li>
+                <a href={`/services#${s.id}`}>
+                  <span class="hi-num figures">{pad(i + 1)}</span>
+                  <span class="hi-title">{s.data.title}</span>
+                  <span class="hi-price figures">{s.data.price}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+        <p class="hero-audit">
+          <span class="tag">Complimentary</span>
+          <span
+            >Have a deck already? <a
+              href="/work-with-me?type=audit"
+              class="link"
+              data-cta="Request a free deck audit"
+              data-cta-location="hero index">Ask for a mini-audit</a
+            ></span
+          >
+        </p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- § 01 The problem -->
+  <section class="section wrap" aria-labelledby="problem-title">
+    <SectionHead num="01" label="The problem" id="problem-title">
+      <Fragment slot="title">Most decks describe the company. <em>Few make the case for investing in it.</em></Fragment>
+      <Fragment slot="lead">
+        An investor reading your deck is asking one question: could this become big enough, fast enough, to matter to
+        the fund? Twelve accurate slides in the standard order don’t answer it by themselves. When a raise stalls on the
+        story, it’s usually for one of four reasons.
+      </Fragment>
+    </SectionHead>
+
+    <ol class="columns">
+      {
+        problems.map((p, i) => (
+          <li class="column">
+            <span class="column-num">{['i.', 'ii.', 'iii.', 'iv.'][i]}</span>
+            <h3 class="display h3">{p.title}</h3>
+            <p>{p.body}</p>
+            {byId[p.fix] && (
+              <a href={`/services#${p.fix}`} class="column-fix">
+                <span class="caps">Fixed by</span>
+                <span>
+                  {byId[p.fix].data.title} <span aria-hidden="true">→</span>
+                </span>
+              </a>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <!-- § 02 Services -->
+  <section class="section wrap" aria-labelledby="services-title">
+    <SectionHead num="02" label="Services" id="services-title">
+      <Fragment slot="title">Four ways to work together. <em>Every price is public.</em></Fragment>
+      <Fragment slot="lead">
+        So you can decide whether this is worth a conversation without having one first. Each engagement starts from the
+        same place, the investment case, and ends with something you can take into your next meeting.
+      </Fragment>
+    </SectionHead>
+
+    <div class="sheets">
+      {services.map((s, i) => <TermSheet service={s} n={i + 1} />)}
+    </div>
+
+    <div class="audit-strip">
+      <div>
+        <p class="caps audit-kicker">Complimentary mini-audit</p>
+        <p class="audit-text">
+          Already have a deck? Send it over and I’ll write back with the three changes I’d make first. I only do a few
+          each month, for founders raising pre-seed or seed in the next six months.
+        </p>
+      </div>
+      <a
+        href="/work-with-me?type=audit"
+        class="btn btn--ghost"
+        data-cta="Request a free deck audit"
+        data-cta-location="services strip"
+      >
+        Request a mini-audit <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- § 03 Approach -->
+  <section class="section wrap" aria-labelledby="approach-title">
+    <SectionHead num="03" label="The approach" id="approach-title">
+      <Fragment slot="title">Not a deck designer. <em>The thinking a deck is made of.</em></Fragment>
+      <Fragment slot="lead">
+        Design matters, but it’s the last step. The work that changes how investors see a company happens before
+        anyone opens a slide template.
+      </Fragment>
+    </SectionHead>
+
+    <div class="approach">
+      <blockquote class="pull">
+        <p class="display">“A pitch deck is a positioning problem with a different buyer.”</p>
+        <footer class="meta">From <a href="/about" class="link">how I think about fundraising narratives</a></footer>
+      </blockquote>
+
+      <ol class="principles">
+        {
+          principles.map((p, i) => (
+            <li>
+              <span class="principle-num">{['I', 'II', 'III', 'IV'][i]}</span>
+              <h3 class="display principle-title">{p.title}</h3>
+              <p>{p.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <aside class="promise">
+      <p class="caps">What I won’t promise</p>
+      <p>
+        Nobody can promise you a raise, and I don’t. Whether a round closes depends on the company, the market and the
+        timing. What the work does is make sure investors understand what you’re building and why it could matter.
+        That’s the part of the outcome a narrative controls.
+      </p>
+    </aside>
+  </section>
+
+  <!-- § 04 Process -->
+  <section class="section wrap" aria-labelledby="process-title">
+    <SectionHead num="04" label="How it works" id="process-title">
+      <Fragment slot="title">From first message <em>to the room.</em></Fragment>
+    </SectionHead>
+
+    <ol class="steps">
+      {
+        steps.map((s, i) => (
+          <li class="step" style={`--h: ${s.h}%`}>
+            <span class="step-num figures">{pad(i + 1)}</span>
+            <h3 class="display step-title">{s.title}</h3>
+            <p>{s.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <!-- § 05 Notes -->
+  <section class="section wrap" aria-labelledby="notes-title">
+    <SectionHead num="05" label="Notes & analyses" id="notes-title">
+      <Fragment slot="title">How I think about <em>investor narratives.</em></Fragment>
+      <Fragment slot="lead">
+        Short analyses of the slides that decide most first meetings, each with a before and after. The examples are
+        invented to show the reasoning, and they’re labelled that way.
+      </Fragment>
+    </SectionHead>
+
+    {
+      featured && (
+        <article class="featured">
+          <div class="featured-text">
+            <p class="caps featured-topic">
+              {featured.data.topic} · {readingMinutes(featured.body)} min read
+            </p>
+            <h3 class="display featured-title">
+              <a href={`/work/${featured.id}`}>{featured.data.title}</a>
+            </h3>
+            <p class="featured-dek">{featured.data.dek}</p>
+            <a href={`/work/${featured.id}`} class="link">
+              Read the note <span class="arrow" aria-hidden="true">→</span>
+            </a>
+          </div>
+          {featured.data.example && (
+            <div class="featured-example">
+              <SlideCompare example={featured.data.example} compact />
+            </div>
+          )}
+        </article>
+      )
+    }
+
+    <WorkIndex entries={rest.slice(0, 4)} />
+    <p class="more">
+      <a href="/work" class="link">All work <span class="arrow" aria-hidden="true">→</span></a>
+    </p>
+  </section>
+
+  <!-- § 06 Fit -->
+  <section class="section wrap" aria-labelledby="fit-title">
+    <SectionHead num="06" label="Fit" id="fit-title">
+      <Fragment slot="title">Is this for you? <em>Here’s how to tell.</em></Fragment>
+    </SectionHead>
+
+    <div class="fit">
+      <div class="fit-col">
+        <h3 class="caps fit-head">A good fit if</h3>
+        <ul class="dash-list">
+          <li>You’re raising a pre-seed or seed round, from US or UK investors, in the next few months.</li>
+          <li>You have something real to point to, such as a product, early customers, a strong team or a sharp insight into a market.</li>
+          <li>You have a deck that isn’t getting the response the company deserves, or you’re about to write your first.</li>
+          <li>You want to understand the reasoning, not just receive slides.</li>
+        </ul>
+      </div>
+      <div class="fit-col fit-col--no">
+        <h3 class="caps fit-head">Probably not a fit if</h3>
+        <ul class="dash-list">
+          <li>You want the slides made prettier and nothing else touched. A designer is better value for that.</li>
+          <li>You need someone to guarantee a raise, or to make the numbers look bigger than they are.</li>
+          <li>You’re raising a Series A or later. This work is built for the earliest rounds.</li>
+          <li>You’re looking to buy introductions to investors.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* Front page */
+  .hero {
+    padding-top: clamp(36px, 4.4vw, 60px);
+  }
+
+  .hero-grid {
+    display: grid;
+    gap: 48px;
+  }
+
+  @media (min-width: 1000px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+      gap: 0;
+    }
+    .hero-main {
+      padding-right: 56px;
+    }
+    .hero-index {
+      border-left: 1px solid var(--ink);
+      padding-left: 32px;
+    }
+  }
+
+  .hero-title {
+    max-width: 13.5em;
+    font-size: clamp(2.6rem, 5.8vw, 4.7rem);
+  }
+
+  .hero-lead {
+    margin-top: clamp(22px, 2.6vw, 32px);
+  }
+
+  .hero-ctas {
+    margin-top: clamp(28px, 3vw, 40px);
+  }
+
+  .hero-notes {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    margin: 22px 0 0;
+    padding: 0;
+  }
+
+  .hero-notes li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .hero-notes li::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    background: var(--oxblood);
+    transform: rotate(45deg);
+  }
+
+  .hero-index {
+    align-self: start;
+  }
+
+  .hero-index-title {
+    color: var(--ink);
+    padding-bottom: 12px;
+    border-bottom: 3px double var(--ink);
+  }
+
+  .hero-index ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .hero-index li a {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    gap: 10px;
+    align-items: baseline;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--rule);
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .hero-index li a:hover .hi-title {
+    color: var(--oxblood);
+  }
+
+  .hi-num {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--oxblood);
+  }
+
+  .hi-title {
+    font-family: var(--serif);
+    font-size: 1.22rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .hi-price {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .hero-audit {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 20px;
+    font-size: 0.95rem;
+  }
+
+  .hero-audit .tag {
+    color: var(--oxblood);
+    font-size: 0.85rem;
+  }
+
+  /* § 01 broadsheet columns */
+  .columns {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+  }
+
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 28px 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .column:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  @media (min-width: 700px) {
+    .columns {
+      grid-template-columns: 1fr 1fr;
+    }
+    .column {
+      padding: 4px 28px 8px;
+      border-top: 0;
+      border-left: 1px solid var(--rule);
+    }
+    .column:nth-child(odd) {
+      border-left: 0;
+      padding-left: 0;
+    }
+    .column:first-child {
+      padding-top: 4px;
+    }
+    .column:nth-child(n + 3) {
+      margin-top: 40px;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .columns {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .column {
+      padding: 4px 28px 8px;
+      border-left: 1px solid var(--rule);
+    }
+    .column:nth-child(odd) {
+      border-left: 1px solid var(--rule);
+      padding-left: 28px;
+    }
+    .column:first-child {
+      border-left: 0;
+      padding-left: 0;
+      padding-top: 4px;
+    }
+    .column:nth-child(n + 3) {
+      margin-top: 0;
+    }
+  }
+
+  .column-num {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--oxblood);
+  }
+
+  .column p {
+    color: var(--text);
+  }
+
+  .column-fix {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+    text-decoration: none;
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 0.95rem;
+  }
+
+  .column-fix .caps {
+    color: var(--muted);
+    font-size: 0.66rem;
+  }
+
+  .column-fix:hover span:last-child {
+    color: var(--oxblood);
+  }
+
+  /* § 02 term sheets */
+  .sheets {
+    display: grid;
+    gap: 20px;
+  }
+
+  @media (min-width: 760px) {
+    .sheets {
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+  }
+
+  .audit-strip {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 32px;
+    padding: 26px 0;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+
+  @media (min-width: 900px) {
+    .audit-strip {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 48px;
+    }
+  }
+
+  .audit-kicker {
+    color: var(--oxblood);
+    margin-bottom: 6px;
+  }
+
+  .audit-text {
+    max-width: 44em;
+    color: var(--ink);
+  }
+
+  .audit-strip .btn {
+    flex-shrink: 0;
+  }
+
+  /* § 03 approach */
+  .approach {
+    display: grid;
+    gap: 48px;
+  }
+
+  @media (min-width: 1000px) {
+    .approach {
+      grid-template-columns: 5fr 7fr;
+      gap: 64px;
+    }
+  }
+
+  .pull {
+    margin: 0;
+    padding-top: 22px;
+    border-top: 3px solid var(--oxblood);
+    align-self: start;
+  }
+
+  .pull p {
+    font-size: clamp(2rem, 3.6vw, 3.1rem);
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    font-style: italic;
+    color: var(--ink);
+  }
+
+  .pull footer {
+    margin-top: 22px;
+  }
+
+  .principles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0 40px;
+  }
+
+  @media (min-width: 700px) {
+    .principles {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .principles li {
+    padding: 24px 0 28px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .principle-num {
+    display: block;
+    font-family: var(--serif);
+    font-size: 0.95rem;
+    color: var(--oxblood);
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+  }
+
+  .principle-title {
+    font-size: 1.5rem;
+    line-height: 1.18;
+    letter-spacing: -0.012em;
+    margin-bottom: 10px;
+  }
+
+  .promise {
+    margin-top: 48px;
+    display: grid;
+    gap: 12px;
+    padding: 24px 0 0 24px;
+    border-left: 3px solid var(--oxblood);
+  }
+
+  @media (min-width: 1000px) {
+    .promise {
+      margin-left: calc(5 / 12 * 100% + 26px);
+    }
+  }
+
+  .promise .caps {
+    color: var(--oxblood);
+  }
+
+  .promise p:last-child {
+    color: var(--ink);
+    font-size: 1.1rem;
+    max-width: 40em;
+  }
+
+  /* § 04 rising process columns */
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+  }
+
+  .step {
+    position: relative;
+    background: var(--paper-deep);
+    padding: 26px 24px 28px;
+    border-top: 3px solid var(--ink);
+  }
+
+  /* On phones the rise is drawn as a bar along the top of each step */
+  .step::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 0;
+    width: var(--h);
+    height: 3px;
+    background: var(--oxblood);
+  }
+
+  .step:last-child {
+    background: var(--oxblood);
+    color: rgb(244 239 230 / 0.88);
+    border-top-color: var(--oxblood);
+  }
+
+  .step:last-child .step-title,
+  .step:last-child .step-num {
+    color: var(--paper);
+  }
+
+  .step-num {
+    display: block;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--oxblood);
+    margin-bottom: 12px;
+  }
+
+  .step-title {
+    font-size: 1.75rem;
+    letter-spacing: -0.015em;
+    margin-bottom: 10px;
+  }
+
+  @media (min-width: 900px) {
+    .steps {
+      grid-template-columns: repeat(4, 1fr);
+      align-items: end;
+      height: 520px;
+      gap: 10px;
+      border-bottom: 1px solid var(--ink);
+    }
+    .step {
+      height: var(--h);
+      border-top: 0;
+      padding: 28px 26px;
+    }
+    .step::before {
+      display: none;
+    }
+  }
+
+  /* § 05 notes */
+  .featured {
+    display: grid;
+    gap: 32px;
+    padding: 32px 0 48px;
+    border-top: 1px solid var(--ink);
+  }
+
+  @media (min-width: 1000px) {
+    .featured-text {
+      display: grid;
+      grid-template-columns: 5fr 7fr;
+      column-gap: 56px;
+      align-items: end;
+    }
+    .featured-text .featured-topic {
+      grid-column: 1 / -1;
+    }
+    .featured-title {
+      grid-row: 2 / span 2;
+    }
+    .featured-dek {
+      margin-top: 0;
+    }
+    .featured-text .link {
+      justify-self: start;
+    }
+  }
+
+  .featured-topic {
+    color: var(--oxblood);
+    margin-bottom: 14px;
+  }
+
+  .featured-title {
+    font-size: clamp(1.9rem, 3vw, 2.6rem);
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+  }
+
+  .featured-title a {
+    text-decoration: none;
+  }
+
+  .featured-title a:hover {
+    color: var(--oxblood);
+  }
+
+  .featured-dek {
+    margin: 16px 0 22px;
+    color: var(--text);
+    max-width: 34em;
+  }
+
+  .more {
+    margin-top: 28px;
+  }
+
+  /* § 06 fit */
+  .fit {
+    display: grid;
+    gap: 40px;
+  }
+
+  @media (min-width: 900px) {
+    .fit {
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .fit-col {
+      padding-right: 48px;
+    }
+    .fit-col--no {
+      padding-left: 48px;
+      padding-right: 0;
+      border-left: 1px solid var(--rule);
+    }
+  }
+
+  .fit-head {
+    font-family: var(--sans);
+    color: var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    border-bottom: 3px double var(--ink);
+  }
+
+  .fit-col--no .dash-list li::before {
+    content: '×';
+    color: var(--muted);
+  }
+
+  .fit .dash-list li {
+    font-size: 1.05rem;
+    color: var(--ink);
+  }
+
+  .fit .dash-list li + li {
+    margin-top: 14px;
+  }
+</style>

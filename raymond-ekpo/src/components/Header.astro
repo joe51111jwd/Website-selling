@@ -1,0 +1,335 @@
+---
+import { site } from '../site.config';
+
+interface Props {
+  home?: boolean;
+}
+
+const { home = false } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const links = [
+  { href: '/services', label: 'Services' },
+  { href: '/work', label: 'Work' },
+  { href: '/about', label: 'About' },
+];
+const isCurrent = (href: string) => path === href || path.startsWith(href + '/');
+---
+
+{
+  home && (
+    <section class="masthead" aria-label="Masthead">
+      <div class="wrap">
+        <div class="dateline caps">
+          <span>{site.role}</span>
+          <span class="dateline-mid">For founders preparing to raise</span>
+          <span>Pre-seed &amp; seed · US &amp; UK</span>
+        </div>
+        <p class="nameplate display">{site.name}</p>
+        <div class="double-rule" aria-hidden="true" />
+      </div>
+    </section>
+  )
+}
+
+<header class:list={['bar', { 'bar--home': home }]} id="bar">
+  <div class="wrap bar-inner">
+    <a href="/" class="wordmark" aria-label={`${site.name}, home`}>
+      <span class="wordmark-name">Raymond Ekpo</span>
+      <span class="wordmark-role">{site.role}</span>
+    </a>
+
+    <nav class="nav-desktop" aria-label="Main">
+      <ul>
+        {
+          links.map((l) => (
+            <li>
+              <a href={l.href} aria-current={isCurrent(l.href) ? 'page' : undefined}>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <a href="/work-with-me" class="btn btn-sm" data-cta="Discuss your raise" data-cta-location="header">
+        Discuss your raise <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </nav>
+
+    <details class="nav-mobile">
+      <summary>
+        <span class="summary-open">Menu</span>
+        <span class="summary-close">Close</span>
+      </summary>
+      <nav aria-label="Main">
+        <ul>
+          {
+            links.map((l) => (
+              <li>
+                <a href={l.href} aria-current={isCurrent(l.href) ? 'page' : undefined}>
+                  {l.label}
+                </a>
+              </li>
+            ))
+          }
+          <li>
+            <a href="/work-with-me" aria-current={isCurrent('/work-with-me') ? 'page' : undefined}>
+              Work with me
+            </a>
+          </li>
+        </ul>
+        <a href="/work-with-me" class="btn" data-cta="Discuss your raise" data-cta-location="mobile menu">
+          Discuss your raise <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </nav>
+    </details>
+  </div>
+</header>
+
+{
+  home && (
+    <script>
+      // On the home page the nameplate already shows the name, so the bar only shows it once that has scrolled away
+      const bar = document.getElementById('bar');
+      const plate = document.querySelector('.nameplate');
+      if (bar && plate && 'IntersectionObserver' in window) {
+        new IntersectionObserver(([e]) => bar.classList.toggle('bar--plate-visible', e.isIntersecting), {
+          rootMargin: '-68px 0px 0px 0px',
+        }).observe(plate);
+      }
+    </script>
+  )
+}
+
+<style>
+  .masthead {
+    padding-top: clamp(14px, 2vw, 22px);
+  }
+
+  .dateline {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--ink);
+    color: var(--ink);
+    font-size: 0.68rem;
+  }
+
+  .dateline-mid {
+    display: none;
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 0.95rem;
+    letter-spacing: 0;
+    text-transform: none;
+    line-height: 1;
+    color: var(--oxblood);
+  }
+
+  @media (min-width: 900px) {
+    .dateline-mid {
+      display: inline;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .dateline span:last-child {
+      display: none;
+    }
+  }
+
+  /* The name, set to fill the column like a newspaper nameplate */
+  .nameplate {
+    margin: 0;
+    margin-top: -0.04em;
+    /* "Raymond Ekpo" sets about 5.7em wide: size it to fill the column */
+    font-size: calc((min(100vw, var(--max)) - 2 * var(--gutter)) / 5.76);
+    line-height: 1.04;
+    padding-bottom: 0.09em;
+    letter-spacing: -0.045em;
+    font-weight: 400;
+    font-variation-settings: 'opsz' 60;
+    color: var(--ink);
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .double-rule {
+    border-top: 3px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    height: 6px;
+  }
+
+  .bar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgb(244 239 230 / 0.94);
+    backdrop-filter: saturate(1.4) blur(10px);
+    -webkit-backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .bar:has(.nav-mobile[open]) {
+    background: var(--paper);
+  }
+
+  .bar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: 68px;
+  }
+
+  .wordmark {
+    transition:
+      opacity 0.25s ease,
+      visibility 0.25s;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--ink);
+    min-width: 0;
+  }
+
+  .bar--plate-visible .wordmark {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .wordmark-name {
+    font-family: var(--serif);
+    font-size: 1.45rem;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .wordmark-role {
+    display: none;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  @media (min-width: 1100px) {
+    .wordmark-role {
+      display: inline;
+    }
+  }
+
+  .nav-desktop {
+    display: none;
+    align-items: center;
+    gap: 36px;
+  }
+
+  .nav-desktop ul,
+  .nav-mobile ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-desktop ul {
+    display: flex;
+    gap: 32px;
+  }
+
+  .nav-desktop ul a {
+    font-size: 0.98rem;
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: none;
+    padding-block: 6px;
+    background-image: linear-gradient(var(--oxblood), var(--oxblood));
+    background-size: 0 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.25s ease;
+  }
+
+  .nav-desktop ul a:hover,
+  .nav-desktop ul a[aria-current='page'] {
+    background-size: 100% 1px;
+  }
+
+  .btn-sm {
+    min-height: 42px;
+    padding: 0.55rem 1rem;
+    font-size: 0.92rem;
+  }
+
+  @media (min-width: 900px) {
+    .nav-desktop {
+      display: flex;
+    }
+    .nav-mobile {
+      display: none;
+    }
+  }
+
+  .nav-mobile summary {
+    list-style: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--ink);
+    border-radius: 999px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--ink);
+  }
+
+  .nav-mobile summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .summary-close,
+  .nav-mobile[open] .summary-open {
+    display: none;
+  }
+
+  .nav-mobile[open] .summary-close {
+    display: inline;
+  }
+
+  .nav-mobile nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    background: var(--paper);
+    border-bottom: 1px solid var(--ink);
+    padding: 8px var(--gutter) 24px;
+  }
+
+  .nav-mobile li a {
+    display: block;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .nav-mobile li a[aria-current='page'] {
+    color: var(--oxblood);
+  }
+
+  .nav-mobile .btn {
+    width: 100%;
+    margin-top: 20px;
+  }
+</style>

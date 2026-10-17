@@ -1,0 +1,288 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import SlideCompare from '../../components/SlideCompare.astro';
+import { getWork, readingMinutes, type WorkEntry } from '../../lib/content';
+import { site } from '../../site.config';
+
+export async function getStaticPaths() {
+  const all = await getWork();
+  return all.map((entry, i) => ({
+    params: { id: entry.id },
+    props: { entry, next: all[(i + 1) % all.length] },
+  }));
+}
+
+interface Props {
+  entry: WorkEntry;
+  next: WorkEntry;
+}
+
+const { entry, next } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const isCase = d.kind === 'case-study';
+const date = d.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+const schema = [
+  {
+    '@type': 'Article',
+    headline: d.title,
+    description: d.dek,
+    datePublished: d.date.toISOString(),
+    author: { '@id': `${site.url}/#person` },
+    publisher: { '@id': `${site.url}/#person` },
+    mainEntityOfPage: new URL(`/work/${entry.id}`, site.url).href,
+    image: new URL('/og.png', site.url).href,
+  },
+];
+---
+
+<Base title={d.title} description={d.dek} type="article" schema={schema}>
+  <article>
+    <header class="wrap note-head">
+      <p class="kicker">
+        <a href="/work" class="crumb">Work</a>
+        <span aria-hidden="true">/</span>
+        <span>{d.topic}</span>
+      </p>
+      <h1 class="display h1 note-title">{d.title}</h1>
+      <p class="lead note-dek">{d.dek}</p>
+      <p class="note-meta meta">
+        <time datetime={d.date.toISOString()}>{date}</time>
+        <span aria-hidden="true">·</span>
+        <span>{readingMinutes(entry.body)} min read</span>
+        {d.illustrative && <span class="tag">Illustrative example</span>}
+      </p>
+    </header>
+
+    {
+      isCase && (
+        <div class="wrap">
+          <dl class="facts">
+            {d.client && (
+              <div>
+                <dt class="caps">Client</dt>
+                <dd>{d.client}</dd>
+              </div>
+            )}
+            {d.stage && (
+              <div>
+                <dt class="caps">Stage</dt>
+                <dd>{d.stage}</dd>
+              </div>
+            )}
+            {d.sector && (
+              <div>
+                <dt class="caps">Sector</dt>
+                <dd>{d.sector}</dd>
+              </div>
+            )}
+            {d.outcome && (
+              <div>
+                <dt class="caps">Outcome</dt>
+                <dd>{d.outcome}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )
+    }
+
+    {
+      d.example && (
+        <div class="wrap note-example rule-top">
+          <SlideCompare example={d.example} />
+        </div>
+      )
+    }
+
+    <div class="wrap note-body">
+      <div class="prose">
+        <Content />
+      </div>
+
+      <aside class="note-cta" aria-label="Work with me">
+        <p class="caps">Does your deck do this?</p>
+        <p class="display note-cta-title">Send it over for a <em>complimentary mini-audit.</em></p>
+        <p>I’ll write back with the three changes I’d make first.</p>
+        <a
+          href="/work-with-me?type=audit"
+          class="btn"
+          data-cta="Request a free deck audit"
+          data-cta-location={`note: ${entry.id}`}
+        >
+          Request a mini-audit <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </aside>
+    </div>
+
+    {
+      next.id !== entry.id && (
+        <nav class="wrap next" aria-label="Next note">
+          <a href={`/work/${next.id}`} class="next-link">
+            <span class="caps">Next · {next.data.topic}</span>
+            <span class="display next-title">{next.data.title}</span>
+            <span class="arrow next-arrow" aria-hidden="true">
+              →
+            </span>
+          </a>
+        </nav>
+      )
+    }
+  </article>
+</Base>
+
+<style>
+  .note-head {
+    padding-top: clamp(48px, 7vw, 96px);
+    padding-bottom: clamp(36px, 5vw, 64px);
+  }
+
+  .crumb {
+    text-decoration: none;
+  }
+
+  .crumb:hover {
+    text-decoration: underline;
+  }
+
+  .note-title {
+    max-width: 15em;
+    font-size: clamp(2.4rem, 5.4vw, 4.4rem);
+  }
+
+  .note-dek {
+    margin-top: 22px;
+  }
+
+  .note-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    margin-top: 26px;
+  }
+
+  .note-meta .tag {
+    color: var(--oxblood);
+    font-size: 0.85rem;
+  }
+
+  .facts {
+    display: grid;
+    gap: 0;
+    margin: 0 0 48px;
+    border-top: 3px double var(--ink);
+  }
+
+  @media (min-width: 760px) {
+    .facts {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+  }
+
+  .facts > div {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .facts dt {
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .facts dd {
+    margin: 0;
+    color: var(--ink);
+  }
+
+  .note-example {
+    padding-top: 32px;
+    padding-bottom: clamp(48px, 6vw, 80px);
+  }
+
+  .note-body {
+    display: grid;
+    gap: 56px;
+  }
+
+  @media (min-width: 1000px) {
+    .note-body {
+      grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+      gap: 64px;
+    }
+    .prose {
+      margin-left: calc(100% / 8);
+    }
+    .note-cta {
+      position: sticky;
+      top: 100px;
+      align-self: start;
+    }
+  }
+
+  .note-cta {
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+    padding: 24px;
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--oxblood);
+  }
+
+  .note-cta .caps {
+    color: var(--oxblood);
+  }
+
+  .note-cta-title {
+    font-size: 1.6rem;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+  }
+
+  .note-cta-title em {
+    color: var(--oxblood);
+  }
+
+  .next {
+    margin-top: clamp(72px, 9vw, 120px);
+  }
+
+  .next-link {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr auto;
+    padding: 28px 0;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .next-link .caps {
+    grid-column: 1 / -1;
+    color: var(--oxblood);
+  }
+
+  .next-title {
+    font-size: clamp(1.7rem, 3vw, 2.6rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  .next-arrow {
+    font-size: 1.8rem;
+    align-self: center;
+    transition: transform 0.2s ease;
+  }
+
+  .next-link:hover .next-title {
+    color: var(--oxblood);
+  }
+
+  .next-link:hover .next-arrow {
+    transform: translateX(6px);
+  }
+</style>
