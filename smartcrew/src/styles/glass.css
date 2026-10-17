@@ -21,6 +21,11 @@ html.look-glass {
   --ground: #f6f2ec;
   --ground-2: #efe8df;
 
+  /* the two lighter inks, darkened so small text still clears 4.5:1 where the aurora is warmest
+     (classic's #74665a and #b84f00 drop to about 3.8:1 and 3.5:1 there) */
+  --ink-3: #62554a;
+  --orange-ink: #9a4100;
+
   /* glass */
   --g-fill: linear-gradient(180deg, rgb(255 255 255 / 70%), rgb(255 255 255 / 46%));
   --g-fill-strong: linear-gradient(180deg, rgb(255 255 255 / 88%), rgb(255 255 255 / 70%));
@@ -35,6 +40,8 @@ html.look-glass {
   /* thin bars (the header pill, the phone's sticky capsule) take a smaller radius: a wide blur on a
      strip barely taller than the blur itself smears to nothing in some renderers */
   --g-blur-bar: blur(12px) saturate(160%);
+  /* what a floating bar is filled with when it can't blur (phones, no support, reduced transparency) */
+  --g-fill-solid: linear-gradient(180deg, rgb(255 255 255 / 96%), rgb(252 250 247 / 92%));
   --g-r: 28px;
   --g-r-md: 22px;
   --g-r-sm: 16px;
@@ -67,7 +74,7 @@ html.look-glass.sc-page body {
 
 html.look-glass .backdrop {
   background:
-    radial-gradient(56% 50% at 92% 4%, rgb(255 158 76 / 42%), rgb(255 158 76 / 0%) 70%),
+    radial-gradient(56% 50% at 92% 4%, rgb(255 158 76 / 34%), rgb(255 158 76 / 0%) 70%),
     radial-gradient(50% 46% at 4% 30%, rgb(255 210 166 / 58%), rgb(255 210 166 / 0%) 70%),
     radial-gradient(50% 44% at 80% 82%, rgb(198 211 224 / 62%), rgb(198 211 224 / 0%) 70%),
     radial-gradient(42% 40% at 10% 96%, rgb(255 186 130 / 34%), rgb(255 186 130 / 0%) 70%),
@@ -117,12 +124,18 @@ html.look-glass .site-nav a {
 }
 
 @media (max-width: 760px) {
+  /* Phones keep the shape but not the live blur: blur janks scrolling on mid-range Android, where
+     Facebook-app visitors land (the classic page's Round 3 phone rule too), so the pill is filled
+     nearly solid instead. */
   html.look-glass .site-header,
   html.look-glass .site-header.is-solid {
     top: 8px;
     left: 10px;
     right: 10px;
     height: calc(var(--header-h) - 16px);
+    background: var(--g-fill-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
   html.look-glass .site-header-in {
     padding-left: 18px;
@@ -212,8 +225,14 @@ html.look-glass .hf4 .hf-h1 {
   margin-top: clamp(16px, 3svh, 26px);
 }
 
+/* the headline's orange phrase keeps classic's brighter orange: at headline size it only needs 3:1,
+   which it clears everywhere on the aurora, and it is the orange James picked */
+html.look-glass .hf-fenced {
+  color: #b84f00;
+}
+
 html.look-glass .hf4 .hf-sub {
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 
 html.look-glass .hf-root .hf-demo {
@@ -240,13 +259,32 @@ html.look-glass .hf-logos-k {
     min-height: 0;
     padding: 6px;
     border-radius: 999px;
-    background: var(--g-fill-soft);
+    background: var(--g-fill-solid);
     box-shadow: var(--g-edge), 0 14px 40px -14px rgb(64 40 18 / 34%);
-    -webkit-backdrop-filter: var(--g-blur-bar);
-    backdrop-filter: var(--g-blur-bar);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     transform: translateY(calc(100% + 24px + env(safe-area-inset-bottom)));
   }
   html.look-glass .sticky-bar.is-on {
     transform: none;
+  }
+}
+
+/* ── where glass can't blur, or the visitor asked for less transparency: fill it solid ──── */
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html.look-glass .site-header,
+  html.look-glass .site-header.is-solid {
+    background: var(--g-fill-solid);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html.look-glass .site-header,
+  html.look-glass .site-header.is-solid,
+  html.look-glass .sticky-bar {
+    background: var(--g-fill-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
