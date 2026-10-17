@@ -1,0 +1,586 @@
+---
+// The editorial paper home page.
+import SectionHead from '../SectionHead.astro';
+import Markup from '../Markup.astro';
+import Ticker from '../Ticker.astro';
+import NarrativeLab from '../NarrativeLab.astro';
+import Pen from '../Pen.astro';
+import MarkupStory from '../MarkupStory.astro';
+import ServicePanels from '../ServicePanels.astro';
+import FitCheck from '../FitCheck.astro';
+import StackCards from '../StackCards.astro';
+import ProcessChart from '../ProcessChart.astro';
+import NotesShelf from '../NotesShelf.astro';
+import { getServices, getWork, pad } from '../../lib/content';
+
+const services = await getServices();
+const notes = await getWork('analysis');
+
+
+
+const principles = [
+  {
+    title: 'Thesis before slides.',
+    body: 'Every engagement starts with the investment case written out in plain sentences. If it doesn’t hold up as a paragraph, no layout will rescue it.',
+  },
+  {
+    title: 'Read it the way the investor will.',
+    body: 'Investors aren’t asking whether the company is good. They’re asking what has to be true for it to be big, and whether you’ve shown it’s becoming true.',
+  },
+  {
+    title: 'Every claim earns its place.',
+    body: 'Market size from the bottom up. Traction as a rate, not a total. Competitors named honestly. A claim you can defend beats a bigger one you can’t.',
+  },
+  {
+    title: 'You have to own it.',
+    body: 'You’re the one in the room, so the story has to sound like you under questioning. You’ll understand the reasoning behind every slide.',
+  },
+];
+
+
+// The statement that darkens word by word as it scrolls past. *Asterisks* mark the italic phrase.
+const statement =
+  'Investors don’t fund slides. They fund an argument they can repeat to their partners on *Monday morning.* My job is to find that argument in what you’ve built, make every claim in it defensible, and only then put it on slides.';
+let inEm = false;
+const words = statement.split(' ').map((raw) => {
+  const opens = raw.startsWith('*');
+  const closes = raw.endsWith('*') || raw.endsWith('*.');
+  if (opens) inEm = true;
+  const w = { text: raw.replace(/\*/g, ''), em: inEm };
+  if (closes) inEm = false;
+  return w;
+});
+
+const heroWords = ['Investors', 'fund', 'what', 'they', 'can'];
+
+---
+  <!-- Front page -->
+  <section class="hero wrap" aria-labelledby="hero-title">
+    <div class="hero-grid">
+      <div class="hero-main">
+        <p class="kicker fade-in" style="--fd: 0.15s">For pre-seed and seed founders preparing to raise</p>
+        <h1 id="hero-title" class="display h1 hero-title">
+          {
+            heroWords.map((w, i) => (
+              <>
+                <span class="rise">
+                  <span style={`--i: ${i + 2}`}>{w}</span>
+                </span>{' '}
+              </>
+            ))
+          }
+          <em
+            ><span class="pen-wrap"
+              ><span class="rise"><span style="--i: 7">explain</span></span><Pen kind="underline" load delay={1.05} /></span
+            >{' '}
+            <span class="rise"><span style="--i: 8">to</span></span>{' '}
+            <span class="rise"><span style="--i: 9">someone</span></span>{' '}
+            <span class="rise"><span style="--i: 10">else.</span></span></em
+          >
+        </h1>
+        <p class="lead hero-lead fade-in" style="--fd: 0.75s">
+          I help founders turn what they’ve built into an investment case that investors can follow, test and retell to
+          their partners. The narrative comes first, then the deck.
+        </p>
+        <div class="btn-row hero-ctas fade-in" style="--fd: 0.9s">
+          <a href="/work-with-me" class="btn" data-cta="Discuss your raise" data-cta-location="hero">
+            Discuss your raise <span class="arrow" aria-hidden="true">→</span>
+          </a>
+          <a
+            href="/work-with-me?type=audit"
+            class="btn btn--ghost"
+            data-cta="Request a free deck audit"
+            data-cta-location="hero"
+          >
+            Request a free deck audit
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-figure fade-in" style="--fd: 0.45s">
+        <Markup />
+      </div>
+    </div>
+
+    <nav class="hire fade-in" style="--fd: 1.1s" aria-labelledby="hire-title">
+      <p class="caps hire-title" id="hire-title">What you can hire me for</p>
+      <ol>
+        {
+          services.map((s, i) => (
+            <li>
+              <a href={`/services#${s.id}`}>
+                <span class="hire-num figures">{pad(i + 1)}</span>
+                <span class="hire-name">{s.data.title}</span>
+                <span class="hire-price figures">{s.data.price}</span>
+              </a>
+            </li>
+          ))
+        }
+        <li class="hire-audit">
+          <a href="/work-with-me?type=audit" data-cta="Request a free deck audit" data-cta-location="hire strip">
+            <span class="hire-num">+</span>
+            <span class="hire-name">Deck mini-audit</span>
+            <span class="hire-price">Complimentary</span>
+          </a>
+        </li>
+      </ol>
+    </nav>
+  </section>
+
+  <Ticker />
+
+  <!-- § 01 The problem, as a pinned slide that gets red-penned -->
+  <MarkupStory services={services} />
+
+  <!-- The short version -->
+  <section class="wrap statement" aria-label="The short version">
+    <p class="display statement-text" data-words>
+      {
+        words.map((w) => (
+          <>
+            <span class:list={['w', { 'w--em': w.em }]}>{w.text}</span>{' '}
+          </>
+        ))
+      }
+    </p>
+  </section>
+
+  <!-- § 02 Services, as expanding term sheets -->
+  <section class="wrap section" id="services" aria-labelledby="services-title">
+    <SectionHead num="02" label="Services" id="services-title">
+      <Fragment slot="title"
+        >Four ways to work together. <em
+          >Every price is <span class="pen-wrap">public.<Pen kind="circle" delay={0.6} /></span></em
+        ></Fragment
+      >
+      <Fragment slot="lead">
+        Open a term sheet to see who it’s for, what it covers and what it costs. So you can decide whether this is
+        worth a conversation without having one first.
+      </Fragment>
+    </SectionHead>
+    <ServicePanels services={services} />
+
+    <div class="audit-strip" data-reveal>
+        <span class="tag audit-tag">Complimentary</span>
+        <p class="audit-text">
+          Already have a deck? Send it over and I’ll write back with the <em>three changes I’d make first.</em> A few each
+          month, for founders raising pre-seed or seed in the next six months.
+        </p>
+        <a
+          href="/work-with-me?type=audit"
+          class="btn"
+          data-cta="Request a free deck audit"
+          data-cta-location="services strip"
+        >
+          Request a mini-audit <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+  </section>
+
+  <!-- § 03 Fit check: a term sheet drafted from five answers -->
+  <section class="band-desk" aria-labelledby="fit-title">
+    <div class="wrap section">
+      <SectionHead num="03" label="Fit check" id="fit-title">
+        <Fragment slot="title">Twenty seconds. <em>Five answers. Your term sheet.</em></Fragment>
+        <Fragment slot="lead">
+          Tell me where the raise stands and the sheet drafts itself: which engagements fit, in what order, and what
+          they cost. If I’m not the right person, it says so.
+        </Fragment>
+      </SectionHead>
+      <FitCheck services={services} />
+    </div>
+  </section>
+
+  <!-- § 04 Before and after -->
+  <section class="wrap section" aria-labelledby="lab-title">
+    <SectionHead num="04" label="Before & after" id="lab-title">
+      <Fragment slot="title">Pick a slide. <em>Drag to see what changes.</em></Fragment>
+      <Fragment slot="lead">
+        Five slides that decide most first meetings, as they usually arrive and as they read after a rewrite. The
+        examples are invented; the reasoning is the work.
+      </Fragment>
+    </SectionHead>
+    <div data-reveal data-cursor="Drag">
+      <NarrativeLab entries={notes} />
+    </div>
+  </section>
+
+  <!-- The line, drifting -->
+  <section class="band-ox quote-band" aria-label="How I see it">
+    <blockquote class="kinetic" data-inview>
+      <p class="display">
+        <span class="k-line" data-drift="-1">A pitch deck is a</span>
+        <span class="k-line" data-drift="1">positioning problem</span>
+        <span class="k-line k-line--em" data-drift="-0.6"
+          ><em>with a <span class="pen-wrap">different buyer.<Pen kind="underline" delay={0.4} /></span></em></span
+        >
+      </p>
+    </blockquote>
+    <div class="wrap quote-foot">
+      <span class="caps">Raymond Ekpo</span>
+      <a href="/about" class="quote-link">How I think about fundraising narratives →</a>
+    </div>
+  </section>
+
+  <!-- § 05 Approach, as cards that pile up -->
+  <section class="wrap section approach" aria-labelledby="approach-title">
+    <SectionHead num="05" label="The approach" id="approach-title">
+      <Fragment slot="title"
+        ><span class="sr-only">Not a deck designer. </span><span aria-hidden="true" class="pen-wrap struck"
+          >A deck designer.<Pen kind="strike" delay={0.5} /></span
+        >{' '}<em>The thinking a deck is made of.</em></Fragment
+      >
+      <Fragment slot="lead">
+        Design matters, but it’s the last step. The work that changes how investors see a company happens before
+        anyone opens a slide template.
+      </Fragment>
+    </SectionHead>
+    <StackCards items={principles} />
+
+    <aside class="disclosure" data-reveal aria-labelledby="disclosure-title">
+      <p class="disclosure-label caps" id="disclosure-title">Disclosure</p>
+      <p class="disclosure-text">
+        Nobody can promise you a raise, and I don’t. Whether a round closes depends on the company, the market and the
+        timing. What the work does is make sure investors understand what you’re building and why it could matter.
+        That’s the part of the outcome a narrative controls.
+      </p>
+    </aside>
+  </section>
+
+  <!-- § 06 Process, pinned while it grows -->
+  <ProcessChart />
+
+  <!-- § 07 Notes, on a shelf -->
+  <section class="band-ink notes" aria-labelledby="notes-title">
+    <div class="wrap">
+      <SectionHead num="07" label="Notes & analyses" id="notes-title">
+        <Fragment slot="title">How I think about <em>investor narratives.</em></Fragment>
+        <Fragment slot="lead">
+          Short analyses of the slides that decide most first meetings: what founders usually write, what investors
+          hear, and what to write instead. Drag the shelf.
+        </Fragment>
+      </SectionHead>
+    </div>
+    <NotesShelf entries={notes} />
+  </section>
+
+
+<style>
+  /* ---------- Front page ---------- */
+  .hero {
+    padding-top: clamp(28px, 2.6vw, 40px);
+  }
+
+  .hero-grid {
+    display: grid;
+    gap: 44px;
+    align-items: center;
+  }
+
+  @media (min-width: 1000px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 6.3fr) minmax(0, 5.7fr);
+      gap: 32px;
+    }
+  }
+
+  .hero-title {
+    font-size: clamp(2.7rem, 5.3vw, 4.85rem);
+    line-height: 0.96;
+    letter-spacing: -0.03em;
+  }
+
+  .hero-title em {
+    padding-right: 0.06em;
+  }
+
+  .rise {
+    padding-right: 0.08em;
+    margin-right: -0.08em;
+  }
+
+  .hero-lead {
+    margin-top: clamp(20px, 2vw, 26px);
+  }
+
+  .hero-ctas {
+    margin-top: clamp(24px, 2.4vw, 30px);
+  }
+
+  .hero-figure {
+    --fd: 0.45s;
+  }
+
+  @media (min-width: 1000px) {
+    .hero-figure {
+      margin-right: calc(-1 * min(3vw, 40px));
+    }
+  }
+
+  @media (max-width: 999px) {
+    .hero-figure {
+      max-width: 600px;
+    }
+  }
+
+  /* The services index under the fold line, like a newspaper's contents strip */
+  .hire {
+    margin-top: clamp(40px, 5vw, 64px);
+    border-top: 3px double var(--ink);
+  }
+
+  .hire-title {
+    padding: 12px 0;
+    color: var(--ink);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .hire ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+  }
+
+  @media (min-width: 700px) {
+    .hire ol {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .hire ol {
+      grid-template-columns: repeat(5, 1fr);
+    }
+    .hire li + li a {
+      border-left: 1px solid var(--rule);
+      padding-left: 20px;
+    }
+  }
+
+  .hire a {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    gap: 4px 10px;
+    align-items: baseline;
+    height: 100%;
+    padding: 16px 14px 16px 0;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink);
+    text-decoration: none;
+    transition: background-color 0.25s ease;
+  }
+
+  @media (min-width: 1100px) {
+    .hire a {
+      grid-template-columns: 1fr;
+      padding: 18px 16px 20px 0;
+      border-bottom: 0;
+    }
+  }
+
+  .hire a:hover {
+    background: var(--paper-deep);
+  }
+
+  .hire-num {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--oxblood);
+  }
+
+  .hire-name {
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .hire-price {
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .hire-audit .hire-price {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--oxblood);
+  }
+
+  /* ---------- The statement ---------- */
+  .statement {
+    padding-block: clamp(96px, 13vw, 180px);
+  }
+
+  .statement-text {
+    font-size: clamp(2rem, 4.5vw, 4.3rem);
+    line-height: 1.1;
+    letter-spacing: -0.026em;
+    max-width: 19em;
+  }
+
+  /* Unread words stay legible (3:1 at this size); reading darkens them to ink. Without scripts they start dark. */
+  .w {
+    color: var(--ink);
+    transition: color 0.35s ease;
+  }
+
+  :global(.js) .w {
+    color: #8f8471;
+  }
+
+  :global(.js) .w.on {
+    color: var(--ink);
+  }
+
+  .w.on {
+    color: var(--ink);
+  }
+
+  .w--em {
+    font-style: italic;
+  }
+
+  .w--em,
+  :global(.js) .w--em.on {
+    color: var(--oxblood);
+  }
+
+  /* ---------- § 02 services ---------- */
+  .audit-strip {
+    display: grid;
+    gap: 18px;
+    justify-items: start;
+    margin-top: clamp(56px, 7vw, 88px);
+    padding: 28px 0;
+    border-top: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+
+  @media (min-width: 900px) {
+    .audit-strip {
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 32px;
+    }
+  }
+
+  .audit-tag {
+    color: var(--oxblood);
+  }
+
+  .audit-text {
+    font-family: var(--serif);
+    font-size: clamp(1.25rem, 1.8vw, 1.55rem);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    max-width: 34em;
+  }
+
+  .audit-text em {
+    color: var(--oxblood);
+  }
+
+  /* ---------- The drifting quote ---------- */
+  .quote-band {
+    padding-block: clamp(88px, 12vw, 168px);
+    overflow: hidden;
+  }
+
+  .kinetic {
+    margin: 0;
+    --pen: #f4efe6;
+  }
+
+  .kinetic p {
+    display: grid;
+    justify-items: center;
+    font-size: clamp(3rem, 9.6vw, 10rem);
+    line-height: 0.95;
+    letter-spacing: -0.045em;
+    color: var(--paper);
+    text-align: center;
+  }
+
+  .k-line {
+    display: block;
+    white-space: nowrap;
+    will-change: transform;
+  }
+
+  @media (max-width: 700px) {
+    .kinetic p {
+      font-size: clamp(2.2rem, 10.4vw, 3rem);
+      padding-inline: var(--gutter);
+    }
+    .k-line {
+      white-space: normal;
+    }
+  }
+
+  .k-line--em em {
+    color: #f0cfc6;
+  }
+
+  .quote-foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 28px;
+    align-items: baseline;
+    margin-top: clamp(32px, 4vw, 56px);
+    color: var(--paper);
+  }
+
+  .quote-link {
+    color: var(--paper);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.15rem;
+    text-decoration: underline;
+    text-decoration-color: rgb(244 239 230 / 0.35);
+    text-underline-offset: 0.25em;
+  }
+
+  .quote-link:hover {
+    text-decoration-color: var(--paper);
+  }
+
+  /* ---------- § 05 approach ---------- */
+  .struck {
+    color: var(--muted);
+  }
+
+  .disclosure {
+    position: relative;
+    margin-top: clamp(40px, 5vw, 64px);
+    padding: 34px clamp(22px, 3vw, 40px) 28px;
+    border: 1px solid var(--ink);
+  }
+
+  .disclosure-label {
+    position: absolute;
+    top: -11px;
+    left: clamp(22px, 3vw, 40px);
+    padding: 4px 10px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 0.66rem;
+  }
+
+  .disclosure-text {
+    font-family: var(--serif);
+    font-size: clamp(1.2rem, 1.7vw, 1.45rem);
+    line-height: 1.4;
+    letter-spacing: -0.008em;
+    color: var(--ink);
+    max-width: 52em;
+  }
+
+  /* ---------- § 07 notes ---------- */
+  .notes {
+    padding-block: var(--section) clamp(56px, 7vw, 96px);
+  }
+</style>

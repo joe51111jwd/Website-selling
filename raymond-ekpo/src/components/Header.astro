@@ -1,5 +1,6 @@
 ---
 import { site } from '../site.config';
+import { glass } from '../theme';
 
 interface Props {
   home?: boolean;
@@ -16,7 +17,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(href + '/')
 ---
 
 {
-  home && (
+  home && !glass && (
     <section class="masthead" aria-label="Masthead">
       <div class="wrap">
         <div class="dateline caps">
@@ -38,7 +39,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(href + '/')
   )
 }
 
-<header class:list={['bar', { 'bar--home': home }]} id="bar">
+<header class:list={['bar', { 'bar--home': home && !glass }]} id="bar">
   <div class="wrap bar-inner">
     <a href="/" class="wordmark" aria-label={`${site.name}, home`}>
       <span class="wordmark-name">Raymond Ekpo</span>
@@ -93,7 +94,7 @@ const isCurrent = (href: string) => path === href || path.startsWith(href + '/')
 </header>
 
 {
-  home && (
+  home && !glass && (
     <script>
       // On the home page the nameplate already shows the name, so the bar only shows it once that has scrolled away
       const bar = document.getElementById('bar');

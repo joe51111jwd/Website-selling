@@ -4,6 +4,7 @@
 import type { Service } from '../lib/content';
 import Seal from './Seal.astro';
 import { site } from '../site.config';
+import { glass } from '../theme';
 
 interface Props {
   services: Service[];
@@ -72,9 +73,10 @@ const questions = [
             <span class="fit-num figures">{String(i + 1).padStart(2, '0')}</span>
             {q.label}
           </legend>
-          <div class="chips">
+          <div class="chips" data-liquid={glass ? 'checked' : undefined} data-glass={glass ? 'track' : undefined}>
+            {glass && <span class="chips-thumb" data-liquid-thumb data-glass="thumb" aria-hidden="true" />}
             {q.options.map(([value, label]) => (
-              <label class="chip">
+              <label class="chip" data-liquid-item={glass ? '' : undefined}>
                 <input type="radio" name={q.id} value={value} />
                 <span>{label}</span>
               </label>

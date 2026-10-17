@@ -56,6 +56,7 @@ export let lenis: Lenis | null = null;
 if (!still) {
   lenis = new Lenis({ lerp: 0.11, autoRaf: true, anchors: { offset: -80 } });
   lenis.on('scroll', schedule);
+  if (import.meta.env.DEV) Object.assign(window, { __lenis: lenis });
 }
 
 /** Scroll to a position, smoothly when allowed. */

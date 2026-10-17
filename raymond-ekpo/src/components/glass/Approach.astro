@@ -1,0 +1,171 @@
+---
+// § 04 The approach: what the work is, and what it isn't, on four panes of glass.
+const principles = [
+  {
+    title: 'Thesis before slides.',
+    body: 'Every engagement starts with the investment case written out in plain sentences. If it doesn’t hold up as a paragraph, no layout will rescue it.',
+  },
+  {
+    title: 'Read it the way the investor will.',
+    body: 'Investors aren’t asking whether the company is good. They’re asking what has to be true for it to be big, and whether you’ve shown it’s becoming true.',
+  },
+  {
+    title: 'Every claim earns its place.',
+    body: 'Market size from the bottom up. Traction as a rate, not a total. Competitors named honestly. A claim you can defend beats a bigger one you can’t.',
+  },
+  {
+    title: 'You have to own it.',
+    body: 'You’re the one in the room, so the story has to sound like you under questioning. You’ll understand the reasoning behind every slide.',
+  },
+];
+---
+
+<section class="g-approach" data-world="light" aria-labelledby="approach-title">
+  <div class="wrap">
+    <header class="g-head" data-inview>
+      <p class="kicker"><span class="num">§ 04</span> The approach</p>
+      <h2 id="approach-title" class="display g-h2">
+        <span class="sr-only">Not a deck designer. </span><s class="g-struck" aria-hidden="true">A deck designer.</s>{' '}
+        <em>The thinking a deck is made of.</em>
+      </h2>
+      <p class="g-lead">
+        Design matters, but it’s the last step. The work that changes how investors see a company happens before
+        anyone opens a slide template.
+      </p>
+    </header>
+
+    <ol class="g-principles">
+      {
+        principles.map((p, i) => (
+          <li class="g-principle" data-glass="pane" data-reveal style={`--rd: ${i * 0.08}s`}>
+            <span class="g-principle-num figures">0{i + 1}</span>
+            <h3 class="display g-principle-title">{p.title}</h3>
+            <p class="g-principle-body">{p.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+
+    <aside class="g-disclosure" data-glass="pane-clear" data-reveal aria-labelledby="disclosure-title">
+      <p class="caps g-disclosure-label" id="disclosure-title">Disclosure</p>
+      <p class="g-disclosure-text">
+        Nobody can promise you a raise, and I don’t. Whether a round closes depends on the company, the market and the
+        timing. What the work does is make sure investors understand what you’re building and why it could matter.
+        That’s the part of the outcome a narrative controls.
+      </p>
+    </aside>
+  </div>
+</section>
+
+<style>
+  .g-approach {
+    padding-block: clamp(80px, 10vw, 150px);
+  }
+
+  .g-struck {
+    position: relative;
+    text-decoration: none;
+    color: var(--muted);
+  }
+
+  .g-struck::after {
+    content: '';
+    position: absolute;
+    left: -0.04em;
+    right: -0.04em;
+    top: 54%;
+    height: 0.065em;
+    border-radius: 1em;
+    background: var(--oxblood);
+    transform-origin: left;
+    transform: scaleX(var(--strike, 1));
+  }
+
+  :global(.js:not(.still)) .g-struck::after {
+    --strike: 0;
+    transition: transform 0.9s cubic-bezier(0.7, 0, 0.2, 1) 0.4s;
+  }
+
+  :global(.js) .g-head.is-in .g-struck::after {
+    --strike: 1;
+  }
+
+  .g-principles {
+    list-style: none;
+    margin: clamp(36px, 5vw, 64px) 0 0;
+    padding: 0;
+    display: grid;
+    gap: 16px;
+  }
+
+  .g-principle {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 26px 26px 30px;
+    border-radius: 28px;
+    min-height: 220px;
+  }
+
+  .g-principle-num {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--oxblood);
+    font-size: 1rem;
+  }
+
+  .g-principle-title {
+    margin: auto 0 0;
+    font-size: clamp(1.45rem, 1.9vw, 1.75rem);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+
+  .g-principle-body {
+    margin: 0;
+    color: var(--text);
+    line-height: 1.55;
+    font-size: 0.98rem;
+  }
+
+  .g-disclosure {
+    display: grid;
+    gap: 8px 40px;
+    margin-top: 16px;
+    padding: 24px 28px;
+    border-radius: 28px;
+  }
+
+  .g-disclosure-label {
+    margin: 0;
+    font-size: 0.66rem;
+    color: var(--oxblood);
+  }
+
+  .g-disclosure-text {
+    margin: 0;
+    color: var(--text);
+    line-height: 1.6;
+    max-width: 62em;
+  }
+
+  @media (min-width: 700px) {
+    .g-principles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .g-principles {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .g-principle {
+      min-height: 360px;
+    }
+    .g-disclosure {
+      grid-template-columns: 180px 1fr;
+    }
+  }
+</style>

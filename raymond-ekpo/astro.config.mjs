@@ -6,4 +6,5 @@ export default defineConfig({
   site: process.env.PUBLIC_SITE_URL || site.url,
   integrations: [sitemap({ filter: (page) => !page.includes('/404') })],
   build: { format: 'directory' },
+  devToolbar: { enabled: false },
 });

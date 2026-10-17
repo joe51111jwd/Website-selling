@@ -1,5 +1,6 @@
 ---
 import { site } from '../site.config';
+import { glass } from '../theme';
 
 interface Props {
   cta?: boolean;
@@ -9,11 +10,20 @@ const { cta = true } = Astro.props;
 const year = new Date().getFullYear();
 ---
 
-<footer class="footer">
+<footer
+  class="footer"
+  data-world={glass ? 'dark' : undefined}
+  data-ink={glass ? '0.9' : undefined}
+  data-ink-x="0.1 0.9"
+  data-ink-y="-520b"
+  data-ink-first="60"
+  data-ink-every="4.2"
+>
+  {glass && <span class="footer-zone" data-ink-zone aria-hidden="true" />}
   {
     cta && (
       <section class="wrap" aria-labelledby="cta-title">
-        <div class="cta">
+        <div class="cta" data-glass={glass ? 'pane-dark' : undefined}>
         <p class="kicker cta-kicker">
           <span class="num">§</span> Work with me
         </p>
@@ -85,8 +95,8 @@ const year = new Date().getFullYear();
     </div>
   </div>
 
-  <div class="giant" aria-hidden="true" data-inview>
-    <span>Raymond Ekpo</span>
+  <div class="giant" aria-hidden="true" data-inview data-glass-clip={glass ? '' : undefined}>
+    <span data-glass-text={glass ? '' : undefined}>Raymond Ekpo</span>
   </div>
 </footer>
 

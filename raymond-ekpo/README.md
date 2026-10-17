@@ -46,19 +46,21 @@ The same site and content build in two looks:
 | Paper (editorial broadsheet) | `npm run build` | https://raymond-ekpo.vercel.app |
 | Liquid Glass | `npm run build:glass` (sets `PUBLIC_THEME=glass`) | https://raymond-ekpo-glass.vercel.app |
 
-The glass version is Apple's Liquid Glass language, built for the web:
-- A fixed WebGL canvas behind the page draws a slow, domain-warped ink backdrop. Its mood follows the section in view.
-- Over the backdrop, the canvas draws glass under every panel, button, card and the nav capsule. The glass bends the backdrop at its rim, frosts it inside, splits colour slightly, and catches light from the cursor's side.
-- The nameplate, the drifting quote and the footer signature are cut from glass. They condense out of a blur as they appear.
-- A droplet follows the mouse and melts into nearby glass.
-- The page's own text sits on top, so it stays real, selectable and accessible.
+The glass version is Apple's Liquid Glass language on ivory paper, with ink in the water underneath:
+
+- **Ink:** a real-time fluid simulation drops oxblood ink that sinks into plumes. It's coloured by how much light it absorbs and slides with the page. Sections opt in with `data-ink` (plus `data-ink-x`, `data-ink-y`, `data-ink-every`, `data-ink-first`), and `data-ink-zone` elements mark where it's allowed to show. `data-world="dark"` turns a section into black water where the ink glows, and `data-world="light"` adds caustic light.
+- **Glass:** elements with `data-glass="kind"` (kinds in `targets.ts`) or matching a selector there turn transparent, and the canvas draws glass under them. Each surface has a squircle bevel with Snell refraction per colour, frost, Fresnel rim reflections, a key light and a cursor light.
+- **Glass lettering:** `data-glass-text` lines become solid glass letters from signed distance fields. They refract the ink and cast a shadow, and the text stays in the page for selection and screen readers.
+- **Under the lens** (`components/glass/LensStory.astro`): a loupe sweeps a founder's slide and rewrites it line by line. The slide is drawn in `slide.ts`, and the scroll choreography is in `lens.ts`.
+- **Liquid controls:** `data-liquid` groups (the price dock, the fit check's answers) get a glass thumb that springs between items (`liquid.ts`).
+- **Nav:** in Chromium the capsule bends the page behind it through an SVG displacement map (`navlens.ts`). Elsewhere it's frosted glass.
 
 Where the code lives:
-- **Renderer:** `src/scripts/glass/` (`engine.ts`, `shaders.ts`, `atlas.ts`).
-- **What becomes glass:** `targets.ts`, which also holds the tint per element and the backdrop moods.
+- **Renderer:** `src/scripts/glass/`. `engine.ts` runs the frame, `fluid.ts` is the ink, `shaders.ts` holds the world and glass passes, and `sdf.ts` is the lettering.
+- **Home page:** `src/components/home/GlassHome.astro`, with its sections in `src/components/glass/`. The paper home is `PaperHome.astro`, untouched.
 - **Theme CSS:** `src/styles/glass.css`, scoped to `html[data-theme="glass"]` so the paper build ignores it.
 
-The glass build is `noindex` and its `robots.txt` disallows crawling, because it's an alternative design for review. If WebGL2 isn't available, it falls back to CSS frosted glass. With reduced motion on, the backdrop and droplet stop and the glass is drawn still.
+The glass build is `noindex` and its `robots.txt` disallows crawling, because it's an alternative design for review. Without WebGL2 it falls back to CSS frosted glass. With reduced motion on, the ink settles out of sight and is shown still. In dev, `?sim=8` speeds up the ink, and `window.__glass.warm(n)` runs n steps, for screenshots from slow software renderers.
 
 ## Run it
 

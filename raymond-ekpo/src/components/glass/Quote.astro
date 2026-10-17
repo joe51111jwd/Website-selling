@@ -1,0 +1,115 @@
+---
+// The line, cut from glass, with ink rising through black water behind it.
+---
+
+<section
+  class="g-quote"
+  data-world="dark"
+  data-ink="1.1"
+  data-ink-x="0.04 0.62"
+  data-ink-y="-40"
+  data-ink-first="220"
+  data-ink-every="3.6"
+  aria-label="How I see it"
+>
+  <span class="g-quote-zone" data-ink-zone aria-hidden="true"></span>
+  <div class="wrap g-quote-in">
+    <p class="caps g-quote-kicker">How I see it</p>
+    <blockquote class="g-quote-block">
+      <p class="display g-quote-text">
+        <span class="g-qline" data-glass-text>A pitch deck is a</span>
+        <span class="g-qline" data-glass-text>positioning problem</span>
+        <span class="g-qline g-qline--em" data-glass-text><em>with a different buyer.</em></span>
+      </p>
+    </blockquote>
+    <div class="g-quote-foot">
+      <span class="caps">Raymond Ekpo</span>
+      <a href="/about" class="g-quote-link">How I think about fundraising narratives <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .g-quote {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    padding-block: 120px;
+    color: #f4efe6;
+  }
+
+  :global(:root:not(.glass-gl)) .g-quote {
+    background: radial-gradient(80% 70% at 50% 40%, #2a0d0b, #0d0a09 70%);
+  }
+
+  .g-quote-zone {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .g-quote-in {
+    position: relative;
+    width: 100%;
+  }
+
+  .g-quote-kicker {
+    margin: 0 0 28px;
+    color: rgb(244 239 230 / 0.6);
+    font-size: 0.68rem;
+  }
+
+  .g-quote-block {
+    margin: 0;
+  }
+
+  .g-quote-text {
+    margin: 0;
+    font-size: clamp(2.05rem, 7.4vw, 7.2rem);
+    font-weight: 560;
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+    color: #f4efe6;
+  }
+
+  .g-qline {
+    display: block;
+    width: fit-content;
+    white-space: nowrap;
+  }
+
+  .g-qline--em {
+    font-weight: 500;
+  }
+
+  .g-quote-foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-top: 44px;
+    color: rgb(244 239 230 / 0.7);
+    font-size: 0.68rem;
+  }
+
+  .g-quote-link {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: #f4efe6;
+    text-decoration: none;
+    border-bottom: 1px solid rgb(244 239 230 / 0.35);
+  }
+
+  .g-quote-link:hover {
+    border-color: #f4efe6;
+  }
+
+  @media (max-width: 700px) {
+    .g-qline {
+      white-space: normal;
+    }
+  }
+</style>

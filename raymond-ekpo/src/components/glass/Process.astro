@@ -1,0 +1,176 @@
+---
+// § 05 How an engagement runs: four steps along a glass rail, with a drop of glass that rolls
+// along it as you scroll and lights each step as it passes.
+const steps = [
+  {
+    title: 'Enquiry',
+    body: 'Tell me about the company, the round and where the story feels weak. Share the deck if you have one.',
+  },
+  {
+    title: 'First read',
+    body: 'I read everything myself and reply with a straight answer: whether I can help, which service fits, or whether you need me at all yet.',
+  },
+  {
+    title: 'The narrative',
+    body: 'We agree the thesis in writing, then build or rebuild the storyline and the slides around it.',
+  },
+  {
+    title: 'The room',
+    body: 'You walk in able to explain the company and defend it. With Q&A preparation, you’ve already rehearsed the hard questions.',
+  },
+];
+---
+
+<section class="g-process" data-process aria-labelledby="process-title">
+  <div class="wrap">
+    <header class="g-head">
+      <p class="kicker"><span class="num">§ 05</span> How it works</p>
+      <h2 id="process-title" class="display g-h2">From first message <em>to the room.</em></h2>
+    </header>
+
+    <div class="g-rail" aria-hidden="true">
+      <span class="g-rail-track" data-glass="track"></span>
+      <span class="g-rail-bead" data-glass="thumb" data-process-bead></span>
+    </div>
+
+    <ol class="g-steps">
+      {
+        steps.map((s, i) => (
+          <li class="g-step" data-process-step>
+            <span class="g-step-num figures">0{i + 1}</span>
+            <h3 class="display g-step-title">{s.title}</h3>
+            <p class="g-step-body">{s.body}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<script>
+  import { onScroll, clamp, still } from '../../scripts/fx/frame';
+
+  const root = document.querySelector<HTMLElement>('[data-process]');
+  if (root) {
+    const bead = root.querySelector<HTMLElement>('[data-process-bead]')!;
+    const rail = root.querySelector<HTMLElement>('.g-rail')!;
+    const steps = [...root.querySelectorAll<HTMLElement>('[data-process-step]')];
+    let target = 0;
+    let x = 0;
+    let v = 0;
+    let raf = 0;
+    let last = 0;
+
+    const paint = () => {
+      const w = rail.clientWidth - bead.offsetWidth;
+      const stretch = still ? 0 : Math.min(0.5, Math.abs(v) / 2.2);
+      bead.style.transform = `translateX(${x * w}px) scale(${1 + stretch}, ${1 - stretch * 0.35})`;
+      const lit = Math.floor(x * steps.length + 0.15);
+      steps.forEach((s, i) => s.classList.toggle('is-lit', i <= lit && x > 0.01));
+    };
+
+    const tick = (now: number) => {
+      const dt = Math.min(0.033, (now - last) / 1000 || 0.016);
+      last = now;
+      const a = (target - x) * 70 - v * 15;
+      v += a * dt;
+      x += v * dt;
+      paint();
+      raf = Math.abs(target - x) > 0.0005 || Math.abs(v) > 0.001 ? requestAnimationFrame(tick) : 0;
+    };
+
+    onScroll(() => {
+      const r = rail.getBoundingClientRect();
+      // the bead crosses the rail as the rail travels from low on the screen to the upper third
+      target = clamp((innerHeight * 0.85 - r.top) / (innerHeight * 0.55));
+      if (still) {
+        x = target;
+        paint();
+      } else if (!raf) {
+        last = performance.now();
+        raf = requestAnimationFrame(tick);
+      }
+    });
+  }
+</script>
+
+<style>
+  .g-process {
+    padding-block: clamp(80px, 10vw, 150px);
+  }
+
+  .g-rail {
+    position: relative;
+    height: 44px;
+    margin-top: clamp(40px, 6vw, 72px);
+    display: flex;
+    align-items: center;
+  }
+
+  .g-rail-track {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 16px;
+    margin-top: -8px;
+    border-radius: 99px;
+  }
+
+  .g-rail-bead {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 99px;
+    will-change: transform;
+  }
+
+  :global(:root:not(.glass-gl)) .g-rail-bead {
+    background: rgb(255 255 255 / 0.8);
+    box-shadow: var(--glass-rim), var(--glass-shadow);
+  }
+
+  .g-steps {
+    list-style: none;
+    margin: 28px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 28px;
+  }
+
+  .g-step {
+    color: var(--muted);
+    transition: color 0.5s ease;
+  }
+
+  .g-step.is-lit {
+    color: var(--ink);
+  }
+
+  .g-step-num {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--oxblood);
+  }
+
+  .g-step-title {
+    margin: 6px 0 8px;
+    font-size: clamp(1.6rem, 2.3vw, 2.1rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: inherit;
+  }
+
+  .g-step-body {
+    margin: 0;
+    line-height: 1.55;
+    color: var(--text);
+  }
+
+  @media (min-width: 900px) {
+    .g-steps {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 32px;
+    }
+  }
+</style>

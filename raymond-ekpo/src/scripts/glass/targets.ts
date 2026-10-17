@@ -1,106 +1,75 @@
-// What becomes glass, and what kind. The page's own elements stay where they are and keep their
-// text; the renderer draws the glass under each one. Their CSS makes them transparent once the
-// renderer is running (see .glass-gl in glass.css), so the selectors here and there must agree.
+// What becomes glass, and what kind of glass. New markup says so with data-glass="kind"; the
+// shared components used on the inner pages are matched by selector. Their CSS makes them
+// transparent once the renderer is running (see .glass-gl in glass.css).
 
-export type Tint = 'clear' | 'bright' | 'amber' | 'smoke' | 'ox';
-
-// rgb and how much of it the glass takes on
-export const TINTS: Record<Tint, [number, number, number, number]> = {
-  clear: [1, 1, 1, 0.02],
-  bright: [1, 0.97, 0.92, 0.14],
-  amber: [0.74, 0.44, 0.18, 0.3],
-  smoke: [0.03, 0.025, 0.02, 0.52],
-  ox: [0.52, 0.08, 0.07, 0.48],
+export type Kind = {
+  /** how far in from the edge the surface curves, px */
+  bezel: number;
+  /** how tall the glass is, px: taller bends more */
+  thick: number;
+  /** mip level read inside: 0 is clear, 4 is milky */
+  frost: number;
+  tint: [number, number, number, number];
+  magnify?: number;
+  /** extra refraction, for effect */
+  bend?: number;
+  shadow?: number;
+  z?: number;
 };
 
-export type Target = {
-  sel: string;
-  tint: Tint;
-  frost: number; // mip level sampled inside: 0 is clear, 4 is heavily frosted
-  bezel?: number; // how far in from the edge the glass bends, px
-  refract?: number;
-  z?: number; // drawn above lower z regardless of document order
+const white = (a: number): [number, number, number, number] => [1, 0.995, 0.985, a];
+
+export const KINDS: Record<string, Kind> = {
+  // a sheet that carries text: milky enough that type on it reads at any point
+  pane: { bezel: 26, thick: 22, frost: 3.6, tint: white(0.56), bend: 1.2, shadow: 1 },
+  'pane-clear': { bezel: 30, thick: 26, frost: 1.4, tint: white(0.3), bend: 1.4, shadow: 1 },
+  'pane-dark': { bezel: 26, thick: 22, frost: 3.4, tint: [0.05, 0.04, 0.035, 0.5], bend: 1.2, shadow: 0 },
+  // the same on pale paper, where it needs to be darker to carry pale text
+  'pane-ink': { bezel: 26, thick: 22, frost: 3.6, tint: [0.075, 0.06, 0.055, 0.86], bend: 1.2, shadow: 1 },
+  'pane-ox': { bezel: 26, thick: 22, frost: 3.6, tint: [0.42, 0.08, 0.06, 0.86], bend: 1.2, shadow: 1 },
+  'pane-warm': { bezel: 26, thick: 22, frost: 3.6, tint: [0.95, 0.89, 0.79, 0.62], bend: 1.2, shadow: 1 },
+  // objects
+  clear: { bezel: 22, thick: 24, frost: 0, tint: white(0.04), bend: 1.6, shadow: 0.8 },
+  button: { bezel: 15, thick: 16, frost: 1.4, tint: white(0.34), bend: 1.5, shadow: 0.8 },
+  'button-ox': { bezel: 15, thick: 16, frost: 1.6, tint: [0.4, 0.06, 0.045, 0.92], bend: 1.4, shadow: 0.9 },
+  'button-light': { bezel: 15, thick: 16, frost: 1.2, tint: [1, 0.985, 0.965, 0.9], bend: 1.4, shadow: 0 },
+  'button-dark': { bezel: 15, thick: 16, frost: 1.6, tint: [0.98, 0.95, 0.9, 0.12], bend: 1.5, shadow: 0 },
+  track: { bezel: 14, thick: 12, frost: 2.6, tint: white(0.42), bend: 1.2, shadow: 0.5 },
+  thumb: { bezel: 14, thick: 20, frost: 0.6, tint: white(0.55), magnify: 1.16, bend: 1.7, shadow: 0.9, z: 2 },
+  'thumb-ox': { bezel: 14, thick: 20, frost: 0.4, tint: [0.43, 0.075, 0.06, 0.8], magnify: 1.1, bend: 1.5, shadow: 0.9, z: 2 },
+  chip: { bezel: 11, thick: 12, frost: 1.2, tint: white(0.36), bend: 1.3, shadow: 0.6 },
+  nav: { bezel: 20, thick: 18, frost: 2.4, tint: white(0.42), bend: 1.4, shadow: 0.8, z: 10 },
 };
 
-export const TARGETS: Target[] = [
-  // floating chrome
-  { sel: '.bar-inner', tint: 'smoke', frost: 3.4, z: 10 },
-  { sel: '.nav-mobile[open] nav', tint: 'smoke', frost: 3.8, z: 10 },
-  { sel: '.nav-mobile summary', tint: 'clear', frost: 1.5, bezel: 14, z: 10 },
-
-  // controls
-  { sel: '.btn--ghost, .btn--outline-light, .btn--light', tint: 'clear', frost: 1.4, bezel: 16 },
-  { sel: '.btn', tint: 'ox', frost: 1.8, bezel: 16 },
-  { sel: '.chip span', tint: 'clear', frost: 1.2, bezel: 12, refract: 0.6 },
-  { sel: '.shelf-arrow', tint: 'clear', frost: 1.2, bezel: 14 },
-  { sel: '.story-tabs', tint: 'smoke', frost: 3, bezel: 14 },
-  { sel: '.check, .choice-card', tint: 'clear', frost: 2.4, bezel: 16 },
-  { sel: '.form input[type="text"], .form input[type="email"], .form input[type="url"], .form select, .form textarea', tint: 'smoke', frost: 3, bezel: 12, refract: 0.5 },
-
-  // cards and panels
-  { sel: '.hero-figure', tint: 'clear', frost: 2.6 },
-  { sel: '.hire a', tint: 'clear', frost: 2.8, bezel: 18 },
-  { sel: '.ticker', tint: 'smoke', frost: 3.2, bezel: 10, refract: 0.7 },
-  { sel: '.story-steps', tint: 'smoke', frost: 3.6 },
-  { sel: '.story-figure', tint: 'clear', frost: 2.4 },
-  { sel: '.panel--paper', tint: 'clear', frost: 3.4 },
-  { sel: '.panel--desk', tint: 'amber', frost: 3.4 },
-  { sel: '.panel--ink', tint: 'smoke', frost: 3.6 },
-  { sel: '.panel--ox', tint: 'ox', frost: 3.4 },
-  { sel: '.fit-sheet', tint: 'smoke', frost: 3.6 },
-  { sel: '.fit-mini', tint: 'smoke', frost: 3.4 },
-  { sel: '.stack-card--paper .stack-inner', tint: 'clear', frost: 3.4, bezel: 30 },
-  { sel: '.stack-card--desk .stack-inner', tint: 'amber', frost: 3.4, bezel: 30 },
-  { sel: '.stack-card--ink .stack-inner', tint: 'smoke', frost: 3.6, bezel: 30 },
-  { sel: '.stack-card--ox .stack-inner', tint: 'ox', frost: 3.4, bezel: 30 },
-  { sel: '.disclosure', tint: 'smoke', frost: 3.4 },
-  { sel: '.step:nth-child(1)', tint: 'clear', frost: 3, bezel: 18 },
-  { sel: '.step:nth-child(2)', tint: 'amber', frost: 3, bezel: 18 },
-  { sel: '.step:nth-child(3)', tint: 'smoke', frost: 3.4, bezel: 18 },
-  { sel: '.step:nth-child(4)', tint: 'ox', frost: 3, bezel: 18 },
-  { sel: '.shelf-card', tint: 'clear', frost: 2.8 },
-  { sel: '.footer .cta', tint: 'ox', frost: 3.6, bezel: 34 },
-
-  // inner pages
-  { sel: '.service-side', tint: 'smoke', frost: 3.6 },
-  { sel: '.audit-sheet', tint: 'ox', frost: 3.4 },
-  { sel: '.plate', tint: 'clear', frost: 2.6 },
-  { sel: '.aside', tint: 'smoke', frost: 3.6 },
-  { sel: '.success', tint: 'smoke', frost: 3.6 },
-  { sel: '.note-cta', tint: 'smoke', frost: 3.6 },
-  { sel: '.cases .empty', tint: 'smoke', frost: 3.4 },
-];
-
-// Lettering cut from glass: the masthead nameplate, the drifting quote and the footer signature.
-// The clip keeps cropped type (the footer name) inside its box.
-export const TEXTS: { sel: string; clip?: string }[] = [
-  { sel: '.nameplate > [aria-hidden]' },
-  { sel: '.kinetic .k-line', clip: '.quote-band' },
-  { sel: '.giant span', clip: '.giant' },
-];
-
-// The backdrop changes mood as you move down the page
-export type Mood = { base: [number, number, number]; vein: [number, number, number]; glow: [number, number, number] };
-const hex = (h: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255) as [number, number, number];
-
-export const MOODS: Record<string, Mood> = {
-  ink: { base: hex('#120c0a'), vein: hex('#5e1a15'), glow: hex('#cf7a42') },
-  ember: { base: hex('#170a08'), vein: hex('#8f241a'), glow: hex('#ee9752') },
-  dawn: { base: hex('#150f0a'), vein: hex('#713f1b'), glow: hex('#f2c47c') },
-  ox: { base: hex('#1b0807'), vein: hex('#a42b22'), glow: hex('#f6a77c') },
-};
-
-export const SECTION_MOODS: [string, keyof typeof MOODS][] = [
-  ['.hero', 'ink'],
-  ['.story', 'ember'],
-  ['#services', 'dawn'],
-  ['.band-desk', 'dawn'],
-  ['.quote-band', 'ox'],
-  ['.approach', 'ember'],
-  ['[data-chart]', 'dawn'],
-  ['.notes', 'ink'],
-  ['.overview', 'dawn'],
-  ['.fit-band', 'dawn'],
-  ['.beliefs', 'ember'],
-  ['.footer', 'ox'],
+// shared components on the inner pages
+export const SELECTORS: [string, string][] = [
+  ['.nav-mobile summary', 'button'],
+  ['.nav-mobile[open] nav', 'pane'],
+  ['.btn--outline-light', 'button-dark'],
+  ['.btn--light', 'button-light'],
+  ['.btn--ghost', 'button'],
+  ['.btn', 'button-ox'],
+  ['.shelf-arrow', 'button'],
+  ['.check, .choice-card', 'pane-clear'],
+  ['.form input[type="text"], .form input[type="email"], .form input[type="url"], .form select, .form textarea', 'track'],
+  ['.panel--desk', 'pane-warm'],
+  ['.panel--ink', 'pane-ink'],
+  ['.panel--ox', 'pane-ox'],
+  ['.panel', 'pane'],
+  ['.fit-sheet', 'pane'],
+  ['.fit-mini', 'pane'],
+  ['.stack-card--desk .stack-inner', 'pane-warm'],
+  ['.stack-card--ink .stack-inner', 'pane-ink'],
+  ['.stack-card--ox .stack-inner', 'pane-ox'],
+  ['.stack-inner', 'pane'],
+  ['.disclosure', 'pane'],
+  ['.step', 'pane'],
+  ['.shelf-card', 'pane'],
+  ['.service-side', 'pane'],
+  ['.plate', 'pane-clear'],
+  ['.aside', 'pane-ink'],
+  ['.success', 'pane'],
+  ['.note-cta', 'pane'],
+  ['.cases .empty', 'pane'],
+  ['.term', 'pane'],
 ];

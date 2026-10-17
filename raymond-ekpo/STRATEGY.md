@@ -153,15 +153,17 @@ After the second pass still read as boring, every section that had been a list w
 
 James asked for a second version in Apple's Liquid Glass language. It's the same site and content, built with `PUBLIC_THEME=glass`, and deployed separately for comparison.
 
-- **The backdrop** is ink folding through water, in the brand's oxblood, copper and amber. It's drawn in WebGL behind the page, with a faint broadsheet grid that the glass visibly bends. Its mood shifts by section: ember through the problem story, dawn through services and the chart, oxblood at the quote and the footer.
-- **Glass** sits under every panel, button, card and the floating capsule nav. It bends the backdrop at the rim and is flat in the middle, the way Apple's glass lenses. It frosts what's behind it, splits colour slightly at the edge, and carries a rim of light that turns towards the cursor. Tints follow the paper version's bands: clear, amber, smoke and oxblood.
-- **Glass lettering:** the masthead name, the drifting quote and the footer signature are cut from glass. Each one condenses out of a blur the first time it comes into view.
-- **A liquid droplet** follows the mouse and melts into any glass it passes, like iOS controls morphing.
-- **What stays paper:** the slides themselves (hero, story, before/after, notes shelf) stay paper, sitting on glass. The work is still the work.
+### Round five: Liquid Glass, rebuilt
 
-**Legibility:** glass under text is capped in brightness, so ivory text keeps its contrast whatever flows behind it.
+James's verdict on round four: too basic, it looked AI-generated, the red-pen "fixing" scene looked cheap, and glass was the point because it's hard to do well. The first glass pass was a dark theme with a muddy animated gradient, so the glass had nothing to bend and read as tinted boxes. The rebuild starts from what makes Liquid Glass look like glass: something worth refracting behind it.
 
-**Fallbacks:** without WebGL2, the same elements get CSS frosted glass. The fixed nav frosts the page's own text in CSS, because the canvas can't bend real text.
+- **The world is ivory paper with ink in it.** A real-time fluid simulation drops oxblood ink into water: heavier than the water, so it sinks and rolls into plumes and tendrils. It's coloured the way ink absorbs light, so thin ink is rose and thick ink is oxblood, and it slides with the page as you scroll. It lives where the layout gives it room: behind the name and down the hero's open column, behind the quote, and behind the footer. The quote and footer are black water, where the same ink glows. No stock footage or generated imagery is needed, and none could look this specific to him.
+- **The glass is modelled, not faked.** Each surface has a convex squircle bevel. Light through it bends by Snell's law, separately for red, green and blue, so edges fringe slightly. It frosts by reading a blurrier copy of the world, reflects a dark room on its rims, and catches a key light plus a second light that follows the cursor. The name, the quote and the footer signature are solid glass letters, from signed distance fields. They refract the ink falling behind them and cast a soft shadow onto the paper. The floating nav, which sits over real page text the canvas can't see, uses an SVG displacement map in Chromium, so text bends at its rim too.
+- **The red pen is gone.** "Under the lens" replaces it. A founder's traction slide, set like a real startup deck, sits on the table. As you scroll, a glass loupe sweeps it line by line, magnifying each line and leaving it rewritten. The four steps beside it say what changed and why. The plain-text before and after of every change is on the page, and the example is labelled as invented.
+- **Liquid controls.** The price dock under the hero and the fit check's answers use iOS-style segmented controls: a glass thumb springs between options and stretches as it moves. The process rail has a glass bead that rolls along it as you scroll.
+- **Restraint.** The page is mostly paper, ink and type. Oxblood marks the actions. Text sits on milky panes wherever something can move behind it.
+
+**Legibility and fallbacks:** text on glass sits on milky frost, and dark glass carries pale text. Without WebGL2, every glass element gets CSS frosted glass, the name is set in solid serif, and the slide shows as its rewritten picture. With reduced motion on, the ink settles out of sight and is shown still, and nothing drifts.
 
 ---
 
