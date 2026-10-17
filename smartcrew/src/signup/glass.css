@@ -199,23 +199,21 @@ html.look-glass .su-close:hover {
 
 @media (min-width: 761px) {
   html.look-glass .su-scrim {
-    background: rgb(70 48 28 / 18%);
-    -webkit-backdrop-filter: blur(20px) saturate(120%);
-    backdrop-filter: blur(20px) saturate(120%);
+    background: rgb(70 48 28 / 20%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    backdrop-filter: blur(16px) saturate(120%);
   }
-  /* strong glass, over a faint wash of the ground so the page's orange button behind it reads as
-     a soft glow rather than a stain under the fields */
+  /* near-solid glass: the form's text sits on a surface that clears 4.5:1 whatever is behind it,
+     and the page's orange button behind reads as a faint glow, not a stain under the fields */
   html.look-glass .su-dialog {
     border-radius: var(--g-r);
-    background:
-      var(--g-fill-strong),
-      linear-gradient(rgb(251 248 244 / 36%), rgb(251 248 244 / 36%));
+    background: var(--g-fill-solid);
     box-shadow:
       var(--g-edge),
       0 2px 6px rgb(64 40 18 / 6%),
       0 50px 110px -40px rgb(64 40 18 / 48%);
-    -webkit-backdrop-filter: blur(32px) saturate(125%);
-    backdrop-filter: blur(32px) saturate(125%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
   }
 
   /* the preview: a soft warm well inside the sheet, the white app window floating in it */
@@ -253,15 +251,19 @@ html.look-glass .su-close:hover {
   }
 }
 
-/* the resume pill (laptops, after closing halfway): a small glass capsule */
+/* the resume pill (laptops only, after closing halfway): a small glass capsule */
 html.look-glass .su-pill {
-  background: var(--g-fill);
+  background: var(--g-fill-solid);
   color: var(--ink);
   box-shadow:
     var(--g-edge),
     0 14px 36px -14px rgb(64 40 18 / 36%);
-  -webkit-backdrop-filter: var(--g-blur);
-  backdrop-filter: var(--g-blur);
+}
+@media (min-width: 761px) {
+  html.look-glass .su-pill {
+    -webkit-backdrop-filter: var(--g-blur-bar);
+    backdrop-filter: var(--g-blur-bar);
+  }
 }
 html.look-glass .su-pill-go:hover {
   background: rgb(255 255 255 / 55%);
@@ -277,7 +279,7 @@ html.look-glass .su-pill-x:hover {
   background: var(--g-well) !important;
 }
 
-/* ── phones: a full-height sheet on the aurora ─────────────────────────────── */
+/* ── phones: a full-height sheet on the aurora, no backdrop blur anywhere ───── */
 
 @media (max-width: 760px) {
   html.look-glass .su-dialog {
@@ -302,20 +304,20 @@ html.look-glass .su-pill-x:hover {
   html.look-glass .su-pvc-bar {
     padding-left: 14px;
     border-radius: 999px;
-    background: var(--g-fill);
+    background: var(--g-fill-solid);
     box-shadow:
       var(--g-edge),
       0 8px 24px -14px rgb(64 40 18 / 30%);
   }
   html.look-glass .su-body {
     border-radius: var(--g-r) var(--g-r) 0 0;
-    background: var(--g-fill-strong);
+    background: var(--g-fill-solid);
     box-shadow:
       var(--g-edge),
       0 -14px 36px -20px rgb(64 40 18 / 32%);
   }
   /* the step's content fades out under the button instead of under a ground-coloured shadow
-     (the sheet is translucent, so a solid fade would show as a band) */
+     (the sheet is a gradient over the aurora, so a flat fade colour would show as a band) */
   html.look-glass .su-foot {
     box-shadow: none;
   }
@@ -330,5 +332,41 @@ html.look-glass .su-pill-x:hover {
     gap: 3px;
     padding: 3px;
     border-radius: 26px;
+  }
+}
+
+/* ── where glass can't blur, or the visitor asked for less transparency: fill it solid ──── */
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html.look-glass .su-scrim {
+    background: rgb(52 36 22 / 42%);
+  }
+  html.look-glass .su-pill {
+    background: var(--g-fill-solid), var(--ground);
+  }
+  @media (min-width: 761px) {
+    html.look-glass .su-dialog {
+      background: var(--g-fill-solid), var(--ground);
+    }
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html.look-glass .su-scrim {
+    background: rgb(52 36 22 / 42%);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  html.look-glass .su-pill {
+    background: var(--g-fill-solid), var(--ground);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce) and (min-width: 761px) {
+  html.look-glass .su-dialog {
+    background: var(--g-fill-solid), var(--ground);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }

@@ -30,4 +30,8 @@ function read(): Look {
 export const LOOK = read();
 export const GLASS = LOOK === "glass";
 
-if (typeof document !== "undefined") document.documentElement.classList.toggle("look-glass", GLASS);
+if (typeof document !== "undefined") {
+  document.documentElement.classList.toggle("look-glass", GLASS);
+  // the phone's browser bar matches the light glass ground (/book's own tag is dark)
+  if (GLASS) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#f6f2ec");
+}

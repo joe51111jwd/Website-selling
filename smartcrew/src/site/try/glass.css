@@ -132,6 +132,31 @@ html.look-glass .fx-b {
   backdrop-filter: blur(16px) saturate(130%);
 }
 
+/* no blur on phones (it janks scrolling on mid-range Android), where blur isn't supported, or when
+   the visitor asks for less transparency: the bands are filled solid instead, the same warm tint
+   over the solid glass fill */
+@media (max-width: 760px) {
+  html.look-glass .fx-b {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: linear-gradient(var(--fx-dim), var(--fx-dim)), var(--g-fill-solid);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html.look-glass .fx-b {
+    background: linear-gradient(var(--fx-dim), var(--fx-dim)), var(--g-fill-solid);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html.look-glass .fx-b {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: linear-gradient(var(--fx-dim), var(--fx-dim)), var(--g-fill-solid);
+  }
+}
+
 /* a soft light round the phone where the frost meets it */
 html.look-glass .fx--desk .fx-hole {
   box-shadow:

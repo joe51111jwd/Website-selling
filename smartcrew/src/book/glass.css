@@ -6,7 +6,9 @@
    Three focus points, each a calm glass card: Andrew's video (a dark screen in a glass bezel, so
    it is still the first thing the eye lands on), his calendar (the loading skeleton and the
    fallback card; the live Cal.com booker brings its own white card), and what you're setting up.
-   Everything else is text on the ground: no rules, no dark blocks. */
+   Everything else is text on the ground: no rules, no dark blocks. Cards that carry text are
+   filled near-solid (--g-fill-solid) so it clears 4.5:1; nothing here blurs (nothing floats), so
+   phones and reduced-transparency need no fallback. */
 
 /* ── the ground: the product page's aurora (it has a .backdrop element; /book doesn't) ─── */
 
@@ -54,7 +56,7 @@ html.look-glass .bk-progress {
   gap: 10px;
   padding: 7px 14px 7px 10px;
   border-radius: 999px;
-  background: var(--g-fill);
+  background: var(--g-fill-strong);
   box-shadow:
     var(--g-edge),
     0 6px 18px -12px rgb(64 40 18 / 30%);
@@ -98,7 +100,7 @@ html.look-glass .bk-video {
   width: min(100%, 900px, max(580px, calc((100svh - var(--bk-reserve) - 16px) * 16 / 9 + 20px)));
   padding: 10px 10px 4px;
   border-radius: var(--g-r);
-  background: var(--g-fill);
+  background: var(--g-fill-solid);
   box-shadow:
     var(--g-edge),
     var(--g-drop-lg);
@@ -144,7 +146,7 @@ html.look-glass .bk-est b {
 html.look-glass .bk-skel {
   border: 0;
   border-radius: var(--g-r);
-  background: var(--g-fill);
+  background: var(--g-fill-strong);
   box-shadow:
     var(--g-edge),
     var(--g-drop);
@@ -167,7 +169,7 @@ html.look-glass .bk-fallback {
   padding: 32px 34px;
   border: 0;
   border-radius: var(--g-r);
-  background: var(--g-fill);
+  background: var(--g-fill-solid);
   box-shadow:
     var(--g-edge),
     var(--g-drop);
@@ -237,7 +239,7 @@ html.look-glass .bk-btn--sm {
 
 html.look-glass .bk-ticket {
   border-radius: var(--g-r);
-  background: var(--g-fill-strong);
+  background: var(--g-fill-solid);
   box-shadow:
     var(--g-edge),
     var(--g-drop-lg);
@@ -290,7 +292,7 @@ html.look-glass .bk-setup {
   margin-top: 56px;
   padding: 28px 32px 26px;
   border-radius: var(--g-r);
-  background: var(--g-fill);
+  background: var(--g-fill-solid);
   box-shadow:
     var(--g-edge),
     var(--g-drop);

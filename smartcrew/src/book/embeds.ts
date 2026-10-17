@@ -1,5 +1,6 @@
 import { config } from "../config";
 import type { Booking, Lead } from "../lib/lead";
+import { GLASS } from "../lib/look";
 
 // Third-party embeds on /book, loaded the way their vendors ship them: Cal.com's inline embed
 // (Andrew's calendar, prefilled from the popup) and Vidalytics (Andrew's walkthrough video, as on
@@ -131,7 +132,7 @@ export function mountCal(el: HTMLElement, lead: Lead | null, h: CalHandlers) {
     hideEventTypeDetails: true,
     // CSS variables don't cross into the iframe: literal colours from tokens.css
     cssVarsPerTheme: {
-      light: { "cal-brand": "#1d1a16", "cal-brand-emphasis": "#3b332b", "cal-brand-text": "#ffffff", "cal-border-booker": "#e8dfd5", "cal-border-booker-width": "1px" },
+      light: { "cal-brand": "#1d1a16", "cal-brand-emphasis": "#3b332b", "cal-brand-text": "#ffffff", "cal-border-booker": "#e8dfd5", "cal-border-booker-width": GLASS ? "0px" : "1px" },
       dark: { "cal-brand": "#ffffff", "cal-brand-text": "#1d1a16" },
     },
   });

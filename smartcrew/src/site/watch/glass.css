@@ -27,8 +27,8 @@ html.look-glass .ww-item:last-child {
 
 html.look-glass .ww-chip {
   gap: 8px;
-  min-height: 40px;
-  padding: 7px 17px 7px 14px;
+  min-height: clamp(34px, 4.4svh, 40px);
+  padding: 6px 17px 6px 14px;
   background: var(--g-fill-strong);
   box-shadow:
     var(--g-edge),
@@ -50,7 +50,6 @@ html.look-glass .ww-chip .ww-glyph {
 html.look-glass .ww-when {
   font-size: 12px;
   color: var(--ink-3);
-  opacity: 0.85;
 }
 
 html.look-glass .ww-line {
@@ -73,8 +72,9 @@ html.look-glass .ww-dot {
 
 html.look-glass .ww-office {
   gap: 12px;
-  min-height: 52px;
-  padding: 8px 20px 8px 16px;
+  /* 52 px on a 900 px screen, less on shorter ones so all seven rows and the close still fit */
+  min-height: clamp(44px, 5.8svh, 52px);
+  padding: 6px 20px 6px 16px;
   border: 0;
   border-radius: var(--g-r-sm);
   background: var(--g-fill);
@@ -107,7 +107,6 @@ html.look-glass .ww-office-txt {
 
 html.look-glass .ww-where {
   color: var(--ink-3);
-  opacity: 0.8;
 }
 
 /* ── the close ── */
@@ -118,17 +117,24 @@ html.look-glass .ww-caption {
 
 /* ── short laptop screens: still all seven rows ── */
 
+/* (the glass header is 12 px taller, so the head and the rows give a little back) */
 @media (min-width: 761px) and (max-height: 720px) {
+  html.look-glass .ww-head {
+    margin-bottom: clamp(10px, 2.2svh, 24px);
+  }
+  html.look-glass .ww-cols {
+    padding-bottom: 5px;
+  }
   html.look-glass .ww-item,
   html.look-glass .ww-item:last-child {
-    padding-block: 5px;
+    padding-block: 4px;
   }
   html.look-glass .ww-office {
-    min-height: 44px;
-    padding-block: 5px;
+    min-height: 40px;
+    padding-block: 4px;
   }
   html.look-glass .ww-chip {
-    min-height: 34px;
+    min-height: 32px;
     padding-block: 5px;
   }
 }
