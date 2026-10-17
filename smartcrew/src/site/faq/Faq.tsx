@@ -16,6 +16,7 @@ import { PHONE_HERO_STILL } from "../hero/still";
 import { useSeen } from "../offer/useSeen";
 import "./faq.css";
 import "./glass.css";
+import "./focus.css";
 
 export default function Faq() {
   return <FaqPlain phone={usePhoneLite()} />;

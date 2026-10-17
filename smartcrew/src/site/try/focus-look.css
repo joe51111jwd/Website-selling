@@ -1,0 +1,133 @@
+/* Try it in the focus look (src/styles/focus.css; builds on ./glass.css). (Named focus-look.css:
+   ./focus.css is Try it's own focus MODE, the scrim round the phone, ./focus.tsx.)
+   The one point is the phone. On laptops it stands centred on a liquid-glass halo (a bright,
+   rimmed disc with a soft light round it); the headline beside it is calm (smaller and a shade
+   lighter than the glass look's), "This is what your crew sees." quiet under it, and "Tap Clock
+   In." the one line of instruction, larger, after its orange dot. The two facts lose their glass
+   note and sit quietly on the ground. The phone itself, its live app and the focus mode are
+   untouched: it takes taps wherever it sits, as before.
+   Phones: the app still fills the screen; the headline calms down and the note that slides up
+   after the tap is a near-solid liquid-glass sheet. */
+
+/* ── laptops: the halo ── */
+
+/* the glass look's glow and disc become one liquid-glass disc (::before) and its rim (::after) */
+html.look-focus .try-frame::before,
+html.look-focus .try-frame::after {
+  width: 80%;
+}
+
+html.look-focus .try-frame::before {
+  background: var(--lg-fill);
+  box-shadow:
+    var(--lg-inner),
+    var(--lg-drop),
+    0 0 110px 34px rgb(255 255 255 / 40%);
+}
+
+html.look-focus .try-frame::after {
+  padding: 1px;
+  background: var(--lg-rim);
+  box-shadow: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* ── the copy: a calm headline, one line of instruction ── */
+
+html.look-focus .try-title {
+  font-size: clamp(32px, 1.8vw + 1.5svh + 4px, 50px);
+  font-weight: 640;
+  line-height: 1.04;
+  letter-spacing: -0.016em;
+}
+
+html.look-focus .try-say {
+  margin-top: clamp(14px, 2.4svh, 24px);
+}
+
+html.look-focus .try-prompt {
+  max-width: 20rem;
+  font-size: 17px;
+  color: var(--ink-3);
+}
+
+/* "Tap Clock In.": the one thing to do */
+html.look-focus .try-prompt strong {
+  display: flex;
+  align-items: center;
+  margin-top: clamp(14px, 2.4svh, 22px);
+  font-size: clamp(21px, 0.6vw + 13px, 24px);
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+
+html.look-focus .try-prompt strong::before {
+  flex: none;
+  margin: 0 13px 0 1px;
+}
+
+/* after the tap: the line and the solid button, the rest quiet */
+html.look-focus .try-done-1 {
+  font-weight: 640;
+}
+
+html.look-focus .try-again {
+  color: var(--ink-3);
+}
+
+/* ── the two facts: quiet, straight on the ground (no glass note) ── */
+
+html.look-focus .try-facts {
+  gap: 16px;
+  max-width: 16.5rem;
+  margin-top: 0;
+  padding: 18svh 0 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+html.look-focus .try-facts li {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+html.look-focus .try-facts strong {
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+@media (min-width: 761px) and (max-width: 1000px) {
+  html.look-focus .try-facts {
+    padding-top: 2svh;
+  }
+}
+
+/* ── phones: the app fills the screen ── */
+
+html.look-focus .tp-title {
+  font-weight: 640;
+  letter-spacing: -0.012em;
+}
+
+html.look-focus .tp-prompt {
+  color: var(--ink-2);
+}
+
+/* the note after the tap: a near-solid liquid-glass sheet (fill only; no blur on phones) */
+html.look-focus .tp-sheet {
+  background: var(--lg-fill-solid), var(--ground);
+  box-shadow:
+    var(--lg-inner),
+    0 -18px 44px -14px rgb(64 40 18 / 28%);
+}

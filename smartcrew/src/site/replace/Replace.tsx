@@ -19,6 +19,7 @@ import { AppMark, CardIcon } from "./glyphs";
 import { Wires } from "./Wires";
 import "./replace.css";
 import "./glass.css";
+import "./focus.css";
 
 /**
  * True once the wiring is where the visitor is looking. Desktop: the box is mostly on screen (the

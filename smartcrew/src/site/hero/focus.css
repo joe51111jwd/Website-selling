@@ -1,0 +1,151 @@
+/* The fold in the focus look (src/styles/focus.css; James, Oct 17: "accentuating that one main
+   point and also not overcrowding"). Builds on the glass look's fold (src/styles/glass.css, "the
+   fold"). The one point is the promise and the one orange button: the headline large and calm,
+   centred with room round it, the button under it. Everything else stays, word for word, but goes
+   quiet: the ConExpo line loses its pill, the subhead stays readable in ink-2, the demo link
+   steps back, and the logos sit faintly at the very bottom of the first screen. The headline is
+   still fitted by ./land.ts (--fs); it reads the weight set here when it measures.
+   Phones: the fold fills the first screen (no peek of the next section), the copy centred in it
+   and the logos at its foot. */
+
+/* ── the copy column: centred, with room round it ──────────────────────────────── */
+
+html.look-focus .hf4 .hf-copy {
+  padding-bottom: clamp(64px, 12svh, 120px);
+}
+
+/* the ConExpo line: no pill, a quiet line with its small orange dot */
+html.look-focus .hf4 .hf-eyebrow {
+  gap: 9px;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+
+html.look-focus .hf4 .hf-eyebrow::before {
+  width: 6px;
+  height: 6px;
+  box-shadow: none;
+}
+
+/* the promise: large, calm (a shade lighter, a touch more leading) */
+html.look-focus .hf4 .hf-h1 {
+  margin-top: clamp(16px, 3.2svh, 30px);
+  font-weight: 640;
+  line-height: 1.04;
+  letter-spacing: -0.016em;
+}
+
+/* laptops: ./land.ts fits the widest line to all but 20px a side, so at 1280 wide it ran edge to
+   edge. Here the size is also held to 5.35vw: the widest line ("For Heavy Civil & Dirtwork
+   Companies") then never takes more than ~84% of the width (about 100px of air a side at 1280;
+   77px type at 1440, as before). land.ts still caps it by height (and at 84px). */
+@media (min-width: 761px) {
+  html.look-focus .hf4 .hf-h1 {
+    font-size: min(var(--fs), 5.35vw);
+  }
+}
+
+/* the subhead: still readable, ink-2, a little apart from the headline */
+html.look-focus .hf4 .hf-sub {
+  margin-top: clamp(16px, 3.2svh, 30px);
+  max-width: 30em;
+  color: var(--ink-2);
+}
+
+/* the button: the one action, with room above it */
+html.look-focus .hf4 .hf-act {
+  margin-top: clamp(22px, 4.4svh, 40px);
+}
+
+/* the demo link: present, quiet */
+html.look-focus .hf-root .hf-demo {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+@media (hover: hover) {
+  html.look-focus .hf-root .hf-demo:hover {
+    color: var(--ink);
+  }
+}
+
+/* the logos: faint, small, at the very bottom of the first screen */
+html.look-focus .hf-foot {
+  bottom: clamp(12px, 2.4svh, 20px);
+}
+
+html.look-focus .hf-logos {
+  gap: 16px;
+}
+
+html.look-focus .hf-logos-k {
+  font-size: 12.5px;
+  opacity: 1;
+}
+
+html.look-focus .hf-logos ul {
+  gap: clamp(14px, 1.6vw, 24px);
+}
+
+html.look-focus .hf-logos img {
+  height: calc(var(--h) * 0.68);
+  opacity: 0.36;
+}
+
+/* ── phones: the fold is the first screen, the copy centred in it ───────────────────── */
+
+@media (max-width: 760px) {
+  html.look-focus .hf4 .hf-root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100svh;
+    padding-bottom: 10px;
+  }
+
+  html.look-focus .hf4 .hf-copy {
+    flex: 1 0 auto;
+    justify-content: center;
+    padding-top: calc(var(--header-h) + 6px);
+    padding-bottom: 18px;
+  }
+
+  html.look-focus .hf4 .hf-eyebrow {
+    font-size: 13px;
+  }
+
+  html.look-focus .hf4 .hf-h1 {
+    margin-top: 14px;
+  }
+
+  html.look-focus .hf4 .hf-sub {
+    margin-top: 16px;
+    max-width: 22em;
+    font-size: 16px;
+  }
+
+  html.look-focus .hf4 .hf-act {
+    margin-top: 22px;
+  }
+
+  html.look-focus .hf4 .hf-root .hf-demo {
+    margin-top: 4px;
+    min-height: 44px;
+    font-size: 15px;
+  }
+
+  html.look-focus .hf4 .hf-foot {
+    margin-top: 0;
+    padding-bottom: 0;
+  }
+
+  html.look-focus .hf-logos img {
+    height: calc(var(--h) * 0.56);
+    opacity: 0.38;
+  }
+}

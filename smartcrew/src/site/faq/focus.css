@@ -1,0 +1,193 @@
+/* FAQ in the focus look (src/styles/focus.css): two screens. First the questions, quiet: a calm
+   title and five lines with room between them, no card round a closed question, a quiet plus;
+   the open one takes a soft glass fill so its answer reads well. Then, a screen on, the section's
+   one point: the close, "Anything else, we answer on the call." with the last button, centred on a
+   liquid-glass card with the rim. */
+
+/* the header's FAQ link still lands the title just under the island */
+html.look-focus .faq .scene-body {
+  padding-block: calc(var(--header-h) + clamp(16px, 4svh, 44px)) clamp(48px, 9svh, 104px);
+}
+
+html.look-focus .faq-grid {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  row-gap: clamp(120px, 26svh, 260px);
+}
+
+html.look-focus .faq-main {
+  width: min(100%, 760px);
+}
+
+html.look-focus .faq-title {
+  max-width: none;
+  margin-bottom: clamp(24px, 5svh, 48px);
+  font-weight: 640;
+  font-size: clamp(26px, 1.2vw + 14px, 36px);
+  line-height: 1.1;
+  text-align: center;
+}
+
+/* ── the questions: lines, not cards ───────────────────────────────────── */
+
+html.look-focus .faq-list {
+  gap: 6px;
+}
+
+html.look-focus .faq-item {
+  background: none;
+  box-shadow: none;
+  border-radius: 24px;
+}
+
+html.look-focus .faq-item.is-open {
+  background: var(--lg-fill-solid);
+  box-shadow: var(--lg-inner), 0 18px 44px -28px rgb(64 40 18 / 30%);
+}
+
+html.look-focus .faq-q {
+  min-height: 62px;
+  font-size: clamp(17px, 0.3vw + 13px, 19px);
+  font-weight: 560;
+  color: var(--ink-2);
+}
+
+html.look-focus .faq-item.is-open .faq-q {
+  color: var(--ink);
+}
+
+html.look-focus .faq-q:hover {
+  color: var(--ink);
+}
+
+/* the toggle: a plus in ink-3, no ring, no well */
+html.look-focus .faq-icon,
+html.look-focus .faq-q:hover .faq-icon,
+html.look-focus .faq-item.is-open .faq-icon {
+  background: none;
+}
+
+html.look-focus .faq-icon {
+  color: var(--ink-3);
+}
+
+html.look-focus .faq-q:hover .faq-icon,
+html.look-focus .faq-item.is-open .faq-icon {
+  color: var(--ink);
+}
+
+/* ── the close: the one point ──────────────────────────────────────────── */
+
+html.look-focus .faq-close {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 720px);
+  align-items: center;
+  padding: clamp(28px, 3.6vw, 52px) clamp(24px, 4.4vw, 64px) clamp(28px, 3.6vw, 48px);
+  border-radius: var(--lg-r);
+  background: var(--lg-fill);
+  box-shadow: var(--lg-shadow);
+  text-align: center;
+}
+
+/* the rim (focus.css's .lg-rim recipe) */
+html.look-focus .faq-close::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--lg-rim);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* the devices, smaller: they bookend the page without taking the card */
+html.look-focus .faq-stage-box {
+  display: flex;
+  justify-content: center;
+  height: clamp(150px, 24svh, 250px);
+}
+
+html.look-focus .faq-close-head {
+  flex-direction: column;
+  gap: 16px;
+  margin-top: clamp(20px, 3svh, 32px);
+}
+
+html.look-focus .faq-close-line {
+  max-width: 13em;
+  font-size: clamp(30px, 1.9vw + 14px, 48px);
+  line-height: 1.08;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+html.look-focus .faq-actions {
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  margin-top: clamp(24px, 3.6svh, 36px);
+}
+
+html.look-focus .faq-micro {
+  margin-top: 4px;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  html.look-focus .faq .scene-body {
+    padding-block: calc(var(--header-h) + 18px) 48px;
+  }
+  html.look-focus .faq-grid {
+    row-gap: clamp(88px, 18svh, 140px);
+  }
+  html.look-focus .faq-title {
+    font-size: clamp(26px, 7vw, 30px);
+  }
+  html.look-focus .faq-list {
+    gap: 4px;
+  }
+  html.look-focus .faq-item {
+    border-radius: 20px;
+  }
+  html.look-focus .faq-q {
+    min-height: 56px;
+    font-size: 16.5px;
+  }
+  html.look-focus .faq-a-text {
+    font-size: 16px;
+  }
+  html.look-focus .faq-close {
+    align-items: stretch;
+    margin-top: 0;
+    padding: 26px 18px 20px;
+    background: var(--lg-fill-solid);
+  }
+  html.look-focus .faq-stage-box {
+    height: auto;
+  }
+  html.look-focus .faq-close-head {
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  html.look-focus .faq-close-line {
+    font-size: clamp(26px, 7.4vw, 30px);
+  }
+  html.look-focus .faq-actions {
+    align-items: stretch;
+    margin-top: 20px;
+  }
+  html.look-focus .faq-actions .link {
+    min-height: 44px;
+  }
+}

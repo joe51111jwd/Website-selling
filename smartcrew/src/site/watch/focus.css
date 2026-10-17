@@ -1,0 +1,263 @@
+/* Watch it work in the focus look (src/styles/focus.css; builds on ./glass.css). The one point is
+   the moment playing now. The rows still play one at a time as they scroll in (./Watch.tsx: same
+   timing, same stagger, nothing holds the page); here the row that is playing lights up on a
+   liquid-glass strip (a near-solid sheet with the light-catching rim) and its headline comes up to
+   full ink, then it settles back as the next one plays. Rows still to come are faint (ink-3, the
+   far end not landed yet, as in every look); rows already played rest quiet (ink-2, soft fills,
+   no shadows). The headline above is big and calm, centred, with room round the section; the
+   close ("Want this for your crew?" and the button) sits centred under the board.
+
+   While another section is in focus (src/site/focus.ts dims this one), a row that comes into view
+   waits at its start (its animations paused, so it looks like a row still to come) and plays
+   once this section takes focus, so the play is never spent behind the dim. Nothing is hidden
+   that isn't hidden in the other looks before its row plays. Reduced motion: the end state, still. */
+
+/* ── room round the section ── */
+
+html.look-focus .ww .scene-body {
+  padding-block: var(--focus-gap);
+}
+
+/* ── the headline: big and calm, centred; the sub quiet under it ── */
+
+html.look-focus .ww-head {
+  display: block;
+  margin-bottom: clamp(24px, 4.2svh, 44px);
+  text-align: center;
+}
+
+html.look-focus .ww-title {
+  font-size: var(--focus-h2);
+  font-weight: 640;
+  line-height: 1.02;
+  letter-spacing: -0.016em;
+}
+
+html.look-focus .ww-sub {
+  max-width: 44em;
+  margin: clamp(10px, 1.8svh, 18px) auto 0;
+  padding: 0;
+  font-size: clamp(16px, 0.3vw + 12.5px, 17.5px);
+  line-height: 1.45;
+  color: var(--ink-3);
+  text-wrap: balance;
+}
+
+/* ── a row: no card of its own; quiet until it plays ── */
+
+html.look-focus .ww-item {
+  position: relative;
+  isolation: isolate;
+}
+
+/* the feature headline: a touch smaller and lighter than the glass look's, so the section's own
+   headline leads; played rows (and every row with reduced motion) rest in ink-2 */
+html.look-focus .ww-h {
+  font-size: clamp(19px, 0.95vw + 1svh + 4px, 27px);
+  font-weight: 640;
+  color: var(--ink-2);
+}
+
+/* the crew's pill and the office line: soft fills, no drop shadows (the strip is the one glass) */
+html.look-focus .ww-chip {
+  background: rgb(255 255 255 / 52%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 85%),
+    inset 0 0 0 1px rgb(255 255 255 / 45%);
+  color: var(--ink-2);
+}
+
+html.look-focus .ww-office {
+  background: rgb(255 255 255 / 40%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 80%),
+    inset 0 0 0 1px rgb(255 255 255 / 40%);
+}
+
+html.look-focus .ww-office-txt {
+  color: var(--ink-2);
+}
+
+/* a little shorter than the glass look's cards, so the bigger headline still leaves the board and
+   the close on one laptop screen */
+@media (min-width: 761px) {
+  html.look-focus .ww-office {
+    min-height: clamp(42px, 5.3svh, 48px);
+  }
+}
+
+html.look-focus [data-moment="profit"] .ww-office-txt {
+  color: #137a43;
+}
+
+/* the strip: a liquid-glass sheet behind the playing row (shown only while it plays) */
+html.look-focus .ww-item::before,
+html.look-focus .ww-item::after {
+  content: "";
+  position: absolute;
+  inset: 1px calc(-1 * clamp(14px, 1.5vw, 24px));
+  z-index: -1;
+  border-radius: 22px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+html.look-focus .ww-item::before {
+  background: var(--lg-fill-solid);
+  box-shadow: var(--lg-shadow);
+}
+
+/* its rim (focus.css's .lg-rim recipe) */
+html.look-focus .ww-item::after {
+  padding: 1px;
+  background: var(--lg-rim);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* ── the close: centred under the board, the button solid ── */
+
+html.look-focus .ww-foot {
+  margin-top: clamp(24px, 4.2svh, 44px);
+}
+
+html.look-focus .ww-close-group {
+  grid-column: 1 / -1;
+  justify-content: center;
+}
+
+html.look-focus .ww-close {
+  font-weight: 640;
+}
+
+html.look-focus .ww-caption {
+  grid-column: 1 / -1;
+  justify-self: center;
+  margin-top: clamp(8px, 1.4svh, 14px);
+  text-align: center;
+}
+
+/* ── short laptop screens (1280×720): still all seven rows and the close ── */
+
+@media (min-width: 761px) and (max-height: 720px) {
+  html.look-focus .ww-head {
+    margin-bottom: clamp(14px, 3svh, 24px);
+  }
+  html.look-focus .ww-sub {
+    margin-top: 8px;
+  }
+  html.look-focus .ww-foot {
+    margin-top: clamp(16px, 3svh, 24px);
+  }
+  html.look-focus .ww-caption {
+    margin-top: 8px;
+  }
+  html.look-focus .ww-office {
+    min-height: 40px;
+  }
+}
+
+/* ── narrower laptops (1024×768): the same, a little tighter ── */
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  html.look-focus .ww-head {
+    margin-bottom: clamp(14px, 2.6svh, 28px);
+  }
+  html.look-focus .ww-foot {
+    margin-top: clamp(16px, 2.6svh, 28px);
+  }
+}
+
+/* ── phones: one block per moment; the strip wraps the block ── */
+
+@media (max-width: 760px) {
+  html.look-focus .ww-head {
+    margin-bottom: 28px;
+  }
+  html.look-focus .ww-sub {
+    font-size: 16px;
+  }
+  html.look-focus .ww-cols {
+    justify-content: center;
+  }
+  html.look-focus .ww-h {
+    font-size: 21px;
+  }
+  html.look-focus .ww-item::before,
+  html.look-focus .ww-item::after {
+    inset: 2px -12px;
+    border-radius: var(--lg-r);
+  }
+  html.look-focus .ww-foot {
+    margin-top: 30px;
+  }
+  html.look-focus .ww-close {
+    text-align: center;
+  }
+  html.look-focus .ww-caption {
+    text-align: center;
+  }
+}
+
+/* ── motion: the playing row is the bright one ── */
+/* The newest row in play (the last one that has come in: the row after it is still to come, or it
+   is the last row) carries the strip. It comes up as that row starts (--ww-d, set by ./Watch.tsx
+   as the row plays), holds while the dot runs and the far end lands, then settles. Rows that come
+   in together (they play 110 ms apart) light only the last of them, and when a newer row comes in
+   the light fades across to it, so only one row is ever bright. Transitions carry the hand-off;
+   the settle is an animation, so it waits with the rest of the row's play (below). */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* still to come: faint but readable */
+  html.look-focus .ww-armed .ww-item:not(.is-in) .ww-h {
+    color: var(--ink-3);
+  }
+
+  html.look-focus .ww-armed .ww-h {
+    transition: color 0.5s var(--ease-out) var(--ww-d, 0ms);
+  }
+
+  html.look-focus .ww-armed .ww-item::before,
+  html.look-focus .ww-armed .ww-item::after {
+    transition: opacity 0.5s var(--ease-out);
+  }
+
+  /* the newest row in play: the strip, and its headline in full ink */
+  html.look-focus .ww-armed .ww-item.is-in:is(:last-child, :has(+ .ww-item:not(.is-in)))::before,
+  html.look-focus .ww-armed .ww-item.is-in:is(:last-child, :has(+ .ww-item:not(.is-in)))::after {
+    opacity: 1;
+    transition-delay: var(--ww-d, 0ms);
+    animation: wwf-settle 0.7s var(--ease-out) calc(var(--ww-d, 0ms) + 1.35s) forwards;
+  }
+  html.look-focus .ww-armed .ww-item.is-in:is(:last-child, :has(+ .ww-item:not(.is-in))) .ww-h {
+    color: var(--ink);
+    animation: wwf-settle-ink 0.7s var(--ease-out) calc(var(--ww-d, 0ms) + 1.35s) forwards;
+  }
+
+  /* another section in focus: a row that scrolls in waits at its start, and plays on focus */
+  html.look-focus[data-focus]:not([data-focus="watch"]) .ww-item.is-in,
+  html.look-focus[data-focus]:not([data-focus="watch"]) .ww-item.is-in::before,
+  html.look-focus[data-focus]:not([data-focus="watch"]) .ww-item.is-in::after,
+  html.look-focus[data-focus]:not([data-focus="watch"]) .ww-item.is-in *,
+  html.look-focus[data-focus]:not([data-focus="watch"]) .ww-item.is-in *::after {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes wwf-settle {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes wwf-settle-ink {
+  to {
+    color: var(--ink-2);
+  }
+}

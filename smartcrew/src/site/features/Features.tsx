@@ -17,6 +17,7 @@ import { FEATURES, type FeatureId } from "../../content/features";
 import { Scene } from "../scene/Scene";
 import { usePhoneLite } from "../phone";
 import { useArrive } from "../phone/useArrive";
+import { FOCUS } from "../../lib/look";
 import { scrollToY } from "../scroll";
 import { AllTools, GridGlyph } from "../specsheet/AllTools";
 import { WALK_COPY, stepOf } from "../specsheet/Walk";
@@ -27,6 +28,7 @@ import { PainPicker, type Answer } from "./PainPicker";
 import "../specsheet/all-tools.css";
 import "./features.css";
 import "./glass.css";
+import "./focus.css";
 
 const AppWindow = lazy(() => import("./AppWindow"));
 
@@ -113,7 +115,7 @@ export default function Features() {
             <h2 className="t-h2 ft-title">{FEATURES.title}</h2>
             <p className="t-lead ft-sub">{FEATURES.sub}</p>
           </div>
-          {!phone && <AllButton onClick={() => openAll(null)} />}
+          {!phone && !FOCUS && <AllButton onClick={() => openAll(null)} />}
         </div>
 
         <PainPicker answer={answer} onAnswer={onAnswer} />
@@ -127,7 +129,8 @@ export default function Features() {
           )}
         </div>
 
-        {phone && (
+        {/* the focus look keeps the head to the headline: "See all" closes the section, as on phones */}
+        {(phone || FOCUS) && (
           <div className="ft-foot">
             <AllButton onClick={() => openAll(null)} />
           </div>

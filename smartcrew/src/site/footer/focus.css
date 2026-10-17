@@ -1,0 +1,95 @@
+/* The footer in the focus look (src/styles/focus.css): tiny and quiet, like a minimal portfolio
+   site's last line. No band or card: the small logo, the email and Log in, the legal line and the
+   notes, in small ink on the aurora. Every link and note stays (>= 12px, >= 4.5:1, links >= 44px
+   tall). */
+
+html.look-focus .ftr {
+  margin-top: 0;
+  padding-top: clamp(40px, 8svh, 88px);
+}
+
+html.look-focus .ftr-in {
+  padding-block: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+html.look-focus .ftr-top {
+  align-items: center;
+  gap: 8px 40px;
+}
+
+html.look-focus .ftr-mark-svg {
+  height: 22px;
+}
+
+html.look-focus .ftr-word {
+  height: 15px;
+  margin-left: 8px;
+}
+
+html.look-focus .ftr-tag {
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+/* the email and Log in on one line */
+html.look-focus .ftr-links {
+  flex-direction: row;
+  align-items: center;
+  gap: 0 28px;
+}
+
+html.look-focus .ftr-links a {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+html.look-focus .ftr a:hover {
+  color: var(--orange-ink);
+}
+
+html.look-focus .ftr-base {
+  margin-top: clamp(18px, 3svh, 28px);
+  gap: 4px 48px;
+}
+
+html.look-focus .ftr-legal {
+  gap: 0 22px;
+  font-size: 13px;
+}
+
+html.look-focus .ftr-legal a {
+  min-height: 44px;
+}
+
+html.look-focus .ftr-notes {
+  padding-top: 12px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+  html.look-focus .ftr {
+    padding-top: 40px;
+  }
+  html.look-focus .ftr-top {
+    align-items: flex-start;
+    gap: 0;
+  }
+  html.look-focus .ftr-links {
+    gap: 0 22px;
+  }
+  html.look-focus .ftr-base {
+    margin-top: 6px;
+    gap: 2px;
+  }
+  html.look-focus .ftr-notes {
+    padding-top: 0;
+    font-size: 12.5px;
+  }
+}

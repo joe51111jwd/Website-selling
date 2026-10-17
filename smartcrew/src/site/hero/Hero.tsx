@@ -19,6 +19,7 @@ import { usePhoneLite } from "../phone";
 import { mountLanding } from "./land";
 import "./fence/fence.css";
 import "./hero.css";
+import "./focus.css";
 
 type Line = { pre: string; fence: string | null; post: string };
 

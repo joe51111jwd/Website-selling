@@ -1,0 +1,491 @@
+/* Everything. Built for dirt. in the focus look (src/styles/focus.css). The section was the most
+   crowded screen on the page, so here it is two screens, one point each:
+   1. the question: the headline, then "What's your biggest headache?" with big, centred chips and
+      the "Type your own" field under them; the answer note under the field. Nothing else.
+   2. the answer: the open feature card (the one liquid-glass surface, rimmed) beside the app in a
+      soft glass frame; the closed cards sit quietly on the ground; "See all 38 tools" closes the
+      section as a quiet text link (Features.tsx puts it after the cards in this look).
+   The subhead and kicker go quiet. Built on the glass look's rules (./glass.css); everything here
+   is scoped to html.look-focus. */
+
+/* ── the two screens ─────────────────────────────────────────────────── */
+/* Screen 1 (the head and the picker) is at least a screen tall with its content centred in it, so
+   the cards never peek in under the question: the grid's ::before spans both rows and stretches
+   them, the head sits at the foot of row 1 and the picker at the head of row 2. */
+
+html.look-focus .ft {
+  padding-block: clamp(8px, 2svh, 24px) var(--focus-gap);
+}
+
+html.look-focus .ft-in {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html.look-focus .ft-in::before {
+  content: "";
+  grid-row: 1 / 3;
+  grid-column: 1;
+  min-height: calc(100svh - var(--header-h));
+  pointer-events: none;
+}
+
+html.look-focus .ft-head {
+  grid-row: 1;
+  grid-column: 1;
+  align-self: end;
+  justify-content: center;
+  text-align: center;
+}
+
+html.look-focus .ft-pain {
+  grid-row: 2;
+  grid-column: 1;
+  align-self: start;
+}
+
+html.look-focus .ft-body {
+  grid-row: 3;
+  grid-column: 1;
+  margin-top: clamp(24px, 4svh, 48px);
+}
+
+html.look-focus .ft-foot {
+  grid-row: 4;
+  grid-column: 1;
+}
+
+/* ── screen 1: the headline (the subhead and kicker go quiet) ────────── */
+
+html.look-focus .ft-head-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+html.look-focus .ft-kicker {
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+html.look-focus .ft-title {
+  margin-top: 18px;
+  font-size: var(--focus-h2);
+}
+
+html.look-focus .ft-sub {
+  max-width: 30em;
+  margin-top: 18px;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+/* ── screen 1: the question ──────────────────────────────────────────── */
+
+html.look-focus .ft-pain {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: clamp(40px, 7svh, 76px);
+  text-align: center;
+}
+
+html.look-focus .ft-pain-q {
+  font-size: clamp(22px, 1.1vw + 10px, 28px);
+  line-height: 1.15;
+}
+
+html.look-focus .ft-pain-row {
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: clamp(18px, 2.6svh, 26px);
+}
+
+/* the six chips: three by two, equal and big */
+html.look-focus .ft-chips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  width: min(800px, 100%);
+}
+
+html.look-focus .ft-chip {
+  justify-content: center;
+  min-height: 60px;
+  padding: 0 20px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 66%), rgb(255 255 255 / 40%));
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: var(--g-edge), 0 10px 24px -18px rgb(64 40 18 / 36%);
+}
+
+html.look-focus .ft-chip:hover {
+  background: linear-gradient(180deg, rgb(255 255 255 / 86%), rgb(255 255 255 / 62%));
+  box-shadow: var(--g-edge), 0 14px 30px -18px rgb(64 40 18 / 40%);
+}
+
+html.look-focus .ft-chip[aria-pressed="true"] {
+  background: #fff;
+  box-shadow: var(--lg-inner), 0 1px 2px rgb(64 40 18 / 10%), 0 16px 34px -14px rgb(64 40 18 / 42%);
+}
+
+html.look-focus .ft-chip:focus-visible {
+  outline: 2.5px solid var(--orange);
+  outline-offset: 3px;
+}
+
+/* "Type your own…": one calm field under the chips */
+html.look-focus .ft-type {
+  flex: none;
+  width: min(440px, 100%);
+  min-height: 56px;
+  padding: 0 6px 0 24px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 58%), rgb(255 255 255 / 34%));
+}
+
+html.look-focus .ft-type-in {
+  height: 54px;
+  font-size: 17px;
+}
+
+html.look-focus .ft-type-go,
+html.look-focus .ft-in.is-phone .ft-type-go {
+  width: 44px;
+  height: 44px;
+}
+
+html.look-focus .ft-type-go svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* the answer: right under the field, centred, and easy to read */
+html.look-focus .ft-answer {
+  justify-content: center;
+  min-height: 76px;
+  padding-block: 14px 6px;
+}
+
+html.look-focus .ft-answer-yes {
+  padding: 10px 22px 10px 10px;
+  background: var(--lg-fill-solid);
+  box-shadow: var(--lg-inner), 0 14px 34px -20px rgb(64 40 18 / 36%);
+  font-size: 17px;
+  color: var(--ink-2);
+}
+
+html.look-focus .ft-answer-no {
+  flex-direction: column;
+  gap: 14px;
+  max-width: 560px;
+  padding: 18px 22px 20px;
+  background: var(--lg-fill-solid);
+  box-shadow: var(--lg-inner), 0 14px 34px -20px rgb(64 40 18 / 36%);
+}
+
+html.look-focus .ft-answer-no p {
+  text-wrap: balance;
+}
+
+/* ── screen 2: the answer, the open card beside the app ──────────────── */
+
+/* desktop: the window a touch shorter on tall screens, so "See all 38 tools" shows under it */
+html.look-focus .ft {
+  --ft-h: clamp(
+    470px,
+    max(calc(100svh - var(--header-h) - 88px), min(560px, calc(100svh - var(--header-h) - 24px))),
+    820px
+  );
+}
+
+/* the closed cards: quiet, straight on the ground */
+html.look-focus .ft-card {
+  background: none;
+  box-shadow: none;
+}
+
+html.look-focus .ft-card:hover {
+  background: rgb(255 255 255 / 34%);
+}
+
+html.look-focus .ft-card-name {
+  color: var(--ink);
+}
+
+/* the open card: the section's one liquid-glass surface */
+html.look-focus .ft-card.is-open {
+  position: relative;
+  isolation: isolate;
+  border-radius: 26px;
+  background: var(--lg-fill);
+  box-shadow: var(--lg-shadow);
+}
+
+html.look-focus .ft-card.is-open::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--lg-rim);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+html.look-focus .ft-card-btn {
+  border-radius: 26px;
+}
+
+/* the app: a soft glass frame, quieter than the open card */
+html.look-focus .ft-win {
+  border-radius: var(--lg-r);
+  background: linear-gradient(170deg, rgb(255 255 255 / 52%), rgb(255 255 255 / 30%));
+  box-shadow: var(--g-edge), 0 30px 70px -40px rgb(64 40 18 / 30%);
+}
+
+html.look-focus .ft-app--wait {
+  border-radius: var(--lg-r);
+  background: linear-gradient(170deg, rgb(255 255 255 / 52%), rgb(255 255 255 / 30%));
+  box-shadow: var(--g-edge);
+}
+
+html.look-focus .ft-body-app {
+  border-radius: calc(var(--lg-r) - 8px);
+}
+
+/* ── "See all 38 tools": a quiet text link that closes the section ───── */
+
+html.look-focus .ft-foot {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+html.look-focus .ft-all,
+html.look-focus .ft-foot .ft-all {
+  width: auto;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-2);
+  font-size: 16px;
+  font-weight: 550;
+  box-shadow: none;
+}
+
+html.look-focus .ft-all:hover {
+  background: none;
+  box-shadow: none;
+  color: var(--ink);
+}
+
+html.look-focus .ft-all span {
+  text-decoration: underline;
+  text-decoration-color: rgb(98 85 74 / 35%);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  transition: text-decoration-color 0.2s;
+}
+
+html.look-focus .ft-all:hover span {
+  text-decoration-color: currentColor;
+}
+
+html.look-focus .ft-all-glyph,
+html.look-focus .ft-all-arrow {
+  color: var(--ink-3);
+}
+
+html.look-focus .ft-all:focus-visible {
+  outline: 2.5px solid var(--orange);
+  outline-offset: 2px;
+}
+
+/* ── phones ──────────────────────────────────────────────────────────── */
+
+html.look-focus .ft-in.is-phone .ft-title {
+  margin-top: 14px;
+}
+
+html.look-focus .ft-in.is-phone .ft-sub {
+  margin-top: 12px;
+  font-size: 16px;
+}
+
+html.look-focus .ft-in.is-phone .ft-pain {
+  margin-top: 32px;
+}
+
+html.look-focus .ft-in.is-phone .ft-pain-q {
+  font-size: 21px;
+}
+
+html.look-focus .ft-in.is-phone .ft-pain-row {
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* phones: the same grid, two by three, each a big tile (a long one wraps to two lines) */
+html.look-focus .ft-in.is-phone .ft-chips {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+html.look-focus .ft-in.is-phone .ft-chip {
+  min-height: 58px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 16px;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+html.look-focus .ft-in.is-phone .ft-type {
+  flex: none;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 6px 0 20px;
+}
+
+html.look-focus .ft-in.is-phone .ft-type-in {
+  height: 54px;
+  font-size: 16px;
+}
+
+html.look-focus .ft-in.is-phone .ft-answer {
+  min-height: 0;
+  padding-block: 14px 0;
+}
+
+html.look-focus .ft-in.is-phone .ft-answer:empty {
+  padding: 0;
+}
+
+html.look-focus .ft-in.is-phone .ft-answer-yes {
+  border-radius: 20px;
+  text-align: left;
+}
+
+html.look-focus .ft-in.is-phone .ft-answer-no {
+  width: 100%;
+  padding: 18px 18px 20px;
+  border-radius: 22px;
+}
+
+html.look-focus .ft-in.is-phone .ft-body {
+  margin-top: var(--focus-gap);
+}
+
+/* phones: the closed cards a very soft fill (no hover there to say they open); the open one solid
+   glass under its words */
+html.look-focus .ft-cards--phone .ft-card {
+  background: rgb(255 255 255 / 26%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 60%);
+}
+
+html.look-focus .ft-cards--phone .ft-card.is-open {
+  border-radius: var(--lg-r);
+  background: var(--lg-fill-solid);
+  box-shadow: var(--lg-shadow);
+}
+
+html.look-focus .ft-in.is-phone .ft-foot {
+  margin-top: 20px;
+}
+
+/* ── "See all 38 tools": the dialog, one bright glass sheet ──────────── */
+
+html.look-focus .spal-scrim {
+  background: rgb(52 36 22 / 42%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+html.look-focus .spal-panel {
+  border-radius: var(--lg-r);
+  background: var(--lg-fill-solid), var(--ground);
+  box-shadow: var(--lg-inner), 0 40px 100px -30px rgb(40 24 10 / 50%);
+}
+
+html.look-focus .spal-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 1px;
+  border-radius: inherit;
+  background: var(--lg-rim);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+html.look-focus .spal--phone .spal-panel {
+  border-radius: var(--lg-r) var(--lg-r) 0 0;
+}
+
+/* the six groups: no boxes, just room */
+html.look-focus .spal-body {
+  gap: 30px 36px;
+  padding-top: 10px;
+}
+
+html.look-focus .spal-group {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+html.look-focus .spal-n {
+  font-size: 18px;
+}
+
+html.look-focus .spal-tool {
+  background: rgb(120 96 72 / 8%);
+}
+
+html.look-focus .spal-tool.is-link:hover,
+html.look-focus .spal-tool.is-link:focus-visible {
+  background: #fff;
+}
+
+/* Close goes quiet beside "Walk through all 38" */
+html.look-focus .spal-x {
+  background: none;
+  box-shadow: none;
+  color: var(--ink-2);
+}
+
+html.look-focus .spal-x:hover {
+  color: var(--ink);
+}
+
+/* phones: Close wraps under the title; its words line up with it */
+html.look-focus .spal--phone .spal-x {
+  margin-left: -14px;
+}
+
+html.look-focus .swk-view {
+  border-radius: 20px;
+}

@@ -11,6 +11,7 @@ import { Scene } from "../scene/Scene";
 import { useSeen } from "../offer/useSeen";
 import "./footer.css";
 import "./glass.css";
+import "./focus.css";
 
 /** True once any scene's keys show the Pro Display XDR (its CC-BY licence asks for the credit). */
 function useXdrInUse() {

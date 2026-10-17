@@ -24,6 +24,7 @@ import { usePhoneLite } from "../phone";
 import NumberPhone from "./NumberPhone";
 import "./number.css";
 import "./glass.css";
+import "./focus.css";
 
 function Chips<T extends number>({
   label,

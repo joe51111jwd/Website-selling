@@ -13,6 +13,7 @@ import { Signature } from "./Signature";
 import { useSeen } from "./useSeen";
 import "./offer.css";
 import "./glass.css";
+import "./focus.css";
 
 export default function Offer() {
   const root = useRef<HTMLDivElement>(null);
