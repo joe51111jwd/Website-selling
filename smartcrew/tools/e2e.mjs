@@ -33,6 +33,8 @@ const args = process.argv.slice(2);
 const BASE = (args.find((a) => !a.startsWith("--")) ?? "http://127.0.0.1:5310").replace(/\/$/, "");
 const ONLY = args.find((a) => a.startsWith("--only="))?.slice(7).toLowerCase();
 const HEADED = args.includes("--headed");
+// --look=glass runs every check in the glass look (src/lib/look.ts reads it from sessionStorage)
+const LOOK = args.find((a) => a.startsWith("--look="))?.slice(7);
 const DEBUG = !!process.env.E2E_DEBUG;
 const ROOT = fileURLToPath(new URL("../", import.meta.url));
 
@@ -134,6 +136,7 @@ async function newContext(device, { kind = "gl", reducedMotion, init } = {}) {
       new PerformanceObserver((l) => l.getEntries().forEach((e) => e.duration > 1000 && (window.__stallEnd = Math.max(window.__stallEnd, e.startTime + e.duration)))).observe({ type: "longtask", buffered: true });
     } catch {}
   });
+  if (LOOK) await ctx.addInitScript((look) => { try { sessionStorage.setItem("sc-look", look); } catch {} }, LOOK);
   if (init) await ctx.addInitScript(init.fn, init.arg);
   ctx.on("page", (p) => watch(p, device.name));
   touchCtx.set(ctx, !!device.ctx.hasTouch);

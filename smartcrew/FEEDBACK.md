@@ -4,6 +4,27 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## The glass look (the agency owner, Oct 17)
+
+"Relatively clean… too many edges… all in on a liquid glass and making it like super minimal in a
+good way so that you can just have the main focus points." Built as a second look on the same page,
+so the classic page Andrew reviews is untouched: `?look=glass` turns it on (`?look=classic` off) and
+it sticks for the visit, popup and /book included.
+
+1. **Done. Every section, the popup and /book** restyled: a warm aurora ground, light glass cards
+   with a rim of light instead of borders, no dividers or outlines, the orange button as an opaque
+   liquid pill (the one accent), a floating glass header pill and phone sticky capsule. Same copy,
+   same sections, same funnel.
+2. **Done. Rules from the click research** (/mnt/project-files/click-science/): text sits on
+   near-solid fills (the two light inks are darkened to clear 4.5:1 on the aurora); real blur only on
+   the header (12px) and the laptop popup/focus layers (16px); no blur on phones (Android scroll
+   jank), with solid fallbacks for no-blur browsers and reduced transparency; Watch it work and Try it
+   kept prominent (cutting them lost taps in the simulation).
+3. **Checks:** all 34 e2e checks pass in both looks (`node tools/e2e.mjs <url> --look=glass`).
+4. **Waiting on the agency owner:** whether glass becomes the default (build with `VITE_LOOK=glass`).
+   The click simulation's one clear winner, Katie's quote under the top button, isn't added (⚑ her
+   permission is still open).
+
 ## Round 4: Andrew's feedback (Oct 16 doc, Loom and call), with the agency owner's calls (Oct 17)
 
 This round replaces the plan below it: the One Day ride and the 3D Stage are cut, so the ride,
