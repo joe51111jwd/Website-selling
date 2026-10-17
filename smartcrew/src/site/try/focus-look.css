@@ -17,12 +17,18 @@ html.look-focus .try-frame::after {
   width: 80%;
 }
 
+/* a lens: clearer in the middle, thicker and brighter towards the edge, a highlight top left, the
+   warm glint low on its inside edge, a soft light round it */
 html.look-focus .try-frame::before {
-  background: var(--lg-fill);
+  background:
+    radial-gradient(64% 46% at 30% 12%, rgb(255 255 255 / 80%), rgb(255 255 255 / 0%) 62%),
+    radial-gradient(closest-side, rgb(255 255 255 / 20%) 58%, rgb(255 255 255 / 46%) 88%, rgb(255 255 255 / 72%) 100%);
   box-shadow:
     var(--lg-inner),
-    var(--lg-drop),
-    0 0 110px 34px rgb(255 255 255 / 40%);
+    inset 0 0 34px rgb(255 255 255 / 32%),
+    inset 0 -34px 56px -34px rgb(255 150 70 / 26%),
+    0 40px 90px -40px rgb(64 40 18 / 30%),
+    0 0 110px 30px rgb(255 255 255 / 34%);
 }
 
 html.look-focus .try-frame::after {
