@@ -8,8 +8,10 @@ import "./styles/base.css";
 import "./styles/shell.css";
 import "./styles/type-roles.css";
 import "./styles/glass.css";
+import "./styles/focus.css";
 import "./lib/flags";
-import "./lib/look";
+import { FOCUS } from "./lib/look";
+import { startFocus } from "./site/focus";
 import App from "./App";
 
 // set in .env.watermark, so only `npm run build:watermark` carries it
@@ -33,7 +35,10 @@ if (import.meta.env.DEV) {
 }
 
 // the product page's global styles (src/styles/base.css) apply only to the page itself
-if ((view as React.ReactElement).type === App) document.documentElement.classList.add("sc-page");
+if ((view as React.ReactElement).type === App) {
+  document.documentElement.classList.add("sc-page");
+  if (FOCUS) startFocus();
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
