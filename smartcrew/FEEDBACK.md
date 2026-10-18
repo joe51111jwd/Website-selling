@@ -16,16 +16,36 @@ the glass look (both classes are on) and goes further; classic and glass are unc
    word, but goes quiet (smaller, lighter ink, fewer containers). The calculator's dollar figure,
    the testimonials and the offer each sit on one liquid-glass card.
 2. **Done. One section at a time.** src/site/focus.ts marks the section filling most of the screen;
-   the others dim to 30% round it (never hidden, still tappable; the footer never dims). Their
-   buttons still count as on screen for the header and the phone bar.
+   on laptops the others dim to 30% round it (never hidden, still tappable; the footer never dims).
+   A button in a dimmed section doesn't count as on screen, so the header's bright one stands in: a
+   full-strength trial button is always in view. Phones don't dim (Oct 18, below).
 3. **Done. Liquid glass where it can't hurt:** a deeper aurora that drifts slowly on laptops (still
    with reduced motion), bright rimmed glass sheets, near-solid fills under text, the orange button
    solid, no blur on phones. Rules: src/styles/focus.css, each section's focus.css.
-4. **Checks:** all 34 e2e checks pass in all three looks (`--look=focus`).
-5. **Waiting on the agency owner:** which look becomes the default and whether Andrew sees it;
-   angelo.so screenshots (the site is blocked from our sandbox; its markup was used); the liquid-glass
-   skill he will send, to refine it. Open design notes: the gap between the testimonials and the
-   offer is large on laptops; the Replace tiles are tall on phones (16px body text kept).
+4. **Done (Oct 18). Real liquid glass, from the agency owner's references** (kube.io's refraction
+   write-up, Apple's Liquid Glass docs and WWDC25 219, and the open-source builds he linked; angelo.so
+   only as the bar for "clean, simple, draws focus", not copied: "Number maxx so we get the best
+   conversion but it's not a eyesore but conversion is #1"). The header is a real lens on desktop
+   Chrome and Edge: the page bends at its rim (a baked squircle displacement map through an SVG
+   filter, Snell's law at n = 1.5) and is frosted under the links. Everywhere else (Safari, Firefox,
+   phones, reduced transparency, more contrast) it stays the solid frosted pill; more contrast gets a
+   plain bar with a border. On phones the page fades under the header instead (no blur). The orange
+   button stays solid. Code: src/lib/liquidGlass.ts, src/site/shell/LiquidGlass.tsx. Research notes:
+   /mnt/project-files/smartcrew/focus/liquid-glass-research.md.
+5. **Done (Oct 18). Checked with the click simulator and the attention heatmap before keeping it.**
+   Blind head-to-heads on the phone page: the Oct 17 focus look lost to classic 4 of 4 (small: about
+   3-4% fewer trial taps; button low at y 528 against 367, washed-out dimmed sections, long gaps).
+   Fixed on phones: the fold starts under the header with the button at y 407 and the next section
+   peeking in, no dimming, gaps halved. Re-run: the new focus ties classic 4 of 4; a version with the
+   fold filling the whole screen did slightly worse (classic favoured 2 of 4), so it was dropped. The
+   heatmap showed logos right under the button take attention from it (button 8.7% to 7.3% of the
+   first phone screen), so on laptops the logos stay at the foot of the first screen.
+   Results: /mnt/project-files/smartcrew/focus/results.md.
+6. **Checks:** all 34 e2e checks pass in all three looks (`--look=focus`); classic and glass are
+   pixel-identical to before at every screen, laptop and phone.
+7. **Waiting on the agency owner:** which look becomes the default and whether Andrew sees it.
+   Open design notes: the gap between the testimonials and the offer is large on laptops; the
+   Replace tiles are tall on phones (16px body text kept).
 
 ## The glass look (the agency owner, Oct 17)
 
