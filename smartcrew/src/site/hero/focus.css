@@ -2,16 +2,26 @@
    point and also not overcrowding"). Builds on the glass look's fold (src/styles/glass.css, "the
    fold"). The one point is the promise and the one orange button: the headline large and calm,
    centred with room round it, the button under it. Everything else stays, word for word, but goes
-   quiet: the ConExpo line loses its pill, the subhead stays readable in ink-2, the demo link
-   steps back, and the logos sit faintly at the very bottom of the first screen. The headline is
-   still fitted by ./land.ts (--fs); it reads the weight set here when it measures.
-   Phones: the fold fills the first screen (no peek of the next section), the copy centred in it
-   and the logos at its foot. */
+   quiet: the ConExpo line loses its pill, the subhead stays readable in ink-2 and the demo link
+   steps back. The headline is still fitted by ./land.ts (--fs); it reads the weight set here when
+   it measures.
+   The proof sits right under the button (the click research's first screen: "the solid button and
+   one proof line", /mnt/project-files/click-science/Click science playbook.md 8a): the "Used by"
+   logos come up from the foot of the screen and join the copy as one centred group, at a strength
+   they can be read at.
+   The fold fills the first screen on laptops and phones alike, so the next section never peeks in
+   (the attention heatmap: the peeking section took 17-19% of first-screen attention, and the
+   button's share rose by about a third without it; /mnt/project-files/sim-business/runs/). */
 
 /* ── the copy column: centred, with room round it ──────────────────────────────── */
 
+html.look-focus .hf4 .hf-root {
+  justify-content: center;
+}
+
 html.look-focus .hf4 .hf-copy {
-  padding-bottom: clamp(64px, 12svh, 120px);
+  flex: 0 0 auto;
+  padding-bottom: 0;
 }
 
 /* the ConExpo line: no pill, a quiet line with its small orange dot */
@@ -75,9 +85,19 @@ html.look-focus .hf-root .hf-demo {
   }
 }
 
-/* the logos: faint, small, at the very bottom of the first screen */
-html.look-focus .hf-foot {
-  bottom: clamp(12px, 2.4svh, 20px);
+/* the proof: the logos right under the button, as part of the copy's group */
+html.look-focus .hf4 .hf-foot {
+  position: relative;
+  bottom: auto;
+  margin-top: clamp(26px, 5svh, 48px);
+  justify-content: center;
+}
+
+/* room under the group, so the centred whole sits a little above the middle (the header's height
+   is already above it) */
+html.look-focus .hf4 .hf-root::after {
+  content: "";
+  flex: 0 0 clamp(24px, 6svh, 64px);
 }
 
 html.look-focus .hf-logos {
@@ -85,8 +105,9 @@ html.look-focus .hf-logos {
 }
 
 html.look-focus .hf-logos-k {
-  font-size: 12.5px;
+  font-size: 13px;
   opacity: 1;
+  color: var(--ink-3);
 }
 
 html.look-focus .hf-logos ul {
@@ -94,8 +115,18 @@ html.look-focus .hf-logos ul {
 }
 
 html.look-focus .hf-logos img {
-  height: calc(var(--h) * 0.68);
-  opacity: 0.36;
+  height: calc(var(--h) * 0.74);
+  opacity: 0.6;
+}
+
+/* short laptop screens: the group tightens so it all stays on the first screen */
+@media (min-width: 761px) and (max-height: 720px) {
+  html.look-focus .hf4 .hf-foot {
+    margin-top: 22px;
+  }
+  html.look-focus .hf4 .hf-root::after {
+    flex-basis: 12px;
+  }
 }
 
 /* ── phones: the fold is the first screen, the copy centred in it ───────────────────── */
@@ -109,10 +140,10 @@ html.look-focus .hf-logos img {
   }
 
   html.look-focus .hf4 .hf-copy {
-    flex: 1 0 auto;
+    flex: 0 0 auto;
     justify-content: center;
     padding-top: calc(var(--header-h) + 6px);
-    padding-bottom: 18px;
+    padding-bottom: 0;
   }
 
   html.look-focus .hf4 .hf-eyebrow {
@@ -140,12 +171,16 @@ html.look-focus .hf-logos img {
   }
 
   html.look-focus .hf4 .hf-foot {
-    margin-top: 0;
+    margin-top: 22px;
     padding-bottom: 0;
   }
 
+  html.look-focus .hf4 .hf-root::after {
+    flex-basis: clamp(20px, 5svh, 48px);
+  }
+
   html.look-focus .hf-logos img {
-    height: calc(var(--h) * 0.56);
-    opacity: 0.38;
+    height: calc(var(--h) * 0.6);
+    opacity: 0.6;
   }
 }

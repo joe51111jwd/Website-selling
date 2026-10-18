@@ -41,12 +41,16 @@ function onScreen(el: HTMLElement, top: number, bottom: number) {
 function opaque(el: HTMLElement) {
   if (typeof el.checkVisibility === "function" && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return false;
   // fading in or out: count it from half opacity (walks up a few levels only)
-  // (the focus look dims whole sections that aren't in focus: their buttons still count as on screen)
-  const focus = document.documentElement.classList.contains("look-focus");
   let n: HTMLElement | null = el;
   for (let i = 0; n && i < 6; i++, n = n.parentElement) {
-    if (focus && n.classList.contains("scene")) continue;
     if (parseFloat(getComputedStyle(n).opacity) < 0.5) return false;
+  }
+  // the focus look dims the sections out of focus to 30%: a button in one doesn't count as on screen,
+  // so the header's (or the phone bar's) bright one stands in and a full-strength button is always
+  // in reach (the section itself sits further up than six levels)
+  if (document.documentElement.classList.contains("look-focus")) {
+    const scene = el.closest<HTMLElement>("section.scene");
+    if (scene && parseFloat(getComputedStyle(scene).opacity) < 0.5) return false;
   }
   return true;
 }

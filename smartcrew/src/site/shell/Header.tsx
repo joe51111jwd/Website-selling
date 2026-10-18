@@ -2,17 +2,25 @@
 // the page scrolls. The CTA steps in once the hero's own button has scrolled away, and steps aside
 // again whenever a scene's own primary CTA is on screen, so two orange buttons are never on screen
 // together. Phones show the logo only; the sticky bar at the bottom carries the CTA there.
+// The focus look makes the header a real liquid-glass lens on desktop Chromium (./LiquidGlass.tsx).
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Logo } from "../../brand/Logo";
 import { HEADER } from "../../content/copy";
+import { FOCUS } from "../../lib/look";
 import { handleAnchorClick, scrollToY } from "../scroll";
 import { Cta } from "../ui/Cta";
 import { useHeroCtaGone } from "./heroCta";
+import { LiquidGlassFilter, useLiquidGlass } from "./LiquidGlass";
 import { usePrimaryInView } from "./primaryCta";
 import "./shell.css";
 
+/** The header's lens: a 14 px squircle rim, as thick as a pill this size reads (the research's settings). */
+const LENS = { bezel: 14, thickness: 28, specular: { width: 2.5, strength: 0.85 } };
+
 export function Header() {
+  const ref = useRef<HTMLElement>(null);
+  const glass = useLiquidGlass(ref, LENS, FOCUS);
   const [scrolled, setScrolled] = useState(false);
   const heroGone = useHeroCtaGone();
   const sceneCta = usePrimaryInView();
@@ -32,7 +40,13 @@ export function Header() {
   }, []);
 
   return (
-    <header className={`site-header${scrolled ? " is-solid" : ""}${ctaOn ? " is-cta" : ""}`}>
+    <header
+      ref={ref}
+      className={`site-header${scrolled ? " is-solid" : ""}${ctaOn ? " is-cta" : ""}`}
+      data-lg={glass.id ? "" : undefined}
+      style={glass.id ? ({ "--lg-url": `url(#${glass.id})` } as CSSProperties) : undefined}
+    >
+      <LiquidGlassFilter id={glass.id} map={glass.map} />
       <div className="site-header-in">
         <a
           href="#top"
