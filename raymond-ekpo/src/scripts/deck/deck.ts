@@ -371,7 +371,9 @@ export function deck() {
   // ---------- links to a slide, and the address ----------
   addEventListener('hashchange', () => {
     const i = indexOf(decodeURIComponent(location.hash.slice(1)));
-    if (i >= 0 && i !== cur) go(i);
+    if (i < 0 || i === cur) return;
+    if (!contents.hidden) closeContents();
+    go(i);
   });
 
   // ---------- contents: every slide on the light table ----------

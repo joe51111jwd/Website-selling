@@ -752,7 +752,7 @@
     z-index: 70;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
-    background: rgb(14 14 16 / 0.42);
+    background: rgb(14 14 16 / 0.74);
     -webkit-backdrop-filter: blur(26px) saturate(1.6);
     backdrop-filter: blur(26px) saturate(1.6);
     color: var(--chalk);
@@ -774,6 +774,7 @@
 
   & .dc-title {
     margin: 0;
+    color: var(--chalk);
     font: 800 clamp(1.6rem, 3vw, 2.6rem) / 1 var(--disp);
     letter-spacing: -0.03em;
   }
@@ -887,7 +888,7 @@
   }
 
   & .dc-cap span:first-child {
-    opacity: 0.6;
+    opacity: 0.78;
     font-variant-numeric: tabular-nums;
   }
 
