@@ -9,9 +9,9 @@
    one proof line", /mnt/project-files/click-science/Click science playbook.md 8a): the "Used by"
    logos come up from the foot of the screen and join the copy as one centred group, at a strength
    they can be read at.
-   The fold fills the first screen on laptops and phones alike, so the next section never peeks in
-   (the attention heatmap: the peeking section took 17-19% of first-screen attention, and the
-   button's share rose by about a third without it; /mnt/project-files/sim-business/runs/). */
+   On laptops the fold fills the first screen, so the next section never peeks in (the attention
+   heatmap: the peeking section took 17-19% of first-screen attention, and the button's share rose
+   by about a third without it; /mnt/project-files/sim-business/runs/). Phones: see the end. */
 
 /* ── the copy column: centred, with room round it ──────────────────────────────── */
 
@@ -129,21 +129,21 @@ html.look-focus .hf-logos img {
   }
 }
 
-/* ── phones: the fold is the first screen, the copy centred in it ───────────────────── */
+/* ── phones: the copy starts right under the header, and the fold is as tall as its content ── */
+/* The click simulator (blind head-to-heads, Oct 18) preferred the classic fold's high button to
+   the focus look's centred one (trial button at y 367 against 528 on a 390 x 844 phone), so on
+   phones the group sits at the top like the classic fold, and the next section's headline comes
+   up under the logos to invite the scroll. */
 
 @media (max-width: 760px) {
   html.look-focus .hf4 .hf-root {
-    display: flex;
-    flex-direction: column;
-    min-height: 100svh;
-    padding-bottom: 10px;
+    display: block;
+    min-height: 0;
+    padding-bottom: 8px;
   }
 
   html.look-focus .hf4 .hf-copy {
-    flex: 0 0 auto;
-    justify-content: center;
-    padding-top: calc(var(--header-h) + 6px);
-    padding-bottom: 0;
+    padding-top: calc(var(--header-h) + 14px);
   }
 
   html.look-focus .hf4 .hf-eyebrow {
@@ -151,17 +151,18 @@ html.look-focus .hf-logos img {
   }
 
   html.look-focus .hf4 .hf-h1 {
-    margin-top: 14px;
+    margin-top: 10px;
+    line-height: 1.02;
   }
 
   html.look-focus .hf4 .hf-sub {
-    margin-top: 16px;
+    margin-top: 14px;
     max-width: 22em;
     font-size: 16px;
   }
 
   html.look-focus .hf4 .hf-act {
-    margin-top: 22px;
+    margin-top: 18px;
   }
 
   html.look-focus .hf4 .hf-root .hf-demo {
@@ -176,7 +177,7 @@ html.look-focus .hf-logos img {
   }
 
   html.look-focus .hf4 .hf-root::after {
-    flex-basis: clamp(20px, 5svh, 48px);
+    content: none;
   }
 
   html.look-focus .hf-logos img {

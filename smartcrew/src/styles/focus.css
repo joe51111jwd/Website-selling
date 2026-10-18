@@ -9,8 +9,8 @@
      action) with room round it; everything else in it goes quiet (smaller, lighter, no rival
      buttons). Copy stays Andrew's, word for word; nothing is cut, only quietened.
    - One section at a time. The section filling most of the screen is in focus (src/site/focus.ts
-     marks it .is-focus and sets html[data-focus]); the others dim round it. Nothing is hidden or
-     disabled.
+     marks it .is-focus and sets html[data-focus]); on laptops the others dim round it. Nothing is
+     hidden or disabled, and a full-strength trial button is always on screen.
    - Liquid glass, done properly but where it can't hurt: a living aurora behind, thick bright-rimmed
      glass on the few surfaces that carry a point, real blur only on desktop and only on floating
      things. Text sits on near-solid fills; the orange button stays solid (the click research's
@@ -54,7 +54,8 @@ html.look-focus {
   html.look-focus {
     --lg-r: 26px;
     --focus-h2: clamp(32px, 9.4vw, 42px);
-    --focus-gap: clamp(64px, 12svh, 104px);
+    /* phones: less room between points; long empty stretches cost readers on a phone */
+    --focus-gap: clamp(40px, 6svh, 56px);
   }
 }
 
@@ -118,8 +119,12 @@ html.look-focus main.site section.scene {
   transition: opacity 0.7s var(--ease-out);
 }
 
-html.look-focus[data-focus] main.site section.scene:not(.is-focus):not(#footer) {
-  opacity: 0.3;
+/* laptops only: a phone shows one section at a time anyway, and there the dimmed edges read as
+   washed-out stretches (the click simulator's judges, Oct 18, on the phone page) */
+@media (min-width: 761px) {
+  html.look-focus[data-focus] main.site section.scene:not(.is-focus):not(#footer) {
+    opacity: 0.3;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
