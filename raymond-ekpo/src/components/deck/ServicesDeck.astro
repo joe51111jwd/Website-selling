@@ -1,0 +1,389 @@
+---
+// Appendix A: the four engagements in full, one slide each, then the mini-audit and the questions
+// people ask before they enquire. Slide ids match the paper site's anchors (/services#rewrite).
+import { render } from 'astro:content';
+import type { Service } from '../../lib/content';
+import { pad } from '../../lib/content';
+import Deck from './Deck.astro';
+import Slide from './Slide.astro';
+
+interface Props {
+  services: Service[];
+  faqs: { q: string; a: string }[];
+}
+
+const { services, faqs } = Astro.props;
+const rendered = await Promise.all(services.map((s) => render(s)));
+const N = services.length + 3;
+const deckName = 'Appendix A · Engagements';
+---
+
+<Deck name="services" label="Appendix A: the four engagements in full">
+  <Slide id="engagements" title="Four engagements, in full" section="Appendix A" n={1} of={N} deck={deckName}>
+    <div class="a1">
+      <p class="d-kicker" data-b>Appendix A</p>
+      <h1 class="d-h1 a1-title" data-b>Four engagements. <span class="d-dim">Fixed scopes, public prices.</span></h1>
+      <ol class="a1-rows">
+        {
+          services.map((s, i) => (
+            <li data-b>
+              <a href={`#${s.id}`} class="a1-row">
+                <span class="d-num">A{i + 2}</span>
+                <span class="a1-name">{s.data.title}</span>
+                <span class="a1-for">{s.data.for}</span>
+                <span class="a1-price">{s.data.price}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="d-fine" data-b>
+        Not sure which? <a href="/#fit" class="d-link">Five questions will tell you</a>
+      </p>
+    </div>
+  </Slide>
+
+  {
+    services.map((s, i) => {
+      const { Content } = rendered[i];
+      return (
+        <Slide id={s.id} title={s.data.title} section={`A${i + 2} · ${s.data.title}`} n={i + 2} of={N} deck={deckName}>
+          <div class="a2">
+            <div class="a2-side">
+              <span class="d-num" data-b>
+                {pad(i + 1)} / {pad(services.length)}
+              </span>
+              <h2 class="d-h1 a2-title" data-b>
+                {s.data.title}
+              </h2>
+              <p class="a2-price" data-b>
+                {s.data.price}
+              </p>
+              <p class="d-fine" data-b>
+                {s.data.priceNote}
+              </p>
+              <p data-b>
+                <a href={`/work-with-me?service=${s.id}`} class="d-btn" data-cta={s.data.cta} data-cta-location="services page">
+                  {s.data.cta}
+                </a>
+              </p>
+            </div>
+            <div class="a2-main">
+              <p class="d-lead a2-best" data-b>
+                <span class="d-kicker">Best for</span>
+                {s.data.bestFor}
+              </p>
+              <div class="a2-prose d-text" data-b>
+                <Content />
+              </div>
+              <div class="a2-lists" data-b>
+                <div>
+                  <h3 class="a2-h">What it covers</h3>
+                  <ul>
+                    {s.data.covers.map((c) => (
+                      <li>{c}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 class="a2-h">What you receive</h3>
+                  <ul>
+                    {s.data.receive.map((c) => (
+                      <li>{c}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              <p class="a2-needs d-text" data-b>
+                <b>What I need from you.</b> {s.data.needs}
+              </p>
+              {s.data.note && (
+                <p class="d-fine" data-b>
+                  {s.data.note}
+                </p>
+              )}
+            </div>
+          </div>
+        </Slide>
+      );
+    })
+  }
+
+  <Slide id="mini-audit" title="The mini-audit" section={`A${services.length + 2} · Complimentary`} tone="klein" n={services.length + 2} of={N} deck={deckName}>
+    <div class="a6">
+      <p class="d-kicker" data-b>Complimentary</p>
+      <h2 class="d-display a6-title" data-b>The mini-audit.</h2>
+      <div class="a6-grid">
+        <p class="d-lead" data-b>
+          If you already have a deck, send it over and I’ll write back with a short note on the three changes I’d make
+          first, and why. No call needed, and no obligation to work together afterwards.
+        </p>
+        <div class="a6-side" data-b>
+          <p class="d-text">
+            I only do a few each month, for founders raising pre-seed or seed in the next six months, so I may decline if
+            it isn’t a fit or the month is full. I’ll tell you either way.
+          </p>
+          <a href="/work-with-me?type=audit" class="d-btn" data-cta="Request a free deck audit" data-cta-location="services page">Request a mini-audit</a>
+        </div>
+      </div>
+    </div>
+  </Slide>
+
+  <Slide id="faq" title="Before you enquire" section={`A${services.length + 3} · Questions`} n={N} of={N} deck={deckName}>
+    <div class="a7">
+      <h2 class="d-h2" data-b>Before you enquire.</h2>
+      <dl class="a7-grid">
+        {
+          faqs.map((f) => (
+            <div data-b>
+              <dt>{f.q}</dt>
+              <dd class="d-text">{f.a}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </Slide>
+</Deck>
+
+<style>
+  .a1 {
+    display: grid;
+    gap: clamp(18px, 3.4vh, 36px);
+  }
+
+  .a1-title {
+    max-width: 13em;
+  }
+
+  .a1-rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-bottom: 1px solid var(--rule-c);
+  }
+
+  .a1-row {
+    display: grid;
+    grid-template-columns: 3.4em minmax(0, 1fr) auto;
+    gap: 6px 24px;
+    align-items: baseline;
+    padding: clamp(12px, 2.2vh, 20px) 0;
+    border-top: 1px solid var(--rule-c);
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  @media (min-width: 900px) {
+    .a1-row {
+      grid-template-columns: 3.4em minmax(0, 5fr) minmax(0, 5fr) minmax(9em, 3fr);
+    }
+  }
+
+  .a1-row:hover .a1-name {
+    color: var(--acc);
+  }
+
+  .a1-name {
+    font: 700 var(--t-h3) / 1.05 var(--disp);
+    letter-spacing: -0.025em;
+    transition: color 0.2s ease;
+  }
+
+  .a1-for {
+    grid-column: 2;
+    font: 400 var(--t-body) / 1.4 var(--text);
+    color: var(--fg-2);
+  }
+
+  @media (min-width: 900px) {
+    .a1-for {
+      grid-column: auto;
+    }
+  }
+
+  .a1-price {
+    grid-column: 3;
+    grid-row: 1;
+    font: 800 var(--t-h3) / 1 var(--disp);
+    letter-spacing: -0.03em;
+    color: var(--acc);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (min-width: 900px) {
+    .a1-price {
+      grid-column: auto;
+      grid-row: auto;
+    }
+  }
+
+  .a2 {
+    display: grid;
+    gap: 28px;
+  }
+
+  @media (min-width: 1000px) {
+    .a2 {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      gap: clamp(40px, 5vw, 90px);
+      align-items: start;
+    }
+  }
+
+  .a2-side {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+    align-content: start;
+  }
+
+  .a2-title {
+    max-width: 8em;
+    font-size: clamp(2.2rem, min(5.2vw, 8.4vh), 5.4rem);
+  }
+
+  .a2-price {
+    margin: 14px 0 0;
+    font: 800 clamp(2rem, min(3.8vw, 6.4vh), 4rem) / 1 var(--disp);
+    letter-spacing: -0.04em;
+    color: var(--acc);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .a2-side .d-btn {
+    margin-top: 16px;
+  }
+
+  .a2-main {
+    display: grid;
+    gap: clamp(14px, 2.4vh, 24px);
+  }
+
+  .a2-best {
+    display: grid;
+    gap: 6px;
+    color: var(--fg);
+  }
+
+  .a2-prose :global(p) {
+    margin: 0;
+  }
+
+  .a2-prose :global(p + p) {
+    margin-top: 0.8em;
+  }
+
+  .a2-lists {
+    display: grid;
+    gap: 18px 40px;
+  }
+
+  @media (min-width: 760px) {
+    .a2-lists {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .a2-h {
+    margin: 0 0 8px;
+    font: 600 var(--t-small) / 1.3 var(--text);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .a2-lists ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .a2-lists li {
+    position: relative;
+    padding: 7px 0 7px 22px;
+    border-top: 1px solid var(--rule-c);
+    font: 400 var(--t-body) / 1.4 var(--text);
+    color: var(--fg);
+  }
+
+  .a2-lists li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1.05em;
+    width: 10px;
+    height: 2px;
+    background: var(--acc);
+  }
+
+  .a2-needs b {
+    color: var(--fg);
+    font-weight: 600;
+  }
+
+  .a6 {
+    display: grid;
+    gap: clamp(20px, 4vh, 44px);
+  }
+
+  .a6-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  @media (min-width: 1000px) {
+    .a6-grid {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: clamp(40px, 6vw, 96px);
+      align-items: end;
+    }
+  }
+
+  .a6-side {
+    display: grid;
+    gap: 22px;
+    justify-items: start;
+  }
+
+  .a7 {
+    display: grid;
+    gap: clamp(20px, 4.4vh, 48px);
+  }
+
+  .a7-grid {
+    display: grid;
+    gap: clamp(16px, 3vh, 30px) 40px;
+    margin: 0;
+  }
+
+  @media (min-width: 800px) {
+    .a7-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .a7-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .a7-grid div {
+    padding-top: 14px;
+    border-top: 1px solid var(--rule-c);
+  }
+
+  .a7-grid dt {
+    margin-bottom: 8px;
+    font: 700 var(--t-h3) / 1.08 var(--disp);
+    font-size: clamp(1.15rem, min(1.6vw, 2.7vh), 1.6rem);
+    letter-spacing: -0.02em;
+    color: var(--fg);
+  }
+
+  .a7-grid dd {
+    margin: 0;
+  }
+</style>

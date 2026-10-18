@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import PaperHome from '../components/home/PaperHome.astro';
-import GlassHome from '../components/home/GlassHome.astro';
+import HomeDeck from '../components/deck/HomeDeck.astro';
 import { getServices } from '../lib/content';
 import { site } from '../site.config';
 import { glass } from '../theme';
@@ -45,5 +45,5 @@ const schema = [
 ---
 
 <Base title={`${site.name} · ${site.role} for pre-seed and seed founders`} home schema={schema}>
-  {glass ? <GlassHome /> : <PaperHome />}
+  {glass ? <HomeDeck /> : <PaperHome />}
 </Base>

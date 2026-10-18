@@ -1,12 +1,11 @@
 ---
 import '../styles/global.css';
-import '../styles/liquid.css';
+import '../styles/deck.css';
 import serifFont from '@fontsource-variable/source-serif-4/files/source-serif-4-latin-opsz-normal.woff2?url';
 import sansFont from '@fontsource-variable/schibsted-grotesk/files/schibsted-grotesk-latin-wght-normal.woff2?url';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import LiquidChrome from '../components/liquid/Chrome.astro';
-import LiquidFooter from '../components/liquid/Footer.astro';
+import DeckChrome from '../components/deck/Chrome.astro';
 import { site } from '../site.config';
 import { glass } from '../theme';
 
@@ -57,7 +56,7 @@ const jsonLd = {
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
-    <meta name="theme-color" content={glass ? '#070606' : '#f4efe6'} />
+    <meta name="theme-color" content={glass ? '#f4f4f1' : '#f4efe6'} />
     <meta name="author" content={site.name} />
     <script is:inline>
       // Reveal-on-scroll only hides things when scripts run; if the motion script never starts, show everything
@@ -66,8 +65,19 @@ const jsonLd = {
       setTimeout(function () { if (!window.__motion) document.documentElement.classList.add('reveal-all'); }, 2500);
     </script>
 
-    <link rel="preload" href={serifFont} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={sansFont} as="font" type="font/woff2" crossorigin />
+    {
+      glass ? (
+        <>
+          <link rel="preload" href="/fonts/cabinet-grotesk-800.woff2" as="font" type="font/woff2" crossorigin />
+          <link rel="preload" href="/fonts/switzer-400.woff2" as="font" type="font/woff2" crossorigin />
+        </>
+      ) : (
+        <>
+          <link rel="preload" href={serifFont} as="font" type="font/woff2" crossorigin />
+          <link rel="preload" href={sansFont} as="font" type="font/woff2" crossorigin />
+        </>
+      )
+    }
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
@@ -82,7 +92,12 @@ const jsonLd = {
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Raymond Ekpo, Investor Narrative Specialist. Investors fund what they can explain to someone else. Beside it, a traction slide red-penned: the headline rewritten, “2,000+ users” circled with the note “A total, not a rate.”" />
+    <meta
+      property="og:image:alt"
+      content={glass
+        ? 'The title slide of Raymond Ekpo’s deck: Investors fund what they can explain to someone else.'
+        : 'Raymond Ekpo, Investor Narrative Specialist. Investors fund what they can explain to someone else. Beside it, a traction slide red-penned: the headline rewritten, “2,000+ users” circled with the note “A total, not a rate.”'}
+    />
     <meta property="og:locale" content="en_GB" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content={site.x.handle} />
@@ -105,17 +120,16 @@ const jsonLd = {
     }
   </head>
   <body>
-    {glass && <canvas class="liquid-canvas" aria-hidden="true" />}
     <a class="skip" href="#main">Skip to content</a>
-    {glass ? <LiquidChrome /> : <Header home={home} />}
+    {glass ? <DeckChrome /> : <Header home={home} />}
     <main id="main">
       <slot />
     </main>
-    {glass ? <LiquidFooter cta={cta} /> : <Footer cta={cta} />}
+    {!glass && <Footer cta={cta} />}
     <script>
       import '../scripts/track';
       import '../scripts/motion';
-      import '../scripts/liquid/boot';
+      import '../scripts/deck/boot';
     </script>
   </body>
 </html>

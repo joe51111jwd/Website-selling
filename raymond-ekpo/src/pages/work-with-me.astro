@@ -4,7 +4,7 @@ import PageHead from '../components/PageHead.astro';
 import { getServices } from '../lib/content';
 import { site } from '../site.config';
 import Pen from '../components/Pen.astro';
-import LPageHead from '../components/liquid/PageHead.astro';
+import DocHead from '../components/deck/DocHead.astro';
 import { glass } from '../theme';
 
 const services = await getServices();
@@ -17,12 +17,12 @@ const services = await getServices();
 >
   {
     glass ? (
-      <LPageHead eyebrow="Work with me" title="Tell me about" dim="your raise." light="0.95 0.82 0.4 -0.5">
+      <DocHead kicker="The ask" title="Tell me about" dim="your raise." section="Work with me">
         <Fragment slot="lead">
           A few questions about the company, the round and where you need help. It takes about five minutes, and your
           answers go straight into my first read.
         </Fragment>
-      </LPageHead>
+      </DocHead>
     ) : (
       <PageHead kicker="Work with me">
         <Fragment slot="title">Tell me about <em><span class="pen-wrap">your raise.<Pen kind="underline" load delay={0.9} /></span></em></Fragment>

@@ -1,0 +1,924 @@
+---
+// The home page in the glass build: Raymond's own pitch deck, twelve slides in the order a good
+// seed deck runs (title, problem, insight, approach, demo, product, model, market, process,
+// traction, team, ask). Each slide's notes say why it's built that way, so the deck teaches the
+// method while it sells it. Prices come from src/content/services, the examples from src/content/work.
+import { getServices, getWork, pad } from '../../lib/content';
+import { site } from '../../site.config';
+import { hears } from '../../lib/hears';
+import Deck from './Deck.astro';
+import Slide from './Slide.astro';
+import RodCompare from './RodCompare.astro';
+import FitPlan from './FitPlan.astro';
+
+const services = await getServices();
+const notes = await getWork('analysis');
+const market = notes.find((n) => n.id === 'market-slide' && n.data.example) ?? notes.find((n) => n.data.example)!;
+const money = (n: number) => `$${n.toLocaleString('en-US')}`;
+const lo = Math.min(...services.map((s) => s.data.priceMin));
+const hi = Math.max(...services.map((s) => s.data.priceMax));
+
+const heard = notes.filter((n) => n.data.example);
+
+const steps = [
+  { when: 'Day 0', title: 'Enquiry', body: 'Tell me about the company, the round and where the story feels weak. Share the deck if you have one.' },
+  { when: 'Within two business days', title: 'First read', body: 'I read everything myself and reply with a straight answer: whether I can help, which service fits, or whether you need me at all yet.' },
+  { when: 'The work', title: 'The narrative', body: 'We agree the thesis in writing, then build or rebuild the storyline and the slides around it.' },
+  { when: 'The raise', title: 'The room', body: 'You walk in able to explain the company and defend it. With Q&A preparation, you’ve already rehearsed the hard questions.' },
+];
+
+const N = 12;
+---
+
+<Deck name="main" label="The case for working with Raymond Ekpo">
+  <!-- 01 -->
+  <Slide id="title" title="Investors fund what they can explain" section="Investor narrative" n={1} of={N}>
+    <div class="s1">
+      <p class="d-kicker" data-b>The case for working with me, in twelve slides</p>
+      <h1 class="d-display s1-title" data-b>Investors fund what they can <span class="d-acc">explain</span> to someone else.</h1>
+      <div class="s1-foot" data-b>
+        <p class="d-lead">
+          I build the investment narrative behind pre-seed and seed rounds: the thesis, the storyline, and only then the
+          deck. So this site is a deck.
+        </p>
+        <div class="d-btns">
+          <a href="/work-with-me" class="d-btn" data-cta="Discuss your raise" data-cta-location="hero">Discuss your raise</a>
+          <a href="/work-with-me?type=audit" class="d-link" data-cta="Request a free deck audit" data-cta-location="hero">Free deck audit</a>
+        </div>
+      </div>
+      <p class="s1-hint d-fine" data-b>
+        <span class="s1-hint-keys"><span class="d-key" aria-hidden="true">→</span> next slide &nbsp; <span class="d-key" aria-hidden="true">N</span> speaker notes</span>
+        <span class="s1-hint-touch">Swipe for the next slide. Notes are in the bar below.</span>
+      </p>
+    </div>
+    <Fragment slot="notes">
+      <p>A title slide gets about ten seconds. It should say what the company does in words an investor could repeat, not a tagline.</p>
+      <p>Mine is the sentence the rest of this deck tries to prove. Every slide after it has notes like these: why it’s built the way it is.</p>
+    </Fragment>
+  </Slide>
+
+  <!-- 02 -->
+  <Slide id="problem" title="The problem" section="02 · The problem" tone="ink" n={2} of={N}>
+    <div class="s2">
+      <h2 class="d-h1 s2-title" data-b>Most decks describe the company. <span class="d-dim">Few make the case for investing in it.</span></h2>
+      <ol class="s2-points">
+        <li data-b>
+          <span class="d-num">01</span>
+          <h3 class="d-h3">You know the product better than anyone.</h3>
+          <p class="d-text">So the deck explains how it works. Investors needed to hear why it’s an investment, which is a different question.</p>
+        </li>
+        <li data-b>
+          <span class="d-num">02</span>
+          <h3 class="d-h3">Investors don’t decide alone.</h3>
+          <p class="d-text">Before they commit, they explain your company to someone else: their partners, their co-investors, or their own judgement.</p>
+        </li>
+        <li data-b>
+          <span class="d-num">03</span>
+          <h3 class="d-h3">The retelling is where it breaks.</h3>
+          <p class="d-text">A narrative has to survive being retold without you in the room. Most are built to be presented, not repeated.</p>
+        </li>
+      </ol>
+    </div>
+    <Fragment slot="notes">
+      <p>A problem slide works when the reader already half-believes it. Name the pain in their words, then make it specific enough to be uncomfortable.</p>
+      <p>Three points is the limit. A fourth is usually the first one again.</p>
+    </Fragment>
+  </Slide>
+
+  <!-- 03 -->
+  <Slide id="heard" title="What investors hear" section="03 · What investors hear" n={3} of={N}>
+    <div class="s3">
+      <div class="s3-head" data-b>
+        <h2 class="d-h2">Five slides decide most first meetings. <span class="d-dim">Here’s how they’re heard.</span></h2>
+      </div>
+      <div class="s3-grid" data-b>
+        <fieldset class="d-seg s3-tabs" data-seg="checked">
+          <legend class="sr-only">Choose a slide</legend>
+          <span class="d-seg-thumb" data-seg-thumb aria-hidden="true"></span>
+          {
+            heard.map((n, i) => (
+              <label class="d-seg-item" data-seg-item>
+                <input type="radio" name="heard" value={n.id} checked={i === 0} />
+                <span>{n.data.example!.slide}</span>
+              </label>
+            ))
+          }
+        </fieldset>
+        <div class="s3-views">
+          {
+            heard.map((n) => (
+              <div class="s3-view" data-view={n.id}>
+                <p class="d-kicker">You write</p>
+                <p class="s3-write">“{n.data.example!.before.headline}”</p>
+                <p class="d-kicker s3-hear-k">They hear</p>
+                <p class="s3-hear">{hears[n.id] ?? n.data.dek}</p>
+                <a href={`/work/${n.id}`} class="d-link">The analysis, and the rewrite</a>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+      <style is:inline set:html={heard.map((n) => `.s3:has(input[value="${n.id}"]:checked) [data-view="${n.id}"]{display:block}`).join('')} />
+    </div>
+    <Fragment slot="notes">
+      <p>Investors read decks fast and match patterns. The same five slides carry most of the judgement, and each one is quietly answering a different question from the one the founder thinks it’s answering.</p>
+      <p>The fix is rarely more information. It’s saying the thing they’re actually checking for.</p>
+    </Fragment>
+  </Slide>
+
+  <!-- 04 -->
+  <Slide id="approach" title="The approach" section="04 · The approach" tone="klein" n={4} of={N}>
+    <div class="s4">
+      <h2 class="d-h1 s4-title" data-b>Write the argument first. <span class="d-dim">Design it last.</span></h2>
+      <ol class="s4-steps">
+        <li data-b>
+          <span class="d-num">1</span>
+          <h3 class="d-h3">Thesis</h3>
+          <p class="d-text">The investment case, written as a paragraph you could say out loud.</p>
+        </li>
+        <li data-b>
+          <span class="d-num">2</span>
+          <h3 class="d-h3">Storyline</h3>
+          <p class="d-text">What goes first, what gets cut and what’s missing, so each claim sets up the next.</p>
+        </li>
+        <li data-b>
+          <span class="d-num">3</span>
+          <h3 class="d-h3">Slides</h3>
+          <p class="d-text">One claim per slide, with the evidence under it. Design matters, but it’s the last step.</p>
+        </li>
+      </ol>
+    </div>
+    <Fragment slot="notes">
+      <p>If the investment case can’t be written as a clear paragraph, layout won’t fix it. So the writing comes before the design, and every slide has to earn its place in the argument.</p>
+      <p>A solution slide should show how it works in as few moving parts as possible. Three is plenty.</p>
+    </Fragment>
+  </Slide>
+
+  <!-- 05 -->
+  <Slide id="before-after" title="Before and after" section="05 · Before & after" n={5} of={N}>
+    <div class="s5">
+      <div class="s5-copy">
+        <h2 class="d-h2" data-b>One slide, rewritten. <span class="d-dim">Drag the glass.</span></h2>
+        <p class="d-text" data-b>
+          The original states the size of the world. The rewrite states the size of the company you can build from here,
+          and shows the working.
+        </p>
+        <p class="d-fine" data-b>Illustrative. The company, numbers and events are invented to show the reasoning.</p>
+        <p data-b><a href={`/work/${market.id}`} class="d-link">Read the analysis</a></p>
+      </div>
+      <div class="s5-demo" data-b>
+        <RodCompare example={market.data.example!} />
+      </div>
+    </div>
+    <Fragment slot="notes">
+      <p>Show the product working instead of describing it. Here, that’s one slide before and after.</p>
+      <p>The rewrite claims less than the original and is far easier to believe. That’s the trade most decks need to make: a smaller number you can defend beats a bigger one nobody does.</p>
+    </Fragment>
+  </Slide>
+
+  <!-- 06 -->
+  <Slide id="engagements" title="Four engagements" section="06 · The product" n={6} of={N}>
+    <div class="s6">
+      <h2 class="d-h2" data-b>Four engagements. <span class="d-dim">Each with a clear end.</span></h2>
+      <ol class="s6-cols">
+        {
+          services.map((s, i) => (
+            <li data-b>
+              <span class="d-num">{pad(i + 1)}</span>
+              <h3 class="d-h3">{s.data.title}</h3>
+              <p class="d-text s6-for">{s.data.for}</p>
+              <p class="s6-price">{s.data.price}</p>
+              <p class="d-fine">{s.data.priceNote}</p>
+              <p class="d-text s6-get">{s.data.youGet}</p>
+              <a href={`/services#${s.id}`} class="d-link">
+                What’s included
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+    <Fragment slot="notes">
+      <p>A product slide should show what someone buys, not every feature. Four options with fixed scopes and visible prices let a founder find their own fit in seconds.</p>
+      <p>The full scope of each is in Appendix A.</p>
+    </Fragment>
+  </Slide>
+
+  <!-- 07 -->
+  <Slide id="model" title="Fixed fees" section="07 · Business model" tone="ink" n={7} of={N}>
+    <div class="s7">
+      <h2 class="d-h2 s7-title" data-b>Fixed fees, published. <span class="d-dim">Nothing scales with your raise.</span></h2>
+      <dl class="s7-stats">
+        <div data-b>
+          <dt class="s7-big">0%</dt>
+          <dd class="d-text">of your round. No success fees, and I don’t sell introductions to investors.</dd>
+        </div>
+        <div data-b>
+          <dt class="s7-big">{money(lo)}–{money(hi)}</dt>
+          <dd class="d-text">The range of every fee, all of them listed. You get a fixed quote before anything starts.</dd>
+        </div>
+        <div data-b>
+          <dt class="s7-big">1</dt>
+          <dd class="d-text">person does the work: me. Whoever reads your enquiry writes your narrative. Nothing is handed to someone junior.</dd>
+        </div>
+      </dl>
+    </div>
+    <Fragment slot="notes">
+      <p>Investors look for a model they can explain in a sentence. Founders buying a service want the same thing.</p>
+      <p>Big numbers on a model slide should be facts the reader can check, so these are: the fees are all on this site, and none of them moves with the size of your raise.</p>
+    </Fragment>
+  </Slide>
+
+  <!-- 08 -->
+  <Slide id="fit" title="Who it’s for" section="08 · Who it’s for" n={8} of={N}>
+    <FitPlan />
+    <Fragment slot="notes">
+      <p>A good market slide says exactly who buys. This is mine, as five questions.</p>
+      <p>If you’re raising pre-seed or seed, it drafts the engagements that fit, in order, with what they cost. If you’re raising Series A or later, it says plainly that I’m probably not the right person.</p>
+    </Fragment>
+  </Slide>
+
+  <!-- 09 -->
+  <Slide id="process" title="How it works" section="09 · How it works" n={9} of={N}>
+    <div class="s9">
+      <h2 class="d-h2" data-b>From first message <span class="d-dim">to the room.</span></h2>
+      <ol class="s9-line">
+        {
+          steps.map((s, i) => (
+            <li data-b>
+              <span class="s9-dot" aria-hidden="true" />
+              <p class="d-kicker">{s.when}</p>
+              <h3 class="d-h3">
+                <span class="d-num">{i + 1}</span> {s.title}
+              </h3>
+              <p class="d-text">{s.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+    <Fragment slot="notes">
+      <p>Investors want to see the path from today to the next milestone. Founders want the same from anyone they hire.</p>
+      <p>Each step says who does what, and when. The first one has a deadline I can be held to.</p>
+    </Fragment>
+  </Slide>
+
+  <!-- 10 -->
+  <Slide id="traction" title="Traction" section="10 · Traction" tone="klein" n={10} of={N}>
+    <div class="s10">
+      <h2 class="d-h1 s10-title" data-b>No client logos. <span class="d-dim">On purpose.</span></h2>
+      <div class="s10-grid">
+        <p class="d-lead" data-b>
+          Fundraising is confidential, and most founders would rather their deck wasn’t public while they’re raising.
+          Client work appears here only with the founder’s permission, and only with outcomes that can be checked.
+        </p>
+        <div class="s10-side" data-b>
+          <p class="d-kicker">Until then, the thinking is public</p>
+          <ol class="s10-notes">
+            {
+              notes.map((n) => (
+                <li>
+                  <a href={`/work/${n.id}`}>
+                    <span>{n.data.topic}</span>
+                    {n.data.title}
+                  </a>
+                </li>
+              ))
+            }
+          </ol>
+          <a href="/work-with-me" class="d-btn" data-cta="Ask for examples" data-cta-location="deck traction">Ask for examples</a>
+        </div>
+      </div>
+    </div>
+    <Fragment slot="notes">
+      <p>The traction slide is the one most decks inflate. Don’t. An unverifiable claim costs more trust than a modest one, and investors check.</p>
+      <p>When there’s nothing you can show yet, say why, and show the next best evidence. Here that’s five analyses of the slides that decide most first meetings.</p>
+    </Fragment>
+  </Slide>
+
+  <!-- 11 -->
+  <Slide id="team" title="Team" section="11 · Team" n={11} of={N}>
+    <div class="s11">
+      <div class="s11-id" data-b>
+        {
+          site.portrait ? (
+            <img src={site.portrait} alt={site.name} class="s11-photo" width="640" height="800" />
+          ) : (
+            <span class="s11-mono" aria-hidden="true">
+              RE
+            </span>
+          )
+        }
+        <p class="d-h3 s11-name">{site.name}</p>
+        <p class="d-fine">{site.role}</p>
+        <dl class="s11-facts">
+          <div>
+            <dt>Works with</dt>
+            <dd>Pre-seed and seed founders</dd>
+          </div>
+          <div>
+            <dt>Raising from</dt>
+            <dd>US and UK investors</dd>
+          </div>
+          <div>
+            <dt>Also</dt>
+            <dd>
+              Founder, <a href={site.firm.url} rel="noopener" target="_blank">{site.firm.name}</a>
+            </dd>
+          </div>
+        </dl>
+      </div>
+      <div class="s11-copy">
+        <h2 class="d-h2" data-b>I work on the part of a raise <span class="d-dim">that happens before the slides.</span></h2>
+        <p class="d-text" data-b>
+          I spent several years studying how markets work, mostly by watching capable companies stall for reasons nobody
+          inside them could name. That work became {site.firm.name}, the growth strategy firm I run.
+        </p>
+        <p class="d-text" data-b>
+          The same problem turns up at the very start of a company. A founder knows the product, the customers and the
+          market better than anyone, and still struggles to say why it’s an investment.
+        </p>
+        <p data-b><a href="/about" class="d-link">More about how I work</a></p>
+      </div>
+    </div>
+    <Fragment slot="notes">
+      <p>A team slide answers one question: why are these the people to do this?</p>
+      <p>Relevant history, said plainly, does more than a wall of logos. The history here is the job itself: finding what’s actually in the way, and writing it down in a form people can argue with.</p>
+    </Fragment>
+  </Slide>
+
+  <!-- 12 -->
+  <Slide id="ask" title="The ask" section="12 · The ask" tone="ink" n={12} of={N}>
+    <div class="s12">
+      <h2 class="d-h1 s12-title" data-b>Raising in the next six months? <span class="d-acc">Let’s look at your narrative.</span></h2>
+      <div class="s12-asks">
+        <a href="/work-with-me" class="s12-ask" data-b data-cta="Discuss your raise" data-cta-location="deck ask">
+          <span class="d-kicker">The ask</span>
+          <span class="d-h3">Discuss your raise</span>
+          <span class="d-text">Tell me about the company, the round and where the story feels weak.</span>
+          <span class="s12-go" aria-hidden="true">→</span>
+        </a>
+        <a href="/work-with-me?type=audit" class="s12-ask" data-b data-cta="Request a free deck audit" data-cta-location="deck ask">
+          <span class="d-kicker">Or start free</span>
+          <span class="d-h3">Request a mini-audit</span>
+          <span class="d-text">Three changes I’d make to your current deck, in writing.</span>
+          <span class="s12-go" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <p class="d-fine s12-fine" data-b>
+        I read every enquiry myself and reply within {site.replyTime}. Nobody can promise you a raise, and I don’t. ·{' '}
+        <a href={`mailto:${site.email}`} data-contact="email">{site.email}</a>
+      </p>
+    </div>
+    <Fragment slot="notes">
+      <p>End with a specific ask: how much, for what, and what it proves.</p>
+      <p>Mine is small on purpose. One conversation or a free audit, and within two business days you’ll know whether I can help.</p>
+    </Fragment>
+  </Slide>
+</Deck>
+
+<style>
+  /* 01 title */
+  .s1 {
+    display: grid;
+    gap: clamp(18px, 3.4vh, 40px);
+  }
+
+  .s1-title {
+    max-width: 10.5em;
+  }
+
+  .s1-foot {
+    display: grid;
+    gap: 24px;
+  }
+
+  @media (min-width: 1000px) {
+    .s1-foot {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 48px;
+    }
+  }
+
+  .s1-hint-touch {
+    display: none;
+  }
+
+  @media (hover: none) {
+    .s1-hint-keys {
+      display: none;
+    }
+    .s1-hint-touch {
+      display: inline;
+    }
+  }
+
+  /* 02 problem */
+  .s2 {
+    display: grid;
+    gap: clamp(28px, 7vh, 80px);
+  }
+
+  .s2-title {
+    max-width: 12em;
+  }
+
+  .s2-points,
+  .s4-steps,
+  .s6-cols,
+  .s9-line,
+  .s10-notes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .s2-points {
+    display: grid;
+    gap: 22px 40px;
+  }
+
+  @media (min-width: 900px) {
+    .s2-points {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .s2-points li {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule-c);
+  }
+
+  /* 03 heard */
+  .s3 {
+    display: grid;
+    gap: clamp(22px, 5vh, 56px);
+  }
+
+  .s3-head .d-h2 {
+    max-width: 15em;
+  }
+
+  .s3-grid {
+    display: grid;
+    gap: 26px;
+  }
+
+  @media (min-width: 900px) {
+    .s3-grid {
+      grid-template-columns: minmax(200px, 3fr) minmax(0, 9fr);
+      gap: clamp(32px, 5vw, 80px);
+      align-items: start;
+    }
+    .s3-grid .s3-tabs {
+      grid-auto-flow: row;
+      grid-auto-rows: 1fr;
+    }
+    .s3-grid .s3-tabs :global(.d-seg-item) {
+      justify-content: flex-start;
+      min-height: 48px;
+      padding: 0 16px;
+      font-size: 1rem;
+    }
+  }
+
+  @media (max-width: 899px) {
+    .s3-grid .s3-tabs :global(.d-seg-item) {
+      font-size: 0.8rem;
+      padding: 0 4px;
+    }
+  }
+
+  .s3-view {
+    display: none;
+    animation: d-build 0.55s var(--ease) both;
+  }
+
+  .s3-write {
+    margin: 10px 0 0;
+    font: 500 var(--t-h3) / 1.15 var(--text);
+    letter-spacing: -0.02em;
+    color: var(--dim);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    text-decoration-color: rgb(31 47 214 / 0.55);
+  }
+
+  .s3-hear-k {
+    margin-top: clamp(18px, 3.4vh, 34px);
+  }
+
+  .s3-hear {
+    margin: 10px 0 clamp(18px, 3vh, 28px);
+    max-width: 24em;
+    font: 800 clamp(1.5rem, min(2.9vw, 4.8vh), 3.1rem) / 1.04 var(--disp);
+    letter-spacing: -0.035em;
+    color: var(--acc);
+    text-wrap: balance;
+  }
+
+  /* 04 approach */
+  .s4 {
+    display: grid;
+    gap: clamp(30px, 8vh, 90px);
+  }
+
+  .s4-steps {
+    display: grid;
+    gap: 22px 40px;
+    counter-reset: step;
+  }
+
+  @media (min-width: 900px) {
+    .s4-steps {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .s4-steps li {
+    position: relative;
+    display: grid;
+    gap: 12px;
+    align-content: start;
+    padding-top: 18px;
+    border-top: 2px solid var(--fg);
+  }
+
+  .s4-steps .d-num {
+    font-size: var(--t-h2);
+    line-height: 1;
+    color: var(--fg);
+  }
+
+  @media (min-width: 900px) {
+    .s4-steps li:not(:last-child)::after {
+      content: '→';
+      position: absolute;
+      right: -30px;
+      top: -0.55em;
+      font: 500 1.4rem/1 var(--text);
+      color: var(--fg);
+    }
+  }
+
+  /* 05 before and after */
+  .s5 {
+    display: grid;
+    gap: 28px;
+    align-items: center;
+  }
+
+  @media (min-width: 1000px) {
+    .s5 {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      gap: clamp(36px, 5vw, 80px);
+    }
+  }
+
+  .s5-copy {
+    display: grid;
+    gap: 18px;
+    align-content: center;
+  }
+
+  /* 06 engagements */
+  .s6 {
+    display: grid;
+    gap: clamp(26px, 6vh, 64px);
+  }
+
+  .s6-cols {
+    display: grid;
+    gap: 28px;
+  }
+
+  @media (min-width: 700px) {
+    .s6-cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .s6-cols {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0;
+    }
+    .s6-cols li {
+      padding: 0 clamp(16px, 1.6vw, 28px);
+      border-left: 1px solid var(--rule-c);
+    }
+    .s6-cols li:first-child {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+
+  .s6-cols li {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .s6-for {
+    min-height: 3em;
+  }
+
+  .s6-price {
+    margin: 10px 0 0;
+    font: 800 clamp(1.8rem, min(3vw, 5vh), 3rem) / 1 var(--disp);
+    letter-spacing: -0.035em;
+    color: var(--acc);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .s6-get {
+    flex: 1;
+    margin-top: 8px;
+  }
+
+  .s6-cols .d-link {
+    margin-top: 10px;
+    align-self: flex-start;
+  }
+
+  /* 07 model */
+  .s7 {
+    display: grid;
+    gap: clamp(26px, 6vh, 64px);
+  }
+
+  .s7-stats {
+    display: grid;
+    margin: 0;
+  }
+
+  .s7-stats div {
+    display: grid;
+    gap: 6px 40px;
+    align-items: baseline;
+    padding: clamp(14px, 2.6vh, 26px) 0;
+    border-top: 1px solid var(--rule-c);
+  }
+
+  @media (min-width: 900px) {
+    .s7-stats div {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    }
+  }
+
+  .s7-big {
+    font: 800 clamp(2.4rem, min(6vw, 10vh), 6.4rem) / 0.95 var(--disp);
+    letter-spacing: -0.045em;
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .s7-stats dd {
+    margin: 0;
+    max-width: 30em;
+  }
+
+  /* 09 process */
+  .s9 {
+    display: grid;
+    gap: clamp(30px, 8vh, 90px);
+  }
+
+  .s9-line {
+    position: relative;
+    display: grid;
+    gap: 26px 36px;
+  }
+
+  @media (min-width: 900px) {
+    .s9-line {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .s9-line::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 7px;
+      border-top: 2px solid var(--fg);
+    }
+  }
+
+  .s9-line li {
+    position: relative;
+    display: grid;
+    gap: 10px;
+    align-content: start;
+  }
+
+  .s9-dot {
+    width: 16px;
+    height: 16px;
+    margin-bottom: 14px;
+    border-radius: 50%;
+    background: var(--klein);
+    box-shadow: 0 0 0 5px var(--chalk);
+  }
+
+  .s9-line .d-num {
+    margin-right: 0.15em;
+  }
+
+  /* 10 traction */
+  .s10 {
+    display: grid;
+    gap: clamp(26px, 6vh, 64px);
+  }
+
+  .s10-grid {
+    display: grid;
+    gap: 32px;
+  }
+
+  @media (min-width: 1000px) {
+    .s10-grid {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+      gap: clamp(40px, 6vw, 96px);
+      align-items: start;
+    }
+  }
+
+  .s10-side {
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+  }
+
+  .s10-notes {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .s10-notes a {
+    display: grid;
+    gap: 2px;
+    padding: 10px 0;
+    border-top: 1px solid var(--rule-c);
+    color: var(--fg);
+    font: 600 var(--t-body) / 1.3 var(--text);
+    text-decoration: none;
+  }
+
+  .s10-notes a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .s10-notes span {
+    font: 500 var(--t-small) / 1.3 var(--text);
+    color: var(--dim);
+  }
+
+  /* 11 team */
+  .s11 {
+    display: grid;
+    gap: 32px;
+  }
+
+  @media (min-width: 1000px) {
+    .s11 {
+      grid-template-columns: minmax(260px, 4fr) minmax(0, 8fr);
+      gap: clamp(40px, 6vw, 110px);
+      align-items: center;
+    }
+  }
+
+  .s11-id {
+    display: grid;
+    justify-items: start;
+  }
+
+  .s11-mono {
+    display: grid;
+    place-items: center;
+    width: clamp(90px, 13vh, 140px);
+    aspect-ratio: 1;
+    background: var(--klein);
+    color: var(--chalk);
+    font: 800 clamp(2rem, 5vh, 3.4rem) / 1 var(--disp);
+    letter-spacing: -0.04em;
+  }
+
+  .s11-photo {
+    width: 100%;
+    height: auto;
+  }
+
+  .s11-name {
+    margin-top: 20px;
+  }
+
+  .s11-facts {
+    width: 100%;
+    margin: 18px 0 0;
+  }
+
+  .s11-facts div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-top: 1px solid var(--rule-c);
+    font: 400 var(--t-small) / 1.4 var(--text);
+  }
+
+  .s11-facts dt {
+    color: var(--dim);
+  }
+
+  .s11-facts dd {
+    margin: 0;
+    text-align: right;
+  }
+
+  .s11-facts a {
+    color: inherit;
+  }
+
+  .s11-copy {
+    display: grid;
+    gap: 18px;
+  }
+
+  .s11-copy .d-h2 {
+    max-width: 13em;
+  }
+
+  .s11-copy .d-text {
+    max-width: 36em;
+  }
+
+  /* 12 the ask */
+  .s12 {
+    display: grid;
+    gap: clamp(24px, 5vh, 54px);
+  }
+
+  .s12-title {
+    max-width: 13em;
+  }
+
+  .s12-asks {
+    display: grid;
+    gap: 14px;
+  }
+
+  @media (min-width: 900px) {
+    .s12-asks {
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+  }
+
+  .s12-ask {
+    position: relative;
+    display: grid;
+    gap: 8px;
+    padding: clamp(18px, 3vh, 30px) clamp(18px, 2vw, 30px);
+    padding-right: 70px;
+    border: 1px solid var(--rule-c);
+    color: var(--fg);
+    text-decoration: none;
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .s12-ask:first-child {
+    background: var(--chalk);
+    border-color: var(--chalk);
+    --fg: var(--ink);
+    --dim: var(--mute);
+    --fg-2: rgb(14 14 16 / 0.72);
+  }
+
+  .s12-ask:hover {
+    border-color: var(--fg);
+  }
+
+  .s12-go {
+    position: absolute;
+    right: clamp(18px, 2vw, 30px);
+    top: 50%;
+    font: 500 1.6rem/1 var(--text);
+    transform: translateY(-50%);
+    transition: transform 0.35s var(--ease);
+  }
+
+  .s12-ask:hover .s12-go {
+    transform: translate(6px, -50%);
+  }
+
+  .s12-fine a {
+    color: inherit;
+  }
+</style>

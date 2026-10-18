@@ -177,6 +177,18 @@ James's verdict on round five: not right, start again, and it shouldn't look lik
 
 **Legibility and fallbacks:** body text never sits on moving glass. Only the headline does, and it stays real text in the page for selection and screen readers. The bars thicken over light surfaces. Without WebGL2, a still gradient replaces the light and the headline is plain text. With reduced motion on, nothing pins, slides or drifts.
 
+### Round seven: the site is a deck
+
+James's verdict on round six: it looked like it was made with Lovable (a dark gradient, glass cards, big grey-and-white headlines: the look AI site builders produce), and it was still just a long page. Round seven changes the format, not just the look.
+
+- **The site is Raymond's own pitch deck.** He sells investor narratives, so the strongest proof is a narrative built the way he'd build one. The home page is twelve full-screen slides in the order a good seed deck runs, from the title to the ask. Services, notes and about are appendices. Every note is its own short deck.
+- **It teaches while it sells.** Most slides carry speaker notes on why the slide is built that way: what a problem slide has to do, why the traction slide shows no logos, what a specific ask looks like. A founder learns something whether or not they enquire.
+- **It looks like a deck a designer made, not a website a tool made.** Flat chalk, ink and blue fields, no gradients, glows or cards. One display face set large and tight, slide furniture in the corners, real numbers on the model slide, and a plain honesty slide where the client logos would go.
+- **Liquid Glass where Apple puts it:** on the controls over the content, not on the content. The presenter bar, the contents light table and the notes panel are glass. Every slide change is a glass rod sweeping across the screen, magnifying both slides where they meet, and the before/after slides are divided by a glass rod you drag.
+- **Same content, same rules.** Every claim is the existing copy: public prices, no guaranteed outcomes, examples labelled as invented. The enquiry form, the fit check and tracking are unchanged.
+
+**Fallbacks:** without JavaScript the slides stack into a page. With reduced motion, slides change with a quick fade. Without Chromium's SVG backdrop filters, the glass is frosted.
+
 ---
 
 ## 7. Tech

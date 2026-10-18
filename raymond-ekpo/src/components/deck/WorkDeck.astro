@@ -1,0 +1,260 @@
+---
+// Appendix B: the analyses, one slide each, with the slide's headline as founders usually write
+// it, what an investor hears, and the rewrite. Then client case studies, which appear only with
+// the founder's permission.
+import type { WorkEntry } from '../../lib/content';
+import { readingMinutes } from '../../lib/content';
+import { hears } from '../../lib/hears';
+import Deck from './Deck.astro';
+import Slide from './Slide.astro';
+
+interface Props {
+  notes: WorkEntry[];
+  cases: WorkEntry[];
+}
+
+const { notes, cases } = Astro.props;
+const N = notes.length + 2;
+const deckName = 'Appendix B · Notes';
+const tones = ['chalk', 'ink', 'chalk', 'klein', 'chalk'] as const;
+---
+
+<Deck name="work" label="Appendix B: notes and analyses">
+  <Slide id="notes" title="The thinking, in public" section="Appendix B" n={1} of={N} deck={deckName}>
+    <div class="b1">
+      <p class="d-kicker" data-b>Appendix B</p>
+      <h1 class="d-h1 b1-title" data-b>The thinking, <span class="d-dim">in public.</span></h1>
+      <div class="b1-grid">
+        <p class="d-lead" data-b>
+          Analyses of the slides and arguments that decide most early-stage raises. The examples are invented composites,
+          not clients, and they’re labelled that way.
+        </p>
+        <ol class="b1-list" data-b>
+          {
+            notes.map((n, i) => (
+              <li>
+                <a href={`#${n.id}`}>
+                  <span class="d-num">B{i + 2}</span>
+                  <span>
+                    <small>{n.data.topic}</small>
+                    {n.data.title}
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </Slide>
+
+  {
+    notes.map((n, i) => {
+      const ex = n.data.example;
+      return (
+        <Slide id={n.id} title={n.data.title} section={`B${i + 2} · ${n.data.topic}`} tone={tones[i % tones.length]} n={i + 2} of={N} deck={deckName}>
+          <div class="b2">
+            <div class="b2-head">
+              <p class="d-kicker" data-b>
+                {n.data.topic} · {readingMinutes(n.body)} min read
+              </p>
+              <h2 class="d-h1 b2-title" data-b>
+                {n.data.title}
+              </h2>
+              <p class="d-lead" data-b>
+                {n.data.dek}
+              </p>
+            </div>
+            {ex && (
+              <dl class="b2-diff" data-b>
+                <div>
+                  <dt>As usually written</dt>
+                  <dd class="b2-was">“{ex.before.headline}”</dd>
+                </div>
+                <div>
+                  <dt>What an investor hears</dt>
+                  <dd>{hears[n.id] ?? n.data.dek}</dd>
+                </div>
+                <div>
+                  <dt>Rewritten</dt>
+                  <dd class="b2-now">{ex.after.headline}</dd>
+                </div>
+              </dl>
+            )}
+            <p data-b>
+              <a href={`/work/${n.id}`} class="d-btn">
+                Read the note
+              </a>
+            </p>
+          </div>
+        </Slide>
+      );
+    })
+  }
+
+  <Slide id="case-studies" title="Client case studies" section={`B${N} · Case studies`} tone="ink" n={N} of={N} deck={deckName}>
+    <div class="b7">
+      <h2 class="d-h1 b7-title" data-b>Client work appears here <span class="d-dim">with the founder’s permission.</span></h2>
+      {
+        cases.length > 0 ? (
+          <ol class="b1-list" data-b>
+            {cases.map((c) => (
+              <li>
+                <a href={`/work/${c.id}`}>
+                  <span class="d-num">→</span>
+                  <span>
+                    <small>{c.data.sector ?? c.data.topic}</small>
+                    {c.data.title}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <div class="b7-grid">
+            <p class="d-lead" data-b>
+              Fundraising is confidential, and most founders would rather their deck wasn’t public while they’re raising.
+              If you’d like to see examples of my work before you enquire, ask, and I’ll share what I can.
+            </p>
+            <p data-b>
+              <a href="/work-with-me" class="d-btn" data-cta="Ask for examples" data-cta-location="work page">
+                Ask for examples
+              </a>
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </Slide>
+</Deck>
+
+<style>
+  .b1 {
+    display: grid;
+    gap: clamp(18px, 3.6vh, 40px);
+  }
+
+  .b1-grid {
+    display: grid;
+    gap: 26px;
+  }
+
+  @media (min-width: 1000px) {
+    .b1-grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: clamp(40px, 6vw, 96px);
+      align-items: start;
+    }
+  }
+
+  .b1-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-bottom: 1px solid var(--rule-c);
+  }
+
+  .b1-list a {
+    display: grid;
+    grid-template-columns: 3em 1fr;
+    gap: 16px;
+    align-items: baseline;
+    padding: clamp(10px, 1.8vh, 16px) 0;
+    border-top: 1px solid var(--rule-c);
+    color: var(--fg);
+    font: 700 var(--t-h3) / 1.1 var(--disp);
+    font-size: clamp(1.1rem, min(1.7vw, 2.8vh), 1.7rem);
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+
+  .b1-list a:hover {
+    color: var(--acc);
+  }
+
+  .b1-list small {
+    display: block;
+    margin-bottom: 2px;
+    font: 500 var(--t-small) / 1.3 var(--text);
+    letter-spacing: 0;
+    color: var(--dim);
+  }
+
+  .b2 {
+    display: grid;
+    gap: clamp(18px, 3.4vh, 36px);
+  }
+
+  .b2-head {
+    display: grid;
+    gap: 14px;
+  }
+
+  .b2-title {
+    max-width: 14em;
+  }
+
+  .b2-diff {
+    display: grid;
+    gap: 0;
+    margin: 0;
+  }
+
+  @media (min-width: 1000px) {
+    .b2-diff {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 36px;
+    }
+  }
+
+  .b2-diff div {
+    padding: 12px 0;
+    border-top: 1px solid var(--rule-c);
+  }
+
+  .b2-diff dt {
+    margin-bottom: 6px;
+    font: 500 var(--t-small) / 1.3 var(--text);
+    color: var(--dim);
+  }
+
+  .b2-diff dd {
+    margin: 0;
+    font: 400 var(--t-body) / 1.45 var(--text);
+    color: var(--fg-2);
+  }
+
+  .b2-was {
+    text-decoration: line-through;
+    text-decoration-thickness: 1.5px;
+  }
+
+  .b2-diff .b2-now {
+    font: 700 var(--t-h3) / 1.1 var(--disp);
+    font-size: clamp(1.1rem, min(1.6vw, 2.7vh), 1.6rem);
+    letter-spacing: -0.02em;
+    color: var(--acc);
+  }
+
+  .b7 {
+    display: grid;
+    gap: clamp(20px, 4vh, 44px);
+  }
+
+  .b7-title {
+    max-width: 13em;
+  }
+
+  .b7-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  @media (min-width: 1000px) {
+    .b7-grid {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: clamp(40px, 6vw, 96px);
+      align-items: end;
+    }
+  }
+</style>

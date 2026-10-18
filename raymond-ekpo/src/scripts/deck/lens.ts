@@ -1,7 +1,8 @@
 // Glass that bends what's behind it. Chromium can run an SVG filter on whatever sits behind an
-// element (backdrop-filter: url(#…)), so each element marked data-lens-glass gets a displacement
-// map built for its own size: a rounded rim that refracts like a convex bevel, frosted inside.
-// Other browsers keep the frosted CSS glass.
+// element (backdrop-filter: url(#…)), so each piece of glass gets a displacement map built for its
+// own size. Controls (data-lens-glass) have a rounded rim that refracts like a convex bevel and a
+// flat middle. Rods (rodLens: the wipe between slides, the before/after divider) are curved all
+// the way across, like a glass cylinder. Other browsers keep frosted CSS glass.
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -72,11 +73,38 @@ function map(w: number, h: number, radius: number, bezel: number, thick: number,
   return c.toDataURL();
 }
 
+/** a glass cylinder standing upright: what's behind is magnified most in the middle and squeezed
+ *  towards the rims, and every sample comes from inside the rod, so nothing goes blank */
+function rodMap(w: number, scale: number) {
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = 1;
+  const ctx = c.getContext('2d')!;
+  const img = ctx.createImageData(w, 1);
+  const R = w / 2;
+  for (let x = 0; x < w; x++) {
+    const t = (x + 0.5 - R) / R;
+    const a = Math.abs(t);
+    // how much of the world each part of the rod shows: 1/0.6 magnification in the middle
+    const f = 0.6 + 0.28 * a * a;
+    const dx = R * t * (f - 1);
+    const o = x * 4;
+    img.data[o] = Math.round(128 + (dx / scale) * 255);
+    img.data[o + 1] = 128;
+    img.data[o + 2] = 128;
+    img.data[o + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  return c.toDataURL();
+}
+
 let svg: SVGSVGElement | null = null;
 const made = new Map<string, string>();
 
-function filterFor(w: number, h: number, radius: number, blur: number) {
-  const key = `${w}x${h}r${radius}b${blur}`;
+type Shape = { bezel?: number; thick?: number; scale?: number; rod?: boolean };
+
+function filterFor(w: number, h: number, radius: number, blur: number, shape: Shape = {}) {
+  const key = `${w}x${h}r${radius}b${blur}:${shape.bezel ?? ''}:${shape.thick ?? ''}:${shape.scale ?? ''}:${shape.rod ?? ''}`;
   const existing = made.get(key);
   if (existing) return existing;
   if (!svg) {
@@ -88,8 +116,8 @@ function filterFor(w: number, h: number, radius: number, blur: number) {
     document.body.append(svg);
   }
   const id = `lens-${made.size}`;
-  const scale = 70;
-  const bezel = Math.min(24, h * 0.42, w * 0.42);
+  const scale = shape.scale ?? 70;
+  const bezel = shape.bezel ?? Math.min(24, h * 0.42, w * 0.42);
   const f = document.createElementNS(NS, 'filter');
   f.setAttribute('id', id);
   f.setAttribute('x', '0');
@@ -99,7 +127,7 @@ function filterFor(w: number, h: number, radius: number, blur: number) {
   f.setAttribute('filterUnits', 'userSpaceOnUse');
   f.setAttribute('color-interpolation-filters', 'sRGB');
   f.innerHTML = `<feGaussianBlur in="SourceGraphic" stdDeviation="${blur}" result="soft" />
-    <feImage href="${map(w, h, radius, bezel, 22, scale)}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="none" result="map" />
+    <feImage href="${shape.rod ? rodMap(w, scale) : map(w, h, radius, bezel, shape.thick ?? 22, scale)}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="none" result="map" />
     <feDisplacementMap in="soft" in2="map" scale="${scale}" xChannelSelector="R" yChannelSelector="G" result="bent" />
     <feColorMatrix in="bent" type="saturate" values="1.7" />`;
   svg.append(f);
@@ -122,4 +150,15 @@ export function lensGlass(root: ParentNode = document) {
   els.forEach(apply);
   const ro = new ResizeObserver((entries) => entries.forEach((e) => apply(e.target as HTMLElement)));
   els.forEach((el) => ro.observe(el));
+}
+
+/** a rod of glass, curved across its whole width; call again whenever it changes size */
+export function rodLens(el: HTMLElement) {
+  if (!chromium()) return;
+  const w = Math.round(el.offsetWidth);
+  const h = Math.round(el.offsetHeight);
+  if (w < 8 || h < 8 || w * h > 300 * 1000) return;
+  const id = filterFor(w, h, w / 2, Number(el.dataset.lensBlur || 0.3), { rod: true, scale: Math.ceil(w * 0.3) });
+  el.style.setProperty('--lens', `url(#${id})`);
+  el.classList.add('is-lensed');
 }

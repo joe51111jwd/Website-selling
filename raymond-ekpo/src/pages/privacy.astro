@@ -2,16 +2,16 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { site } from '../site.config';
-import LPageHead from '../components/liquid/PageHead.astro';
+import DocHead from '../components/deck/DocHead.astro';
 import { glass } from '../theme';
 ---
 
 <Base title="Privacy notice" description={`How ${site.name} handles the information you share through this site.`}>
   {
     glass ? (
-      <LPageHead eyebrow="Privacy" title="Privacy notice." drops={false} light="0.5 0.85 0.3 -0.6">
+      <DocHead kicker="Privacy" title="Privacy notice." tone="chalk">
         <Fragment slot="lead">Short, because this site collects very little. Last updated October 2026.</Fragment>
-      </LPageHead>
+      </DocHead>
     ) : (
       <PageHead kicker="Privacy">
         <Fragment slot="title">Privacy notice</Fragment>

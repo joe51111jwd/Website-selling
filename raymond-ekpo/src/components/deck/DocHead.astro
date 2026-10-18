@@ -1,0 +1,53 @@
+---
+// The top of a page that's a document rather than a deck (the enquiry form, privacy): the same
+// furniture and type as a slide, without the slide.
+import { site } from '../../site.config';
+
+interface Props {
+  kicker: string;
+  title: string;
+  dim?: string;
+  section?: string;
+  tone?: 'chalk' | 'ink' | 'klein';
+}
+
+const { kicker, title, dim, section = kicker, tone = 'ink' } = Astro.props;
+---
+
+<header class:list={['dh', `t-${tone}`]}>
+  <div class="d-furn">
+    <a href="/" class="d-mark">{site.name}</a>
+    <span class="d-sec">{section}</span>
+  </div>
+  <div class="dh-body">
+    <p class="d-kicker">{kicker}</p>
+    <h1 class="d-h1 dh-title">
+      {title}{dim && ' '}{dim && <span class="d-dim">{dim}</span>}
+    </h1>
+    {
+      Astro.slots.has('lead') && (
+        <p class="d-lead">
+          <slot name="lead" />
+        </p>
+      )
+    }
+    <slot />
+  </div>
+</header>
+
+<style>
+  .dh {
+    display: grid;
+    gap: clamp(40px, 10vh, 120px);
+    padding: var(--pad-y) var(--pad-x) clamp(36px, 7vh, 80px);
+  }
+
+  .dh-body {
+    display: grid;
+    gap: clamp(14px, 2.6vh, 28px);
+  }
+
+  .dh-title {
+    max-width: 11em;
+  }
+</style>

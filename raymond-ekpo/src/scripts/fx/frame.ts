@@ -53,7 +53,8 @@ export function passProgress(el: HTMLElement) {
 
 export let lenis: Lenis | null = null;
 
-if (!still) {
+// the glass build is a deck of slides that don't scroll, so it has no use for smooth scrolling
+if (!still && document.documentElement.dataset.theme !== 'glass') {
   lenis = new Lenis({ lerp: 0.11, autoRaf: true, anchors: { offset: -80 } });
   lenis.on('scroll', schedule);
   if (import.meta.env.DEV) Object.assign(window, { __lenis: lenis });

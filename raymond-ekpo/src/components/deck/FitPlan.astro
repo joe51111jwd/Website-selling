@@ -1,0 +1,270 @@
+---
+// The fit check as a slide: five questions on segmented controls, and a plan beside them that
+// fills in with the engagements that fit, in order, and what they cost. The logic is fit.ts,
+// shared with the paper site, so the hooks (data-fit-*) are the same.
+import { getServices } from '../../lib/content';
+import { site } from '../../site.config';
+
+const services = (await getServices()).map((s) => ({
+  id: s.id,
+  title: s.data.title,
+  price: s.data.price,
+  min: s.data.priceMin,
+  max: s.data.priceMax,
+}));
+
+const questions = [
+  { id: 'round', label: 'Which round are you raising?', options: [['pre-seed', 'Pre-seed'], ['seed', 'Seed'], ['later', 'Series A+']] },
+  { id: 'deck', label: 'Do you have a deck that needs work?', options: [['yes', 'Yes'], ['no', 'Not yet']] },
+  { id: 'meetings', label: 'Are investor meetings booked?', options: [['booked', 'Booked'], ['not-yet', 'Not yet']] },
+  { id: 'list', label: 'Do you know who to pitch?', options: [['yes', 'I have a list'], ['no', 'Not really']] },
+  { id: 'timing', label: 'When do conversations start?', options: [['now', 'Under 3 months'], ['soon', '3–6 months'], ['later', 'Later']] },
+];
+---
+
+<div class="fp">
+  <h2 class="d-h2 fp-title" data-b>Who it’s for. <span class="d-dim">Five answers, and the plan writes itself.</span></h2>
+  <div class="fp-grid" data-fit data-services={JSON.stringify(services)} data-email={site.email}>
+    <form class="fp-qs" aria-label="Fit check" data-b>
+      {
+        questions.map((q, i) => (
+          <fieldset class="fp-q">
+            <legend class="fp-label">
+              <span class="d-num">{i + 1}</span> {q.label}
+            </legend>
+            <div class="d-seg" data-seg="checked">
+              <span class="d-seg-thumb" data-seg-thumb aria-hidden="true" />
+              {q.options.map(([value, label]) => (
+                <label class="d-seg-item" data-seg-item>
+                  <input type="radio" name={q.id} value={value} />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ))
+      }
+      <a href="#fit-plan" class="fp-mini" data-fit-mini hidden aria-hidden="true" tabindex="-1">
+        <span data-fit-mini-title></span>
+        <span data-fit-mini-sum></span>
+      </a>
+    </form>
+
+    <aside class="fp-plan" id="fit-plan" aria-live="polite" aria-label="Your plan" data-b>
+      <div class="fp-top">
+        <span>Your plan</span>
+        <span data-fit-status>Draft · 0 of 5</span>
+      </div>
+      <p class="fp-headline" data-fit-title>Answer the questions to draft it.</p>
+      <ol class="fp-lines" data-fit-lines>
+        <li class="fit-line fit-line--ghost"><span></span><span></span></li>
+        <li class="fit-line fit-line--ghost"><span></span><span></span></li>
+        <li class="fit-line fit-line--ghost"><span></span><span></span></li>
+      </ol>
+      <div class="fp-total" data-fit-total hidden>
+        <span>Indicative fee</span>
+        <span class="fp-sum" data-fit-sum></span>
+      </div>
+      <p class="fp-verdict" data-fit-verdict>
+        Each answer adds or removes a line. Nothing is sent anywhere until you choose to get in touch.
+      </p>
+      <div class="fp-ctas" data-fit-ctas hidden>
+        <a href="/work-with-me" class="d-btn fp-go" data-fit-go data-cta="Fit check: discuss" data-cta-location="fit check">Discuss this </a>
+        <a href="/work-with-me?type=audit" class="d-link" data-fit-audit hidden data-cta="Request a free deck audit" data-cta-location="fit check">Or start with a free mini-audit</a>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<style>
+  .fp {
+    display: grid;
+    gap: clamp(20px, 4.4vh, 48px);
+  }
+
+  .fp-title {
+    max-width: 16em;
+  }
+
+  .fp-grid {
+    display: grid;
+    gap: 24px;
+  }
+
+  @media (min-width: 1000px) {
+    .fp-grid {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: clamp(32px, 4vw, 72px);
+      align-items: start;
+    }
+  }
+
+  .fp-qs {
+    display: grid;
+    gap: 0;
+    margin: 0;
+  }
+
+  .fp-q {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: clamp(10px, 1.7vh, 16px) 0;
+    border: 0;
+    border-top: 1px solid var(--rule-c);
+    min-width: 0;
+  }
+
+  @media (min-width: 700px) {
+    .fp-q {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      align-items: center;
+      gap: 24px;
+    }
+  }
+
+  /* floated, the legend lays out like any other grid item instead of sitting in the border */
+  .fp-label {
+    float: left;
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    padding: 0;
+    font: 500 var(--t-body) / 1.3 var(--text);
+    color: var(--fg);
+  }
+
+  .fp-mini {
+    display: none;
+  }
+
+  /* the plan, as a sheet of paper on the slide */
+  .fp-plan {
+    display: grid;
+    gap: 14px;
+    padding: clamp(18px, 3vh, 30px);
+    background: #fff;
+    color: var(--ink);
+    box-shadow:
+      0 0 0 1px rgb(14 14 16 / 0.06),
+      0 24px 50px -30px rgb(14 14 16 / 0.45);
+  }
+
+  .fp-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font: 500 var(--t-small) / 1.2 var(--text);
+    color: var(--mute);
+  }
+
+  .fp-top span:first-child {
+    color: var(--klein);
+    font-weight: 600;
+  }
+
+  .fp-headline {
+    margin: 0;
+    font: 800 var(--t-h3) / 1.02 var(--disp);
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .fp-lines {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .fp-lines :global(.fit-line) {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 16px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    animation: d-build 0.5s var(--ease) both;
+    animation-delay: calc(var(--n, 0) * 70ms);
+  }
+
+  .fp-lines :global(.fit-line b) {
+    font: 600 var(--t-body) / 1.3 var(--text);
+  }
+
+  .fp-lines :global(.fit-line i) {
+    font: 500 var(--t-body) / 1.3 var(--text);
+    font-style: normal;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .fp-lines :global(.fit-line small) {
+    grid-column: 1 / -1;
+    font: 400 var(--t-small) / 1.4 var(--text);
+    color: var(--mute);
+  }
+
+  .fp-lines :global(.fit-line--free i) {
+    color: var(--klein);
+  }
+
+  .fp-lines :global(.fit-line--ghost span) {
+    display: block;
+    height: 10px;
+    border-radius: 3px;
+    background: rgb(14 14 16 / 0.07);
+  }
+
+  .fp-lines :global(.fit-line--ghost span:first-child) {
+    width: 70%;
+  }
+
+  .fp-lines :global(.fit-line--ghost span:last-child) {
+    width: 60px;
+  }
+
+  .fp-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 2px solid var(--ink);
+    font: 500 var(--t-small) / 1.2 var(--text);
+  }
+
+  .fp-total[hidden] {
+    display: none;
+  }
+
+  .fp-sum {
+    font: 800 var(--t-h3) / 1 var(--disp);
+    letter-spacing: -0.03em;
+    color: var(--klein);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .fp-verdict {
+    margin: 0;
+    font: 400 var(--t-small) / 1.45 var(--text);
+    color: var(--mute);
+  }
+
+  .fp-ctas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 20px;
+  }
+
+  .fp-ctas[hidden],
+  .fp-ctas :global([hidden]) {
+    display: none;
+  }
+
+  .fp-plan .fp-go {
+    --btn-bg: var(--ink);
+    --btn-fg: var(--chalk);
+  }
+</style>
