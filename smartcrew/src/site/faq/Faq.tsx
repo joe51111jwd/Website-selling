@@ -17,6 +17,7 @@ import { useSeen } from "../offer/useSeen";
 import "./faq.css";
 import "./glass.css";
 import "./focus.css";
+import "./bold.css";
 
 export default function Faq() {
   return <FaqPlain phone={usePhoneLite()} />;

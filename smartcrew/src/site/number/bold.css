@@ -1,0 +1,7 @@
+/* Your number, in the bold look (src/styles/bold.css): a picked chip is a light tile with ink figures
+   (the light --ink would otherwise put white figures on it), and so is the slider's knob. */
+
+html.look-bold :is(.num-chip, .nph-chip).is-on,
+html.look-bold :is(.num-knob, .ncv-knob) {
+  color: #17130f;
+}

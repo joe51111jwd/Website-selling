@@ -1,0 +1,160 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>html,body{margin:0;background:#0f0d0b}canvas{display:block}</style>
+<script type="importmap">{ "imports": { "three": "./three/build/three.module.js" } }</script>
+</head>
+<body>
+<script type="module">
+import * as THREE from "three";
+
+const q = new URLSearchParams(location.search);
+const W = +(q.get("w") || 1440), H = +(q.get("h") || 900);
+const preset = q.get("p") || "desk";
+
+// ── noise ───────────────────────────────────────────────────────────────
+function mulberry(a) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const rnd = mulberry(+(q.get("seed") || 7));
+const perm = new Uint8Array(512); { const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) perm[i] = p[i & 255]; }
+const grad = (h, x, y) => { const a = (h & 7) * Math.PI / 4; return Math.cos(a) * x + Math.sin(a) * y; };
+const fade = (t) => t * t * t * (t * (t * 6 - 15) + 10);
+function perlin(x, y) {
+  const X = Math.floor(x) & 255, Y = Math.floor(y) & 255; x -= Math.floor(x); y -= Math.floor(y);
+  const u = fade(x), v = fade(y);
+  const a = perm[X] + Y, b = perm[X + 1] + Y;
+  const l = (t, p, q2) => p + t * (q2 - p);
+  return l(v, l(u, grad(perm[a], x, y), grad(perm[b], x - 1, y)), l(u, grad(perm[a + 1], x, y - 1), grad(perm[b + 1], x - 1, y - 1)));
+}
+function fbm(x, y) { let s = 0, a = 0.5, f = 1; for (let i = 0; i < 5; i++) { s += a * perlin(x * f, y * f); f *= 2.03; a *= 0.42; } return s; }
+
+// ── the site: rolling ground, a graded pad cut into it, a haul road ─────────
+const PAD = { x: 0.12, z: 0.05, hw: 0.36, hd: 0.2, rot: -0.28 };
+const SLOPE = 0.55; // how fast cut/fill slopes return to natural ground
+function natural(x, z) {
+  const ridge = 0.5 - Math.abs(perlin(x * 0.7 - 5.3, z * 0.7 + 2.2));
+  return 0.12 + 0.34 * fbm(x * 0.95 + 3.1, z * 0.95 - 1.7) + 0.42 * ridge * ridge * Math.max(0, -z - 0.2) + 0.05 * x - 0.08 * z;
+}
+const c = Math.cos(PAD.rot), s = Math.sin(PAD.rot);
+function padLocal(x, z) { const dx = x - PAD.x, dz = z - PAD.z; return [dx * c - dz * s, dx * s + dz * c]; }
+function padDist(x, z) { const [u, v] = padLocal(x, z); const qx = Math.abs(u) - PAD.hw, qz = Math.abs(v) - PAD.hd; const ox = Math.max(qx, 0), oz = Math.max(qz, 0); return Math.hypot(ox, oz) + Math.min(Math.max(qx, qz), 0); }
+const H0 = natural(PAD.x, PAD.z) - 0.01;
+function softClamp(v, m) { return m * Math.tanh(v / Math.max(m, 1e-4)); }
+function height(x, z) {
+  const n = natural(x, z);
+  const d = padDist(x, z);
+  if (d <= 0) return H0;
+  return H0 + softClamp(n - H0, d * SLOPE * 2.2);
+}
+
+// ── mesh ────────────────────────────────────────────────────────────────
+const N = 640, SIZE = 3.2;
+const geo = new THREE.PlaneGeometry(SIZE, SIZE, N, N);
+geo.rotateX(-Math.PI / 2);
+const pos = geo.attributes.position;
+for (let i = 0; i < pos.count; i++) { const x = pos.getX(i), z = pos.getZ(i); pos.setY(i, height(x, z)); }
+geo.computeVertexNormals();
+const SUN = new THREE.Vector3(+(q.get("sx") || -0.9), +(q.get("sy") || 0.22), +(q.get("sz") || -0.3)).normalize();
+{
+  const hs = new Float32Array(pos.count);
+  for (let i = 0; i < pos.count; i++) hs[i] = pos.getY(i);
+  const step = SIZE / N, sh = new Float32Array(pos.count);
+  const hx = SUN.x / Math.hypot(SUN.x, SUN.z), hz = SUN.z / Math.hypot(SUN.x, SUN.z), rise = SUN.y / Math.hypot(SUN.x, SUN.z);
+  const at = (x, z) => { const gx = (x + SIZE / 2) / step, gz = (z + SIZE / 2) / step; const ix = Math.round(gx), iz = Math.round(gz); if (ix < 0 || iz < 0 || ix > N || iz > N) return -1; return hs[iz * (N + 1) + ix]; };
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i), y0 = hs[i];
+    let lit = 1;
+    for (let k = 1; k < 220; k++) { const d = k * step * 1.5; const y = at(x + hx * d, z + hz * d); if (y < 0) break; const over = y - (y0 + rise * d); if (over > 0) { lit = Math.min(lit, 1 - Math.min(1, over / 0.012)); if (lit <= 0) break; } }
+    sh[i] = lit;
+  }
+  geo.setAttribute("shadow", new THREE.BufferAttribute(sh, 1));
+}
+
+const pins = [[0.02, -0.02], [0.2, 0.09], [0.31, -0.04], [-0.12, 0.1], [0.09, 0.16]];
+const mat = new THREE.ShaderMaterial({
+  extensions: { derivatives: true },
+  uniforms: {
+    uSun: { value: SUN },
+    uBg: { value: new THREE.Color(q.get("fogc") || "#2a180d") },
+    uPad: { value: new THREE.Vector4(PAD.x, PAD.z, PAD.hw, PAD.hd) },
+    uRot: { value: PAD.rot },
+    uH0: { value: H0 },
+    uPins: { value: pins.map(([x, z]) => new THREE.Vector3(x, height(x, z), z)) },
+    uFog: { value: +(q.get("fog") || 0.9) },
+  },
+  vertexShader: `
+    attribute float shadow; varying float vSh;
+    varying vec3 vW; varying vec3 vN; varying float vDepth;
+    void main(){ vSh = shadow; vec4 w = modelMatrix*vec4(position,1.); vW=w.xyz; vN=normalize(mat3(modelMatrix)*normal);
+      vec4 mv = viewMatrix*w; vDepth = -mv.z; gl_Position = projectionMatrix*mv; }`,
+  fragmentShader: `
+    uniform vec3 uSun; uniform vec3 uBg; uniform vec4 uPad; uniform float uRot; uniform float uH0; uniform vec3 uPins[5]; uniform float uFog;
+    varying float vSh; varying vec3 vW; varying vec3 vN; varying float vDepth;
+    float line(float v, float w){ float f = abs(fract(v-0.5)-0.5); float d = fwidth(v); return 1.-smoothstep(d*w*0.5, d*w*0.5+d, f); }
+    float padD(vec2 p){ float c=cos(uRot), s=sin(uRot); vec2 d=p-uPad.xy; vec2 u=vec2(d.x*c-d.y*s, d.x*s+d.y*c); vec2 q=abs(u)-uPad.zw; return length(max(q,0.))+min(max(q.x,q.y),0.); }
+    void main(){
+      vec3 n = normalize(vN);
+      float slope = 1. - n.y;
+      float h = vW.y;
+      // ground: dark earth, a touch warmer on the cut faces
+      vec3 base = mix(vec3(0.030,0.026,0.023), vec3(0.060,0.047,0.036), smoothstep(0.02,0.35,slope));
+      float lam = max(dot(n,uSun),0.)*vSh;
+      vec3 col = base*(0.22 + 2.4*pow(lam,1.25)*vec3(1.0,0.74,0.52));
+      // contours: every 1.1 cm of height, an index line every 5th
+      float ci = h/0.018;
+      float minor = line(ci, 1.0);
+      float major = line(ci/5., 1.3);
+      float pd = padD(vW.xz);
+      float onPad = 1.-smoothstep(-0.004,0.004,pd);
+      vec3 cl = vec3(0.50,0.44,0.38);
+      col = mix(col, cl, (minor*0.22 + major*0.42)*(1.-onPad)*(0.45+0.55*lam));
+      // the graded pad: flat and lighter, a faint survey grid on it
+      vec2 g = vW.xz/0.04; float grid = max(line(g.x,0.8), line(g.y,0.8));
+      col = mix(col, vec3(0.075,0.066,0.058)*(0.6+0.8*lam), onPad*0.85);
+      col = mix(col, vec3(0.42,0.37,0.32), onPad*grid*0.14);
+      // limits of the pad: a hi-vis orange line
+      float edge = 1.-smoothstep(0.0, fwidth(pd)*1.6, abs(pd)-0.0016);
+      col = mix(col, vec3(1.0,0.20,0.0), edge*0.95);
+      // the geofence: a dashed orange ring round the site
+      vec2 cc = vW.xz-uPad.xy; float r = length(cc); float ring = 1.-smoothstep(0., fwidth(r)*1.5, abs(r-0.6)-0.0014);
+      float dash = step(0.45, fract(atan(cc.y,cc.x)*38./6.2831853));
+      col = mix(col, vec3(1.0,0.20,0.0), ring*dash*0.55);
+      // the crew's GPS pins
+      for(int i=0;i<5;i++){ float d = length(vW.xz-uPins[i].xz); col += vec3(1.0,0.22,0.0)*(exp(-d*d/0.00004)*1.4 + exp(-d*d/0.0009)*0.22); }
+      // distance fog into the night
+      float f = 1.-exp(-pow(max(vDepth-1.2,0.)*uFog,1.5));
+      col = mix(col, uBg, clamp(f,0.,1.));
+      gl_FragColor = vec4(pow(col, vec3(1./2.2)), 1.);
+    }`,
+});
+const mesh = new THREE.Mesh(geo, mat);
+
+const scene = new THREE.Scene();
+{
+  const cv = document.createElement("canvas"); cv.width = 2; cv.height = 512;
+  const g = cv.getContext("2d"); const gr = g.createLinearGradient(0, 0, 0, 512);
+  gr.addColorStop(0, "#0f0d0b"); gr.addColorStop(+(q.get("hz") || 0.42), "#120e0b"); gr.addColorStop(+(q.get("hz2") || 0.62), q.get("fogc") || "#2a180d"); gr.addColorStop(1, q.get("fogc") || "#2a180d");
+  g.fillStyle = gr; g.fillRect(0, 0, 2, 512);
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; scene.background = t;
+}
+scene.add(mesh);
+
+const cams = {
+  desk: { fov: 30, pos: [-1.25, 0.62, 1.75], look: [-0.05, 0.14, -0.2] },
+  phone: { fov: 34, pos: [-0.55, 0.78, 1.55], look: [0.2, 0.12, -0.05] },
+};
+const cfg = cams[preset];
+const cam = new THREE.PerspectiveCamera(cfg.fov, W / H, 0.01, 50);
+cam.position.set(...cfg.pos);
+cam.lookAt(...cfg.look);
+if (q.get("shift")) { cam.setViewOffset(W, H, +q.get("shift") * W, 0, W, H); }
+
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+r.setPixelRatio(1);
+r.setSize(W, H);
+document.body.appendChild(r.domElement);
+r.render(scene, cam);
+window.__done = true;
+</script>
+</body>
+</html>

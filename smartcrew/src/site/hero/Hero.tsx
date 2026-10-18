@@ -10,7 +10,8 @@
 // plays the entrance. Desktop and phones share this component; phones get their own line breaks.
 
 import { useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties } from "react";
-import { HERO4, LOGOS, LOGO_VECTORS } from "../../content/copy";
+import { FLAG, HERO4, LOGOS, LOGO_VECTORS, PROOF } from "../../content/copy";
+import { BOLD } from "../../lib/look";
 import { Scene } from "../scene/Scene";
 import { reducedMotion } from "../../three/stage/store";
 import { Cta, DemoLink } from "../ui/Cta";
@@ -20,6 +21,9 @@ import { mountLanding } from "./land";
 import "./fence/fence.css";
 import "./hero.css";
 import "./focus.css";
+import "./bold.css";
+
+const BASE = import.meta.env.BASE_URL;
 
 type Line = { pre: string; fence: string | null; post: string };
 
@@ -45,7 +49,9 @@ function splitLines(lines: string[], fence: string): Line[] {
 
 export default function Hero() {
   const lite = usePhoneLite();
-  const lines = useMemo(() => splitLines(lite ? HERO4.lines.phone : HERO4.lines.desk, HERO4.fence), [lite]);
+  // the bold look sets the headline in a column beside the product on laptops, so it takes the
+  // phone's five-line breaks there too (same words, larger type)
+  const lines = useMemo(() => splitLines(lite || BOLD ? HERO4.lines.phone : HERO4.lines.desk, HERO4.fence), [lite]);
   const root = useRef<HTMLDivElement>(null);
   const act = useRef<HTMLDivElement>(null);
 
@@ -64,6 +70,18 @@ export default function Hero() {
             </svg>
           </div>
         </div>
+
+        {BOLD && (
+          // the bold look's ground: a graded pad cut into rolling ground at dusk, its geofence and the
+          // crew's GPS pins (rendered offline: tools/terrain/), and on laptops the product over it
+          <div className="hb-art" aria-hidden="true">
+            <picture>
+              <source media="(max-width: 760px)" srcSet={`${BASE}bold/terrain-phone.webp`} />
+              <img className="hb-terrain" src={`${BASE}bold/terrain.webp`} alt="" fetchPriority="high" decoding="async" />
+            </picture>
+            {!lite && <img className="hb-devices" src={`${BASE}renders/hero.webp`} alt="" decoding="async" />}
+          </div>
+        )}
 
         <div className="hf-copy">
           <p className="hf-eyebrow">{HERO4.featured}</p>
@@ -89,6 +107,19 @@ export default function Hero() {
             </span>
             <DemoLink source="hero" className="hf-demo" />
           </div>
+          {BOLD && (
+            // the click simulator's one repeat winner: Katie's quote right under the button (won 7 of 8
+            // blind head-to-heads; /mnt/project-files/click-science/simulation/findings.md)
+            <figure className="hb-proof">
+              <blockquote>“{PROOF.katie.text}”</blockquote>
+              <figcaption>
+                {PROOF.katie.name} · {PROOF.katie.company}{" "}
+                <span className="flag" title={PROOF.flagKatie} aria-label={PROOF.flagKatie}>
+                  {FLAG}
+                </span>
+              </figcaption>
+            </figure>
+          )}
         </div>
 
         <div className="hf-foot">

@@ -4,6 +4,32 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## The bold look (the agency owner, Oct 18)
+
+"Is their any way to still not make it look like lovable and look better but keep that as a draft and
+fork it to make a net version"; "I need to see them be less boring tho. They are just not somthing
+apealing at all"; and the one goal: "Just worry about driving conversion to the get free trial link".
+Built as a fourth look: `?look=bold`. A fork of the classic page (no glass); classic, glass and focus
+are unchanged, and Andrew's link still shows classic.
+
+1. **Done. Night on the job site.** A dark warm ground, white type, and a rendered 3D terrain of a
+   graded pad (contour lines, the pad's orange edge, a dashed geofence, crew GPS pins) filling the
+   first screen, with the laptop and phone standing on it. The terrain comes back behind the FAQ's
+   closing product shot. Art: public/bold/, rendered by tools/terrain/ (three.js, headless Chromium).
+2. **Done. The orange button is the one bright thing on any screen.** Orange elsewhere is a hairline
+   or a dot; kickers go warm grey. All 34 checks pass, including "never two orange CTAs on screen".
+3. **Done. Big, left-aligned type.** Headlines set large and flush left; the hero's sub, button and
+   demo link sit in one left column beside the product on laptops.
+4. **Done. Katie's quote right under the hero button** (the simulator's one repeat winner, 7 of 8
+   blind head-to-heads).
+5. **Done. The product stays true.** The app's screens keep their light colours inside the dark page.
+6. **Done. /book carries the look**, so the popup doesn't land on what looks like a different site;
+   Cal.com's booker stays its own light card.
+7. **Checks:** 34 of 34 e2e checks pass in all four looks (`--look=bold`); classic, glass and focus
+   are pixel-identical to before at every screen, laptop and phone, and on /book.
+8. **Waiting:** a real split test against classic on trial clicks before it goes anywhere near
+   Andrew's link.
+
 ## The focus look (the agency owner, Oct 17)
 
 "Make liquid glasses best you can … the minimal example … angelo.so … accentuating that one main
@@ -43,8 +69,9 @@ the glass look (both classes are on) and goes further; classic and glass are unc
    Results: /mnt/project-files/smartcrew/focus/results.md.
 6. **Checks:** all 34 e2e checks pass in all three looks (`--look=focus`); classic and glass are
    pixel-identical to before at every screen, laptop and phone.
-7. **Waiting on the agency owner:** which look becomes the default and whether Andrew sees it.
-   Open design notes: the gap between the testimonials and the offer is large on laptops; the
+7. **Decided (Oct 18):** classic stays the default on Andrew's link, since focus only ties it and
+   trial clicks are now the one goal ("Just worry about driving conversion to the get free trial
+   link"). Open design notes: the gap between the testimonials and the offer is large on laptops; the
    Replace tiles are tall on phones (16px body text kept).
 
 ## The glass look (the agency owner, Oct 17)

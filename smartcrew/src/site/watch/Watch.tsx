@@ -17,6 +17,7 @@ import { Cta } from "../ui/Cta";
 import "./watch.css";
 import "./glass.css";
 import "./focus.css";
+import "./bold.css";
 
 /** The app area each office line lands in, as the app's own outline icon (clock-in: Marcus Bell's
  * avatar, the demo crew's foreman, src/screens/data.ts). */

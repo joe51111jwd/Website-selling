@@ -1,0 +1,25 @@
+/* The FAQ's close, in the bold look (src/styles/bold.css): the page ends where it began, the product
+   standing on the graded pad from the fold (public/bold/terrain.webp), the last orange button under it. */
+
+html.look-bold .faq-stage-box {
+  isolation: isolate;
+}
+
+html.look-bold .faq-stage-box::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -18% -34% -26%;
+  background: url("/bold/terrain.webp") 58% 64% / cover no-repeat;
+  -webkit-mask-image: radial-gradient(closest-side, #000 52%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 52%, transparent 100%);
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  html.look-bold .faq-stage-box::before {
+    inset: -12% -20% -20%;
+    background-image: url("/bold/terrain-phone.webp");
+    background-position: 50% 45%;
+  }
+}

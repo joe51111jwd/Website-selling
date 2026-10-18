@@ -1,0 +1,36 @@
+/* Everything. Built for dirt., in the bold look (src/styles/bold.css): the feature list and the pain
+   picker sit on the night ground as hairline-edged rows; the app window keeps the product's own light
+   palette (bold.css re-sets it on .ft-win and .sc). */
+
+html.look-bold .ft-card {
+  background: rgb(255 255 255 / 4%);
+  box-shadow: inset 0 0 0 1px var(--bold-line);
+}
+
+html.look-bold .ft-card.is-open {
+  background: rgb(255 255 255 / 6%);
+  box-shadow: inset 0 0 0 1px var(--bold-line-2);
+}
+
+html.look-bold .ft-card.is-open .ft-card-icon {
+  background: var(--ink);
+  color: #17130f;
+}
+
+html.look-bold .ft-chip,
+html.look-bold .ft-type {
+  box-shadow: inset 0 0 0 1px var(--bold-line);
+}
+
+/* "See all 38 tools": an outlined button, so the orange one stays the only filled one */
+html.look-bold .ft-all {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--bold-line-2);
+}
+
+@media (hover: hover) {
+  html.look-bold .ft-all:hover {
+    background: rgb(255 255 255 / 6%);
+  }
+}

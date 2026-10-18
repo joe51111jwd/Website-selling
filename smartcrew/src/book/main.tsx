@@ -7,6 +7,8 @@ import "../styles/type-roles.css";
 import "../styles/glass.css";
 import "../styles/focus.css";
 import "./glass.css";
+import "../styles/bold.css";
+import "./bold.css";
 import "../lib/flags";
 import "../lib/look";
 import { startTracking } from "../lib/track";

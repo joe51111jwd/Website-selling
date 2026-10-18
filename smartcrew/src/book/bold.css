@@ -1,0 +1,49 @@
+/* /book in the bold look (src/styles/bold.css): the night ground carries on from the product page, so
+   the trial popup doesn't land on what looks like a different site. Cal.com's booker stays its own
+   light card, like the product's screens on the page before. */
+
+html.look-bold .bk-hero {
+  background:
+    radial-gradient(60% 46% at 50% 100%, rgb(255 122 1 / 10%), transparent 70%),
+    var(--ground);
+}
+
+html.look-bold .bk-est {
+  background: rgb(255 255 255 / 6%);
+  box-shadow: inset 0 0 0 1px var(--bold-line);
+}
+
+html.look-bold :is(.bk-skel-bar, .bk-skel-grid span, .bk-skel-times span) {
+  background: rgb(255 255 255 / 7%);
+}
+
+/* Andrew's dark button needs an edge to stand off the night ground */
+html.look-bold .bk-btn {
+  border-color: var(--bold-line-2);
+  background: #2a241e;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 10%),
+    0 10px 22px -12px rgb(0 0 0 / 70%);
+}
+
+html.look-bold .bk-btn--ghost {
+  background: transparent;
+  border-color: var(--bold-line-2);
+  box-shadow: none;
+}
+
+html.look-bold .bk-btn--ghost:hover {
+  border-color: rgb(246 240 232 / 40%);
+}
+
+/* the ticket's tick and the call's step numbers are ink discs: their figures go dark */
+html.look-bold .bk-ticket-check,
+html.look-bold .bk-covers li::before {
+  color: #17130f;
+}
+
+html.look-bold .bk-ticket {
+  box-shadow:
+    0 0 0 1px var(--bold-line),
+    0 40px 80px -40px rgb(0 0 0 / 70%);
+}

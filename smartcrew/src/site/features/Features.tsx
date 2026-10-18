@@ -29,6 +29,7 @@ import "../specsheet/all-tools.css";
 import "./features.css";
 import "./glass.css";
 import "./focus.css";
+import "./bold.css";
 
 const AppWindow = lazy(() => import("./AppWindow"));
 

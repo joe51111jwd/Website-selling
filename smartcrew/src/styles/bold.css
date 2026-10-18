@@ -1,0 +1,136 @@
+/* The bold look (src/lib/look.ts; James, Oct 18: "not make it look like lovable and look better",
+   "less boring… not something appealing at all", and trial clicks are the one goal). A fork of the
+   classic page, not a layer on the glass look: everything here is scoped to html.look-bold, so the
+   classic, glass and focus looks are untouched.
+
+   The idea, in four rules:
+   - Night on the job site. A dark warm ground (asphalt at dusk), white type, the rendered terrain of
+     a graded pad in the fold (public/bold/, tools/terrain/). No pastel gradients, no glass, no blur.
+   - The orange button is the one bright thing on any screen. Orange elsewhere is a hairline or a
+     dot at most (the click research: nothing near the button may compete with it).
+   - Big, left-aligned type. Headlines set large and flush left like a spec sheet, not centred in
+     a card; small labels in caps.
+   - The product stays true. The app's own screens are light, so device frames and product UI keep
+     the classic light tokens (their containers re-set them below and in each section's bold.css).
+
+   Each section's own rules live next to it (src/site/<section>/bold.css), imported after its
+   glass.css and focus.css. */
+
+html.look-bold {
+  --ground: #0f0d0b;
+  --ground-2: #16130f;
+  --paper: #1c1814;
+  --night: #0b0a08;
+  --night-2: #15120f;
+  --ink: #f6f0e8;
+  --ink-2: #cdc1b4;
+  --ink-3: #a29486;
+  --line: #2f2924;
+  --line-night: #2f2924;
+  --orange-ink: #ff9a3d;
+  --shadow-1: inset 0 1px 0 rgb(255 255 255 / 4%), 0 12px 32px rgb(0 0 0 / 45%);
+  --shadow-2: 0 40px 90px rgb(0 0 0 / 60%);
+  --dawn: #0f0d0b;
+  --day: #0f0d0b;
+  --dusk: #15110d;
+  --evening: #0b0a08;
+  --page-ground: #0f0d0b;
+  /* bold type: a step larger than classic */
+  --fs-h2: clamp(36px, 3.4vw + 1.2svh + 6px, 78px);
+  --bold-line: rgb(246 240 232 / 12%);
+  --bold-line-2: rgb(246 240 232 / 22%);
+  color-scheme: dark;
+  background: #0f0d0b;
+}
+
+html.look-bold.sc-page body {
+  background: var(--ground);
+  color: var(--ink);
+}
+
+html.look-bold ::selection {
+  background: rgb(255 122 1 / 35%);
+  color: #fff;
+}
+
+/* the product's own surfaces keep the classic light palette (they are screenshots of the real app) */
+html.look-bold :is(.phone-frame, .laptop-frame, .sc, .ft-win, .ft-shot, .try-dom-screen) {
+  --ground: #fbf8f4;
+  --ground-2: #f4eee7;
+  --paper: #ffffff;
+  --ink: #17130f;
+  --ink-2: #4a4038;
+  --ink-3: #74665a;
+  --line: #e8dfd5;
+  --orange-ink: #b84f00;
+  --shadow-1: 0 1px 2px rgb(23 19 15 / 6%), 0 8px 24px rgb(23 19 15 / 6%);
+  color-scheme: light;
+}
+
+/* ── the button: solid orange, ink label (the label must not follow --ink to white) ───────────── */
+
+html.look-bold .cta {
+  color: #17130f;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 40%),
+    0 var(--cta-lip) 0 #b85200,
+    0 calc(var(--cta-lip) + 14px) 34px -12px rgb(255 110 0 / 45%);
+}
+
+html.look-bold .cta:focus-visible {
+  outline-color: #fff;
+}
+
+/* the popup's Continue is the same orange button */
+html.look-bold .su-btn {
+  color: #17130f;
+}
+
+/* ── the header: clear over the fold, near-solid night once the page runs under it ──────────── */
+
+html.look-bold .site-logo .logo-word {
+  fill: var(--ink);
+}
+
+html.look-bold .site-nav a {
+  color: var(--ink-2);
+}
+
+html.look-bold .site-nav a:hover {
+  color: #fff;
+}
+
+html.look-bold .site-header.is-solid {
+  background: rgb(15 13 11 / 92%);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 1px 0 var(--bold-line);
+}
+
+/* ── the phone's sticky bar: a dark tray, the orange button in it ───────────────────────────── */
+
+@media (max-width: 760px) {
+  html.look-bold .sticky-bar {
+    background: #14110e;
+    box-shadow: 0 -1px 0 var(--bold-line);
+  }
+}
+
+/* ── shared bits every section uses ──────────────────────────────────────────────────────── */
+
+html.look-bold .link {
+  color: var(--ink);
+}
+
+/* the kickers over the headlines ("FEWER APPS. LESS BUSYWORK.") go warm grey: orange is the button's */
+html.look-bold :is(.rp-kicker, .ft-kicker, .why-kicker, .rs-kicker, .spp-kicker) {
+  color: var(--ink-3);
+}
+
+@media (prefers-contrast: more), (forced-colors: active) {
+  html.look-bold .site-header.is-solid,
+  html.look-bold .sticky-bar {
+    background: #000;
+    box-shadow: 0 1px 0 #fff;
+  }
+}

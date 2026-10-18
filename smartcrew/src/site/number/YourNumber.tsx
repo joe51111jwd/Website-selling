@@ -25,6 +25,7 @@ import NumberPhone from "./NumberPhone";
 import "./number.css";
 import "./glass.css";
 import "./focus.css";
+import "./bold.css";
 
 function Chips<T extends number>({
   label,

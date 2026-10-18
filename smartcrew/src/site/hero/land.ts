@@ -7,7 +7,7 @@
 //
 // PHONE MODE: the same, with the phone's line breaks; transform and opacity only, no rAF.
 
-import { GLASS } from "../../lib/look";
+import { BOLD, GLASS } from "../../lib/look";
 import { markFirstScreenDone, markPageReady } from "../ready";
 import { contoursSliced, type Rect, type TopoInput } from "./fence/topo";
 
@@ -33,7 +33,10 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
     h1.style.setProperty("--fs", "100px");
     const widest = Math.max(...lines.map((l) => l.scrollWidth));
     const g = parseFloat(getComputedStyle(root).getPropertyValue("--g")) || 20;
-    const avail = Math.min(root.clientWidth - g * 2, phone ? 9999 : 1240);
+    // the bold look's laptop headline fills its own column (the product sits beside it)
+    const col = BOLD && !phone ? q(".hf-copy") : null;
+    const cs = col ? getComputedStyle(col) : null;
+    const avail = cs ? col!.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) : Math.min(root.clientWidth - g * 2, phone ? 9999 : 1240);
     let fs = (avail / widest) * 100 * 0.98;
     // desktop: the headline never takes more than ~44% of the screen's height
     if (!phone) fs = Math.min(fs, (root.clientHeight * 0.44) / (lines.length * 0.98));
@@ -108,8 +111,8 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
 
   function layout() {
     fit();
-    // the glass look has no contour ground (src/styles/glass.css)
-    if (!GLASS) ground();
+    // the glass look has no contour ground (src/styles/glass.css); the bold look has its rendered terrain
+    if (!GLASS && !BOLD) ground();
   }
 
   /** The entrance: the fold comes up once, top to bottom. */
@@ -128,6 +131,7 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
     up(q(".hf-h1"), 100, 560, 8);
     up(q(".hf-sub"), 160);
     up(q(".hf-act"), 240);
+    up(q(".hb-proof"), 310);
     up(q(".hf-foot"), 380, 600, 6);
     timers.push(window.setTimeout(markPageReady, reduced ? 0 : CTA_LANDED));
     timers.push(window.setTimeout(markFirstScreenDone, reduced ? 0 : 900));

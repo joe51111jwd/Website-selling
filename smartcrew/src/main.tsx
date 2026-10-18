@@ -9,6 +9,7 @@ import "./styles/shell.css";
 import "./styles/type-roles.css";
 import "./styles/glass.css";
 import "./styles/focus.css";
+import "./styles/bold.css";
 import "./lib/flags";
 import { FOCUS } from "./lib/look";
 import { startFocus } from "./site/focus";

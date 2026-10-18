@@ -8,14 +8,20 @@
 // angelo.so): the glass look taken further, one point per screen. It builds on glass, so it also sets
 // html.look-glass, and adds html.look-focus (src/styles/focus.css, src/site/focus.ts).
 //
-// ?look=glass, ?look=focus and ?look=classic pick one; it sticks for the session, so the popup and
+// "bold" is the fourth (James, Oct 18: "not make it look like lovable and look better… keep that as a
+// draft and fork it"; "less boring… not something appealing at all"; trial clicks are the one
+// goal). A fork, not a layer: it builds on the classic page (no glass), and src/styles/bold.css with
+// each section's bold.css (all scoped to html.look-bold) turn it into a dark job-site look: rendered
+// terrain, big type, the orange button the one bright thing on screen.
+//
+// ?look=glass, ?look=focus, ?look=bold and ?look=classic pick one; it sticks for the session, so the popup and
 // /book keep the look the visitor arrived with. A build made with VITE_LOOK=glass or focus starts in it.
 
-export type Look = "classic" | "glass" | "focus";
+export type Look = "classic" | "glass" | "focus" | "bold";
 
 const KEY = "sc-look";
 
-const isLook = (v: unknown): v is Look => v === "classic" || v === "glass" || v === "focus";
+const isLook = (v: unknown): v is Look => v === "classic" || v === "glass" || v === "focus" || v === "bold";
 
 function read(): Look {
   const env = import.meta.env.VITE_LOOK;
@@ -36,13 +42,17 @@ function read(): Look {
 
 export const LOOK = read();
 /** The glass styling is on (the glass look, and the focus look built on it). */
-export const GLASS = LOOK !== "classic";
+export const GLASS = LOOK === "glass" || LOOK === "focus";
 /** The focus look: one point per screen. */
 export const FOCUS = LOOK === "focus";
+/** The bold look: dark job-site ground, the classic page underneath. */
+export const BOLD = LOOK === "bold";
 
 if (typeof document !== "undefined") {
   document.documentElement.classList.toggle("look-glass", GLASS);
   document.documentElement.classList.toggle("look-focus", FOCUS);
+  document.documentElement.classList.toggle("look-bold", BOLD);
   // the phone's browser bar matches the light glass ground (/book's own tag is dark)
   if (GLASS) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#f6f2ec");
+  if (BOLD) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#0f0d0b");
 }

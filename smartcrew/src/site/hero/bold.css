@@ -1,0 +1,225 @@
+/* The fold in the bold look (src/styles/bold.css). Night over a graded pad: the rendered terrain
+   fills the screen (public/bold/terrain*.webp, tools/terrain/), the headline is set large and flush
+   left in its own column, the product sits beside it on laptops, and Katie's quote sits right under
+   the button (the click simulator's one repeat winner: 7 of 8 blind head-to-heads,
+   /mnt/project-files/click-science/simulation/findings.md). The orange button is the one solid
+   bright thing on the screen; the terrain's orange is hairlines and dots. */
+
+html.look-bold .hf-root {
+  background: var(--ground);
+  color: var(--ink);
+}
+
+html.look-bold .hf-ground {
+  display: none;
+}
+
+/* ── the art: terrain, a scrim for the copy, the product ────────────────────────────────── */
+
+html.look-bold .hb-art {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+html.look-bold .hb-art picture,
+html.look-bold .hb-terrain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+html.look-bold .hb-terrain {
+  object-fit: cover;
+  object-position: 58% 100%;
+}
+
+@media (min-width: 761px) {
+  /* the pad and its geofence come out from under the laptop, low and right of the copy */
+  html.look-bold .hb-terrain {
+    transform: translate(4%, 16%) scale(1.22);
+    transform-origin: 50% 100%;
+  }
+}
+
+/* the copy side stays dark enough for white type to hold 4.5:1 anywhere over it */
+html.look-bold .hb-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgb(15 13 11 / 92%) 0%, rgb(15 13 11 / 74%) 34%, rgb(15 13 11 / 0%) 58%),
+    linear-gradient(180deg, rgb(15 13 11 / 60%) 0%, rgb(15 13 11 / 0%) 22%, rgb(15 13 11 / 0%) 84%, rgb(15 13 11 / 88%) 100%);
+}
+
+html.look-bold .hb-devices {
+  position: absolute;
+  z-index: 1;
+  right: max(12px, calc((100vw - var(--max)) / 2 - 40px));
+  top: 44%;
+  width: min(50vw, 820px);
+  height: auto;
+  transform: translateY(-50%);
+  filter: drop-shadow(0 50px 60px rgb(0 0 0 / 65%));
+}
+
+/* ── the copy: a left column ──────────────────────────────────────────────────────────── */
+
+html.look-bold .hf-copy {
+  z-index: 4;
+}
+
+html.look-bold .hf-eyebrow {
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+html.look-bold .hf-eyebrow::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+}
+
+html.look-bold .hf-h1 {
+  color: #fff;
+  line-height: 0.96;
+  letter-spacing: -0.018em;
+}
+
+html.look-bold .hf-sub {
+  color: var(--ink-2);
+}
+
+html.look-bold .hf-root .hf-demo {
+  color: var(--ink-2);
+  text-decoration-color: rgb(246 240 232 / 35%);
+}
+
+@media (hover: hover) {
+  html.look-bold .hf-root .hf-demo:hover {
+    color: #fff;
+  }
+}
+
+/* Katie's quote, under the button */
+html.look-bold .hb-proof {
+  max-width: 27em;
+  margin-top: clamp(18px, 3svh, 30px);
+  padding-left: 14px;
+  border-left: 2px solid var(--bold-line-2);
+}
+
+html.look-bold .hb-proof blockquote {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+html.look-bold .hb-proof figcaption {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+/* the logos: white, quiet */
+html.look-bold .hf-logos-k {
+  color: var(--ink-3);
+}
+
+html.look-bold .hf-logos img {
+  filter: brightness(0) invert(1);
+  opacity: 0.5;
+}
+
+/* ── laptops: copy left, product right ─────────────────────────────────────────────────── */
+
+@media (min-width: 761px) {
+  html.look-bold .hf4 .hf-copy {
+    width: 100%;
+    max-width: calc(var(--max) + var(--g) * 2);
+    margin: 0 auto;
+    padding-left: var(--g);
+    padding-right: max(calc(var(--g) + 46%), 0px);
+    align-items: flex-start;
+    text-align: left;
+  }
+  html.look-bold .hf4 .hf-sub {
+    max-width: 25em;
+    margin-top: clamp(16px, 2.8svh, 26px);
+    font-size: clamp(17px, 0.3vw + 14px, 19.5px);
+    text-wrap: pretty;
+  }
+  html.look-bold .hf4 .hf-act {
+    flex-direction: row;
+    align-items: center;
+    gap: 26px;
+    margin-top: clamp(22px, 3.6svh, 34px);
+  }
+  html.look-bold .hf4 .hf-root .hf-demo {
+    margin: 0;
+  }
+  html.look-bold .hf4 .hf-foot {
+    justify-content: flex-start;
+  }
+  html.look-bold .hf4 .hf-foot .hf-logos {
+    width: 100%;
+    max-width: var(--max);
+    margin: 0 auto;
+  }
+}
+
+/* short laptop screens: the quote tightens */
+@media (min-width: 761px) and (max-height: 760px) {
+  html.look-bold .hb-proof {
+    margin-top: 16px;
+  }
+  html.look-bold .hb-proof blockquote {
+    font-size: 14.5px;
+  }
+}
+
+/* ── phones: copy on top, the terrain comes up under the button ───────────────────────────── */
+
+@media (max-width: 760px) {
+  html.look-bold .hf4 .hf-root {
+    padding-bottom: clamp(120px, 26svh, 210px);
+  }
+  html.look-bold .hb-art {
+    inset: auto 0 0 0;
+    height: calc(clamp(120px, 26svh, 210px) + 170px);
+  }
+  html.look-bold .hb-terrain {
+    object-position: 50% 42%;
+  }
+  html.look-bold .hb-art::after {
+    background: linear-gradient(180deg, rgb(15 13 11 / 100%) 0%, rgb(15 13 11 / 92%) 22%, rgb(15 13 11 / 20%) 58%, rgb(15 13 11 / 0%) 80%, rgb(15 13 11 / 75%) 100%);
+  }
+  html.look-bold .hf4 .hf-copy {
+    align-items: flex-start;
+    text-align: left;
+  }
+  html.look-bold .hf4 .hf-act {
+    width: 100%;
+  }
+  html.look-bold .hf4 .hf-root .hf-demo {
+    align-self: center;
+  }
+  html.look-bold .hb-proof blockquote {
+    font-size: 15px;
+  }
+  html.look-bold .hf4 .hf-foot {
+    position: relative;
+    z-index: 4;
+    justify-content: flex-start;
+  }
+  html.look-bold .hf-logos img {
+    height: calc(var(--h) * 0.62);
+  }
+}
