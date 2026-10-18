@@ -27,7 +27,12 @@ are unchanged, and Andrew's link still shows classic.
    Cal.com's booker stays its own light card.
 7. **Checks:** 34 of 34 e2e checks pass in all four looks (`--look=bold`); classic, glass and focus
    are pixel-identical to before at every screen, laptop and phone, and on /book.
-8. **Waiting:** a real split test against classic on trial clicks before it goes anywhere near
+8. **Done. Checked with the click simulator:** blind head-to-heads on the phone page, bold vs
+   classic, bold favoured 4 of 4 (ratio 1.02-1.03, about 2-3% more trial taps, confidence 54-55%).
+   The first new look the simulator rates above classic (focus only tied), but small and close to
+   its noise; the judges credit Katie's quote in the first screen and the orange button standing out
+   on the dark ground. Results: /mnt/project-files/smartcrew/bold/results.md.
+9. **Waiting:** a real split test against classic on trial clicks before it goes anywhere near
    Andrew's link.
 
 ## The focus look (the agency owner, Oct 17)
