@@ -33,6 +33,15 @@ Main page and /book; the other looks pick up the shared copy, with no design wor
    visit keeps the calendar open (sessionStorage `sc_book_phase`). Cal.com still loads in the background
    a few seconds in, so it's ready when it opens. Events: `video_skip`, `video_ended`, `video_failed`.
    Screenshots: /mnt/project-files/smartcrew/try-smartcrew/booking-{video,skip}-{laptop,phone}.png.
+5. **Done. The pain picker understands reworded pains** (the agency owner, Oct 19: typed text that was
+   "obviously one of the things… just wasn't the exact wording" got "we don't have a thing for that").
+   The browser matches first, looser (owners' own wording, plurals, typos; src/site/features/match.ts).
+   When it isn't sure, it asks /api/match-pain (api/match-pain.ts, a Vercel function), where a cheap
+   DeepSeek model on OpenRouter picks one of the ten cards or none. The key is `OPENROUTER_API_KEY`
+   (sensitive, production + preview) on the Vercel project; `PAIN_MODEL` swaps the model. The page only
+   calls the function when the build saw the key (`VITE_PAIN_AI`, vite.config.ts), so a key change needs
+   a redeploy. Any failure falls back to the browser's guess. `tools/match-test.mjs` checks 145 reworded
+   pains (all matched) and 15 off-topic lines (no match). `GET /api/match-pain?text=…` checks it live.
 
 ## Andrew's round 2, in classic (Oct 19)
 
