@@ -4,6 +4,25 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## "Try SmartCrew" and Andrew's booking page (Oct 19, Andrew by text via the agency owner)
+
+"Let's roll with CTAs as 'Try SmartCrew' instead of the Free Trial option" (a free trial pushes cash
+collection back a week, and the experience is poor until their project data is in), and for /book: "we'll
+roll with a layout like this for the booking page. All emphasis is going to be on booking the demo."
+Main page and /book; the other looks pick up the shared copy, with no design work.
+
+1. **Done. Every button says "Try SmartCrew"** (hero, header, sticky bar, sections, FAQ, popup entry).
+   The popup's last button says "Pick my time"; its lines no longer promise a free trial. Trial before
+   the call stays off for good (config.trialFirst).
+2. **Done. /book in his layout:** "Need help?" + email in the bar; his kicker, headline and sub centred;
+   the video on the left with "Here's what we'll cover:" (his three) under it; the calendar on the right in
+   a card ("Book a 15-minute walkthrough with Andrew", his line, and the confirmation-email note). Phones:
+   video, calendar, then the three. Out: the dark band, the progress steps, "On the call", the assurances
+   and "What you're setting up". The video stays until the agency owner's new one arrives.
+3. **Waiting on Andrew:** his /book words still promise a free trial (kicker, headline, "Get your free
+   trial"), as does FAQ 10 "How does the free trial work?"; all ⚑, kept as written since he'll tweak the copy.
+   The call is 15 minutes in his layout (now everywhere), but his Cal.com event is 45 minutes today (⚑).
+
 ## Andrew's round 2, in classic (Oct 19)
 
 Andrew's "Website Feedback" doc as of Oct 19 18:43Z (everything from "Other Tweaks - 10/17" on is new).

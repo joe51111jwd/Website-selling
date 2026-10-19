@@ -6,12 +6,12 @@ export const config = {
   calLink: "andrew-drish/15min",
 
   /**
-   * How long the call is, as every page says it ("a 30-minute call"). The brief and the hero say 30
-   * minutes; ⚑ Andrew's Cal.com link (/15min) opens a 45-minute "SmartCrew Demo" today, so the copy
-   * carries a flag until he sets the event to match and flips callLengthConfirmed. Empty string:
-   * the copy says "a short call".
+   * How long the call is, as every page says it ("a 15-minute call"). Andrew's booking page layout
+   * (Oct 19, by text) says "Book a 15-minute walkthrough with Andrew", and his Cal.com link is /15min;
+   * ⚑ that link opens a 45-minute "SmartCrew Demo" today, so the copy carries a flag until he sets the
+   * event to match and flips callLengthConfirmed. Empty string: the copy says "a short call".
    */
-  callLength: "30-minute",
+  callLength: "15-minute",
   callLengthConfirmed: false,
 
   /**
@@ -64,8 +64,9 @@ export const config = {
    * Trial before the call (playbook §8b.1). false: the free trial is set up on the call (today). true:
    * the popup starts the trial and the call becomes optional setup help ("load your jobs and trucks"),
    * in the bold look only. trialStartUrl is where "Open SmartCrew" goes once the trial is on (the app's
-   * own sign-up or first-login page); empty, /book says Andrew's team sends the login. ⚑ Both need
-   * Andrew: whether a trial can start without the call, how the account gets made, and how fast.
+   * own sign-up or first-login page); empty, /book says Andrew's team sends the login. Decided Oct 19:
+   * stays false. Andrew (by text): no free trial up front, it pushes cash collection back a week and
+   * the experience is poor until their project data is in; every button says "Try SmartCrew".
    */
   trialFirst: false,
   trialStartUrl: "",
@@ -84,5 +85,5 @@ export const config = {
   email: "hello@smartcrewhq.com",
 };
 
-/** "a 30-minute call" when the length is set, "a short call" until then. */
+/** "a 15-minute call" when the length is set, "a short call" until then. */
 export const aCall = () => (config.callLength ? `a ${config.callLength} call` : "a short call");

@@ -25,7 +25,7 @@ export const FEATURES = {
     /** after the feature's name, on desktop and phones: where it opened */
     see: "See it",
     /** nothing matched what was typed */
-    noMatch: "Good one to bring to the call. We’ll show you how SmartCrew handles it when we set up your trial.",
+    noMatch: "Good one to bring to the call. We’ll show you how SmartCrew handles it.",
     /** screen readers: the chips' group */
     chipsLabel: "Common headaches",
     /** the six preset chips, and the card each one opens */

@@ -9,16 +9,15 @@ import { TRIAL_FIRST } from "../lib/offer";
 import { mountCal, mountVidalytics } from "./embeds";
 import { downloadIcs, downloadVcf, googleUrl, when } from "./calendar";
 import { Logo } from "../brand/Logo";
-import { Setup } from "./Setup";
 import faceUrl from "../signup/assets/andrew-face.webp";
 import bustUrl from "../signup/assets/andrew-bust.webp";
 
-// /book, "Last step: pick a time with Andrew to set up your free trial" (BRIEF /book, BOOKING.md,
-// PLAYBOOK §6). Andrew: "we want all the attention going on to the video at this point because the
-// video is actually what's gonna be the conversion mechanism that gets them to book." So, one
-// column, top to bottom: the headline, his video big and centred, his calendar right under it
-// (already filled in from the popup), then what the call covers and what they're setting up.
-// After booking, the calendar turns into the ticket for the call.
+// /book, in Andrew's layout (Oct 19, a screenshot by text: "we'll roll with a layout like this for
+// the booking page. All emphasis is going to be on booking the demo."). His headline centred, then
+// his video on the left with "Here's what we'll cover" under it and the calendar on the right, in a
+// card that says what the call is (already filled in from the popup). Phones: the video, the
+// calendar, then what it covers. After booking, the card turns into the ticket for the call. The
+// video stays as it is until the agency owner's new one arrives.
 
 const LITE = typeof window !== "undefined" && window.matchMedia("(pointer: coarse), (max-width: 760px)").matches;
 /** Phones: the same order in one column, the video the full width of the screen. */
@@ -48,7 +47,6 @@ export default function Book() {
 
   const first = lead?.first || (lead ? firstName(lead.name) : "");
   const demo = lead?.intent === "demo";
-  const company = lead?.company?.trim();
   /** Bold look, once Andrew turns it on: the trial starts here and the call is optional (src/lib/offer.ts). */
   const trialFirst = TRIAL_FIRST && !demo;
   const T1 = OFFER.trialFirst;
@@ -120,11 +118,13 @@ export default function Book() {
       ? first
         ? `${first}, pick a time for your demo with Andrew.`
         : "Pick a time for your demo with Andrew."
-      : first
-        ? `Last step, ${first}: pick a time with Andrew to set up your free trial.`
-        : "Last step: pick a time with Andrew to set up your free trial.";
+      : BOOK.h1;
 
-  const kicker = demo ? (company ? `Demo with Andrew for ${company}` : "Demo with Andrew") : company ? `Free trial for ${company}` : "Free trial";
+  // Andrew's words from his layout (Oct 19, by text), as written. The free-trial lines carry a ⚑:
+  // the same day he moved every button to "Try SmartCrew" with no free trial up front, and said
+  // he'll tweak this page's copy himself.
+  const trialNote = "Andrew to update: still promises a free trial (buttons now say “Try SmartCrew”, Oct 19)";
+  const kicker = demo ? "Demo request received" : BOOK.kicker;
 
   const sub = trialFirst ? (
     <>
@@ -135,73 +135,70 @@ export default function Book() {
   ) : demo ? (
     <>
       {cap(aCall())} with the founder. No sales team. No BDR. Just Andrew.
-      {!config.callLengthConfirmed && <Flag note="Andrew to confirm the call length (his Cal.com event is 45 minutes today)" />}
+      {!config.callLengthConfirmed && <Flag note={CALL_NOTE} />}
     </>
   ) : (
-    <>
-      Watch how SmartCrew works, then pick a time below for {aCall()} with Andrew.
-      {!config.callLengthConfirmed && <Flag note="Andrew to confirm the call length (his Cal.com event is 45 minutes today)" />}
-    </>
+    BOOK.sub
   );
 
   return (
-    // masked in Clarity recordings: the headline, the kicker and the booked ticket carry the visitor's name
+    // masked in Clarity recordings: the headline and the booked ticket carry the visitor's name
     <div className={`bk${booking ? " is-booked" : ""}`} data-clarity-mask="True">
-      {/* 1 · the headline and Andrew's video, front and centre */}
-      <section className="bk-hero" aria-labelledby="bk-h1">
-        <header className="bk-bar">
-          <a href="../" className="bk-logo" aria-label="SmartCrew, back to the product page">
-            <Logo tone="white" decorative className="bk-logo-svg" />
-          </a>
-          <ol className="bk-progress" aria-label="Progress">
-            <li className="is-done">
-              <Tick /> Your details
-            </li>
-            <li className="bk-progress-line" aria-hidden="true">
-              <motion.i initial={false} animate={{ scaleX: booking ? 1 : 0.5 }} transition={{ duration: reduce ? 0 : 0.8, ease }} />
-            </li>
-            <li className={booking ? "is-done" : "is-now"}>
-              {booking ? <Tick /> : <span className="bk-now-dot" aria-hidden="true" />}
-              {booking ? "Call booked" : trialFirst ? T1.progress : "Pick a time"}
-            </li>
-          </ol>
-          <a className="bk-help" href={`mailto:${config.email}`}>
-            {config.email}
-          </a>
-        </header>
+      <header className="bk-bar">
+        <a href="../" className="bk-logo" aria-label="SmartCrew, back to the product page">
+          <Logo decorative className="bk-logo-svg" />
+        </a>
+        <a className="bk-help" href={`mailto:${config.email}`}>
+          <MailIcon />
+          <span className="bk-help-k">{BOOK.help}</span> <b>{config.email}</b>
+        </a>
+      </header>
 
-        <div className="bk-intro">
+      {/* 1 · his headline, centred */}
+      <section className="bk-intro" aria-labelledby="bk-h1">
+        {!booking && (
           <motion.p className="bk-kicker" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduce ? 0 : 0.5, ease, delay: 0.05 }}>
-            {kicker}
-          </motion.p>
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.h1
-              key={h1}
-              id="bk-h1"
-              className="bk-h1"
-              initial={{ opacity: 0, y: reduce ? 0 : "0.3em", ...blur(reduce ? 0 : 12) }}
-              animate={{ opacity: 1, y: 0, ...blur(0) }}
-              exit={{ opacity: 0, y: reduce ? 0 : "-0.2em", ...blur(reduce ? 0 : 8) }}
-              transition={{ duration: reduce ? 0 : 0.6, ease }}
-            >
-              {h1}
-            </motion.h1>
-          </AnimatePresence>
-          {!booking && (
-            <motion.p className="bk-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5, delay: 0.2 }}>
-              {sub}
-            </motion.p>
-          )}
-          {!booking && trialFirst && config.trialStartUrl && (
-            <a className="bk-open" href={config.trialStartUrl} onClick={() => trackCustom("trial_open")}>
-              {T1.open}
-              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M3 8h9.5M8.5 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <span className="bk-kicker-check" aria-hidden="true">
+              <svg width="10" height="10" viewBox="0 0 12 12">
+                <path d="M2.5 6.2 5 8.6l4.6-5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </a>
-          )}
-        </div>
+            </span>
+            {kicker}
+            {!demo && <Flag note={trialNote} />}
+          </motion.p>
+        )}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.h1
+            key={h1}
+            id="bk-h1"
+            className="bk-h1"
+            initial={{ opacity: 0, y: reduce ? 0 : "0.3em", ...blur(reduce ? 0 : 12) }}
+            animate={{ opacity: 1, y: 0, ...blur(0) }}
+            exit={{ opacity: 0, y: reduce ? 0 : "-0.2em", ...blur(reduce ? 0 : 8) }}
+            transition={{ duration: reduce ? 0 : 0.6, ease }}
+          >
+            {h1}
+            {!booking && !demo && !trialFirst && <Flag note={trialNote} />}
+          </motion.h1>
+        </AnimatePresence>
+        {!booking && (
+          <motion.p className="bk-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5, delay: 0.2 }}>
+            {sub}
+          </motion.p>
+        )}
+        {!booking && trialFirst && config.trialStartUrl && (
+          <a className="bk-open" href={config.trialStartUrl} onClick={() => trackCustom("trial_open")}>
+            {T1.open}
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M3 8h9.5M8.5 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
+        )}
+      </section>
 
+      {/* 2 · his layout: the video on the left with what the call covers under it, the calendar on
+          the right. Phones: the video, the calendar, then what it covers. */}
+      <main className="bk-grid">
         <motion.figure
           id="bk-video"
           className="bk-video"
@@ -226,94 +223,125 @@ export default function Book() {
             <div id={`vidalytics_embed_${config.vidalytics.walkthrough}`} className="bk-vid" />
             {!vidOn && <button type="button" className="bk-poster-go" onClick={mountVideo} aria-label="Play Andrew’s walkthrough" />}
           </div>
-          <figcaption className="bk-cap">
-            <img src={faceUrl} alt="" width={26} height={26} />
-            <span>Andrew Drish, founder, walks through SmartCrew.</span>
-            {!booking && (
-              <a
-                className="bk-jump"
-                href="#bk-cal"
-                onClick={(e) => {
-                  e.preventDefault();
-                  trackCustom("jump_to_calendar");
-                  document.getElementById("bk-cal")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
-                }}
-              >
-                Pick a time
-                <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-                  <path d="M6 2v7.5M2.8 6.6 6 9.8l3.2-3.2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </a>
-            )}
-          </figcaption>
         </motion.figure>
-      </section>
 
-      {/* 2 · his calendar right under the video; 3 · the supporting blocks under the calendar */}
-      <section className="bk-main" aria-label={booking ? "Your call" : "Pick a time"}>
-        <div className="bk-stage" id="bk-cal">
+        <div className="bk-stage" id="bk-cal" aria-label={booking ? "Your call" : "Pick a time"}>
           <AnimatePresence mode="wait" initial={false}>
             {booking ? (
               <Ticket key="ticket" booking={booking} lead={lead} fresh={fresh} reduce={reduce} demo={demo} />
             ) : (
-              <motion.div key="cal" className="bk-cal-wrap" exit={{ opacity: 0, scale: 0.97, ...blur(8) }} transition={{ duration: reduce ? 0 : 0.3, ease }}>
-                {lead?.estimate && (
-                  <p className="bk-est">
-                    Your estimate: <b>${Math.round(lead.estimate.annual).toLocaleString("en-US")} a year</b> in loose time. Andrew will start there.
-                    <Flag note="Andrew to confirm he opens the call with the visitor's own estimate" />
-                  </p>
-                )}
+              <motion.section
+                key="cal"
+                className="bk-card"
+                aria-labelledby="bk-card-h"
+                initial={{ opacity: 0, y: reduce ? 0 : 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.97, ...blur(8) }}
+                transition={{ duration: reduce ? 0 : 0.5, ease, delay: reduce ? 0 : 0.2 }}
+              >
+                <header className="bk-card-head">
+                  <img src={faceUrl} alt="" width={56} height={56} />
+                  <div>
+                    <h2 id="bk-card-h" className="bk-card-h">
+                      {BOOK.cardTitle}
+                      {!config.callLengthConfirmed && <Flag note={CALL_NOTE} />}
+                    </h2>
+                    <p className="bk-card-sub">{BOOK.cardSub}</p>
+                  </div>
+                </header>
                 <div className={`bk-cal is-${cal}`} data-testid="book-cal">
                   <div ref={calRef} className="bk-cal-embed" />
                   <AnimatePresence>{cal === "loading" && <CalSkeleton key="skel" />}</AnimatePresence>
                   {cal === "failed" && <CalFallback />}
                 </div>
-              </motion.div>
+                <p className="bk-card-note">
+                  <CalIcon />
+                  {BOOK.cardNote}
+                </p>
+              </motion.section>
             )}
           </AnimatePresence>
         </div>
 
-        <div className="bk-after">
-          <div className="bk-covers">
-            <h2>
-              On the call
-              <Flag note="Andrew to confirm what the call covers" />
-            </h2>
-            <ol>
-              <li>You tell Andrew how you track time, equipment and job costs today.</li>
-              <li>He shows you SmartCrew on a job like yours.</li>
-              <li>If it fits, he sets up your free trial. If it doesn't, he'll tell you.</li>
-            </ol>
-          </div>
-          <ul className="bk-assure">
-            <li>Most companies are fully set up within a few days.</li>
-            <li>A real person answers, by phone, chat or email.</li>
-            <li>No contracts. Cancel anytime.</li>
+        <section className="bk-covers" aria-labelledby="bk-covers-h" data-testid="book-covers">
+          <h2 id="bk-covers-h">{BOOK.coversTitle}</h2>
+          <ul>
+            {BOOK.covers.map((c) => (
+              <li key={c.title}>
+                <span className="bk-covers-icon" aria-hidden="true">
+                  <CoverIcon kind={c.icon} />
+                </span>
+                <h3>
+                  {c.title}
+                  {c.trial && <Flag note={trialNote} />}
+                </h3>
+                <p>{c.text}</p>
+              </li>
+            ))}
           </ul>
-        </div>
+        </section>
+      </main>
 
-        <Setup compact={PHONE} />
-
-        <footer className="bk-foot">
-          <span>© {new Date().getFullYear()} SmartCrew</span>
-          <a href={`mailto:${config.email}`}>{config.email}</a>
-          <a href={config.privacyUrl}>Privacy</a>
-          <a href={config.termsUrl}>Terms</a>
-        </footer>
-      </section>
+      <footer className="bk-foot">
+        <span>© {new Date().getFullYear()} SmartCrew</span>
+        <a href={`mailto:${config.email}`}>{config.email}</a>
+        <a href={config.privacyUrl}>Privacy</a>
+        <a href={config.termsUrl}>Terms</a>
+      </footer>
     </div>
   );
 }
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-function Tick() {
+/** The call length isn't settled until his Cal.com event matches (src/config.ts). */
+const CALL_NOTE = "Andrew to confirm the call length: his layout says 15 minutes, his Cal.com event is 45 minutes today";
+
+/** Andrew's words from his booking page layout (Oct 19), as written. */
+const BOOK = {
+  help: "Need help?",
+  kicker: "Free trial request received",
+  h1: "You’re One Step Away From Your Free Trial.",
+  sub: "Watch this quick video to see how our private beta works, then book your 15-minute walkthrough below.",
+  cardTitle: "Book a 15-minute walkthrough with Andrew",
+  cardSub: "Choose a time that works for you. No preparation needed.",
+  cardNote: "After you book, you’ll receive a confirmation email with the meeting details.",
+  coversTitle: "Here’s what we’ll cover:",
+  covers: [
+    { icon: "chat", title: "Your operation", text: "We’ll learn about your crews, equipment, and how you manage jobs day-to-day." },
+    { icon: "screen", title: "See SmartCrew", text: "We’ll show you the key features and how it fits your business." },
+    { icon: "check", title: "Get your free trial", text: "If it’s a good fit, we’ll help you get your trial set up and answer any questions.", trial: true },
+  ] as { icon: "chat" | "screen" | "check"; title: string; text: string; trial?: boolean }[],
+};
+
+function MailIcon() {
   return (
-    <span className="bk-tick" aria-hidden="true">
-      <svg width="10" height="10" viewBox="0 0 12 12">
-        <path d="M2.5 6.2 5 8.6l4.6-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+      <rect x="1.75" y="3.25" width="12.5" height="9.5" rx="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <path d="m2.5 4.5 5.5 4.2 5.5-4.2" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CoverIcon({ kind }: { kind: "chat" | "screen" | "check" }) {
+  if (kind === "chat")
+    return (
+      <svg width="20" height="20" viewBox="0 0 20 20">
+        <path d="M10 3.5c4 0 7 2.5 7 5.8s-3 5.8-7 5.8c-.8 0-1.6-.1-2.3-.3L4 16.3l.9-3C3.7 12.3 3 10.9 3 9.3 3 6 6 3.5 10 3.5Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+        <path d="M7 9.4h.01M10 9.4h.01M13 9.4h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       </svg>
-    </span>
+    );
+  if (kind === "screen")
+    return (
+      <svg width="20" height="20" viewBox="0 0 20 20">
+        <rect x="2.75" y="3.75" width="14.5" height="10" rx="1.6" fill="none" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M7.5 17h5M10 13.75V17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    );
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20">
+      <path d="m4.5 10.4 3.6 3.5 7.4-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 
@@ -401,7 +429,7 @@ function Ticket({ booking, lead, fresh, reduce, demo }: { booking: Booking; lead
           {w.zone ? <span> · {w.zone}</span> : null}
         </motion.p>
         <motion.p className="bk-ticket-with" {...item(3)}>
-          {demo ? "Your demo" : "Your setup call"} with Andrew Drish, founder of SmartCrew. The confirmation and the call details are in your email.
+          {demo ? "Your demo" : "Your walkthrough"} with Andrew Drish, founder of SmartCrew. The confirmation and the call details are in your email.
         </motion.p>
         <motion.div className="bk-ticket-actions" {...item(4)}>
           <a className="bk-btn" href={googleUrl(booking)} target="_blank" rel="noopener noreferrer" onClick={() => trackCustom("add_to_calendar", { kind: "google" })}>

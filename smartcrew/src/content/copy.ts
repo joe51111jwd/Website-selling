@@ -12,10 +12,11 @@ export const FLAG = "⚑";
 export const T = {
   /** {SIZE}: must equal the ads. ⚑ Andrew signs off 5–100 (live hero) vs 5–50 (ads). */
   SIZE: "5–100",
-  /** {N}: call length in minutes, must equal the Cal.com event. */
-  N: 30,
-  /** {PROGRAM}: round 4, "Founding Member" is cut everywhere (Andrew's doc); his own CTA word. */
-  PROGRAM: "Free trial",
+  /** {N}: call length in minutes, must equal the Cal.com event (config.callLength; Andrew, Oct 19: 15). */
+  N: 15,
+  /** {PROGRAM}: round 4, "Founding Member" is cut everywhere (Andrew's doc). Oct 19 (Andrew, by text):
+   *  "Let's roll with CTAs as 'Try SmartCrew' instead of the Free Trial option." */
+  PROGRAM: "Try SmartCrew",
   EMAIL: "hello@smartcrewhq.com",
   /** The demo company every screen shows. */
   COMPANY: "Cedar Ridge Earthworks",
@@ -25,14 +26,16 @@ export const T = {
 
 // ─── CTAs (PLAYBOOK §2.0.3) ──────────────────────────────────────────────────
 export const CTA = {
-  primary: "Get my free trial",
+  /** Andrew, Oct 19: no free trial up front (it pushes cash collection back a week, and the
+   *  experience is poor until their project data is in), so every button says "Try SmartCrew". */
+  primary: "Try SmartCrew",
   demo: "Book a demo with Andrew",
   demoLink: "or book a demo with Andrew",
   /** Under the FAQ's last button and the spec sheet's (round 4: the hero has none, per Andrew). */
   // (a no-break space keeps "No contract" together: a line never ends on a lone "No")
   micro: "No\u00a0contract, cancel anytime.",
   /** One-tap links at the peaks of the One Day scene (profit and payroll moments). */
-  inline: "Want this for your crew? Get my free trial",
+  inline: "Want this for your crew? Try SmartCrew",
 };
 
 // ─── Header and the phone's sticky bar ──────────────────────────────────────
@@ -42,13 +45,13 @@ export const HEADER = {
     { label: "How it works", href: "#features" },
     { label: "FAQ", href: "#faq" },
   ],
-  cta: "Get my free trial",
+  cta: CTA.primary,
 };
 
 export const STICKY = {
-  title: T.PROGRAM,
+  title: "A walkthrough with Andrew",
   sub: "No contract, cancel anytime",
-  cta: "Get my free trial",
+  cta: CTA.primary,
 };
 
 // ─── The demo jobsite ───────────────────────────────────────────────────────
@@ -458,6 +461,7 @@ export const FAQS: { id: string; q: string; a: string[]; flag?: string }[] = [
       "Start by requesting a free trial, then meet with our team for a quick walkthrough.",
       "We'll make sure the platform fits your business and help you get started.",
     ],
+    flag: "Andrew to update: the buttons now say \"Try SmartCrew\" and there's no free trial up front (his text, Oct 19)",
   },
   {
     id: "cost",

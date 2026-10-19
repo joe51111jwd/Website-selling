@@ -437,7 +437,8 @@ export default function Dialog({ req, opener, onClose }: Props) {
 
   const company = d.company.trim();
   const last = step === LAST_STEP;
-  const kicker = intent === "demo" ? "Demo with Andrew" : "Free trial";
+  // Andrew, Oct 19: "Try SmartCrew", no free trial up front; it starts with a walkthrough call
+  const kicker = intent === "demo" ? "Demo with Andrew" : "Try SmartCrew";
   const titles = [
     intent === "demo" ? "Book your demo with Andrew" : "Set up your SmartCrew",
     company.length >= 2 ? `Who's setting up ${company}?` : "Who's setting this up?",
@@ -453,7 +454,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
       </>
     ) : (
       <>
-        Your free trial starts with {aCall()} with Andrew.
+        It starts with {aCall()} with Andrew.
         {!config.callLengthConfirmed && <Flag note="Andrew to confirm the call length (his Cal.com event is 45 minutes today)" />}
       </>
     );
@@ -735,7 +736,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
                                 <Flag note={OFFER.trialFirst.note} />
                               </>
                             ) : (
-                              "Next: pick a time with Andrew to set up your free trial."
+                              "Next: pick a time for your walkthrough with Andrew."
                             )}
                           </span>
                         ) : (
@@ -763,14 +764,14 @@ export default function Dialog({ req, opener, onClose }: Props) {
                           </>
                         ) : (
                           <>
-                            {intent === "demo" ? "Pick my demo time" : "Start my free trial"}
+                            {intent === "demo" ? "Pick my demo time" : "Pick my time"}
                             <Arrow />
                           </>
                         )}
                       </button>
                       {last ? (
                         <p className="su-legal">
-                          {intent === "demo" ? "By continuing" : "By starting your trial"}, you agree to SmartCrew's{" "}
+                          By continuing, you agree to SmartCrew's{" "}
                           <a href={config.termsUrl} target="_blank" rel="noopener noreferrer">
                             Terms
                           </a>{" "}

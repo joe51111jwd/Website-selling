@@ -9,8 +9,8 @@
 // Andrew's Cal.com: it stops once his calendar has mounted. It never sends a lead anywhere either
 // (config.leadWebhook is empty on previews; the test asserts nothing is posted). Round 4 (Andrew's
 // Oct 16 feedback): no ride and no 3D, the popup has two steps, /book is video-first. Elements are found the way a visitor
-// finds them, by role and name (buttons named "Get my free trial", headings, links), plus a few
-// stable hooks: #hero-cta / [data-hero-cta], data-testid="sticky-bar|book-cal|book-video|book-setup",
+// finds them, by role and name (buttons named "Try SmartCrew", headings, links), plus a few
+// stable hooks: #hero-cta / [data-hero-cta], data-testid="sticky-bar|book-cal|book-video|book-covers",
 // the smartcrew:signup event every CTA fires (src/signup/contract.ts), and the popup's storage
 // hand-off to /book (sessionStorage "sc_lead", src/lib/lead.ts). Taps land where the page itself
 // says the element is on screen, opaque, uncovered and still (see press()). There is no intro any
@@ -366,11 +366,11 @@ async function h1Name(page) {
 async function heroCta(page) {
   const byId = page.locator("#hero-cta");
   if (await byId.count()) return byId.first();
-  return page.locator("[data-hero-cta]").getByRole("button", { name: /get my free trial/i }).first();
+  return page.locator("[data-hero-cta]").getByRole("button", { name: /try smartcrew/i }).first();
 }
 
 // ─── the CTA walk: scroll the whole page like a visitor, click every CTA met, check the popup ──
-const CTA_TEXT = /get my free trial|book a demo with andrew|set up smartcrew for your crew/i;
+const CTA_TEXT = /try smartcrew|book a demo with andrew|set up smartcrew for your crew/i;
 
 /**
  * In-page: every CTA button with its key (zone|name|n: the section or test id it sits in, its
@@ -664,7 +664,7 @@ async function painPicker(device) {
     await toPicker();
     await input.fill("my dog keeps barking at night");
     await input.press("Enter");
-    const cta = answer.getByRole("button", { name: /get my free trial/i }).first();
+    const cta = answer.getByRole("button", { name: /try smartcrew/i }).first();
     await cta.waitFor({ state: "visible", timeout: 5000 });
     const a3 = await said();
     await press(page, cta, { what: "the no-match CTA" });
@@ -708,7 +708,7 @@ async function tryIt(device) {
     await sec.getByText(/currently working on/i).first().waitFor({ state: "attached", timeout: 8000 });
     // the CTA under the headline (or on phones the sheet's), or (while the tap has dimmed the rest of
     // the page: focus mode, src/site/try/focus.tsx) the one beside the phone / in the dimmed header
-    const ctas = [sec.getByRole("button", { name: /get my free trial/i }).first(), page.locator(".fx.is-open .fx-cta").getByRole("button", { name: /get my free trial/i }).first()];
+    const ctas = [sec.getByRole("button", { name: /try smartcrew/i }).first(), page.locator(".fx.is-open .fx-cta").getByRole("button", { name: /try smartcrew/i }).first()];
     let cta = null;
     for (const t0 = Date.now(); !cta && Date.now() - t0 < 6000; ) {
       for (const c of ctas) if (!cta && (await isVisible(c))) cta = c;
@@ -752,7 +752,7 @@ async function yourNumber(device) {
       await press(page, b, { what: `the ${value} pick` });
     }
     const expected = (18 * 15 * 250 * 40) / 60; // crew × minutes × 250 workdays × $/hr ÷ 60
-    const cta = sec.getByRole("button", { name: /get my free trial/i }).first();
+    const cta = sec.getByRole("button", { name: /try smartcrew/i }).first();
     await cta.scrollIntoViewIfNeeded();
     await press(page, cta, { what: "the calculator's CTA" });
     await expectPopup(page);
@@ -955,7 +955,7 @@ async function replaceApps(device) {
     assert(cards === 6, `${cards} cards, not 6`);
     assert(await sec.getByRole("heading", { level: 3, name: /materials & hauling/i }).count(), "no Materials & Hauling card");
     assert(await sec.getByTestId("rp-hub").count(), "no SmartCrew box");
-    const cta = sec.getByRole("button", { name: /get my free trial/i }).first();
+    const cta = sec.getByRole("button", { name: /try smartcrew/i }).first();
     await cta.scrollIntoViewIfNeeded();
     await press(page, cta, { what: "Replace 5 apps' CTA" });
     await expectPopup(page);
@@ -1037,7 +1037,7 @@ async function watchItWork(device) {
       const after = await dev.evaluate((d) => `${d.dataset.web ?? ""}|${d.dataset.phone}`);
       assert(after !== before, `${w.name}: the devices stayed on ${before}`);
       // its button (one shown) opens the popup
-      const ctas = sec.getByRole("button", { name: /get my free trial|see smartcrew in action/i });
+      const ctas = sec.getByRole("button", { name: /try smartcrew|see smartcrew in action/i });
       assert((await ctas.count()) === 1, `${w.name}: ${await ctas.count()} buttons shown, not 1`);
       await centre(ctas.first());
       await wait(device.settle);
@@ -1090,7 +1090,7 @@ async function funnel(device) {
     out.push("step 1 errors + employees/company");
 
     // step 2: a bad email and a short number → errors; then good → /book
-    const start = () => dlg.getByRole("button", { name: /start my free trial|pick my demo time/i }).click();
+    const start = () => dlg.getByRole("button", { name: /pick my time|pick my demo time/i }).click();
     await dlg.getByLabel("Your name").fill("Pat Tester");
     await dlg.getByLabel("Work email").fill("pat@example");
     await dlg.getByLabel("Cell phone").fill("555");
@@ -1114,8 +1114,8 @@ async function funnel(device) {
     // /book: personal headline, Andrew's video, his calendar prefilled
     const h1 = page.getByRole("heading", { level: 1 }).first();
     await h1.waitFor({ state: "visible", timeout: 10000 });
-    assert(/pat/i.test(await h1.innerText()), `/book H1 "${await h1.innerText()}" doesn't greet Pat`);
-    assert(/QA Test Earthworks/.test(await page.locator("body").innerText()), "/book doesn't name the company");
+    // Andrew's headline, as written (his booking page layout, Oct 19)
+    assert(/one step away/i.test(await h1.innerText()), `/book H1 "${await h1.innerText()}" isn't Andrew's headline`);
     const video = page.getByTestId("book-video");
     assert(await video.isVisible(), "Andrew's video isn't on /book");
     assert(await page.locator(`#vidalytics_embed_${VIDEO_ID}`).count(), `no Vidalytics container #vidalytics_embed_${VIDEO_ID}`);
@@ -1139,17 +1139,22 @@ async function funnel(device) {
       note(`Cal.com unreachable from this machine${calBlocked ? "" : " (no request seen)"}: the fallback card showed`);
       calNote = "Cal.com unreachable here: fallback card with its link";
     }
-    // Andrew's order: headline, then the video, then the calendar, then the details
+    // Andrew's layout: the video and the calendar side by side on laptops (the video first on
+    // phones), "Here's what we'll cover" under the video
     const topOf = (id) => page.getByTestId(id).evaluate((el) => Math.round(el.getBoundingClientRect().top + scrollY));
-    const [vTop, calTop, setTop] = [await topOf("book-video"), await topOf("book-cal"), await topOf("book-setup")];
-    assert(vTop < calTop && calTop < setTop, `/book order: video ${vTop}, calendar ${calTop}, setup ${setTop}`);
-    out.push(`/book: H1, video (${vTop}) above the calendar (${calTop}), ${calNote}`);
+    const leftOf = (id) => page.getByTestId(id).evaluate((el) => Math.round(el.getBoundingClientRect().left));
+    const [vTop, calTop, covTop] = [await topOf("book-video"), await topOf("book-cal"), await topOf("book-covers")];
+    if (device.name === "phone") assert(vTop < calTop && calTop < covTop, `/book order: video ${vTop}, calendar ${calTop}, covers ${covTop}`);
+    else {
+      const [vLeft, calLeft] = [await leftOf("book-video"), await leftOf("book-cal")];
+      assert(vLeft < calLeft && vTop < covTop && calTop < covTop, `/book layout: video ${vLeft},${vTop}, calendar ${calLeft},${calTop}, covers ${covTop}`);
+    }
+    out.push(`/book: H1, video (${vTop}) and the calendar (${calTop}), ${calNote}`);
 
-    // the product details under the calendar
-    const setup = page.getByTestId("book-setup");
-    assert(await setup.count(), "no 'What you're setting up' block");
-    const groups = await setup.getByRole("heading", { level: 3 }).count();
-    assert(groups === 6, `${groups} spec groups under the calendar`);
+    // what the call covers: Andrew's three
+    const covers = page.getByTestId("book-covers");
+    const items = await covers.getByRole("heading", { level: 3 }).count();
+    assert(items === 3, `${items} items under "Here's what we'll cover"`);
 
     // no lead sent anywhere (no email to Andrew or the visitor from a test): leadWebhook is empty
     assert(/leadWebhook:\s*""/.test(configSrc), "config.leadWebhook is set: a test run would send leads");
