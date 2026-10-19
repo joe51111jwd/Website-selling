@@ -46,20 +46,22 @@ The same site and content build in two looks:
 | Paper (editorial broadsheet) | `npm run build` | https://raymond-ekpo.vercel.app |
 | Liquid Glass | `npm run build:glass` (sets `PUBLIC_THEME=glass`) | https://raymond-ekpo-glass.vercel.app |
 
-The glass version is the site as Raymond's own pitch deck. Instead of a long page, each page is a deck of full-screen slides, set like a well-made deck: chalk, ink and one blue, Cabinet Grotesk and Switzer (both from Fontshare under its free licence, self-hosted in `public/fonts/`), with the furniture a real deck carries.
+The glass version opens on one question instead of a page about Raymond: **describe your company in one sentence, the way you'd want an investor to repeat it.** It's the first thing Raymond would do with a founder, so a visitor gets to try the work before reading about it, and there are no prices until they ask for them. Light warm grey with slow colour blobs behind frosted Liquid Glass, set in Satoshi and Switzer (both from Fontshare under its free licence, self-hosted in `public/fonts/`).
 
-- **The decks:** the home page is twelve slides in the order a good seed deck runs: title, problem, what investors hear, approach, before and after, the four engagements, the model, who it's for (the fit check), process, traction, team, and the ask. Services, notes and about are appendices A–C. Each note is its own short deck, one slide per section, split at the note's headings.
-- **Moving through them:** arrow keys, page keys and space; a trackpad or wheel, one slide per gesture; on a phone, a swipe that drags the next slide in under your finger. The address follows the slide (`/#ask`, `/services#rewrite`), so any slide can be linked to. A slide that's taller than the screen scrolls first.
-- **Speaker notes:** most slides in the main deck carry notes (`slot="notes"`) on why the slide is built the way it is. The Notes button or `N` shows them, so the deck teaches the method while it sells it.
-- **Liquid Glass, where Apple uses it:** on the controls floating over the content. The presenter bar (previous, slide number, next, notes, enquire) is glass with a springy thumb. Each change of slide is a glass rod sweeping across the screen, wiping the old slide into the new one and magnifying both where they meet. The before/after slides are divided by a glass rod you drag. The slide number opens the contents: every slide of the deck as a live thumbnail on a frosted light table, plus the other decks. In Chromium the glass bends what's behind it through SVG displacement maps built for each piece's size (`lens.ts`); elsewhere it's frosted.
-- **Pages that are documents** (the enquiry form, privacy) keep their paper markup, restyled, and the bar offers the way back to the deck.
+- **The test:** as you type, the sentence stays large on the page. Words a partner wouldn't repeat fade, buzzwords get a wavy underline, and the words that survive stay in ink. A glass panel scores six checks: Who buys, What changes, Proof, Why now, Plain words and One breath. Each check has a one-line note on what to fix. Below the sentence, "What a partner repeats on Monday" shows what's left after the retelling, plus the question an investor would ask next. Three example sentences (buzzwords, vague, specific) type themselves in for anyone without one handy.
+- **Not a chatbot:** no bubbles, no persona and no typing dots. The analysis is a fixed set of rules (`analyse.ts`) that runs in the browser, so the result is instant and the same every time, and nothing is sent anywhere.
+- **The next step:** a glass dock at the bottom carries a verdict and one action, the free mini-audit. The sentence goes with you: the services page shows it back with its score, and the enquiry form fills in "What the company does, in one sentence". It's kept in `sessionStorage` (key `one-sentence`), so it's gone when the tab closes. Analytics records a `Sentence tested` event without the text.
+- **The other pages** are ordinary scrolling pages in the same glass: services as four cards with the fit check and FAQ, notes as rows with their before and after headlines, each note with a glass rod you drag across a before and after slide, about, the enquiry form, privacy and 404.
+- **Liquid Glass:** the nav capsule (with a springy thumb that follows the pointer), the reading panel, the dock, cards and sheets. In Chromium the glass bends what's behind it through SVG displacement maps built for each piece's size (`lens.ts`); elsewhere it's frosted.
 
 Where the code lives:
-- **Decks:** `src/components/deck/`. `Deck.astro` and `Slide.astro` are the parts, `HomeDeck`, `ServicesDeck`, `WorkDeck`, `NoteDeck` and `AboutDeck` are the decks, and `Chrome.astro` is the presenter's controls. Each page file in `src/pages/` picks the paper or glass body with `glass` from `src/theme.ts`, and keeps the data and structured data both builds share.
-- **Scripts:** `src/scripts/deck/`. `deck.ts` is the engine (navigation, the wipe, contents, notes), `lens.ts` the glass, `compare.ts` the before/after rod, `segments.ts` the springy thumbs. The fit check uses the paper site's `fit.ts`.
-- **Theme CSS:** `src/styles/deck.css`, scoped to `html[data-theme="glass"]` so the paper build ignores it.
+- **Components:** `src/components/one/`. `Sentence.astro` is the home page; `ServicesPage`, `NotesPage`, `NotePage` and `AboutPage` are the other pages; `Nav`, `Foot`, `Backdrop` and `PageHead` are shared. Each page file in `src/pages/` picks the paper or glass body with `glass` from `src/theme.ts`, and keeps the data and structured data both builds share.
+- **Scripts:** `src/scripts/one/`. `analyse.ts` is the rules (pure functions, no DOM), `sentence.ts` paints the result, `carry.ts` shows the sentence on later pages, `lens.ts` the glass, `compare.ts` the before/after rod, `segments.ts` the springy thumbs. The fit check uses the paper site's `fit.ts`.
+- **Theme CSS:** `src/styles/one.css`, scoped to `html[data-theme="glass"]` so the paper build ignores it.
 
-The glass build is `noindex` and its `robots.txt` disallows crawling, because it's an alternative design for review. Without JavaScript the slides stack into one long page. With reduced motion on, slides change with a quick fade and nothing sweeps or builds. In dev, `window.__deck.go(i)` jumps to a slide and `window.__deck.hold(i, p)` holds a wipe part-way, for screenshots.
+The glass build is `noindex` and its `robots.txt` disallows crawling, because it's an alternative design for review. Without JavaScript the box still takes text and the audit link works. With reduced motion on, the backdrop is still and examples appear at once.
+
+To tune the rules, edit the word lists and patterns at the top of `analyse.ts`. The checks are deliberately simple: they point at the questions investors ask, they don't grade the company.
 
 ## Run it
 
@@ -115,6 +117,7 @@ Plausible, cookieless, so there's no cookie banner. Add the site in Plausible un
 | `Audit request` | successful mini-audit request | `stage`, `timing`, `services` |
 | `CTA` | any call-to-action click | `cta`, `location`, `page` |
 | `Contact click` | email, X or LinkedIn click | `channel`, `page` |
+| `Sentence tested` | glass version only: once per page view, after a sentence of four or more words settles | none (the sentence is never sent) |
 
 ## SEO
 

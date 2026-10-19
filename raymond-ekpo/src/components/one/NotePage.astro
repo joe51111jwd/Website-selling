@@ -1,0 +1,215 @@
+---
+// A note in the glass build: the title, the slide it's about with the glass divider to drag, the
+// argument on a sheet of glass, and a way to try it on your own sentence or deck.
+import { render } from 'astro:content';
+import type { WorkEntry } from '../../lib/content';
+import { readingMinutes } from '../../lib/content';
+import PageHead from './PageHead.astro';
+import Compare from './Compare.astro';
+
+interface Props {
+  entry: WorkEntry;
+  next: WorkEntry;
+}
+
+const { entry, next } = Astro.props;
+const { Content } = await render(entry);
+const d = entry.data;
+const date = d.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+const facts =
+  d.kind === 'case-study'
+    ? ([
+        ['Client', d.client],
+        ['Stage', d.stage],
+        ['Sector', d.sector],
+        ['Outcome', d.outcome],
+      ].filter(([, v]) => v) as [string, string][])
+    : [];
+---
+
+<article>
+  <PageHead kicker={d.topic} title={d.title}>
+    <Fragment slot="kicker"><a href="/work" class="nd-crumb">Notes</a> / {d.topic}</Fragment>
+    <Fragment slot="lead">{d.dek}</Fragment>
+    <p class="o-fine nd-meta">
+      <time datetime={d.date.toISOString()}>{date}</time> · {readingMinutes(entry.body)} min read
+      {d.illustrative && <span class="nd-tag">Illustrative example</span>}
+    </p>
+    {
+      facts.length > 0 && (
+        <dl class="nd-facts">
+          {facts.map(([k, v]) => (
+            <div>
+              <dt>{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+  </PageHead>
+
+  {
+    d.example && (
+      <section class="o-wrap nd-ex" aria-label={`The ${d.example.slide.toLowerCase()} slide, before and after`}>
+        <Compare example={d.example} />
+        {d.illustrative && <p class="o-fine nd-fig">Drag the glass. Illustrative: the company, numbers and events are invented to show the reasoning.</p>}
+      </section>
+    )
+  }
+
+  <div class="o-wrap nd-body">
+    <div class="nd-sheet o-glass">
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+    <aside class="nd-side" aria-label="Try it on your own">
+      <div class="nd-try o-glass">
+        <p class="o-fine">Try it on your own</p>
+        <p class="nd-try-title">Run your company through the one-sentence test.</p>
+        <a href="/" class="o-link">Take the test</a>
+      </div>
+      <div class="nd-try o-glass">
+        <p class="o-fine">Does your deck do this?</p>
+        <p class="nd-try-title">Send it over for a free mini-audit: the three changes I’d make first.</p>
+        <a href="/work-with-me?type=audit" class="o-btn" data-cta="Request a free deck audit" data-cta-location={`note: ${entry.id}`}>Request a mini-audit</a>
+      </div>
+    </aside>
+  </div>
+
+  {
+    next.id !== entry.id && (
+      <nav class="o-wrap nd-next" aria-label="Next note">
+        <a href={`/work/${next.id}`} class="nd-next-link o-glass">
+          <span class="o-fine">Next note · {next.data.topic}</span>
+          <span class="o-h3">{next.data.title}</span>
+          <span class="nd-next-go" aria-hidden="true">
+            →
+          </span>
+        </a>
+      </nav>
+    )
+  }
+</article>
+
+<style>
+  .nd-crumb {
+    color: inherit;
+  }
+
+  .nd-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+  }
+
+  .nd-tag {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: #1a44d6;
+    font-weight: 500;
+  }
+
+  .nd-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    margin: 0;
+  }
+
+  .nd-facts dt {
+    font-size: 0.82rem;
+    color: var(--mute);
+  }
+
+  .nd-facts dd {
+    margin: 2px 0 0;
+  }
+
+  .nd-ex {
+    display: grid;
+    gap: 12px;
+  }
+
+  .nd-body {
+    display: grid;
+    gap: 22px;
+    margin-top: clamp(40px, 6vw, 72px);
+  }
+
+  @media (min-width: 1000px) {
+    .nd-body {
+      grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+      gap: 28px;
+      align-items: start;
+    }
+    .nd-side {
+      position: sticky;
+      top: 24px;
+    }
+  }
+
+  .nd-sheet {
+    padding: clamp(26px, 4vw, 56px);
+    border-radius: 32px;
+  }
+
+  .nd-side {
+    display: grid;
+    gap: 14px;
+  }
+
+  .nd-try {
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+    padding: 22px;
+    border-radius: 26px;
+  }
+
+  .nd-try p {
+    margin: 0;
+  }
+
+  .nd-try-title {
+    font: 500 1.2rem/1.25 var(--disp);
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+
+  .nd-next {
+    margin-top: clamp(48px, 7vw, 90px);
+  }
+
+  .nd-next-link {
+    position: relative;
+    display: grid;
+    gap: 8px;
+    padding: clamp(22px, 3vw, 34px);
+    padding-right: 90px;
+    border-radius: 28px;
+    color: var(--ink);
+    text-decoration: none;
+    transition: transform 0.45s var(--spring);
+  }
+
+  .nd-next-link:hover {
+    transform: translateY(-3px);
+  }
+
+  .nd-next-go {
+    position: absolute;
+    right: clamp(22px, 3vw, 34px);
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #fff;
+    transform: translateY(-50%);
+  }
+</style>

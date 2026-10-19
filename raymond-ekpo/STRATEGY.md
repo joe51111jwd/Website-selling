@@ -189,6 +189,20 @@ James's verdict on round six: it looked like it was made with Lovable (a dark gr
 
 **Fallbacks:** without JavaScript the slides stack into a page. With reduced motion, slides change with a quick fade. Without Chromium's SVG backdrop filters, the glass is frosted.
 
+### Round eight: the one-sentence test
+
+James's verdict on round seven: nobody wants to click through a slide deck. Out of fifteen directions, James picked "one sentence": the home page is a tool, not a page about Raymond. The brief was to make it feel like a real instrument rather than a chatbot, and to keep it clean, modern and in Liquid Glass.
+
+- **Try the work before reading about it.** The first screen asks a founder to describe their company in one sentence, the way they'd want an investor to repeat it. That's the first thing Raymond does with a client, so the visitor gets a small, real piece of the service in ten seconds.
+- **Play without price shock.** The home page has no prices and no pitch. It earns attention first, and the only next step is the free mini-audit. Prices are one click away on the services page, and the sentence goes with you.
+- **Show the retelling.** Investors repeat a pitch to partners. As you type, words that won't survive the retelling fade, buzzwords get a wavy underline, and what's left is shown as "what a partner repeats on Monday", with the question an investor would ask next ("…which ones, though?"). It makes Raymond's whole argument visible without a paragraph of copy.
+- **Six checks, not a score out of 100.** Who buys, What changes, Proof, Why now, Plain words, One breath. Each is a question investors actually ask, with a one-line note on how to fix it. The rules are fixed and run in the browser, so the result is honest about being simple, and the verdict always points to the human step: "A second pair of eyes would get it there."
+- **Not a chatbot.** No bubbles, avatar, persona or typing dots. The sentence itself is the interface, set large, and the analysis paints onto it.
+- **Liquid Glass on the furniture.** The nav capsule, the reading panel, the dock and the cards are glass over a light, warm field with slow colour, so the glass has something to bend. The other pages are ordinary, calm scrolling pages in the same system.
+- **Same content, same rules.** Prices, services, notes and the form are unchanged. No outcome is promised; the examples are invented and labelled.
+
+**Fallbacks:** without JavaScript the box still takes text and the audit link works. With reduced motion the backdrop is still and the examples appear at once. Without Chromium's SVG backdrop filters, the glass is frosted.
+
 ---
 
 ## 7. Tech

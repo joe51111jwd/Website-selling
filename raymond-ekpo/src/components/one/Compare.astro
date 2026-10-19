@@ -53,10 +53,10 @@ const { example } = Astro.props;
     position: relative;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    border-radius: 6px;
+    border-radius: 22px;
     box-shadow:
-      0 0 0 1px rgb(14 14 16 / 0.1),
-      0 30px 60px -36px rgb(14 14 16 / 0.55);
+      0 0 0 1px rgb(16 16 18 / 0.06),
+      0 30px 60px -34px rgb(40 40 90 / 0.45);
     cursor: ew-resize;
     touch-action: pan-y;
     user-select: none;
@@ -118,8 +118,8 @@ const { example } = Astro.props;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background: var(--klein);
-    color: rgb(244 244 241 / 0.82);
+    background: var(--accent);
+    color: rgb(255 255 255 / 0.95);
     clip-path: inset(0 0 0 var(--pos));
   }
 
@@ -128,15 +128,15 @@ const { example } = Astro.props;
     font: 600 clamp(9px, 1.5cqi, 13px) / 1 var(--text);
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: rgb(244 244 241 / 0.72);
+    color: rgb(255 255 255 / 0.92);
   }
 
   .rc-after .rc-head {
     margin: 0 0 4cqi;
     max-width: 18em;
-    font: 800 clamp(19px, 5cqi, 46px) / 0.98 var(--disp);
+    font: 500 clamp(19px, 4.8cqi, 44px) / 1.02 var(--disp);
     letter-spacing: -0.035em;
-    color: var(--chalk);
+    color: #fff;
     text-wrap: balance;
   }
 
@@ -158,14 +158,14 @@ const { example } = Astro.props;
     content: counter(pt, decimal-leading-zero);
     font-family: var(--disp);
     font-weight: 500;
-    color: var(--chalk);
+    color: #fff;
   }
 
   .rc-tag {
     position: absolute;
     top: 14px;
     padding: 6px 10px;
-    border-radius: 4px;
+    border-radius: 999px;
     font: 500 0.78rem/1 var(--text);
     white-space: nowrap;
     pointer-events: none;
@@ -180,8 +180,8 @@ const { example } = Astro.props;
 
   .rc-tag--after {
     left: calc(var(--pos) + 46px);
-    background: rgb(255 255 255 / 0.16);
-    color: var(--chalk);
+    background: rgb(10 20 80 / 0.24);
+    color: #fff;
   }
 
   /* the rod of glass that divides them */
@@ -227,7 +227,7 @@ const { example } = Astro.props;
   }
 
   .rc-range:focus-visible + .rc-frame .rc-rod {
-    outline: 2px solid var(--klein);
+    outline: 2px solid var(--accent);
     outline-offset: 3px;
   }
 </style>

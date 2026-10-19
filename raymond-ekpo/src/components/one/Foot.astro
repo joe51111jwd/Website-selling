@@ -1,0 +1,15 @@
+---
+import { site } from '../../site.config';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="o-foot">
+  <p>© {year} {site.name}. Also runs <a href={site.firm.url} rel="noopener" target="_blank">{site.firm.name}</a>.</p>
+  <ul>
+    <li><a href={`mailto:${site.email}`} data-contact="email">{site.email}</a></li>
+    <li><a href={site.x.url} rel="me noopener" target="_blank" data-contact="x">X</a></li>
+    <li><a href={site.linkedin} rel="me noopener" target="_blank" data-contact="linkedin">LinkedIn</a></li>
+    <li><a href="/privacy">Privacy</a></li>
+  </ul>
+</footer>

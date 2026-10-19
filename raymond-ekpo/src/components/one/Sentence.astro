@@ -1,0 +1,460 @@
+---
+// The home page: the one-sentence test. A founder types their company in one sentence, set
+// large on the page. As they type, the words an investor won't remember fade, the ones that
+// survive stay, and the words investors have learned to skip are underlined. A glass panel reads
+// the sentence against six checks, a line below shows what a partner would repeat on Monday, and
+// a dock offers the next step: the free mini-audit, with the sentence carried into the form.
+// The reading is fixed rules in the browser (scripts/one/analyse.ts); nothing typed is sent.
+import { LABELS, type CheckId } from '../../scripts/one/analyse';
+
+const hints: Record<CheckId, string> = {
+  who: 'A buyer someone could picture, and count.',
+  change: 'What’s different for them afterwards.',
+  proof: 'One number from your own customers.',
+  now: 'Why this hasn’t been done before.',
+  plain: 'No words investors have learned to skip.',
+  breath: 'Short enough to say in one breath.',
+};
+const examples = [
+  { label: 'Buzzwords', text: 'We’re building an AI-powered platform that revolutionises how businesses manage their operations.' },
+  { label: 'Vague', text: 'We help small businesses get paid faster.' },
+  { label: 'Specific', text: 'We fill cancelled appointments at independent UK physio clinics from their own waitlists, and 41 clinics already pay us £3,500 a year.' },
+];
+---
+
+<section class="s1" data-sentence aria-labelledby="s1-title" data-hints={JSON.stringify(hints)}>
+  <div class="s1-main">
+    <p class="o-kicker s1-rise" style="--d: 0.05s">The one-sentence test</p>
+    <h1 id="s1-title" class="s1-ask s1-rise" style="--d: 0.12s">
+      Describe your company in one sentence. <span class="o-dim">The way you’d want an investor to repeat it.</span>
+    </h1>
+
+    <div class="s1-ed s1-rise" style="--d: 0.2s">
+      <div class="s1-mirror" data-mirror aria-hidden="true"></div>
+      <label for="sentence" class="sr-only">Your company, in one sentence</label>
+      <textarea
+        id="sentence"
+        class="s1-input"
+        data-input
+        rows="1"
+        maxlength="320"
+        spellcheck="false"
+        autocomplete="off"
+        autocapitalize="sentences"
+        enterkeyhint="done"
+        placeholder="We help…"></textarea>
+    </div>
+
+    <div class="s1-try s1-rise" style="--d: 0.3s">
+      <span class="o-fine">No sentence handy? Try one:</span>
+      {
+        examples.map((e, i) => (
+          <button type="button" class="s1-chip o-btn--glass" data-example={i} data-text={e.text}>
+            {e.label}
+          </button>
+        ))
+      }
+    </div>
+
+    <div class="s1-retell s1-rise" style="--d: 0.38s">
+      <p class="o-kicker">What a partner repeats on Monday</p>
+      <p class="s1-kept" data-kept><span class="s1-wait">Start typing. What survives will show here.</span></p>
+    </div>
+  </div>
+
+  <aside class="s1-panel o-glass s1-rise" style="--d: 0.25s" data-lens-glass="4" aria-labelledby="s1-panel-title">
+    <div class="s1-score">
+      <h2 id="s1-panel-title">Survives the retelling</h2>
+      <p><b data-passed>0</b> <span>of 6</span></p>
+    </div>
+    <ol class="s1-checks">
+      {
+        (Object.keys(LABELS) as CheckId[]).map((id) => (
+          <li data-check={id} data-state="idle">
+            <span class="s1-dot" aria-hidden="true" />
+            <div>
+              <h3>{LABELS[id]}</h3>
+              <p data-note>{hints[id]}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="sr-only" data-live aria-live="polite"></p>
+  </aside>
+
+  <div class="s1-dock o-glass s1-rise" style="--d: 0.45s" data-lens-glass="3">
+    <div class="s1-verdict">
+      <p data-verdict>What you type stays in your browser.</p>
+      <p class="o-fine">Send it with your deck and I’ll reply with the three changes I’d make first. Free.</p>
+    </div>
+    <a href="/work-with-me?type=audit" class="o-btn" data-send data-cta="Request a free deck audit" data-cta-location="one sentence">
+      Get the free audit <span aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>
+
+<style>
+  .s1 {
+    --s1-size: clamp(2.1rem, 4.3vw, 4.15rem);
+    position: relative;
+    display: grid;
+    gap: clamp(24px, 3vw, 40px);
+    min-height: calc(100svh - 90px);
+    padding: clamp(28px, 6vh, 72px) var(--pad) 150px;
+    box-sizing: border-box;
+  }
+
+  @media (min-width: 1040px) {
+    .s1 {
+      grid-template-columns: minmax(0, 8fr) minmax(320px, 4fr);
+      gap: clamp(40px, 5vw, 88px);
+      align-items: start;
+    }
+  }
+
+  .s1-rise {
+    animation: o-rise 0.9s var(--ease) both;
+    animation-delay: var(--d, 0s);
+  }
+
+  :global(.still) .s1-rise {
+    animation: none;
+  }
+
+  .s1-main {
+    display: grid;
+    gap: clamp(16px, 2.4vh, 26px);
+    align-content: start;
+    min-width: 0;
+  }
+
+  .s1-ask {
+    margin: 0;
+    max-width: 30em;
+    font: 500 clamp(1.15rem, 1.5vw, 1.4rem) / 1.35 var(--disp);
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  /* body-size text, so the second tone needs the darker grey */
+  .s1-ask .o-dim {
+    color: var(--mute);
+  }
+
+  /* the editor: a styled copy of the text sits under a transparent field, word for word */
+  .s1-ed {
+    position: relative;
+    margin-top: clamp(4px, 1.4vh, 16px);
+  }
+
+  .s1-mirror,
+  .s1-input {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font: 500 var(--s1-size) / 1.1 var(--disp);
+    letter-spacing: -0.032em;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-wrap: wrap;
+  }
+
+  .s1-mirror {
+    min-height: 2.2em;
+    color: var(--ink);
+  }
+
+  .s1-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    resize: none;
+    overflow: hidden;
+    background: transparent;
+    color: transparent;
+    caret-color: var(--accent);
+    outline: none;
+  }
+
+  .s1-input:focus-visible {
+    outline: none;
+  }
+
+  /* a quiet line under the sentence; it warms when the field has focus */
+  .s1-ed::after {
+    content: '';
+    display: block;
+    height: 2px;
+    margin-top: clamp(10px, 1.6vh, 18px);
+    border-radius: 2px;
+    background: var(--line);
+    transform-origin: left;
+    transition: background-color 0.3s ease;
+  }
+
+  .s1-ed:focus-within::after {
+    background: linear-gradient(90deg, var(--accent), rgb(36 86 255 / 0.15));
+  }
+
+  .s1-input::placeholder {
+    color: var(--faint);
+    opacity: 1;
+  }
+
+  .s1-input::selection {
+    background: rgb(36 86 255 / 0.18);
+    color: transparent;
+  }
+
+  .s1-mirror :global(span) {
+    transition:
+      color 0.45s ease,
+      text-decoration-color 0.45s ease;
+  }
+
+  .s1-mirror :global(.k-fade) {
+    color: var(--faint);
+  }
+
+  .s1-mirror :global(.k-keep) {
+    color: var(--ink);
+  }
+
+  .s1-mirror :global(.k-flag) {
+    color: var(--faint);
+    text-decoration: underline wavy var(--flag);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+    text-decoration-skip-ink: none;
+  }
+
+  .s1-try {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .s1-try .o-fine {
+    margin-right: 4px;
+  }
+
+  .s1-chip {
+    min-height: 36px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 999px;
+    font: 500 0.88rem/1 var(--text);
+    cursor: pointer;
+    transition: transform 0.35s var(--spring);
+  }
+
+  .s1-chip:hover {
+    transform: scale(1.05);
+  }
+
+  .s1-retell {
+    display: grid;
+    gap: 8px;
+    margin-top: clamp(4px, 1.6vh, 18px);
+    padding-top: clamp(14px, 2vh, 22px);
+    border-top: 1px solid var(--line);
+  }
+
+  .s1-kept {
+    margin: 0;
+    font: 500 clamp(1.15rem, 1.6vw, 1.5rem) / 1.35 var(--disp);
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    animation: o-fade 0.4s ease both;
+  }
+
+  .s1-kept :global(.s1-sep) {
+    margin: 0 0.4em;
+    color: var(--faint);
+  }
+
+  .s1-kept :global(.s1-aside),
+  .s1-wait {
+    color: var(--mute);
+    font-weight: 400;
+  }
+
+  /* the reading panel */
+  .s1-panel {
+    position: relative;
+    padding: 22px 22px 10px;
+    border-radius: 30px;
+  }
+
+  @media (min-width: 1040px) {
+    .s1-panel {
+      position: sticky;
+      top: 24px;
+      margin-top: 8px;
+    }
+  }
+
+  .s1-score {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 10px;
+  }
+
+  .s1-score h2 {
+    margin: 0;
+    font: 500 0.92rem/1.3 var(--text);
+    color: var(--mute);
+  }
+
+  .s1-score p {
+    margin: 0;
+    font: 500 0.92rem/1 var(--text);
+    color: var(--mute);
+  }
+
+  .s1-score b {
+    font: 500 2.6rem/1 var(--disp);
+    letter-spacing: -0.04em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .s1-checks {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .s1-checks li {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .s1-checks h3 {
+    margin: 0;
+    font: 600 0.98rem/1.25 var(--text);
+    color: var(--ink);
+  }
+
+  .s1-checks p {
+    margin: 3px 0 0;
+    font: 400 0.9rem/1.42 var(--text);
+    color: var(--ink-2);
+  }
+
+  .s1-dot {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px rgb(16 16 18 / 0.22);
+    transition:
+      background-color 0.35s ease,
+      box-shadow 0.35s ease,
+      transform 0.5s var(--spring);
+  }
+
+  .s1-dot::after {
+    content: '';
+    position: absolute;
+    left: 5.5px;
+    top: 4px;
+    width: 5px;
+    height: 8px;
+    border-right: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(45deg) scale(0);
+    transition: transform 0.4s var(--spring);
+  }
+
+  [data-state='pass'] .s1-dot {
+    background: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+
+  [data-state='pass'] .s1-dot::after {
+    transform: rotate(45deg) scale(1);
+  }
+
+  [data-state='part'] .s1-dot {
+    background: var(--warn);
+    box-shadow: 0 0 0 4px var(--warn-soft);
+  }
+
+  [data-state='miss'] .s1-dot {
+    box-shadow: inset 0 0 0 1.5px rgb(16 16 18 / 0.32);
+  }
+
+  [data-state='idle'] p {
+    color: var(--mute);
+  }
+
+  .s1-checks :global(.pop) .s1-dot {
+    transform: scale(1.25);
+  }
+
+  /* the next step, docked at the bottom */
+  .s1-dock {
+    position: fixed;
+    left: 50%;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    width: min(760px, calc(100% - 2 * var(--pad)));
+    padding: 10px 10px 10px 24px;
+    border-radius: 999px;
+    box-sizing: border-box;
+    transform: translateX(-50%);
+  }
+
+  .s1-dock.s1-rise {
+    animation-name: o-fade;
+  }
+
+  .s1-verdict {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .s1-verdict p {
+    margin: 0;
+  }
+
+  .s1-verdict [data-verdict] {
+    font: 600 0.98rem/1.3 var(--text);
+    color: var(--ink);
+  }
+
+  .s1-dock .o-btn {
+    flex: none;
+    min-height: 52px;
+  }
+
+  @media (max-width: 700px) {
+    .s1 {
+      padding-bottom: 190px;
+    }
+    .s1-dock {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      padding: 14px;
+      border-radius: 26px;
+    }
+    .s1-verdict .o-fine {
+      display: none;
+    }
+  }
+</style>

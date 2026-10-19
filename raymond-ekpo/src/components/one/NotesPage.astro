@@ -1,0 +1,243 @@
+---
+// The notes in the glass build: the analyses as glass rows, each with the slide's headline as
+// founders usually write it and the rewrite. Then client case studies, published only with the
+// founder's permission.
+import type { WorkEntry } from '../../lib/content';
+import { readingMinutes } from '../../lib/content';
+import PageHead from './PageHead.astro';
+
+interface Props {
+  notes: WorkEntry[];
+  cases: WorkEntry[];
+}
+
+const { notes, cases } = Astro.props;
+---
+
+<PageHead kicker="Notes" title="The thinking," dim="in public.">
+  <Fragment slot="lead">
+    Analyses of the slides and arguments that decide most early-stage raises. The examples are invented composites, not
+    clients, and they’re labelled that way.
+  </Fragment>
+</PageHead>
+
+<section class="o-wrap" aria-label="Notes and analyses">
+  <ol class="nt-list">
+    {
+      notes.map((n) => (
+        <li class="nt-row o-glass">
+          <div class="nt-head">
+            <p class="o-fine">
+              {n.data.topic} · {readingMinutes(n.body)} min read
+            </p>
+            <h2 class="o-h3">
+              <a href={`/work/${n.id}`} class="nt-link">
+                {n.data.title}
+              </a>
+            </h2>
+            <p class="o-text">{n.data.dek}</p>
+          </div>
+          {n.data.example && (
+            <dl class="nt-diff">
+              <div>
+                <dt>As usually written</dt>
+                <dd class="nt-was">“{n.data.example.before.headline}”</dd>
+              </div>
+              <div>
+                <dt>Rewritten</dt>
+                <dd class="nt-now">{n.data.example.after.headline}</dd>
+              </div>
+            </dl>
+          )}
+          <span class="nt-go" aria-hidden="true">
+            →
+          </span>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<section class="o-wrap nt-cases" aria-labelledby="cases-title">
+  <div class="nt-empty o-glass">
+    <h2 id="cases-title" class="o-h2">Client work appears here <span class="o-dim">with the founder’s permission.</span></h2>
+    {
+      cases.length > 0 ? (
+        <ul class="nt-case-list">
+          {cases.map((c) => (
+            <li>
+              <a href={`/work/${c.id}`} class="o-link">
+                {c.data.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div class="nt-empty-body">
+          <p class="o-text">
+            Fundraising is confidential, and most founders would rather their deck wasn’t public while they’re raising. If
+            you’d like to see examples of my work before you enquire, ask, and I’ll share what I can.
+          </p>
+          <p>
+            <a href="/work-with-me" class="o-btn" data-cta="Ask for examples" data-cta-location="work page">
+              Ask for examples
+            </a>
+          </p>
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .nt-list {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nt-row {
+    position: relative;
+    display: grid;
+    gap: 18px 40px;
+    padding: clamp(22px, 2.6vw, 30px);
+    padding-right: clamp(56px, 6vw, 80px);
+    border-radius: 28px;
+    transition: transform 0.45s var(--spring);
+  }
+
+  .nt-row:hover {
+    transform: translateY(-3px);
+  }
+
+  @media (min-width: 960px) {
+    .nt-row {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+      align-items: center;
+    }
+  }
+
+  .nt-head {
+    display: grid;
+    gap: 8px;
+  }
+
+  .nt-head p {
+    margin: 0;
+  }
+
+  .nt-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* the whole row is the link */
+  .nt-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .nt-link:focus-visible {
+    outline: none;
+  }
+
+  .nt-link:focus-visible::after {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .nt-diff {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+  }
+
+  .nt-diff dt {
+    font: 500 0.8rem/1.3 var(--text);
+    color: var(--mute);
+  }
+
+  .nt-diff dd {
+    margin: 2px 0 0;
+    font: 500 1rem/1.35 var(--disp);
+  }
+
+  .nt-was {
+    color: var(--mute);
+    text-decoration: line-through;
+    text-decoration-color: rgb(229 83 45 / 0.6);
+  }
+
+  .nt-now {
+    color: var(--accent);
+  }
+
+  .nt-go {
+    position: absolute;
+    right: clamp(20px, 2.4vw, 30px);
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #fff;
+    transform: translateY(-50%);
+    transition: transform 0.4s var(--spring);
+  }
+
+  .nt-row:hover .nt-go {
+    transform: translate(4px, -50%);
+  }
+
+  /* on narrow rows the arrow sits beside the topic line, clear of the text */
+  @media (max-width: 959px) {
+    .nt-row {
+      padding-right: clamp(22px, 2.6vw, 30px);
+    }
+    .nt-head .o-h3 {
+      padding-right: 40px;
+    }
+    .nt-go,
+    .nt-row:hover .nt-go {
+      top: clamp(18px, 2.4vw, 26px);
+      width: 32px;
+      height: 32px;
+      transform: none;
+    }
+  }
+
+  .nt-cases {
+    margin-top: clamp(56px, 8vw, 100px);
+  }
+
+  .nt-empty {
+    display: grid;
+    gap: 22px;
+    padding: clamp(26px, 4vw, 48px);
+    border-radius: 32px;
+  }
+
+  @media (min-width: 900px) {
+    .nt-empty {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+      gap: 48px;
+      align-items: end;
+    }
+  }
+
+  .nt-empty-body {
+    display: grid;
+    gap: 18px;
+    justify-items: start;
+  }
+
+  .nt-empty-body p {
+    margin: 0;
+  }
+</style>

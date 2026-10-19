@@ -140,7 +140,7 @@ export function lensGlass(root: ParentNode = document) {
   const apply = (el: HTMLElement) => {
     const w = Math.round(el.offsetWidth);
     const h = Math.round(el.offsetHeight);
-    if (w < 8 || h < 8 || w * h > 900 * 220) return;
+    if (w < 8 || h < 8 || w * h > 480 * 760) return;
     const radius = Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0, h / 2);
     const id = filterFor(w, h, radius, Number(el.dataset.lensGlass || 4));
     el.style.setProperty('--lens', `url(#${id})`);

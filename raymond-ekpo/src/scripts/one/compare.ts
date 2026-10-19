@@ -1,6 +1,6 @@
 // Before and after, divided by a rod of glass you drag across the slide. The rod bends both
 // versions where they meet. A hidden range input carries the position for keyboards and screen
-// readers. When its slide comes up, the rod sweeps in once to show it can be moved.
+// readers. The first time it comes into view, the rod sweeps in once to show it can be moved.
 import { rodLens } from './lens';
 
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -44,10 +44,9 @@ export function compares() {
     const lens = () => rodLens(rod);
     new ResizeObserver(lens).observe(rod);
 
-    // the first time its slide comes up, sweep the rod in from the right
-    const slide = cmp.closest('.d-slide');
+    // the first time it comes into view, sweep the rod in from the right
     let shown = false;
-    slide?.addEventListener('slideenter', () => {
+    const sweep = () => {
       lens();
       if (shown || still) return;
       shown = true;
@@ -55,13 +54,22 @@ export function compares() {
       const from = 88;
       const to = Number(range.value);
       const step = (now: number) => {
-        const t = Math.min(1, (now - t0 - 450) / 1100);
+        const t = Math.min(1, (now - t0 - 300) / 1100);
         if (t > 0) set(from + (to - from) * (1 - Math.pow(1 - t, 3)));
         else set(from);
         if (t < 1) raf = requestAnimationFrame(step);
       };
       raf = requestAnimationFrame(step);
-    });
+    };
+    new IntersectionObserver(
+      (entries, io) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          sweep();
+          io.disconnect();
+        }
+      },
+      { threshold: 0.4 },
+    ).observe(cmp);
     set(pos);
   });
 }

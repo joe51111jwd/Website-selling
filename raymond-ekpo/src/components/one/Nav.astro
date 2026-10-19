@@ -1,0 +1,44 @@
+---
+// The top bar: the name, and the pages in a capsule of glass whose thumb follows the pointer.
+// On a phone the pages fold into a menu.
+import { site } from '../../site.config';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const links = [
+  { href: '/services', label: 'Services' },
+  { href: '/work', label: 'Notes' },
+  { href: '/about', label: 'About' },
+];
+const current = (href: string) => (path === href || (href === '/work' && path.startsWith('/work/')) ? 'page' : undefined);
+---
+
+<header class="o-top">
+  <a href="/" class="o-mark" aria-label={`${site.name}, the one-sentence test`}>
+    <b>{site.name}</b>
+    <span>{site.role}</span>
+  </a>
+  <nav class="o-nav o-glass" data-seg="hover" data-lens-glass="3" aria-label="Main">
+    <span class="o-nav-thumb" data-seg-thumb aria-hidden="true"></span>
+    {
+      links.map((l) => (
+        <a href={l.href} data-seg-item aria-current={current(l.href)}>
+          {l.label}
+        </a>
+      ))
+    }
+    <a href="/work-with-me?type=audit" class="o-nav-cta" data-cta="Request a free deck audit" data-cta-location="nav">Free deck audit</a>
+  </nav>
+  <details class="o-menu">
+    <summary class="o-glass">Menu</summary>
+    <div class="o-menu-sheet o-glass">
+      {
+        links.map((l) => (
+          <a href={l.href} aria-current={current(l.href)}>
+            {l.label}
+          </a>
+        ))
+      }
+      <a href="/work-with-me?type=audit" data-cta="Request a free deck audit" data-cta-location="menu">Free deck audit</a>
+    </div>
+  </details>
+</header>

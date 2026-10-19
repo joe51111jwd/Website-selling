@@ -1,0 +1,291 @@
+---
+// About in the glass build: who you'd be working with, where the work comes from, what he
+// believes about fundraising narratives and how he works.
+import { site } from '../../site.config';
+import PageHead from './PageHead.astro';
+
+interface Props {
+  beliefs: { title: string; body: string }[];
+  ways: { title: string; body: string }[];
+}
+
+const { beliefs, ways } = Astro.props;
+---
+
+<PageHead kicker="About" title="I work on the part of a raise" dim="that happens before the slides." />
+
+<section class="o-wrap ab-intro" aria-label="Who I am">
+  <div class="ab-card o-glass">
+    {
+      site.portrait ? (
+        <img src={site.portrait} alt={site.name} class="ab-photo" width="640" height="800" />
+      ) : (
+        <span class="ab-mono" aria-hidden="true">
+          RE
+        </span>
+      )
+    }
+    <p class="ab-name">{site.name}</p>
+    <p class="o-fine">{site.role}</p>
+    <dl class="ab-facts">
+      <div>
+        <dt>Works with</dt>
+        <dd>Pre-seed and seed founders</dd>
+      </div>
+      <div>
+        <dt>Raising from</dt>
+        <dd>US and UK investors</dd>
+      </div>
+      <div>
+        <dt>Also</dt>
+        <dd>Founder, <a href={site.firm.url} rel="noopener" target="_blank">{site.firm.name}</a></dd>
+      </div>
+      <div>
+        <dt>Elsewhere</dt>
+        <dd>
+          <a href={site.x.url} rel="me noopener" target="_blank" data-contact="x">X</a> ·{' '}
+          <a href={site.linkedin} rel="me noopener" target="_blank" data-contact="linkedin">LinkedIn</a>
+        </dd>
+      </div>
+    </dl>
+  </div>
+  <div class="ab-copy">
+    <p class="ab-lead">
+      I’m {site.name}. I help pre-seed and seed founders in the US and UK explain why their company is worth investing in:
+      the thesis, the storyline, and the claims that hold it up.
+    </p>
+    <h2 class="o-h3">Where this comes from</h2>
+    <p class="o-text">
+      I spent several years studying how markets work, mostly by watching capable companies stall for reasons nobody inside
+      them could name. That work became <a href={site.firm.url} rel="noopener" target="_blank" class="o-link">{site.firm.name}</a>,
+      the growth strategy firm I run. The job there is to establish what’s actually in the way and write it down in a form
+      people can argue with.
+    </p>
+    <p class="o-text">
+      The same problem turns up at the very start of a company, in a different form. A founder knows the product, the
+      customers and the market better than anyone, and still struggles to say why it’s an investment. That’s a different
+      question from why it’s a good product.
+    </p>
+  </div>
+</section>
+
+<section class="o-wrap ab-block" aria-label="The short version">
+  <blockquote class="ab-quote">
+    <p>A pitch deck is a positioning problem <span class="o-dim">with a different buyer.</span></p>
+  </blockquote>
+</section>
+
+<section class="o-wrap ab-block" aria-labelledby="beliefs-title">
+  <h2 id="beliefs-title" class="o-h2">How I think about <span class="o-dim">fundraising narratives.</span></h2>
+  <ol class="ab-beliefs">
+    {
+      beliefs.map((b, i) => (
+        <li class="o-glass">
+          <span class="ab-n">{String(i + 1).padStart(2, '0')}</span>
+          <h3 class="o-h3">{b.title}</h3>
+          <p class="o-text">{b.body}</p>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<section class="o-wrap ab-block" aria-labelledby="ways-title">
+  <h2 id="ways-title" class="o-h2">How I <span class="o-dim">work.</span></h2>
+  <ol class="ab-ways">
+    {
+      ways.map((w) => (
+        <li>
+          <h3 class="o-h3">{w.title}</h3>
+          <p class="o-text">{w.body}</p>
+        </li>
+      ))
+    }
+  </ol>
+  <p class="ab-next">
+    <a href="/services" class="o-btn">See the services and prices</a>
+    <a href="/" class="o-link">Or try the one-sentence test</a>
+  </p>
+</section>
+
+<style>
+  .ab-intro {
+    display: grid;
+    gap: 28px;
+  }
+
+  @media (min-width: 960px) {
+    .ab-intro {
+      grid-template-columns: minmax(280px, 4fr) minmax(0, 7fr);
+      gap: 56px;
+      align-items: start;
+    }
+  }
+
+  .ab-card {
+    display: grid;
+    justify-items: start;
+    padding: 26px;
+    border-radius: 30px;
+  }
+
+  .ab-mono {
+    display: grid;
+    place-items: center;
+    width: 84px;
+    height: 84px;
+    margin-bottom: 18px;
+    border-radius: 50%;
+    background: linear-gradient(150deg, #7d9bff, var(--accent));
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.6),
+      0 12px 26px -10px rgb(36 86 255 / 0.6);
+    color: #fff;
+    font: 500 1.6rem/1 var(--disp);
+    letter-spacing: -0.03em;
+  }
+
+  .ab-photo {
+    width: 100%;
+    height: auto;
+    margin-bottom: 18px;
+    border-radius: 20px;
+  }
+
+  .ab-name {
+    margin: 0;
+    font: 500 1.6rem/1.1 var(--disp);
+    letter-spacing: -0.025em;
+  }
+
+  .ab-card .o-fine {
+    margin-top: 2px;
+  }
+
+  .ab-facts {
+    width: 100%;
+    margin: 18px 0 0;
+  }
+
+  .ab-facts div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    font-size: 0.92rem;
+  }
+
+  .ab-facts dt {
+    color: var(--mute);
+  }
+
+  .ab-facts dd {
+    margin: 0;
+    text-align: right;
+  }
+
+  .ab-facts a {
+    color: var(--ink);
+  }
+
+  .ab-copy {
+    display: grid;
+    gap: 16px;
+    max-width: 40rem;
+  }
+
+  .ab-copy p,
+  .ab-copy h2 {
+    margin: 0;
+  }
+
+  .ab-copy h2 {
+    margin-top: 12px;
+  }
+
+  .ab-lead {
+    font: 500 clamp(1.3rem, 2vw, 1.65rem) / 1.32 var(--disp);
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+
+  .ab-block {
+    margin-top: clamp(64px, 9vw, 120px);
+  }
+
+  .ab-quote {
+    margin: 0;
+  }
+
+  .ab-quote p {
+    margin: 0;
+    max-width: 14em;
+    font: 500 clamp(2.4rem, 5.6vw, 5rem) / 1.02 var(--disp);
+    letter-spacing: -0.04em;
+    color: var(--ink);
+  }
+
+  .ab-beliefs {
+    display: grid;
+    gap: 16px;
+    margin: 32px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 900px) {
+    .ab-beliefs {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .ab-beliefs li {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+    padding: 26px;
+    border-radius: 28px;
+  }
+
+  .ab-beliefs p {
+    margin: 0;
+  }
+
+  .ab-n {
+    font: 500 0.88rem/1 var(--text);
+    color: var(--accent);
+  }
+
+  .ab-ways {
+    margin: 28px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ab-ways li {
+    display: grid;
+    gap: 8px 48px;
+    padding: 22px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  @media (min-width: 900px) {
+    .ab-ways li {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+      align-items: baseline;
+    }
+  }
+
+  .ab-ways p {
+    margin: 0;
+  }
+
+  .ab-next {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 22px;
+    margin: 32px 0 0;
+  }
+</style>

@@ -2,16 +2,16 @@
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import { site } from '../site.config';
-import DocHead from '../components/deck/DocHead.astro';
+import GlassHead from '../components/one/PageHead.astro';
 import { glass } from '../theme';
 ---
 
 <Base title="Privacy notice" description={`How ${site.name} handles the information you share through this site.`}>
   {
     glass ? (
-      <DocHead kicker="Privacy" title="Privacy notice." tone="chalk">
+      <GlassHead kicker="Privacy" title="Privacy notice.">
         <Fragment slot="lead">Short, because this site collects very little. Last updated October 2026.</Fragment>
-      </DocHead>
+      </GlassHead>
     ) : (
       <PageHead kicker="Privacy">
         <Fragment slot="title">Privacy notice</Fragment>
@@ -57,6 +57,16 @@ import { glass } from '../theme';
         This site uses Plausible Analytics to count visits and see which pages are useful. Plausible doesn’t use cookies
         and doesn’t collect personal data; everything it reports is aggregated. This site sets no cookies.
       </p>
+      {
+        glass && (
+          <p>
+            The one-sentence test runs in your browser, and what you type isn’t sent anywhere. Your browser keeps it for
+            the session so the services page and the enquiry form can show it back to you, and clears it when you close
+            the tab. Analytics records only that the test was used, never the sentence. It reaches me only if you send
+            the enquiry form with it filled in.
+          </p>
+        )
+      }
 
       <h2>How long I keep it</h2>
       <p>

@@ -1,28 +1,21 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
-import Deck from '../components/deck/Deck.astro';
-import Slide from '../components/deck/Slide.astro';
+import GlassHead from '../components/one/PageHead.astro';
 import { glass } from '../theme';
 ---
 
 <Base title="Page not found" noindex>
   {
     glass ? (
-      <Deck name="404" label="Page not found">
-        <Slide id="not-found" title="Page not found" section="404" n={1} of={1} tone="klein">
-          <div class="nf">
-            <p class="d-kicker" data-b>404</p>
-            <h1 class="d-display" data-b>This page didn’t make <span class="d-dim">the final cut.</span></h1>
-            <p class="d-lead" data-b>It may have moved, or the link may be wrong. These are the pages people usually want.</p>
-            <div class="d-btns" data-b>
-              <a href="/" class="d-btn">The deck</a>
-              <a href="/services" class="d-link">Engagements and prices</a>
-              <a href="/work" class="d-link">Notes</a>
-            </div>
-          </div>
-        </Slide>
-      </Deck>
+      <GlassHead kicker="404" title="This page didn’t make" dim="the final cut.">
+        <Fragment slot="lead">It may have moved, or the link may be wrong. These are the pages people usually want.</Fragment>
+        <p class="nf">
+          <a href="/" class="o-btn">The one-sentence test</a>
+          <a href="/services" class="o-link">Services and prices</a>
+          <a href="/work" class="o-link">Notes</a>
+        </p>
+      </GlassHead>
     ) : (
       <PageHead kicker="404">
         <Fragment slot="title">This page <em>didn’t make the final cut.</em></Fragment>
@@ -43,7 +36,10 @@ import { glass } from '../theme';
   }
 
   .nf {
-    display: grid;
-    gap: clamp(16px, 3.4vh, 36px);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 22px;
+    margin: 8px 0 0;
   }
 </style>

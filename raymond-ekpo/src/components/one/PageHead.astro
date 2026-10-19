@@ -1,0 +1,49 @@
+---
+// The top of an inner page: a small line, the title, and a lead.
+interface Props {
+  kicker: string;
+  title: string;
+  dim?: string;
+}
+
+const { kicker, title, dim } = Astro.props;
+---
+
+<header class="o-wrap o-head">
+  <p class="o-kicker o-head-rise" style="--d: 0.05s">
+    {Astro.slots.has('kicker') ? <slot name="kicker" /> : kicker}
+  </p>
+  <h1 class="o-h1 o-head-title o-head-rise" style="--d: 0.1s">
+    {title}{dim && ' '}{dim && <span class="o-dim">{dim}</span>}
+  </h1>
+  {
+    Astro.slots.has('lead') && (
+      <p class="o-lead o-head-rise" style="--d: 0.18s">
+        <slot name="lead" />
+      </p>
+    )
+  }
+  <slot />
+</header>
+
+<style>
+  .o-head {
+    display: grid;
+    gap: clamp(14px, 2vw, 22px);
+    padding-top: clamp(36px, 8vh, 96px);
+    padding-bottom: clamp(32px, 5vw, 56px);
+  }
+
+  .o-head-title {
+    max-width: 14em;
+  }
+
+  .o-head-rise {
+    animation: o-rise 0.9s var(--ease) both;
+    animation-delay: var(--d, 0s);
+  }
+
+  :global(.still) .o-head-rise {
+    animation: none;
+  }
+</style>
