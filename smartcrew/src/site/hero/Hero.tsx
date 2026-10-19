@@ -13,7 +13,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties } from 
 import { CTA, FLAG, HERO4, LOGOS, LOGO_VECTORS, OFFER, PROOF } from "../../content/copy";
 import { config } from "../../config";
 import { SHOW_FLAGS } from "../../lib/flags";
-import { BOLD } from "../../lib/look";
+import { BOLD, OPTIMIZED } from "../../lib/look";
 import { PRICED, PRICE_SLOTS, priceFrom } from "../../lib/offer";
 import { Flag } from "../../signup/Flag";
 import { Scene } from "../scene/Scene";
@@ -26,6 +26,7 @@ import "./fence/fence.css";
 import "./hero.css";
 import "./focus.css";
 import "./bold.css";
+import "./optimized.css";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -54,8 +55,12 @@ function splitLines(lines: string[], fence: string): Line[] {
 export default function Hero() {
   const lite = usePhoneLite();
   // the bold look sets the headline in a column beside the product on laptops, so it takes the
-  // phone's five-line breaks there too (same words, larger type)
-  const lines = useMemo(() => splitLines(lite || BOLD ? HERO4.lines.phone : HERO4.lines.desk, HERO4.fence), [lite]);
+  // phone's five-line breaks there too (same words, larger type); the optimized look's trimmed first
+  // screen takes four longer lines, set smaller, so the button comes up (./optimized.css)
+  const lines = useMemo(
+    () => splitLines(OPTIMIZED ? HERO4.lines.trim : lite || BOLD ? HERO4.lines.phone : HERO4.lines.desk, HERO4.fence),
+    [lite],
+  );
   const root = useRef<HTMLDivElement>(null);
   const act = useRef<HTMLDivElement>(null);
 
@@ -88,7 +93,7 @@ export default function Hero() {
         )}
 
         <div className="hf-copy">
-          <p className="hf-eyebrow">{HERO4.featured}</p>
+          {!OPTIMIZED && <p className="hf-eyebrow">{HERO4.featured}</p>}
           <h1 className="hf-h1">
             <span className="sr-only">{HERO4.h1}</span>
             <span className="hf-h1-v" aria-hidden="true">
@@ -104,7 +109,8 @@ export default function Hero() {
               ))}
             </span>
           </h1>
-          <p className="hf-sub">{HERO4.sub}</p>
+          {/* optimized: Andrew's sub moves below the fold, opening the Replace section (../replace/Replace.tsx) */}
+          {!OPTIMIZED && <p className="hf-sub">{HERO4.sub}</p>}
           <div className="hf-act" ref={act} data-hero-cta>
             <span className="hf-cta-wrap">
               <Cta source="hero" id="hero-cta" size="xl" className="hf-cta" cue={false} block={lite} data-cursor-magnet={6} />
@@ -146,6 +152,9 @@ export default function Hero() {
         </div>
 
         <div className="hf-foot">
+          {/* optimized: "Featured at ConExpo" joins the logos, the proof under the button, instead of
+              sitting above the headline */}
+          {OPTIMIZED && <p className="hb-featured">{HERO4.featured}</p>}
           <div className="hf-logos">
             <span className="hf-logos-k">{HERO4.usedBy}</span>
             <ul>

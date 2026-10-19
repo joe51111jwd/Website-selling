@@ -150,6 +150,8 @@ export const HERO4 = {
   lines: {
     desk: ["The Simplest All-In-One Software", "For Heavy Civil & Dirtwork Companies", `With ${T.SIZE} Employees`],
     phone: ["The Simplest", "All-In-One Software", "For Heavy Civil &", "Dirtwork Companies", `With ${T.SIZE} Employees`],
+    /** the optimized look's trimmed first screen: four lines, smaller, so the button comes up (same words) */
+    trim: ["The Simplest All-In-One", "Software For Heavy Civil &", "Dirtwork Companies With", `${T.SIZE} Employees`],
   },
   sub: "Ditch the apps and spreadsheet madness for one simple software your crew will actually use.",
   usedBy: "Used by",

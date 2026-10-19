@@ -1,0 +1,86 @@
+/* The optimized look's first screen (src/lib/look.ts): the bold fold, trimmed (James, Oct 19: "is it too
+   much text at the start"; the retrained attention heatmap gives the first 3 seconds to the logo and
+   headline and 2-4% to the button). Same words, fewer of them on the first screen: the headline takes
+   four lines set smaller (HERO4.lines.trim, fitted by ./land.ts), the sub moves below the fold to open the
+   Replace section, and "Featured at ConExpo" moves down to the logos. The button comes up; Katie's quote
+   stays right under it. */
+
+/* "Featured at ConExpo", now with the logos: the bold eyebrow's style, a touch smaller */
+html.look-optimized .hb-featured {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+html.look-optimized .hb-featured::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--orange);
+}
+
+html.look-optimized .hf4 .hf-act {
+  margin-top: clamp(22px, 3.4svh, 32px);
+}
+
+@media (min-width: 761px) {
+  /* the copy starts near the top instead of centring in the space the trim freed, so the button rises */
+  html.look-optimized .hf4 .hf-copy {
+    justify-content: flex-start;
+    padding-top: calc(var(--header-h) + clamp(24px, 8svh, 88px));
+  }
+  html.look-optimized .hf4 .hf-foot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  html.look-optimized .hf4 .hf-foot .hb-featured {
+    width: 100%;
+    max-width: var(--max);
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 760px) {
+  /* the space the trim freed goes to the terrain, so the first screen ends on the graded pad and the
+     next section's words stay below the fold */
+  html.look-optimized .hf4 .hf-root {
+    padding-bottom: clamp(220px, 40svh, 340px);
+  }
+  html.look-optimized .hb-art {
+    height: calc(clamp(220px, 40svh, 340px) + 170px);
+  }
+  html.look-optimized .hf4 .hf-h1 {
+    margin-top: 6px;
+  }
+  html.look-optimized .hf4 .hf-act {
+    margin-top: 20px;
+  }
+  html.look-optimized .hf4 .hf-foot .hb-featured {
+    margin-bottom: 4px;
+  }
+}
+
+/* the hero's sub, word for word, now the line into the Replace section */
+html.look-optimized .rp-bridge {
+  max-width: 34em;
+  margin: 0 0 clamp(16px, 2.4svh, 24px);
+  font-size: clamp(17px, 0.3vw + 14px, 19.5px);
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+@media (max-width: 760px) {
+  html.look-optimized .rp-bridge {
+    font-size: 16px;
+  }
+}

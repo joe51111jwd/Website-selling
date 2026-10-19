@@ -18,9 +18,10 @@
       html { background: #fbf8f4; }
     </style>
     <script>
-      /* the bold look (src/lib/look.ts) paints its night ground before any JS, and fetches its terrain early */
+      /* the bold look (and optimized, built on it; src/lib/look.ts) paints its night ground before any JS, and fetches its terrain early */
       try {
-        if ((new URLSearchParams(location.search).get("look") || sessionStorage.getItem("sc-look")) === "bold") {
+        var look = new URLSearchParams(location.search).get("look") || sessionStorage.getItem("sc-look");
+        if (look === "bold" || look === "optimized") {
           document.documentElement.style.background = "#0f0d0b";
           var pre = document.createElement("link");
           pre.rel = "preload";

@@ -4,6 +4,25 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## The optimized look (the agency owner, Oct 19)
+
+"is it too much text at the start yes or no, or somehow does that improve conversion", then "Just look at
+the numbers, make a optimized version and post it as optimized version". Built as a fifth look,
+`?look=optimized`: the bold look (Katie's quote under the button, the sign-up form's answers, Watch it
+work and Try it) with a trimmed first screen. Bold stays as the comparison; classic (Andrew's link),
+glass, focus and bold are pixel-identical to before.
+
+1. **Done. Fewer words before the button, same words.** The headline takes four lines set smaller
+   (HERO4.lines.trim); Andrew's sub moves below the fold to open the Replace section, word for word;
+   "Featured at ConExpo" moves down to the logos. First-screen words: phone 57 → 42, laptop 59 → 44
+   (without the menu).
+   Trial button: phone y 362 → 226, laptop 607 → 422. Nothing waiting on Andrew is switched on.
+2. **Simulator** (blind head-to-heads, phone page, upgraded analyzer): optimized vs bold **too close to
+   call** (+0.07; 3 of 4 judges favoured optimized by about 2%, none favoured bold). The judges' one
+   doubt: the sub was the one plain sentence saying what the product does. Retrained heatmap: the
+   button's share of the first 3 seconds 2.6% → 5.7% (at the edge of the model's ~2.7-point miss).
+   Results: /mnt/project-files/smartcrew/optimized/results.md.
+
 ## The conversion list, in the bold look (the agency owner, Oct 19)
 
 "work on implemening all of that" (the click research's summary: a price, trial before the call, Katie's

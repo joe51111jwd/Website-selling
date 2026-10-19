@@ -14,14 +14,19 @@
 // each section's bold.css (all scoped to html.look-bold) turn it into a dark job-site look: rendered
 // terrain, big type, the orange button the one bright thing on screen.
 //
-// ?look=glass, ?look=focus, ?look=bold and ?look=classic pick one; it sticks for the session, so the popup and
+// "optimized" is the fifth (James, Oct 19: "Just look at the numbers, make a optimized version and post it
+// as optimized version"): the bold look with a trimmed first screen ("is it too much text at the start").
+// It sets html.look-bold too, so it carries everything bold has (Katie's quote under the button, the
+// sign-up form's answers, Watch it work and Try it), plus html.look-optimized for the first screen.
+//
+// ?look=glass, ?look=focus, ?look=bold, ?look=optimized and ?look=classic pick one; it sticks for the session, so the popup and
 // /book keep the look the visitor arrived with. A build made with VITE_LOOK=glass or focus starts in it.
 
-export type Look = "classic" | "glass" | "focus" | "bold";
+export type Look = "classic" | "glass" | "focus" | "bold" | "optimized";
 
 const KEY = "sc-look";
 
-const isLook = (v: unknown): v is Look => v === "classic" || v === "glass" || v === "focus" || v === "bold";
+const isLook = (v: unknown): v is Look => v === "classic" || v === "glass" || v === "focus" || v === "bold" || v === "optimized";
 
 function read(): Look {
   const env = import.meta.env.VITE_LOOK;
@@ -45,13 +50,16 @@ export const LOOK = read();
 export const GLASS = LOOK === "glass" || LOOK === "focus";
 /** The focus look: one point per screen. */
 export const FOCUS = LOOK === "focus";
-/** The bold look: dark job-site ground, the classic page underneath. */
-export const BOLD = LOOK === "bold";
+/** The bold look: dark job-site ground, the classic page underneath (and the optimized look built on it). */
+export const BOLD = LOOK === "bold" || LOOK === "optimized";
+/** The optimized look: bold with the trimmed first screen. */
+export const OPTIMIZED = LOOK === "optimized";
 
 if (typeof document !== "undefined") {
   document.documentElement.classList.toggle("look-glass", GLASS);
   document.documentElement.classList.toggle("look-focus", FOCUS);
   document.documentElement.classList.toggle("look-bold", BOLD);
+  document.documentElement.classList.toggle("look-optimized", OPTIMIZED);
   // the phone's browser bar matches the light glass ground (/book's own tag is dark)
   if (GLASS) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#f6f2ec");
   if (BOLD) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#0f0d0b");

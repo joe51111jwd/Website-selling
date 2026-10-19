@@ -14,7 +14,8 @@ import { Logo } from "../../brand/Logo";
 import { Scene } from "../scene/Scene";
 import { Cta, DemoLink } from "../ui/Cta";
 import { usePhoneLite } from "../phone";
-import { GLASS } from "../../lib/look";
+import { GLASS, OPTIMIZED } from "../../lib/look";
+import { HERO4 } from "../../content/copy";
 import { AppMark, CardIcon } from "./glyphs";
 import { Wires } from "./Wires";
 import "./replace.css";
@@ -60,6 +61,8 @@ export default function Replace() {
   return (
     <Scene id="replace" pinnedViewports={0} stage="keep" label={REPLACE.label} className="rp">
       <div className="wrap rp-wrap">
+        {/* the optimized look's trimmed first screen moves the hero's sub here, word for word */}
+        {OPTIMIZED && <p className="rp-bridge">{HERO4.sub}</p>}
         <div className="rp-panel" data-cursor-tone={GLASS ? undefined : "dark"}>
           <header className="rp-head">
             <p className="rp-kicker">{REPLACE.kicker}</p>
