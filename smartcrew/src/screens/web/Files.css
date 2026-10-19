@@ -1,0 +1,241 @@
+/* W16 Files — scoped under .sc, prefix scfl- */
+
+.sc .scfl-head {
+  height: 38px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sc .scfl-title {
+  margin-right: auto;
+  font-size: 23.4px;
+  line-height: 30px;
+  font-weight: 600;
+  letter-spacing: -0.024em;
+  color: #0a0a0a;
+}
+.sc .scfl-search {
+  width: 250px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding-left: 10px;
+  border-radius: 8px;
+  background: var(--sc-surface);
+  font-size: 13.5px;
+  color: #9b9b9b;
+}
+.sc .scfl-search .sc-icon {
+  color: #676767;
+}
+.sc .scfl-up {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 15px 0 13px;
+  border-radius: 8px;
+  background: #000;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+.sc .scfl-up .sc-icon {
+  color: #fff;
+}
+
+.sc .scfl-body {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 284px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+/* the jobs */
+.sc .scfl-jobs {
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--sc-surface);
+}
+.sc .scfl-jobs-h {
+  margin: 12px 10px 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+}
+.sc .scfl-job {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 13.25px;
+  color: #2a2a2a;
+}
+.sc .scfl-job .sc-icon {
+  flex: none;
+  color: #6a6a6a;
+}
+.sc .scfl-job span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.sc .scfl-job b {
+  font-size: 12px;
+  font-weight: 500;
+  color: #8a8a8a;
+  font-variant-numeric: tabular-nums;
+}
+.sc .scfl-job.is-on {
+  background: #fff;
+  font-weight: 600;
+  color: #000;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
+}
+.sc .scfl-job.is-on .sc-icon {
+  color: #000;
+}
+
+/* the open job */
+.sc .scfl-main {
+  min-width: 0;
+}
+.sc .scfl-crumb {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #6b6b6b;
+}
+.sc .scfl-crumb b {
+  font-weight: 600;
+  color: #050505;
+}
+.sc .scfl-count {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--sc-surface);
+  font-size: 12px;
+  color: #555;
+}
+.sc .scfl-folders {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.sc .scfl-folder {
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+  border: 1px solid var(--sc-line);
+  border-radius: 12px;
+  background: #fff;
+}
+.sc .scfl-folder-ic {
+  margin-bottom: auto;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--sc-surface);
+  color: #222;
+}
+.sc .scfl-folder-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #050505;
+}
+.sc .scfl-folder-n {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #7a7a7a;
+}
+.sc .scfl-card {
+  margin-top: 14px;
+  border: 1px solid var(--sc-line);
+  border-radius: 12px 12px 0 0;
+  border-bottom: 0;
+  overflow: hidden;
+  background: #fff;
+}
+.sc .scfl-tr {
+  height: 50px;
+  display: grid;
+  grid-template-columns: 2.35fr 1.05fr 1.4fr 0.95fr 0.65fr;
+  align-items: center;
+  padding: 0 10px;
+  border-bottom: 1px solid #e9e9e9;
+  font-size: 13.5px;
+  color: #111;
+}
+.sc .scfl-tr > div {
+  min-width: 0;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+.sc .scfl-tr--head {
+  height: 44px;
+  background: var(--sc-surface);
+  font-weight: 500;
+  color: #404040;
+}
+.sc .scfl-name,
+.sc .scfl-who {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.sc .scfl-thumb {
+  width: 34px;
+  height: 26px;
+  flex: none;
+  border-radius: 5px;
+}
+.sc .scfl-doc {
+  width: 34px;
+  height: 26px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.sc .scfl-doc--pdf {
+  background: var(--sc-red-bg);
+  color: #e3284f;
+}
+.sc .scfl-doc--sheet {
+  background: var(--sc-green-bg);
+  color: #1c9b58;
+}
+.sc .scfl-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 1px #e6e6e6;
+  font-size: 12.25px;
+  font-weight: 500;
+  color: #222;
+}
+.sc .scfl-who .sc-avatar {
+  font-weight: 600;
+  color: #111;
+  background: var(--sc-surface);
+}

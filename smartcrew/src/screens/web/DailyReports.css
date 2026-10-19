@@ -1,0 +1,283 @@
+/* W14 Reports → Daily Reports — scoped under .sc, prefix scdr- */
+
+.sc .scdr-head {
+  height: 38px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sc .scdr-title {
+  margin-right: auto;
+  font-size: 23.4px;
+  line-height: 30px;
+  font-weight: 600;
+  letter-spacing: -0.024em;
+  color: #0a0a0a;
+}
+.sc .scdr-btn {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 0 12px;
+  border-radius: 8px;
+  background: var(--sc-surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: #000;
+  white-space: nowrap;
+}
+.sc .scdr-btn .sc-icon {
+  color: #e3284f;
+}
+
+.sc .scdr-body {
+  margin-top: 16px;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 344px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+/* the list of reports, by day */
+.sc .scdr-list {
+  border: 1px solid var(--sc-line);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+.sc .scdr-day-h {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background: var(--sc-surface);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+.sc .scdr-item {
+  position: relative;
+  padding: 12px 16px 12px 18px;
+  border-top: 1px solid var(--sc-line);
+}
+.sc .scdr-item.is-on {
+  background: #f9f9f9;
+}
+.sc .scdr-item.is-on::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: #000;
+}
+.sc .scdr-item-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sc .scdr-item-name {
+  flex: 1 1 auto;
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 600;
+  color: #050505;
+}
+.sc .scdr-item-sub {
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.25px;
+  line-height: 15px;
+  color: #666;
+  white-space: nowrap;
+}
+.sc .scdr-item-sub i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #b5b5b5;
+}
+.sc .scdr-item-ph {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.sc .scdr-item-at {
+  margin-left: auto;
+  color: #8a8a8a;
+}
+.sc .scdr-st {
+  flex: none;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.sc .scdr-st--sent {
+  background: var(--sc-green-bg);
+  color: #1fa860;
+}
+.sc .scdr-st--open {
+  background: var(--sc-blue-bg);
+  color: var(--sc-blue);
+}
+
+/* the open report */
+.sc .scdr-doc {
+  border: 1px solid var(--sc-line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.sc .scdr-doc-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.sc .scdr-doc-title {
+  font-size: 18px;
+  line-height: 23px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: #050505;
+}
+.sc .scdr-doc-sub {
+  margin-top: 3px;
+  font-size: 13px;
+  color: #6b6b6b;
+}
+.sc .scdr-sent {
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px 0 10px;
+  border-radius: 999px;
+  background: var(--sc-green-bg);
+  color: #1c9b58;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.sc .scdr-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sc .scdr-chip {
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 11px 0 8px;
+  border-radius: 8px;
+  background: var(--sc-surface);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #222;
+  white-space: nowrap;
+}
+.sc .scdr-chip .sc-icon {
+  color: #555;
+}
+.sc .scdr-chip .sc-avatar {
+  background: #fff;
+}
+.sc .scdr-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.sc .scdr-sec h3 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #111;
+}
+.sc .scdr-n {
+  min-width: 20px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--sc-surface);
+  font-size: 11px;
+  color: #555;
+}
+.sc .scdr-prod-row,
+.sc .scdr-line {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #efefef;
+  font-size: 13.25px;
+  color: #1a1a1a;
+}
+.sc .scdr-prod-row span,
+.sc .scdr-line > span:not(.sc-avatar):not(.scdr-eq) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.sc .scdr-prod-row b,
+.sc .scdr-line b {
+  flex: none;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.sc .scdr-notes p {
+  padding: 11px 13px;
+  border-radius: 10px;
+  background: var(--sc-surface);
+  font-size: 13.25px;
+  line-height: 19.5px;
+  color: #262626;
+}
+.sc .scdr-photos {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+.sc .scdr-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  height: auto;
+  border-radius: 8px;
+}
+.sc .scdr-eq {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--sc-surface);
+  color: #444;
+}
+.sc .scdr-line .sc-avatar {
+  background: var(--sc-surface);
+  color: #222;
+  font-weight: 600;
+}

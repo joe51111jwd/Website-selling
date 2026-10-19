@@ -30,6 +30,12 @@ export const SCREENS: ScreenDef[] = [
   { id: "web-scheduling", kind: "web", title: "Scheduling", load: () => import("./web/Scheduling") },
   { id: "web-pipeline", kind: "web", title: "Sales Pipeline", load: () => import("./web/Pipeline") },
   { id: "web-messaging", kind: "web", title: "Messaging", load: () => import("./web/Messaging") },
+  // web, added for the features section's app (W3b, W13–W16)
+  { id: "web-project-costcodes", kind: "web", title: "Project detail · cost codes", load: () => import("./web/CostCodes") },
+  { id: "web-machine", kind: "web", title: "Equipment · machine · service records", load: () => import("./web/Machine") },
+  { id: "web-daily-reports", kind: "web", title: "Daily Reports", load: () => import("./web/DailyReports") },
+  { id: "web-safety", kind: "web", title: "Safety", load: () => import("./web/Safety") },
+  { id: "web-files", kind: "web", title: "Files", load: () => import("./web/Files") },
   // phone (M1–M8)
   { id: "phone-home", kind: "phone", title: "Home · Ready to clock in", load: () => import("./phone/Home") },
   { id: "phone-working", kind: "phone", title: "Currently working on", load: () => import("./phone/Working") },

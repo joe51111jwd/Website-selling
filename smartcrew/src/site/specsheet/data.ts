@@ -70,6 +70,15 @@ const CLOSEST: Record<string, { screen: string; focus: Box }> = {
   T7: { screen: "web-timecards", focus: [345, 160, 560, 300] },
 };
 
+/** Tools the features section's own pages show best (round of Oct 19: daily reports, safety and
+ *  files have screens now): that screen, the box to ring and the app's word for it. */
+const PAGE: Record<string, { screen: string; ring: Box; tag: string }> = {
+  C1: { screen: "web-daily-reports", ring: [698, 163, 699, 569], tag: "Daily Reports" },
+  C2: { screen: "web-files", ring: [640, 315, 757, 495], tag: "Files" },
+  E6: { screen: "web-safety", ring: [338, 265, 1059, 559], tag: "Safety" },
+  E7: { screen: "web-safety", ring: [339, 376, 1057, 224], tag: "JSAs" },
+};
+
 /** Camera focus boxes that read better than the bare ring (the ring stays exact). */
 const FOCUS: Record<string, Box> = {
   // the hauling form around its Submit button
@@ -83,6 +92,8 @@ const byId = new Map<string, { f: Feature; m: Moment }>();
 for (const m of MOMENTS) for (const f of m.features) byId.set(f.id, { f, m });
 
 function shotFor(f: Feature, m: Moment): { shot: Shot; closest: boolean } {
+  const page = PAGE[f.id];
+  if (page) return { shot: { screen: page.screen, kind: "web", ring: page.ring, focus: page.ring, tag: page.tag }, closest: false };
   const kind = KIND[f.id] ?? "web";
   const near = CLOSEST[f.id];
   if (near || f.noScreen) {

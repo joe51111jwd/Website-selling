@@ -1,13 +1,13 @@
 // "Everything. Built for dirt." (src/site/features): the section's copy, in one place.
-// Andrew's words verbatim where his doc gives them (the headline, the sub from his mock, the six
-// feature names, all of Sales & CRM's open copy); every other line is a plain paraphrase of an
-// approved line in src/content/moments.ts (the 38 tools) or SPEC in src/content/copy.ts. The
-// source of each paraphrase is noted beside it. No numbers, no claims beyond those lines.
+// Andrew's words verbatim: the headline, the sub from his mock, and from his "Copy for
+// 'Everything Built For Dirt' Section" (doc of Oct 19) the ten features, in his order, each with its
+// headline, sub and bullets, and the CTA under the section. No other marketing lines here; the
+// in-app names below (the sidebar, hotspots) are the app's own words or a tool's from moments.ts.
 //
 // The pain picker matches what a visitor types against `keywords` in the browser only: nothing
 // typed is sent anywhere or kept.
 
-export type FeatureId = "time" | "costing" | "equipment" | "materials" | "sales" | "crew";
+export type FeatureId = "time" | "costing" | "equipment" | "daily" | "materials" | "scheduling" | "sales" | "comms" | "safety" | "files";
 
 export const FEATURES = {
   label: "Everything SmartCrew does",
@@ -28,103 +28,124 @@ export const FEATURES = {
     noMatch: "Good one to bring to the call. We’ll show you how SmartCrew handles it when we set up your trial.",
     /** screen readers: the chips' group */
     chipsLabel: "Common headaches",
+    /** the six preset chips, and the card each one opens */
+    chips: [
+      { id: "time", label: "Chasing timecards" },
+      { id: "costing", label: "Jobs losing money" },
+      { id: "equipment", label: "Machine breakdowns" },
+      { id: "materials", label: "Lost haul tickets" },
+      { id: "sales", label: "Losing track of bids" },
+      { id: "scheduling", label: "The morning scramble" },
+    ] as { id: FeatureId; label: string }[],
   },
 
-  /** The six cards, in Andrew's order. `pain` is the preset chip. */
+  /** The ten cards, in Andrew's order: his name, headline, sub and bullets (the ticks). */
   cards: [
     {
       id: "time",
       name: "Time Tracking",
-      // SPEC "Timecards that log themselves." + payroll (M4)
-      line: "Timecards that fill in, ready for payroll.",
-      // T5 "No more chasing timecards."
-      subhead: "No more chasing timecards.",
-      // T1, T2, T3; the tick: M4 (AMBER wording: "ready for QuickBooks", never "sync")
-      copy: "Crews clock in with one tap, or turn on GPS and hours log themselves at the job. Every hour lands on the right job and cost code.",
-      ticks: ["One-tap and GPS clock-in", "Hours on the right job and cost code", "Payroll ready for QuickBooks"],
-      pain: "Chasing timecards",
+      headline: "No more chasing timecards.",
+      sub: "Track every hour, job, and cost code without the paperwork.",
+      ticks: ["GPS-powered clock-ins", "Live crew locations", "Payroll-ready timecards"],
     },
     {
       id: "costing",
       name: "Job Costing",
-      // SPEC costing outcome
-      line: "Every job’s profit, every day.",
-      // M1 "…so you can fix problems before they cost you."
-      subhead: "Fix problems before they cost you.",
-      // M1 + M2
-      copy: "Labor, equipment and materials roll into each job’s margin every day. Log subs, extras and change orders as they happen.",
-      ticks: ["Daily job profit", "Change orders and subs", "Billable hours and loads"],
-      pain: "Jobs losing money",
+      headline: "Know your profit. Every day.",
+      sub: "See how every job is performing against your bid as work happens.",
+      ticks: ["Daily job profitability", "Bid budgets vs. actual costs", "Change orders & extras"],
     },
     {
       id: "equipment",
-      name: "Equipment",
-      // SPEC equipment outcome
-      line: "Repairs, DOT pre-trips and service logs.",
-      // E4 "You get audit-ready DOT logs without the paper."
-      subhead: "Audit-ready DOT logs, without the paper.",
-      // E4 + E3 + E2
-      copy: "Drivers do the pre-trip on the phone. Operators send repair requests in one click, and each one lands in the shop queue with its history.",
-      ticks: ["DOT pre-trips on the phone", "Repair requests and shop queue", "Machine rates and hours by job"],
-      pain: "Machine breakdowns",
+      name: "Equipment Management",
+      headline: "Keep your machines moving.",
+      sub: "Track equipment hours, inspections, fuel and maintenance across the company.",
+      ticks: [
+        "Equipment hours & locations",
+        "DOT & daily inspections",
+        "Track maintenance, service requests and utilization rates",
+        "Manage your shop with the Shop Queue",
+      ],
+    },
+    {
+      id: "daily",
+      name: "Daily Reports",
+      headline: "Know what got done. Without asking.",
+      sub: "Capture daily progress, photos, and field updates without chasing paperwork.",
+      ticks: ["Daily progress & production logs", "Jobsite photos & field notes", "Automatic daily reports for the office"],
     },
     {
       id: "materials",
       name: "Materials & Hauling",
-      // SPEC materials outcome
-      line: "Every load and receipt logged to the job.",
-      // H3 "Hauling tickets move out of paper folders and onto the job."
-      subhead: "Hauling tickets out of the paper folders.",
-      // H3 + H2 + H1
-      copy: "Drivers log every load from the phone and crews send receipts from the app. See what’s ordered, delivered or delayed.",
-      ticks: ["Hauling tickets", "Field usage and receipts", "Orders and deliveries"],
-      pain: "Lost haul tickets",
+      headline: "Every load, receipt and dollar tracked.",
+      sub: "Track materials, hauling tickets, fuel, and receipts with photo uploads.",
+      ticks: ["Digital hauling tickets", "Material & fuel log tracking", "AI reader to enter the data for you"],
+    },
+    {
+      id: "scheduling",
+      name: "Scheduling",
+      headline: "Everyone knows where to be.",
+      sub: "Build schedules, assign crews and equipment, and keep everyone updated.",
+      ticks: ["Drag-and-drop crew scheduling", "Job & equipment assignments", "Schedule updates & notifications"],
     },
     {
       id: "sales",
       name: "Sales & CRM",
-      // G1
-      line: "Bids and leads next to your jobs.",
-      // Andrew's, verbatim
-      subhead: "Never lose track of another opportunity.",
-      copy: "Manage bids, prospects, and sales opportunities alongside your operations.",
-      ticks: ["Sales pipeline", "Bid opportunities", "Customer records"],
-      pain: "Losing track of bids",
+      headline: "Never let another job slip away.",
+      sub: "Track leads, manage bids, and keep your sales pipeline full.",
+      ticks: ["Leads & sales pipeline", "Bid & opportunity tracking", "Follow-ups & reminders"],
     },
     {
-      id: "crew",
-      name: "Crew Management",
-      // DAY2.plan "Monday's plan, on their phones."
-      line: "Tomorrow’s plan on every phone.",
-      // S1 "Assign crews, jobs and equipment without the morning scramble."
-      subhead: "Plan the week without the morning scramble.",
-      // S1 + the plan moment's outcome + C3
-      copy: "Assign crews, jobs and equipment, and your crew sees where to be and which machine to take. No more group texts.",
-      ticks: ["Crew scheduling", "Crew messages", "Project docs from the truck"],
-      pain: "The morning scramble",
+      id: "comms",
+      name: "Crew Communication",
+      headline: "Keep your entire crew connected.",
+      sub: "Send marching orders and share updates with dispatch and instant messaging.",
+      ticks: ["Dispatch with instant alerts", "Crew & team messaging", "Job-specific chat channels"],
     },
-  ] as { id: FeatureId; name: string; line: string; subhead: string; copy: string; ticks: string[]; pain: string }[],
+    {
+      id: "safety",
+      name: "Safety & Compliance",
+      headline: "Keep your crew safe. Stay compliant.",
+      sub: "Manage safety paperwork, inspections, and incidents right from the field.",
+      ticks: ["Job Safety Analyses (JSAs)", "Toolbox talks & safety meetings", "Incident reports & documentation"],
+    },
+    {
+      id: "files",
+      name: "File Storage & Documents",
+      headline: "Every job file. One place.",
+      sub: "Keep plans, documents, and photos organized and accessible to your entire team.",
+      ticks: ["Centralized cloud file storage", "Plans, photos & job documents", "Access from the field or office"],
+    },
+  ] as { id: FeatureId; name: string; headline: string; sub: string; ticks: string[] }[],
+
+  /** Andrew's "CTA — Below Feature Sections" (the button is the page's primary CTA, its own label). */
+  close: {
+    title: "Ready to run your entire operation in one place?",
+    sub: "Less paperwork. Better job visibility. More profitable projects.",
+  },
 
   /**
    * What a typed pain is matched on (lower case; plurals and -ing / -ed forms match too). `strong`
-   * words name the feature outright; `weak` ones only tip a tie. Phrases match as phrases.
+   * words name the feature outright; `weak` ones only tip a tie. Phrases match as phrases. (Words
+   * share one stem across features at their peril: "plans" and "plan" both read "plan", so the job
+   * files take "site plans" and "blueprints", and "plan" stays with Scheduling.)
    */
   keywords: {
     time: {
       strong: [
         "timecard", "time card", "timesheet", "time sheet", "hours", "hour", "payroll", "clock", "clock in", "clock out",
-        "overtime", "ot", "punch", "gps", "geofence", "attendance", "no show", "no-show", "time off", "day off",
-        "pto", "sick day", "prevailing wage", "wage", "quickbooks", "qb", "paycheck", "paystub", "labor hours",
-        "tracking time", "track time", "who is working", "who’s working",
+        "overtime", "ot", "punch", "gps", "geofence", "attendance", "prevailing wage", "wage", "quickbooks", "qb", "paycheck",
+        "paystub", "labor hours", "tracking time", "track time", "who is working", "who’s working", "location", "where my guys are",
+        "buddy punching", "padding hours",
       ],
       weak: ["time", "employee", "worker", "labor", "chasing", "late", "pay", "on site"],
     },
     costing: {
       strong: [
-        "profit", "profitable", "profitability", "cost", "costing", "job cost", "budget", "over budget", "losing money",
+        "profit", "profitable", "profitability", "cost", "costing", "job cost", "cost code", "budget", "over budget", "losing money",
         "lose money", "lost money", "making money", "make money", "money", "margin", "overrun", "expense", "change order",
         "billing", "billable", "bill", "invoice", "invoicing", "spend", "spending", "numbers", "p&l", "pnl", "accounting",
-        "bleeding", "subcontractor", "sub", "extras", "report", "reports",
+        "bleeding", "subcontractor", "sub", "extras", "actual cost", "against the bid", "over bid",
       ],
       weak: ["job", "jobs", "cash"],
     },
@@ -132,18 +153,34 @@ export const FEATURES = {
       strong: [
         "repair", "breakdown", "break down", "broke", "broken", "maintenance", "service", "dot", "inspection", "pre trip",
         "pretrip", "pre-trip", "truck", "machine", "machinery", "equipment", "excavator", "dozer", "loader", "skid steer",
-        "grader", "backhoe", "fleet", "shop", "mechanic", "oil", "leak", "work order", "safety", "incident", "accident",
-        "osha", "audit", "downtime", "iron",
+        "grader", "backhoe", "fleet", "shop", "mechanic", "oil", "leak", "work order", "audit", "downtime", "iron",
+        "equipment hours", "machine hours", "hour meter", "utilization", "service record", "service history", "shop queue",
+        "dot compliance",
       ],
-      weak: ["engine", "tire"],
+      weak: ["engine", "tire", "parts"],
+    },
+    daily: {
+      strong: [
+        "daily report", "daily log", "daily", "progress", "production", "field note", "note", "photo", "picture", "pics",
+        "what got done", "end of day", "superintendent", "foreman report", "jobsite photo",
+      ],
+      weak: ["report", "update", "paperwork", "office"],
     },
     materials: {
       strong: [
         "load", "haul", "hauling", "ticket", "material", "receipt", "dirt", "gravel", "rock", "fill", "aggregate", "sand",
         "topsoil", "stone", "delivery", "deliver", "supplier", "vendor", "order", "purchase", "dump", "trucking", "fuel",
-        "diesel", "yard", "yards", "ton", "tons", "pipe", "folder",
+        "diesel", "yard", "yards", "ton", "tons", "pipe", "scale ticket", "fuel log",
       ],
       weak: ["driver"],
+    },
+    scheduling: {
+      strong: [
+        "schedule", "scheduling", "plan", "planning", "morning", "scramble", "where to be", "where to go", "assign", "assignment",
+        "who goes where", "staffing", "manpower", "calendar", "time off", "day off", "pto", "sick day", "no show", "no-show",
+        "vacation", "tomorrow", "organized", "organization", "chaos", "drag and drop",
+      ],
+      weak: ["crew", "foreman", "week"],
     },
     sales: {
       strong: [
@@ -153,14 +190,28 @@ export const FEATURES = {
       ],
       weak: ["growth", "grow"],
     },
-    crew: {
+    comms: {
       strong: [
-        "schedule", "scheduling", "plan", "planning", "crew", "text", "group text", "message", "messaging", "dispatch",
-        "communication", "communicate", "call around", "phone call", "calls", "morning", "scramble", "where to be",
-        "assign", "assignment", "foreman", "docs", "document", "plans", "notes", "field notes", "daily report",
-        "photo", "announcement", "staffing", "manpower", "who goes where", "organized", "organization", "chaos",
+        "text", "texting", "group text", "message", "messaging", "chat", "dispatch", "communication", "communicate", "call around",
+        "phone call", "calls", "announcement", "alert", "radio", "in the loop", "same page", "marching orders", "miscommunication",
+        "voicemail", "nobody knows", "word out",
       ],
-      weak: ["team", "guys", "people", "staff"],
+      weak: ["crew", "team", "guys", "people", "staff", "phone"],
+    },
+    safety: {
+      strong: [
+        "safety", "safe", "incident", "accident", "injury", "injured", "hurt", "osha", "jsa", "job safety analysis", "toolbox",
+        "toolbox talk", "safety meeting", "hazard", "near miss", "compliance", "compliant", "first aid", "trench", "ppe",
+        "hard hat", "workers comp", "safety inspection", "incident report", "safety report",
+      ],
+      weak: ["insurance"],
+    },
+    files: {
+      strong: [
+        "file", "document", "docs", "site plans", "job plans", "blueprint", "drawing", "prints", "folder", "storage", "cloud",
+        "dropbox", "google drive", "pdf", "permit", "submittal", "as built", "as-built", "paper trail",
+      ],
+      weak: ["photo", "office"],
     },
   } as Record<FeatureId, { strong: string[]; weak: string[] }>,
 
@@ -189,17 +240,30 @@ export const FEATURES = {
     "web-dashboard": "Dashboard",
     "web-timecards": "Timecards",
     "web-projects": "Projects",
-    "web-project-detail": "Job costing",
+    "web-project-costcodes": "Job costing",
+    "web-project-detail": "Labor",
     "web-equipment": "Equipment",
     "web-service-queue": "Service queue",
+    "web-machine": "Service records",
+    "web-daily-reports": "Daily reports",
     "web-materials": "Materials",
-    "web-pipeline": "Sales pipeline",
     "web-scheduling": "Scheduling",
+    "web-pipeline": "Sales pipeline",
     "web-messaging": "Messaging",
+    "web-safety": "Safety",
+    "web-files": "Files",
   } as Record<string, string>,
 
-  /** Hotspot names and lines that aren't a tool's own (Andrew's Sales & CRM copy). */
+  /**
+   * Hotspot names and lines that aren't a tool's own: a bullet of Andrew's (or the app's own name
+   * for the thing) as the name, the feature's sub (his) as the line.
+   */
   spots: {
-    bids: { label: "Bid opportunities", line: "Manage bids, prospects, and sales opportunities alongside your operations." },
+    bids: { label: "Bid & opportunity tracking", line: "Track leads, manage bids, and keep your sales pipeline full." },
+    bidVsActual: { label: "Bid budgets vs. actual costs", line: "See how every job is performing against your bid as work happens." },
+    serviceLog: { label: "Service records", line: "Track equipment hours, inspections, fuel and maintenance across the company." },
+    dispatch: { label: "Dispatch with instant alerts", line: "Send marching orders and share updates with dispatch and instant messaging." },
+    production: { label: "Production logs", line: "Capture daily progress, photos, and field updates without chasing paperwork." },
+    jobFiles: { label: "Plans, photos & job documents", line: "Keep plans, documents, and photos organized and accessible to your entire team." },
   },
 };

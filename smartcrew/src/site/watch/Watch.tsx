@@ -1,158 +1,294 @@
-// Watch it work (round 4): the One Day story told in a few seconds of normal scrolling, instead of
-// the ride. Seven moments, one row each: the feature headline (big), then the flow of data as the
-// picture: the crew phone's chip → a wire with the time of day on it (small) → the row that lands
-// in the office (Monday's plan runs the other way: office → the crew's phones). As each row comes
-// into view a dot runs along its wire once and the far end lands (~1 s, rows staggered ~0.1 s);
-// then everything rests. No pinning, no film, no timeline: one IntersectionObserver, CSS
-// transform/opacity animations only, and reduced motion (or no IntersectionObserver) shows the
-// end state from the start. Copy: src/content/watch.ts.
+// Watch it work (round 5, Andrew's Oct 19 doc: "A Day In The Life"): the product in three tabs, The
+// Day for the crews, The Week for the admins, The Results for the owners. Laid out after his
+// reference (keeping our own type, colours and parts): the tab bar on top; under it, on the left,
+// the tab's eyebrow, headline, sub and list of features (his words, src/content/watch.ts) and its
+// one button; on the right the office app on a laptop with the crew's phone over its corner, both
+// live app screens (src/screens, scaled). Pointing at an item (mouse, after a short dwell),
+// clicking it or focusing it highlights it and switches the laptop and the phone to the screens
+// that show it (./shots.ts).
+//
+// Phones: the tabs are three compact segments; the list shows each item's title, the highlighted
+// one with its line; then the phone alone (no laptop: an office screen can't be read that small),
+// then the button. Only one panel (and so one orange button) shows at a time.
+//
+// Classic sets the section on a dark ground (./classic.css): the phone gets the frame's dark-ground
+// rim and the cursor its dark tone.
+//
+// Motion is calm and only on input: the panel fades in when its tab opens and the screens
+// crossfade. No timers move anything, nothing pins. Screens mount once (the shown ones when the
+// section is a screen away, the rest one per idle moment) and stay, so a switch is opacity only.
 
-import { useEffect, useRef } from "react";
-import { WATCH, type WatchMoment } from "../../content/watch";
-import type { MomentId } from "../../content/moments";
-import { me } from "../../screens/data";
-import { Icon, type IconName } from "../../screens/kit/Icon";
+import { startTransition, Suspense, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
+import { splitTitle, WATCH, type WatchTab } from "../../content/watch";
+import { CLASSIC } from "../../lib/look";
+import { Icon } from "../../screens/kit/Icon";
+import { SIZE, type ScreenKind } from "../../screens/registry";
 import { Scene } from "../scene/Scene";
 import { Cta } from "../ui/Cta";
+import { usePhone } from "../phone";
+import { LaptopFrame } from "../phone/LaptopFrame";
+import { PhoneFrame } from "../phone/PhoneFrame";
+import { useArrive } from "../phone/useArrive";
+import { idle, screenComp, shotFor, warmScreen } from "./shots";
 import "./watch.css";
 import "./glass.css";
 import "./focus.css";
 import "./bold.css";
+import "./classic.css";
 
-/** The app area each office line lands in, as the app's own outline icon (clock-in: Marcus Bell's
- * avatar, the demo crew's foreman, src/screens/data.ts). */
-const OFFICE_ICON: Record<Exclude<MomentId, "clockin">, IconName> = {
-  pretrip: "clipboardCheck",
-  load: "dumpTruck",
-  leak: "wrench",
-  profit: "dollarCircle",
-  plan: "calendar",
-  payroll: "fileText",
-};
+const TABS = WATCH.tabs;
+/** How long the mouse rests on an item before the devices follow it (a sweep across the list doesn't flicker them). */
+const DWELL = 90;
 
-/** Minimum gap between two rows' starts, so rows that arrive together still play in turn. */
-const STAGGER = 110;
-
-function PhoneGlyph() {
+function TabGlyph({ id }: { id: WatchTab["id"] }) {
+  if (id === "week") return <Icon name="calendar" size={20} stroke={1.7} />;
   return (
-    <svg className="ww-glyph" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <rect x="4.25" y="1.75" width="7.5" height="12.5" rx="1.9" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M7 11.9h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {id === "day" ? (
+        <>
+          <circle cx={12} cy={12} r={4.2} />
+          <path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.35 5.35l1.5 1.5M17.15 17.15l1.5 1.5M5.35 18.65l1.5-1.5M17.15 6.85l1.5-1.5" />
+        </>
+      ) : (
+        <path d="M4 20.5h16M6.5 17v-4.5M11 17V9M15.5 17v-6M20 17V5.5" />
+      )}
     </svg>
   );
 }
 
-function OfficeGlyph() {
+function Chevron() {
   return (
-    <svg className="ww-glyph" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <rect x="2.75" y="3.25" width="10.5" height="7.5" rx="1.3" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M1.25 13.25h13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    <svg className="wt-chev" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-function Row({ m }: { m: WatchMoment }) {
-  const up = m.dir === "up";
+/** One device's screens, stacked: every mounted one drawn at its native size and scaled to the slot; the shown one on top. */
+function Stack({ kind, ids, shown }: { kind: ScreenKind; ids: string[]; shown: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [k, setK] = useState(0);
+  const { w, h } = SIZE[kind];
+
+  // the slot's width, on mount and on resize only
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setK(e.contentRect.width / w));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [w]);
+
   return (
-    <li className="ww-item" data-moment={m.id} data-dir={m.dir}>
-      <h3 className="ww-h">{m.headline}</h3>
-      <p className={`ww-chip ${up ? "ww-src" : "ww-dst"}`}>
-        <PhoneGlyph />
-        <span className="sr-only">{WATCH.phoneSr} </span>
-        {m.phone}
-      </p>
-      <p className="ww-wire">
-        <span className="ww-when">{m.when}</span>
-        <span className="ww-line" aria-hidden="true">
-          <svg className="ww-tip" viewBox="0 0 8 10" fill="none">
-            <path d="M1.5 1.5 6 5l-4.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-        <span className="ww-run" aria-hidden="true">
-          <span className="ww-dot" />
-        </span>
-      </p>
-      <p className={`ww-office ${up ? "ww-dst" : "ww-src"}`}>
-        <span className="ww-well" aria-hidden="true">
-          {m.id === "clockin" ? <span className="ww-avatar">{me.initials}</span> : <Icon name={OFFICE_ICON[m.id]} size={17} stroke={1.7} />}
-        </span>
-        <span className="ww-office-txt">
-          <span className="sr-only">{WATCH.officeSr} </span>
-          {m.office}
-        </span>
-        <span className="ww-where" aria-hidden="true">
-          {m.where}
-        </span>
-      </p>
-    </li>
+    <div ref={ref} className="wt-stack" inert>
+      {k > 0 &&
+        ids.map((id) => {
+          const Comp = screenComp(id);
+          return (
+            <div key={id} className={`wt-shot${id === shown ? " is-on" : ""}`}>
+              <div className="wt-scr" style={{ width: w, height: h, transform: `scale(${k})` } as CSSProperties}>
+                <Suspense fallback={null}>{Comp && <Comp />}</Suspense>
+              </div>
+            </div>
+          );
+        })}
+    </div>
   );
 }
 
 export default function Watch() {
-  const board = useRef<HTMLDivElement>(null);
+  const phone = usePhone();
+  const [tab, setTab] = useState(0);
+  const [picks, setPicks] = useState<number[]>(() => TABS.map(() => 0));
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const dwell = useRef(0);
+  // a screen away: the shown screens mount; then the rest, one per idle moment
+  const [nearRef, near] = useArrive<HTMLDivElement>({ amount: 0, margin: "100% 0px 100% 0px" });
 
-  // each row plays once as it comes into view; rows that arrive together go in turn
+  const t = TABS[tab];
+  const shot = shotFor(t.id, t.items[picks[tab]].id);
+
+  const [mounted, setMounted] = useState<string[]>([]);
+  const mountedRef = useRef(mounted);
+  mountedRef.current = mounted;
+  const add = (id: string) => setMounted((m) => (m.includes(id) ? m : [...m, id]));
+
   useEffect(() => {
-    const el = board.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    const rows = Array.from(el.querySelectorAll<HTMLElement>(".ww-item"));
-    el.classList.add("ww-armed");
-    let next = 0;
-    const io = new IntersectionObserver(
-      (entries) => {
-        const now = performance.now();
-        entries
-          .filter((e) => e.isIntersecting)
-          .map((e) => e.target as HTMLElement)
-          .sort((a, b) => rows.indexOf(a) - rows.indexOf(b))
-          .forEach((row) => {
-            io.unobserve(row);
-            const start = Math.max(now, next);
-            next = start + STAGGER;
-            row.style.setProperty("--ww-d", `${Math.round(start - now)}ms`);
-            row.classList.add("is-in");
-          });
-      },
-      { threshold: 0.75, rootMargin: "0px 0px -4% 0px" },
+    if (!near) return;
+    add(shot.phone);
+    if (!phone) add(shot.web);
+  }, [near, phone, shot.web, shot.phone]);
+
+  useEffect(() => {
+    if (!near) return;
+    // this tab's screens first, then the other tabs' (phones: the phone screens only)
+    const order = [...TABS.slice(tab), ...TABS.slice(0, tab)].flatMap((x) =>
+      x.items.flatMap((it) => {
+        const s = shotFor(x.id, it.id);
+        return phone ? [s.phone] : [s.web, s.phone];
+      }),
     );
-    rows.forEach((r) => io.observe(r));
-    return () => io.disconnect();
+    let cancel = () => {};
+    let dead = false;
+    const next = () => {
+      const id = order.find((x) => !mountedRef.current.includes(x));
+      if (!id || dead) return;
+      void warmScreen(id).then(() => {
+        if (dead) return;
+        cancel = idle(() => {
+          startTransition(() => add(id));
+          cancel = idle(next, 2000);
+        }, 2000);
+      });
+    };
+    const timer = window.setTimeout(() => (cancel = idle(next, 2000)), 700);
+    return () => {
+      dead = true;
+      window.clearTimeout(timer);
+      cancel();
+    };
+  }, [near, tab, phone]);
+
+  useEffect(() => () => window.clearTimeout(dwell.current), []);
+
+  // the cursor reads its tone off the nearest [data-cursor-tone]; the section's own element is Scene's
+  useEffect(() => {
+    if (CLASSIC) document.getElementById("watch")?.setAttribute("data-cursor-tone", "dark");
   }, []);
 
-  return (
-    <Scene id="watch" pinnedViewports={0} stage="keep" label={WATCH.label} className="ww">
-      <div className="wrap ww-wrap">
-        <header className="ww-head">
-          <h2 className="t-h2 ww-title">{WATCH.title}</h2>
-          <p className="t-lead ww-sub">{WATCH.sub}</p>
-        </header>
+  const choose = (i: number) => {
+    window.clearTimeout(dwell.current);
+    setTab(i);
+  };
+  const pick = (j: number) => {
+    window.clearTimeout(dwell.current);
+    setPicks((p) => (p[tab] === j ? p : p.map((v, i) => (i === tab ? j : v))));
+  };
+  const rest = (j: number) => {
+    window.clearTimeout(dwell.current);
+    dwell.current = window.setTimeout(() => pick(j), DWELL);
+  };
 
-        <div className="ww-board" ref={board}>
-          <div className="ww-cols" aria-hidden="true">
-            <span className="ww-col ww-col--phone">
-              <PhoneGlyph />
-              {WATCH.phoneHead}
-            </span>
-            <svg className="ww-col-to" viewBox="0 0 14 14" fill="none">
-              <path d="M2 7h9.5M8 3.5 11.5 7 8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span className="ww-col ww-col--office">
-              <OfficeGlyph />
-              {WATCH.officeHead}
-            </span>
-          </div>
-          <ol className="ww-list" aria-label={WATCH.listLabel}>
-            {WATCH.moments.map((m) => (
-              <Row key={m.id} m={m} />
+  // ← → Home End move between the tabs (and open them)
+  const onTabKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    const n = TABS.length;
+    const to = e.key === "ArrowRight" ? (tab + 1) % n : e.key === "ArrowLeft" ? (tab - 1 + n) % n : e.key === "Home" ? 0 : e.key === "End" ? n - 1 : null;
+    if (to === null) return;
+    e.preventDefault();
+    choose(to);
+    tabRefs.current[to]?.focus();
+  };
+
+  const kindIds = (kind: ScreenKind) => mounted.filter((id) => id.startsWith(`${kind}-`));
+
+  return (
+    <Scene id="watch" pinnedViewports={0} stage="keep" label={WATCH.label} className="wt">
+      <div className="wrap wt-wrap" ref={nearRef}>
+        <h2 className="t-h2 wt-title">{WATCH.title}</h2>
+
+        <div className="wt-tablist" role="tablist" aria-label={WATCH.tabsLabel} onKeyDown={onTabKey}>
+          {TABS.map((x, i) => (
+            <button
+              key={x.id}
+              ref={(n) => {
+                tabRefs.current[i] = n;
+              }}
+              type="button"
+              role="tab"
+              id={`wt-tab-${x.id}`}
+              aria-selected={i === tab}
+              aria-controls={`wt-panel-${x.id}`}
+              tabIndex={i === tab ? 0 : -1}
+              className="wt-tab"
+              data-cursor="link"
+              onClick={() => choose(i)}
+            >
+              <span className="wt-tab-ic" aria-hidden="true">
+                <TabGlyph id={x.id} />
+              </span>
+              <span className="wt-tab-txt">
+                <span className="wt-tab-name">{x.name}</span> <span className="wt-tab-who">{x.who}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+
+        <div className="wt-body">
+          <div className="wt-panels">
+            {TABS.map((x, i) => (
+              <div
+                key={x.id}
+                className={`wt-panel${i === tab ? "" : " is-off"}`}
+                role="tabpanel"
+                id={`wt-panel-${x.id}`}
+                aria-labelledby={`wt-tab-${x.id}`}
+                inert={i !== tab}
+              >
+                <p className="wt-eyebrow">{x.eyebrow}</p>
+                <h3 className="wt-h">{x.headline}</h3>
+                <p className="t-lead wt-sub">{x.sub}</p>
+                <ul className="wt-list" data-tab={x.id}>
+                  {x.items.map((it, j) => {
+                    const on = j === picks[i];
+                    const { lead, head } = splitTitle(it.title);
+                    return (
+                      <li key={it.id}>
+                        <button
+                          type="button"
+                          className="wt-item"
+                          aria-current={on || undefined}
+                          data-item={it.id}
+                          data-cursor="link"
+                          onClick={() => pick(j)}
+                          onFocus={() => pick(j)}
+                          onPointerEnter={(e) => e.pointerType === "mouse" && rest(j)}
+                          onPointerLeave={() => window.clearTimeout(dwell.current)}
+                        >
+                          <span className="wt-ic" aria-hidden="true">
+                            <Icon name={shotFor(x.id, it.id).icon} size={18} stroke={1.7} />
+                          </span>
+                          <span className="wt-txt">
+                            <span className="wt-t">
+                              {lead && (
+                                <span className={`wt-lead${x.id === "day" ? " is-time" : ""}`}>
+                                  {lead}
+                                  <span className="wt-dash"> — </span>
+                                </span>
+                              )}
+                              <span className="wt-head">{head}</span>
+                            </span>{" "}
+                            <span className="wt-line">{it.line}</span>
+                          </span>
+                          <Chevron />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             ))}
-          </ol>
-          <div className="ww-foot">
-            <div className="ww-close-group">
-              <p className="ww-close">{WATCH.close}</p>
-              <Cta source="watch" size="lg" />
+          </div>
+
+          <div className="wt-dev" data-web={phone ? undefined : shot.web} data-phone={shot.phone}>
+            <div className="wt-devs">
+              {!phone && (
+                <LaptopFrame screens={[]} className="wt-laptop">
+                  <Stack kind="web" ids={kindIds("web")} shown={shot.web} />
+                </LaptopFrame>
+              )}
+              <PhoneFrame screens={[]} className="wt-phone" tone={CLASSIC ? "dark" : "light"}>
+                <Stack kind="phone" ids={kindIds("phone")} shown={shot.phone} />
+              </PhoneFrame>
             </div>
-            <p className="t-micro ww-caption">{WATCH.caption}</p>
+          </div>
+
+          <div className="wt-act">
+            {TABS.map((x, i) => (
+              <div key={x.id} className="wt-act-cta" hidden={i !== tab}>
+                <Cta source={`watch-${x.id}`} intent={x.cta.intent} label={x.cta.label} size="lg" cue={i === 0} />
+              </div>
+            ))}
+            <p className="t-micro wt-caption">{WATCH.caption}</p>
           </div>
         </div>
       </div>

@@ -968,31 +968,97 @@ async function replaceApps(device) {
   }
 }
 
-/** Watch it work: the day in seven rows, each led by its feature headline, plays as it scrolls in. */
+/**
+ * Watch it work ("A Day In The Life"): three tabs (The Day, The Week, The Results) switch panels,
+ * one panel shown at a time with its headline and items (read from src/content/watch.ts); an item
+ * highlights and switches the devices' screens; each panel's button opens the popup with its
+ * source; ← → move between the tabs; nothing pins or holds the scroll.
+ */
 async function watchItWork(device) {
+  const src = readFileSync(`${ROOT}src/content/watch.ts`, "utf8");
+  const want = [...src.matchAll(/id: "(day|week|results)",\s*name: "([^"]+)"[\s\S]*?headline: "([^"]+)"[\s\S]*?items: \[([\s\S]*?)\n\s*\],/g)].map((m) => ({
+    id: m[1],
+    name: m[2],
+    headline: m[3],
+    items: (m[4].match(/title: "/g) ?? []).length,
+  }));
+  assert(want.length === 3, `read ${want.length} tabs from src/content/watch.ts, not 3`);
   const ctx = await newContext(device);
   const page = await open(ctx);
+  const centre = (loc) => loc.evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
   try {
     await waitScenes(page);
     const sec = page.locator("section#watch");
     await scrollSection(page, "#watch", 0, device.settle);
-    const rows = sec.locator("li.ww-item");
-    const n = await rows.count();
-    assert(n === 7, `${n} moments, not 7`);
-    for (let i = 0; i < n; i++) assert(await rows.nth(i).getByRole("heading", { level: 3 }).count(), `moment ${i + 1} has no headline`);
-    // as each row scrolls in it plays once (is-in): scroll through them as a visitor would
-    for (let i = 0; i < n; i++) {
-      await rows.nth(i).scrollIntoViewIfNeeded();
-      await wait(250);
+    // nothing pins: not a pinned scene, nothing sticky or fixed inside it
+    const held = await page.evaluate(() => {
+      const s = document.querySelector("section#watch");
+      if (s.classList.contains("is-pinned")) return "the section is pinned";
+      const el = [...s.querySelectorAll("*")].find((e) => /sticky|fixed/.test(getComputedStyle(e).position));
+      return el ? `${el.tagName.toLowerCase()}.${[...el.classList].join(".")} is ${getComputedStyle(el).position}` : "";
+    });
+    assert(!held, held);
+    const tabs = sec.getByRole("tablist").getByRole("tab");
+    assert((await tabs.count()) === 3, `${await tabs.count()} tabs, not 3`);
+    assert((await tabs.nth(0).getAttribute("aria-selected")) === "true", "The Day isn't the tab open at first");
+    const seen = [];
+    for (let i = 0; i < 3; i++) {
+      const w = want[i];
+      const tab = tabs.nth(i);
+      assert(new RegExp(w.name, "i").test(await tab.innerText()), `tab ${i + 1} reads "${(await tab.innerText()).replace(/\s+/g, " ")}", not ${w.name}`);
+      await centre(tab);
+      await wait(device.settle);
+      await press(page, tab, { what: `the ${w.name} tab` });
+      await wait(600);
+      assert((await tab.getAttribute("aria-selected")) === "true", `${w.name} didn't open`);
+      // one panel shown (getByRole leaves hidden ones out), with its headline and every item
+      const panels = sec.getByRole("tabpanel");
+      assert((await panels.count()) === 1, `${await panels.count()} panels shown under ${w.name}`);
+      const panel = panels.first();
+      const h3 = (await panel.getByRole("heading", { level: 3 }).innerText()).replace(/\s+/g, " ").trim();
+      assert(norm(h3) === norm(w.headline), `${w.name}: headline "${h3}", not "${w.headline}"`);
+      const items = panel.getByRole("listitem");
+      assert((await items.count()) === w.items, `${w.name}: ${await items.count()} items, not ${w.items}`);
+      for (let k = 0; k < w.items; k++) assert(await items.nth(k).isVisible(), `${w.name}: item ${k + 1} isn't shown`);
+      // pointing at an item (laptop) or tapping it (phone) highlights it and switches the screens
+      const dev = sec.locator("[data-phone]");
+      const before = await dev.evaluate((d) => `${d.dataset.web ?? ""}|${d.dataset.phone}`);
+      const item = items.nth(1).getByRole("button");
+      await centre(item);
+      await wait(device.settle);
+      if (touchCtx.get(ctx)) await press(page, item, { what: `${w.name}'s second item` });
+      else {
+        const pt = await settledPoint(() => pointOf(item));
+        assert(pt, `${w.name}'s second item can't be pointed at`);
+        await page.mouse.move(pt[0], pt[1], { steps: 4 });
+      }
+      await wait(500);
+      assert((await item.getAttribute("aria-current")) === "true", `${w.name}: the second item didn't highlight`);
+      const after = await dev.evaluate((d) => `${d.dataset.web ?? ""}|${d.dataset.phone}`);
+      assert(after !== before, `${w.name}: the devices stayed on ${before}`);
+      // its button (one shown) opens the popup
+      const ctas = sec.getByRole("button", { name: /get my free trial|see smartcrew in action/i });
+      assert((await ctas.count()) === 1, `${w.name}: ${await ctas.count()} buttons shown, not 1`);
+      await centre(ctas.first());
+      await wait(device.settle);
+      await press(page, ctas.first(), { what: `${w.name}'s button` });
+      await expectPopup(page);
+      const s = (await signups(page)).pop();
+      const intent = w.id === "week" ? "demo" : "trial";
+      assert(s?.source === `watch-${w.id}` && s?.intent === intent, `${w.name}'s button sent ${JSON.stringify(s)}`);
+      await closePopup(page);
+      seen.push(`${w.name} (${w.items} items) → ${s.source}${intent === "demo" ? "(demo)" : ""}`);
     }
-    await wait(1800);
-    const played = await sec.locator("li.ww-item.is-in").count();
-    assert(played === n, `${played} of ${n} rows played`);
+    // the keyboard: → from The Results wraps to The Day
+    await tabs.nth(2).focus();
+    await page.keyboard.press("ArrowRight");
+    await wait(300);
+    assert((await tabs.nth(0).getAttribute("aria-selected")) === "true", "→ on the last tab didn't open The Day");
     // the page scrolls straight past it (no hold): one more screen down, and it has moved
     const y0 = await page.evaluate(() => scrollY);
     await scrollTo(page, y0 + device.ctx.viewport.height, 400);
     assert((await page.evaluate(() => scrollY)) > y0 + 100, "the page didn't scroll past Watch it work");
-    return `${n} moments with headlines, each played once, no hold`;
+    return `${seen.join(", ")}; items switch the screens; ← → keys; no hold`;
   } finally {
     await ctx.close();
   }
@@ -1131,7 +1197,7 @@ for (const device of [DESKTOP, PHONE]) {
   await check(D, "Replace 5 apps: 6 cards → CTA", () => replaceApps(device));
   await check(D, "features: all 38 tools → walkthrough", () => specSheet(device));
   await check(D, "features: biggest pain picker", () => painPicker(device));
-  await check(D, "Watch it work: 7 moments, no hold", () => watchItWork(device));
+  await check(D, "Watch it work: 3 tabs → panels, items, CTAs, no hold", () => watchItWork(device));
   await check(D, "Try it: tap Clock In → CTA", () => tryIt(device));
   await check(D, "Your number: slider + picks → popup prefill", () => yourNumber(device));
   await check(D, "FAQ toggles", () => faq(device));

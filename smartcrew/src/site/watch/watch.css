@@ -1,742 +1,375 @@
-/* Watch it work (./Watch.tsx): one board, seven rows. Laptops: four aligned columns, the
-   headline | the crew phone's chip | the wire (time of day on it) | the office row, so the eye
-   runs down the headlines and the flow repeats in one straight pipe. Phones: one block per
-   moment, the headline on top, the chip, a short wire down, the office row full width. Rows play
-   once as they come into view (the dot runs the wire, the far end lands); before that, only
-   while armed by JS and only with motion on, the far end waits hidden. */
+/* Watch it work (./Watch.tsx): the headline and the tab bar centred on top; under them the tab's
+   panel on the left (eyebrow, headline, sub, the list of features) and on the right the devices
+   (the office app on a laptop, the crew's phone over its lower left corner) with the button under
+   them. The button sits mid-section on purpose: the Features section above and Try it below each
+   end or open with an orange button, and a viewport (1440×660 and up) must never show two; after
+   the list it would share the screen with Try it's. The three panels share one height on laptops,
+   so switching tabs never moves what comes after. Tablets: the devices and the button go under
+   the list. Phones: the tabs are three compact segments, the list shows the titles (the
+   highlighted item with its line), then the phone alone, then the button. The list's look follows
+   the Features cards (src/site/features): a quiet row, the highlighted one a white card with its
+   icon well in ink. Motion only on input: the panel fades in, the screens crossfade. */
 
-.ww .scene-body {
-  padding-block: clamp(24px, 6svh, 80px) clamp(44px, 9svh, 112px);
+.wt .scene-body {
+  padding-block: clamp(36px, 6.5svh, 88px) clamp(56px, 10svh, 120px);
 }
 
-/* ── header ─────────────────────────────────────────────────────────────── */
-
-.ww-head {
-  margin-bottom: clamp(16px, 3.6svh, 40px);
+.wt-title {
+  max-width: 22em;
+  margin-inline: auto;
+  text-align: center;
 }
 
-.ww-sub {
-  max-width: 62em;
-  margin-top: clamp(8px, 1.4svh, 14px);
+/* ── the tab bar: three raised segments on a quiet track ─────────────────── */
+
+.wt-tablist {
+  display: flex;
+  gap: 4px;
+  width: fit-content;
+  margin: clamp(20px, 3.4svh, 36px) auto 0;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--ground-2);
 }
 
-/* ── the board: one grid, every row on it (subgrid), so the four columns line up ── */
-
-.ww-board {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) auto clamp(92px, 8.4vw, 148px) minmax(0, 1fr);
-  column-gap: clamp(14px, 1.7vw, 28px);
-}
-
-.ww-cols,
-.ww-list,
-.ww-item,
-.ww-foot {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: subgrid;
-}
-
-/* column heads, once: "Crew app" over the chips, "Office" over the office rows */
-.ww-cols {
-  padding-bottom: clamp(5px, 1svh, 10px);
-}
-
-.ww-col {
-  display: inline-flex;
+.wt-tab {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: var(--fs-micro);
-  font-weight: 600;
-  line-height: 1.2;
+  gap: 12px;
+  min-width: 222px;
+  padding: 8px 22px 8px 8px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  color: var(--ink-2);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.25s,
+    box-shadow 0.25s,
+    color 0.25s;
+}
+
+.wt-tab[aria-selected="true"] {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    0 1px 2px rgb(23 19 15 / 8%),
+    0 10px 22px -12px rgb(23 19 15 / 30%);
+}
+
+.wt-tab-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 72%);
+  color: var(--ink-3);
+  transition:
+    background-color 0.25s,
+    color 0.25s;
+}
+
+.wt-tab[aria-selected="true"] .wt-tab-ic {
+  background: var(--ink);
+  color: var(--orange-2);
+}
+
+.wt-tab-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.wt-tab-name {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: var(--sub-wght);
+  font-size: 17px;
+  line-height: 1.15;
+  letter-spacing: var(--track-sub);
+}
+
+.wt-tab-who {
+  font-size: 13px;
+  line-height: 1.3;
   color: var(--ink-3);
 }
 
-.ww-col--phone {
-  grid-column: 2;
-  justify-self: end;
-  padding-right: 4px;
+/* ── the body: the panel left; the devices and the button right ──────────── */
+
+.wt-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "panel dev"
+    "panel act";
+  column-gap: clamp(32px, 4vw, 72px);
+  margin-top: clamp(26px, 4.4svh, 52px);
 }
 
-.ww-col--office {
-  grid-column: 4;
-  padding-left: 4px;
+/* the three panels in one cell: the tallest sets the height, the closed ones wait unseen */
+.wt-panels {
+  grid-area: panel;
+  display: grid;
+  min-width: 0;
 }
 
-.ww-col-to {
-  display: none;
+.wt-panel {
+  grid-area: 1 / 1;
+  min-width: 0;
 }
 
-.ww-glyph {
-  width: 15px;
-  height: 15px;
-  flex: none;
+.wt-panel.is-off {
+  visibility: hidden;
 }
 
-/* ── one row ────────────────────────────────────────────────────────────── */
-
-.ww-item {
-  align-items: center;
-  padding-block: clamp(5px, 1.15svh, 12px);
-  border-top: 1px solid var(--line);
+.wt-eyebrow {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-label) * 1%);
+  font-weight: 650;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: 0.11em;
+  font-feature-settings: "case" 1;
+  color: var(--orange-ink);
 }
 
-.ww-item:last-child {
-  border-bottom: 1px solid var(--line);
-}
-
-/* the feature headline leads */
-.ww-h {
-  grid-column: 1;
+.wt-h {
+  margin-top: 10px;
   font-family: var(--font-display);
   font-stretch: calc(var(--wdth-head) * 1%);
   font-weight: var(--display-wght);
-  font-size: clamp(20px, 1.1vw + 1.1svh + 4px, 30px);
-  line-height: 1.1;
+  font-size: clamp(28px, 1.1vw + 1.3svh + 6px, 42px);
+  line-height: 1.06;
   letter-spacing: var(--track-head);
   word-spacing: var(--display-word);
   text-wrap: balance;
-  padding-right: 8px;
 }
 
-/* the crew phone: the app's own dark button */
-.ww-chip {
-  grid-column: 2;
-  justify-self: end;
-  position: relative;
-  display: inline-flex;
+.wt-sub {
+  max-width: 32em;
+  margin-top: 10px;
+}
+
+/* ── the list ───────────────────────────────────────────────────────────── */
+
+.wt-list {
+  display: grid;
+  gap: 2px;
+  margin-top: clamp(16px, 2.6svh, 26px);
+}
+
+.wt-item {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 16px;
   align-items: center;
-  gap: 7px;
-  min-height: 34px;
-  padding: 6px 15px;
-  border-radius: 999px;
+  column-gap: 13px;
+  width: 100%;
+  padding: 6px 12px 6px 7px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.25s;
+}
+
+.wt-item[aria-current] {
+  background: var(--paper);
+  border-color: rgb(23 19 15 / 11%);
+  box-shadow:
+    0 1px 2px rgb(23 19 15 / 5%),
+    0 10px 26px -16px rgb(23 19 15 / 30%);
+}
+
+.wt-ic {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--ground-2);
+  color: var(--ink-2);
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.wt-item[aria-current] .wt-ic {
   background: var(--ink);
-  color: var(--ground);
+  color: var(--paper);
+}
+
+.wt-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* the title leads; on The Day its time sits small in front of it */
+.wt-t {
   font-family: var(--font-display);
   font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: var(--sub-wght);
+  font-size: 16.5px;
+  line-height: 1.2;
+  letter-spacing: var(--track-sub);
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.wt-lead.is-time {
+  font-stretch: calc(var(--wdth-state) * 1%);
   font-weight: 600;
-  font-size: 15px;
-  line-height: 1.15;
+  font-size: 13px;
   letter-spacing: 0;
-  white-space: nowrap;
-}
-
-.ww-chip .ww-glyph {
-  display: none;
-  width: 14px;
-  height: 14px;
-  margin-left: -3px;
-  opacity: 0.7;
-}
-
-/* the wire: the time of day sits on it, small */
-.ww-wire {
-  grid-column: 3;
-  position: relative;
-  height: 40px;
-}
-
-.ww-when {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(50% + 5px);
-  text-align: center;
-  font-size: 12.5px;
-  font-weight: 500;
-  line-height: 1;
   color: var(--ink-3);
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: var(--num-tabular);
   white-space: nowrap;
 }
 
-.ww-line {
-  position: absolute;
-  left: 2px;
-  right: 2px;
-  top: 50%;
-  height: 1.5px;
-  margin-top: -0.75px;
-  border-radius: 1px;
-  background: rgb(116 102 90 / 42%);
-  transform-origin: left center;
+.wt-dash {
+  color: var(--ink-3);
+  font-weight: 500;
 }
 
-.ww-tip {
-  position: absolute;
-  max-width: none;
-  right: -2px;
-  top: 50%;
-  width: 8px;
-  height: 10px;
-  margin-top: -5px;
+.wt-line {
+  font-size: 14px;
+  line-height: 1.36;
   color: var(--ink-3);
 }
 
-[data-dir="down"] .ww-line {
-  transform-origin: right center;
+.wt-chev {
+  width: 16px;
+  height: 16px;
+  color: var(--ink-3);
+  opacity: 0.5;
+  transition:
+    transform 0.25s var(--ease-out),
+    opacity 0.2s;
 }
 
-[data-dir="down"] .ww-tip {
-  right: auto;
-  left: -2px;
-  rotate: 180deg;
-}
-
-/* the dot rides a box as wide as the wire: translating the box by 100% runs it end to end */
-.ww-run {
-  position: absolute;
-  left: 2px;
-  right: 2px;
-  top: 50%;
-  height: 0;
-  pointer-events: none;
-}
-
-.ww-dot {
-  position: absolute;
-  left: -4px;
-  top: -4px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--orange);
-  box-shadow: 0 0 0 4px rgb(255 122 1 / 18%);
-  opacity: 0;
-}
-
-/* the office: a row of the app */
-.ww-office {
-  grid-column: 4;
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 6px 14px 6px 7px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--paper);
-  box-shadow: 0 1px 2px rgb(23 19 15 / 5%);
-}
-
-.ww-well {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: var(--ground-2);
-  color: var(--ink-2);
-}
-
-.ww-avatar {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: #e2ece4;
-  color: #1d6a3e;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-[data-moment="clockin"] .ww-well {
-  background: none;
-}
-
-.ww-office-txt {
-  min-width: 0;
-  font-size: 15.5px;
-  font-weight: 600;
-  line-height: 1.25;
+.wt-item[aria-current] .wt-chev {
+  opacity: 1;
   color: var(--ink);
+  transform: translateX(2px);
 }
 
-[data-moment="profit"] .ww-office-txt {
-  color: #137a43;
+@media (hover: hover) {
+  .wt-tab:not([aria-selected="true"]):hover,
+  .wt-item:not([aria-current]):hover {
+    background: rgb(255 255 255 / 60%);
+  }
+  .wt-item:hover .wt-chev {
+    opacity: 1;
+  }
 }
 
-.ww-where {
-  margin-left: auto;
-  padding-left: 8px;
-  font-size: var(--fs-micro);
-  line-height: 1.2;
-  color: var(--ink-3);
-  white-space: nowrap;
-}
+/* ── the button, with the demo caption beside it ────────────────────────── */
 
-/* ── the close ──────────────────────────────────────────────────────────── */
-
-.ww-foot {
-  align-items: center;
-  margin-top: clamp(16px, 3.4svh, 36px);
-}
-
-.ww-close-group {
-  grid-column: 1 / 3;
+.wt-act {
+  grid-area: act;
+  align-self: start;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 14px 28px;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-top: clamp(16px, 2.6svh, 26px);
 }
 
-.ww-close {
-  font-family: var(--font-display);
-  font-stretch: calc(var(--wdth-sub) * 1%);
-  font-weight: var(--sub-wght);
-  font-size: var(--fs-h3);
-  line-height: 1.15;
-  letter-spacing: var(--track-sub);
+/* ── the devices: the laptop, the phone over its lower left corner ───────── */
+
+.wt-dev {
+  grid-area: dev;
+  align-self: start;
+  min-width: 0;
 }
 
-.ww-caption {
-  grid-column: 3 / -1;
-  justify-self: end;
+.wt-devs {
+  position: relative;
+  margin-right: calc(var(--gutter) * -0.6);
+  padding-left: 7%;
+}
+
+.wt-phone {
+  position: absolute;
+  left: -3%;
+  bottom: 0;
+  z-index: 1;
+  width: 25%;
+}
+
+.wt-caption {
   text-align: right;
 }
 
-/* ── short laptop screens (13" at 1280×600): the sub goes beside the title and the rows tighten,
-   so all seven rows fit ── */
-@media (min-width: 761px) and (max-height: 720px) {
-  .ww-head {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 16px 48px;
-  }
-  .ww-title {
-    flex: none;
-  }
-  .ww-sub {
-    max-width: 33em;
-    margin: 0;
-    padding-bottom: 2px;
-  }
-  .ww-item {
-    padding-block: 5px;
-  }
-  .ww-office {
-    min-height: 40px;
-    padding-block: 4px;
-  }
-  .ww-well,
-  .ww-avatar {
-    width: 28px;
-    height: 28px;
-  }
-  .ww-wire {
-    height: 34px;
-  }
-  .ww-chip {
-    min-height: 32px;
-    padding-block: 5px;
-  }
+/* the screens, stacked in the frame's screen: the shown one on top; the one it replaces stays
+   under it until the new one has faded in, then hides */
+.wt-stack {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
 }
 
-/* ── motion: once per row, as it comes into view ─────────────────────────── */
-/* --ww-d: this row's start (the stagger); the dot leaves at +120 ms and lands at +680 ms */
+.wt-shot {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  visibility: hidden;
+  background: #fff;
+  transition:
+    opacity 0s linear 0.36s,
+    visibility 0s linear 0.36s;
+}
+
+.wt-shot.is-on {
+  z-index: 1;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.34s var(--ease-out);
+}
+
+.wt-scr {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+  transform-origin: 0 0;
+}
+
+/* ── motion: a tab's panel and its button fade in when it opens ──────────── */
 
 @media (prefers-reduced-motion: no-preference) {
-  .ww-armed .ww-item:not(.is-in) .ww-dst {
-    opacity: 0;
+  .wt-panel:not(.is-off) {
+    animation: wt-in 0.42s var(--ease-out) both;
   }
-  .ww-armed .ww-item:not(.is-in) .ww-line {
-    transform: scaleX(0);
-  }
-  .ww-armed .ww-item:not(.is-in) .ww-tip {
-    opacity: 0;
-  }
-
-  .ww-item.is-in {
-    --ww-t0: calc(var(--ww-d, 0ms) + 120ms);
-    --ww-t1: calc(var(--ww-d, 0ms) + 640ms);
-  }
-
-  /* the receiver lands with a soft orange outline that fades (the update, just in) */
-  .ww-dst::after {
-    content: "";
-    position: absolute;
-    inset: -4px;
-    border-radius: inherit;
-    border: 2px solid var(--orange);
-    opacity: 0;
-    pointer-events: none;
-  }
-  .ww-office::after {
-    border-radius: 15px;
-  }
-  .ww-item.is-in .ww-dst::after {
-    animation: ww-flash 640ms var(--ease-out) calc(var(--ww-t1) + 40ms) both;
-  }
-
-  /* the wire draws under the dot */
-  .ww-item.is-in .ww-line {
-    animation: ww-draw 560ms var(--ease-in-out) var(--ww-t0) both;
-  }
-  .ww-item.is-in .ww-run {
-    animation: ww-run 560ms var(--ease-in-out) var(--ww-t0) both;
-  }
-  .ww-item.is-in[data-dir="down"] .ww-run {
-    animation-name: ww-run-back;
-  }
-  .ww-item.is-in .ww-dot {
-    animation: ww-dot 640ms linear var(--ww-t0) both;
-  }
-  .ww-item.is-in .ww-tip {
-    animation: ww-fade 240ms var(--ease-out) calc(var(--ww-t1) - 60ms) both;
-  }
-
-  /* the receiver lands */
-  .ww-item.is-in .ww-dst {
-    animation: ww-land 460ms var(--ease-out) var(--ww-t1) both;
-  }
-  .ww-item.is-in[data-dir="down"] .ww-dst {
-    animation-name: ww-land-back;
+  .wt-act-cta:not([hidden]) {
+    animation: wt-fade 0.42s var(--ease-out) both;
   }
 }
 
-@keyframes ww-flash {
-  0% {
-    opacity: 0.55;
-  }
-  100% {
-    opacity: 0;
+@media (prefers-reduced-motion: reduce) {
+  .wt-shot,
+  .wt-shot.is-on {
+    transition: none;
   }
 }
 
-@keyframes ww-draw {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes ww-run {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(100%);
-  }
-}
-
-@keyframes ww-run-back {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes ww-dot {
-  0% {
-    opacity: 0;
-  }
-  12%,
-  80% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-@keyframes ww-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes ww-land {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes ww-land-back {
-  from {
-    opacity: 0;
-    transform: translateX(10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* ── narrower laptops and tablets: the app area tag goes first (the office line stays on one line) ── */
-
-@media (max-width: 1360px) and (min-width: 761px) {
-  .ww-where {
-    display: none;
-  }
-}
-
-/* ── tablets: the headline over its flow, the flow in one line (chip | wire | office) ── */
-
-@media (min-width: 761px) and (max-width: 980px) {
-  .ww-board {
-    grid-template-columns: auto clamp(92px, 12vw, 128px) minmax(0, 1fr);
-  }
-  .ww-col--phone {
-    grid-column: 1;
-  }
-  .ww-col--office {
-    grid-column: 3;
-  }
-  .ww-item {
-    row-gap: 10px;
-    padding-block: 14px 16px;
-  }
-  .ww-h {
-    grid-column: 1 / -1;
-    padding-right: 0;
-  }
-  .ww-chip {
-    grid-column: 1;
-  }
-  .ww-wire {
-    grid-column: 2;
-  }
-  .ww-office {
-    grid-column: 3;
-  }
-  .ww-close-group {
-    grid-column: 1 / -1;
-  }
-  .ww-caption {
-    grid-column: 1 / -1;
-    justify-self: start;
-    text-align: left;
-    margin-top: 12px;
-  }
-}
-
-/* ── phones: one block per moment, the flow running down: chip → wire → office row ── */
-
-@media (max-width: 760px) {
-  .ww .scene-body {
-    padding-block: 56px 64px;
-  }
-
-  .ww-head {
-    margin-bottom: 22px;
-  }
-
-  .ww-board,
-  .ww-list {
-    display: block;
-  }
-
-  /* the legend, once: Crew app → Office */
-  .ww-cols {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-bottom: 12px;
-  }
-
-  .ww-col--phone,
-  .ww-col--office {
-    padding: 0;
-  }
-
-  .ww-col-to {
-    display: block;
-    width: 14px;
-    height: 14px;
-    color: var(--ink-3);
-  }
-
-  .ww-item {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding-block: 14px 16px;
-  }
-
-  .ww-h {
-    font-size: 21px;
-    padding-right: 0;
-    margin-bottom: 10px;
-  }
-
-  .ww-chip {
-    min-height: 32px;
-    padding: 5px 14px;
-    font-size: 15px;
-  }
-
-  .ww-chip .ww-glyph {
-    display: block;
-  }
-
-  /* the wire turns: a short drop from the chip to the office row, the time beside it */
-  .ww-wire {
-    align-self: stretch;
-    height: 28px;
-  }
-
-  .ww-when {
-    left: 36px;
-    right: auto;
-    top: 50%;
-    bottom: auto;
-    margin-top: -6px;
-    text-align: left;
-    font-size: 12.5px;
-  }
-
-  .ww-line,
-  .ww-run {
-    left: 22px;
-    right: auto;
-    top: 4px;
-    bottom: 4px;
-    width: 1.5px;
-    height: auto;
-    margin: 0 0 0 -0.75px;
-    transform-origin: center top;
-  }
-
-  .ww-run {
-    width: 0;
-    margin: 0;
-  }
-
-  .ww-tip {
-    right: auto;
-    left: -3.25px;
-    top: auto;
-    bottom: -3px;
-    margin: 0;
-    rotate: 90deg;
-  }
-
-  [data-dir="down"] .ww-line {
-    transform-origin: center bottom;
-  }
-
-  [data-dir="down"] .ww-tip {
-    left: -3.25px;
-    top: -3px;
-    bottom: auto;
-    rotate: -90deg;
-  }
-
-  .ww-office {
-    align-self: stretch;
-    gap: 9px;
-    min-height: 42px;
-    padding: 5px 12px 5px 6px;
-  }
-
-  .ww-office-txt {
-    font-size: 15px;
-  }
-
-  .ww-where {
-    display: none;
-  }
-
-  .ww-foot {
-    display: block;
-    margin-top: 28px;
-  }
-
-  .ww-close-group {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 14px;
-  }
-
-  .ww-close-group .cta {
-    width: 100%;
-  }
-
-  .ww-caption {
-    justify-self: auto;
-    margin-top: 12px;
-    text-align: left;
-  }
-}
-
-@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
-  .ww-armed .ww-item:not(.is-in) .ww-line {
-    transform: scaleY(0);
-  }
-  .ww-item.is-in .ww-line {
-    animation-name: ww-draw-y;
-  }
-  .ww-item.is-in .ww-run {
-    animation-name: ww-run-y;
-  }
-  .ww-item.is-in[data-dir="down"] .ww-run {
-    animation-name: ww-run-y-back;
-  }
-  .ww-item.is-in .ww-dst {
-    animation-name: ww-land-y;
-  }
-  .ww-item.is-in[data-dir="down"] .ww-dst {
-    animation-name: ww-land-y-back;
-  }
-}
-
-@keyframes ww-draw-y {
-  from {
-    transform: scaleY(0);
-  }
-  to {
-    transform: scaleY(1);
-  }
-}
-
-@keyframes ww-run-y {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(100%);
-  }
-}
-
-@keyframes ww-run-y-back {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-@keyframes ww-land-y {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes ww-land-y-back {
+@keyframes wt-in {
   from {
     opacity: 0;
     transform: translateY(8px);
@@ -744,5 +377,185 @@
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+@keyframes wt-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── tablets and phones: one column, only the open panel takes room ─────── */
+
+@media (max-width: 1080px) {
+  .wt-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas:
+      "panel"
+      "dev"
+      "act";
+  }
+  .wt-panel.is-off {
+    display: none;
+  }
+}
+
+/* ── tablets: the devices under the list, then the button and the caption ── */
+
+@media (min-width: 761px) and (max-width: 1080px) {
+  .wt-dev,
+  .wt-act {
+    justify-self: center;
+    width: min(100%, 680px);
+  }
+  .wt-dev {
+    margin-top: 36px;
+  }
+  .wt-devs {
+    margin-right: 0;
+    padding-bottom: 4%;
+  }
+}
+
+/* ── phones: compact tabs, the titles, the phone, the button ─────────────── */
+
+@media (max-width: 760px) {
+  .wt .scene-body {
+    padding-block: 56px 64px;
+  }
+
+  .wt-tablist {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 3px;
+    width: 100%;
+    margin-top: 22px;
+    padding: 4px;
+    border-radius: 15px;
+  }
+
+  .wt-tab {
+    justify-content: center;
+    min-width: 0;
+    padding: 8px 4px 9px;
+    border-radius: 11px;
+    text-align: center;
+  }
+
+  .wt-tab-ic {
+    display: none;
+  }
+
+  .wt-tab-name {
+    font-size: 15.5px;
+  }
+
+  .wt-tab-who {
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+
+  .wt-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas:
+      "panel"
+      "dev"
+      "act";
+    margin-top: 28px;
+  }
+
+  .wt-h {
+    font-size: 27px;
+  }
+
+  .wt-sub {
+    font-size: 16.5px;
+  }
+
+  .wt-list {
+    gap: 1px;
+    margin-top: 16px;
+  }
+
+  .wt-item {
+    grid-template-columns: 30px minmax(0, 1fr) 14px;
+    column-gap: 11px;
+    padding: 7px 10px 7px 6px;
+  }
+
+  .wt-ic {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+
+  .wt-ic svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .wt-t {
+    font-size: 15.5px;
+  }
+
+  .wt-lead.is-time {
+    font-size: 12.5px;
+  }
+
+  /* the list stays short: only the highlighted item shows its line */
+  .wt-item:not([aria-current]) .wt-line {
+    display: none;
+  }
+
+  .wt-line {
+    font-size: 14px;
+  }
+
+  .wt-chev {
+    width: 14px;
+    height: 14px;
+    transform: rotate(90deg);
+  }
+
+  .wt-item[aria-current] .wt-chev {
+    transform: rotate(-90deg);
+  }
+
+  .wt-dev {
+    margin-top: 28px;
+  }
+
+  .wt-devs {
+    width: min(52%, 204px);
+    margin-inline: auto;
+    padding: 0;
+  }
+
+  .wt-phone {
+    position: relative;
+    width: 100%;
+  }
+
+  /* the caption under the phone, then the button */
+  .wt-act {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 22px;
+    margin-top: 12px;
+  }
+
+  .wt-caption {
+    order: -1;
+    text-align: center;
+  }
+
+  .wt-act .cta {
+    width: 100%;
   }
 }

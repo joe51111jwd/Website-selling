@@ -1,11 +1,11 @@
 // The SmartCrew office web app as a clickable prototype (desktop only; Andrew: "make this a full
-// screen… almost a full clickable prototype"). Its sidebar lists every screen of the app (all ten
-// recreated web screens, src/screens/registry.ts), not six groups; a click opens that screen, live
+// screen… almost a full clickable prototype"). Its sidebar lists every screen of the app (the
+// recreated web screens, src/screens/registry.ts), not ten groups; a click opens that screen, live
 // (src/screens, scaled to fit, its own sidebar cut away and its page drawn to the window's height).
 // A few labelled hotspots on each screen say what that part does (pointing at one, focusing it or
 // clicking it rings the thing and gives its one line), and a few things on the screens open the
-// screen they would in the app (a project card opens the job, a tab opens its page). Where the
-// screen has a field side, the crew's phone stands beside the window.
+// screen they would in the app (a project card opens the job, a tab opens its page, a machine its
+// service records). Where the screen has a field side, the crew's phone stands beside the window.
 //
 // Screens mount once (the shown one at once, the rest one per idle moment after the section has
 // arrived) and stay, so switching is opacity and transform only.
@@ -17,7 +17,7 @@ import logoUrl from "../../screens/kit/smartcrew-logo.svg";
 import { SIZE } from "../../screens/registry";
 import { PhoneFrame } from "../phone/PhoneFrame";
 import { idle, screenComp, warmScreen } from "../specsheet/screens";
-import { featureById, SCREENS, screenDef, type ScreenDef, type Spot } from "./data";
+import { featureById, NAV_SCREENS, SCREENS, screenDef, type ScreenDef, type Spot } from "./data";
 
 const W = SIZE.web.w;
 const H = SIZE.web.h;
@@ -117,8 +117,8 @@ export default function AppWindow({ screen, onScreen, arrived }: Props) {
               <span className="ft-logo-word">SMARTCREW</span>
             </div>
             <ul className="ft-nav">
-              {SCREENS.map((s, i) => {
-                const on = s.id === screen;
+              {NAV_SCREENS.map((s, i) => {
+                const on = s.id === screen || s.id === def.nav;
                 const mine = s.feature === def.feature;
                 return (
                   <li key={s.id} style={{ "--i": i } as CSSProperties}>
@@ -185,12 +185,12 @@ function Page({ def, on, size, onScreen }: { def: ScreenDef; on: boolean; size: 
         </Suspense>
       </div>
 
-      {def.links.map((l) => {
+      {def.links.map((l, i) => {
         const to = screenDef(l.to);
         const [bx, by, bw, bh] = l.box;
         return (
           <button
-            key={l.to}
+            key={`${l.to}-${i}`}
             type="button"
             className="ft-link"
             style={{ left: x(bx) - 3, top: y(by) - 3, width: bw * scale + 6, height: bh * scale + 6 }}

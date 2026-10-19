@@ -563,6 +563,26 @@ export const featuredProject = projectById("p2417");
 
 const sum = (xs: number[]) => r2(xs.reduce((a, b) => a + b, 0));
 
+export type CostCodeLine = { code: string; name: string; budget: number; spent: number };
+
+/**
+ * Hwy 9 (#2417) by cost code, the project page's Cost Codes tab: the budgets add up to the bid's
+ * four buckets (L/M/E/O, $380,350) plus the approved change order's cost budget ($18,400), and
+ * the spent to the project's expenses ($258,003.25). Excavation has run over; restoration hasn't
+ * started.
+ */
+export const costCodes: CostCodeLine[] = [
+  { code: "100", name: "Mobilization", budget: 14500, spent: 14180 },
+  { code: "110", name: "Site Clearing", budget: 18200, spent: 17655.25 },
+  { code: "200", name: "Excavation", budget: 86400, spent: 89312.5 },
+  { code: "300", name: "Pipe Laying", budget: 124850, spent: 82640 },
+  { code: "310", name: "Backfill & Compaction", budget: 52300, spent: 21035.75 },
+  { code: "400", name: "Hauling", budget: 41600, spent: 18964.75 },
+  { code: "500", name: "Erosion Control", budget: 9800, spent: 2965 },
+  { code: "600", name: "Restoration", budget: 32700, spent: 0 },
+  { code: "CO-01", name: "Rip-rap at outlet apron", budget: 18400, spent: 11250 },
+];
+
 /** Projects board KPI column (W2). */
 export const projectTotals = {
   revenue: sum(projects.map((p) => p.revenue)),
@@ -742,6 +762,38 @@ export const serviceRecords = [
   { equipmentId: "CAT-336-01", date: "2026-09-29", type: "Boom hose replaced", by: "c10", cost: 388.75, hours: 7921 },
   { equipmentId: "CAT-D6-01", date: "2026-09-18", type: "500-hr service", by: "c10", cost: 1184.6, hours: 6102 },
 ];
+
+export type ServiceLogEntry = {
+  date: string;
+  work: string;
+  type: "Repair" | "Maintenance";
+  /** hour meter at the service */
+  meter: number;
+  /** time to complete, minutes */
+  took: number;
+  cost: number;
+  provider: string;
+};
+
+/**
+ * The machine page (W13): the CAT D6, in the shop since Dale flagged the idler (sq-118, still
+ * Doing, so not in the log yet), with its service records newest first. The 500-hr service is
+ * serviceRecords' D6 row; hour meters run back from its reading (equipment.reading).
+ */
+export const machine = {
+  equipmentId: "CAT-D6-01",
+  serial: "KZB04217",
+  costRate: 128,
+  notes: "In the shop since Oct 8: left track tension low, idler seeping oil. Seal kit ordered, Luis on it.",
+  log: [
+    { date: "2026-09-18", work: "500-hr service", type: "Maintenance", meter: 6102, took: 330, cost: 1184.6, provider: "Luis Delgado (shop)" },
+    { date: "2026-08-27", work: "Cutting edge and end bits replaced", type: "Repair", meter: 5991, took: 195, cost: 2436, provider: "Luis Delgado (shop)" },
+    { date: "2026-07-14", work: "A/C compressor replaced", type: "Repair", meter: 5893, took: 400, cost: 3912.5, provider: "Hollis Diesel & Hydraulics" },
+    { date: "2026-06-22", work: "250-hr service", type: "Maintenance", meter: 5852, took: 165, cost: 612.3, provider: "Luis Delgado (shop)" },
+    { date: "2026-05-04", work: "Undercarriage inspection", type: "Maintenance", meter: 5741, took: 90, cost: 180, provider: "Luis Delgado (shop)" },
+    { date: "2026-03-30", work: "Ripper cylinder hose replaced", type: "Repair", meter: 5668, took: 130, cost: 486.75, provider: "Hollis Diesel & Hydraulics" },
+  ] as ServiceLogEntry[],
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Materials (W8), hauling (M7), receipts
@@ -992,6 +1044,131 @@ export const crewMessages: CrewMessage[] = [
   { id: "cm-2", crewId: "c15", text: "Booked 2 loads from North Star for 7:00 and 7:40.", time: "9:51 AM", mine: true },
   { id: "cm-3", crewId: "c04", text: "Copy. I'll take both after the Riverside run.", time: "9:55 AM" },
   { id: "cm-4", crewId: "c12", text: "Maple Ridge lots 14–22 rough graded. Photos in field notes.", time: "10:08 AM" },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Daily reports (W14) — today's in progress, yesterday's submitted
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type DailyReport = {
+  id: string;
+  projectId: string;
+  date: string;
+  /** author (the foreman on the job that day) */
+  byId: string;
+  /** "4:05 PM", or null while the day is still going */
+  submitted: string | null;
+  crew: number;
+  photos: number;
+  /** the field note it leads with (fieldNotes, where there is one) */
+  note: string;
+};
+
+/** The list: today's two come from today's field notes, yesterday's from Oct 8's and the logs. */
+export const dailyReports: DailyReport[] = [
+  { id: "dr-2417-1009", projectId: "p2417", date: "2026-10-09", byId: "c01", submitted: null, crew: 3, photos: 4, note: fieldNotes[0].text },
+  { id: "dr-2431-1009", projectId: "p2431", date: "2026-10-09", byId: "c11", submitted: null, crew: 2, photos: 3, note: fieldNotes[1].text },
+  { id: "dr-2417-1008", projectId: "p2417", date: "2026-10-08", byId: "c01", submitted: "4:05 PM", crew: 4, photos: 6, note: "First 24in RCP section set on bedding. Rip-rap stockpiled at the outlet. Silt fence fixed along the west ditch." },
+  { id: "dr-2422-1008", projectId: "p2422", date: "2026-10-08", byId: "c12", submitted: "4:30 PM", crew: 3, photos: 2, note: fieldNotes[2].text },
+  { id: "dr-2409-1008", projectId: "p2409", date: "2026-10-08", byId: "c06", submitted: "3:20 PM", crew: 2, photos: 5, note: fieldNotes[3].text },
+];
+
+/**
+ * The open report: Hwy 9 on Thursday, Oct 8. Production matches that day's field usage and the
+ * rip-rap haul (fieldUsage, haulingLogs hl-880); Marcus's hours are his weekly summary's Oct 8;
+ * Andre went to Riverside after lunch (he wrote that job's report).
+ */
+export const dailyReportDetail = {
+  id: "dr-2417-1008",
+  weather: "41°F, overcast",
+  production: [
+    { item: "24in RCP Class III set", qty: "32 LF" },
+    { item: "#57 stone bedding placed", qty: "64 Ton" },
+    { item: "Rip-rap, Class III delivered", qty: "7 loads · 140 Ton" },
+  ],
+  crew: [
+    { crewId: "c01", minutes: H(9, 20) },
+    { crewId: "c02", minutes: H(9, 15) },
+    { crewId: "c05", minutes: H(9, 10) },
+    { crewId: "c06", minutes: H(5, 10) },
+  ],
+  equipment: [
+    { equipmentId: "CAT-320-01", minutes: H(7, 40) },
+    { equipmentId: "CAT-336-01", minutes: H(6, 15) },
+  ],
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Safety (W15) — JSAs, toolbox talks, incidents
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type SafetyKind = "JSA" | "Toolbox Talk" | "Incident";
+export type SafetyItem = {
+  id: string;
+  kind: SafetyKind;
+  title: string;
+  /** null = company-wide */
+  projectId: string | null;
+  byId: string;
+  date: string;
+  time: string;
+  /** crew sign-offs [signed, of] (JSAs and talks) */
+  signed?: [number, number];
+  /** incidents: what kind */
+  severity?: "Near miss" | "First aid";
+  status: "Complete" | "Open" | "Closed";
+};
+
+/** Newest first. Sign-offs match who was on the job (clockIns, schedulePlan); 16 on the roster. */
+export const safetyItems: SafetyItem[] = [
+  { id: "sf-512", kind: "JSA", title: "Mulching near overhead power line", projectId: "p2431", byId: "c11", date: "2026-10-09", time: "7:14 AM", signed: [2, 2], status: "Complete" },
+  { id: "sf-511", kind: "JSA", title: "Mass grading, lots 23–30", projectId: "p2422", byId: "c12", date: "2026-10-09", time: "6:58 AM", signed: [1, 2], status: "Open" },
+  { id: "sf-510", kind: "JSA", title: "Trench work, 8 ft cut at outlet", projectId: "p2417", byId: "c01", date: "2026-10-09", time: "6:45 AM", signed: [3, 3], status: "Complete" },
+  { id: "sf-509", kind: "JSA", title: "Culvert setting under lane closure", projectId: "p2417", byId: "c01", date: "2026-10-08", time: "6:41 AM", signed: [4, 4], status: "Complete" },
+  { id: "sf-508", kind: "Incident", title: "Unmarked drain tile hit while grading", projectId: "p2422", byId: "c12", date: "2026-10-07", time: "2:40 PM", severity: "Near miss", status: "Closed" },
+  { id: "sf-507", kind: "Toolbox Talk", title: "Working around the swing radius", projectId: null, byId: "c15", date: "2026-10-05", time: "6:00 AM", signed: [15, 16], status: "Complete" },
+  { id: "sf-506", kind: "Incident", title: "Hand cut on pipe gasket, first aid", projectId: "p2409", byId: "c06", date: "2026-10-02", time: "10:15 AM", severity: "First aid", status: "Closed" },
+  { id: "sf-505", kind: "Toolbox Talk", title: "Trench Safety", projectId: null, byId: "c15", date: "2026-09-28", time: "6:00 AM", signed: [16, 16], status: "Complete" },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Files (W16) — job files by project
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type FileKind = "pdf" | "image" | "sheet";
+export type JobFile = { id: string; name: string; kind: FileKind; folder: string; byId: string; date: string; size: string };
+
+/** File count per job folder (left column), and the open job's folders (they add up to its count). */
+export const fileFolders = {
+  jobs: [
+    { projectId: "p2417", files: 38 },
+    { projectId: "p2422", files: 52 },
+    { projectId: "p2409", files: 61 },
+    { projectId: "p2425", files: 24 },
+    { projectId: "p2431", files: 11 },
+  ],
+  company: 17,
+  open: "p2417",
+  folders: [
+    { name: "Plans", files: 6 },
+    { name: "Photos", files: 24 },
+    { name: "Permits", files: 3 },
+    { name: "Change Orders", files: 2 },
+    { name: "Safety", files: 3 },
+  ],
+};
+
+/** Hwy 9's newest files (the field note's photos, CO-02, the lane-closure JSA, the plan set …). */
+export const jobFiles: JobFile[] = [
+  { id: "f-1", name: "IMG_4471.jpg", kind: "image", folder: "Photos", byId: "c01", date: "Oct 9, 2026", size: "3.1 MB" },
+  { id: "f-2", name: "IMG_4468.jpg", kind: "image", folder: "Photos", byId: "c01", date: "Oct 9, 2026", size: "2.9 MB" },
+  { id: "f-3", name: "JSA - Lane closure, Oct 8.pdf", kind: "pdf", folder: "Safety", byId: "c01", date: "Oct 8, 2026", size: "248 KB" },
+  { id: "f-4", name: "CO-02 Dewatering pump rental.pdf", kind: "pdf", folder: "Change Orders", byId: "c15", date: "Oct 6, 2026", size: "186 KB" },
+  { id: "f-5", name: "Hwy 9 Culvert - Plan Set Rev C.pdf", kind: "pdf", folder: "Plans", byId: "c15", date: "Sep 21, 2026", size: "18.6 MB" },
+  { id: "f-6", name: "Outlet apron detail.pdf", kind: "pdf", folder: "Plans", byId: "c15", date: "Sep 14, 2026", size: "2.3 MB" },
+  { id: "f-7", name: "CO-01 Rip-rap at outlet apron.pdf", kind: "pdf", folder: "Change Orders", byId: "c15", date: "Sep 14, 2026", size: "204 KB" },
+  { id: "f-8", name: "Quantities and bid items.xlsx", kind: "sheet", folder: "Plans", byId: "c15", date: "Aug 12, 2026", size: "96 KB" },
+  { id: "f-9", name: "Hollis Co. work-in-ROW permit.pdf", kind: "pdf", folder: "Permits", byId: "c15", date: "Aug 10, 2026", size: "412 KB" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

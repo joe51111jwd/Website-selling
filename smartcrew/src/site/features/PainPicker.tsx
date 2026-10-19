@@ -1,6 +1,6 @@
 // The pain picker (James: "Type in your biggest pain, or select one of the pre-pains… and it'll be
-// like, 'We have a feature for that.'"): six preset chips, one per feature, and a field to type
-// your own. A pick answers "We have a feature for that." with the feature's name and opens its card
+// like, 'We have a feature for that.'"): six preset chips (FEATURES.pain.chips, each pointing at
+// one of the ten features), and a field to type your own. A pick answers "We have a feature for that." with the feature's name and opens its card
 // (and, on desktop, its screen in the app). Typed text is matched in the browser (./match.ts) and
 // never sent or kept; no match answers with Andrew's trial call and the primary button.
 
@@ -41,7 +41,7 @@ export function PainPicker({ answer, onAnswer }: Props) {
       </p>
       <div className="ft-pain-row">
         <div className="ft-chips" role="group" aria-labelledby={qid}>
-          {FEATURES.cards.map((c) => (
+          {C.chips.map((c) => (
             <button
               key={c.id}
               type="button"
@@ -50,7 +50,7 @@ export function PainPicker({ answer, onAnswer }: Props) {
               data-cursor="link"
               onClick={() => onAnswer({ kind: "yes", id: c.id, chip: true })}
             >
-              {c.pain}
+              {c.label}
             </button>
           ))}
         </div>

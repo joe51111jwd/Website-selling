@@ -7,7 +7,7 @@ import "./ProjectDetail.css";
 // (frames v050 / v052), so it is rebuilt here in Gen C: the collapsed sidebar and the
 // Back / Delete / Edit header of the Gen C equipment-detail page, the info grid on a #F5F5F5
 // card with hairline rows, Revenue / Expenses / Profit, the five budget cards and the
-// Labor tab.
+// Labor tab. ProjectPage is the page with any tab open (./CostCodes.tsx opens Cost Codes).
 
 // ── Labor tab rows: hours to date on this job, split across the crew that worked it. ──
 // Totals add up exactly to the project's labor hours (laborMinutes) and OT (otMinutes).
@@ -77,9 +77,15 @@ function BudgetCard({ title, b }: { title: string; b: Bucket }) {
   );
 }
 
-const TABS = ["Labor", "Materials", "Equipment", "Cost Codes", "Change Orders", "Other Expenses", "Documents", "Field Notes"];
+export const PROJECT_TABS = ["Labor", "Materials", "Equipment", "Cost Codes", "Change Orders", "Other Expenses", "Documents", "Field Notes"] as const;
+export type ProjectTab = (typeof PROJECT_TABS)[number];
 
 export default function ProjectDetail() {
+  return <ProjectPage tab="Labor" />;
+}
+
+/** The project page with `tab` open: its table under the tab strip (the Labor table by default). */
+export function ProjectPage({ tab, children }: { tab: ProjectTab; children?: ReactNode }) {
   return (
     <WebShell active="Projects" collapsed contentClassName="scp">
       {/* header */}
@@ -156,10 +162,10 @@ export default function ProjectDetail() {
         <BudgetCard title="Change orders" b={P.changeOrderBucket} />
       </div>
 
-      {/* tabs + labor table */}
+      {/* tabs + the tab's table */}
       <div className="scpd-card">
         <div className="scpd-toolbar">
-          <Segmented items={TABS} value="Labor" />
+          <Segmented items={[...PROJECT_TABS]} value={tab} />
           <Button icon="filter" className="scpd-tbtn">
             Filters
           </Button>
@@ -167,32 +173,40 @@ export default function ProjectDetail() {
             Sort
           </Button>
         </div>
-        <div className="scpd-tr scpd-tr--head">
-          <div>Employee</div>
-          <div>Role</div>
-          <div>Total hours</div>
-          <div>
-            Regular hours <Icon name="sort" size={13} stroke={1.6} />
-          </div>
-          <div>
-            Overtime hours <Icon name="sort" size={13} stroke={1.6} />
-          </div>
-        </div>
-        {laborRows.map((r) => (
-          <div key={r.person.id} className="scpd-tr">
-            <div className="scpd-emp">
-              <span className="scpd-av">{r.person.name[0]}</span>
-              <span className="sc-trunc">{r.person.name}</span>
-            </div>
-            <div>
-              <span className="scpd-role">{r.person.role}</span>
-            </div>
-            <div>{hm(r.total)}</div>
-            <div>{hm(r.regular)}</div>
-            <div>{hm(r.ot)}</div>
-          </div>
-        ))}
+        {children ?? <LaborTable />}
       </div>
     </WebShell>
+  );
+}
+
+function LaborTable() {
+  return (
+    <>
+      <div className="scpd-tr scpd-tr--head">
+        <div>Employee</div>
+        <div>Role</div>
+        <div>Total hours</div>
+        <div>
+          Regular hours <Icon name="sort" size={13} stroke={1.6} />
+        </div>
+        <div>
+          Overtime hours <Icon name="sort" size={13} stroke={1.6} />
+        </div>
+      </div>
+      {laborRows.map((r) => (
+        <div key={r.person.id} className="scpd-tr">
+          <div className="scpd-emp">
+            <span className="scpd-av">{r.person.name[0]}</span>
+            <span className="sc-trunc">{r.person.name}</span>
+          </div>
+          <div>
+            <span className="scpd-role">{r.person.role}</span>
+          </div>
+          <div>{hm(r.total)}</div>
+          <div>{hm(r.regular)}</div>
+          <div>{hm(r.ot)}</div>
+        </div>
+      ))}
+    </>
   );
 }

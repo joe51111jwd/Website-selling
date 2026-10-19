@@ -1,11 +1,11 @@
-// The section's map of the app: the six features (src/content/features.ts) with their tools and
+// The section's map of the app: the ten features (src/content/features.ts) with their tools and
 // screens, the office web app's sidebar (every recreated web screen, src/screens/registry.ts),
 // and on each screen its crop, the crew phone beside it, a few labelled hotspots and the in-screen
 // links that make it click like the real app.
 //
 // Boxes are native CSS px of the recreated screens (web 1440 × 900), measured from their DOM
-// (scratchpad features/scripts/measure.cjs). A hotspot's name sits just above its box (or below it,
-// `place`), so it never covers the thing it names.
+// (scratchpad features-r2/scripts/measure.cjs). A hotspot's name sits just above its box (or below
+// it, `place`), so it never covers the thing it names.
 
 import type { IconName } from "../../screens/kit/Icon";
 import { FEATURES, type FeatureId } from "../../content/features";
@@ -13,9 +13,13 @@ import { CATEGORIES, type Category, type Tool } from "../specsheet/data";
 import shotTime from "./shots/time.webp";
 import shotCosting from "./shots/costing.webp";
 import shotEquipment from "./shots/equipment.webp";
+import shotDaily from "./shots/daily.webp";
 import shotMaterials from "./shots/materials.webp";
+import shotScheduling from "./shots/scheduling.webp";
 import shotSales from "./shots/sales.webp";
-import shotCrew from "./shots/crew.webp";
+import shotComms from "./shots/comms.webp";
+import shotSafety from "./shots/safety.webp";
+import shotFiles from "./shots/files.webp";
 
 export type Box = [x: number, y: number, w: number, h: number];
 
@@ -28,6 +32,8 @@ export type ScreenDef = {
   icon: IconName;
   /** a page inside another (shown indented under it in the sidebar) */
   under?: string;
+  /** a page reached only from inside another (a tab of it): not listed, it lights up `nav` */
+  nav?: string;
   /** native px cut from the left: the screen's own sidebar (ours replaces it) */
   crop: number;
   /** the crew's phone beside the window (a phone screen id) */
@@ -65,23 +71,32 @@ function spots(raw: RawSpot[]): Spot[] {
   });
 }
 
+const SHOT = { w: 1080, h: 705 };
+
+/** Each feature's icon, the screen its card opens, its tools of the 38 (each in exactly one) and its still. */
 const META: Record<FeatureId, { icon: IconName; screen: string; tools: string[]; shot: Feature["shot"] }> = {
-  time: { icon: "clock", screen: "web-dashboard", tools: ["T1", "T2", "T3", "T4", "T10", "T2c", "T5", "M4", "T11", "T7"], shot: { src: shotTime, w: 1080, h: 705 } },
-  costing: { icon: "dollarCircle", screen: "web-project-detail", tools: ["M1", "M2", "M5", "M3", "M7", "M6"], shot: { src: shotCosting, w: 960, h: 627 } },
-  equipment: { icon: "equipment", screen: "web-equipment", tools: ["E4", "E3", "E2", "E1", "E5", "E6", "E7"], shot: { src: shotEquipment, w: 1080, h: 705 } },
-  materials: { icon: "materials", screen: "web-materials", tools: ["H3", "H2", "H1", "H5", "H4"], shot: { src: shotMaterials, w: 1080, h: 705 } },
-  sales: { icon: "pipeline", screen: "web-pipeline", tools: ["G1", "G2", "G3"], shot: { src: shotSales, w: 1080, h: 705 } },
-  crew: { icon: "scheduling", screen: "web-scheduling", tools: ["S1", "C3", "C2", "C1", "T6", "T8", "T9"], shot: { src: shotCrew, w: 1080, h: 705 } },
+  time: { icon: "clock", screen: "web-dashboard", tools: ["T2", "T1", "T10", "T5", "M4", "T3", "T11", "T2c", "T7"], shot: { src: shotTime, ...SHOT } },
+  costing: { icon: "dollarCircle", screen: "web-project-costcodes", tools: ["M1", "M2", "M3", "M5", "M7"], shot: { src: shotCosting, ...SHOT } },
+  equipment: { icon: "equipment", screen: "web-service-queue", tools: ["E2", "E3", "E4", "E1", "T4"], shot: { src: shotEquipment, ...SHOT } },
+  daily: { icon: "clipboard", screen: "web-daily-reports", tools: ["C1", "M6"], shot: { src: shotDaily, ...SHOT } },
+  materials: { icon: "materials", screen: "web-materials", tools: ["H3", "H2", "H1", "H5", "H4"], shot: { src: shotMaterials, ...SHOT } },
+  scheduling: { icon: "scheduling", screen: "web-scheduling", tools: ["S1", "T6", "T9"], shot: { src: shotScheduling, ...SHOT } },
+  sales: { icon: "pipeline", screen: "web-pipeline", tools: ["G1", "G2", "G3"], shot: { src: shotSales, ...SHOT } },
+  comms: { icon: "messaging", screen: "web-messaging", tools: ["C3", "T8"], shot: { src: shotComms, ...SHOT } },
+  safety: { icon: "hardHat", screen: "web-safety", tools: ["E7", "E5", "E6"], shot: { src: shotSafety, ...SHOT } },
+  files: { icon: "docs", screen: "web-files", tools: ["C2"], shot: { src: shotFiles, ...SHOT } },
 };
 
 export const FEATURE_LIST: Feature[] = FEATURES.cards.map((c) => ({ ...c, ...META[c.id] }));
 export const featureById = (id: FeatureId) => FEATURE_LIST.find((f) => f.id === id)!;
 
-/** The office app's sidebar, top to bottom: every recreated web screen. */
+const S = FEATURES.screens;
+
+/** The office app's sidebar, top to bottom, in the cards' order: every recreated web screen. */
 export const SCREENS: ScreenDef[] = [
   {
     id: "web-dashboard",
-    name: FEATURES.screens["web-dashboard"],
+    name: S["web-dashboard"],
     feature: "time",
     icon: "home",
     crop: 295,
@@ -95,7 +110,7 @@ export const SCREENS: ScreenDef[] = [
   },
   {
     id: "web-timecards",
-    name: FEATURES.screens["web-timecards"],
+    name: S["web-timecards"],
     feature: "time",
     icon: "clock",
     crop: 295,
@@ -109,16 +124,17 @@ export const SCREENS: ScreenDef[] = [
   },
   {
     id: "web-projects",
-    name: FEATURES.screens["web-projects"],
+    name: S["web-projects"],
     feature: "costing",
     icon: "projects",
     crop: 295,
     spots: spots([["M7", [666, 487, 303, 44]]]),
-    links: [{ to: "web-project-detail", box: [679, 760, 278, 104] }],
+    links: [{ to: "web-project-costcodes", box: [679, 760, 278, 104] }],
   },
   {
-    id: "web-project-detail",
-    name: FEATURES.screens["web-project-detail"],
+    // Andrew: "click the 'Cost Code' tab on the project page … That is the shot people will want to see."
+    id: "web-project-costcodes",
+    name: S["web-project-costcodes"],
     feature: "costing",
     icon: "dollarCircle",
     under: "web-projects",
@@ -126,13 +142,34 @@ export const SCREENS: ScreenDef[] = [
     spots: spots([
       ["M1", [560, 385, 199, 66]],
       ["M2", [1155, 467, 242, 138]],
+      ["bidVsActual", [1110, 686, 284, 508]],
+    ]),
+    links: [
+      { to: "web-projects", box: [138, 110, 74, 36] },
+      { to: "web-project-detail", box: [157, 640, 57, 28] },
+    ],
+  },
+  {
+    // the same page on its Labor tab (the Cost Codes tab goes back)
+    id: "web-project-detail",
+    name: S["web-project-detail"],
+    feature: "costing",
+    icon: "dollarCircle",
+    nav: "web-project-costcodes",
+    crop: 95,
+    spots: spots([
+      ["M1", [560, 385, 199, 66]],
+      ["M2", [1155, 467, 242, 138]],
       ["M3", [824, 740, 94, 30]],
     ]),
-    links: [{ to: "web-projects", box: [138, 110, 74, 36] }],
+    links: [
+      { to: "web-projects", box: [138, 110, 74, 36] },
+      { to: "web-project-costcodes", box: [384, 640, 92, 28] },
+    ],
   },
   {
     id: "web-equipment",
-    name: FEATURES.screens["web-equipment"],
+    name: S["web-equipment"],
     feature: "equipment",
     icon: "equipment",
     crop: 295,
@@ -141,11 +178,16 @@ export const SCREENS: ScreenDef[] = [
       ["E4", [348, 343, 130, 54]],
       ["E1", [990, 290, 270, 34]],
     ]),
-    links: [{ to: "web-service-queue", box: [624, 180, 135, 28] }],
+    links: [
+      { to: "web-service-queue", box: [624, 180, 135, 28] },
+      { to: "web-machine", box: [759, 180, 118, 28] },
+      { to: "web-machine", box: [339, 959, 1057, 62] },
+    ],
   },
   {
+    // Andrew: "Lead with this screenshot on equipment page."
     id: "web-service-queue",
-    name: FEATURES.screens["web-service-queue"],
+    name: S["web-service-queue"],
     feature: "equipment",
     icon: "wrench",
     under: "web-equipment",
@@ -155,11 +197,42 @@ export const SCREENS: ScreenDef[] = [
       ["E3", [348, 290, 250, 37]],
       ["E2", [1203, 295, 162, 26]],
     ]),
-    links: [{ to: "web-equipment", box: [357, 180, 85, 28] }],
+    links: [
+      { to: "web-equipment", box: [357, 180, 85, 28] },
+      { to: "web-machine", box: [758, 180, 118, 28] },
+      { to: "web-machine", box: [339, 277, 1057, 64] },
+    ],
+  },
+  {
+    // Andrew: "have a link to this page so people can see the service record logs"
+    id: "web-machine",
+    name: S["web-machine"],
+    feature: "equipment",
+    icon: "history",
+    under: "web-equipment",
+    crop: 95,
+    spots: spots([
+      ["E1", [579, 170, 376, 152]],
+      ["E2", [1004, 369, 376, 97]],
+      ["serviceLog", [139, 605, 1257, 324], "below"],
+    ]),
+    links: [{ to: "web-service-queue", box: [138, 110, 74, 36] }],
+  },
+  {
+    id: "web-daily-reports",
+    name: S["web-daily-reports"],
+    feature: "daily",
+    icon: "clipboard",
+    crop: 295,
+    spots: spots([
+      ["production", [719, 312, 322, 104]],
+      ["C1", [719, 456, 657, 77]],
+    ]),
+    links: [],
   },
   {
     id: "web-materials",
-    name: FEATURES.screens["web-materials"],
+    name: S["web-materials"],
     feature: "materials",
     icon: "materials",
     crop: 295,
@@ -172,8 +245,17 @@ export const SCREENS: ScreenDef[] = [
     links: [],
   },
   {
+    id: "web-scheduling",
+    name: S["web-scheduling"],
+    feature: "scheduling",
+    icon: "scheduling",
+    crop: 295,
+    spots: spots([["S1", [346, 437, 137, 52]]]),
+    links: [],
+  },
+  {
     id: "web-pipeline",
-    name: FEATURES.screens["web-pipeline"],
+    name: S["web-pipeline"],
     feature: "sales",
     icon: "pipeline",
     crop: 295,
@@ -184,23 +266,39 @@ export const SCREENS: ScreenDef[] = [
     links: [],
   },
   {
-    id: "web-scheduling",
-    name: FEATURES.screens["web-scheduling"],
-    feature: "crew",
-    icon: "scheduling",
-    crop: 295,
-    spots: spots([["S1", [346, 437, 137, 52]]]),
-    links: [],
-  },
-  {
     id: "web-messaging",
-    name: FEATURES.screens["web-messaging"],
-    feature: "crew",
+    name: S["web-messaging"],
+    feature: "comms",
     icon: "messaging",
     crop: 295,
     spots: spots([
       ["C3", [359, 266, 1017, 42]],
-      ["C2", [359, 357, 1017, 236]],
+      ["dispatch", [338, 628, 1059, 118]],
+    ]),
+    links: [],
+  },
+  {
+    id: "web-safety",
+    name: S["web-safety"],
+    feature: "safety",
+    icon: "hardHat",
+    crop: 295,
+    phone: "phone-reports",
+    spots: spots([
+      ["E7", [339, 376, 1057, 224]],
+      ["E5", [874, 163, 256, 86]],
+    ]),
+    links: [],
+  },
+  {
+    id: "web-files",
+    name: S["web-files"],
+    feature: "files",
+    icon: "docs",
+    crop: 295,
+    spots: spots([
+      ["jobFiles", [640, 201, 757, 100]],
+      ["C2", [641, 360, 755, 450]],
     ]),
     links: [],
   },
@@ -208,11 +306,14 @@ export const SCREENS: ScreenDef[] = [
 
 export const screenDef = (id: string) => SCREENS.find((s) => s.id === id)!;
 
+/** The sidebar's rows: every screen but the ones reached only from inside another. */
+export const NAV_SCREENS = SCREENS.filter((s) => !s.nav);
+
 /**
- * The 38 tools grouped by the six features (the "See all 38 tools" list and its walkthrough), in
+ * The 38 tools grouped by the ten features (the "See all 38 tools" list and its walkthrough), in
  * the cards' order, each tool as the spec sheet has it (its screen, ring and one line).
  */
-export const FEATURE_CATEGORIES: Category[] = FEATURE_LIST.map((f) => ({ id: f.id, name: f.name, outcome: f.line, tools: f.tools.map(tool) }));
+export const FEATURE_CATEGORIES: Category[] = FEATURE_LIST.map((f) => ({ id: f.id, name: f.name, outcome: f.headline, tools: f.tools.map(tool) }));
 
 if (import.meta.env.DEV) {
   const all = CATEGORIES.flatMap((c) => c.tools.map((t) => t.id));

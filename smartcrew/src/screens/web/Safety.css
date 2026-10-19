@@ -1,0 +1,276 @@
+/* W15 Safety — scoped under .sc, prefix scsf- (the toolbar and table follow Materials / Equipment) */
+
+.sc .scsf-head {
+  height: 38px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sc .scsf-title {
+  margin-right: auto;
+  font-size: 23.4px;
+  line-height: 30px;
+  font-weight: 600;
+  letter-spacing: -0.024em;
+  color: #0a0a0a;
+}
+.sc .scsf-add {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 15px 0 13px;
+  border-radius: 8px;
+  background: #000;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.sc .scsf-add .sc-icon {
+  color: #fff;
+}
+
+/* the totals */
+.sc .scsf-kpis {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.sc .scsf-kpi {
+  height: 86px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-left: 16px;
+  border-radius: 12px;
+  background: var(--sc-surface);
+  min-width: 0;
+}
+.sc .scsf-kpi-ic {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff;
+  color: #141414;
+}
+.sc .scsf-kpi-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sc .scsf-kpi-label {
+  font-size: 12px;
+  line-height: 15px;
+  color: #646464;
+  white-space: nowrap;
+}
+.sc .scsf-kpi-value {
+  margin-top: 3px;
+  font-size: 19px;
+  line-height: 23px;
+  font-weight: 600;
+  color: #000;
+}
+.sc .scsf-kpi-sub {
+  font-size: 11.5px;
+  line-height: 14px;
+  color: #8a8a8a;
+  white-space: nowrap;
+}
+
+/* the list */
+.sc .scsf-card {
+  margin-top: 16px;
+  border: 1px solid var(--sc-line);
+  border-radius: 12px 12px 0 0;
+  border-bottom: 0;
+  background: #fff;
+  overflow: hidden;
+}
+.sc .scsf-toolbar {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+.sc .scsf-tabs {
+  height: 40px;
+  margin-right: auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--sc-surface);
+}
+.sc .scsf-tabs > span {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #3d3d3d;
+  white-space: nowrap;
+}
+.sc .scsf-tabs > span.is-active {
+  background: #fff;
+  color: #000;
+  font-weight: 600;
+}
+.sc .scsf-search {
+  width: 230px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding-left: 10px;
+  border-radius: 8px;
+  background: var(--sc-surface);
+  font-size: 13.5px;
+  color: #9b9b9b;
+}
+.sc .scsf-search .sc-icon,
+.sc .scsf-btn .sc-icon {
+  color: #676767;
+}
+.sc .scsf-btn {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 13px 0 11px;
+  border-radius: 8px;
+  background: var(--sc-surface);
+  font-size: 12px;
+  font-weight: 600;
+  color: #000;
+}
+.sc .scsf-tr {
+  height: 56px;
+  display: grid;
+  grid-template-columns: 0.95fr 2fr 1.15fr 1.1fr 0.75fr 0.8fr;
+  align-items: center;
+  padding: 0 10px;
+  border-bottom: 1px solid #e9e9e9;
+  font-size: 13.5px;
+  line-height: 17px;
+  color: #000;
+}
+.sc .scsf-tr > div {
+  min-width: 0;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+.sc .scsf-tr--head {
+  height: 46px;
+  background: var(--sc-surface);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #404040;
+}
+.sc .scsf-kind {
+  height: 25px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px 0 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.sc .scsf-kind--jsa {
+  background: var(--sc-blue-bg);
+  color: var(--sc-blue);
+}
+.sc .scsf-kind--talk {
+  background: var(--sc-purple-bg);
+  color: var(--sc-purple-ink);
+}
+.sc .scsf-kind--inc {
+  background: var(--sc-orange-bg);
+  color: #d7780c;
+}
+.sc .scsf-what {
+  display: flex;
+  flex-direction: column;
+}
+.sc .scsf-job {
+  margin-top: 3px;
+  font-size: 11.8px;
+  line-height: 14px;
+  color: #6b6b6b;
+}
+.sc .scsf-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sc .scsf-who .sc-avatar {
+  font-weight: 600;
+  color: #111;
+  background: var(--sc-surface);
+}
+.sc .scsf-date {
+  display: inline-flex;
+  align-items: center;
+  height: 27px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: var(--sc-surface);
+  box-shadow: inset 0 0 0 1px #e3e3e3;
+  font-size: 12px;
+  font-weight: 600;
+  color: #000;
+}
+.sc .scsf-sign {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #1c9b58;
+}
+.sc .scsf-sign.is-short {
+  color: var(--sc-orange-ink);
+}
+.sc .scsf-sev {
+  font-size: 12.5px;
+  color: #555;
+}
+.sc .scsf-st {
+  height: 25px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.sc .scsf-st i {
+  width: 6.5px;
+  height: 6.5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.sc .scsf-st--Complete {
+  background: var(--sc-green-bg);
+  color: #1fa860;
+}
+.sc .scsf-st--Open {
+  background: var(--sc-orange-bg);
+  color: var(--sc-orange-ink);
+}
+.sc .scsf-st--Closed {
+  background: #f0f0f0;
+  color: #6a6a6a;
+}

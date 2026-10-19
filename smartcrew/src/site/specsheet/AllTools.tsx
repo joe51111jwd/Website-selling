@@ -150,39 +150,41 @@ function Grid({ titleId, onClose, onWalk }: { titleId: string; onClose: () => vo
           </button>
         </div>
         <div className="spal-body" data-lenis-prevent>
-          {CATEGORIES.map((c) => (
-            <section key={c.id} className="spal-group" aria-labelledby={`${titleId}-${c.id}`}>
-              <h3 id={`${titleId}-${c.id}`} className="spal-h">
-                <span>{c.name}</span>
-                <span className="spal-n">{c.tools.length}</span>
-              </h3>
-              <ul className="spal-list">
-                {c.tools.map((t) => {
-                  const name = (
-                    <>
-                      <span className="spal-name">
-                        {t.label}
-                        {t.confirm && <Flag />}
-                      </span>
-                    </>
-                  );
-                  return (
-                    <li key={t.id}>
-                      <button type="button" className="spal-tool is-link" data-tool={t.id} title={t.line} onClick={() => onWalk(stepOf(t.id))}>
-                        {name}
-                        <span className="spal-see" aria-hidden="true">
-                          {SPEC.view}
-                          <svg viewBox="0 0 16 16" fill="none">
-                            <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
+          <div className="spal-cols">
+            {CATEGORIES.map((c) => (
+              <section key={c.id} className="spal-group" aria-labelledby={`${titleId}-${c.id}`}>
+                <h3 id={`${titleId}-${c.id}`} className="spal-h">
+                  <span>{c.name}</span>
+                  <span className="spal-n">{c.tools.length}</span>
+                </h3>
+                <ul className="spal-list">
+                  {c.tools.map((t) => {
+                    const name = (
+                      <>
+                        <span className="spal-name">
+                          {t.label}
+                          {t.confirm && <Flag />}
                         </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          ))}
+                      </>
+                    );
+                    return (
+                      <li key={t.id}>
+                        <button type="button" className="spal-tool is-link" data-tool={t.id} title={t.line} onClick={() => onWalk(stepOf(t.id))}>
+                          {name}
+                          <span className="spal-see" aria-hidden="true">
+                            {SPEC.view}
+                            <svg viewBox="0 0 16 16" fill="none">
+                              <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ))}
+          </div>
         </div>
     </>
   );

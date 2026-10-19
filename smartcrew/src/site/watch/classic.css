@@ -1,0 +1,143 @@
+/* Watch it work on a dark ground, in the classic look only (Andrew via James, Oct 19: "invert Watch
+   it work to a dark background"; src/lib/look.ts html.look-classic). The same tabs, list and devices
+   (./watch.css); this file only sets the bold look's dark tokens (src/styles/bold.css) on the section
+   itself, not on html, and fixes what doesn't follow the tokens: the white washes (tab wells, hovers),
+   the hairlines drawn in ink, the button's ink label, and the device frames' black edges, which
+   need a rim and a little light behind them to stand off the ground. The app's screens stay light. */
+
+html.look-classic .wt {
+  --ground: #0f0d0b;
+  --ground-2: #16130f;
+  --paper: #1c1814;
+  --ink: #f6f0e8;
+  --ink-2: #cdc1b4;
+  --ink-3: #a29486;
+  --line: #2f2924;
+  --orange-ink: #ff9a3d;
+  --shadow-1: inset 0 1px 0 rgb(255 255 255 / 4%), 0 12px 32px rgb(0 0 0 / 45%);
+  --shadow-2: 0 40px 90px rgb(0 0 0 / 60%);
+  /* local: a raised surface (the open tab, the highlighted item) and the hairlines on the dark */
+  --wt-raised: #241f19;
+  --wt-line: rgb(246 240 232 / 12%);
+  --wt-wash: rgb(246 240 232 / 6%);
+  color-scheme: dark;
+  background: var(--ground);
+  color: var(--ink);
+}
+
+/* a band of its own: as much room over the headline as under the button */
+html.look-classic .wt .scene-body {
+  padding-top: clamp(56px, 10svh, 120px);
+}
+
+@media (max-width: 760px) {
+  html.look-classic .wt .scene-body {
+    padding-top: 56px;
+  }
+}
+
+html.look-classic .wt ::selection {
+  background: rgb(255 122 1 / 35%);
+  color: #fff;
+}
+
+/* ── the tab bar ────────────────────────────────────────────────────────── */
+
+html.look-classic .wt-tablist {
+  border-color: var(--wt-line);
+  background: rgb(246 240 232 / 4%);
+}
+
+html.look-classic .wt-tab[aria-selected="true"] {
+  background: var(--wt-raised);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 7%),
+    inset 0 0 0 1px rgb(246 240 232 / 9%),
+    0 10px 22px -12px rgb(0 0 0 / 70%);
+}
+
+html.look-classic .wt-tab-ic {
+  background: var(--wt-wash);
+}
+
+/* the open tab's glyph: orange in a well darker than the tab, as it is in ink on the light page */
+html.look-classic .wt-tab[aria-selected="true"] .wt-tab-ic {
+  background: var(--ground);
+  color: var(--orange-2);
+}
+
+/* ── the list ───────────────────────────────────────────────────────────── */
+
+html.look-classic .wt-item[aria-current] {
+  background: var(--wt-raised);
+  border-color: var(--wt-line);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 5%),
+    0 12px 28px -16px rgb(0 0 0 / 70%);
+}
+
+html.look-classic .wt-ic {
+  background: var(--wt-wash);
+}
+
+@media (hover: hover) {
+  html.look-classic .wt-tab:not([aria-selected="true"]):hover,
+  html.look-classic .wt-item:not([aria-current]):hover {
+    background: var(--wt-wash);
+  }
+}
+
+/* ── the button: its label stays ink (it must not follow --ink to white); its own keycap shadows,
+   hover and press are cta.css's, unchanged ── */
+
+html.look-classic .wt .cta {
+  color: #17130f;
+}
+
+/* ── the devices: the app's screens keep their light palette; the frames get a rim ── */
+
+html.look-classic .wt :is(.lf, .pf) {
+  --ground: #fbf8f4;
+  --ground-2: #f4eee7;
+  --paper: #ffffff;
+  --ink: #17130f;
+  --ink-2: #4a4038;
+  --ink-3: #74665a;
+  --line: #e8dfd5;
+  color-scheme: light;
+  color: var(--ink);
+}
+
+html.look-classic .wt .lf-lid {
+  box-shadow:
+    0 0 0 calc(var(--l) * 0.25) #5b5955,
+    0 0 0 calc(var(--l) * 0.45) rgb(255 255 255 / 5%),
+    inset 0 0 0 calc(var(--l) * 0.15) rgb(255 255 255 / 10%);
+}
+
+html.look-classic .wt .lf-base {
+  background: linear-gradient(to bottom, #77767b 0%, #3f3f43 34%, #29292c 100%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%);
+}
+
+/* a soft light behind the devices (one static gradient, no blur filter) */
+html.look-classic .wt-devs {
+  isolation: isolate;
+}
+
+html.look-classic .wt-devs::before {
+  content: "";
+  position: absolute;
+  inset: -12% -8% -14%;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgb(246 240 232 / 8%), rgb(246 240 232 / 0%));
+  pointer-events: none;
+}
+
+@media (prefers-contrast: more), (forced-colors: active) {
+  html.look-classic .wt {
+    --ink-2: #f6f0e8;
+    --ink-3: #e4dad0;
+    --wt-line: rgb(246 240 232 / 40%);
+  }
+}

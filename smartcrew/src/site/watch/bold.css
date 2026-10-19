@@ -1,8 +1,3 @@
-/* Watch it work, in the bold look (src/styles/bold.css): the crew app's taps are outlined tags on the
-   night ground, not white pills (nothing but the orange button reads as a filled, bright block). */
-
-html.look-bold .ww-chip {
-  background: rgb(255 255 255 / 7%);
-  color: var(--ink);
-  box-shadow: inset 0 0 0 1px var(--bold-line-2);
-}
+/* Watch it work, in the bold look (src/styles/bold.css). Round 5's tabs (./watch.css) have no bold
+   rules of their own yet: they take bold's tokens (ground, ink, paper) as they are. The round-4
+   rule here (the crew app's chips as outlined tags) went with the chips. */

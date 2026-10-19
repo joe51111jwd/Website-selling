@@ -1,14 +1,16 @@
 // 3 · "Everything. Built for dirt." (Andrew's round-4 outline: "feature list with cards. Headline.
-// Subhead. Clickable image for each feature."). What SmartCrew does, in one section:
+// Subhead. Clickable image for each feature."; his copy of Oct 19: ten features and the CTA under
+// them). What SmartCrew does, in one section:
 //   - the head: kicker, Andrew's headline and the sub from his mock, and "See all 38 tools" (the
 //     list of all 38 and the flat walkthrough through them, ../specsheet/AllTools.tsx + Walk.tsx);
 //   - the pain picker (./PainPicker.tsx): pick or type a headache, "We have a feature for that.",
 //     and its card opens;
-//   - desktop: the six cards (./Cards.tsx) beside the office web app as a big clickable prototype
+//   - desktop: the ten cards (./Cards.tsx) beside the office web app as a big clickable prototype
 //     (./AppWindow.tsx, its own chunk): opening a card switches the app to that feature's screen,
 //     and opening a screen from the app's sidebar opens its feature's card;
 //   - phones: the cards as an accordion, the open one with a still of its screen that opens the
-//     full-screen walkthrough at that feature. The big app never loads on phones.
+//     full-screen walkthrough at that feature. The big app never loads on phones;
+//   - the close: Andrew's "Ready to run your entire operation in one place?" and the primary button.
 // One calm entrance as the section arrives (the head, the picker, the cards, the window), then it
 // waits for the visitor: no autoplay, no pinning, nothing holds the page.
 
@@ -22,6 +24,7 @@ import { scrollToY } from "../scroll";
 import { AllTools, GridGlyph } from "../specsheet/AllTools";
 import { WALK_COPY, stepOf } from "../specsheet/Walk";
 import { TOOL_COUNT } from "../specsheet/data";
+import { Cta } from "../ui/Cta";
 import { featureById, screenDef } from "./data";
 import { Cards } from "./Cards";
 import { PainPicker, type Answer } from "./PainPicker";
@@ -136,6 +139,12 @@ export default function Features() {
             <AllButton onClick={() => openAll(null)} />
           </div>
         )}
+
+        <div className="ft-close">
+          <h3 className="ft-close-title">{FEATURES.close.title}</h3>
+          <p className="ft-close-sub">{FEATURES.close.sub}</p>
+          <Cta source="features-close" size="lg" block={phone} className="ft-close-cta" />
+        </div>
       </div>
       <AllTools open={all.open} startAt={all.at} onClose={() => setAll((s) => ({ ...s, open: false }))} variant={phone ? "phone" : "desk"} />
     </Scene>

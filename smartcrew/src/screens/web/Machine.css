@@ -1,0 +1,232 @@
+/* W13 Equipment → one machine (Service Records) — scoped under .sc, prefix scmd-. The header and
+   the tab card reuse the project page's (scpd-), as the Gen C detail pages share them. */
+
+.sc .scmd-av {
+  width: 36px;
+  height: 36px;
+  margin-left: 14px;
+  border-radius: 50%;
+  background: #efefef;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  flex: none;
+}
+.sc .scmd-name {
+  margin: 0 auto 0 11px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sc .scmd-name h1 {
+  font-size: 16.5px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #010101;
+  white-space: nowrap;
+}
+.sc .scmd-name span {
+  font-size: 11.5px;
+  line-height: 14px;
+  color: #6b6b6b;
+  letter-spacing: 0.02em;
+}
+
+/* facts · rates and hours · notes */
+.sc .scmd-top {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+.sc .scmd-card {
+  background: var(--sc-surface);
+  border-radius: 16px;
+  padding: 6px 17px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.sc .scmd-row {
+  height: 38px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e6e6e6;
+  font-size: 13.75px;
+  line-height: 17px;
+  min-width: 0;
+}
+.sc .scmd-row:last-child {
+  border-bottom: 0;
+}
+.sc .scmd-row .sc-icon {
+  color: #646464;
+  margin-right: 9px;
+  flex: none;
+}
+.sc .scmd-label {
+  width: 138px;
+  flex: none;
+  color: #676767;
+  white-space: nowrap;
+}
+.sc .scmd-value {
+  min-width: 0;
+  font-weight: 600;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+.sc .scmd-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 23px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--sc-orange-bg);
+  color: var(--sc-orange-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.sc .scmd-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.sc .scmd-notes {
+  padding: 14px 17px;
+}
+.sc .scmd-notes-h {
+  font-size: 13.75px;
+  font-weight: 600;
+  color: #111;
+}
+.sc .scmd-notes p {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #e9e9e9;
+  font-size: 13.5px;
+  line-height: 20px;
+  color: #262626;
+}
+
+.sc .scmd-open {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #e9e9e9;
+}
+.sc .scmd-open-h {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6b6b;
+}
+.sc .scmd-open-t {
+  font-size: 13.75px;
+  font-weight: 600;
+  color: #050505;
+}
+.sc .scmd-open-s {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.sc .scmd-open .scmd-open-st {
+  width: auto;
+  padding-right: 12px;
+}
+.sc .scmd-open-by {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.75px;
+  color: #6b6b6b;
+}
+
+/* the records table */
+.sc .scmd-log {
+  border-radius: 12px 12px 0 0;
+}
+.sc .scmd-add {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 15px 0 13px;
+  border-radius: 8px;
+  background: #000;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.sc .scmd-add .sc-icon {
+  color: #fff;
+}
+.sc .scmd-tr {
+  height: 54px;
+  display: grid;
+  grid-template-columns: 0.95fr 1.9fr 1fr 0.95fr 1fr 0.9fr 1.45fr 0.8fr;
+  align-items: center;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--sc-line);
+  font-size: 13.75px;
+  line-height: 17px;
+  color: #0a0a0a;
+  font-variant-numeric: tabular-nums;
+}
+.sc .scmd-tr > div {
+  min-width: 0;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+.sc .scmd-tr--head {
+  height: 44px;
+  background: #f6f6f6;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #3d3d3d;
+}
+.sc .scmd-type {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.sc .scmd-type--Repair {
+  background: var(--sc-red-bg);
+  color: #e3284f;
+}
+.sc .scmd-type--Maintenance {
+  background: var(--sc-blue-bg);
+  color: var(--sc-blue);
+}
+.sc .scmd-acts {
+  display: flex;
+  align-items: center;
+}
+.sc .scmd-acts .sce-act {
+  width: 29px;
+  height: 32px;
+}

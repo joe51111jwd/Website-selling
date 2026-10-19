@@ -1,13 +1,15 @@
-/* 3 · "Everything. Built for dirt." (Features.tsx). The head, the pain picker, then the six cards
-   beside the office web app (desktop) or as an accordion (phones). The app's chrome speaks the
-   app's own voice (Inter, as the recreated screens do); everything else is the page's. Motion:
-   one entrance as the section arrives, then hover / focus / state changes only, opacity and
+/* 3 · "Everything. Built for dirt." (Features.tsx). The head, the pain picker, then the ten cards
+   beside the office web app (desktop) or as an accordion (phones), then the close. The app's
+   chrome speaks the app's own voice (Inter, as the recreated screens do); everything else is the
+   page's. Andrew, Oct 19: "Increase font size of this entire section": the section's own type is
+   set about 15-20% over the page's (the head, the picker, the cards, the close). Motion: one
+   entrance as the section arrives, then hover / focus / state changes only, opacity and
    transform (the desktop accordion's height is the one layout transition, in the cards column).
    Prefix: ft-. */
 
 .ft {
   --ft-h: clamp(470px, calc(100svh - var(--header-h) - 24px), 860px);
-  --ft-col: clamp(316px, 27vw, 372px);
+  --ft-col: clamp(336px, 28vw, 400px);
   --ft-gap: clamp(16px, 1.5vw, 24px);
   --ft-app-font: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
   padding-block: clamp(56px, 8svh, 112px) clamp(56px, 8svh, 112px);
@@ -85,7 +87,7 @@
   font-family: var(--font-display);
   font-stretch: calc(var(--wdth-label) * 1%);
   font-weight: 650;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.2;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -95,12 +97,14 @@
 
 .ft-title {
   margin-top: 14px;
+  font-size: calc(var(--fs-h2) * 1.15);
   color: var(--ink);
 }
 
 .ft-sub {
-  margin-top: 12px;
+  margin-top: 14px;
   max-width: 34em;
+  font-size: calc(var(--fs-lead) * 1.18);
 }
 
 /* "See all 38 tools": the section's secondary, dark and quiet next to the orange */
@@ -109,13 +113,13 @@
   align-items: center;
   gap: 10px;
   flex: none;
-  min-height: 48px;
-  padding: 0 18px 0 16px;
+  min-height: 54px;
+  padding: 0 20px 0 18px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 13px;
   background: var(--ink);
   color: var(--ground);
-  font: 600 15.5px/1 var(--font-text);
+  font: 600 18px/1 var(--font-text);
   cursor: pointer;
   box-shadow:
     0 1px 0 rgb(255 255 255 / 8%) inset,
@@ -139,14 +143,14 @@
 }
 
 .ft-all-glyph {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   color: var(--orange-2);
 }
 
 .ft-all-arrow {
-  width: 15px;
-  height: 15px;
+  width: 17px;
+  height: 17px;
   transition: transform 0.25s var(--ease-out);
 }
 
@@ -164,7 +168,7 @@
   font-family: var(--font-display);
   font-stretch: calc(var(--wdth-sub) * 1%);
   font-weight: var(--sub-wght);
-  font-size: 19px;
+  font-size: 22px;
   line-height: 1.2;
   letter-spacing: var(--track-sub);
   color: var(--ink);
@@ -174,8 +178,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 9px;
+  margin-top: 14px;
 }
 
 .ft-chips {
@@ -185,13 +189,13 @@
 .ft-chip {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
-  padding: 0 16px;
+  min-height: 46px;
+  padding: 0 18px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--paper);
   color: var(--ink);
-  font: 500 15px/1.15 var(--font-text);
+  font: 500 17.5px/1.15 var(--font-text);
   cursor: pointer;
   transition:
     background-color 0.2s,
@@ -218,10 +222,10 @@
 .ft-type {
   display: flex;
   align-items: center;
-  flex: 0 1 300px;
-  min-width: 220px;
-  min-height: 40px;
-  padding: 0 4px 0 16px;
+  flex: 0 1 340px;
+  min-width: 250px;
+  min-height: 46px;
+  padding: 0 5px 0 18px;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--paper);
@@ -236,12 +240,12 @@
 .ft-type-in {
   flex: 1 1 auto;
   min-width: 0;
-  height: 38px;
+  height: 44px;
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--ink);
-  font: 400 15px/1 var(--font-text);
+  font: 400 17.5px/1 var(--font-text);
   outline: none;
 }
 
@@ -254,8 +258,8 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -266,8 +270,8 @@
 }
 
 .ft-type-go svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 .ft-type-go:disabled {
@@ -280,7 +284,7 @@
 .ft-answer {
   display: flex;
   align-items: center;
-  min-height: 60px;
+  min-height: 66px;
   padding-block: 8px;
 }
 
@@ -292,8 +296,8 @@
 .ft-answer-yes {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 16.5px;
+  gap: 11px;
+  font-size: 19.5px;
   line-height: 1.35;
   color: var(--ink-2);
 }
@@ -302,16 +306,16 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 24px;
-  height: 24px;
+  width: 27px;
+  height: 27px;
   border-radius: 50%;
   background: var(--green);
   color: #fff;
 }
 
 .ft-answer-check svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 .ft-answer-name {
@@ -328,7 +332,7 @@
 
 .ft-answer-no p {
   max-width: 36em;
-  font-size: 16px;
+  font-size: 18.5px;
   line-height: 1.45;
   color: var(--ink-2);
   text-wrap: pretty;
@@ -393,12 +397,13 @@
   font: inherit;
 }
 
+/* closed, a card is its icon and its name */
 .ft-card-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 13px;
   width: 100%;
-  padding: 11px 14px 11px 12px;
+  padding: 7px 15px 7px 8px;
   border: 0;
   border-radius: 14px;
   background: transparent;
@@ -416,12 +421,17 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 34px;
-  height: 34px;
+  width: 35px;
+  height: 35px;
   border-radius: 10px;
   background: var(--ground-2);
   color: var(--ink-2);
   transition: background-color 0.25s, color 0.25s;
+}
+
+.ft-card-icon svg {
+  width: 20px;
+  height: 20px;
 }
 
 .ft-card.is-open .ft-card-icon {
@@ -429,34 +439,22 @@
   color: #fff;
 }
 
-.ft-card-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.ft-card-name {
   flex: 1 1 auto;
   min-width: 0;
-}
-
-.ft-card-name {
   font-family: var(--font-display);
   font-stretch: calc(var(--wdth-sub) * 1%);
   font-weight: var(--sub-wght);
-  font-size: 17.5px;
+  font-size: 20.5px;
   line-height: 1.15;
   letter-spacing: var(--track-sub);
   color: var(--ink);
 }
 
-.ft-card-line {
-  font-size: 13.5px;
-  line-height: 1.35;
-  color: var(--ink-3);
-}
-
 .ft-card-chev {
   flex: none;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   color: var(--ink-3);
   transition: transform 0.3s var(--ease-out), opacity 0.2s;
 }
@@ -471,7 +469,7 @@
 }
 
 .ft-card-panel-in {
-  padding: 0 16px 16px;
+  padding: 2px 18px 18px;
   opacity: 0;
   transition: opacity 0.2s;
 }
@@ -484,9 +482,9 @@
 .ft-card-match {
   display: flex;
   align-items: center;
-  gap: 7px;
-  margin-bottom: 8px;
-  font-size: 13.5px;
+  gap: 8px;
+  margin-bottom: 9px;
+  font-size: 15.5px;
   font-weight: 600;
   line-height: 1.2;
   color: var(--ink-2);
@@ -497,33 +495,34 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: var(--green);
   color: #fff;
 }
 
 .ft-card-match-check svg {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
 }
 
+/* open: Andrew's headline, his line and his bullets */
 .ft-card-sub {
   font-family: var(--font-display);
   font-stretch: calc(var(--wdth-sub) * 1%);
   font-weight: 700;
-  font-size: 19px;
-  line-height: 1.18;
+  font-size: 22.5px;
+  line-height: 1.16;
   letter-spacing: var(--track-sub);
   color: var(--ink);
   text-wrap: balance;
 }
 
 .ft-card-copy {
-  margin-top: 6px;
-  font-size: 14.5px;
-  line-height: 1.48;
+  margin-top: 7px;
+  font-size: 17px;
+  line-height: 1.45;
   color: var(--ink-2);
   text-wrap: pretty;
 }
@@ -532,7 +531,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  margin: 12px 0 0;
+  margin: 13px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -540,40 +539,36 @@
 .ft-ticks li {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  font-size: 14.5px;
-  line-height: 1.35;
+  gap: 9px;
+  font-size: 17px;
+  line-height: 1.32;
   font-weight: 500;
   color: var(--ink);
+  text-wrap: pretty;
 }
 
 .ft-ticks svg {
   flex: none;
-  width: 16px;
-  height: 16px;
-  margin-top: 1px;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
   color: var(--orange);
-}
-
-.ft-card-cta {
-  width: 100%;
-  margin-top: 16px;
 }
 
 /* ── desktop: the cards beside the app ───────────────────────────────── */
 
+/* the body is the window's height, or the cards column's if that is taller (ten cards on a short
+   laptop): the column is as tall as its tallest state (Cards.tsx measures it into --ft-need), so
+   nothing is cut and switching cards never changes the section's height */
 .ft-in.is-desk .ft-body {
   display: grid;
   grid-template-columns: var(--ft-col) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: minmax(var(--ft-h), auto);
   gap: var(--ft-gap);
-  height: var(--ft-h);
 }
 
 .ft-cards--desk {
-  height: 100%;
-  overflow: hidden;
-  overflow: clip;
+  min-height: var(--ft-need, auto);
 }
 
 /* the open card's chevron goes (one is always open) */
@@ -585,59 +580,52 @@
   cursor: default;
 }
 
-/* shorter laptop screens: everything a notch tighter; below 740 px the closed cards keep their
-   name only (the open one its subhead) */
+.ft-cards--desk {
+  gap: 5px;
+}
+
 .ft-cards--desk .ft-card {
   flex: none;
 }
 
-@media (max-height: 840px) {
-  .ft-cards--desk {
-    gap: 5px;
-  }
+/* shorter laptop screens: everything a notch tighter */
+@media (max-height: 880px) {
   .ft-cards--desk .ft-card-btn {
-    padding-block: 7px;
+    padding-block: 5px;
   }
   .ft-cards--desk .ft-card-icon {
-    width: 30px;
-    height: 30px;
+    width: 33px;
+    height: 33px;
     border-radius: 9px;
   }
   .ft-cards--desk .ft-card-icon svg {
-    width: 17px;
-    height: 17px;
+    width: 19px;
+    height: 19px;
   }
   .ft-cards--desk .ft-card-name {
-    font-size: 16.5px;
-  }
-  .ft-cards--desk .ft-card-line {
-    font-size: 13px;
+    font-size: 19.5px;
   }
   .ft-cards--desk .ft-card-panel-in {
-    padding: 2px 14px 12px;
+    padding: 2px 16px 14px;
   }
   .ft-cards--desk .ft-card-match {
-    margin-bottom: 5px;
-    font-size: 13px;
+    margin-bottom: 6px;
+    font-size: 15px;
   }
   .ft-cards--desk .ft-card-sub {
-    font-size: 17.5px;
+    font-size: 21px;
   }
   .ft-cards--desk .ft-card-copy {
-    margin-top: 4px;
-    font-size: 13.5px;
-    line-height: 1.45;
+    margin-top: 5px;
+    font-size: 16px;
+    line-height: 1.42;
   }
   .ft-cards--desk .ft-ticks {
-    margin-top: 8px;
-    gap: 2px;
+    margin-top: 10px;
+    gap: 3px;
   }
   .ft-cards--desk .ft-ticks li {
-    font-size: 13.5px;
-  }
-  .ft-cards--desk .ft-card-cta {
-    --cta-h: 46px;
-    margin-top: 10px;
+    font-size: 16px;
   }
 }
 
@@ -645,16 +633,20 @@
   .ft-cards--desk {
     gap: 4px;
   }
-  .ft-cards--desk .ft-card-line {
-    display: none;
-  }
   .ft-cards--desk .ft-card-btn {
-    padding-block: 4px;
+    padding-block: 3px;
   }
   .ft-cards--desk .ft-card-icon {
-    width: 28px;
-    height: 28px;
+    width: 31px;
+    height: 31px;
     border-radius: 8px;
+  }
+  .ft-cards--desk .ft-card-panel-in {
+    padding-bottom: 12px;
+  }
+  .ft-cards--desk .ft-ticks {
+    margin-top: 8px;
+    gap: 2px;
   }
 }
 
@@ -715,7 +707,7 @@
   align-items: center;
   gap: 7px;
   min-width: 0;
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 500;
   line-height: 1;
   color: #8b8279;
@@ -796,13 +788,13 @@
   align-items: center;
   gap: 9px;
   width: 100%;
-  height: clamp(30px, 4.4svh, 37px);
+  height: clamp(30px, 4.2svh, 37px);
   padding: 0 10px;
   border: 0;
   border-radius: 8px;
   background: transparent;
   color: #575757;
-  font: 450 13.5px/1 var(--ft-app-font);
+  font: 450 14.5px/1 var(--ft-app-font);
   text-align: left;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
@@ -822,8 +814,8 @@
 
 .ft-nav-item.is-sub {
   padding-left: 29px;
-  font-size: 12.5px;
-  height: clamp(27px, 3.9svh, 33px);
+  font-size: 13.5px;
+  height: clamp(27px, 3.7svh, 33px);
 }
 
 .ft-nav-item.is-sub::before {
@@ -878,7 +870,7 @@
 .ft-side-note {
   margin-top: auto;
   padding: 12px 16px 14px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
   color: #9a9a9a;
 }
@@ -957,11 +949,11 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 9px;
+  padding: 6px 10px;
   border-radius: 999px;
   background: #17130f;
   color: #fff;
-  font: 600 11.5px/1 var(--ft-app-font);
+  font: 600 12.5px/1 var(--ft-app-font);
   white-space: nowrap;
   opacity: 0;
   transform: translate3d(0, 3px, 0);
@@ -1007,13 +999,13 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 22px;
-  padding: 0 10px 0 8px;
+  height: 24px;
+  padding: 0 11px 0 9px;
   border: 0;
   border-radius: 999px;
   background: rgb(23 19 15 / 88%);
   color: #fff;
-  font: 600 11.5px/1 var(--ft-app-font);
+  font: 600 12.75px/1 var(--ft-app-font);
   letter-spacing: 0.005em;
   white-space: nowrap;
   cursor: pointer;
@@ -1079,12 +1071,12 @@
   position: absolute;
   z-index: 7;
   width: max-content;
-  max-width: 270px;
-  padding: 10px 12px;
+  max-width: 300px;
+  padding: 11px 13px;
   border-radius: 10px;
   background: #fff;
   color: #2a2420;
-  font: 450 13px/1.42 var(--ft-app-font);
+  font: 450 14.5px/1.42 var(--ft-app-font);
   box-shadow:
     0 0 0 1px rgb(23 19 15 / 9%),
     0 14px 30px -10px rgb(23 19 15 / 35%);
@@ -1153,7 +1145,7 @@
   border-radius: 999px;
   background: var(--paper);
   color: var(--ink-2);
-  font: 600 12px/1 var(--font-text);
+  font: 600 13px/1 var(--font-text);
   white-space: nowrap;
   box-shadow:
     0 0 0 1px var(--line),
@@ -1179,30 +1171,30 @@
 }
 
 .ft-in.is-phone .ft-pain-q {
-  font-size: 18px;
+  font-size: 21px;
 }
 
 .ft-in.is-phone .ft-chip {
-  min-height: 44px;
-  padding: 0 14px;
-  font-size: 15px;
+  min-height: 46px;
+  padding: 0 13px;
+  font-size: 16.5px;
 }
 
 .ft-in.is-phone .ft-type {
   flex: 1 1 100%;
   max-width: none;
-  min-height: 48px;
+  min-height: 52px;
   padding-right: 6px;
 }
 
 .ft-in.is-phone .ft-type-in {
-  height: 46px;
-  font-size: 16px; /* no zoom on focus (iOS) */
+  height: 50px;
+  font-size: 18px; /* (16 px or more: no zoom on focus, iOS) */
 }
 
 .ft-in.is-phone .ft-type-go {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
 }
 
 .ft-in.is-phone .ft-answer {
@@ -1231,16 +1223,12 @@
 }
 
 .ft-cards--phone .ft-card-btn {
-  min-height: 64px;
-  padding: 12px 14px 12px 12px;
+  min-height: 62px;
+  padding: 10px 16px 10px 11px;
 }
 
 .ft-cards--phone .ft-card-name {
-  font-size: 18px;
-}
-
-.ft-cards--phone .ft-card-line {
-  font-size: 14px;
+  font-size: 21px;
 }
 
 /* the panel opens at once on phones (no height animation); its content fades in */
@@ -1262,13 +1250,17 @@
   display: none;
 }
 
+.ft-cards--phone .ft-card-panel-in {
+  padding: 2px 16px 18px;
+}
+
 .ft-cards--phone .ft-card-sub {
-  font-size: 19px;
+  font-size: 22.5px;
 }
 
 .ft-cards--phone .ft-card-copy,
 .ft-cards--phone .ft-ticks li {
-  font-size: 15.5px;
+  font-size: 18px;
 }
 
 .ft-shot {
@@ -1298,12 +1290,12 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 36px;
-  padding: 0 14px 0 11px;
+  min-height: 40px;
+  padding: 0 15px 0 12px;
   border-radius: 999px;
   background: rgb(23 19 15 / 90%);
   color: #fff;
-  font: 600 14px/1 var(--font-text);
+  font: 600 16px/1 var(--font-text);
   box-shadow: 0 6px 16px -6px rgb(23 19 15 / 50%);
 }
 
@@ -1322,10 +1314,6 @@
   outline-offset: 2px;
 }
 
-.ft-cards--phone .ft-card-cta {
-  margin-top: 18px;
-}
-
 .ft-foot {
   margin-top: 20px;
 }
@@ -1333,5 +1321,59 @@
 .ft-foot .ft-all {
   width: 100%;
   justify-content: center;
-  min-height: 52px;
+  min-height: 56px;
+}
+
+/* ── the close: Andrew's line under the features, and the button ─────── */
+
+.ft-close {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: clamp(56px, 8svh, 104px);
+  text-align: center;
+}
+
+.ft-close-title {
+  max-width: 20em;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: 700;
+  font-size: calc(var(--fs-h3) * 1.3);
+  line-height: 1.1;
+  letter-spacing: var(--track-sub);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.ft-close-sub {
+  max-width: 34em;
+  margin-top: 12px;
+  font-size: calc(var(--fs-lead) * 1.12);
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.ft-close-cta {
+  margin-top: clamp(20px, 3svh, 28px);
+}
+
+.ft-in.is-phone .ft-close {
+  align-items: stretch;
+  margin-top: 48px;
+  text-align: left;
+}
+
+.ft-in.is-phone .ft-close-title {
+  font-size: 30px;
+}
+
+.ft-in.is-phone .ft-close-sub {
+  margin-top: 10px;
+  font-size: 18.5px;
+}
+
+.ft-in.is-phone .ft-close-cta {
+  margin-top: 22px;
 }
