@@ -468,6 +468,7 @@ export const FAQS: { id: string; q: string; a: string[]; flag?: string }[] = [
       "We offer plans designed for growing contractors, with volume pricing for larger teams.",
       "Qualified Founding Members may also receive special introductory pricing.",
     ],
+    flag: "Andrew to confirm: \"Founding Member\" was cut from the rest of the page in round 1",
   },
   {
     id: "different",
@@ -487,6 +488,7 @@ export const FAQS: { id: string; q: string; a: string[]; flag?: string }[] = [
       "Members get early access to our latest features, hands-on onboarding, and special pricing in exchange for feedback that helps shape the future of SmartCrew.",
       "Qualifying companies can receive our Premium feature set at introductory pricing, with opportunities to lock in long-term discounts.",
     ],
+    flag: "Andrew to confirm: \"Founding Member\" was cut from the rest of the page in round 1",
   },
 ];
 
