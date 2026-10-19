@@ -26,8 +26,21 @@ Change list: /mnt/project-files/smartcrew/andrew-feedback-round-2.md.
    10/15/30/45/60 (30), 15 people, $20/30/40/50 ($30).
 5. **Done. FAQ:** "Got questions? We've got answers." + his sub, his 13 questions and answers word for
    word, and the close "Ready to simplify your business?" + his line. The close stays in view on laptops.
-6. **Waiting on Andrew:** the new logo (his Drive link isn't shared with us), the ConExpo and MaintainX
-   logo files, and a source for the APA figure.
+6. **Done. Everything. Built for dirt.:** his ten features in his order, his words (name, headline, sub,
+   bullets); the grey line under each closed card and the trial button inside each card are cut; type
+   about 15-20% larger; his close "Ready to run your entire operation in one place?" + CTA under the
+   section. Job Costing opens the project's Cost Codes tab (budget vs spent by code); Equipment leads
+   with the Service Queue, and the CAT D6's machine page has Service Records. New screens: Daily
+   Reports, Safety, Files. The pain picker and "See all 38 tools" stay, regrouped under the ten.
+7. **Done. Watch it work:** "Watch How It Works For The Crew, The Admins And The Owners", tabs The Day
+   (crews) / The Week (admins) / The Results (owners), his copy for every line, list on the left and
+   laptop + phone on the right; on a dark ground in classic (Andrew via the agency owner, Oct 19 20:34Z:
+   "We could invert design on this one so it has darker background").
+8. **Done. Calculator on phones:** the longer headline and the APA line no longer push the button under
+   the next section; the section grows past one screen when it has to.
+9. **Waiting on Andrew:** the new logo (his Drive link isn't shared with us), the ConExpo and MaintainX
+   logo files, a source for the APA figure, and whether the FAQ keeps "Founding Member" (his answers 11
+   and 13 still use it; ⚑ on both).
 
 ## Try it week strip (the agency owner, Oct 19: "fix alignemnt.")
 

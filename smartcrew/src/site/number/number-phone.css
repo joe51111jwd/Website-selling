@@ -4,10 +4,10 @@
 
 .num--phone .scene-body {
   display: flex;
-  height: 100vh;
-  height: 100svh;
-  min-height: 560px;
-  max-height: 900px;
+  /* a screen tall at least; round 2's longer headline and Andrew's APA line can take it past one
+     screen on short phones, so it grows rather than clipping the CTA */
+  min-height: min(max(100vh, 560px), 900px);
+  min-height: min(max(100svh, 560px), 900px);
 }
 
 /* laid out ahead of arrival, a piece at a time (../try/warm.ts) */
