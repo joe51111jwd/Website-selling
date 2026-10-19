@@ -131,6 +131,7 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
     up(q(".hf-h1"), 100, 560, 8);
     up(q(".hf-sub"), 160);
     up(q(".hf-act"), 240);
+    up(q(".hb-price"), 290);
     up(q(".hb-proof"), 310);
     up(q(".hf-foot"), 380, 600, 6);
     timers.push(window.setTimeout(markPageReady, reduced ? 0 : CTA_LANDED));

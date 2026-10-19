@@ -51,6 +51,28 @@ export const config = {
    */
   andrewPhone: "",
 
+  /**
+   * The price, once Andrew sets it ("no price anywhere" was the top objection in every test; click-science
+   * playbook §8b.2). null: no price anywhere (today). Either one starting figure (`from: "$X"`), a figure
+   * per crew-size band using the popup's bands (`bands: { "6–12": "$X", … }`), or both, plus what they're
+   * per (`per: "a month"`). Shows in the bold look only (src/lib/offer.ts). Never put a number here that
+   * Andrew hasn't set.
+   */
+  pricing: null as null | { from?: string; bands?: Record<string, string>; per?: string },
+
+  /**
+   * Trial before the call (playbook §8b.1). false: the free trial is set up on the call (today). true:
+   * the popup starts the trial and the call becomes optional setup help ("load your jobs and trucks"),
+   * in the bold look only. trialStartUrl is where "Open SmartCrew" goes once the trial is on (the app's
+   * own sign-up or first-login page); empty, /book says Andrew's team sends the login. ⚑ Both need
+   * Andrew: whether a trial can start without the call, how the account gets made, and how fast.
+   */
+  trialFirst: false,
+  trialStartUrl: "",
+
+  /** Katie's photo next to her quote under the bold hero's button (a file in public/). ⚑ Empty until she OKs it. */
+  katiePhoto: "",
+
   privacyUrl: "https://smartcrewhq.com/privacy-policy",
   termsUrl: "https://smartcrewhq.com/terms-of-service",
 

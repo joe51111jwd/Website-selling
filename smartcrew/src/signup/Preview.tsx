@@ -5,6 +5,8 @@ import { Icon, type IconName } from "../screens/kit/Icon";
 import type { Intent, Size } from "./contract";
 import { digits, firstName, initials, type Draft, type Field } from "../lib/lead";
 import markUrl from "./assets/mark.svg";
+import { OFFER } from "../content/copy";
+import { TRIAL_FIRST } from "../lib/offer";
 
 // The visitor's own SmartCrew, building itself as he types (the IKEA / endowed-progress moment).
 // A small, dedicated copy of the real app's look (src/screens: white shell, Inter, the sidebar,
@@ -48,7 +50,9 @@ function Full({ draft, intent, focus, saving }: Props) {
   const reduce = useReducedMotion() ?? false;
   const { company, first, email, done, count } = useFacts(draft);
   const dots = draft.size ? CREW_DOTS[draft.size] : 0;
-  const callLabel = intent === "demo" ? "Demo with Andrew" : "Trial setup with Andrew";
+  // trial first (src/lib/offer.ts): the call is optional setup help, not the way in
+  const trialFirst = TRIAL_FIRST && intent !== "demo";
+  const callLabel = intent === "demo" ? "Demo with Andrew" : trialFirst ? OFFER.trialFirst.previewCall : "Trial setup with Andrew";
 
   const rows: { key: string; label: string; value: ReactNode; ok: boolean }[] = [
     { key: "company", label: "Company", value: company, ok: done.company },
@@ -183,7 +187,7 @@ function Full({ draft, intent, focus, saving }: Props) {
                   <li className={`su-steps-call${saving ? " is-going" : ""}`} data-pulse="call">
                     <span className="su-callring" aria-hidden="true" />
                     <span className="su-steps-l">{callLabel}</span>
-                    <span className="su-steps-v">{saving ? "Opening…" : "Pick a time"}</span>
+                    <span className="su-steps-v">{saving ? "Opening…" : trialFirst ? OFFER.trialFirst.previewCallValue : "Pick a time"}</span>
                   </li>
                 </ul>
               </div>
@@ -192,7 +196,7 @@ function Full({ draft, intent, focus, saving }: Props) {
         </div>
       </Tilt>
 
-      <p className="su-pv-note">{intent === "demo" ? "A preview. Andrew shows you the real thing on your demo." : "A preview. Andrew sets up the real one with you on the call."}</p>
+      <p className="su-pv-note">{intent === "demo" ? "A preview. Andrew shows you the real thing on your demo." : trialFirst ? OFFER.trialFirst.previewNote : "A preview. Andrew sets up the real one with you on the call."}</p>
     </div>
   );
 }

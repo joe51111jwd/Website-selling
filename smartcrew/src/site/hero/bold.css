@@ -223,3 +223,42 @@ html.look-bold .hf-logos img {
     height: calc(var(--h) * 0.62);
   }
 }
+
+/* Katie's photo beside her name (config.katiePhoto); a review build (?review) shows the empty slot */
+html.look-bold .hb-proof figcaption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+html.look-bold .hb-proof-photo {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+html.look-bold .hb-proof-photo.is-slot {
+  border: 1.5px dashed var(--bold-line-2);
+}
+
+/* the price by the button (src/lib/offer.ts): quiet, one line, under the button row */
+html.look-bold .hb-price {
+  margin: 14px 0 0;
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+html.look-bold .hb-price i {
+  color: var(--ink-3);
+}
+
+@media (max-width: 760px) {
+  html.look-bold .hb-price {
+    align-self: center;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+}

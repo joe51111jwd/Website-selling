@@ -10,8 +10,12 @@
 // plays the entrance. Desktop and phones share this component; phones get their own line breaks.
 
 import { useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties } from "react";
-import { FLAG, HERO4, LOGOS, LOGO_VECTORS, PROOF } from "../../content/copy";
+import { CTA, FLAG, HERO4, LOGOS, LOGO_VECTORS, OFFER, PROOF } from "../../content/copy";
+import { config } from "../../config";
+import { SHOW_FLAGS } from "../../lib/flags";
 import { BOLD } from "../../lib/look";
+import { PRICED, PRICE_SLOTS, priceFrom } from "../../lib/offer";
+import { Flag } from "../../signup/Flag";
 import { Scene } from "../scene/Scene";
 import { reducedMotion } from "../../three/stage/store";
 import { Cta, DemoLink } from "../ui/Cta";
@@ -107,12 +111,31 @@ export default function Hero() {
             </span>
             <DemoLink source="hero" className="hf-demo" />
           </div>
+          {BOLD && PRICE_SLOTS && (!PRICED || priceFrom()) && (
+            // the price right by the button, once Andrew sets a starting figure ("no price anywhere" was
+            // the top objection; src/lib/offer.ts); a review build shows the ⚑ slot
+            <p className="hb-price">
+              {priceFrom() ?? (
+                <>
+                  <i>{OFFER.price.placeholder}</i>
+                  <Flag note={OFFER.price.note} />
+                </>
+              )}
+              {" · "}
+              {CTA.micro}
+            </p>
+          )}
           {BOLD && (
             // the click simulator's one repeat winner: Katie's quote right under the button (won 7 of 8
             // blind head-to-heads; /mnt/project-files/click-science/simulation/findings.md)
             <figure className="hb-proof">
               <blockquote>“{PROOF.katie.text}”</blockquote>
               <figcaption>
+                {config.katiePhoto ? (
+                  <img className="hb-proof-photo" src={BASE + config.katiePhoto} alt="" width={28} height={28} decoding="async" />
+                ) : (
+                  SHOW_FLAGS && <span className="hb-proof-photo is-slot" title={OFFER.katiePhotoNote} aria-label={OFFER.katiePhotoNote} />
+                )}
                 {PROOF.katie.name} · {PROOF.katie.company}{" "}
                 <span className="flag" title={PROOF.flagKatie} aria-label={PROOF.flagKatie}>
                   {FLAG}

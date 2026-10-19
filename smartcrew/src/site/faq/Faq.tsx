@@ -4,8 +4,11 @@
 // offer's CTA above it is still on screen, so two orange buttons never show together
 // (src/site/shell/primaryCta.ts usePrimaryElsewhere).
 
-import { useId, useRef, useState } from "react";
-import { ANDREW, CTA, FAQ_CLOSE, FAQ_TITLE, FAQS, FLAG } from "../../content/copy";
+import { useId, useRef, useState, type ReactNode } from "react";
+import { ANDREW, CTA, FAQ_CLOSE, FAQ_TITLE, FAQS, FLAG, OFFER } from "../../content/copy";
+import { SIZES } from "../../signup/contract";
+import { Flag } from "../../signup/Flag";
+import { PRICED, PRICE_SLOTS, TRIAL_FIRST, priceBands, priceFrom } from "../../lib/offer";
 import { trackCustom } from "../../lib/track";
 import { StageAnchor } from "../../three/stage";
 import { usePhoneLite } from "../phone";
@@ -18,6 +21,46 @@ import "./faq.css";
 import "./glass.css";
 import "./focus.css";
 import "./bold.css";
+
+type FaqItem = { id: string; q: string; a: string; flag?: string; more?: ReactNode };
+
+/** The bold look's offer switches (src/lib/offer.ts) in the FAQ: "Do I need a call?" once the trial comes
+ *  first, and the price in "What does it cost?" (its ⚑ slot on a review build). Other looks: FAQS as is. */
+function offerFaqs(): FaqItem[] {
+  return FAQS.map((f): FaqItem => {
+    if (f.id === "why-call" && TRIAL_FIRST) return { id: f.id, ...OFFER.trialFirst.faq, flag: OFFER.trialFirst.note };
+    if (f.id !== "cost" || !PRICE_SLOTS) return f;
+    if (!PRICED) return { ...f, more: <PriceSlot /> };
+    const from = priceFrom();
+    const bands = priceBands(SIZES);
+    return {
+      ...f,
+      a: from ? `${OFFER.price.faqLead(from)} ${OFFER.price.faqTail}` : f.a,
+      more: bands.length ? (
+        <span className="faq-prices">
+          {bands.map((b) => (
+            <span key={b.size}>
+              {b.size} people: <b>{b.price}</b>
+            </span>
+          ))}
+        </span>
+      ) : undefined,
+    };
+  });
+}
+
+function PriceSlot() {
+  return (
+    <span className="faq-prices">
+      <span>
+        <i>{OFFER.price.placeholder}</i>
+        <Flag note={OFFER.price.note} />
+      </span>
+    </span>
+  );
+}
+
+const FAQ_LIST = offerFaqs();
 
 export default function Faq() {
   return <FaqPlain phone={usePhoneLite()} />;
@@ -46,7 +89,7 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
 
   const toggle = (i: number) => {
     setOpen((o) => (o === i ? -1 : i));
-    if (open !== i) trackCustom("faq_open", { faq_id: FAQS[i].id });
+    if (open !== i) trackCustom("faq_open", { faq_id: FAQ_LIST[i].id });
   };
 
   return (
@@ -54,7 +97,7 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
       <div className="faq-main">
         <h2 className="t-h2 faq-title">{FAQ_TITLE}</h2>
         <ul className="faq-list">
-          {FAQS.map((f, i) => {
+          {FAQ_LIST.map((f, i) => {
             const isOpen = open === i;
             const qId = `${base}-q${i}`;
             const aId = `${base}-a${i}`;
@@ -80,6 +123,7 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
                           {FLAG}
                         </span>
                       )}
+                      {f.more}
                     </p>
                   </div>
                 </div>
@@ -117,7 +161,10 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
           <TrialButton source="faq" size="lg" />
           <DemoButton source="faq" />
         </div>
-        <p className="t-micro faq-micro">{CTA.micro}</p>
+        <p className="t-micro faq-micro">
+          {priceFrom() && `${priceFrom()}. `}
+          {CTA.micro}
+        </p>
       </div>
     </div>
   );

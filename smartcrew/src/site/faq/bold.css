@@ -23,3 +23,19 @@ html.look-bold .faq-stage-box::before {
     background-position: 50% 45%;
   }
 }
+
+/* "What does it cost?" with Andrew's price by crew size (src/lib/offer.ts), or its ⚑ slot on a review build */
+html.look-bold .faq-prices {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+html.look-bold .faq-prices b {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+html.look-bold .faq-prices i {
+  color: var(--ink-3);
+}

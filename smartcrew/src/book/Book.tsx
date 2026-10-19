@@ -4,6 +4,8 @@ import { aCall, config } from "../config";
 import { firstName, saveBooking, savedBooking, savedLead, type Booking, type Lead } from "../lib/lead";
 import { track, trackCustom } from "../lib/track";
 import { Flag } from "../signup/Flag";
+import { OFFER } from "../content/copy";
+import { TRIAL_FIRST } from "../lib/offer";
 import { mountCal, mountVidalytics } from "./embeds";
 import { downloadIcs, downloadVcf, googleUrl, when } from "./calendar";
 import { Logo } from "../brand/Logo";
@@ -47,6 +49,9 @@ export default function Book() {
   const first = lead?.first || (lead ? firstName(lead.name) : "");
   const demo = lead?.intent === "demo";
   const company = lead?.company?.trim();
+  /** Bold look, once Andrew turns it on: the trial starts here and the call is optional (src/lib/offer.ts). */
+  const trialFirst = TRIAL_FIRST && !demo;
+  const T1 = OFFER.trialFirst;
 
   const viewed = useRef(false);
   useEffect(() => {
@@ -107,6 +112,10 @@ export default function Book() {
     ? first
       ? `See you on the call, ${first}.`
       : "See you on the call."
+    : trialFirst
+      ? config.trialStartUrl
+        ? T1.h1Ready(first)
+        : T1.h1Coming(first)
     : demo
       ? first
         ? `${first}, pick a time for your demo with Andrew.`
@@ -117,7 +126,13 @@ export default function Book() {
 
   const kicker = demo ? (company ? `Demo with Andrew for ${company}` : "Demo with Andrew") : company ? `Free trial for ${company}` : "Free trial";
 
-  const sub = demo ? (
+  const sub = trialFirst ? (
+    <>
+      {!config.trialStartUrl && <>{T1.login} </>}
+      {T1.sub}
+      <Flag note={T1.note} />
+    </>
+  ) : demo ? (
     <>
       {cap(aCall())} with the founder. No sales team. No BDR. Just Andrew.
       {!config.callLengthConfirmed && <Flag note="Andrew to confirm the call length (his Cal.com event is 45 minutes today)" />}
@@ -147,7 +162,7 @@ export default function Book() {
             </li>
             <li className={booking ? "is-done" : "is-now"}>
               {booking ? <Tick /> : <span className="bk-now-dot" aria-hidden="true" />}
-              {booking ? "Call booked" : "Pick a time"}
+              {booking ? "Call booked" : trialFirst ? T1.progress : "Pick a time"}
             </li>
           </ol>
           <a className="bk-help" href={`mailto:${config.email}`}>
@@ -176,6 +191,14 @@ export default function Book() {
             <motion.p className="bk-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5, delay: 0.2 }}>
               {sub}
             </motion.p>
+          )}
+          {!booking && trialFirst && config.trialStartUrl && (
+            <a className="bk-open" href={config.trialStartUrl} onClick={() => trackCustom("trial_open")}>
+              {T1.open}
+              <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M3 8h9.5M8.5 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
           )}
         </div>
 

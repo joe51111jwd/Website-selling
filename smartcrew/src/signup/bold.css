@@ -1,0 +1,63 @@
+/* The sign-up popup in the bold look (src/styles/bold.css): the price for the size just picked, and the
+   buyer's fears answered before anything personal is typed (OFFER in src/content/copy.ts). Both render
+   only in the bold look (src/signup/Dialog.tsx). */
+
+html.look-bold .su-price {
+  margin: 12px 0 0;
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+html.look-bold .su-price b {
+  font-weight: 650;
+  color: var(--ink);
+}
+
+html.look-bold .su-price .su-price-tbd {
+  font-weight: 500;
+  font-style: italic;
+  color: var(--ink-3);
+}
+
+html.look-bold .su-answers {
+  display: grid;
+  gap: 7px;
+  margin: 4px 0 0;
+  padding: 14px 0 0;
+  list-style: none;
+  border-top: 1px solid var(--bold-line);
+}
+
+html.look-bold .su-answers li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14.5px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+
+html.look-bold .su-answers svg {
+  flex: none;
+  margin-top: 2px;
+  color: #6fcf97;
+}
+
+@media (max-width: 760px) {
+  html.look-bold .su-answers {
+    gap: 8px;
+    padding-top: 14px;
+  }
+  html.look-bold .su-answers li {
+    font-size: 14px;
+  }
+}
+
+/* laptops: the popup grows by the answers' height (and the price line's, once Andrew sets one), so
+   step 1 still fits without scrolling on a 900px-tall screen */
+@media (min-width: 761px) {
+  html.look-bold .su-dialog {
+    height: min(760px, calc(100dvh - 40px));
+  }
+}

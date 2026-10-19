@@ -587,3 +587,57 @@ export const LOGO_VECTORS: Record<string, string> = {
   "DW Companies": "logos/dw.svg",
   "Midwest Erosion Specialists": "logos/midwest.svg",
 };
+
+// ─── The bold look's offer lines (src/lib/offer.ts; click-science playbook §7.4 and §8b) ────────────
+// The answers at the sign-up form, in the buyer's words (buyer research: the crew's fear is tracking off
+// the clock and dead batteries; the office's is QuickBooks and payroll), the trial-first flow and the
+// price slots. A line with `flag` isn't approved yet: it shows only on review builds (?review).
+export const OFFER = {
+  answers: [
+    {
+      text: "Only tracks your crew while they’re clocked in",
+      flag: "Andrew to confirm: location is tracked only while clocked in. Check it against GPS auto clock-in (the geofence has to know when they arrive)",
+    },
+    /** [L FAQ] "runs in the background without draining batteries" (TRY_IT.facts) */
+    { text: "Runs in the background without draining batteries" },
+    /** AMBER, the FAQ's wording */
+    { text: "QuickBooks integration for payroll" },
+    { text: "No contract, cancel anytime" },
+  ] as { text: string; flag?: string }[],
+  answersLabel: "Before you start",
+  price: {
+    /** the placeholder a review build shows in each price slot */
+    placeholder: "Andrew’s price",
+    note: "Andrew to set a price, or a price by crew size (config.pricing)",
+    /** popup, under the size chips: "For 6–12 people: $X a month" */
+    forSize: (size: string) => `For ${size} people:`,
+    /** FAQ "What does it cost?" with a price: the starting figure leads, the original answer's terms follow */
+    faqLead: (from: string) => `${from}, depending on your crew size and the features.`,
+    faqTail: "No contracts, cancel anytime.",
+  },
+  trialFirst: {
+    note: "Andrew to decide: the free trial starts before the call (config.trialFirst), and how the login reaches them",
+    /** popup step 1, under the button's lead-in */
+    honest: "Start your free trial today. Andrew can help you set it up on a call, if you want one.",
+    /** popup step 2 */
+    next: "Next: your free trial, and a time with Andrew if you want help.",
+    faq: {
+      q: "Do I need a call?",
+      a: "No. Start your free trial now. If you want help loading your jobs and trucks, Andrew sets it up with you on a call.",
+    },
+    /** /book once the trial is on */
+    kicker: "Free trial",
+    h1Ready: (first: string) => (first ? `${first}, your free trial is ready.` : "Your free trial is ready."),
+    h1Coming: (first: string) => (first ? `You’re in, ${first}. Your free trial is on its way.` : "You’re in. Your free trial is on its way."),
+    open: "Open SmartCrew",
+    login: "Andrew’s team sends your login by email.",
+    sub: "Want help loading your jobs and trucks? Pick a time with Andrew below. It’s optional.",
+    progress: "Start your trial",
+    /** the popup's preview panel: the call row and the note under it */
+    previewCall: "Setup help from Andrew",
+    previewCallValue: "Optional",
+    previewNote: "A preview. Your real SmartCrew comes with your free trial.",
+  },
+  /** Katie's photo slot under the hero button (config.katiePhoto) */
+  katiePhotoNote: "Katie’s photo goes here once she OKs the quote",
+};

@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useReducedMotion, type Transition } from "moti
 import "../styles/tokens.css";
 import "./signup.css";
 import "./glass.css";
+import "./bold.css";
 import { SIZES, openSignup, type Estimate, type Intent, type SignupRequest, type Size } from "./contract";
 import {
   EMPTY_DRAFT,
@@ -25,6 +26,10 @@ import {
 } from "../lib/lead";
 import { track, trackCustom } from "../lib/track";
 import { aCall, config } from "../config";
+import { OFFER } from "../content/copy";
+import { SHOW_FLAGS } from "../lib/flags";
+import { BOLD } from "../lib/look";
+import { PRICE_SLOTS, TRIAL_FIRST, priceFor } from "../lib/offer";
 import Preview from "./Preview";
 import { Flag } from "./Flag";
 import { fly } from "./pulse";
@@ -440,6 +445,11 @@ export default function Dialog({ req, opener, onClose }: Props) {
   const honest =
     intent === "demo" ? (
       <>Next: pick a time for your demo with Andrew.</>
+    ) : TRIAL_FIRST ? (
+      <>
+        {OFFER.trialFirst.honest}
+        <Flag note={OFFER.trialFirst.note} />
+      </>
     ) : (
       <>
         Your free trial starts with {aCall()} with Andrew.
@@ -599,6 +609,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
                               })}
                             </div>
                             <ErrorLine id={`${ids}-size-err`} text={errors.size} />
+                            {PRICE_SLOTS && intent !== "demo" && d.size && <PriceLine size={d.size} />}
                           </fieldset>
                         )}
                         <TextField
@@ -613,6 +624,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
                           onBlur={() => onBlur("company")}
                           input={{ name: "organization", autoComplete: "organization", autoCapitalize: "words", enterKeyHint: "next", maxLength: 80, spellCheck: false }}
                         />
+                        {BOLD && intent !== "demo" && <Answers />}
                       </div>
                     )}
 
@@ -713,7 +725,18 @@ export default function Dialog({ req, opener, onClose }: Props) {
                       <p className={`su-honest${last ? " su-honest--next" : ""}`} id={`${ids}-honest`}>
                         <img src={faceUrl} alt="" width={28} height={28} />
                         {last ? (
-                          <span>{intent === "demo" ? "Next: pick a time for your demo with Andrew." : "Next: pick a time with Andrew to set up your free trial."}</span>
+                          <span>
+                            {intent === "demo" ? (
+                              "Next: pick a time for your demo with Andrew."
+                            ) : TRIAL_FIRST ? (
+                              <>
+                                {OFFER.trialFirst.next}
+                                <Flag note={OFFER.trialFirst.note} />
+                              </>
+                            ) : (
+                              "Next: pick a time with Andrew to set up your free trial."
+                            )}
+                          </span>
                         ) : (
                           <span>{honest}</span>
                         )}
@@ -805,6 +828,44 @@ export default function Dialog({ req, opener, onClose }: Props) {
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+/** Bold look, step 1: the price for the size just picked (src/lib/offer.ts), or its ⚑ slot on a review build. */
+function PriceLine({ size }: { size: string }) {
+  const price = priceFor(size);
+  return (
+    <p className="su-price" aria-live="polite">
+      {OFFER.price.forSize(size)}{" "}
+      {price ? (
+        <b>{price}</b>
+      ) : (
+        <>
+          <b className="su-price-tbd">{OFFER.price.placeholder}</b>
+          <Flag note={OFFER.price.note} />
+        </>
+      )}
+    </p>
+  );
+}
+
+/** Bold look, step 1: the buyer's fears answered before anything personal is typed (playbook §7.4). */
+function Answers() {
+  const lines = OFFER.answers.filter((a) => !a.flag || SHOW_FLAGS);
+  return (
+    <ul className="su-answers" aria-label={OFFER.answersLabel}>
+      {lines.map((a) => (
+        <li key={a.text}>
+          <svg width="14" height="14" viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M2.5 6.2 5 8.6l4.6-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>
+            {a.text}
+            {a.flag && <Flag note={a.flag} />}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 

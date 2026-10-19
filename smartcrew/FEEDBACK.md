@@ -4,6 +4,29 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## The conversion list, in the bold look (the agency owner, Oct 19)
+
+"work on implemening all of that" (the click research's summary: a price, trial before the call, Katie's
+quote under the button, the QuickBooks ad, win the first screen, answer the crew's and office's fears at
+the form), then "lets focus for now about driving traffic to the part where they book a call. we can work
+on the booking flow later." Bold look only; classic (Andrew's link), glass and focus are unchanged.
+Results: /mnt/project-files/smartcrew/bold/conversion.md.
+
+1. **Done. Answers at the sign-up form** (popup step 1, under the company name): batteries, QuickBooks
+   payroll, no contract (Andrew's own wording). Simulator, blind popup head-to-heads: **lean: answers**
+   (+0.10, 4 of 4 judges, ratio 1.02), not a call.
+2. **Done. First screen.** The hero fills it on phones (390×844 and 390×664) and laptops with the button,
+   Katie's quote and the logos in view; the laptop popup is taller so step 1 never scrolls on 900px.
+3. **Waiting (Andrew): the price.** Built and off (`config.pricing`, src/lib/offer.ts): under the hero
+   button, in the popup per crew size, in the FAQ's cost answer. `?review` shows ⚑ placeholders.
+4. **Waiting (Katie, Andrew): Katie's photo** beside her quote (`config.katiePhoto`), her OK, JW or JCR.
+5. **Waiting (Andrew): "Only tracks your crew while they're clocked in"**, flagged until he confirms it
+   alongside GPS auto clock-in. With it the simulator scored +0.11, no better than without.
+6. **Parked: trial before the call** (`config.trialFirst`, preview `?review&trial=first`): the booking
+   flow waits, per the agency owner. Built and off; /book is unchanged unless it's switched on.
+7. **Done. Ads** led by "Stop re-typing timecards into QuickBooks every Friday.":
+   /mnt/project-files/smartcrew/ads/ (files only, nothing posted).
+
 ## The bold look (the agency owner, Oct 18)
 
 "Is their any way to still not make it look like lovable and look better but keep that as a draft and
