@@ -192,7 +192,9 @@ function Page({ def, on, size, onScreen }: { def: ScreenDef; on: boolean; size: 
           <button
             key={`${l.to}-${i}`}
             type="button"
-            className="ft-link"
+            // (its hint opens to the right near the window's left edge, so it isn't cut, and on a
+            // table row, so the crew's phone beside the window doesn't hide it)
+            className={`ft-link${x(bx + bw) < 220 || bw * scale > size.w / 2 ? " is-left" : ""}`}
             style={{ left: x(bx) - 3, top: y(by) - 3, width: bw * scale + 6, height: bh * scale + 6 }}
             aria-label={`${A.open}: ${to.name}`}
             data-cursor="link"
@@ -248,8 +250,10 @@ function SpotView({
   const R = x(bx + bw);
   const B = y(by + bh);
   // the name sits on the box's top edge (or its foot), from its left corner, or from its right
-  // corner near the window's right edge; the line opens under the box, or over it near the foot
+  // corner near the window's right edge; the line opens under the box, or over it near the foot,
+  // and from the box's right corner when it would run past the window (it is the wider of the two)
   const flip = L > size.w - 210;
+  const tipFlip = L > size.w - 310;
   const up = B > size.h - 130;
   const chip: CSSProperties = {
     top: s.place === "below" ? B + 5 : T - 27,
@@ -257,7 +261,7 @@ function SpotView({
   };
   const tip: CSSProperties = {
     ...(up ? { bottom: size.h - T + 8 } : { top: B + 8 }),
-    ...(flip ? { right: size.w - R } : { left: Math.max(6, L) }),
+    ...(tipFlip ? { right: Math.max(6, size.w - R) } : { left: Math.max(6, L) }),
   };
   const tipId = `ft-tip-${s.id}`;
   return (

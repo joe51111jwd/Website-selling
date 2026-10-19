@@ -961,6 +961,11 @@
   pointer-events: none;
 }
 
+.ft-link.is-left .ft-link-hint {
+  right: auto;
+  left: 0;
+}
+
 .ft-link-hint svg {
   width: 12px;
   height: 12px;

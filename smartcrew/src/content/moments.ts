@@ -111,7 +111,7 @@ export const MOMENTS: Moment[] = [
         src: "L",
         office: { id: "web-timecards", x: 560, y: 70, mark: { b: [986, 109, 94, 38], label: "Incidents" } },
       },
-      { id: "E7", label: "JSAs and toolbox talks", line: "Safety meetings and JSAs get logged with the job.", src: "LV", confirm: true },
+      { id: "E7", label: "JSAs and toolbox talks", line: "Safety meetings and JSAs get logged with the job.", src: "LV" },
     ],
   },
   {

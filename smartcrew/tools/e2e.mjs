@@ -497,7 +497,7 @@ async function everyCta(device) {
     const sources = [...new Set([...seen.values()].map((v) => `${v.source}${v.intent === "demo" ? "(demo)" : ""}`))];
     // the CTAs a visitor must meet just by scrolling (Try it's and the pain picker's need a tap
     // first: their own checks click them)
-    const shared = ["hero", "hero(demo)", "replace", "replace(demo)", "features", "watch", "calculator", "offer", "faq", "faq(demo)"];
+    const shared = ["hero", "hero(demo)", "replace", "replace(demo)", "features-close", "watch", "calculator", "offer", "faq", "faq(demo)"];
     const need = device.name === "phone" ? ["sticky", ...shared] : ["header", ...shared];
     const missing = need.filter((n) => !sources.includes(n));
     assert(!missing.length, `never met (or never opened the popup): ${missing.join(", ")}; met: ${sources.join(", ")}`);
