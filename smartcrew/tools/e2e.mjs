@@ -622,10 +622,17 @@ async function specSheet(device) {
 }
 
 /** The biggest pain picker: a chip or a typed headache answers "We have a feature for that." and
- *  opens that feature's card; a headache it can't place gets the trial button. */
+ *  opens that feature's card, in the owner's own words too ("dozer keeps going down"); a headache it
+ *  can't place gets the trial button. A build with the server match (a Vercel build with the key,
+ *  src/site/features/ask.ts) asks /api/match-pain first when the keywords aren't sure, so the
+ *  no-match answer gets the server's time; elsewhere nothing is asked. */
 async function painPicker(device) {
   const ctx = await newContext(device);
   const page = await open(ctx);
+  const asked = [];
+  page.on("request", (r) => {
+    if (/\/api\/match-pain$/.test(new URL(r.url()).pathname)) asked.push(r.method());
+  });
   try {
     await waitScenes(page);
     await scrollSection(page, "#features", 0, device.settle);
@@ -660,19 +667,27 @@ async function painPicker(device) {
     const a2 = await saysSoon(/time tracking/i);
     assert(/we have a feature for that/i.test(a2) && /time tracking/i.test(a2), `"my guys forget to clock out" answered "${a2}"`);
     assert((await opened("time")) === "true", "Time Tracking's card didn't open");
+    // the owner's wording, not the card's
+    await toPicker();
+    await input.fill("dozer keeps going down");
+    await input.press("Enter");
+    const a2b = await saysSoon(/equipment management/i);
+    assert(/we have a feature for that/i.test(a2b), `"dozer keeps going down" answered "${a2b}"`);
+    assert((await opened("equipment")) === "true", "Equipment Management's card didn't open");
     // no match: the trial button, right under the field
     await toPicker();
     await input.fill("my dog keeps barking at night");
     await input.press("Enter");
     const cta = answer.getByRole("button", { name: /try smartcrew/i }).first();
-    await cta.waitFor({ state: "visible", timeout: 5000 });
+    // (up to the server's 7.5 s where the build asks it)
+    await cta.waitFor({ state: "visible", timeout: 10000 });
     const a3 = await said();
     await press(page, cta, { what: "the no-match CTA" });
     await expectPopup(page);
     const s = (await signups(page)).pop();
     assert(s?.source === "features-pain", `the no-match CTA sent ${JSON.stringify(s)}`);
     await closePopup(page);
-    return `chip → "${a1}"; typed → "${a2}"; no match → "${a3.slice(0, 40)}…" + CTA → popup`;
+    return `chip → "${a1}"; typed → "${a2}"; "dozer keeps going down" → Equipment; no match → "${a3.slice(0, 40)}…" + CTA → popup; server asked ${asked.length}×`;
   } finally {
     await ctx.close();
   }

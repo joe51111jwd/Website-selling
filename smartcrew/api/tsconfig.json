@@ -1,0 +1,7 @@
+// Vercel compiles api/ with the nearest tsconfig. The page's "vite/client" types mean nothing to a
+// server function (and Vercel's check reports them missing), so they're dropped here.
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "types": [] },
+  "include": ["."]
+}

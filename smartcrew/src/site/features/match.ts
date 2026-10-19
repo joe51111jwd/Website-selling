@@ -7,8 +7,8 @@
 //
 // Text and keywords go through the same light stemmer (lower case, plurals and -ing / -ed / -es
 // endings off, a doubled last consonant undone, a final e dropped), so "timecards", "hauling",
-// "scheduled" and "breaking down" all meet their keyword. A phrase scores 3, a strong word 2, a
-// weak word 1; a word that only matches with a typo ("excavater", "timecrads": one slip in a word of
+// "scheduled" and "breaking down" all meet their keyword. A strong phrase scores 3, a strong word 2,
+// a weak word 1; a word that only matches with a typo ("excavater", "timecrads": one slip in a word of
 // 5+ letters, two in 8+, same first letter, never a short word) scores half a point less. The best
 // score wins, a tie goes to the feature named last in the text ("truck tickets" is about the
 // tickets). Under 1.5 (one weak word) is no answer; it's sure at 2 or more, clear of the runner-up.
@@ -18,6 +18,8 @@ import { FEATURES, type FeatureId } from "../../content/features";
 function stem(w: string) {
   let t = w;
   if (t.length > 4 && t.endsWith("ies")) t = t.slice(0, -3) + "y";
+  // "drawings", "meetings": the plural of an -ing word meets its keyword too
+  else if (t.length > 6 && t.endsWith("ings")) t = t.slice(0, -4);
   else if (t.length > 5 && t.endsWith("ing")) t = t.slice(0, -3);
   else if (t.length > 4 && t.endsWith("ed")) t = t.slice(0, -2);
   else if (t.length > 4 && /(ches|shes|xes|sses|zes)$/.test(t)) t = t.slice(0, -2);
@@ -42,39 +44,46 @@ const words = (s: string) =>
 type Key = { k: string[]; w: number; fuzzy: boolean };
 const KEYS: { id: FeatureId; keys: Key[] }[] = (Object.keys(FEATURES.keywords) as FeatureId[]).map((id) => {
   const { strong, weak } = FEATURES.keywords[id];
-  const keys: Key[] = [];
+  // one key per stem ("plan" and "planning" both read "plan", and count once), the strong one if both
+  const keys = new Map<string, Key>();
   for (const [list, w] of [
-    [strong, 2],
     [weak, 1],
+    [strong, 2],
   ] as const)
     for (const raw of list) {
       const k = words(raw);
-      // weak words are too common to stretch to a typo; phrases and strong words aren't
-      if (k.length) keys.push({ k, w: k.length > 1 ? 3 : w, fuzzy: k.length > 1 || w > 1 });
+      // a strong phrase outweighs a word; weak words (and phrases) stay weak, and are too common to
+      // stretch to a typo
+      if (k.length) keys.set(k.join(" "), { k, w: w > 1 && k.length > 1 ? 3 : w, fuzzy: w > 1 });
     }
-  return { id, keys };
+  return { id, keys: [...keys.values()] };
 });
 
 /** Every word some keyword spells exactly: those are read as written, never as a typo of another. */
 const EXACT = new Set(KEYS.flatMap(({ keys }) => keys.flatMap(({ k }) => k)));
 
 /**
- * Everyday words one slip from a keyword that mean something else ("keep track" isn't a truck,
- * "a lot" of anything isn't a load): never read as a typo. (From a check of the commonest English
- * words against the lists; see tools/match-test.mjs.)
+ * Everyday words a slip or two from a keyword that mean something else ("a dozen" isn't a dozer,
+ * "great" isn't grease, "unload" isn't upload): never read as a typo. Found by running the
+ * commonest English words through the matcher one at a time.
  */
 const NOT_TYPOS = new Set(
   words(
-    "track trick trunk money monkey honey hours house horse while white write wrote whole where there these those three thing think thank" +
-      " month mouth south sound round found point print paint plant place plane plate state stage shape share sharp short shirt shift" +
-      " their other order older under offer after again agent sales scale stone store story score sport spare space spice price prize" +
-      " rider wider water later layer laser lower power tower cover cower coder codes notes votes voted noted dated rated rates rated" +
-      " rocks socks locks looks books hooks cooks loads roads reads leads lends lands hands bands bands bonds funds fonds clock click" +
-      " block black blank plans plays clays class glass grass brass cross gross dross drops crops props prompt profit pivot" +
-      " fully filly filed filled field fiend friend trend tread bread break bleak cheap cheat chest crest guest quest" +
-      " still steel stall small smell spell spill skill shell sheet sheep shoot short sport spurt",
+    "alignment audio broker click complain complaint complicated compliment construct contact contrary" +
+      " contrast crash creation customary customize dozen follower generation great investor leader marker" +
+      " monkey older overheat overload overlook paint pinch point prediction prevention profile projection" +
+      " ratio resort severe snack stack trick trunk understand unload",
   ),
 );
+
+/**
+ * Phrases that look like keywords and aren't a pain: "fill out a report" isn't fill dirt, "deal
+ * with" isn't a sale, "I run a dirt company" is who's typing. Read past before matching.
+ */
+const ASIDE = [
+  "fill out", "fill in", "filled out", "deal with",
+  "dirt work", "dirt company", "dirt business", "dirt contractor",
+].map(words);
 
 const allowed = (a: string, b: string) => {
   const n = Math.min(a.length, b.length);
@@ -128,13 +137,19 @@ export type PainMatch = { id: FeatureId | null; sure: boolean };
 export function painMatch(text: string): PainMatch {
   const t = words(text);
   if (!t.length) return { id: null, sure: false };
+  // (blanked, not cut, so the words either side don't run together into a phrase)
+  for (const k of ASIDE)
+    for (let i = 0; i + k.length <= t.length; i++) if (k.every((w, j) => t[i + j] === w)) t.fill("", i, i + k.length);
   const scored: { id: FeatureId; score: number; at: number }[] = [];
   for (const { id, keys } of KEYS) {
     let score = 0;
     let at = -1;
+    // one typo reads as one keyword per feature ("complaint" isn't both "compliant" and "compliance")
+    const typos = new Set<number>();
     for (const key of keys) {
       const hit = findLast(t, key);
-      if (!hit) continue;
+      if (!hit || (hit.typo && typos.has(hit.at))) continue;
+      if (hit.typo) typos.add(hit.at);
       score += hit.typo ? key.w - 0.5 : key.w;
       at = Math.max(at, hit.at);
     }
@@ -144,9 +159,4 @@ export function painMatch(text: string): PainMatch {
   const [best, next] = scored;
   if (!best || best.score < 1.5) return { id: null, sure: false };
   return { id: best.id, sure: best.score >= 2 && (!next || best.score > next.score) };
-}
-
-/** The feature a typed pain is about, or null. */
-export function matchPain(text: string): FeatureId | null {
-  return painMatch(text).id;
 }

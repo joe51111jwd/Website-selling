@@ -338,6 +338,49 @@
   text-wrap: pretty;
 }
 
+/* while a typed headache is with the server (./ask.ts): a quiet line, three dots breathing */
+.ft-answer-wait {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 17.5px;
+  line-height: 1.35;
+  color: var(--ink-3);
+  animation: ft-say 0.3s var(--ease-out) 0.15s both;
+}
+
+.ft-answer-dots {
+  display: flex;
+  gap: 5px;
+  padding-inline: 4px;
+}
+
+.ft-answer-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: ft-dot 1s ease-in-out infinite;
+}
+
+.ft-answer-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.ft-answer-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes ft-dot {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 @keyframes ft-say {
   from {
     opacity: 0;
@@ -347,7 +390,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ft-answer-yes,
-  .ft-answer-no {
+  .ft-answer-no,
+  .ft-answer-wait {
     animation-name: ft-fade;
   }
   @keyframes ft-fade {

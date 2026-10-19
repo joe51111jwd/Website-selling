@@ -1,13 +1,17 @@
 // The pain picker (James: "Type in your biggest pain, or select one of the pre-pains… and it'll be
 // like, 'We have a feature for that.'"): six preset chips (FEATURES.pain.chips, each pointing at
 // one of the ten features), and a field to type your own. A pick answers "We have a feature for that." with the feature's name and opens its card
-// (and, on desktop, its screen in the app). Typed text is matched in the browser (./match.ts) and
-// never sent or kept; no match answers with Andrew's trial call and the primary button.
+// (and, on desktop, its screen in the app). Typed text is matched in the browser first (./match.ts),
+// instantly; when that isn't sure, and the build has the server function, it goes to
+// /api/match-pain (./ask.ts) for a second opinion while the answer line says "Finding it…", and
+// anything wrong there falls back to the browser's guess. Nothing typed is kept. No match answers
+// with Andrew's trial call and the primary button.
 
-import { useId, useState, type FormEvent } from "react";
+import { useId, useRef, useState, type FormEvent } from "react";
 import { FEATURES, type FeatureId } from "../../content/features";
 import { Cta } from "../ui/Cta";
-import { matchPain } from "./match";
+import { painMatch } from "./match";
+import { askOn, askPain } from "./ask";
 import { featureById } from "./data";
 
 export type Answer = { kind: "yes"; id: FeatureId; chip: boolean } | { kind: "no" } | null;
@@ -23,13 +27,30 @@ export function PainPicker({ answer, onAnswer }: Props) {
   const qid = useId();
   const fid = useId();
   const [text, setText] = useState("");
+  const [thinking, setThinking] = useState(false);
+  // each pick's number: a server answer that comes back after a newer pick (a chip, another try) is dropped
+  const pick = useRef(0);
 
-  const submit = (e: FormEvent) => {
+  const say = (a: Answer) => {
+    pick.current++;
+    setThinking(false);
+    onAnswer(a);
+  };
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const t = text.trim();
     if (!t) return;
-    const id = matchPain(t);
-    onAnswer(id ? { kind: "yes", id, chip: false } : { kind: "no" });
+    const local = painMatch(t);
+    const yesOrNo = (id: FeatureId | null): Answer => (id ? { kind: "yes", id, chip: false } : { kind: "no" });
+    if (local.sure || !askOn) return say(yesOrNo(local.id));
+    const n = ++pick.current;
+    setThinking(true);
+    onAnswer(null);
+    const ai = await askPain(t);
+    if (n !== pick.current) return;
+    // the model's word when it gave one (a feature, or none fits); the browser's guess when it couldn't
+    say(yesOrNo(ai === undefined ? local.id : ai));
   };
 
   const picked = answer?.kind === "yes" && answer.chip ? answer.id : null;
@@ -48,7 +69,7 @@ export function PainPicker({ answer, onAnswer }: Props) {
               className="ft-chip"
               aria-pressed={picked === c.id}
               data-cursor="link"
-              onClick={() => onAnswer({ kind: "yes", id: c.id, chip: true })}
+              onClick={() => say({ kind: "yes", id: c.id, chip: true })}
             >
               {c.label}
             </button>
@@ -79,8 +100,18 @@ export function PainPicker({ answer, onAnswer }: Props) {
           </button>
         </form>
       </div>
-      <div className="ft-answer" aria-live="polite">
-        {answer?.kind === "yes" && (
+      <div className="ft-answer" aria-live="polite" aria-busy={thinking}>
+        {thinking && (
+          <p className="ft-answer-wait" key="wait">
+            <span className="ft-answer-dots" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+            <span>{C.thinking}</span>
+          </p>
+        )}
+        {!thinking && answer?.kind === "yes" && (
           <p className="ft-answer-yes" key={`${answer.id}-${answer.chip}`}>
             <span className="ft-answer-check" aria-hidden="true">
               <svg viewBox="0 0 16 16" fill="none">
@@ -92,7 +123,7 @@ export function PainPicker({ answer, onAnswer }: Props) {
             </span>
           </p>
         )}
-        {answer?.kind === "no" && (
+        {!thinking && answer?.kind === "no" && (
           <div className="ft-answer-no" key="no">
             <p>{C.noMatch}</p>
             <Cta source="features-pain" size="md" className="ft-answer-cta" />
