@@ -166,6 +166,12 @@ export default function NumberPhone() {
   return (
     <div ref={ref} className={`nph wrap${arrived ? " is-in" : ""}${complete ? " is-done" : ""}`}>
       <h2 className="t-h2 nph-title">{CALC.title}</h2>
+      <p className="nph-stat">
+        {CALC.stat}
+        <span className="flag" title={CALC.statFlag} aria-label={CALC.statFlag}>
+          {FLAG}
+        </span>
+      </p>
 
       {stage >= 2 && <CrewCanvas value={crew} rows={short ? 5 : 6} arrived={arrived} onFirst={() => touch("crew")} onChange={setCrew} onDrag={setDragging} />}
 

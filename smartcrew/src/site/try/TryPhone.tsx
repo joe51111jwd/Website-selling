@@ -73,18 +73,15 @@ export default function TryPhone() {
     <div ref={ref} className={`tp${isIn ? " is-in" : ""}${clock.on ? " is-on" : ""}${focus.open ? " is-focus" : ""}`}>
       {/* the line before the tap, and after it (crossfaded in place, no layout change) */}
       <div className="tp-head wrap">
-        <div className="tp-swap">
-          <h2 className="t-h2 tp-title tp-a">{TRY_IT.title}</h2>
-          <p className="t-h2 tp-title tp-b" aria-hidden={!clock.on}>
-            {TRY_IT.done}
-          </p>
-        </div>
-        <div className="tp-swap">
-          <p className="tp-prompt tp-a">{TRY_IT.prompt}</p>
-          <p className="tp-prompt tp-b" aria-hidden={!clock.on}>
-            {TRY_IT.doneSub}
-          </p>
-        </div>
+        <h2 className="t-h2 tp-title">{TRY_IT.title}</h2>
+        <p className="tp-prompt">{TRY_IT.sub}</p>
+        {/* Andrew's round 2 nudge, pointing down at the app (beside the phone on desktop) */}
+        <p className="tp-nudge">
+          {TRY_IT.nudge}
+          <svg className="tp-nudge-arrow" viewBox="0 0 16 22" fill="none" aria-hidden="true">
+            <path d="M8 2v16M2.5 12.5 8 18l5.5-5.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </p>
       </div>
 
       <div ref={app} className="tp-app tp-ui" data-cursor="hide">
@@ -106,7 +103,7 @@ export default function TryPhone() {
       {sheet && (
         <div className="tp-sheet" role="status">
           <span className="sr-only">
-            {TRY_IT.live} {TRY_IT.done} {TRY_IT.doneSub}
+            {TRY_IT.live}
           </span>
           <p className="tp-stamp" aria-hidden="true">
             {TRY_IT.site} · {TRY_IT.clocked.replace("{time}", stamp)}

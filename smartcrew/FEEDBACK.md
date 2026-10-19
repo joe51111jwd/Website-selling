@@ -4,6 +4,31 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## Andrew's round 2, in classic (Oct 19)
+
+Andrew's "Website Feedback" doc as of Oct 19 18:43Z (everything from "Other Tweaks - 10/17" on is new).
+The agency owner: "declutter, focus on the main one, and update that main one with all the updates that he
+wants." Built into classic, the default link (html.look-classic scopes the fold and popup additions);
+glass, focus, bold and optimized get no design work, and the sections they share carry the new copy.
+Change list: /mnt/project-files/smartcrew/andrew-feedback-round-2.md.
+
+1. **Done. Fold:** "Featured by" over "ConExpo" on two lines above the headline (the word stands in for
+   the logo: `config.conexpoLogo` once Andrew sends the file). Carried over from "optimize the main one"
+   where it doesn't clash with Andrew: Katie's quote under the button, the sign-up form's three answers,
+   and the price slots (off; `?review` shows them). The laptop fold grows past one screen when a short
+   screen can't hold it, so nothing overlaps the logos.
+2. **Done. Replace 5 apps:** MaintainX beside Fleetio on Fleet Management (a letter mark until Andrew
+   sends the logo file).
+3. **Done. Try it:** "So Simple… Your Crew Will Actually Use It", "Simple for the field. Robust for
+   leadership.", the trial button always there, and beside the phone "…But don't take our word for it…
+   Try it yourself." with an arrow to it. The two facts are cut.
+4. **Done. Calculator:** his headline and the APA line (⚑: no traceable source found), minutes
+   10/15/30/45/60 (30), 15 people, $20/30/40/50 ($30).
+5. **Done. FAQ:** "Got questions? We've got answers." + his sub, his 13 questions and answers word for
+   word, and the close "Ready to simplify your business?" + his line. The close stays in view on laptops.
+6. **Waiting on Andrew:** the new logo (his Drive link isn't shared with us), the ConExpo and MaintainX
+   logo files, and a source for the APA figure.
+
 ## Try it week strip (the agency owner, Oct 19: "fix alignemnt.")
 
 1. **Done. Day numbers and names centred in their tiles**, in every look. The demo's button reset

@@ -211,36 +211,24 @@ export function TryDesk() {
     <div className="try-grid wrap">
       <div className="try-copy">
         <h2 className="t-h2 try-title">{TRY_IT.title}</h2>
+        <p className="t-lead try-sub">{TRY_IT.sub}</p>
+        <div className="try-actions">
+          <SceneCta request={() => ({ intent: "trial", source: "try" })} />
+        </div>
+        {/* once clocked in (by the visitor or the self demo): a way back to the start */}
         <div className="try-say" aria-live="polite">
-          <AnimatePresence mode="wait" initial={false}>
-            {!clock.on ? (
-              <motion.p
-                key="prompt"
-                className="t-lead try-prompt"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.35, ease }}
-              >
-                {TRY_IT.prompt.replace(TRY_IT.promptTap, "").trim()}
-                <strong>{TRY_IT.promptTap}</strong>
-              </motion.p>
-            ) : (
+          <AnimatePresence initial={false}>
+            {clock.on && (
               <motion.div
                 key="done"
                 ref={doneRef}
                 tabIndex={-1}
                 className="try-done"
-                initial={{ opacity: 0, y: 14 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.55, ease, delay: 0.25 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4, ease, delay: 0.2 }}
               >
-                <p className="t-h3 try-done-1">{TRY_IT.done}</p>
-                <p className="t-lead try-done-2">{TRY_IT.doneSub}</p>
-                <div className="try-actions">
-                  <SceneCta request={() => ({ intent: "trial", source: "try" })} />
-                </div>
                 <button type="button" className="link try-again" onClick={onClockOut}>
                   {TRY_IT.again}
                 </button>
@@ -298,13 +286,15 @@ export function TryDesk() {
 
       <FocusLayer open={focus.open} soft={focus.soft} hole={focus.hole} onExit={focus.exit} variant="desk" holeRef={holeRef} />
 
-      <ul className="try-facts">
-        {TRY_IT.facts.map((f) => (
-          <li key={f.lead} data-cursor="text">
-            <strong>{f.lead}</strong> {f.rest}
-          </li>
-        ))}
-      </ul>
+      {/* Andrew's round 2: "…But don't take our word for it… Try it yourself." with an arrow to the phone */}
+      <div className="try-nudge" aria-hidden="true">
+        <p className="try-nudge-lead">{TRY_IT.nudgeLead}</p>
+        <p className="try-nudge-try">{TRY_IT.nudge}</p>
+        <svg className="try-nudge-arrow" viewBox="0 0 200 24" fill="none">
+          <path d="M196 12H8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray="9 9" />
+          <path d="M17 3 6 12l11 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
     </div>
   );
 }

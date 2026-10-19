@@ -1,0 +1,122 @@
+/* The classic fold's round-2 additions (Andrew, Oct 19; src/lib/look.ts html.look-classic): "Featured by"
+   over the ConExpo logo on two lines above the headline, and Katie's quote right under the button
+   (carried over from the bold look: the click simulator's one repeat winner). Light, quiet, centred
+   like the rest of the classic fold; the orange button stays the one bright thing. */
+
+/* laptops: the fold is at least one screen tall and grows when a short screen can't hold it all, so
+   nothing overlaps the logos */
+@media (min-width: 761px) {
+  html.look-classic .hf4 .hf-root {
+    height: auto;
+    min-height: max(100svh, 540px);
+  }
+}
+
+html.look-classic .hf-featured {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  line-height: 1.1;
+}
+
+html.look-classic .hf-featured-k {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* the event's name stands in for its logo until Andrew sends the file (config.conexpoLogo) */
+html.look-classic .hf-featured-name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+html.look-classic .hf-featured-logo {
+  display: block;
+  width: auto;
+  height: 30px;
+}
+
+/* Katie's quote, under the button and the demo link */
+html.look-classic .hb-proof {
+  max-width: 30em;
+  margin: clamp(14px, 2.4svh, 24px) auto 0;
+  text-align: center;
+}
+
+html.look-classic .hb-proof blockquote {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+html.look-classic .hb-proof figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: var(--ink-3);
+}
+
+html.look-classic .hb-proof-photo {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+html.look-classic .hb-proof-photo.is-slot {
+  border: 1.5px dashed var(--ink-3);
+}
+
+/* the price by the button, once Andrew sets one (src/lib/offer.ts; a review build shows the ⚑ slot) */
+html.look-classic .hb-price {
+  margin: 10px 0 0;
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+html.look-classic .hb-price i {
+  color: var(--ink-3);
+}
+
+/* short laptop screens: the quote tightens */
+@media (min-width: 761px) and (max-height: 760px) {
+  html.look-classic .hb-proof {
+    margin-top: 12px;
+  }
+  html.look-classic .hb-proof blockquote {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 760px) {
+  html.look-classic .hf-featured-k {
+    font-size: 11.5px;
+  }
+  html.look-classic .hf-featured-name {
+    font-size: 19px;
+  }
+  html.look-classic .hf-featured-logo {
+    height: 24px;
+  }
+  html.look-classic .hb-proof {
+    margin-top: 14px;
+  }
+  html.look-classic .hb-proof blockquote {
+    font-size: 15px;
+  }
+}

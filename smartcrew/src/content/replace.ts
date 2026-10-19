@@ -33,7 +33,11 @@ export const REPLACE = {
       id: "fleet",
       name: "Fleet Management",
       line: "Keep equipment, service, and maintenance records together.",
-      apps: [{ name: "Fleetio", letter: "F" }],
+      // Andrew's round 2 (Oct 19): add MaintainX (a letter mark until he sends the logo file)
+      apps: [
+        { name: "Fleetio", letter: "F" },
+        { name: "MaintainX", letter: "M" },
+      ],
     },
     {
       id: "crm",

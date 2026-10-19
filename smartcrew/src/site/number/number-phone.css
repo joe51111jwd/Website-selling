@@ -25,9 +25,17 @@ html .site > .scene.num--phone[data-warm] {
 }
 
 .nph-title {
-  font-size: clamp(27px, 7.8vw, 33px);
-  line-height: 1.03;
-  max-width: 10.5em;
+  font-size: clamp(25px, 7vw, 30px);
+  line-height: 1.05;
+  max-width: 12em;
+}
+
+/* Andrew's line under the title (round 2) */
+.nph-stat {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink-2);
 }
 
 /* ── the crew ───────────────────────────────────────────────────────────── */

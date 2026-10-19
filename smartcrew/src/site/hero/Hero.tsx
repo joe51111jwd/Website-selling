@@ -13,7 +13,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, type CSSProperties } from 
 import { CTA, FLAG, HERO4, LOGOS, LOGO_VECTORS, OFFER, PROOF } from "../../content/copy";
 import { config } from "../../config";
 import { SHOW_FLAGS } from "../../lib/flags";
-import { BOLD, OPTIMIZED } from "../../lib/look";
+import { BOLD, CLASSIC, OPTIMIZED } from "../../lib/look";
 import { PRICED, PRICE_SLOTS, priceFrom } from "../../lib/offer";
 import { Flag } from "../../signup/Flag";
 import { Scene } from "../scene/Scene";
@@ -27,6 +27,7 @@ import "./hero.css";
 import "./focus.css";
 import "./bold.css";
 import "./optimized.css";
+import "./classic.css";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -93,7 +94,25 @@ export default function Hero() {
         )}
 
         <div className="hf-copy">
-          {!OPTIMIZED && <p className="hf-eyebrow">{HERO4.featured}</p>}
+          {CLASSIC ? (
+            // Andrew's round 2: "Featured by" over the ConExpo logo, on two lines ("ConExpo is the World's
+            // Largest Construction event… super high trust building")
+            <p className="hf-featured">
+              <span className="hf-featured-k">{HERO4.featuredBy}</span>
+              {config.conexpoLogo ? (
+                <img className="hf-featured-logo" src={BASE + config.conexpoLogo} alt={HERO4.featuredName} height={30} decoding="async" />
+              ) : (
+                <span className="hf-featured-name">
+                  {HERO4.featuredName}
+                  <span className="flag" title={HERO4.featuredNote} aria-label={HERO4.featuredNote}>
+                    {FLAG}
+                  </span>
+                </span>
+              )}
+            </p>
+          ) : (
+            !OPTIMIZED && <p className="hf-eyebrow">{HERO4.featured}</p>
+          )}
           <h1 className="hf-h1">
             <span className="sr-only">{HERO4.h1}</span>
             <span className="hf-h1-v" aria-hidden="true">
@@ -117,7 +136,7 @@ export default function Hero() {
             </span>
             <DemoLink source="hero" className="hf-demo" />
           </div>
-          {BOLD && PRICE_SLOTS && (!PRICED || priceFrom()) && (
+          {PRICE_SLOTS && (!PRICED || priceFrom()) && (
             // the price right by the button, once Andrew sets a starting figure ("no price anywhere" was
             // the top objection; src/lib/offer.ts); a review build shows the ⚑ slot
             <p className="hb-price">
@@ -131,9 +150,10 @@ export default function Hero() {
               {CTA.micro}
             </p>
           )}
-          {BOLD && (
+          {(BOLD || CLASSIC) && (
             // the click simulator's one repeat winner: Katie's quote right under the button (won 7 of 8
-            // blind head-to-heads; /mnt/project-files/click-science/simulation/findings.md)
+            // blind head-to-heads; /mnt/project-files/click-science/simulation/findings.md); classic
+            // too since Oct 19 (James: "optimize the main one")
             <figure className="hb-proof">
               <blockquote>“{PROOF.katie.text}”</blockquote>
               <figcaption>

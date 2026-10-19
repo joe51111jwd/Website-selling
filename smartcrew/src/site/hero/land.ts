@@ -7,7 +7,7 @@
 //
 // PHONE MODE: the same, with the phone's line breaks; transform and opacity only, no rAF.
 
-import { BOLD, GLASS } from "../../lib/look";
+import { BOLD, CLASSIC, GLASS } from "../../lib/look";
 import { markFirstScreenDone, markPageReady } from "../ready";
 import { contoursSliced, type Rect, type TopoInput } from "./fence/topo";
 
@@ -38,8 +38,10 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
     const cs = col ? getComputedStyle(col) : null;
     const avail = cs ? col!.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) : Math.min(root.clientWidth - g * 2, phone ? 9999 : 1240);
     let fs = (avail / widest) * 100 * 0.98;
-    // desktop: the headline never takes more than ~44% of the screen's height
-    if (!phone) fs = Math.min(fs, (root.clientHeight * 0.44) / (lines.length * 0.98));
+    // desktop: the headline never takes more than ~44% of the screen's height; classic's fold carries
+    // more since round 2 ("Featured by" ConExpo, Katie's quote) and grows past the screen when it must
+    // (./classic.css), so its share is smaller and measured against the screen itself
+    if (!phone) fs = Math.min(fs, CLASSIC ? (Math.min(root.clientHeight, innerHeight) * 0.34) / (lines.length * 0.98) : (root.clientHeight * 0.44) / (lines.length * 0.98));
     const lim = phone ? 0 : 1;
     fs = Math.max(lim ? FS_MIN.desk : FS_MIN.phone, Math.min(lim ? FS_MAX.desk : FS_MAX.phone, fs));
     h1.style.setProperty("--fs", `${fs.toFixed(1)}px`);
@@ -71,10 +73,13 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
       ...boxOf(document.querySelector(".site-logo"), 8),
       ...(!phone ? [...document.querySelectorAll(".site-nav a")].flatMap((a) => textRects(a, 6)) : []),
       ...textRects(q(".hf-eyebrow"), 8),
+      ...boxOf(q(".hf-featured"), 8),
       ...[...root.querySelectorAll(".hf-line-in")].flatMap((l) => textRects(l, phone ? 6 : 10)),
       ...textRects(q(".hf-sub"), 8),
       ...boxOf(q(".hf-cta-wrap"), 10, 22),
       ...textRects(q(".hf-demo"), 6),
+      ...boxOf(q(".hb-price"), 6),
+      ...boxOf(q(".hb-proof"), 10),
       ...boxOf(q(".hf-logos"), 6),
     ];
     const input: TopoInput = {
@@ -128,6 +133,7 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
       );
     };
     up(q(".hf-eyebrow"), 60, 520, 6);
+    up(q(".hf-featured"), 60, 520, 6);
     up(q(".hf-h1"), 100, 560, 8);
     up(q(".hf-sub"), 160);
     up(q(".hf-act"), 240);

@@ -4,6 +4,7 @@ import "../styles/tokens.css";
 import "./signup.css";
 import "./glass.css";
 import "./bold.css";
+import "./classic.css";
 import { SIZES, openSignup, type Estimate, type Intent, type SignupRequest, type Size } from "./contract";
 import {
   EMPTY_DRAFT,
@@ -28,7 +29,7 @@ import { track, trackCustom } from "../lib/track";
 import { aCall, config } from "../config";
 import { OFFER } from "../content/copy";
 import { SHOW_FLAGS } from "../lib/flags";
-import { BOLD } from "../lib/look";
+import { BOLD, CLASSIC } from "../lib/look";
 import { PRICE_SLOTS, TRIAL_FIRST, priceFor } from "../lib/offer";
 import Preview from "./Preview";
 import { Flag } from "./Flag";
@@ -624,7 +625,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
                           onBlur={() => onBlur("company")}
                           input={{ name: "organization", autoComplete: "organization", autoCapitalize: "words", enterKeyHint: "next", maxLength: 80, spellCheck: false }}
                         />
-                        {BOLD && intent !== "demo" && <Answers />}
+                        {(BOLD || CLASSIC) && intent !== "demo" && <Answers />}
                       </div>
                     )}
 

@@ -116,7 +116,15 @@ function Calculator() {
   const blank = <span className="num-blank">–</span>;
   return (
     <div className="num-grid-wrap wrap">
-      <h2 className="t-h2 num-title">{CALC.title}</h2>
+      <div className="num-head">
+        <h2 className="t-h2 num-title">{CALC.title}</h2>
+        <p className="num-stat">
+          {CALC.stat}
+          <span className="flag" title={CALC.statFlag} aria-label={CALC.statFlag}>
+            {FLAG}
+          </span>
+        </p>
+      </div>
 
       <div className="num-in">
         <CrewSlider value={crew} onChange={setCrew} onFirst={() => touch("crew")} onArrive={() => setArrived(true)} onDrag={setDragging} />

@@ -35,38 +35,10 @@ html .site > .scene.try--phone[data-warm] {
   padding-bottom: clamp(12px, 2.4svh, 18px);
 }
 
-/* before / after the tap, stacked in one cell: the taller one sets the height */
-.tp-swap {
-  display: grid;
-}
-
-.tp-swap > * {
-  grid-area: 1 / 1;
-  transition:
-    opacity 0.35s var(--ease-out),
-    transform 0.5s var(--ease-out);
-}
-
-.tp-swap > .tp-b {
-  opacity: 0;
-  transform: translate3d(0, 10px, 0);
-}
-
-.tp.is-on .tp-swap > .tp-a {
-  opacity: 0;
-  transform: translate3d(0, -10px, 0);
-}
-
-.tp.is-on .tp-swap > .tp-b {
-  opacity: 1;
-  transform: none;
-  transition-delay: 0.12s;
-}
-
 .tp-title {
-  font-size: clamp(28px, 8vw, 34px);
+  font-size: clamp(26px, 7.4vw, 32px);
   line-height: 1.03;
-  max-width: 10em;
+  max-width: 11em;
 }
 
 .tp-prompt {
@@ -74,6 +46,27 @@ html .site > .scene.try--phone[data-warm] {
   font-size: 16px;
   line-height: 1.35;
   color: var(--ink-2);
+}
+
+/* "Try it yourself." pointing down at the app; it steps aside once he has clocked in */
+.tp-nudge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 650;
+  color: var(--ink);
+  transition: opacity 0.3s var(--ease-out);
+}
+
+.tp-nudge-arrow {
+  width: 14px;
+  height: 19px;
+}
+
+.tp.is-on .tp-nudge {
+  opacity: 0;
 }
 
 /* the app: edge to edge under the line, a white sheet with rounded top corners */
@@ -286,7 +279,7 @@ html .site > .scene.try--phone[data-warm] {
   .tp .sc-tabbar {
     animation: none;
   }
-  .tp-swap > *,
+  .tp-nudge,
   .tp-app {
     transition: none;
   }

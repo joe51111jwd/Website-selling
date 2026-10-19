@@ -1,6 +1,7 @@
 // The two offer switches only Andrew can decide (click-science playbook §8b): a price on the page, and
-// the free trial before the call. Both are built and off (src/config.ts), and both live in the bold look
-// only, so classic (Andrew's link), glass and focus never change.
+// the free trial before the call. Both are built and off (src/config.ts). The price lives in the bold look
+// and, since Andrew's round 2 (Oct 19), in classic, the main link; the trial-first flow in bold only (the
+// booking flow is parked: James, Oct 19). Glass and focus never change.
 //
 // A review build (?review, src/lib/flags.ts) shows where they go before Andrew fills them in: each price
 // slot carries a ⚑ placeholder, and ?trial=first turns the trial-first flow on for the visit (it sticks,
@@ -8,7 +9,7 @@
 
 import { config } from "../config";
 import { SHOW_FLAGS } from "./flags";
-import { BOLD } from "./look";
+import { BOLD, CLASSIC } from "./look";
 
 const TRIAL_KEY = "sc-trial";
 
@@ -28,9 +29,9 @@ export const TRIAL_FIRST = BOLD && (config.trialFirst || trialAsked());
 
 const P = config.pricing;
 /** Andrew has set a price. */
-export const PRICED = BOLD && !!P && !!(P.from || (P.bands && Object.keys(P.bands).length));
+export const PRICED = (BOLD || CLASSIC) && !!P && !!(P.from || (P.bands && Object.keys(P.bands).length));
 /** The price slots show: with Andrew's price, or with a ⚑ placeholder on a review build. */
-export const PRICE_SLOTS = BOLD && (PRICED || SHOW_FLAGS);
+export const PRICE_SLOTS = (BOLD || CLASSIC) && (PRICED || SHOW_FLAGS);
 
 const per = () => (P?.per ? ` ${P.per}` : "");
 

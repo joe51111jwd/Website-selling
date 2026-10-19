@@ -70,8 +70,12 @@ export const config = {
   trialFirst: false,
   trialStartUrl: "",
 
-  /** Katie's photo next to her quote under the bold hero's button (a file in public/). ⚑ Empty until she OKs it. */
+  /** Katie's photo next to her quote under the hero's button (bold and classic; a file in public/). ⚑ Empty until she OKs it. */
   katiePhoto: "",
+
+  /** The ConExpo logo over classic's headline ("Featured by", Andrew's round 2; a file in public/). ⚑ Empty until
+   *  Andrew sends the file: the word "ConExpo" stands in for it. */
+  conexpoLogo: "",
 
   privacyUrl: "https://smartcrewhq.com/privacy-policy",
   termsUrl: "https://smartcrewhq.com/terms-of-service",

@@ -19,6 +19,11 @@
 // It sets html.look-bold too, so it carries everything bold has (Katie's quote under the button, the
 // sign-up form's answers, Watch it work and Try it), plus html.look-optimized for the first screen.
 //
+// Round 2 of Andrew's feedback (Oct 19; James: "focus on the main one, and update that main one with all the
+// updates that he wants") is built into classic alone: html.look-classic scopes its own fold and popup
+// additions (src/site/hero/classic.css, src/signup/classic.css), so glass and focus, which share the
+// classic page underneath, keep their folds.
+//
 // ?look=glass, ?look=focus, ?look=bold, ?look=optimized and ?look=classic pick one; it sticks for the session, so the popup and
 // /book keep the look the visitor arrived with. A build made with VITE_LOOK=glass or focus starts in it.
 
@@ -46,6 +51,8 @@ function read(): Look {
 }
 
 export const LOOK = read();
+/** The classic look, the default link: the one that gets Andrew's round-2 changes. */
+export const CLASSIC = LOOK === "classic";
 /** The glass styling is on (the glass look, and the focus look built on it). */
 export const GLASS = LOOK === "glass" || LOOK === "focus";
 /** The focus look: one point per screen. */
@@ -56,6 +63,7 @@ export const BOLD = LOOK === "bold" || LOOK === "optimized";
 export const OPTIMIZED = LOOK === "optimized";
 
 if (typeof document !== "undefined") {
+  document.documentElement.classList.toggle("look-classic", CLASSIC);
   document.documentElement.classList.toggle("look-glass", GLASS);
   document.documentElement.classList.toggle("look-focus", FOCUS);
   document.documentElement.classList.toggle("look-bold", BOLD);

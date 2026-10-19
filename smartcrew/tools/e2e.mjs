@@ -705,9 +705,9 @@ async function tryIt(device) {
       await wait(700);
     }
     await press(page, clockIn, { what: "Clock In" });
-    await sec.getByText(/that.s the whole training/i).first().waitFor({ state: "attached", timeout: 8000 });
-    // the CTA under "That's the whole training.", or (while the tap has dimmed the rest of the
-    // page: focus mode, src/site/try/focus.tsx) the one beside the phone / in the dimmed header
+    await sec.getByText(/currently working on/i).first().waitFor({ state: "attached", timeout: 8000 });
+    // the CTA under the headline (or on phones the sheet's), or (while the tap has dimmed the rest of
+    // the page: focus mode, src/site/try/focus.tsx) the one beside the phone / in the dimmed header
     const ctas = [sec.getByRole("button", { name: /get my free trial/i }).first(), page.locator(".fx.is-open .fx-cta").getByRole("button", { name: /get my free trial/i }).first()];
     let cta = null;
     for (const t0 = Date.now(); !cta && Date.now() - t0 < 6000; ) {
@@ -720,7 +720,7 @@ async function tryIt(device) {
     const s = (await signups(page)).pop();
     assert(s?.source === "try", `Try it CTA sent ${JSON.stringify(s)}`);
     await closePopup(page);
-    return "tap → clocked in → \"That's the whole training.\" → CTA → popup";
+    return "tap → clocked in → CTA → popup";
   } finally {
     await ctx.close();
   }
@@ -745,13 +745,13 @@ async function yourNumber(device) {
     assert(now === "18", `slider at ${now}, expected 18`);
     for (const [group, value] of [
       [/minutes lost/i, "15"],
-      [/hourly/i, "$45"],
+      [/hourly/i, "$40"],
     ]) {
       const b = sec.getByRole("group", { name: group }).getByRole("button", { name: value, exact: true });
       await b.scrollIntoViewIfNeeded();
       await press(page, b, { what: `the ${value} pick` });
     }
-    const expected = (18 * 15 * 250 * 45) / 60; // crew × minutes × 250 workdays × $/hr ÷ 60
+    const expected = (18 * 15 * 250 * 40) / 60; // crew × minutes × 250 workdays × $/hr ÷ 60
     const cta = sec.getByRole("button", { name: /get my free trial/i }).first();
     await cta.scrollIntoViewIfNeeded();
     await press(page, cta, { what: "the calculator's CTA" });
@@ -765,7 +765,7 @@ async function yourNumber(device) {
     assert(dlg.includes("13–25"), "the popup doesn't show the crew size as saved");
     assert(dlg.includes(money), `the popup doesn't show the estimate ${money}`);
     await closePopup(page);
-    return `18 people × 15 min × $45 → ${money} a year, carried into the popup (crew size 13–25 pre-filled)`;
+    return `18 people × 15 min × $40 → ${money} a year, carried into the popup (crew size 13–25 pre-filled)`;
   } finally {
     await ctx.close();
   }

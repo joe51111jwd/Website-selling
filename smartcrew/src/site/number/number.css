@@ -29,9 +29,22 @@
   padding-bottom: clamp(16px, 3.4svh, 36px);
 }
 
-.num-title {
+.num-head {
   grid-column: 1 / -1;
+}
+
+.num-title {
   max-width: 18em;
+}
+
+/* Andrew's line under the title (round 2) */
+.num-stat {
+  max-width: 44em;
+  margin: clamp(10px, 1.6svh, 16px) 0 0;
+  font-size: clamp(16px, 0.25vw + 13.5px, 18px);
+  line-height: 1.45;
+  color: var(--ink-2);
+  text-wrap: pretty;
 }
 
 /* ── inputs ─────────────────────────────────────────────────────────────── */

@@ -145,6 +145,11 @@ export const HERO = {
  */
 export const HERO4 = {
   featured: "Featured at ConExpo",
+  /** Classic, Andrew's round 2: "Featured by" over the ConExpo logo, on two lines (the name stands in for the
+   *  logo until he sends the file, config.conexpoLogo) */
+  featuredBy: "Featured by",
+  featuredName: "ConExpo",
+  featuredNote: "Andrew: send the ConExpo logo file; it takes this word’s place",
   h1: `The Simplest All-In-One Software For Heavy Civil & Dirtwork Companies With ${T.SIZE} Employees`,
   fence: "Heavy Civil & Dirtwork",
   lines: {
@@ -169,12 +174,14 @@ export const LOGOS: { name: string; src: string; aspect: number }[] = [
 
 // ─── Scene headlines (starting points from the brief; scene owners refine) ──
 export const TRY = {
-  title: "Your guys won’t fight this one.",
-  done: "That’s the whole training.",
+  /** Andrew's round 2 (Oct 19), verbatim: the later of his two versions of this section */
+  title: "So Simple… Your Crew Will Actually Use It",
+  sub: "Simple for the field. Robust for leadership.",
 };
 
 export const NUMBER = {
-  title: "What’s loose time costing you?",
+  /** Andrew's round 2 (Oct 19), verbatim */
+  title: "How Much Profit Are You Losing In Misallocated Time?",
   hint: "Think of one guy who writes 7:00 when he showed up at 7:10.",
 };
 
@@ -190,7 +197,9 @@ export const APPS = {
   footnote: "Trademarks belong to their owners. QuickBooks is integrated, not replaced.",
 };
 
-export const FAQ_TITLE = "Questions contractors ask";
+/** Andrew's round 2 (Oct 19), verbatim */
+export const FAQ_TITLE = "Got questions? We've got answers.";
+export const FAQ_SUB = "Everything you need to know about getting your crews connected, eliminating paperwork, and running more profitable jobs.";
 
 export const FOOTER = {
   /** CC-BY-4.0 credit, shown in the footer only if a scene ever shows the XDR (none does today). */
@@ -202,19 +211,11 @@ export const FOOTER = {
 // Select your task → Clock out", L FAQ (battery, privacy). The prompts are UI instructions, not claims.
 export const TRY_IT = {
   title: TRY.title,
-  /** Desktop, next to the 3D phone, before the tap. */
-  prompt: "This is what your crew sees. Tap Clock In.",
-  /** The instruction at the end of the prompt, set in ink. */
-  promptTap: "Tap Clock In.",
-  /** Phone, above the app before it goes full screen. */
-  promptPhone: "This is what your crew sees. Scroll, then tap Clock In.",
-  done: TRY.done,
-  doneSub: "Your crew gets this.",
-  /** The two quiet facts (L FAQ), split so the first words can carry the weight. */
-  facts: [
-    { lead: "It runs in the background", rest: "without draining batteries or being shut down by accident." },
-    { lead: "No data is shared,", rest: "so your crew doesn’t have to worry about privacy." },
-  ],
+  sub: TRY.sub,
+  /** Andrew's round 2 mock: beside the phone, with an arrow pointing at it (he cut the two facts that
+   * stood there), so people see it's the real app and not a screenshot */
+  nudgeLead: "…But don’t take our word for it…",
+  nudge: "Try it yourself.",
   /** The jobsite's geofence tag (same job as the hero's tag and the phone screen). */
   site: INTRO.site,
   /** Tag once clocked in; {time} = the visitor's local time. */
@@ -233,12 +234,17 @@ export const CALC = {
   crewUnit: "people in the field",
   crewUnitOne: "person in the field",
   crewEmpty: "Drag to your crew size",
+  /** Andrew's round 2 (Oct 19), verbatim. ⚑ no traceable source found for the figure (Oct 17 buyer research) */
+  stat: "The American Payroll Association estimates that employees overestimate their hours by 45 minutes per day.",
+  statFlag: "Andrew to confirm the source: we couldn’t trace this figure to the American Payroll Association",
   minutesLabel: "Minutes lost per person, per day",
-  minutes: [5, 10, 15, 20, 30],
+  /** Andrew's round 2: 10 / 15 / 30 / 45 / 60, 30 the default (calc.ts PRESET) */
+  minutes: [10, 15, 30, 45, 60],
   hint: NUMBER.hint,
   rateLabel: "Hourly cost per field employee",
   rateNote: "wage + taxes + insurance",
-  rates: [25, 35, 45, 55],
+  /** Andrew's round 2: 20 / 30 / 40 / 50, 30 the default */
+  rates: [20, 30, 40, 50],
   days: 250,
   daysLabel: "workdays a year (edit if different)",
   /** Before all three inputs are set. */
@@ -367,41 +373,127 @@ export const WHY = {
   signatureAlt: "Andrew’s signature",
 };
 
-/** Section 8 (PLAYBOOK §S8): answers start with the fact; GREEN/AMBER only. */
-export const FAQS: { id: string; q: string; a: string; flag?: string }[] = [
+/** The FAQ: Andrew's round 2 (Oct 19), his 13 questions and answers word for word (one string per
+ *  paragraph). `id`s are ours: "cost" carries the price slot, "trial" the trial-first answer (bold
+ *  look only, src/lib/offer.ts). */
+export const FAQS: { id: string; q: string; a: string[]; flag?: string }[] = [
   {
-    id: "why-call",
-    q: "Why a call?",
-    a: "Because we set your trial up around how you already work. On the call, we show you how SmartCrew fits your company, or tell you honestly if it doesn’t. Then we set up your free trial.",
-    /** P1: Andrew adds his own reason the trial is free and set up on a call. */
-    flag: "Andrew’s own reason goes here",
+    id: "what",
+    q: "What is SmartCrew?",
+    a: [
+      "SmartCrew is an all-in-one construction management platform built for dirtwork, excavation, sitework, and heavy civil contractors with 5\u2011100 employees.",
+      "It connects your field crews and office in one place—from GPS time tracking and equipment management to daily reports, scheduling, job costing, hauling tickets, CRM, dispatch and more.",
+    ],
+  },
+  {
+    id: "who",
+    q: "What size and type of construction companies is SmartCrew built for?",
+    a: [
+      "SmartCrew is designed for small to midsize contractors, typically between 5\u2011100 people. We often work with family businesses that have been around for many years.",
+      "We only work with companies in dirtwork and heavy civil. Typically our clients do work like excavation, site prep, concrete, underground utilities, septic, drilling, commercial landscaping, grading, asphalt and paving, trucking and hauling, aggregate and quarries, roadways, demolition, and more.",
+    ],
   },
   {
     id: "crew",
-    q: "Will my crew actually use it?",
-    a: "Yes. Clocking in is one tap, and the app runs in the background without draining batteries. No training needed: most crews are up and running within minutes.",
+    q: "Will my field guys actually use it?",
+    a: [
+      "Yes. We designed SmartCrew to prioritize simplicity.",
+      "Your crew doesn't need to be tech-savvy. They can clock in, see their assignments, submit inspections, upload receipts, post reports and view project progress right from their phones.",
+      "We’re simple enough for the field but robust enough for management.",
+    ],
+  },
+  {
+    id: "profit",
+    q: "Can SmartCrew show me whether my jobs are making money?",
+    a: [
+      "Yes. SmartCrew connects field activity with your job budgets so you can track labor, equipment, materials, and other job costs right against your bid.",
+      "These numbers get automatically updated daily, so Instead of waiting until the end of a project to find out whether you made money, you can monitor job performance as work happens.",
+    ],
+  },
+  {
+    id: "gps",
+    q: "How does the automated GPS time tracking work?",
+    a: [
+      "SmartCrew uses GPS and jobsite geofencing to help track employee time and verify where work happens. You can set it up to auto log employees time based on their geofencing data. (This feature is optional and you can turn it on or off.)",
+      "Hours can be assigned to specific jobs and cost codes, giving you more accurate labor costs without chasing down paper timecards.",
+    ],
+  },
+  {
+    id: "equipment",
+    q: "Can I track equipment, inspections, and maintenance?",
+    a: [
+      "Yes. Keep your equipment records, operating hours, inspections, DOT pre-trips, service requests, and maintenance history organized in one place.",
+      "You can even use the Service Queue to manage all your shop and maintenance work.",
+      "When an operator reports an issue, your team can track it before it turns into a bigger problem.",
+    ],
+  },
+  {
+    id: "paperwork",
+    q: "Can SmartCrew replace my paperwork and spreadsheets?",
+    a: [
+      "That's the goal.",
+      "SmartCrew helps bring timecards, daily reports, hauling logs, fuel records, receipts, inspections, and crew schedules into one connected system.",
+      "Your field team enters the information, and your office can access it without collecting paperwork. We handle all the organization and systems for you so you can finally ditch the apps, spreadsheets and paper.",
+    ],
   },
   {
     id: "quickbooks",
-    q: "Does it work with QuickBooks?",
-    // AMBER: "QuickBooks integration for payroll" only, until Andrew confirms how it syncs
-    a: "Yes. SmartCrew has QuickBooks integration for payroll. We’ll show you how it fits your setup on the call.",
+    q: "Does SmartCrew work with QuickBooks?",
+    a: ["Yes. SmartCrew integrates with Quickbooks Online currently. We have more integrations coming for Quickbooks Desktop, Foundation, ADP and more."],
   },
   {
     id: "setup",
-    q: "How long does setup take?",
-    // L FAQ, with "tailored to your exact workflow" put plainly (PLAYBOOK §8.2 avoids "workflow")
-    a: "Most companies are fully set up within a few days. We’ll walk you through onboarding and set your account up around how you already work.",
+    q: "How long does it take to get started?",
+    a: [
+      "Most companies are up and running within a few weeks. But you don’t have to figure it all out alone.",
+      "Our team will work with you to migrate your data, build your account and even train your office staff on how to use everything and roll this out to your team.",
+      "You can start with the workflows that matter most and expand from there.",
+    ],
+  },
+  {
+    id: "trial",
+    q: "How does the free trial work?",
+    a: [
+      "SmartCrew is currently offering qualified contractors access to our private beta trial.",
+      "Start by requesting a free trial, then meet with our team for a quick walkthrough.",
+      "We'll make sure the platform fits your business and help you get started.",
+    ],
   },
   {
     id: "cost",
-    q: "What does it cost?",
-    a: "It depends on the features and your crew size. We go over it with you on the call. No contracts, cancel anytime.",
+    q: "How much does SmartCrew cost?",
+    a: [
+      "Pricing depends on your company size, number of users, and the features you need.",
+      "We are significantly lower than all the other big players like ProCore, HCSS and others.",
+      "We offer plans designed for growing contractors, with volume pricing for larger teams.",
+      "Qualified Founding Members may also receive special introductory pricing.",
+    ],
+  },
+  {
+    id: "different",
+    q: "What makes SmartCrew different from other construction software?",
+    a: [
+      "We ONLY work with small to midsized dirtwork and heavy civil companies. That allows us to customize the workflows uniquely for your business.",
+      "Other apps serve multiple industries or were built for GCs and vertical builders. We are the only app that specializes in working with dirtwork and heavy civil companies.",
+      "Plus, my family has been dirtwork for 75 years. We’ve experienced all the same problems you have around time tracking, getting accurate job costing data and managing all the systems required for this work.",
+      "We know these problems deeply and built the best solution possible to solve them all.",
+    ],
+  },
+  {
+    id: "founding",
+    q: "What is the SmartCrew Founding Member Program?",
+    a: [
+      "We're currently inviting a select group of contractors into our Founding Member Program.",
+      "Members get early access to our latest features, hands-on onboarding, and special pricing in exchange for feedback that helps shape the future of SmartCrew.",
+      "Qualifying companies can receive our Premium feature set at introductory pricing, with opportunities to lock in long-term discounts.",
+    ],
   },
 ];
 
+/** The FAQ's close, Andrew's round 2 (Oct 19), verbatim. */
 export const FAQ_CLOSE = {
-  line: "Anything else, we answer on the call.",
+  title: "Ready to simplify your business?",
+  line: "See how SmartCrew can help you run your crews, equipment, and jobs—all in one place.",
 };
 
 export const FOOTER_SCENE = {
@@ -413,7 +505,7 @@ export const FOOTER_SCENE = {
   terms: "Terms",
   demo: "Product screens show a demo account. Names and numbers are made up.",
   trademarks:
-    "busybusy, QuickBooks, ExakTime, Fleetio, HubSpot, Close, Dropbox, Google Drive, Google Sheets, Slack and WhatsApp are trademarks of their owners. Apple, iPhone and MacBook are trademarks of Apple Inc. Naming them doesn’t imply an endorsement.",
+    "busybusy, QuickBooks, ExakTime, Fleetio, MaintainX, HubSpot, Close, Dropbox, Google Drive, Google Sheets, Slack and WhatsApp are trademarks of their owners. Apple, iPhone and MacBook are trademarks of Apple Inc. Naming them doesn’t imply an endorsement.",
   /** Shown only when the Stage actually uses the Pro Display XDR model. */
   xdr: FOOTER.xdrCredit,
   copyright: "© 2026 SmartCrew",

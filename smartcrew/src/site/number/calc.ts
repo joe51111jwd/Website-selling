@@ -6,8 +6,8 @@ export const CREW_MAX = 100;
 export const DAYS_DEFAULT = 250;
 /** Round 4 (James: show a number at once): a starting crew, minutes and hourly cost, so a real
  * figure is there before any input; the visitor changes them to theirs. Only the inputs they touch
- * travel with the lead (see `mine`). */
-export const PRESET = { crew: 20, minutes: 15, rate: 35 } as const;
+ * travel with the lead (see `mine`). Andrew's round 2 defaults: 15 people, 30 minutes, $30. */
+export const PRESET = { crew: 15, minutes: 30, rate: 30 } as const;
 
 export type Inputs = { crew: number | null; minutes: number | null; rate: number | null; days: number | null };
 

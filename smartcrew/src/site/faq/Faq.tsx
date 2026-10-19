@@ -1,11 +1,11 @@
-// 8 · FAQ + the close (BRIEF §8, PLAYBOOK S8; round 2 §6). Five questions, one open at a time,
-// answers that start with the fact; beside them the page's close: the devices' still (round 4: the
-// Stage is off) over the last line and the last orange CTA. That CTA waits (hidden) while the
+// 8 · FAQ + the close. Andrew's round 2 (Oct 19): his title and sub, his 13 questions and answers
+// word for word, one open at a time; beside them the page's close: the devices' still (round 4: the
+// Stage is off) over his "Ready to simplify your business?" and the last orange CTA. That CTA waits (hidden) while the
 // offer's CTA above it is still on screen, so two orange buttons never show together
 // (src/site/shell/primaryCta.ts usePrimaryElsewhere).
 
 import { useId, useRef, useState, type ReactNode } from "react";
-import { ANDREW, CTA, FAQ_CLOSE, FAQ_TITLE, FAQS, FLAG, OFFER } from "../../content/copy";
+import { CTA, FAQ_CLOSE, FAQ_SUB, FAQ_TITLE, FAQS, FLAG, OFFER } from "../../content/copy";
 import { SIZES } from "../../signup/contract";
 import { Flag } from "../../signup/Flag";
 import { PRICED, PRICE_SLOTS, TRIAL_FIRST, priceBands, priceFrom } from "../../lib/offer";
@@ -22,20 +22,21 @@ import "./glass.css";
 import "./focus.css";
 import "./bold.css";
 
-type FaqItem = { id: string; q: string; a: string; flag?: string; more?: ReactNode };
+type FaqItem = { id: string; q: string; a: string[]; flag?: string; more?: ReactNode };
 
-/** The bold look's offer switches (src/lib/offer.ts) in the FAQ: "Do I need a call?" once the trial comes
- *  first, and the price in "What does it cost?" (its ⚑ slot on a review build). Other looks: FAQS as is. */
+/** The bold look's offer switches (src/lib/offer.ts) in the FAQ: "Do I need a call?" in place of "How does
+ *  the free trial work?" once the trial comes first, and the price in "How much does SmartCrew cost?" (its
+ *  ⚑ slot on a review build). Other looks: FAQS as is. */
 function offerFaqs(): FaqItem[] {
   return FAQS.map((f): FaqItem => {
-    if (f.id === "why-call" && TRIAL_FIRST) return { id: f.id, ...OFFER.trialFirst.faq, flag: OFFER.trialFirst.note };
+    if (f.id === "trial" && TRIAL_FIRST) return { id: f.id, q: OFFER.trialFirst.faq.q, a: [OFFER.trialFirst.faq.a], flag: OFFER.trialFirst.note };
     if (f.id !== "cost" || !PRICE_SLOTS) return f;
     if (!PRICED) return { ...f, more: <PriceSlot /> };
     const from = priceFrom();
     const bands = priceBands(SIZES);
     return {
       ...f,
-      a: from ? `${OFFER.price.faqLead(from)} ${OFFER.price.faqTail}` : f.a,
+      a: from ? [`${OFFER.price.faqLead(from)} ${OFFER.price.faqTail}`] : f.a,
       more: bands.length ? (
         <span className="faq-prices">
           {bands.map((b) => (
@@ -96,6 +97,7 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
     <div className={`faq-grid wrap${seen ? " is-seen" : ""}`} ref={root}>
       <div className="faq-main">
         <h2 className="t-h2 faq-title">{FAQ_TITLE}</h2>
+        <p className="t-lead faq-sub">{FAQ_SUB}</p>
         <ul className="faq-list">
           {FAQ_LIST.map((f, i) => {
             const isOpen = open === i;
@@ -116,15 +118,23 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
                 </h3>
                 <div id={aId} role="region" aria-labelledby={qId} className="faq-a" inert={!isOpen}>
                   <div className="faq-a-in">
-                    <p className="faq-a-text" data-cursor="text">
-                      {f.a}
-                      {f.flag && (
-                        <span className="flag" title={f.flag}>
-                          {FLAG}
-                        </span>
-                      )}
-                      {f.more}
-                    </p>
+                    <div className="faq-a-text" data-cursor="text">
+                      {f.a.map((para, j) => (
+                        <p key={j}>
+                          {para}
+                          {j === f.a.length - 1 && (
+                            <>
+                              {f.flag && (
+                                <span className="flag" title={f.flag}>
+                                  {FLAG}
+                                </span>
+                              )}
+                              {f.more}
+                            </>
+                          )}
+                        </p>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </li>
@@ -154,7 +164,7 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
           )}
         </div>
         <div className="faq-close-head">
-          <img className="faq-face" src={import.meta.env.BASE_URL + ANDREW.face} alt="" width={48} height={48} loading="lazy" decoding="async" />
+          <h3 className="t-h3 faq-close-title">{FAQ_CLOSE.title}</h3>
           <p className="faq-close-line">{FAQ_CLOSE.line}</p>
         </div>
         <div className="faq-actions">

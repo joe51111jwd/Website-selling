@@ -1,0 +1,61 @@
+/* The sign-up popup in the classic look since Andrew's round 2 (Oct 19; James: "optimize the main one"):
+   the buyer's fears answered before anything personal is typed, and the price for the size just picked
+   once Andrew sets one (the bold look's, src/signup/bold.css, on the light ground). */
+
+html.look-classic .su-price {
+  margin: 12px 0 0;
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+html.look-classic .su-price b {
+  font-weight: 650;
+  color: var(--ink);
+}
+
+html.look-classic .su-price .su-price-tbd {
+  font-weight: 500;
+  font-style: italic;
+  color: var(--ink-3);
+}
+
+html.look-classic .su-answers {
+  display: grid;
+  gap: 7px;
+  margin: 4px 0 0;
+  padding: 14px 0 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+html.look-classic .su-answers li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14.5px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+
+html.look-classic .su-answers svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--green);
+}
+
+@media (max-width: 760px) {
+  html.look-classic .su-answers {
+    gap: 8px;
+  }
+  html.look-classic .su-answers li {
+    font-size: 14px;
+  }
+}
+
+/* laptops: the popup grows by the answers' height, so step 1 still fits without scrolling */
+@media (min-width: 761px) {
+  html.look-classic .su-dialog {
+    height: min(760px, calc(100dvh - 40px));
+  }
+}
