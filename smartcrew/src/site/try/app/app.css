@@ -99,9 +99,12 @@
   justify-content: center;
 }
 
+/* text-align too: the button reset above left-aligns, which beats clock.css's centring and slid each
+   day's number and name left of its tile */
 .sc.ca .pc-week > .pc-tile {
   display: block;
   padding: 0;
+  text-align: center;
 }
 
 .sc.ca .pc-dayoff {

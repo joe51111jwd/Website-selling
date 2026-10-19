@@ -4,6 +4,13 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## Try it week strip (the agency owner, Oct 19: "fix alignemnt.")
+
+1. **Done. Day numbers and names centred in their tiles**, in every look. The demo's button reset
+   (`.sc.ca button`, left-aligned) beat clock.css's centring, so they sat 7-9px left of centre on
+   laptops and 13-17px on phones; now 0px. Only the week strip changed (pixel-checked in every look,
+   phone and laptop). Before and after: /mnt/project-files/smartcrew/fixes/.
+
 ## The optimized look (the agency owner, Oct 19)
 
 "is it too much text at the start yes or no, or somehow does that improve conversion", then "Just look at
