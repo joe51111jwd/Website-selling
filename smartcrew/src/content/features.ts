@@ -4,8 +4,11 @@
 // headline, sub and bullets, and the CTA under the section. No other marketing lines here; the
 // in-app names below (the sidebar, hotspots) are the app's own words or a tool's from moments.ts.
 //
-// The pain picker matches what a visitor types against `keywords` in the browser only: nothing
-// typed is sent anywhere or kept.
+// The pain picker matches what a visitor types against `keywords` in the browser first. Only when
+// that isn't sure does the text go to our own server function (api/match-pain.ts), and from there,
+// once an Anthropic key is set, to Anthropic's API, to pick which of the ten cards below fits: that
+// one answer, nothing else. We don't log or keep what was typed, in the page or the function;
+// Anthropic handles it under its API terms.
 
 export type FeatureId = "time" | "costing" | "equipment" | "daily" | "materials" | "scheduling" | "sales" | "comms" | "safety" | "files";
 
@@ -125,93 +128,148 @@ export const FEATURES = {
   },
 
   /**
-   * What a typed pain is matched on (lower case; plurals and -ing / -ed forms match too). `strong`
-   * words name the feature outright; `weak` ones only tip a tie. Phrases match as phrases. (Words
-   * share one stem across features at their peril: "plans" and "plan" both read "plan", so the job
-   * files take "site plans" and "blueprints", and "plan" stays with Scheduling.)
+   * What a typed pain is matched on (lower case; plurals and -ing / -ed forms match too, and a typo
+   * in a longer word). `strong` words name the feature outright; `weak` ones only lean towards it.
+   * Phrases match as phrases and outweigh words, so they also settle words two features share:
+   * "plans" and "plan" both read "plan", so the job files take "the plans", "set of plans" and
+   * "blueprints", and "plan" stays with Scheduling; "fill" is dirt, "fill out" isn't. The everyday
+   * wording is the owner's, the way he'd say it on the phone ("guys padding their hours", "the dozer
+   * keeps going down", "dump tickets"); a word that's mostly something else ("deal with", "the yard",
+   * "tons of") stays weak.
    */
   keywords: {
     time: {
       strong: [
-        "timecard", "time card", "timesheet", "time sheet", "hours", "hour", "payroll", "clock", "clock in", "clock out",
-        "overtime", "ot", "punch", "gps", "geofence", "attendance", "prevailing wage", "wage", "quickbooks", "qb", "paycheck",
-        "paystub", "labor hours", "tracking time", "track time", "who is working", "who’s working", "location", "where my guys are",
-        "buddy punching", "padding hours",
+        "timecard", "time card", "timesheet", "time sheet", "hours", "hour", "hourly", "payroll", "clock", "clock in",
+        "clock out", "overtime", "ot", "double time", "punch", "gps", "geofence", "attendance", "prevailing wage", "wage",
+        "quickbooks", "qb", "paycheck", "paystub", "per diem", "labor hours", "man hours", "manhours", "tracking time",
+        "track time", "time tracking", "timekeeping", "time keeping", "time clock", "on the clock", "off the clock",
+        "time theft", "stealing time", "steal time", "padding hours", "padding their hours", "padding time",
+        "buddy punching", "who is working", "who’s working", "location", "live location", "where my guys are",
+        "where are my guys", "where my crew is", "where is my crew", "track my guys", "track employees",
+        "always late", "running late", "show up late", "showing up late", "shows up late", "leave early", "leaving early", "left early",
+        "long lunch", "long lunches",
       ],
-      weak: ["time", "employee", "worker", "labor", "chasing", "late", "pay", "on site"],
+      weak: ["time", "employee", "worker", "labor", "chasing", "late", "pay", "on site", "lunch"],
     },
     costing: {
       strong: [
-        "profit", "profitable", "profitability", "cost", "costing", "job cost", "cost code", "budget", "over budget", "losing money",
-        "lose money", "lost money", "making money", "make money", "money", "margin", "overrun", "expense", "change order",
-        "billing", "billable", "bill", "invoice", "invoicing", "spend", "spending", "numbers", "p&l", "pnl", "accounting",
-        "bleeding", "subcontractor", "sub", "extras", "actual cost", "against the bid", "over bid",
+        "profit", "profitable", "profitability", "cost", "costing", "job cost", "cost code", "budget", "over budget",
+        "blew the budget", "losing money", "lose money", "lost money", "making money", "make money", "made money",
+        "money", "lost our shirt", "lose our shirt", "losing our shirt", "lost my shirt", "losing my shirt",
+        "in the red", "in the hole", "underwater", "upside down", "break even", "breaking even", "bottom line",
+        "margin", "markup", "mark up", "overhead", "overrun", "expense", "change order", "extras", "extra work",
+        "t&m", "time and material", "time and materials", "billing", "billable", "bill", "invoice", "invoicing",
+        "get paid", "getting paid", "pay late", "pays late", "paying late", "late payment", "slow pay", "retainage",
+        "spend", "spending", "numbers", "p&l", "pnl", "profit and loss", "accounting", "bookkeeping", "bleeding",
+        "subcontractor", "sub", "actual", "actuals", "actual cost", "vs actual", "versus actual", "against the bid",
+        "over bid", "underbid", "underbidding", "wip", "wip report", "work in progress", "cash flow",
       ],
-      weak: ["job", "jobs", "cash"],
+      weak: ["job", "jobs", "cash", "paid"],
     },
     equipment: {
       strong: [
-        "repair", "breakdown", "break down", "broke", "broken", "maintenance", "service", "dot", "inspection", "pre trip",
-        "pretrip", "pre-trip", "truck", "machine", "machinery", "equipment", "excavator", "dozer", "loader", "skid steer",
-        "grader", "backhoe", "fleet", "shop", "mechanic", "oil", "leak", "work order", "audit", "downtime", "iron",
-        "equipment hours", "machine hours", "hour meter", "utilization", "service record", "service history", "shop queue",
-        "dot compliance",
+        "repair", "repair bill", "repair cost", "maintenance", "maintenance cost", "service", "service due",
+        "service request", "service record", "service history", "breakdown", "break down", "breaks down", "broke down",
+        "broke", "broken", "going down", "goes down", "went down", "keeps breaking", "quit running", "wont start",
+        "downtime", "sitting idle", "dot", "dot compliance", "inspection", "daily inspection", "pre trip", "pretrip",
+        "pre-trip", "walkaround", "truck", "dump truck", "water truck", "machine", "machinery", "equipment", "iron",
+        "fleet", "excavator", "mini ex", "mini excavator", "trackhoe", "track hoe", "dozer", "bulldozer", "loader",
+        "skid steer", "skidsteer", "bobcat", "grader", "backhoe", "compactor", "roller", "scraper", "trencher",
+        "lowboy", "trailer", "crane", "forklift", "telehandler", "generator", "pump", "tractor", "attachment",
+        "bucket", "caterpillar", "deere", "komatsu", "kubota", "rental", "shop", "shop queue", "mechanic",
+        "work order", "oil", "oil change", "grease", "filter", "hydraulic", "hydraulics", "leak", "hose", "battery",
+        "warranty", "preventive", "preventative", "pm schedule", "audit", "equipment hours", "machine hours",
+        "hour meter", "utilization", "telematics",
       ],
-      weak: ["engine", "tire", "parts"],
+      weak: ["engine", "tire", "parts", "tool", "idle", "blown", "unit"],
     },
     daily: {
       strong: [
-        "daily report", "daily log", "daily", "progress", "production", "field note", "note", "photo", "picture", "pics",
-        "what got done", "end of day", "superintendent", "foreman report", "jobsite photo",
+        "daily report", "daily log", "daily", "report", "progress", "production", "productivity", "production rate",
+        "field note", "note", "photo", "picture", "pics", "what got done", "got done", "what happened",
+        "what they did", "what we did", "what the crew did", "how far along", "percent complete", "end of day",
+        "end of the day", "field report", "field update", "from the field", "status update", "job status",
+        "job diary", "diary", "job log", "jobsite log", "superintendent", "foreman report", "jobsite photo",
       ],
-      weak: ["report", "update", "paperwork", "office"],
+      weak: ["update", "paperwork", "office", "log", "video", "weather"],
     },
     materials: {
       strong: [
-        "load", "haul", "hauling", "ticket", "material", "receipt", "dirt", "gravel", "rock", "fill", "aggregate", "sand",
-        "topsoil", "stone", "delivery", "deliver", "supplier", "vendor", "order", "purchase", "dump", "trucking", "fuel",
-        "diesel", "yard", "yards", "ton", "tons", "pipe", "scale ticket", "fuel log",
+        "load", "load ticket", "load count", "haul", "hauling", "haul ticket", "trucking", "trucker", "truck ticket",
+        "truck count", "ticket", "dump", "dump ticket", "scale ticket", "delivery ticket", "delivery slip", "fuel slip",
+        "material", "materials", "receipt", "gravel", "rock", "base rock", "aggregate", "sand", "topsoil", "stone",
+        "asphalt", "concrete", "millings", "riprap", "rip rap", "crushed", "fill dirt", "clean fill", "fill material",
+        "spoil", "borrow pit", "quarry", "stockpile", "cubic yard", "cubic yards", "yardage", "tonnage", "per ton",
+        "delivery", "deliver", "supplier", "supply", "vendor", "order", "purchase", "purchase order", "inventory",
+        "fuel", "fuel log", "fuel card", "diesel", "pipe",
       ],
-      weak: ["driver"],
+      weak: ["driver", "dirt", "fill", "yard", "yards", "ton", "tons", "gas", "export", "import", "reconcile"],
     },
     scheduling: {
       strong: [
-        "schedule", "scheduling", "plan", "planning", "morning", "scramble", "where to be", "where to go", "assign", "assignment",
-        "who goes where", "staffing", "manpower", "calendar", "time off", "day off", "pto", "sick day", "no show", "no-show",
-        "vacation", "tomorrow", "organized", "organization", "chaos", "drag and drop",
+        "schedule", "scheduling", "reschedule", "plan", "planning", "morning", "scramble", "chaos", "where to be",
+        "where to go", "where they need to be", "going where", "goes where", "who goes where", "working where",
+        "wrong job", "wrong site", "wrong jobsite", "wrong place", "wrong address", "assign", "assignment",
+        "coordinate", "coordinating", "coordination", "juggle", "juggling", "shuffle", "shuffling", "move crews",
+        "moving crews", "move guys", "moving guys", "between jobs", "double book", "double booked", "overbooked",
+        "last minute", "staffing", "manpower", "short handed", "shorthanded", "short staffed", "understaffed",
+        "enough guys", "enough people", "calendar", "whiteboard", "white board", "dry erase", "gantt", "lookahead",
+        "look ahead", "time off", "day off", "pto", "sick day", "call in sick", "called in sick", "no show", "no-show",
+        "show up", "showing up", "showed up", "tomorrow", "next week", "drag and drop",
       ],
-      weak: ["crew", "foreman", "week"],
+      weak: ["crew", "foreman", "week", "organized", "organization", "vacation", "sick"],
     },
     sales: {
       strong: [
-        "bid", "bidding", "lead", "sales", "sale", "sell", "estimate", "estimating", "customer", "client", "proposal",
-        "pipeline", "crm", "opportunity", "follow up", "follow-up", "quote", "quoting", "prospect", "deal", "win work",
-        "winning work", "new work", "more work", "contract", "marketing", "referral",
+        "bid", "bidding", "bid deadline", "bid board", "bid list", "lead", "sales", "sale", "sell", "estimate",
+        "estimating", "takeoff", "customer", "client", "gc", "general contractor", "developer", "builder",
+        "homeowner", "proposal", "pipeline", "crm", "opportunity", "follow up", "follow-up", "followup",
+        "call back", "callback", "go cold", "goes cold", "gone cold", "went cold", "quote", "quoting", "prospect",
+        "close a deal", "close deals", "closing deals", "win work", "winning work", "new work", "more work",
+        "find work", "finding work", "get work", "getting work", "more jobs", "new jobs", "new customers",
+        "new clients", "repeat customer", "customer service", "slip away", "slipping away", "slipped away",
+        "win rate", "close rate", "hit rate", "contract", "marketing", "referral",
       ],
-      weak: ["growth", "grow"],
+      weak: ["growth", "grow", "deal", "win", "won", "pricing", "competitor", "competition", "lowball", "lowballer"],
     },
     comms: {
       strong: [
-        "text", "texting", "group text", "message", "messaging", "chat", "dispatch", "communication", "communicate", "call around",
-        "phone call", "calls", "announcement", "alert", "radio", "in the loop", "same page", "marching orders", "miscommunication",
-        "voicemail", "nobody knows", "word out",
+        "text", "texting", "group text", "message", "messaging", "group message", "chat", "group chat", "email",
+        "whatsapp", "slack", "dispatch", "broadcast", "communication", "communicate", "miscommunication",
+        "call around", "phone call", "calls", "on the phone", "phone tag", "voicemail", "radio", "walkie",
+        "walkie talkie", "announcement", "alert", "in the loop", "out of the loop", "same page", "marching orders",
+        "nobody knows", "word out", "tell everyone", "telling everyone", "let everyone know", "tell the guys",
+        "tell the crew", "let the guys know", "let the crew know", "update the crew", "updating the crew",
+        "updates to the crew", "keep everyone updated", "keep everyone informed", "get ahold", "get a hold of",
+        "get hold of", "cant reach",
       ],
-      weak: ["crew", "team", "guys", "people", "staff", "phone"],
+      weak: ["crew", "team", "guys", "people", "staff", "phone", "answer", "notify", "notification"],
     },
     safety: {
       strong: [
-        "safety", "safe", "incident", "accident", "injury", "injured", "hurt", "osha", "jsa", "job safety analysis", "toolbox",
-        "toolbox talk", "safety meeting", "hazard", "near miss", "compliance", "compliant", "first aid", "trench", "ppe",
-        "hard hat", "workers comp", "safety inspection", "incident report", "safety report",
+        "safety", "safe", "unsafe", "danger", "dangerous", "incident", "accident", "injury", "injured", "hurt",
+        "close call", "near miss", "osha", "msha", "citation", "violation", "jsa", "jha", "job safety analysis",
+        "job hazard analysis", "toolbox", "toolbox talk", "tailgate", "tailgate talk", "tailgate meeting",
+        "safety meeting", "hazard", "compliance", "compliant", "first aid", "trench", "trench box", "shoring",
+        "cave in", "cave-in", "confined space", "fall protection", "harness", "silica", "ppe", "hard hat",
+        "workers comp", "emr", "experience mod", "mod rate", "drug test", "drug testing", "811", "one call",
+        "call before you dig", "locate ticket", "locate request", "utility strike", "gas line", "hit a line",
+        "safety inspection", "incident report", "safety report",
       ],
-      weak: ["insurance"],
+      weak: ["insurance", "claim", "training", "liability", "locate", "certification"],
     },
     files: {
       strong: [
-        "file", "document", "docs", "site plans", "job plans", "blueprint", "drawing", "prints", "folder", "storage", "cloud",
-        "dropbox", "google drive", "pdf", "permit", "submittal", "as built", "as-built", "paper trail",
+        "file", "document", "documentation", "docs", "find the plans", "find plans", "set of plans",
+        "plan set", "site plans", "job plans", "latest plans", "current plans", "updated plans", "revised plans",
+        "old plans", "wrong plans", "outdated plans", "copy of the plans", "plan room", "blueprint", "drawing",
+        "prints", "spec", "specs", "specification", "rfi", "submittal", "permit", "as built", "as-built",
+        "latest version", "wrong version", "folder", "binder", "filing cabinet", "storage", "cloud", "upload",
+        "dropbox", "google drive", "onedrive", "one drive", "sharepoint", "shared drive", "server", "pdf",
+        "camera roll", "paper trail",
       ],
-      weak: ["photo", "office"],
+      weak: ["photo", "office", "find", "access", "version", "scattered", "outdated"],
     },
   } as Record<FeatureId, { strong: string[]; weak: string[] }>,
 
