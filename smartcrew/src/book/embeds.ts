@@ -155,6 +155,35 @@ export function mountCal(el: HTMLElement, lead: Lead | null, h: CalHandlers) {
 
 let vidMounted = false;
 
+/** The bits of Vidalytics' player API /book uses (player-docs.vidalytics.com/api/methods). */
+export type VidPlayer = {
+  on: (event: "play" | "pause" | "ended", fn: () => void) => void;
+  play: () => Promise<void>;
+  pause: () => void;
+  paused: () => boolean;
+  ended: () => boolean;
+};
+
+/** Resolves with the player once Vidalytics has made it: their own getVidalyticsPlayer snippet
+ *  (player-docs.vidalytics.com/api/getting-started), typed. Call it before mountVidalytics. */
+export function vidalyticsPlayer(embedId: string): Promise<VidPlayer> {
+  const w = window as unknown as { _vidalytics?: { embeds?: Record<string, Record<string, unknown>> } };
+  const embeds = ((w._vidalytics ??= {}).embeds ??= {});
+  const d = (embeds[`vidalytics_embed_${embedId}`] ??= {});
+  return new Promise((resolve) => {
+    if (d.player) return resolve(d.player as VidPlayer);
+    let t: unknown;
+    Object.defineProperty(d, "player", {
+      configurable: true,
+      get: () => t,
+      set(v) {
+        t = v;
+        resolve(v as VidPlayer);
+      },
+    });
+  });
+}
+
 /** Vidalytics' standard embed loader, as on smartcrewhq.com/demo, for the container already on the page. */
 export function mountVidalytics(embedId: string, onError?: () => void) {
   if (vidMounted) return;

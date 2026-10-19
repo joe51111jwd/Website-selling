@@ -1064,8 +1064,31 @@ async function watchItWork(device) {
   }
 }
 
+// Andrew's video on /book, faked: the real player can't play here (Vidalytics is blocked, and
+// headless Chromium has no H.264), so Vidalytics' loader and player get stand-ins that hand the
+// page a player the test can end (window.__vid.fire("ended"))
+const FAKE_VIDALYTICS = `
+  window.VidalyticsL = window.VidalyticsL || {};
+  window.VidalyticsL.Loader = function () { this.loadScript = function (u, cb) { cb(); }; };
+  window.Vidalytics = window.Vidalytics || {};
+  window.Vidalytics.Embed = function () {
+    this.run = function (id) {
+      var h = {}, done = false, paused = false;
+      var p = {
+        on: function (ev, f) { (h[ev] = h[ev] || []).push(f); }, off: function () {},
+        play: function () { paused = false; return Promise.resolve(); }, pause: function () { paused = true; },
+        paused: function () { return paused; }, ended: function () { return done; }
+      };
+      window.__vid = { fire: function (ev) { if (ev === "ended") done = true; (h[ev] || []).forEach(function (f) { f(); }); }, paused: p.paused };
+      var v = (window._vidalytics = window._vidalytics || {});
+      v.embeds = v.embeds || {};
+      (v.embeds[id] = v.embeds[id] || {}).player = p;
+    };
+  };`;
+
 async function funnel(device) {
   const ctx = await newContext(device);
+  await ctx.route(/fast\.vidalytics\.com\//, (r) => r.fulfill({ status: 200, contentType: "text/javascript", body: FAKE_VIDALYTICS }));
   const page = await open(ctx);
   const out = [];
   try {
@@ -1111,7 +1134,8 @@ async function funnel(device) {
     assert(lead.size === "13–25" && lead.phone_e164 === "+15555550123" && lead.stage === "complete", `lead size/phone ${lead.size} ${lead.phone_e164}`);
     out.push("lead handed over (company, name, email, phone, size)");
 
-    // /book: personal headline, Andrew's video, his calendar prefilled
+    // /book (James, Oct 19): it opens on Andrew's video, big and alone; the calendar stays shut
+    // until the video ends or they choose "Skip the video and book now"
     const h1 = page.getByRole("heading", { level: 1 }).first();
     await h1.waitFor({ state: "visible", timeout: 10000 });
     // Andrew's headline, as written (his booking page layout, Oct 19)
@@ -1119,6 +1143,30 @@ async function funnel(device) {
     const video = page.getByTestId("book-video");
     assert(await video.isVisible(), "Andrew's video isn't on /book");
     assert(await page.locator(`#vidalytics_embed_${VIDEO_ID}`).count(), `no Vidalytics container #vidalytics_embed_${VIDEO_ID}`);
+    const skip = page.getByTestId("book-skip");
+    const cardHead = page.locator("#bk-card-h");
+    await page.waitForFunction(() => window.__vid, null, { timeout: 15000 }).catch(() => {});
+    assert(await page.evaluate(() => !!window.__vid), "the page never got Andrew's video player");
+    assert(await skip.isVisible(), 'no "Skip the video and book now" while the video plays');
+    assert((await page.locator(".bk-stage.is-shut").count()) === 1 && !(await cardHead.isVisible()), "the calendar shows before the video ends or a skip");
+    const big = await video.boundingBox();
+    const vw = device.ctx.viewport.width;
+    assert(big && big.width >= (device.name === "phone" ? vw - 2 : 540), `the video isn't the page's focus: ${Math.round(big?.width ?? 0)}px wide`);
+    out.push(`/book opens on the video (${Math.round(big.width)}px), calendar shut`);
+
+    // the conscious skip: the calendar opens, the video keeps playing in the top-left corner
+    await press(page, skip, { what: "Skip the video and book now" });
+    await page.waitForSelector(".bk-flow.is-book", { timeout: 5000 });
+    await cardHead.waitFor({ state: "visible", timeout: 5000 });
+    await wait(1200); // the scroll to the calendar
+    const mini = await video.boundingBox();
+    const fixed = await video.evaluate((el) => getComputedStyle(el).position);
+    assert(fixed === "fixed" && mini && mini.x < 40 && mini.y < 40 && mini.width < big.width * 0.6, `the video didn't go to the corner: ${fixed} ${JSON.stringify(mini)}`);
+    assert(!(await page.evaluate(() => window.__vid.paused())), "skipping paused the video");
+    const head = await cardHead.boundingBox();
+    if (head && head.x < mini.x + mini.width) assert(head.y >= mini.y + mini.height - 2, `the corner video covers the calendar's heading (${Math.round(head.y)} < ${Math.round(mini.y + mini.height)})`);
+    out.push(`skip → calendar + corner video ${Math.round(mini.width)}×${Math.round(mini.height)} at ${Math.round(mini.x)},${Math.round(mini.y)}`);
+
     const frame = page.getByTestId("book-cal").locator("iframe").first();
     // Cal.com mounts its iframe, or (when it can't be reached, as behind a locked-down network) the
     // calendar shows its fallback card: that is only a note when Cal.com itself was unreachable
@@ -1139,22 +1187,27 @@ async function funnel(device) {
       note(`Cal.com unreachable from this machine${calBlocked ? "" : " (no request seen)"}: the fallback card showed`);
       calNote = "Cal.com unreachable here: fallback card with its link";
     }
-    // Andrew's layout: the video and the calendar side by side on laptops (the video first on
-    // phones), "Here's what we'll cover" under the video
-    const topOf = (id) => page.getByTestId(id).evaluate((el) => Math.round(el.getBoundingClientRect().top + scrollY));
-    const leftOf = (id) => page.getByTestId(id).evaluate((el) => Math.round(el.getBoundingClientRect().left));
-    const [vTop, calTop, covTop] = [await topOf("book-video"), await topOf("book-cal"), await topOf("book-covers")];
-    if (device.name === "phone") assert(vTop < calTop && calTop < covTop, `/book order: video ${vTop}, calendar ${calTop}, covers ${covTop}`);
-    else {
-      const [vLeft, calLeft] = [await leftOf("book-video"), await leftOf("book-cal")];
-      assert(vLeft < calLeft && vTop < covTop && calTop < covTop, `/book layout: video ${vLeft},${vTop}, calendar ${calLeft},${calTop}, covers ${covTop}`);
-    }
-    out.push(`/book: H1, video (${vTop}) and the calendar (${calTop}), ${calNote}`);
+    out.push(calNote);
 
-    // what the call covers: Andrew's three
-    const covers = page.getByTestId("book-covers");
-    const items = await covers.getByRole("heading", { level: 3 }).count();
+    // "Here's what we'll cover" (Andrew's three) under the calendar
+    const topOf = (id) => page.getByTestId(id).evaluate((el) => Math.round(el.getBoundingClientRect().top + scrollY));
+    const [calTop, covTop] = [await topOf("book-cal"), await topOf("book-covers")];
+    assert(calTop < covTop, `/book order: calendar ${calTop}, covers ${covTop}`);
+    const items = await page.getByTestId("book-covers").getByRole("heading", { level: 3 }).count();
     assert(items === 3, `${items} items under "Here's what we'll cover"`);
+
+    // a fresh visit that watches to the end: the calendar opens by itself, no corner video
+    await page.evaluate(() => sessionStorage.removeItem("sc_book_phase"));
+    await page.reload();
+    await skip.waitFor({ state: "visible", timeout: 10000 });
+    await page.waitForFunction(() => window.__vid, null, { timeout: 15000 });
+    assert(!(await cardHead.isVisible()), "the calendar shows on a fresh visit before the video ends");
+    await page.evaluate(() => window.__vid.fire("ended"));
+    await page.waitForSelector(".bk-flow.is-book", { timeout: 5000 });
+    await cardHead.waitFor({ state: "visible", timeout: 5000 });
+    assert(!(await page.locator(".bk-video.is-mini").count()), "the corner video showed after the video ended");
+    assert(await page.locator(".bk-again").isVisible(), `no "Watch Andrew's video" by the calendar after it ended`);
+    out.push("video ends → calendar opens");
 
     // no lead sent anywhere (no email to Andrew or the visitor from a test): leadWebhook is empty
     assert(/leadWebhook:\s*""/.test(configSrc), "config.leadWebhook is set: a test run would send leads");

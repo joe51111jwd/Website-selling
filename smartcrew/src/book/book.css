@@ -1,8 +1,9 @@
-/* /book in Andrew's layout (Oct 19): a light page; the bar (logo, "Need help?"), his headline
-   centred, then two columns: the video with "Here's what we'll cover" under it on the left, the
-   calendar in a card on the right. Phones: one column, the video, the calendar, then what it
-   covers. Scoped under .bk-; tokens from src/styles/tokens.css. Radii by role: 22 ticket and
-   card, 14 video, 12 controls, 999 pills. */
+/* /book, video first (the agency owner, Oct 19), in Andrew's words and blocks: a light page; the
+   bar (logo, "Need help?"), his headline centred, the video big and alone with "Skip the video and
+   book now" under it, then "Here's what we'll cover". The calendar card opens in the video's place
+   when the video ends or on skip; skipped mid-video, the video shrinks to a mini player in the
+   top-left corner. Scoped under .bk-; tokens from src/styles/tokens.css. Radii by role: 22 ticket
+   and card, 14 video, 12 controls, 999 pills. */
 
 html,
 body {
@@ -146,25 +147,130 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   color: var(--orange-ink);
 }
 
-/* ── 2 · his two columns ─────────────────────────────────────────────────── */
+/* ── 2 · the video first, then the calendar ───────────────────────────────── */
 
-.bk-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(360px, 1fr);
-  grid-template-areas:
-    "video stage"
-    "covers stage";
-  grid-template-rows: auto 1fr;
-  gap: 28px 32px;
+.bk-flow {
+  --bk-mini-w: 320px;
+  --bk-mini-at: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
   max-width: 1200px;
-  margin: 32px auto 0;
+  margin: 28px auto 0;
   padding: 0 var(--bk-pad);
 }
-
+.bk-video-slot {
+  width: min(100%, 960px, max(560px, calc((100svh - 330px) * 16 / 9)));
+}
 .bk-video {
-  grid-area: video;
+  position: relative;
   margin: 0;
 }
+/* the calendar is open: the video waits in the corner, out of sight, ready to come back */
+.bk-video.is-mini,
+.bk-video.is-away {
+  position: fixed;
+  z-index: 60;
+  top: var(--bk-mini-at);
+  left: var(--bk-mini-at);
+  width: var(--bk-mini-w);
+}
+.bk-video.is-mini {
+  animation: bk-mini-in 0.35s var(--ease-out) both;
+}
+.bk-video.is-mini .bk-video-frame {
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px rgb(23 19 15 / 10%),
+    0 18px 40px -12px rgb(23 19 15 / 45%);
+}
+/* the poster's play button and note, sized for the corner */
+.bk-video.is-mini .bk-poster-play {
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+}
+.bk-video.is-mini .bk-poster-play svg {
+  width: 16px;
+  height: 16px;
+  margin-left: 2px;
+}
+.bk-video.is-mini .bk-poster-note {
+  display: none;
+}
+.bk-video.is-away {
+  visibility: hidden;
+  pointer-events: none;
+}
+@keyframes bk-mini-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+    transform-origin: 0 0;
+  }
+}
+.bk-mini-x {
+  position: absolute;
+  z-index: 3;
+  top: -9px;
+  right: -9px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 4px 10px rgb(23 19 15 / 30%);
+  cursor: pointer;
+}
+/* the slot gives the video's room back once the calendar opens (the video itself is fixed now) */
+.bk-flow.is-book .bk-video-slot {
+  display: contents;
+}
+/* where the corner player would cover the card's top, the card stops below it */
+@media (max-width: 1400px) {
+  .bk-flow.has-mini .bk-stage {
+    scroll-margin-top: calc(var(--bk-mini-at) + var(--bk-mini-w) * 0.5625 + 16px);
+  }
+}
+
+/* under the video: the calendar waits for the end; skipping it is a choice */
+.bk-skip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+}
+.bk-skip-note {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+.bk-skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font: 600 14.5px/1 var(--font-text);
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgb(23 19 15 / 5%);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.bk-skip:hover {
+  border-color: #cdbfb0;
+}
+
 .bk-video-frame {
   position: relative;
   overflow: hidden;
@@ -244,9 +350,43 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
 }
 
 .bk-stage {
-  grid-area: stage;
-  min-width: 0;
+  width: min(100%, 720px);
   scroll-margin-top: 16px;
+  animation: bk-open 0.5s var(--ease-out) both;
+}
+/* while they watch: loaded (so it's ready) but out of sight */
+.bk-stage.is-shut {
+  position: absolute;
+  left: 0;
+  width: min(100vw, 720px);
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  animation: none;
+}
+@keyframes bk-open {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+/* the card's way back to the video */
+.bk-again {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 14px 0 0;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--ground);
+  color: var(--ink-2);
+  font: 600 13px/1 var(--font-text);
+  cursor: pointer;
+}
+.bk-again:hover {
+  color: var(--ink);
+  border-color: #cdbfb0;
 }
 
 /* the calendar card: what the call is, his calendar, what happens after */
@@ -604,7 +744,7 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
 /* ── under the video: what the call covers ───────────────────────────────── */
 
 .bk-covers {
-  grid-area: covers;
+  width: min(100%, 960px);
 }
 .bk-covers h2 {
   margin: 0 0 16px;
@@ -679,8 +819,8 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   .bk-h1 {
     font-size: clamp(28px, 2.6vw, 36px);
   }
-  .bk-grid {
-    margin-top: 24px;
+  .bk-flow {
+    margin-top: 20px;
   }
 }
 
@@ -743,21 +883,30 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   .bk-sub {
     font-size: 15px;
   }
-  .bk-grid {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "video"
-      "stage"
-      "covers";
-    grid-template-rows: auto;
-    gap: 22px;
-    margin-top: 22px;
+  .bk-flow {
+    --bk-mini-w: 46vw;
+    --bk-mini-at: calc(env(safe-area-inset-top, 0px) + 10px);
+    gap: 28px;
+    margin-top: 20px;
   }
-  .bk-video {
+  .bk-flow.is-watch .bk-video {
     margin: 0 calc(var(--bk-pad) * -1);
   }
-  .bk-video-frame {
+  .bk-flow.is-watch .bk-video-frame {
     border-radius: 0;
+  }
+  .bk-skip-row {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .bk-skip {
+    justify-content: center;
+    height: 48px;
+  }
+  .bk-skip-note {
+    text-align: center;
+    font-size: 13.5px;
   }
   .bk-poster-play {
     width: 60px;

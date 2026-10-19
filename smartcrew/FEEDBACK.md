@@ -22,6 +22,17 @@ Main page and /book; the other looks pick up the shared copy, with no design wor
 3. **Waiting on Andrew:** his /book words still promise a free trial (kicker, headline, "Get your free
    trial"), as does FAQ 10 "How does the free trial work?"; all ⚑, kept as written since he'll tweak the copy.
    The call is 15 minutes in his layout (now everywhere), but his Cal.com event is 45 minutes today (⚑).
+4. **Done. /book is video-first** (the agency owner, Oct 19: "We want them to watch the video. That should
+   be the main focus… have them make a conscious choice not to watch the video to book… the video
+   basically mini-plays in the top left and continues to play while they book"). It opens on Andrew's
+   video, big and alone, with "Your calendar opens when the video ends." and a secondary "Skip the video
+   and book now". The calendar card opens when the Vidalytics player reports `ended`, on the skip, or at
+   once if the video can't load. Skipped mid-video, the video moves to a corner player top-left (320px on
+   laptops, 46% of the width on phones) and keeps playing; ✕ pauses and closes it, "Watch Andrew's video"
+   by the calendar brings it back. "Here's what we'll cover" sits under the calendar. A reload in the same
+   visit keeps the calendar open (sessionStorage `sc_book_phase`). Cal.com still loads in the background
+   a few seconds in, so it's ready when it opens. Events: `video_skip`, `video_ended`, `video_failed`.
+   Screenshots: /mnt/project-files/smartcrew/try-smartcrew/booking-{video,skip}-{laptop,phone}.png.
 
 ## Andrew's round 2, in classic (Oct 19)
 
