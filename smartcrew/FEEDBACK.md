@@ -17,6 +17,9 @@ Results: /mnt/project-files/smartcrew/bold/conversion.md.
    (+0.10, 4 of 4 judges, ratio 1.02), not a call.
 2. **Done. First screen.** The hero fills it on phones (390×844 and 390×664) and laptops with the button,
    Katie's quote and the logos in view; the laptop popup is taller so step 1 never scrolls on 900px.
+   The attention gain once claimed for a full-screen hero came from the old heatmap and no longer
+   stands: the retrained heatmap (Oct 19) gives the button 2-4% in every look, logo and headline first.
+   Its untested suggestion: a shorter headline or a higher button (the headline is Andrew's copy).
 3. **Waiting (Andrew): the price.** Built and off (`config.pricing`, src/lib/offer.ts): under the hero
    button, in the popup per crew size, in the FAQ's cost answer. `?review` shows ⚑ placeholders.
 4. **Waiting (Katie, Andrew): Katie's photo** beside her quote (`config.katiePhoto`), her OK, JW or JCR.
@@ -91,9 +94,11 @@ the glass look (both classes are on) and goes further; classic and glass are unc
    3-4% fewer trial taps; button low at y 528 against 367, washed-out dimmed sections, long gaps).
    Fixed on phones: the fold starts under the header with the button at y 407 and the next section
    peeking in, no dimming, gaps halved. Re-run: the new focus ties classic 4 of 4; a version with the
-   fold filling the whole screen did slightly worse (classic favoured 2 of 4), so it was dropped. The
-   heatmap showed logos right under the button take attention from it (button 8.7% to 7.3% of the
-   first phone screen), so on laptops the logos stay at the foot of the first screen.
+   fold filling the whole screen did slightly worse (classic favoured 2 of 4), so it was dropped. On
+   laptops the logos sit at the foot of the first screen. (The old heatmap's reason for that, logos
+   under the button taking its attention, was withdrawn Oct 19: that model matched real gaze at only
+   0.37; the retrained one, 0.70, gives the button 2-4% in every look and no look wins.
+   /mnt/project-files/sim-business/ueyes/results.md.)
    Results: /mnt/project-files/smartcrew/focus/results.md.
 6. **Checks:** all 34 e2e checks pass in all three looks (`--look=focus`); classic and glass are
    pixel-identical to before at every screen, laptop and phone.
