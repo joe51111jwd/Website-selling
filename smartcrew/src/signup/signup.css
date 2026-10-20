@@ -565,6 +565,22 @@
     0 2px 2px rgb(80 32 0 / 26%);
   transition-duration: 70ms;
 }
+/* the hit area stays where the button rests while it lifts or presses, so a pointer on its bottom
+   edge doesn't lift it off, drop it back and lift it again (a jitter that never settles) */
+.su-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transition: transform 0.16s var(--ease-out);
+}
+.su-btn:hover::after {
+  transform: translateY(1.5px);
+}
+.su-btn:active::after {
+  transform: translateY(-2px);
+  transition-duration: 70ms;
+}
 .su-btn:focus-visible {
   outline: 3px solid var(--ink);
   outline-offset: 4px;
