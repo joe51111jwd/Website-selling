@@ -722,7 +722,11 @@ export default function Dialog({ req, opener, onClose }: Props) {
                           </a>
                           .
                         </p>
-                      ) : null /* "Takes less than a minute." cut: Andrew's comment-mode note, Oct 20: "Cut" */}
+                      ) : (
+                        // "Takes less than a minute." is cut (Andrew's comment-mode note, Oct 20: "Cut"); an empty
+                        // line keeps its room so the button doesn't jump between the steps
+                        <p className="su-legal su-legal--quiet" aria-hidden="true">{"\u00a0"}</p>
+                      )}
                     </div>
                 </div>
                 </>
