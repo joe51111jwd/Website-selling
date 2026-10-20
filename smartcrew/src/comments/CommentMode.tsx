@@ -38,6 +38,8 @@ type Load = "loading" | "ready" | "bad-key" | "not-set-up" | "error";
 
 const NAME_STORE = "sc-comment-name";
 const HINT_STORE = "sc-comment-hint";
+/** a note picked in the list on the other page, shown once that page loads */
+const SHOW_STORE = "sc-comment-show";
 const PHONE_MAX = 760;
 const DRAFT = "draft";
 
@@ -191,6 +193,8 @@ function CommentMode({ apiKey }: { apiKey: string }) {
   const tracked = useRef<{ id: string; spot: Spot }[]>([]);
   const popFor = useRef<string | null>(null);
   const flashT = useRef(0);
+  /** ids already seen here, so a note someone else just left can be announced */
+  const known = useRef<Set<string> | null>(null);
 
   const flash = useCallback((msg: string) => {
     setToast(msg);
@@ -201,18 +205,23 @@ function CommentMode({ apiKey }: { apiKey: string }) {
   const refresh = useCallback(async () => {
     try {
       const { comments } = await call<{ comments: Note[] }>(apiKey, "GET");
+      const seen = known.current;
+      const fresh = seen ? comments.filter((n) => !seen.has(n.id)) : [];
+      known.current = new Set(comments.map((n) => n.id));
+      if (fresh.length === 1) flash(`New note from ${fresh[0].author} on the ${pageName(fresh[0].page)}`);
+      else if (fresh.length > 1) flash(`${fresh.length} new notes`);
       setNotes(comments);
       setLoad("ready");
     } catch (e) {
       const s = e instanceof HttpError ? e.status : 0;
       setLoad((l) => (s === 401 ? "bad-key" : s === 501 ? "not-set-up" : l === "ready" ? l : "error"));
     }
-  }, [apiKey]);
+  }, [apiKey, flash]);
 
   useEffect(() => {
     void refresh();
-    // pick up notes left from another device or by someone else
-    const t = window.setInterval(() => document.visibilityState === "visible" && void refresh(), 45_000);
+    // notes left on another device or by someone else show up within a few seconds
+    const t = window.setInterval(() => document.visibilityState === "visible" && void refresh(), 8000);
     const onFocus = () => void refresh();
     window.addEventListener("focus", onFocus);
     return () => {
@@ -228,13 +237,22 @@ function CommentMode({ apiKey }: { apiKey: string }) {
   }, []);
 
   const here = useMemo(() => notes.filter((n) => n.page === page), [notes, page]);
-  const number = useMemo(() => new Map(here.map((n, i) => [n.id, i + 1])), [here]);
-  const elsewhere = useMemo(() => {
+  // each page numbers its own pins; the list shows every page, this one first
+  const number = useMemo(() => {
     const m = new Map<string, number>();
-    for (const n of notes) if (n.page !== page && n.status === "open") m.set(n.page, (m.get(n.page) ?? 0) + 1);
-    return [...m];
+    const count = new Map<string, number>();
+    for (const n of notes) {
+      const i = (count.get(n.page) ?? 0) + 1;
+      count.set(n.page, i);
+      m.set(n.id, i);
+    }
+    return m;
+  }, [notes]);
+  const groups = useMemo(() => {
+    const pages = [page, ...new Set(notes.map((n) => n.page).filter((p) => p !== page))];
+    return pages.map((p) => ({ page: p, notes: notes.filter((n) => n.page === p) }));
   }, [notes, page]);
-  const openCount = here.filter((n) => n.status === "open").length;
+  const openCount = notes.filter((n) => n.status === "open").length;
   const pinned = here.filter((n) => showDone || n.status === "open" || n.id === openId);
 
   tracked.current = [...pinned.map((n) => ({ id: n.id, spot: n as Spot })), ...(draft ? [{ id: DRAFT, spot: draft }] : [])];
@@ -404,6 +422,17 @@ function CommentMode({ apiKey }: { apiKey: string }) {
 
   const openNote = openId ? here.find((n) => n.id === openId) : undefined;
 
+  const pickedElsewhere = useRef(store.get(SHOW_STORE));
+  useEffect(() => {
+    const id = pickedElsewhere.current;
+    if (!id || load !== "ready") return;
+    const n = here.find((x) => x.id === id);
+    pickedElsewhere.current = null;
+    store.set(SHOW_STORE, null);
+    // let the page lay itself out first
+    if (n) window.setTimeout(() => show(n), 900);
+  });
+
   if (load === "bad-key" || load === "not-set-up") {
     return (
       <div className="scc-bar scc-bar--msg" role="status">
@@ -468,40 +497,56 @@ function CommentMode({ apiKey }: { apiKey: string }) {
       {panel && (
         <aside className="scc-panel" aria-label="Notes on this page">
           <header className="scc-panel-head">
-            <strong>Notes on the {pageName(page)}</strong>
+            <strong>All notes ({openCount} open)</strong>
             <button type="button" className="scc-x" aria-label="Close the list" onClick={() => setPanel(false)}>
               ×
             </button>
           </header>
-          {here.length === 0 && <p className="scc-empty">No notes here yet. Click any spot on the page to leave one.</p>}
-          <ol className="scc-list">
-            {here
-              .filter((n) => showDone || n.status === "open")
-              .map((n) => (
-                <li key={n.id} className={n.status === "done" ? "is-done" : undefined}>
-                  <button type="button" className="scc-item" onClick={() => show(n)}>
-                    <span className="scc-num">{number.get(n.id)}</span>
-                    <span className="scc-item-body">
-                      <span className="scc-item-text">{n.text}</span>
-                      <span className="scc-meta">
-                        {n.author} · {when(n.createdAt)} · {n.device === "phone" ? "phone" : "laptop"}
-                        {n.status === "done" ? " · done" : ""}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              ))}
-          </ol>
-          {here.some((n) => n.status === "done") && (
+          <div className="scc-scroll">
+            {notes.length === 0 && <p className="scc-empty">No notes yet. Click any spot on the page to leave one.</p>}
+            {groups.map((g) => {
+              const list = g.notes.filter((n) => showDone || n.status === "open");
+              if (g.page !== page && list.length === 0) return null;
+              return (
+                <section key={g.page} className="scc-group">
+                  <h3 className="scc-group-head">
+                    {g.page === page ? `This page (the ${pageName(g.page)})` : `The ${pageName(g.page)}`}
+                  </h3>
+                  {list.length === 0 && <p className="scc-empty">{g.notes.length ? "Every note here is done." : "No notes here yet."}</p>}
+                  <ol className="scc-list">
+                    {list.map((n) => (
+                      <li key={n.id} className={n.status === "done" ? "is-done" : undefined}>
+                        <button
+                          type="button"
+                          className="scc-item"
+                          onClick={() => {
+                            if (n.page === page) return show(n);
+                            store.set(SHOW_STORE, n.id);
+                            location.href = n.page;
+                          }}
+                        >
+                          <span className="scc-num">{number.get(n.id)}</span>
+                          <span className="scc-item-body">
+                            <span className="scc-item-text">{n.text}</span>
+                            {n.anchor.snippet && <span className="scc-where">On “{n.anchor.snippet.slice(0, 60)}{n.anchor.snippet.length > 60 ? "…" : ""}”</span>}
+                            <span className="scc-meta">
+                              {n.author} · {when(n.createdAt)} · {n.device === "phone" ? "phone" : "laptop"}
+                              {n.status === "done" ? " · done" : ""}
+                            </span>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              );
+            })}
+          </div>
+          {notes.some((n) => n.status === "done") && (
             <label className="scc-check">
               <input type="checkbox" checked={showDone} onChange={(e) => setShowDone(e.target.checked)} /> Show done notes
             </label>
           )}
-          {elsewhere.map(([p, count]) => (
-            <a key={p} className="scc-elsewhere" href={p}>
-              {count} open {count === 1 ? "note" : "notes"} on the {pageName(p)} →
-            </a>
-          ))}
         </aside>
       )}
 
