@@ -1,11 +1,11 @@
-// 8 · Why us, round 4 (Andrew's Loom 2:48–3:03): a static photo instead of the animation, and his
-// founder story from smartcrewhq.com instead of "No sales team. No BDR. Just Andrew." (a sales team
-// is coming, so the page no longer puts every call on him). The first three paragraphs of the letter
-// show; "Read more" opens the rest in place. Signed, then the orange CTA. The Founding Member
+// 8 · Why us (Andrew's Loom 2:48–3:03): a static photo instead of the animation, and his founder story
+// (now his doc's "FOUNDER STORY EDITS", Oct 20) instead of "No sales team. No BDR. Just Andrew." (a
+// sales team is coming, so the page no longer puts every call on him). The first three paragraphs of
+// the letter show; "Read more" opens the rest in place. Signed, then the orange CTA. The Founding Member
 // receipt is gone with the rest of the Founding Member copy. One layout for laptops and phones
 // (offer.css stacks it); no scroll-linked motion: the words come up once as they are first seen.
 
-import { useId, useRef, useState } from "react";
+import { Fragment, useId, useRef, useState, type ReactNode } from "react";
 import { ANDREW, WHY } from "../../content/copy";
 import { Scene } from "../scene/Scene";
 import { Cta } from "../ui/Cta";
@@ -15,6 +15,16 @@ import "./offer.css";
 import "./glass.css";
 import "./focus.css";
 import "./bold.css";
+
+/** One of his paragraphs: **…** in his bold, _…_ in his italics. */
+function rich(text: string): ReactNode[] {
+  return text
+    .split(/(\*\*[^*]+\*\*|_[^_]+_)/)
+    .filter(Boolean)
+    .map((part, k) =>
+      part.startsWith("**") ? <strong key={k}>{part.slice(2, -2)}</strong> : part.startsWith("_") ? <em key={k}>{part.slice(1, -1)}</em> : part,
+    );
+}
 
 export default function Offer() {
   const root = useRef<HTMLDivElement>(null);
@@ -33,15 +43,22 @@ export default function Offer() {
 
         <div className="why-story">
           <p className="why-kicker">{WHY.kicker}</p>
-          <h2 className="t-h2 why-title">{WHY.title}</h2>
+          <h2 className="t-h2 why-title">
+            {WHY.title.split("\n").map((line, i) => (
+              <Fragment key={line}>
+                {i > 0 && <br />}
+                {line}
+              </Fragment>
+            ))}
+          </h2>
           <div className="why-letter" data-cursor="text">
             {lead.map((p) => (
-              <p key={p}>{p}</p>
+              <p key={p}>{rich(p)}</p>
             ))}
             <div id={restId} className={`why-rest${open ? " is-open" : ""}`} inert={!open}>
               <div className="why-rest-in">
                 {rest.map((p) => (
-                  <p key={p}>{p}</p>
+                  <p key={p}>{rich(p)}</p>
                 ))}
               </div>
             </div>
@@ -54,9 +71,9 @@ export default function Offer() {
           </div>
 
           <div className="why-sign">
-            <span className="why-signoff">{WHY.signoff}</span>
             <Signature className="why-sig" title={WHY.signatureAlt} />
             <span className="why-by">{WHY.signedBy}</span>
+            <span className="why-role">{WHY.signedRole}</span>
           </div>
 
           <div className="why-act" data-hides-sticky>

@@ -42,7 +42,7 @@ export const CTA = {
 export const HEADER = {
   logoLabel: "SmartCrew, back to the top",
   /** Andrew's Loom (Oct 20): "add like features about how it works FAQ… up here"; his page note
-   *  (Oct 20, comment mode): "Add about" (Why we built SmartCrew), in page order */
+   *  (Oct 20, comment mode): "Add about" (the founder story, Why us), in page order */
   nav: [
     { label: "Features", href: "#features" },
     { label: "How it works", href: "#watch" },
@@ -354,35 +354,36 @@ export const ANDREW = {
 };
 
 /**
- * 8 · Why us, round 4 (Andrew's Loom 2:48–3:03: a static image, not every sales call on him, "we've
- * got a founder story… rip that and put that in here and have a little drop"). The letter is his
- * founder story from smartcrewhq.com, word for word, with three changes: two typos fixed ("business.."
- * and "don't want to spent"), "managing your entire business is" → "in", and his "5-50" set to {SIZE}
- * to match his new headline (⚑ in FEEDBACK.md). Its close ("book a free call with me… Guaranteed.")
- * is left off: the page's buttons do that job, and a guarantee needs terms (RED). The first `lead`
- * paragraphs show; "Read more" opens the rest.
+ * 8 · Why us. Andrew's doc, "FOUNDER STORY EDITS" (Oct 20): his headline (a line break in the middle)
+ * and his story word for word, one string per paragraph; **…** is his bold, _…_ his italics. Signed
+ * as he signs it. It replaces his smartcrewhq.com story from the Loom round. The first `lead`
+ * paragraphs show; "Read more" opens the rest (his "little drop", Loom 2:48–3:03).
  */
 export const WHY = {
   kicker: "Why us",
-  title: "Why we built SmartCrew",
+  title: "Built by dirtwork contractors.\nFor dirtwork contractors.",
   lead: 3,
   letter: [
-    "When I was 13, I started working for my dad in our small, family construction business.",
-    "The first day, he put me in a trench, handed me a shovel and said, “Son - I’m gonna teach you how to run a shovel this summer so you learn that you don’t want to spend the rest of your life doing this.”",
-    "It was the worst summer of my life... and the most important gift of my life. Because it taught me to value working hard AND smart.",
-    "That led me to spending 20 years in the tech world where I built, invested in and advised three of the fastest growing tech companies in America, according to Inc Magazine.",
-    "Recently, my dad was trying to retire but the family didn’t have the cash to buy him out. So they asked if I could help them leverage technology to make their business more profitable.",
-    "I looked at the market for software and was SHOCKED to see how bad everything was.",
-    "You have cheap time tracking apps that don’t actually help you manage the business (BusyBusy, ExakTime, WorkMax, etc.) Or bloated, expensive enterprise tools that cost $25k+ to get started (HCSS, Viewpoint, Procore, etc.)",
-    `There is NOTHING specifically designed for a construction company with ${T.SIZE} employees. So you’re stuck trying to patch everything together with 3-4 separate softwares, none of which work together.`,
-    `That’s why we’re building the simplest all-in-one software for ${T.SIZE} person construction companies.`,
-    "I know software. And the BEST software is about reduction and simplicity. Not complexity.",
-    "That’s what makes SmartCrew so unique. We’ve simplified everything to create LESS work for you by managing your entire business in one simple platform.",
+    "My family has been in the dirtwork business for over 75 years.",
+    "Three generations of running equipment, managing crews, and dealing with the same headaches every contractor knows too well.",
+    "Paper timecards. Lost hauling tickets. Equipment breakdowns. Endless spreadsheets. And never really knowing how much money you’re making on a job until it’s too late.",
+    "We tried finding software to solve these problems.",
+    "But everything we found was either too basic to run our business or too complicated and expensive for a company our size.",
+    "So we decided to build something better.",
+    "Originally, we just built SmartCrew for our own family business.",
+    "But then CONEXPO heard about what we were doing and invited me to teach a workshop on technology for small construction companies.",
+    "After that, so many contractors asked if they could use the software, too. That’s when SmartCrew was born.",
+    "**Today, our mission is simple: build the best software in the world for small to midsized dirtwork and heavy civil contractors.**",
+    "We’re not trying to serve every construction trade or build complicated software for massive enterprise companies.",
+    "We’re building SmartCrew for family businesses like ours.",
+    "Software that’s simple enough for the guys in the field to actually use, but powerful enough to give owners real-time visibility into their jobs, crews, equipment, and profitability.",
+    "_(And that doesn’t cost an arm and a leg.)_",
+    "If that sounds like your kind of company, **I’d love to personally show you what we’re building.**",
   ],
   more: "Read more",
   less: "Show less",
-  signoff: "Respectfully,",
-  signedBy: "Andrew Drish, founder",
+  signedBy: "Andrew Drish",
+  signedRole: "Founder, SmartCrew",
   signatureAlt: "Andrew’s signature",
 };
 

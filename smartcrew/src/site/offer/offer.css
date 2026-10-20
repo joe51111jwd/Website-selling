@@ -112,8 +112,19 @@
 
 .why-by {
   margin-top: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.why-role {
   font-size: 14px;
   color: var(--ink-3);
+}
+
+.why-letter strong {
+  font-weight: 650;
+  color: var(--ink);
 }
 
 .why-act {
@@ -178,5 +189,18 @@
 
   .why-cta {
     width: 100%;
+  }
+}
+
+/* his "(And that doesn't cost an arm and a leg.)" is in italics; the page ships no italic face */
+.why-letter em {
+  font-style: italic;
+  font-synthesis: style;
+}
+
+/* Classic: his two-line headline, each line on one line on laptops */
+@media (min-width: 761px) {
+  html.look-classic .why-title {
+    font-size: clamp(32px, 3vw, 46px);
   }
 }
