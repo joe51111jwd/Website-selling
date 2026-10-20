@@ -635,27 +635,6 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   gap: 18px;
   padding: 18px 34px 28px;
 }
-.bk-handy-h {
-  margin: 0 0 8px;
-  font-size: 14px;
-  font-weight: 650;
-  color: var(--ink);
-}
-.bk-handy ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.bk-handy li {
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: var(--ground-2);
-  font-size: 14px;
-  color: var(--ink-2);
-}
 .bk-save {
   display: flex;
   align-items: center;

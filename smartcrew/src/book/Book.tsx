@@ -490,14 +490,7 @@ function Ticket({ booking, reduce }: { booking: Booking; reduce: boolean }) {
       <div className="bk-ticket-perf" aria-hidden="true" />
 
       <div className="bk-ticket-bottom">
-        <motion.div className="bk-handy" {...item(5)}>
-          <p className="bk-handy-h">Have these handy</p>
-          <ul>
-            <li>Your crew count</li>
-            <li>How you do timecards today</li>
-            <li>Your last payroll</li>
-          </ul>
-        </motion.div>
+        {/* no "Have these handy" list: Andrew's booking card says "No preparation needed." */}
         <motion.div className="bk-save" {...item(6)}>
           <img src={faceUrl} alt="" width={40} height={40} />
           <p>
