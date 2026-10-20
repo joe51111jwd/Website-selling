@@ -36,7 +36,7 @@
     inset 0 -1px 0 rgb(110 44 0 / 18%),
     0 var(--cta-lip) 0 var(--cta-ledge, #c95b00),
     0 calc(var(--cta-lip) + 1px) 2px rgb(80 32 0 / 30%),
-    0 calc(var(--cta-lip) + 12px) 26px -12px rgb(150 62 0 / 55%);
+    0 calc(var(--cta-lip) + 12px) 26px -12px var(--cta-glow, rgb(150 62 0 / 55%));
   transform: translateY(calc(-1 * var(--cta-lift)));
   transition:
     transform 170ms var(--ease-out),
@@ -65,7 +65,7 @@
       inset 0 -1px 0 rgb(110 44 0 / 18%),
       0 calc(var(--cta-lip) + 1.5px) 0 var(--cta-ledge, #c95b00),
       0 calc(var(--cta-lip) + 3px) 3px rgb(80 32 0 / 26%),
-      0 calc(var(--cta-lip) + 18px) 32px -12px rgb(150 62 0 / 60%);
+      0 calc(var(--cta-lip) + 18px) 32px -12px var(--cta-glow-hover, rgb(150 62 0 / 60%));
   }
   .cta:hover .cta-arrow {
     transform: translateX(3px);
@@ -198,4 +198,73 @@ html[data-ground="dark"] .cta:focus-visible,
    darker shade), so the cap reads as the logo's #ff7a01 rather than a deeper burnt orange */
 html.look-classic {
   --cta-ledge: #e86e00;
+}
+
+/* Classic: the button is the first thing to click (James, Oct 20: "accentuate the button a lot
+   more"). The headline's orange words sit a shade deeper, so the cap is the brightest orange on the
+   screen; a warm orange glow under it in place of the brown one, a soft halo round it, a bigger cap
+   in the hero, and a slow sheen across it (not with reduced motion). */
+html.look-classic {
+  --cta-glow: rgb(255 112 0 / 62%);
+  --cta-glow-hover: rgb(255 112 0 / 72%);
+}
+
+html.look-classic .cta--lg::before,
+html.look-classic .cta--xl::before {
+  content: "";
+  position: absolute;
+  inset: -7px -7px calc(-7px - var(--cta-lip));
+  border-radius: calc(var(--cta-r) + 7px);
+  background: rgb(255 122 1 / 13%);
+  pointer-events: none;
+  z-index: -1;
+  transition: background 220ms var(--ease-out);
+}
+
+@media (hover: hover) {
+  html.look-classic .cta--lg:hover::before,
+  html.look-classic .cta--xl:hover::before {
+    background: rgb(255 122 1 / 20%);
+  }
+}
+
+html.look-classic .hf-root .hf-cta {
+  --cta-h: 72px;
+  --cta-px: 48px;
+  --cta-fs: 22.5px;
+  --cta-r: 18px;
+  --cta-lip: 5px;
+  min-width: 340px;
+  font-weight: 780;
+}
+
+@media (max-width: 760px) {
+  html.look-classic .hf-root .hf-cta {
+    --cta-h: 62px;
+    --cta-px: 20px;
+    --cta-fs: 20.5px;
+    --cta-r: 16px;
+    --cta-lip: 4px;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.look-classic .cta--xl {
+    background:
+      linear-gradient(105deg, rgb(255 255 255 / 0%) 42%, rgb(255 255 255 / 42%) 50%, rgb(255 255 255 / 0%) 58%) 125% 0 / 300% 100% no-repeat,
+      linear-gradient(180deg, rgb(255 255 255 / 16%) 0%, rgb(255 255 255 / 0%) 46%, rgb(120 46 0 / 6%) 100%),
+      var(--orange);
+    animation: cta-sheen 7s ease-in-out 2.4s infinite;
+  }
+}
+
+@keyframes cta-sheen {
+  0% {
+    background-position: 125% 0, 0 0;
+  }
+  26%,
+  100% {
+    background-position: -25% 0, 0 0;
+  }
 }

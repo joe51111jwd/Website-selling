@@ -3,7 +3,8 @@ import { attribution } from "./lead";
 import { LOOK } from "./look";
 
 // Meta Pixel, GA4, Microsoft Clarity, Mouseflow and Crisp chat, each loaded only when its ID is set in
-// config.ts, and only on the real site (liveSite: never a *.vercel.app preview or a test host). Every
+// config.ts, and only on the real site (liveSite: never a *.vercel.app preview or a test host). The one
+// exception: Mouseflow also records on the shared preview (mouseflowPreview), so Andrew can check it. Every
 // event is also re-dispatched on window as "smartcrew:track" so QA scripts (and a future CAPI relay)
 // can see it.
 
@@ -28,6 +29,12 @@ export function liveSite(): boolean {
   return location.protocol === "https:" && !!h && !/(^|\.)vercel\.app$|^localhost$|^127\.|^0\.0\.0\.0$|^\[?::1\]?$/.test(h);
 }
 
+/** The shared preview link, https://smartcrew-preview.vercel.app (James, Oct 20: "just turn it on for
+ *  now… you can check that it works"). Mouseflow only; deploy-specific *.vercel.app URLs stay off. */
+export function mouseflowPreview(): boolean {
+  return location.protocol === "https:" && location.hostname === "smartcrew-preview.vercel.app";
+}
+
 export type TrackData = Record<string, string | number | boolean | undefined>;
 export type StandardEvent = "Lead" | "Schedule" | "ViewContent" | "InitiateCheckout";
 
@@ -36,7 +43,16 @@ let started = false;
 export function startTracking() {
   if (started) return;
   started = true;
-  if (!liveSite()) return;
+  const live = liveSite();
+  // Mouseflow's recordings start with the page (its own snippet, deferred)
+  if (config.mouseflowId && (live || mouseflowPreview())) {
+    window._mfq = window._mfq || [];
+    const s = document.createElement("script");
+    s.defer = true;
+    s.src = `https://cdn.mouseflow.com/projects/${config.mouseflowId}.js`;
+    document.head.appendChild(s);
+  }
+  if (!live) return;
   if (config.metaPixelId) {
     const f = function (...args: unknown[]) {
       if (f.callMethod) f.callMethod(...args);
@@ -65,14 +81,6 @@ export function startTracking() {
     window.gtag("config", config.gaId);
   }
   if (config.clarityId) startClarity(config.clarityId);
-  // Mouseflow's recordings start with the page (its own snippet, deferred)
-  if (config.mouseflowId) {
-    window._mfq = window._mfq || [];
-    const s = document.createElement("script");
-    s.defer = true;
-    s.src = `https://cdn.mouseflow.com/projects/${config.mouseflowId}.js`;
-    document.head.appendChild(s);
-  }
   // Crisp's chat bubble waits until the first screen is done, so it never slows it down
   if (config.crispId) {
     const id = config.crispId;

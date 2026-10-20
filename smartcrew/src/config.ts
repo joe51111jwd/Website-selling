@@ -25,7 +25,8 @@ export const config = {
    * Andrew's tracking (his doc, Oct 20; James: "ill install that"): the Meta Pixel, Mouseflow
    * (session recordings) and Crisp (the chat bubble). They load only on the real site, never on a
    * preview or test host (src/lib/track.ts liveSite: *.vercel.app, localhost), so test visits
-   * don't reach his ad account, his recordings or his chat inbox. GA4 (G-FED5LLVE5W on
+   * don't reach his ad account, his recordings or his chat inbox. Except Mouseflow, which also
+   * records on smartcrew-preview.vercel.app so Andrew can check it works (James, Oct 20). GA4 (G-FED5LLVE5W on
    * smartcrewhq.com) stays off until he asks for it.
    */
   metaPixelId: "1259016858853739",
