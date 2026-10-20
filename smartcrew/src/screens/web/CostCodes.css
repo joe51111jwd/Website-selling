@@ -106,3 +106,8 @@
 .sc .sccc-tr--total > div:first-child {
   padding-left: 12px;
 }
+
+/* the Change Orders tab (./ChangeOrders.tsx) reuses these rows with a wider first column */
+.sc .sccc-tr--co {
+  grid-template-columns: 2.4fr 1fr 1fr 1fr 1fr;
+}

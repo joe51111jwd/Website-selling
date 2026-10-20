@@ -36,6 +36,8 @@ export const SCREENS: ScreenDef[] = [
   { id: "web-daily-reports", kind: "web", title: "Daily Reports", load: () => import("./web/DailyReports") },
   { id: "web-safety", kind: "web", title: "Safety", load: () => import("./web/Safety") },
   { id: "web-files", kind: "web", title: "Files", load: () => import("./web/Files") },
+  // web, added for Watch it work (Andrew's comment-mode notes, Oct 20)
+  { id: "web-project-changeorders", kind: "web", title: "Project detail · change orders", load: () => import("./web/ChangeOrders") },
   // phone (M1–M8)
   { id: "phone-home", kind: "phone", title: "Home · Ready to clock in", load: () => import("./phone/Home") },
   { id: "phone-working", kind: "phone", title: "Currently working on", load: () => import("./phone/Working") },
@@ -44,6 +46,10 @@ export const SCREENS: ScreenDef[] = [
   { id: "phone-reports", kind: "phone", title: "Reports menu", load: () => import("./phone/Reports") },
   { id: "phone-hauling", kind: "phone", title: "Hauling Log", load: () => import("./phone/Hauling") },
   { id: "phone-dot", kind: "phone", title: "DOT Inspection Report", load: () => import("./phone/Dot") },
+  // phone, added for Watch it work (Andrew's comment-mode notes, Oct 20)
+  { id: "phone-push", kind: "phone", title: "Push notifications · dispatch", load: () => import("./phone/Push") },
+  { id: "phone-add-project", kind: "phone", title: "Add Project", load: () => import("./phone/AddProject") },
+  { id: "phone-add-service", kind: "phone", title: "Add Service Record", load: () => import("./phone/AddService") },
 ];
 
 export const screenById = (id: string) => SCREENS.find((s) => s.id === id);

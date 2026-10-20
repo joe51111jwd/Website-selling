@@ -7,8 +7,6 @@
 // The only words not from the doc: the section's accessible name, the tab list's (his section
 // name) and the demo caption (copy.ts DAY_UI.caption).
 
-import { DAY_UI } from "./copy";
-
 export type WatchTabId = "day" | "week" | "results";
 
 export type WatchItem = {
@@ -41,7 +39,6 @@ export const WATCH = {
   title: "Watch How It Works During The Day, Week and Month",
   /** the tab list's accessible name (his name for the section) */
   tabsLabel: "A Day In The Life",
-  caption: DAY_UI.caption,
   tabs: [
     {
       id: "day",
@@ -84,8 +81,8 @@ export const WATCH = {
       cta: { label: "See SmartCrew in Action", intent: "demo" },
     },
     {
-      id: "results",
       // Andrew's comment-mode note, Oct 20: "The Month" (was "The Results")
+      id: "results",
       name: "The Month",
       who: "For the Owners",
       eyebrow: "THE MONTH",
@@ -96,7 +93,8 @@ export const WATCH = {
         { id: "materials", title: "Materials & Documentation — Every ticket. Every receipt. Organized.", line: "Hauling tickets, material quantities, receipts, photos, and reports. All tied to the right jobs." },
         { id: "fleet", title: "Shop & Equipment — Your entire fleet. Under control.", line: "Maintenance records, inspections, repair history, and work orders organized for every machine." },
         { id: "pipeline", title: "Pipeline & Bids — Know what's coming next.", line: "Track your bids, deals, and sales pipeline so you always know where future work stands." },
-        { id: "payroll", title: "Payroll — Payroll without the Friday scramble.", line: "Accurate hours, organized cost codes, and payroll-ready reports in a few clicks." },
+        // PTO from The Week in place of Payroll (Andrew's comment-mode note, Oct 20: "Replace this with PTO from THe Week page")
+        { id: "pto", title: "PTO — Know who's available.", line: "Manage time-off requests and approvals before they disrupt your schedule." },
         { id: "safety", title: "Safety & Compliance — Stay safe. Stay compliant.", line: "Keep safety inspections, incident reports, toolbox talks, and compliance records organized." },
         { id: "docs", title: "Document Storage — Every file. Right where you need it.", line: "Keep contracts, permits, plans, and important documents organized and accessible in one place." },
       ],

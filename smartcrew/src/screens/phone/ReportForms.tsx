@@ -9,7 +9,7 @@ import "./ReportForms.css";
  * 24×24 grid, 1.75 px stroke at 24 px, measured from the 1560×3376 Vercel mocks.
  */
 
-type GlyphName = "truck" | "clipboard" | "history";
+type GlyphName = "truck" | "clipboard" | "history" | "folder" | "wrench";
 
 const GLYPHS: Record<GlyphName, ReactNode> = {
   truck: (
@@ -25,6 +25,9 @@ const GLYPHS: Record<GlyphName, ReactNode> = {
       <rect x="8.6" y="3.4" width="6.6" height="3.9" rx="1.3" />
     </>
   ),
+  // the two Watch it work forms (Add Project, Add Service Record), Andrew's comment-mode notes, Oct 20
+  folder: <path d="M3.6 7.2a1.8 1.8 0 0 1 1.8-1.8h3.9l2 2.2h7.3a1.8 1.8 0 0 1 1.8 1.8v8.2a1.8 1.8 0 0 1-1.8 1.8H5.4a1.8 1.8 0 0 1-1.8-1.8z" />,
+  wrench: <path d="M14.6 6.1a4 4 0 0 0 4.9 5.2l-7.8 7.8a2 2 0 0 1-2.9-2.9l7.8-7.8a4 4 0 0 1-2-2.3zM14.6 6.1l2.6 2.6" />,
   history: (
     <>
       <path d="M5.4 11.4a7.2 7.2 0 1 1 1.6 5.2" />
@@ -56,6 +59,16 @@ export function FormHeader({ icon, title }: { icon: GlyphName; title: string }) 
     </div>
   );
 }
+
+/** Sticky Cancel / Submit sheet (`submit` renames the dark button). */
+export const formFooterFor = (submit: string) => (
+  <>
+    <PhoneButton className="rf-btn">Cancel</PhoneButton>
+    <PhoneButton className="rf-btn" tone="dark">
+      {submit}
+    </PhoneButton>
+  </>
+);
 
 /** Sticky Cancel / Submit sheet. */
 export const formFooter = (

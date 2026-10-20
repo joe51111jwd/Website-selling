@@ -39,12 +39,15 @@ export const SHOTS: Record<WatchTabId, Record<string, Shot>> = {
   // the admins' week: the office app, with the crew's phone where the plan reaches it
   week: {
     scheduling: { icon: "calendar", web: "web-scheduling", phone: "phone-office-plan" },
-    dispatch: { icon: "send", web: "web-scheduling", phone: "phone-select-task" },
+    // Andrew's comment-mode notes, Oct 20: "Show a push notification on mobile and the messaging
+    // dispatch side on web", "Show change order screen on web", "Show add a project screen on
+    // mobile", "Show Add Service Record on mobile", "Show project page on web"
+    dispatch: { icon: "send", web: "web-messaging", phone: "phone-push" },
     crew: { icon: "users", web: "web-dashboard", phone: "phone-office-plan" },
-    changes: { icon: "fileText", web: "web-project-detail", phone: "phone-office-job" },
-    bids: { icon: "pipeline", web: "web-pipeline", phone: "phone-office-plan" },
-    shop: { icon: "wrench", web: "web-service-queue", phone: "phone-reports" },
-    projects: { icon: "projects", web: "web-projects", phone: "phone-office-job" },
+    changes: { icon: "fileText", web: "web-project-changeorders", phone: "phone-office-job" },
+    bids: { icon: "pipeline", web: "web-pipeline", phone: "phone-add-project" },
+    shop: { icon: "wrench", web: "web-service-queue", phone: "phone-add-service" },
+    projects: { icon: "projects", web: "web-project-detail", phone: "phone-office-job" },
     payroll: { icon: "cash", web: "web-timecards", phone: "phone-summary" },
     pto: { icon: "calendarOff", web: "web-scheduling", phone: "phone-home" },
   },
@@ -54,7 +57,7 @@ export const SHOTS: Record<WatchTabId, Record<string, Shot>> = {
     materials: { icon: "receipt", web: "web-materials", phone: "phone-hauling" },
     fleet: { icon: "equipment", web: pick("web-machine", "web-equipment"), phone: "phone-dot" },
     pipeline: { icon: "pipeline", web: "web-pipeline", phone: "phone-office-job" },
-    payroll: { icon: "cash", web: "web-timecards", phone: "phone-summary" },
+    pto: { icon: "calendarOff", web: "web-scheduling", phone: "phone-home" },
     safety: { icon: "shieldCheck", web: pick("web-safety", "web-messaging"), phone: "phone-reports" },
     docs: { icon: "docs", web: pick("web-files", "web-project-detail"), phone: "phone-reports" },
   },

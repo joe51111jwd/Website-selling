@@ -288,7 +288,7 @@ export default function Watch() {
                 <Cta source={`watch-${x.id}`} intent={x.cta.intent} label={x.cta.label} size="lg" cue={i === 0} />
               </div>
             ))}
-            <p className="t-micro wt-caption">{WATCH.caption}</p>
+            {/* no "Demo account…" caption under the devices (Andrew's comment-mode note, Oct 20: "cut this") */}
           </div>
         </div>
       </div>
