@@ -1,4 +1,4 @@
-// 8 · FAQ + the close. Andrew's round 2 (Oct 19): his title and sub, his 13 questions and answers
+// 8 · FAQ + the close. Andrew's round 2 (Oct 19): his title and sub, his 12 questions and answers
 // word for word, one open at a time; beside them the page's close: the devices' still (round 4: the
 // Stage is off) over his "Ready to simplify your business?" and the last orange CTA. That CTA waits (hidden) while the
 // offer's CTA above it is still on screen, so two orange buttons never show together
@@ -13,6 +13,7 @@ import { trackCustom } from "../../lib/track";
 import { StageAnchor } from "../../three/stage";
 import { usePhoneLite } from "../phone";
 import { usePrimaryElsewhere } from "../shell/primaryCta";
+import { nudgeScroll } from "../scroll";
 import { Scene } from "../scene/Scene";
 import { DemoButton, TrialButton } from "../offer/Actions";
 import { PHONE_HERO_STILL } from "../hero/still";
@@ -63,6 +64,18 @@ function PriceSlot() {
 
 const FAQ_LIST = offerFaqs();
 
+/** Keep `el` at its current height on screen for the answer's open/close (faq.css, 0.42 s). */
+function holdOnScreen(el: HTMLElement) {
+  const top = el.getBoundingClientRect().top;
+  const t0 = performance.now();
+  const step = () => {
+    const d = el.getBoundingClientRect().top - top;
+    if (Math.abs(d) >= 1) nudgeScroll(d);
+    if (performance.now() - t0 < 520) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
 export default function Faq() {
   return <FaqPlain phone={usePhoneLite()} />;
 }
@@ -88,7 +101,11 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
   const close = useRef<HTMLDivElement>(null);
   const held = usePrimaryElsewhere(close);
 
-  const toggle = (i: number) => {
+  const toggle = (i: number, btn: HTMLElement) => {
+    // opening a question below the open answer collapses that answer: hold the tapped question where
+    // it is on screen while it does, instead of letting it slide up out of view (a long first answer
+    // on a phone)
+    if (open !== -1 && open < i) holdOnScreen(btn);
     setOpen((o) => (o === i ? -1 : i));
     if (open !== i) trackCustom("faq_open", { faq_id: FAQ_LIST[i].id });
   };
@@ -106,7 +123,7 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
             return (
               <li key={f.id} className={`faq-item${isOpen ? " is-open" : ""}`} style={{ ["--i" as string]: i }}>
                 <h3 className="faq-h">
-                  <button type="button" id={qId} className="faq-q" aria-expanded={isOpen} aria-controls={aId} onClick={() => toggle(i)}>
+                  <button type="button" id={qId} className="faq-q" aria-expanded={isOpen} aria-controls={aId} onClick={(e) => toggle(i, e.currentTarget)}>
                     <span className="faq-q-text">{f.q}</span>
                     <span className="faq-icon" aria-hidden="true">
                       <svg viewBox="0 0 24 24">

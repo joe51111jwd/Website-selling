@@ -376,7 +376,7 @@ export const WHY = {
   signatureAlt: "Andrew’s signature",
 };
 
-/** The FAQ: Andrew's round 2 (Oct 19), his 13 questions and answers word for word (one string per
+/** The FAQ: Andrew's round 2 (Oct 19), his questions and answers word for word (12 since he merged his first two, Oct 20) (one string per
  *  paragraph). `id`s are ours: "cost" carries the price slot, "trial" the trial-first answer (bold
  *  look only, src/lib/offer.ts). */
 export const FAQS: { id: string; q: string; a: string[]; flag?: string }[] = [
@@ -385,15 +385,9 @@ export const FAQS: { id: string; q: string; a: string[]; flag?: string }[] = [
     q: "What is SmartCrew?",
     a: [
       "SmartCrew is an all-in-one construction management platform built for dirtwork, excavation, sitework, and heavy civil contractors with 5\u2011100 employees.",
-      "It connects your field crews and office in one place—from GPS time tracking and equipment management to daily reports, scheduling, job costing, hauling tickets, CRM, dispatch and more.",
-    ],
-  },
-  {
-    id: "who",
-    q: "What size and type of construction companies is SmartCrew built for?",
-    a: [
-      "SmartCrew is designed for small to midsize contractors, typically between 5\u2011100 people. We often work with family businesses that have been around for many years.",
+      // Andrew's doc, Oct 20: his "What size and type of construction companies…" question folded into this one
       "We only work with companies in dirtwork and heavy civil. Typically our clients do work like excavation, site prep, concrete, underground utilities, septic, drilling, commercial landscaping, grading, asphalt and paving, trucking and hauling, aggregate and quarries, roadways, demolition, and more.",
+      "It connects your field crews and office in one place—from GPS time tracking and equipment management to daily reports, scheduling, job costing, hauling tickets, CRM, dispatch and more.",
     ],
   },
   {

@@ -116,6 +116,12 @@ export function scrollToY(y: number, opts: { instant?: boolean } = {}) {
   else window.scrollTo({ top, behavior: opts.instant || reducedMotion ? "auto" : "smooth" });
 }
 
+/** Move the page by `dy` at once (keeping something in place on screen while content above it changes). */
+export function nudgeScroll(dy: number) {
+  if (lenis) lenis.scrollTo(window.scrollY + dy, { immediate: true, force: true });
+  else window.scrollBy(0, dy);
+}
+
 /** Scroll to a scene, at a point of its progress (0 = its top). */
 export function scrollToScene(id: string, at = 0, opts: { instant?: boolean } = {}) {
   const y = sceneY(id, at);

@@ -4,6 +4,13 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## Andrew's doc, Oct 20 14:25Z
+
+1. **Done. FAQ: his first two questions merged.** "What size and type of construction companies is
+   SmartCrew built for?" and its "designed for small to midsize contractors…" paragraph are gone; its
+   "We only work with companies in dirtwork and heavy civil…" paragraph is now the second paragraph of
+   "What is SmartCrew?". 12 questions. (His doc keeps its old numbers, so it reads 1, 3, 4…)
+
 ## "Try SmartCrew" and Andrew's booking page (Oct 19, Andrew by text via the agency owner)
 
 "Let's roll with CTAs as 'Try SmartCrew' instead of the Free Trial option" (a free trial pushes cash
