@@ -8,13 +8,15 @@
 //   - desktop: the ten cards (./Cards.tsx) beside the office web app as a big clickable prototype
 //     (./AppWindow.tsx, its own chunk): opening a card switches the app to that feature's screen,
 //     and opening a screen from the app's sidebar opens its feature's card;
+//   - classic (Oct 20): the ten names as tabs and one card for the picked one (./Tabs.tsx), so the
+//     head, the tabs and the card beside the app fit one screen;
 //   - phones: the cards as an accordion, the open one with a still of its screen that opens the
 //     full-screen walkthrough at that feature. The big app never loads on phones;
 //   - the close: Andrew's "Ready to run your entire operation in one place?" and the primary button.
 // One calm entrance as the section arrives (the head, the picker, the cards, the window), then it
 // waits for the visitor: no autoplay, no pinning, nothing holds the page.
 
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FEATURES, type FeatureId } from "../../content/features";
 import { Scene } from "../scene/Scene";
 import { usePhoneLite } from "../phone";
@@ -28,24 +30,34 @@ import { Cta } from "../ui/Cta";
 import { featureById, screenDef } from "./data";
 import { Cards } from "./Cards";
 import { PainPicker, type Answer } from "./PainPicker";
-import ClassicFeatures from "./Wheel";
+import { FeaturePanel, FeatureTabs } from "./Tabs";
 import "../specsheet/all-tools.css";
 import "./features.css";
 import "./glass.css";
 import "./focus.css";
 import "./bold.css";
+import "./tabs.css";
 
 const AppWindow = lazy(() => import("./AppWindow"));
+// the feature wheel (James's drawing, Oct 20) is off the page: Andrew picked the tabs back ("I can see
+// everything in one place"). ?features=wheel still shows it, in its own chunk.
+const Wheel = lazy(() => import("./Wheel"));
+const WHEEL = CLASSIC && typeof location !== "undefined" && new URLSearchParams(location.search).get("features") === "wheel";
 
 const FIRST: FeatureId = "time";
 const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// classic (Oct 20, James's drawing): the feature wheel beside an iPad (./Wheel.tsx)
 export default function Features() {
-  return CLASSIC ? <ClassicFeatures /> : <LookFeatures />;
+  return WHEEL ? (
+    <Suspense fallback={null}>
+      <Wheel />
+    </Suspense>
+  ) : (
+    <TabsOrCards />
+  );
 }
 
-function LookFeatures() {
+function TabsOrCards() {
   const phone = usePhoneLite();
   const [arriveRef, arrived] = useArrive<HTMLDivElement>({ amount: 0.18 });
   const [open, setOpen] = useState<FeatureId | null>(FIRST);
@@ -62,7 +74,8 @@ function LookFeatures() {
   const openCard = useCallback(
     (id: FeatureId) => {
       if (phone) {
-        setOpen((cur) => (cur === id ? null : id));
+        // classic's tabs always keep one picked; the accordion's open card closes on a second tap
+        setOpen((cur) => (cur === id && !CLASSIC ? null : id));
         return;
       }
       setOpen(id);
@@ -116,6 +129,21 @@ function LookFeatures() {
 
   const openAll = (at: number | null) => setAll({ open: true, at });
 
+  // classic, desktop: how far the body starts below the head's top (the head and the tabs), as
+  // --ft-above: the app takes the rest of the screen (tabs.css)
+  useLayoutEffect(() => {
+    const body = bodyRef.current;
+    const root = body?.closest<HTMLElement>(".ft-in");
+    const head = root?.querySelector<HTMLElement>(".ft-head");
+    if (!CLASSIC || phone || !body || !root || !head) return;
+    const measure = () => root.style.setProperty("--ft-above", `${Math.ceil(body.getBoundingClientRect().top - head.getBoundingClientRect().top)}px`);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(head);
+    root.querySelectorAll<HTMLElement>(".ft-tabs").forEach((t) => ro.observe(t));
+    return () => ro.disconnect();
+  }, [phone]);
+
   return (
     <Scene id="features" pinnedViewports={0} stage="keep" label={FEATURES.label} className="ft">
       <div ref={arriveRef} className={`ft-in wrap${phone ? " is-phone" : " is-desk"}`} data-in={arrived || reduce ? "" : undefined}>
@@ -132,8 +160,14 @@ function LookFeatures() {
             little section… and then just have it everything built for dirt"; the other looks keep it */}
         {!CLASSIC && <PainPicker answer={answer} onAnswer={onAnswer} />}
 
+        {CLASSIC && <FeatureTabs open={open ?? FIRST} onOpen={openCard} variant={phone ? "phone" : "desk"} />}
+
         <div ref={bodyRef} className="ft-body">
-          <Cards open={open} matched={answer?.kind === "yes" ? answer.id : null} onOpen={openCard} variant={phone ? "phone" : "desk"} onShot={(id) => openAll(stepOf(featureById(id).tools[0]))} />
+          {CLASSIC ? (
+            <FeaturePanel open={open ?? FIRST} variant={phone ? "phone" : "desk"} onOpen={openCard} onShot={(id) => openAll(stepOf(featureById(id).tools[0]))} />
+          ) : (
+            <Cards open={open} matched={answer?.kind === "yes" ? answer.id : null} onOpen={openCard} variant={phone ? "phone" : "desk"} onShot={(id) => openAll(stepOf(featureById(id).tools[0]))} />
+          )}
           {!phone && (
             <Suspense fallback={<div className="ft-app ft-app--wait" aria-hidden="true" />}>
               <AppWindow screen={screen} onScreen={openScreen} arrived={arrived} />

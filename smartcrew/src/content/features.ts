@@ -44,21 +44,23 @@ export const FEATURES = {
     ] as { id: FeatureId; label: string }[],
   },
 
-  /** The ten cards, in Andrew's order: his name, headline, sub and bullets (the ticks). */
+  /** The ten cards, in Andrew's order: his name, headline, sub and bullets (the ticks). The extra
+   *  bullets on Time Tracking, Job Costing, Materials & Hauling and File Storage are his doc's
+   *  "Bullets to add under features section" (Oct 20, 20:47Z), word for word. */
   cards: [
     {
       id: "time",
       name: "Time Tracking",
       headline: "No more chasing timecards.",
       sub: "Track every hour, job, and cost code without the paperwork.",
-      ticks: ["GPS-powered clock-ins", "Live crew locations", "Payroll-ready timecards"],
+      ticks: ["GPS-powered clock-ins", "Live crew locations", "Payroll-ready timecards", "Supervisor Dashboard", "Clock In/Out Reminders"],
     },
     {
       id: "costing",
       name: "Job Costing",
       headline: "Know your profit. Every day.",
       sub: "See how every job is performing against your bid as work happens.",
-      ticks: ["Daily job profitability", "Bid budgets vs. actual costs", "Change orders & extras"],
+      ticks: ["Daily job profitability", "Bid budgets vs. actual costs", "Change orders & extras", "Custom Reports"],
     },
     {
       id: "equipment",
@@ -84,7 +86,7 @@ export const FEATURES = {
       name: "Materials & Hauling",
       headline: "Every load, receipt and dollar tracked.",
       sub: "Track materials, hauling tickets, fuel, and receipts with photo uploads.",
-      ticks: ["Digital hauling tickets", "Material & fuel log tracking", "AI reader to enter the data for you"],
+      ticks: ["Digital hauling tickets", "Material & fuel log tracking", "AI reader to enter the data for you", "Track deliveries and production"],
     },
     {
       id: "scheduling",
@@ -119,7 +121,7 @@ export const FEATURES = {
       name: "File Storage & Documents",
       headline: "Every job file. One place.",
       sub: "Keep plans, documents, and photos organized and accessible to your entire team.",
-      ticks: ["Centralized cloud file storage", "Plans, photos & job documents", "Access from the field or office"],
+      ticks: ["Centralized cloud file storage", "Plans, photos & job documents", "Access from the field or office", "File sharing & permissions"],
     },
   ] as { id: FeatureId; name: string; headline: string; sub: string; ticks: string[] }[],
 

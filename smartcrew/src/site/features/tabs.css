@@ -1,0 +1,492 @@
+/* Classic's feature tabs and their card (Tabs.tsx). Back on the page Oct 20 (Andrew picked them over
+   the wheel: "I can see everything in one place", and more bullets fit without feeling congested),
+   on the site's card set and type scale (tokens.css: --card-*, 13/14/15/16/18/22).
+   Before: Oct 20, James and Andrew: the cards' type felt
+   tight, the name read smaller than the headline once a card opened, and the section ran past one
+   screen. Now: the ten names as tabs, then one roomy card. In the card the name is a small orange
+   label (the section's own kicker style, the same as "Explore the platform" over the title), so
+   the headline is plainly the biggest line. Desktop: head + tabs + card and app fit one screen
+   (--ft-above, measured in Features.tsx, sizes the app). */
+
+/* ── the tabs ────────────────────────────────────────────────────────── */
+
+.ft-tabs {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ft-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 6px 11px;
+  border: 1px solid var(--card-line);
+  border-radius: var(--card-r-sm);
+  background: rgb(255 255 255 / 42%);
+  color: var(--ink-2);
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    box-shadow 0.25s,
+    color 0.2s;
+}
+
+.ft-tab:hover {
+  border-color: var(--card-line-hover);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.ft-tab:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.ft-tab-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--ground-2);
+  color: var(--ink-2);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.ft-tab-name {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: 650;
+  font-size: var(--fs-card-name);
+  line-height: 1.2;
+  letter-spacing: var(--track-sub);
+  text-wrap: balance;
+}
+
+.ft-tab.is-on {
+  position: relative;
+  background: var(--paper);
+  border-color: var(--card-line-hover);
+  color: var(--ink);
+  box-shadow:
+    var(--card-shadow),
+    0 12px 26px -16px rgb(23 19 15 / 32%);
+}
+
+.ft-tab.is-on .ft-tab-icon {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* the picked tab's orange underline */
+.ft-tab.is-on::after {
+  content: "";
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--orange);
+}
+
+/* ── the card ────────────────────────────────────────────────────────── */
+
+.ft-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--card-line);
+  border-radius: var(--card-r);
+  background: var(--paper);
+  box-shadow:
+    var(--card-shadow),
+    0 18px 40px -24px rgb(23 19 15 / 30%);
+}
+
+.ft-panel-in {
+  padding: var(--card-pad-lg);
+  animation: ft-tab-in 0.4s var(--ease-out) both;
+}
+
+/* desktop: all ten in one cell, the picked one shown */
+.ft-panel-stack {
+  display: grid;
+}
+
+.ft-panel-stack > .ft-panel-in {
+  grid-area: 1 / 1;
+}
+
+.ft-panel-stack > .ft-panel-in:not(.is-on) {
+  visibility: hidden;
+  animation: none;
+}
+
+@keyframes ft-tab-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ft-panel-in {
+    animation: none;
+  }
+}
+
+.ft-panel-name {
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-label) * 1%);
+  font-weight: 650;
+  font-size: var(--fs-card-meta);
+  line-height: 1.2;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-feature-settings: "case" 1;
+  color: var(--orange-ink);
+}
+
+.ft-panel-head {
+  margin: 10px 0 0;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: 700;
+  font-size: var(--fs-card-quote);
+  line-height: 1.18;
+  letter-spacing: var(--track-sub);
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.ft-panel-copy {
+  margin-top: 10px;
+  font-size: var(--fs-card-body);
+  line-height: 1.5;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+/* the bullets: room under them for more (Andrew, Oct 20: "I can add some more bullets without it
+   feeling too congested"); the card is the app's height, and they fill down from the line */
+.ft-panel-ticks {
+  gap: 9px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--card-line);
+}
+
+.ft-panel-ticks li {
+  font-size: var(--fs-card-body);
+  line-height: 1.4;
+}
+
+.ft-panel-ticks svg {
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+}
+
+/* desktop: the card's foot, "1 / 10" and the next feature */
+.ft-panel-next {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding: 12px var(--card-pad-lg) 13px;
+  border: 0;
+  border-top: 1px solid var(--card-line);
+  border-radius: 0 0 var(--card-r) var(--card-r);
+  background: transparent;
+  color: var(--ink-2);
+  font: 600 var(--fs-card-small)/1.2 var(--font-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.ft-panel-next:hover {
+  background: rgb(23 19 15 / 3%);
+  color: var(--ink);
+}
+
+.ft-panel-next:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+
+.ft-panel-next-n {
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.ft-panel-next-to {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ft-panel-next svg {
+  width: 16px;
+  height: 16px;
+  color: var(--orange);
+  transition: transform 0.25s var(--ease-out);
+}
+
+.ft-panel-next:hover svg {
+  transform: translateX(2px);
+}
+
+/* ── desktop: tabs across, the card beside the app ───────────────────── */
+
+.ft-in.is-desk .ft-tabs {
+  margin-top: clamp(26px, 3.6svh, 44px);
+}
+
+/* the app is the screen's height less the head and the tabs above it (--ft-above, Features.tsx) */
+html.look-classic .ft-in.is-desk {
+  --ft-h: clamp(390px, calc(100svh - var(--header-h) - var(--ft-above, 300px) - 20px), 700px);
+}
+
+html.look-classic .ft-in.is-desk .ft-body {
+  --ft-col: clamp(350px, 30vw, 440px);
+  margin-top: 16px;
+}
+
+/* narrower desktops: the tabs as two rows of five */
+@media (max-width: 1100px) {
+  .ft-tabs--desk {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .ft-tabs--desk .ft-tab {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 7px 10px 7px 7px;
+    text-align: left;
+  }
+  .ft-tabs--desk .ft-tab-icon {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* shorter laptops: the tabs and the card a notch tighter */
+@media (max-height: 820px) {
+  .ft-tabs--desk .ft-tab {
+    gap: 6px;
+    padding-block: 9px 8px;
+  }
+  .ft-tabs--desk .ft-tab-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+  }
+  .ft-panel--desk .ft-panel-in {
+    padding: 20px var(--card-pad-lg);
+  }
+  .ft-panel--desk .ft-panel-ticks {
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+  }
+  .ft-panel-next {
+    padding: 10px var(--card-pad-lg) 11px;
+  }
+}
+
+/* short screens (768 and under): the tabs drop their icons, the title a size down */
+@media (max-height: 780px) {
+  .ft-tabs--desk .ft-tab-icon {
+    display: none;
+  }
+  .ft-tabs--desk .ft-tab {
+    justify-content: center;
+    min-height: 54px;
+    padding: 8px 6px;
+  }
+  html.look-classic .ft-in.is-desk .ft-tabs {
+    margin-top: 22px;
+  }
+  html.look-classic .ft-in.is-desk .ft-title {
+    margin-top: 10px;
+    font-size: var(--fs-h2);
+  }
+  html.look-classic .ft-in.is-desk .ft-sub {
+    margin-top: 10px;
+  }
+  html.look-classic .ft-in.is-desk .ft-side-note {
+    display: none;
+  }
+  html.look-classic .ft-in.is-desk .ft-nav-item {
+    min-height: 18px;
+  }
+}
+
+/* ── phones: one row of tabs that swipes, then the card ──────────────── */
+
+.ft-tabs--phone {
+  display: flex;
+  gap: 8px;
+  margin: 18px calc(var(--gutter) * -1) 0;
+  padding: 2px var(--gutter) 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--gutter);
+  scrollbar-width: none;
+  /* the row runs off the right edge: there's more */
+  mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent);
+}
+
+.ft-tabs--phone::-webkit-scrollbar {
+  display: none;
+}
+
+.ft-tabs--phone .ft-tab {
+  flex: none;
+  flex-direction: row;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 15px 0 6px;
+  border-radius: 999px;
+  scroll-snap-align: start;
+}
+
+.ft-tabs--phone .ft-tab-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+}
+
+.ft-tabs--phone .ft-tab-name {
+  font-size: var(--fs-card-name);
+  white-space: nowrap;
+}
+
+.ft-tabs--phone .ft-tab.is-on::after {
+  display: none;
+}
+
+.ft-tabs--phone .ft-tab.is-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--ground);
+  /* the row clips its overflow, so a drop shadow would show as a grey box under the pill */
+  box-shadow: none;
+}
+
+.ft-tabs--phone .ft-tab.is-on .ft-tab-icon {
+  background: var(--orange);
+  color: #fff;
+}
+
+html.look-classic .ft-in.is-phone .ft-body {
+  margin-top: 12px;
+}
+
+.ft-panel--phone .ft-panel-in {
+  padding: var(--card-pad);
+}
+
+.ft-panel--phone .ft-panel-head {
+  margin-top: 0;
+}
+
+.ft-panel--phone .ft-panel-copy {
+  margin-top: 8px;
+  line-height: 1.45;
+}
+
+/* the still, cut to a strip: enough to see the screen, and it opens the walkthrough */
+.ft-panel-shot {
+  margin-top: 14px;
+}
+
+.ft-panel-shot img {
+  height: 104px;
+  object-fit: cover;
+  object-position: left top;
+}
+
+.ft-panel-shot {
+  border-radius: var(--card-r-sm);
+}
+
+.ft-panel-shot .ft-shot-hint {
+  min-height: 36px;
+  font-size: var(--fs-card-small);
+}
+
+.ft-panel--phone .ft-panel-ticks {
+  gap: 7px;
+  margin-top: 14px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.ft-panel--phone .ft-panel-ticks li {
+  font-size: var(--fs-card-body);
+}
+
+/* the app takes the body's height and never sets it (its sidebar would hold the body open), and on
+   a shorter window its sidebar's rows share what's there */
+html.look-classic .ft-in.is-desk .ft-app {
+  height: auto;
+}
+
+html.look-classic .ft-in.is-desk .ft-win {
+  position: absolute;
+  inset: 0;
+  height: auto;
+}
+
+html.look-classic .ft-in.is-desk .ft-nav {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+html.look-classic .ft-in.is-desk .ft-nav-item {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 22px;
+  max-height: 37px;
+}
+
+html.look-classic .ft-in.is-desk .ft-nav-item.is-sub {
+  max-height: 33px;
+}
+
+/* phones: the head's sub a size down, so head, tabs and card fit the screen above the button bar */
+html.look-classic .ft-in.is-phone .ft-sub {
+  font-size: 19px;
+  line-height: 1.45;
+}
+
+/* the shortest laptops (720): the card tighter still */
+@media (max-height: 740px) {
+  .ft-panel--desk .ft-panel-in {
+    padding: 18px 20px;
+  }
+  .ft-panel--desk .ft-panel-head {
+    margin-top: 8px;
+  }
+  .ft-panel--desk .ft-panel-ticks {
+    gap: 7px;
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+  .ft-panel-next {
+    padding: 9px 20px 10px;
+  }
+}
