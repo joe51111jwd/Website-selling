@@ -37,7 +37,8 @@ export type WatchTab = {
 export const WATCH = {
   /** the section's accessible name */
   label: "Watch it work",
-  title: "Watch How It Works For The Crew, The Admins And The Owners",
+  // Andrew's comment-mode note, Oct 20
+  title: "Watch How It Works During The Day, Week and Month",
   /** the tab list's accessible name (his name for the section) */
   tabsLabel: "A Day In The Life",
   caption: DAY_UI.caption,
@@ -84,9 +85,10 @@ export const WATCH = {
     },
     {
       id: "results",
-      name: "The Results",
+      // Andrew's comment-mode note, Oct 20: "The Month" (was "The Results")
+      name: "The Month",
       who: "For the Owners",
-      eyebrow: "THE RESULTS",
+      eyebrow: "THE MONTH",
       headline: "Know your numbers. Grow your profits.",
       sub: "Know your numbers. Stay organized. Grow your profits. Everything you need to run a better business, all connected.",
       items: [
