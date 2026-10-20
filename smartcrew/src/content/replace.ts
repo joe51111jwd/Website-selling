@@ -24,7 +24,7 @@ export const REPLACE = {
       name: "Time Tracking",
       line: "Simple time tracking with GPS auto-log and supervisor options.", // his page note (Oct 20)
       apps: [
-        { name: "busybusy", letter: "b" },
+        { name: "busybusy", file: "busybusy.png" },
         { name: "QuickBooks Time", file: "quickbooks.svg" },
         { name: "ExakTime", letter: "E" },
       ],
@@ -33,10 +33,11 @@ export const REPLACE = {
       id: "fleet",
       name: "Fleet Management",
       line: "Keep equipment, service, and maintenance records together.",
-      // Andrew's round 2 (Oct 19): add MaintainX (a letter mark until he sends the logo file)
+      // Andrew's round 2 (Oct 19): add MaintainX. Logos from James's asset zip (Oct 20); ExakTime keeps
+      // its letter (no ExakTime mark found: it is now part of Arcoro)
       apps: [
-        { name: "Fleetio", letter: "F" },
-        { name: "MaintainX", letter: "M" },
+        { name: "Fleetio", file: "fleetio.svg" },
+        { name: "MaintainX", file: "maintainx.png" },
       ],
     },
     {

@@ -792,3 +792,9 @@ html.has-opening .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-
 .hf-chip-glyph {
   display: none;
 }
+
+/* Classic: the headline's orange words in the new logo's orange, the darker end of its fade
+   (James, Oct 20: "lighten the orange a bit to match it… pull from the darker shade") */
+html.look-classic .hf-fenced {
+  color: var(--orange);
+}

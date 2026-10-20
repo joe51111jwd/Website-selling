@@ -34,7 +34,7 @@
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 45%),
     inset 0 -1px 0 rgb(110 44 0 / 18%),
-    0 var(--cta-lip) 0 #c95b00,
+    0 var(--cta-lip) 0 var(--cta-ledge, #c95b00),
     0 calc(var(--cta-lip) + 1px) 2px rgb(80 32 0 / 30%),
     0 calc(var(--cta-lip) + 12px) 26px -12px rgb(150 62 0 / 55%);
   transform: translateY(calc(-1 * var(--cta-lift)));
@@ -63,7 +63,7 @@
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 50%),
       inset 0 -1px 0 rgb(110 44 0 / 18%),
-      0 calc(var(--cta-lip) + 1.5px) 0 #c95b00,
+      0 calc(var(--cta-lip) + 1.5px) 0 var(--cta-ledge, #c95b00),
       0 calc(var(--cta-lip) + 3px) 3px rgb(80 32 0 / 26%),
       0 calc(var(--cta-lip) + 18px) 32px -12px rgb(150 62 0 / 60%);
   }
@@ -79,7 +79,7 @@
   box-shadow:
     inset 0 1px 2px rgb(110 44 0 / 22%),
     inset 0 -1px 0 rgb(110 44 0 / 10%),
-    0 1px 0 #c95b00,
+    0 1px 0 var(--cta-ledge, #c95b00),
     0 2px 2px rgb(80 32 0 / 26%),
     0 8px 16px -10px rgb(150 62 0 / 45%);
   transition-duration: 70ms;
@@ -192,4 +192,10 @@ html[data-ground="dark"] .cta:focus-visible,
   .cta-cue {
     display: none;
   }
+}
+
+/* Classic: the button's lip a shade under the new logo's orange (James, Oct 20: match the logo, its
+   darker shade), so the cap reads as the logo's #ff7a01 rather than a deeper burnt orange */
+html.look-classic {
+  --cta-ledge: #e86e00;
 }

@@ -78,9 +78,9 @@ export const config = {
   /** Katie's photo next to her quote under the hero's button (bold and classic; a file in public/). ⚑ Empty until she OKs it. */
   katiePhoto: "",
 
-  /** The ConExpo logo over classic's headline ("Featured by", Andrew's round 2; a file in public/). ⚑ Empty until
-   *  Andrew sends the file: the word "ConExpo" stands in for it. */
-  conexpoLogo: "",
+  /** The ConExpo logo over classic's headline ("Featured by", Andrew's round 2; a file in public/): the
+   *  CONEXPO-CON/AGG colour logo from conexpoconagg.com, via James's asset zip (Oct 20). Empty shows the word. */
+  conexpoLogo: "logos/conexpo.webp",
 
   privacyUrl: "https://smartcrewhq.com/privacy-policy",
   termsUrl: "https://smartcrewhq.com/terms-of-service",
