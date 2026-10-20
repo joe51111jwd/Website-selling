@@ -168,6 +168,24 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   margin: 32px auto 0;
   padding: 0 var(--bk-pad);
 }
+/* his confirmation page (his doc, Oct 20 17:30Z): once booked, his headline and line over the video,
+   now centred and wide, and the call's ticket under it; the three bullets are gone */
+.bk.is-booked .bk-grid {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "video"
+    "stage";
+  grid-template-rows: auto;
+  max-width: 1040px;
+}
+.bk.is-booked .bk-stage {
+  justify-self: center;
+  width: min(100%, 640px);
+}
+.bk-h1:focus,
+.bk-h1:focus-visible {
+  outline: none;
+}
 /* the slot keeps the video's room while the video itself plays in the corner */
 .bk-video-slot {
   grid-area: video;
@@ -548,19 +566,8 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   color: #fff;
   box-shadow: 0 0 0 6px rgb(23 19 15 / 6%);
 }
-.bk-ticket-h:focus,
-.bk-ticket-h:focus-visible {
-  outline: none;
-}
-.bk-ticket-h {
-  margin: 18px 0 0;
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--ink-2);
-  outline: none;
-}
 .bk-ticket-day {
-  margin: 4px 0 0;
+  margin: 18px 0 0;
   font-family: var(--font-display);
   font-stretch: 112%;
   font-weight: 720;

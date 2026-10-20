@@ -4,6 +4,17 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## Andrew's doc, Oct 20 17:30Z
+
+1. **Done. His "FINAL CONFIRMATION PAGE".** Once a Cal.com booking completes, /book becomes his page:
+   "You’re Booked! One Last Thing Before We Meet." and "Watch this quick SmartCrew walkthrough so we
+   can spend our call focusing on your company instead of covering the basics." over the same video,
+   now centred and wide (the one already playing keeps playing). The call's ticket (day, time, add to
+   calendar) sits under the video; the calendar and the three bullets go. The page scrolls to the top
+   and focuses his headline. Coming back later shows the same page while the call is ahead. The
+   ticket now leads with the day (his headline already says they're booked) and says "Your quick
+   demo". The video stays on /book beside the calendar too until the agency owner says otherwise.
+
 ## Andrew's Loom, Oct 20 ("Website Updates and Content Tweaks Review"), and his text after it
 
 All **Done** on Classic and /book, in his words. The item-by-item list, matched to where his cursor

@@ -18,8 +18,10 @@ import bustUrl from "../signup/assets/andrew-bust.webp";
 // No gate in front of the calendar (Oct 20: "I don't want to have this skipping book… I think we
 // want it all on the same page… probably to the right"; this replaces the video-first page of
 // Oct 19). Once the video is playing and they scroll it out of sight, it keeps playing in a corner
-// player top-left ("I love how… that keeps running"). After booking, the card turns into the
-// ticket for the call. The video stays as it is until the agency owner's new one arrives.
+// player top-left ("I love how… that keeps running"). After booking, the page becomes his final
+// confirmation page (his doc, Oct 20 17:30Z): his "You're Booked!" headline and line over the same
+// video, now centred and wide, the call's ticket under it. The video stays as it is until the
+// agency owner's new one arrives.
 
 const LITE = typeof window !== "undefined" && window.matchMedia("(pointer: coarse), (max-width: 760px)").matches;
 const blur = (px: number): { filter?: string } => (LITE ? {} : { filter: `blur(${px}px)` });
@@ -40,7 +42,6 @@ export default function Book() {
   const reduce = useReducedMotion() ?? false;
   const [lead] = useState<Lead | null>(() => savedLead());
   const [booking, setBooking] = useState<Booking | null>(() => devBooking() ?? savedBooking());
-  const [fresh, setFresh] = useState(false); // booked on this visit (vs. came back later)
   const [cal, setCal] = useState<"loading" | "ready" | "failed">("loading");
   const [videoFailed, setVideoFailed] = useState(false);
   const calRef = useRef<HTMLDivElement>(null);
@@ -123,19 +124,19 @@ export default function Book() {
         } catch {
           /* ignore */
         }
-        setFresh(true);
         setBooking(full);
+        // his confirmation page starts at the top: the headline, the line, the video
+        window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+        window.setTimeout(() => document.getElementById("bk-h1")?.focus({ preventScroll: true }), reduce ? 50 : 700);
       },
     });
     // if Cal never says it's ready (blocked, offline), show the way out after a while
     const t = window.setTimeout(() => setCal((c) => (c === "loading" ? "failed" : c)), 15000);
     return () => window.clearTimeout(t);
-  }, [booking, lead, demo]);
+  }, [booking, lead, demo, reduce]);
 
   const h1 = booking
-    ? first
-      ? `See you on the call, ${first}.`
-      : "See you on the call."
+    ? BOOK.booked.h1
     : trialFirst
       ? config.trialStartUrl
         ? T1.h1Ready(first)
@@ -153,7 +154,9 @@ export default function Book() {
   // his Loom (Oct 20): "Cut the free trial piece": no kicker unless they asked for a demo
   const kicker = demo ? "Demo request received" : null;
 
-  const sub = trialFirst ? (
+  const sub = booking ? (
+    BOOK.booked.sub
+  ) : trialFirst ? (
     <>
       {!config.trialStartUrl && <>{T1.login} </>}
       {T1.sub}
@@ -197,6 +200,7 @@ export default function Book() {
           <motion.h1
             key={h1}
             id="bk-h1"
+            tabIndex={-1}
             className="bk-h1"
             initial={{ opacity: 0, y: reduce ? 0 : "0.3em", ...blur(reduce ? 0 : 12) }}
             animate={{ opacity: 1, y: 0, ...blur(0) }}
@@ -206,11 +210,11 @@ export default function Book() {
             {h1}
           </motion.h1>
         </AnimatePresence>
-        {!booking && (
-          <motion.p className="bk-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduce ? 0 : 0.5, delay: 0.2 }}>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.p key={booking ? "booked" : "book"} className="bk-sub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduce ? 0 : 0.5, delay: reduce ? 0 : 0.2 }}>
             {sub}
           </motion.p>
-        )}
+        </AnimatePresence>
         {!booking && trialFirst && config.trialStartUrl && (
           <a className="bk-open" href={config.trialStartUrl} onClick={() => trackCustom("trial_open")}>
             {T1.open}
@@ -261,7 +265,7 @@ export default function Book() {
         <div className="bk-stage" id="bk-cal" aria-label={booking ? "Your call" : "Pick a time"}>
           <AnimatePresence mode="wait" initial={false}>
             {booking ? (
-              <Ticket key="ticket" booking={booking} lead={lead} fresh={fresh} reduce={reduce} demo={demo} />
+              <Ticket key="ticket" booking={booking} reduce={reduce} />
             ) : (
               <motion.section
                 key="cal"
@@ -296,23 +300,26 @@ export default function Book() {
           </AnimatePresence>
         </div>
 
-        <section className="bk-covers" aria-labelledby="bk-covers-h" data-testid="book-covers">
-          <h2 id="bk-covers-h">{BOOK.coversTitle}</h2>
-          <ul>
-            {BOOK.covers.map((c) => (
-              <li key={c.title}>
-                <span className="bk-covers-icon" aria-hidden="true">
-                  <CoverIcon kind={c.icon} />
-                </span>
-                <h3>
-                  {c.title}
-                  {c.trial && <Flag note={trialNote} />}
-                </h3>
-                <p>{c.text}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
+        {/* what the call covers, while they pick a time (his confirmation page is the video alone) */}
+        {!booking && (
+          <section className="bk-covers" aria-labelledby="bk-covers-h" data-testid="book-covers">
+            <h2 id="bk-covers-h">{BOOK.coversTitle}</h2>
+            <ul>
+              {BOOK.covers.map((c) => (
+                <li key={c.title}>
+                  <span className="bk-covers-icon" aria-hidden="true">
+                    <CoverIcon kind={c.icon} />
+                  </span>
+                  <h3>
+                    {c.title}
+                    {c.trial && <Flag note={trialNote} />}
+                  </h3>
+                  <p>{c.text}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </main>
 
       <footer className="bk-foot">
@@ -332,8 +339,12 @@ const CALL_NOTE = "Andrew to confirm the call length: his layout says 15 minutes
 
 /** Andrew's words from his booking page layout (Oct 19), as written, with his Loom's changes (Oct 20):
  *  "You're one step away from getting started", "we'll just call it a quick demo", the free-trial
- *  kicker cut. */
+ *  kicker cut. `booked`: his "FINAL CONFIRMATION PAGE" (his doc, Oct 20 17:30Z), word for word. */
 const BOOK = {
+  booked: {
+    h1: "You’re Booked! One Last Thing Before We Meet.",
+    sub: "Watch this quick SmartCrew walkthrough so we can spend our call focusing on your company instead of covering the basics.",
+  },
   help: "Need help?",
   h1: "You’re One Step Away From Getting Started.",
   sub: "Watch this quick video to see how our private beta works, then book your quick demo with Andrew.",
@@ -415,13 +426,8 @@ function CalFallback() {
   );
 }
 
-function Ticket({ booking, lead, fresh, reduce, demo }: { booking: Booking; lead: Lead | null; fresh: boolean; reduce: boolean; demo: boolean }) {
+function Ticket({ booking, reduce }: { booking: Booking; reduce: boolean }) {
   const w = when(booking);
-  const first = lead?.first;
-  const head = useRef<HTMLHeadingElement>(null);
-  useEffect(() => {
-    head.current?.focus({ preventScroll: false });
-  }, []);
   const item = (i: number) => ({
     initial: { opacity: 0, y: reduce ? 0 : 12, ...blur(reduce ? 0 : 6) },
     animate: { opacity: 1, y: 0, ...blur(0) },
@@ -451,19 +457,16 @@ function Ticket({ booking, lead, fresh, reduce, demo }: { booking: Booking; lead
             />
           </svg>
         </motion.span>
-        <motion.h2 ref={head} tabIndex={-1} className="bk-ticket-h" {...item(0)}>
-          {fresh ? "You're booked" : "You're already booked"}
-          {first ? `, ${first}` : ""}.
-        </motion.h2>
-        <motion.p className="bk-ticket-day" {...item(1)}>
+        {/* his headline above already says they're booked: the ticket leads with the day */}
+        <motion.h2 className="bk-ticket-day" {...item(1)}>
           {w.day}
-        </motion.p>
+        </motion.h2>
         <motion.p className="bk-ticket-time" {...item(2)}>
           {w.time}
           {w.zone ? <span> · {w.zone}</span> : null}
         </motion.p>
         <motion.p className="bk-ticket-with" {...item(3)}>
-          {demo ? "Your demo" : "Your walkthrough"} with Andrew Drish, founder of SmartCrew. The confirmation and the call details are in your email.
+          Your quick demo with Andrew Drish, founder of SmartCrew. The confirmation and the call details are in your email.
         </motion.p>
         <motion.div className="bk-ticket-actions" {...item(4)}>
           <a className="bk-btn" href={googleUrl(booking)} target="_blank" rel="noopener noreferrer" onClick={() => trackCustom("add_to_calendar", { kind: "google" })}>

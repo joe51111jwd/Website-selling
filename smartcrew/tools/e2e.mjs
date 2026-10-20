@@ -8,7 +8,7 @@
 // Works against the dev server or a built preview (vite preview). It never books a time on
 // Andrew's Cal.com: it stops once his calendar has mounted. It never sends a lead anywhere either
 // (config.leadWebhook is empty on previews; the test asserts nothing is posted). Round 4 (Andrew's
-// Oct 16 feedback): no ride and no 3D, the popup has two steps, /book is video-first. Elements are found the way a visitor
+// Oct 16 feedback): no ride and no 3D, the popup has two steps, /book is one page (video, calendar beside it, his confirmation page once booked). Elements are found the way a visitor
 // finds them, by role and name (buttons named "Try SmartCrew", headings, links), plus a few
 // stable hooks: #hero-cta / [data-hero-cta], data-testid="sticky-bar|book-cal|book-video|book-covers",
 // the smartcrew:signup event every CTA fires (src/signup/contract.ts), and the popup's storage
@@ -1252,6 +1252,26 @@ async function funnel(device) {
     await wait(400);
     assert(!(await page.locator(".bk-video.is-mini").count()), "the corner video showed after the video ended");
     out.push("video ends → stays in place");
+
+    // Andrew's confirmation page (his doc, Oct 20 17:30Z): once booked, /book is his headline and
+    // line over the video, the call's ticket under it, no calendar and no bullets. The booking is
+    // faked in storage the way a Cal.com booking on this device leaves it (src/lib/lead.ts
+    // saveBooking): never a real time on his calendar.
+    await page.evaluate(() => {
+      const s = new Date(Date.now() + 2 * 864e5);
+      localStorage.setItem("sc_booking", JSON.stringify({ uid: "e2e", start: s.toISOString(), end: new Date(+s + 15 * 60e3).toISOString() }));
+    });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator(".bk-ticket").waitFor({ timeout: 10000 });
+    const bookedH1 = (await page.locator("#bk-h1").textContent())?.trim();
+    assert(bookedH1 === "You’re Booked! One Last Thing Before We Meet.", `booked headline "${bookedH1}"`);
+    const bookedSub = (await page.locator(".bk-sub").textContent()) ?? "";
+    assert(/so we can spend our call focusing on your company instead of covering the basics/i.test(bookedSub), `booked line "${bookedSub.slice(0, 80)}"`);
+    const [vidTop, ticketTop] = [await topOf("book-video"), await page.locator(".bk-ticket").evaluate((el) => Math.round(el.getBoundingClientRect().top + scrollY))];
+    assert(vidTop < ticketTop, `booked order: video ${vidTop}, ticket ${ticketTop}`);
+    assert(!(await page.getByTestId("book-covers").count()) && !(await page.getByTestId("book-cal").count()), "the booked page still shows the calendar or the three bullets");
+    await page.evaluate(() => localStorage.removeItem("sc_booking"));
+    out.push("booked → his confirmation page (headline, line, video, ticket under it)");
 
     // no lead sent anywhere (no email to Andrew or the visitor from a test): leadWebhook is empty
     assert(/leadWebhook:\s*""/.test(configSrc), "config.leadWebhook is set: a test run would send leads");
