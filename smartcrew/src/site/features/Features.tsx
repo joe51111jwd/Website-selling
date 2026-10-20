@@ -10,6 +10,7 @@
 //     and opening a screen from the app's sidebar opens its feature's card;
 //   - classic (Oct 20): the ten names as tabs and one card for the picked one (./Tabs.tsx), so the
 //     head, the tabs and the card beside the app fit one screen;
+//     on phones the ten modules at a glance instead (./Modules.tsx: Andrew, "keep it high level");
 //   - phones: the cards as an accordion, the open one with a still of its screen that opens the
 //     full-screen walkthrough at that feature. The big app never loads on phones;
 //   - the close: Andrew's "Ready to run your entire operation in one place?" and the primary button.
@@ -30,6 +31,7 @@ import { Cta } from "../ui/Cta";
 import { featureById, screenDef } from "./data";
 import { Cards } from "./Cards";
 import { PainPicker, type Answer } from "./PainPicker";
+import { FeatureModules } from "./Modules";
 import { FeaturePanel, FeatureTabs } from "./Tabs";
 import "../specsheet/all-tools.css";
 import "./features.css";
@@ -37,6 +39,7 @@ import "./glass.css";
 import "./focus.css";
 import "./bold.css";
 import "./tabs.css";
+import "./modules.css";
 
 const AppWindow = lazy(() => import("./AppWindow"));
 // the feature wheel (James's drawing, Oct 20) is off the page: Andrew picked the tabs back ("I can see
@@ -160,11 +163,14 @@ function TabsOrCards() {
             little section… and then just have it everything built for dirt"; the other looks keep it */}
         {!CLASSIC && <PainPicker answer={answer} onAnswer={onAnswer} />}
 
-        {CLASSIC && <FeatureTabs open={open ?? FIRST} onOpen={openCard} variant={phone ? "phone" : "desk"} />}
+        {CLASSIC && !phone && <FeatureTabs open={open ?? FIRST} onOpen={openCard} variant="desk" />}
 
         <div ref={bodyRef} className="ft-body">
-          {CLASSIC ? (
-            <FeaturePanel open={open ?? FIRST} variant={phone ? "phone" : "desk"} onOpen={openCard} onShot={(id) => openAll(stepOf(featureById(id).tools[0]))} />
+          {CLASSIC && phone ? (
+            // phones: the ten modules at a glance (Andrew, Oct 20: "keep it high level"), ./Modules.tsx
+            <FeatureModules onShot={(id) => openAll(stepOf(featureById(id).tools[0]))} />
+          ) : CLASSIC ? (
+            <FeaturePanel open={open ?? FIRST} variant="desk" onOpen={openCard} />
           ) : (
             <Cards open={open} matched={answer?.kind === "yes" ? answer.id : null} onOpen={openCard} variant={phone ? "phone" : "desk"} onShot={(id) => openAll(stepOf(featureById(id).tools[0]))} />
           )}

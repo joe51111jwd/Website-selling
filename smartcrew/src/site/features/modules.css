@@ -1,0 +1,162 @@
+/* Classic on phones: the ten modules at a glance (Modules.tsx). Andrew, Oct 20: "start with High
+   level modules… Or maybe just keep it high level". The app's screen on top steps through them, the
+   one it shows lit in the grid; on the site's card set and type scale (tokens.css). Sized so the
+   head, the screen, the line and all ten fit a 390x844 phone above the sticky button. */
+
+html.look-classic .ft-in.is-phone .ft-body {
+  margin-top: 16px;
+}
+
+/* the screen: every module's still in one cell, the shown one faded in */
+.ftm-screen {
+  display: grid;
+  margin-top: 0;
+  border-color: var(--card-line);
+  border-radius: var(--card-r);
+  box-shadow: var(--card-shadow), 0 14px 28px -18px rgb(23 19 15 / 40%);
+}
+
+.ftm-screen img {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.ftm-screen img.is-on {
+  opacity: 1;
+}
+
+.ftm-screen .ft-shot-hint {
+  min-height: 34px;
+  font-size: var(--fs-card-small);
+}
+
+/* Andrew's headline for the module on screen */
+.ftm-line {
+  margin-top: 12px;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: 700;
+  font-size: var(--fs-card-title);
+  line-height: 1.25;
+  letter-spacing: var(--track-sub);
+  color: var(--ink);
+  animation: ftm-line-in 0.35s var(--ease-out) both;
+}
+
+@keyframes ftm-line-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+}
+
+/* all ten, two to a row */
+.ftm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.ftm-mod {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 4px 8px 4px 4px;
+  border: 1px solid var(--card-line);
+  border-radius: var(--card-r-sm);
+  background: var(--paper);
+  box-shadow: var(--card-shadow);
+  color: var(--ink-2);
+  text-align: left;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.25s,
+    border-color 0.25s,
+    color 0.25s;
+}
+
+.ftm-mod:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.ftm-mod-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--ground-2);
+  color: var(--ink-2);
+  transition: background-color 0.25s, color 0.25s;
+}
+
+.ftm-mod-name {
+  min-width: 0;
+  font-family: var(--font-display);
+  font-stretch: calc(var(--wdth-sub) * 1%);
+  font-weight: 650;
+  font-size: var(--fs-card-meta);
+  line-height: 1.15;
+  letter-spacing: var(--track-sub);
+}
+
+.ftm-mod.is-on {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--ground);
+}
+
+.ftm-mod.is-on .ftm-mod-icon {
+  background: var(--orange);
+  color: #fff;
+}
+
+/* while it steps on its own: how long until the next module */
+.ftm-mod-time {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--orange);
+  transform-origin: left;
+  animation: ftm-time linear both;
+}
+
+@keyframes ftm-time {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* shorter phones (a 360x740, say): the screen as a strip of its top, the modules a notch tighter */
+@media (max-height: 800px) {
+  .ftm-screen img {
+    height: 150px;
+    object-fit: cover;
+    object-position: left top;
+  }
+  .ftm-mod {
+    min-height: 36px;
+  }
+  .ftm-mod-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ftm-screen img,
+  .ftm-line {
+    transition: none;
+    animation: none;
+  }
+}
