@@ -165,7 +165,7 @@ function Desk() {
       <div className="spec-foot">
         <Cta source="specsheet" size="md" cursorLabel="Clocked in · {time}" className="spec-cta" />
         <DemoLink source="specsheet" className="spec-demo" />
-        <p className="t-micro spec-micro">{CTA.micro}</p>
+        {CTA.micro && <p className="t-micro spec-micro">{CTA.micro}</p>}
       </div>
 
       <AllTools open={all} onClose={() => setAll(false)} variant="desk" />

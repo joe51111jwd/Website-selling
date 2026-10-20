@@ -455,7 +455,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
     ) : (
       <>
         It starts with {aCall()} with Andrew.
-        {!config.callLengthConfirmed && <Flag note="Andrew to confirm the call length (his Cal.com event is 45 minutes today)" />}
+        {config.callLength && !config.callLengthConfirmed && <Flag note="Andrew to confirm the call length (his Cal.com event is 45 minutes today)" />}
       </>
     );
 
@@ -689,24 +689,8 @@ export default function Dialog({ req, opener, onClose }: Props) {
                             input={{ type: "tel", name: "tel", autoComplete: "tel", inputMode: "tel", enterKeyHint: "done", maxLength: 20, placeholder: "(555) 123-4567" }}
                           />
                         </div>
-                        <div className="su-sms">
-                          <label className="su-check">
-                            <input type="checkbox" name="sms_consent" checked={d.sms} onChange={(e) => set("sms", e.target.checked)} />
-                            <span className="su-box" aria-hidden="true">
-                              <svg width="12" height="12" viewBox="0 0 12 12">
-                                <path d="M2.5 6.2 5 8.6l4.6-5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            </span>
-                            <span>
-                              Text me call reminders from SmartCrew <span className="su-opt">(optional)</span>
-                            </span>
-                          </label>
-                          {/* the consent terms, one quiet line under the opt-in (the box says who and why) */}
-                          <p className="su-fine">
-                            About 3 texts per booking. Msg &amp; data rates may apply. Reply STOP to opt out.
-                            <Flag note="SMS consent wording: Andrew/counsel to confirm (sender number, frequency)" />
-                          </p>
-                        </div>
+                        {/* "Text me call reminders" cut (Andrew's Loom, Oct 20: Cal.com already sends text
+                            reminders); the phone number fills Cal.com's text-reminder field on /book */}
                       </div>
                     )}
 
@@ -736,7 +720,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
                                 <Flag note={OFFER.trialFirst.note} />
                               </>
                             ) : (
-                              "Next: pick a time for your walkthrough with Andrew."
+                              "Next: pick a time for your quick demo with Andrew."
                             )}
                           </span>
                         ) : (

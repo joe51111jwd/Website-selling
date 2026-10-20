@@ -54,24 +54,27 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
     const R = root.getBoundingClientRect();
     const W = Math.round(R.width);
     const H = Math.round(R.height);
-    const rel = (r: DOMRect) => ({ x: r.left - R.left, y: r.top - R.top, w: r.width, h: r.height });
-    const textRects = (el: Element | null, pad: number): Rect[] => {
+    // the header is fixed: where it sits over the fold is where it is at the top of the page, so a
+    // ground laid while the page is scrolled (a reload mid-page, a resize) still rings the logo and
+    // the nav (Andrew's Loom, Oct 20: "let's have that go around that… go around this here")
+    const rel = (r: DOMRect, fixed = false) => ({ x: r.left - R.left, y: r.top - R.top - (fixed ? window.scrollY : 0), w: r.width, h: r.height });
+    const textRects = (el: Element | null, pad: number, fixed = false): Rect[] => {
       if (!el) return [];
       const rg = document.createRange();
       rg.selectNodeContents(el);
       return [...rg.getClientRects()].map((r) => {
-        const b = rel(r);
+        const b = rel(r, fixed);
         return { x: b.x - pad, y: b.y - pad / 2, w: b.w + pad * 2, h: b.h + pad, r: 8 };
       });
     };
-    const boxOf = (el: Element | null, pad: number, r = 14): Rect[] => {
+    const boxOf = (el: Element | null, pad: number, r = 14, fixed = false): Rect[] => {
       if (!el || !(el as HTMLElement).offsetParent) return [];
-      const b = rel(el.getBoundingClientRect());
+      const b = rel(el.getBoundingClientRect(), fixed);
       return [{ x: b.x - pad, y: b.y - pad, w: b.w + pad * 2, h: b.h + pad * 2, r }];
     };
     const rects: Rect[] = [
-      ...boxOf(document.querySelector(".site-logo"), 8),
-      ...(!phone ? [...document.querySelectorAll(".site-nav a")].flatMap((a) => textRects(a, 6)) : []),
+      ...boxOf(document.querySelector(".site-logo"), 8, 14, true),
+      ...(!phone ? [...document.querySelectorAll(".site-nav a")].flatMap((a) => textRects(a, 6, true)) : []),
       ...textRects(q(".hf-eyebrow"), 8),
       ...boxOf(q(".hf-featured"), 8),
       ...[...root.querySelectorAll(".hf-line-in")].flatMap((l) => textRects(l, phone ? 6 : 10)),

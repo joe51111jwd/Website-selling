@@ -19,6 +19,7 @@ import { CrewCanvas } from "./CrewCanvas";
 import { Odometer } from "./Odometer";
 import { DAYS_DEFAULT, PRESET, annualCost, grouped, money, parseDays, weekly } from "./calc";
 import { useSettled } from "./settle";
+import { CLASSIC } from "../../lib/look";
 import "./number-phone.css";
 
 const COPY = {
@@ -247,12 +248,15 @@ export default function NumberPhone() {
               )}
             </p>
             <SceneCta request={request} size="lg" className="nph-cta" />
-            <p className="t-micro nph-micro">
-              {CALC.ctaMicro}
-              <span className="flag" title="Andrew to confirm">
-                {FLAG}
-              </span>
-            </p>
+            {/* classic: cut (Andrew's Loom, Oct 20) */}
+            {!CLASSIC && (
+              <p className="t-micro nph-micro">
+                {CALC.ctaMicro}
+                <span className="flag" title="Andrew to confirm">
+                  {FLAG}
+                </span>
+              </p>
+            )}
           </div>
         </>
       )}

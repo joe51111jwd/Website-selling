@@ -99,6 +99,51 @@
   color: var(--ink);
 }
 
+/* classic's hand-drawn arrow (Andrew's Loom, Oct 20: "some cool design piece that has the arrow
+   coming here"): it loops once and reaches past the column's edge, right up to the phone. Where the
+   browser can tie an animation to scrolling, it draws itself in as the section comes up */
+html.look-classic .try-nudge-swoop {
+  width: clamp(190px, 17vw, 270px);
+  margin-top: clamp(4px, 1svh, 10px);
+  margin-left: calc(-1 * clamp(56px, 6.5vw, 120px));
+  overflow: visible;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    html.look-classic .try-swoop-line {
+      stroke-dasharray: 1;
+      animation: try-swoop-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 40% cover 45%;
+    }
+    html.look-classic .try-swoop-head {
+      animation: try-swoop-head linear both;
+      animation-timeline: view();
+      animation-range: entry 40% cover 45%;
+    }
+  }
+}
+
+@keyframes try-swoop-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes try-swoop-head {
+  0%,
+  88% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 /* the anchor: the whole middle column; the frame box inside it is the Stage's contain fit */
 .try-anchor {
   height: 100%;
@@ -142,6 +187,9 @@
   /* the phone is to the right here */
   .try-nudge-arrow {
     transform: scaleX(-1);
+  }
+  html.look-classic .try-nudge-swoop {
+    margin-left: 0;
   }
   .try-anchor {
     grid-column: 2;

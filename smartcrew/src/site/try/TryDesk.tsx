@@ -15,6 +15,7 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { TRY_IT } from "../../content/copy";
+import { CLASSIC } from "../../lib/look";
 import { StageAnchor } from "../../three/stage/StageAnchor";
 import { clearScreen, onStatus, reducedMotion, setScreen, status } from "../../three/stage/store";
 import { SceneCta } from "./SceneCta";
@@ -243,15 +244,16 @@ export function TryDesk() {
         <div ref={anchor} className="try-fit" onPointerMove={clock.poke} onFocusCapture={clock.poke}>
           {k > 0 && (
             <div ref={frame} className="try-frame" style={{ width: TRY_FRAME[0] * k, height: TRY_FRAME[1] * k }}>
-              {/* the jobsite, under the phone's chin; once clocked in, the stamp under it */}
-              <p
+              {/* the jobsite, under the phone's chin; once clocked in, the stamp under it. Not in
+                  classic: Andrew cut it ("cut this piece right here. That's unnecessary", Oct 20) */}
+              {!CLASSIC && <p
                 className={`try-cap${captioned && phase !== -1 ? " is-on" : ""}${clock.on ? " is-clocked" : ""}`}
                 style={{ top: `calc(50% + ${(CHIN * k + CAP_GAP).toFixed(1)}px)` }}
                 aria-hidden="true"
               >
                 <span className="try-cap-site">{TRY_IT.site}</span>
                 <span className="try-cap-stamp">{stamp ? TRY_IT.clocked.replace("{time}", stamp) : "\u00a0"}</span>
-              </p>
+              </p>}
               <div
                 ref={layer}
                 className={`try-ov${live || no3d ? " is-live" : ""}${focus.open ? " is-focus" : ""}`}
@@ -286,14 +288,31 @@ export function TryDesk() {
 
       <FocusLayer open={focus.open} soft={focus.soft} hole={focus.hole} onExit={focus.exit} variant="desk" holeRef={holeRef} />
 
-      {/* Andrew's round 2: "…But don't take our word for it… Try it yourself." with an arrow to the phone */}
+      {/* Andrew's round 2: "…But don't take our word for it… Try it yourself." with an arrow to the phone;
+          his Loom (Oct 20): "some cool design piece that has the arrow coming here", so classic's arrow
+          is hand drawn, loops once and runs right up to the phone, drawing itself in as the section
+          arrives (try.css) */}
       <div className="try-nudge" aria-hidden="true">
         <p className="try-nudge-lead">{TRY_IT.nudgeLead}</p>
         <p className="try-nudge-try">{TRY_IT.nudge}</p>
-        <svg className="try-nudge-arrow" viewBox="0 0 200 24" fill="none">
-          <path d="M196 12H8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray="9 9" />
-          <path d="M17 3 6 12l11 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        {CLASSIC ? (
+          <svg className="try-nudge-arrow try-nudge-swoop" viewBox="0 0 260 120" fill="none">
+            <path
+              className="try-swoop-line"
+              pathLength={1}
+              d="M236 10C238 46 214 80 170 86C136 91 112 70 124 52C136 35 164 48 156 72C147 98 98 106 60 100C42 97 28 92 14 84"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+            <path className="try-swoop-head" d="M22 96.7 14 84l15 .5" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : (
+          <svg className="try-nudge-arrow" viewBox="0 0 200 24" fill="none">
+            <path d="M196 12H8" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeDasharray="9 9" />
+            <path d="M17 3 6 12l11 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
       </div>
     </div>
   );

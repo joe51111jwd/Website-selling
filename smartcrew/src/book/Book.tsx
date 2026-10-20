@@ -12,37 +12,18 @@ import { Logo } from "../brand/Logo";
 import faceUrl from "../signup/assets/andrew-face.webp";
 import bustUrl from "../signup/assets/andrew-bust.webp";
 
-// /book: Andrew's words and blocks (Oct 19, his layout by text), video first (the agency owner,
-// Oct 19: "We want them to watch the video. That should be the main focus... Still give them a
-// choice, but have them make a conscious choice not to watch the video to book... the video
-// basically mini-plays in the top left and continues to play while they book"). So the page opens
-// on his headline and the video, big and alone, with "Here's what we'll cover" under it. The
-// calendar (in a card that says what the call is, already filled in from the popup) opens when the
-// video ends, or on "Skip the video and book now"; skipped mid-video, the video shrinks to a mini
-// player in the top-left corner and keeps playing. If the video can't load, the calendar opens at
-// once. After booking, the card turns into the ticket for the call. The video stays as it is until
-// the agency owner's new one arrives.
+// /book: Andrew's words and blocks (Oct 19, his layout by text; his Loom, Oct 20). His headline
+// centred, then his two columns: the video with "Here's what we'll cover" under it on the left, the
+// calendar on the right in a card that says what the call is, already filled in from the popup.
+// No gate in front of the calendar (Oct 20: "I don't want to have this skipping book… I think we
+// want it all on the same page… probably to the right"; this replaces the video-first page of
+// Oct 19). Once the video is playing and they scroll it out of sight, it keeps playing in a corner
+// player top-left ("I love how… that keeps running"). After booking, the card turns into the
+// ticket for the call. The video stays as it is until the agency owner's new one arrives.
 
 const LITE = typeof window !== "undefined" && window.matchMedia("(pointer: coarse), (max-width: 760px)").matches;
 const blur = (px: number): { filter?: string } => (LITE ? {} : { filter: `blur(${px}px)` });
 const ease = [0.22, 1, 0.36, 1] as const;
-
-/** The calendar stays open for the rest of the visit once it has opened. */
-const PHASE_KEY = "sc_book_phase";
-function readPhase(): string | null {
-  try {
-    return sessionStorage.getItem(PHASE_KEY);
-  } catch {
-    return null;
-  }
-}
-function savePhase() {
-  try {
-    sessionStorage.setItem(PHASE_KEY, "book");
-  } catch {
-    /* ignore */
-  }
-}
 
 /** Dev only: /book/?demo=booked shows the booked state without touching Andrew's calendar. */
 function devBooking(): Booking | null {
@@ -63,14 +44,14 @@ export default function Book() {
   const [cal, setCal] = useState<"loading" | "ready" | "failed">("loading");
   const [videoFailed, setVideoFailed] = useState(false);
   const calRef = useRef<HTMLDivElement>(null);
-  /** watch: the video alone; book: the calendar is open (kept for the visit, so a reload doesn't
-   *  ask them to watch again) */
-  const [phase, setPhase] = useState<"watch" | "book">(() => (booking || readPhase() === "book" ? "book" : "watch"));
-  /** the video in the corner, still playing, while they book */
-  const [mini, setMini] = useState(false);
+  /** the video in the corner, still playing, while they book: it is playing, its slot has scrolled
+   *  out of sight, and they haven't closed the corner player since they last pressed play */
+  const [playing, setPlaying] = useState(false);
+  const [slotOut, setSlotOut] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const mini = playing && slotOut && !dismissed && !booking && !videoFailed;
+  const slotRef = useRef<HTMLDivElement>(null);
   const player = useRef<VidPlayer | null>(null);
-  const cardHead = useRef<HTMLHeadingElement>(null);
-  const [calWanted, setCalWanted] = useState(phase === "book");
 
   const first = lead?.first || (lead ? firstName(lead.name) : "");
   const demo = lead?.intent === "demo";
@@ -85,19 +66,7 @@ export default function Book() {
     track("ViewContent", { content_name: "Book a call", intent: lead?.intent ?? "direct" }, lead?.lead_id ? `${lead.lead_id}-book` : undefined);
   }, [lead]);
 
-  /** Open the calendar: the video ended, they chose to skip it, or it couldn't load. */
-  const openBook = (why: "ended" | "skip" | "failed") => {
-    setPhase((p) => {
-      if (p === "book") return p;
-      trackCustom(why === "skip" ? "video_skip" : why === "ended" ? "video_ended" : "video_failed");
-      return "book";
-    });
-    savePhase();
-    setCalWanted(true);
-  };
-
-  // Andrew's video right after first paint (it is the page now); a tap on the poster loads the
-  // player at once. The player's "ended" opens the calendar.
+  // Andrew's video right after first paint; a tap on the poster loads the player at once
   const video = useRef(false);
   const [vidOn, setVidOn] = useState(false);
   const mountVideo = () => {
@@ -107,9 +76,14 @@ export default function Book() {
     vidalyticsPlayer(config.vidalytics.walkthrough).then((p) => {
       if (!p) return;
       player.current = p;
+      p.on("play", () => {
+        setPlaying(true);
+        setDismissed(false);
+      });
+      p.on("pause", () => setPlaying(false));
       p.on("ended", () => {
-        setMini(false);
-        openBook("ended");
+        setPlaying(false);
+        trackCustom("video_ended");
       });
     });
     mountVidalytics(config.vidalytics.walkthrough, () => setVideoFailed(true));
@@ -119,46 +93,23 @@ export default function Book() {
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  // no video, no reason to wait: the calendar opens
+  // the video's slot in sight or not (the corner player takes over when it isn't)
   useEffect(() => {
-    if (videoFailed) openBook("failed");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [videoFailed]);
-
-  /** "Skip the video and book now": a choice they make, never the default. Mid-video, the video
-   *  keeps playing in the corner. */
-  const skip = () => {
-    const p = player.current;
-    if (!videoFailed && !(p && p.ended())) setMini(true);
-    openBook("skip");
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => {
-        document.getElementById("bk-cal")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
-        cardHead.current?.focus({ preventScroll: true });
-      }),
-    );
-  };
-  /** The card's "Watch Andrew's video": the corner player again, playing. */
-  const watchAgain = () => {
-    setMini(true);
-    player.current?.play().catch(() => {});
-  };
+    const el = slotRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setSlotOut(e.intersectionRatio < 0.35), { threshold: [0, 0.35, 1] });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  /** The corner player's ×: the video stops and goes back to its place (play again and it can follow). */
   const closeMini = () => {
     player.current?.pause();
-    setMini(false);
+    setDismissed(true);
   };
-
-  // Andrew's calendar loads in the background while they watch (a few seconds in, so it doesn't
-  // compete with the video), or at once when it opens; it stays hidden until then
-  useEffect(() => {
-    if (calWanted) return;
-    const id = window.setTimeout(() => setCalWanted(true), LITE ? 6000 : 3000);
-    return () => window.clearTimeout(id);
-  }, [calWanted]);
 
   // Andrew's calendar, prefilled; a failure falls back to a plain link and email
   useEffect(() => {
-    if (booking || !calWanted || !calRef.current) return;
+    if (booking || !calRef.current) return;
     mountCal(calRef.current, lead, {
       onReady: () => setCal("ready"),
       onFailed: () => setCal("failed"),
@@ -179,7 +130,7 @@ export default function Book() {
     // if Cal never says it's ready (blocked, offline), show the way out after a while
     const t = window.setTimeout(() => setCal((c) => (c === "loading" ? "failed" : c)), 15000);
     return () => window.clearTimeout(t);
-  }, [booking, calWanted, lead, demo]);
+  }, [booking, lead, demo]);
 
   const h1 = booking
     ? first
@@ -199,7 +150,8 @@ export default function Book() {
   // the same day he moved every button to "Try SmartCrew" with no free trial up front, and said
   // he'll tweak this page's copy himself.
   const trialNote = "Andrew to update: still promises a free trial (buttons now say “Try SmartCrew”, Oct 19)";
-  const kicker = demo ? "Demo request received" : BOOK.kicker;
+  // his Loom (Oct 20): "Cut the free trial piece": no kicker unless they asked for a demo
+  const kicker = demo ? "Demo request received" : null;
 
   const sub = trialFirst ? (
     <>
@@ -210,7 +162,7 @@ export default function Book() {
   ) : demo ? (
     <>
       {cap(aCall())} with the founder. No sales team. No BDR. Just Andrew.
-      {!config.callLengthConfirmed && <Flag note={CALL_NOTE} />}
+      {config.callLength && !config.callLengthConfirmed && <Flag note={CALL_NOTE} />}
     </>
   ) : (
     BOOK.sub
@@ -231,7 +183,7 @@ export default function Book() {
 
       {/* 1 · his headline, centred */}
       <section className="bk-intro" aria-labelledby="bk-h1">
-        {!booking && (
+        {!booking && kicker && (
           <motion.p className="bk-kicker" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduce ? 0 : 0.5, ease, delay: 0.05 }}>
             <span className="bk-kicker-check" aria-hidden="true">
               <svg width="10" height="10" viewBox="0 0 12 12">
@@ -239,7 +191,6 @@ export default function Book() {
               </svg>
             </span>
             {kicker}
-            {!demo && <Flag note={trialNote} />}
           </motion.p>
         )}
         <AnimatePresence mode="wait" initial={false}>
@@ -253,7 +204,6 @@ export default function Book() {
             transition={{ duration: reduce ? 0 : 0.6, ease }}
           >
             {h1}
-            {!booking && !demo && !trialFirst && <Flag note={trialNote} />}
           </motion.h1>
         </AnimatePresence>
         {!booking && (
@@ -271,14 +221,13 @@ export default function Book() {
         )}
       </section>
 
-      {/* 2 · the video, big and alone, then (once it ends, or they skip it) the calendar */}
-      <main className={`bk-flow is-${phase}${mini ? " has-mini" : ""}`}>
-        <div className="bk-video-slot">
+      {/* 2 · one page, his text (Oct 20): the video at 2/3 width with the three bullets under it, the calendar on the right */}
+      <main className={`bk-grid${mini ? " has-mini" : ""}`}>
+        <div className="bk-video-slot" ref={slotRef}>
           <motion.figure
             id="bk-video"
-            className={`bk-video${phase === "book" ? (mini ? " is-mini" : " is-away") : ""}`}
+            className={`bk-video${mini ? " is-mini" : ""}`}
             data-testid="book-video"
-            aria-hidden={phase === "book" && !mini ? true : undefined}
             initial={{ opacity: 0, y: reduce ? 0 : 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduce ? 0 : 0.7, ease, delay: reduce ? 0 : 0.15 }}
@@ -297,7 +246,7 @@ export default function Book() {
                 )}
               </div>
               <div id={`vidalytics_embed_${config.vidalytics.walkthrough}`} className="bk-vid" />
-              {!vidOn && <button type="button" className="bk-poster-go" onClick={mountVideo} aria-label="Play Andrew’s walkthrough" />}
+              {!vidOn && <button type="button" className="bk-poster-go" onClick={mountVideo} aria-label="Play Andrew’s video" />}
             </div>
             {mini && (
               <button type="button" className="bk-mini-x" onClick={closeMini} aria-label="Close the video">
@@ -307,25 +256,9 @@ export default function Book() {
               </button>
             )}
           </motion.figure>
-          {phase === "watch" && !booking && (
-            <div className="bk-skip-row">
-              <p className="bk-skip-note">{BOOK.opensAfter}</p>
-              <button type="button" className="bk-skip" data-testid="book-skip" onClick={skip}>
-                {BOOK.skip}
-                <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M3 8h9.5M8.5 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
-          )}
         </div>
 
-        <div
-          className={`bk-stage${phase === "watch" && !booking ? " is-shut" : ""}`}
-          id="bk-cal"
-          aria-label={booking ? "Your call" : "Pick a time"}
-          inert={phase === "watch" && !booking ? true : undefined}
-        >
+        <div className="bk-stage" id="bk-cal" aria-label={booking ? "Your call" : "Pick a time"}>
           <AnimatePresence mode="wait" initial={false}>
             {booking ? (
               <Ticket key="ticket" booking={booking} lead={lead} fresh={fresh} reduce={reduce} demo={demo} />
@@ -334,27 +267,21 @@ export default function Book() {
                 key="cal"
                 className="bk-card"
                 aria-labelledby="bk-card-h"
+                initial={{ opacity: 0, y: reduce ? 0 : 18 }}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.97, ...blur(8) }}
-                transition={{ duration: reduce ? 0 : 0.3, ease }}
+                transition={{ duration: reduce ? 0 : 0.6, ease, delay: reduce ? 0 : 0.25 }}
               >
                 <header className="bk-card-head">
                   <img src={faceUrl} alt="" width={56} height={56} />
                   <div>
-                    <h2 id="bk-card-h" className="bk-card-h" ref={cardHead} tabIndex={-1}>
+                    <h2 id="bk-card-h" className="bk-card-h">
                       {BOOK.cardTitle}
-                      {!config.callLengthConfirmed && <Flag note={CALL_NOTE} />}
+                      {config.callLength && !config.callLengthConfirmed && <Flag note={CALL_NOTE} />}
                     </h2>
                     <p className="bk-card-sub">{BOOK.cardSub}</p>
                   </div>
                 </header>
-                {!mini && !videoFailed && (
-                  <button type="button" className="bk-again" onClick={watchAgain}>
-                    <svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true">
-                      <path d="M5 3.2v11.6L14.6 9z" fill="currentColor" />
-                    </svg>
-                    {BOOK.again}
-                  </button>
-                )}
                 <div className={`bk-cal is-${cal}`} data-testid="book-cal">
                   <div ref={calRef} className="bk-cal-embed" />
                   <AnimatePresence>{cal === "loading" && <CalSkeleton key="skel" />}</AnimatePresence>
@@ -403,20 +330,17 @@ const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 /** The call length isn't settled until his Cal.com event matches (src/config.ts). */
 const CALL_NOTE = "Andrew to confirm the call length: his layout says 15 minutes, his Cal.com event is 45 minutes today";
 
-/** Andrew's words from his booking page layout (Oct 19), as written. */
+/** Andrew's words from his booking page layout (Oct 19), as written, with his Loom's changes (Oct 20):
+ *  "You're one step away from getting started", "we'll just call it a quick demo", the free-trial
+ *  kicker cut. */
 const BOOK = {
   help: "Need help?",
-  kicker: "Free trial request received",
-  h1: "You’re One Step Away From Your Free Trial.",
-  sub: "Watch this quick video to see how our private beta works, then book your 15-minute walkthrough below.",
-  cardTitle: "Book a 15-minute walkthrough with Andrew",
+  h1: "You’re One Step Away From Getting Started.",
+  sub: "Watch this quick video to see how our private beta works, then book your quick demo with Andrew.",
+  cardTitle: "Book a quick demo with Andrew",
   cardSub: "Choose a time that works for you. No preparation needed.",
   cardNote: "After you book, you’ll receive a confirmation email with the meeting details.",
   coversTitle: "Here’s what we’ll cover:",
-  /** ours, not his: the video-first controls (the agency owner, Oct 19) */
-  opensAfter: "Your calendar opens when the video ends.",
-  skip: "Skip the video and book now",
-  again: "Watch Andrew’s video",
   covers: [
     { icon: "chat", title: "Your operation", text: "We’ll learn about your crews, equipment, and how you manage jobs day-to-day." },
     { icon: "screen", title: "See SmartCrew", text: "We’ll show you the key features and how it fits your business." },

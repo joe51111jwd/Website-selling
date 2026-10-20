@@ -42,7 +42,7 @@ export function StickyBar() {
     <div className={`sticky-bar sbar${on ? " is-on" : ""}`} inert={!on} data-testid="sticky-bar">
       <Cta source="sticky" label={STICKY.cta} block primary={false} aria-describedby={desc} className="sbar-cta" />
       <span id={desc} className="sr-only">
-        {STICKY.title}. {STICKY.sub}.
+        {STICKY.title}.
       </span>
     </div>
   );

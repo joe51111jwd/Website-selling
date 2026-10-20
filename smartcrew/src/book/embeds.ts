@@ -61,8 +61,9 @@ export function calPrefill(lead: Lead | null): Record<string, string> {
     name: lead.name,
     email: lead.email,
     attendeePhoneNumber: lead.phone_e164,
-    // Cal's own SMS-reminder field only when the visitor ticked our consent box
-    smsReminderNumber: lead.sms ? lead.phone_e164 : undefined,
+    // Cal's own text-reminder field ("Phone number (Text notifications)") too (Andrew's Loom, Oct 20:
+    // "Have the phone number pass through here too"); Cal's consent line sits right under it
+    smsReminderNumber: lead.phone_e164,
     // Andrew's booking questions, by identifier (verified on his event 2026-10-12). His "notes"
     // field is the "What tech are you currently using?" question, so it is left for him to answer.
     companyname: lead.company,

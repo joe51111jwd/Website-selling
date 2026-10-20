@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FocusLayer, useFocusMode } from "./focus";
 import { TRY_IT } from "../../content/copy";
+import { CLASSIC } from "../../lib/look";
 import { useArrive } from "../phone/useArrive";
 import { Cta } from "../ui/Cta";
 import { localTime, useClock, useElapsed, useSelfDemo } from "./clock";
@@ -105,9 +106,12 @@ export default function TryPhone() {
           <span className="sr-only">
             {TRY_IT.live}
           </span>
-          <p className="tp-stamp" aria-hidden="true">
-            {TRY_IT.site} · {TRY_IT.clocked.replace("{time}", stamp)}
-          </p>
+          {/* classic: no jobsite stamp (Andrew cut the desktop one, Oct 20) */}
+          {!CLASSIC && (
+            <p className="tp-stamp" aria-hidden="true">
+              {TRY_IT.site} · {TRY_IT.clocked.replace("{time}", stamp)}
+            </p>
+          )}
           <Cta source="try" size="lg" className="tp-cta" cue={false} />
           {/* he clocked in himself: just "Clock out"; the self demo did it: his turn */}
           <button type="button" className="link tp-again" onClick={clock.clockOut}>

@@ -559,9 +559,11 @@ async function headerLinks(device) {
     const banner = page.getByRole("banner");
     const out = [];
     if (device.name === "desktop") {
+      // Andrew's Loom (Oct 20): Features, How it works, FAQ
       for (const [name, id] of [
         ["FAQ", "faq"],
-        ["How it works", "features"],
+        ["Features", "features"],
+        ["How it works", "watch"],
       ]) {
         await scrollTo(page, 0, 300);
         await press(page, banner.getByRole("link", { name, exact: true }), { what: `the header's "${name}" link` });
@@ -638,6 +640,15 @@ async function painPicker(device) {
     await scrollSection(page, "#features", 0, device.settle);
     await wait(900);
     const sec = page.locator("section#features");
+    // classic: Andrew cut the picker (his Loom, Oct 20); the head and the ten cards stay
+    if (!LOOK || LOOK === "classic") {
+      assert(!(await sec.getByRole("textbox", { name: /type your own/i }).count()), "the pain picker is still on the classic page");
+      assert(!(await sec.getByText(/biggest headache/i).count()), "“What’s your biggest headache?” is still on the classic page");
+      assert(await sec.getByRole("heading", { name: /everything\. built for dirt\./i }).count(), "no “Everything. Built for dirt.” heading");
+      const cards = await sec.locator("[data-testid^='feature-card-']").count();
+      assert(cards >= 10, `${cards} feature cards, not 10`);
+      return `classic: no picker; head and ${cards} cards`;
+    }
     const answer = sec.locator(".ft-answer");
     const said = async () => (await answer.innerText()).replace(/\s+/g, " ").trim();
     const saysSoon = async (re) => {
@@ -721,6 +732,19 @@ async function tryIt(device) {
     }
     await press(page, clockIn, { what: "Clock In" });
     await sec.getByText(/currently working on/i).first().waitFor({ state: "attached", timeout: 8000 });
+    // classic (Andrew's Loom, Oct 20): only clocking in and out (and Break) work; the tabs and the
+    // rest show but can't be tapped, and the jobsite caption under the phone is gone
+    let simple = "";
+    if (!LOOK || LOOK === "classic") {
+      const app = sec.locator(".ca.is-simple").first();
+      assert(await app.count(), "the Try it app isn't in its simple (clock in / out only) mode");
+      const off = await app.locator("button[aria-disabled='true']").count();
+      const tabs = await app.locator(".sc-tab[aria-disabled='true']").count();
+      assert(off > 3 && tabs >= 4, `only ${off} controls (${tabs} tabs) are off in the simple app`);
+      assert(!(await app.locator(".tp-clockout[aria-disabled='true'], .tp-break[aria-disabled='true']").count()), "Clock Out or Break is switched off");
+      assert(!(await sec.locator(".try-cap, .tp-stamp").count()), "the jobsite caption is still under the phone");
+      simple = `, simple app (${off} controls off)`;
+    }
     // the CTA under the headline (or on phones the sheet's), or (while the tap has dimmed the rest of
     // the page: focus mode, src/site/try/focus.tsx) the one beside the phone / in the dimmed header
     const ctas = [sec.getByRole("button", { name: /try smartcrew/i }).first(), page.locator(".fx.is-open .fx-cta").getByRole("button", { name: /try smartcrew/i }).first()];
@@ -735,7 +759,7 @@ async function tryIt(device) {
     const s = (await signups(page)).pop();
     assert(s?.source === "try", `Try it CTA sent ${JSON.stringify(s)}`);
     await closePopup(page);
-    return "tap → clocked in → CTA → popup";
+    return `tap → clocked in${simple} → CTA → popup`;
   } finally {
     await ctx.close();
   }
@@ -1136,6 +1160,7 @@ async function funnel(device) {
     await wait(500);
     e = await errors();
     assert(/email/i.test(e) && /10-digit/i.test(e), `step 2 errors: "${e}"`);
+    assert(!(await dlg.getByRole("checkbox", { name: /text me/i }).count()), "the popup still has the text-reminder box (Andrew cut it, Oct 20)");
     await dlg.getByLabel("Work email").fill("pat.tester@example.com");
     await dlg.getByLabel("Cell phone").fill("5555550123");
     await Promise.all([page.waitForURL(/\/book\/?(\?|$)/, { timeout: 15000 }), start()]);
@@ -1149,38 +1174,47 @@ async function funnel(device) {
     assert(lead.size === "13–25" && lead.phone_e164 === "+15555550123" && lead.stage === "complete", `lead size/phone ${lead.size} ${lead.phone_e164}`);
     out.push("lead handed over (company, name, email, phone, size)");
 
-    // /book (James, Oct 19): it opens on Andrew's video, big and alone; the calendar stays shut
-    // until the video ends or they choose "Skip the video and book now"
+    // /book (Andrew's Loom, Oct 20): his headline; the video and the calendar on one page, the
+    // calendar to the right of the video (under it on a phone), no skip gate
     const h1 = page.getByRole("heading", { level: 1 }).first();
     await h1.waitFor({ state: "visible", timeout: 10000 });
-    // Andrew's headline, as written (his booking page layout, Oct 19)
-    assert(/one step away/i.test(await h1.innerText()), `/book H1 "${await h1.innerText()}" isn't Andrew's headline`);
+    assert(/one step away from getting started/i.test(await h1.innerText()), `/book H1 "${await h1.innerText()}" isn't Andrew's headline`);
+    const bookText = await page.locator(".bk").innerText();
+    assert(!/free trial request received/i.test(bookText), "the free-trial kicker is still on /book");
+    assert(!/15-minute/i.test(bookText), "/book still says 15-minute");
     const video = page.getByTestId("book-video");
     assert(await video.isVisible(), "Andrew's video isn't on /book");
     assert(await page.locator(`#vidalytics_embed_${VIDEO_ID}`).count(), `no Vidalytics container #vidalytics_embed_${VIDEO_ID}`);
-    const skip = page.getByTestId("book-skip");
     const cardHead = page.locator("#bk-card-h");
+    await cardHead.waitFor({ state: "visible", timeout: 10000 });
+    assert(/quick demo/i.test(await cardHead.innerText()), `the calendar card says "${await cardHead.innerText()}"`);
+    assert(!(await page.getByRole("button", { name: /skip the video/i }).count()), "the skip button is back");
     await page.waitForFunction(() => window.__vid, null, { timeout: 15000 }).catch(() => {});
     assert(await page.evaluate(() => !!window.__vid), "the page never got Andrew's video player");
-    assert(await skip.isVisible(), 'no "Skip the video and book now" while the video plays');
-    assert((await page.locator(".bk-stage.is-shut").count()) === 1 && !(await cardHead.isVisible()), "the calendar shows before the video ends or a skip");
-    const big = await video.boundingBox();
-    const vw = device.ctx.viewport.width;
-    assert(big && big.width >= (device.name === "phone" ? vw - 2 : 540), `the video isn't the page's focus: ${Math.round(big?.width ?? 0)}px wide`);
-    out.push(`/book opens on the video (${Math.round(big.width)}px), calendar shut`);
+    const vb = await video.boundingBox();
+    const cb = await page.locator(".bk-card").boundingBox();
+    if (device.name === "phone") assert(cb.y >= vb.y + vb.height - 2, `the calendar isn't under the video: card ${Math.round(cb.y)}, video ends ${Math.round(vb.y + vb.height)}`);
+    else assert(cb.x >= vb.x + vb.width - 2 && cb.y < vb.y + vb.height, `the calendar isn't to the right of the video: ${JSON.stringify(cb)} vs ${JSON.stringify(vb)}`);
+    out.push(`/book: video ${Math.round(vb.width)}px + calendar ${device.name === "phone" ? "under it" : "to its right"}, no gate`);
 
-    // the conscious skip: the calendar opens, the video keeps playing in the top-left corner
-    await press(page, skip, { what: "Skip the video and book now" });
-    await page.waitForSelector(".bk-flow.is-book", { timeout: 5000 });
-    await cardHead.waitFor({ state: "visible", timeout: 5000 });
-    await wait(1200); // the scroll to the calendar
-    const mini = await video.boundingBox();
-    const fixed = await video.evaluate((el) => getComputedStyle(el).position);
-    assert(fixed === "fixed" && mini && mini.x < 40 && mini.y < 40 && mini.width < big.width * 0.6, `the video didn't go to the corner: ${fixed} ${JSON.stringify(mini)}`);
-    assert(!(await page.evaluate(() => window.__vid.paused())), "skipping paused the video");
-    const head = await cardHead.boundingBox();
-    if (head && head.x < mini.x + mini.width) assert(head.y >= mini.y + mini.height - 2, `the corner video covers the calendar's heading (${Math.round(head.y)} < ${Math.round(mini.y + mini.height)})`);
-    out.push(`skip → calendar + corner video ${Math.round(mini.width)}×${Math.round(mini.height)} at ${Math.round(mini.x)},${Math.round(mini.y)}`);
+    // playing, then scrolled out of sight: it keeps playing in the top-left corner; its × stops it
+    await page.evaluate(() => window.__vid.fire("play"));
+    const slotEnd = await page.locator(".bk-video-slot").evaluate((el) => Math.round(el.getBoundingClientRect().bottom + scrollY));
+    const room = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+    if (room >= slotEnd) {
+      await scrollTo(page, slotEnd + 20, 900);
+      await page.waitForSelector(".bk-video.is-mini", { timeout: 4000 });
+      const mini = await video.boundingBox();
+      const fixed = await video.evaluate((el) => getComputedStyle(el).position);
+      assert(fixed === "fixed" && mini && mini.x < 40 && mini.y < 40 && mini.width < vb.width * 0.8, `the video didn't go to the corner: ${fixed} ${JSON.stringify(mini)}`);
+      assert(!(await page.evaluate(() => window.__vid.paused())), "the corner video isn't playing");
+      await press(page, page.getByRole("button", { name: "Close the video" }), { what: "the corner video's ×" });
+      await wait(400);
+      assert(await page.evaluate(() => window.__vid.paused()), "the corner video's × didn't stop it");
+      assert(!(await page.locator(".bk-video.is-mini").count()), "the corner video stayed after its ×");
+      out.push(`scrolled away while playing → corner video ${Math.round(mini.width)}×${Math.round(mini.height)}, × stops it`);
+      await scrollTo(page, 0, 600);
+    } else note(`/book is too short here to scroll the video away (${room} < ${slotEnd}): corner player not checked`);
 
     const frame = page.getByTestId("book-cal").locator("iframe").first();
     // Cal.com mounts its iframe, or (when it can't be reached, as behind a locked-down network) the
@@ -1193,6 +1227,8 @@ async function funnel(device) {
       const q = new URL(src).searchParams;
       assert(/cal\.com/.test(src), `calendar iframe src ${src.slice(0, 80)}`);
       assert(q.get("name") === "Pat Tester" && q.get("email") === "pat.tester@example.com", `Cal prefill name=${q.get("name")} email=${q.get("email")}`);
+      // the phone fills Cal's text-reminder field too (Andrew's Loom, Oct 20)
+      assert(q.get("smsReminderNumber") === "+15555550123", `Cal's text-reminder number ${q.get("smsReminderNumber")}`);
       await page.waitForSelector('[data-testid="book-cal"].is-ready', { timeout: 25000 }).catch(() => note("Cal didn't report ready within 25 s"));
       calNote = "Cal prefilled (name+email)";
     } else {
@@ -1211,18 +1247,11 @@ async function funnel(device) {
     const items = await page.getByTestId("book-covers").getByRole("heading", { level: 3 }).count();
     assert(items === 3, `${items} items under "Here's what we'll cover"`);
 
-    // a fresh visit that watches to the end: the calendar opens by itself, no corner video
-    await page.evaluate(() => sessionStorage.removeItem("sc_book_phase"));
-    await page.reload();
-    await skip.waitFor({ state: "visible", timeout: 10000 });
-    await page.waitForFunction(() => window.__vid, null, { timeout: 15000 });
-    assert(!(await cardHead.isVisible()), "the calendar shows on a fresh visit before the video ends");
+    // the video plays to the end in its place: nothing moves
     await page.evaluate(() => window.__vid.fire("ended"));
-    await page.waitForSelector(".bk-flow.is-book", { timeout: 5000 });
-    await cardHead.waitFor({ state: "visible", timeout: 5000 });
+    await wait(400);
     assert(!(await page.locator(".bk-video.is-mini").count()), "the corner video showed after the video ended");
-    assert(await page.locator(".bk-again").isVisible(), `no "Watch Andrew's video" by the calendar after it ended`);
-    out.push("video ends → calendar opens");
+    out.push("video ends → stays in place");
 
     // no lead sent anywhere (no email to Andrew or the visitor from a test): leadWebhook is empty
     assert(/leadWebhook:\s*""/.test(configSrc), "config.leadWebhook is set: a test run would send leads");
@@ -1266,10 +1295,10 @@ for (const device of [DESKTOP, PHONE]) {
   await check(D, "hero: H1 + CTA in the first screen → popup", () => heroBasics(device));
   await check(D, "every CTA on the page opens the popup", () => everyCta(device), { timeout: 900000 });
   await check(D, "never two orange CTAs on screen at once", () => oneOrangeAtATime(device), { timeout: 300000 });
-  await check(D, "popup 2 steps + errors → /book prefilled (no booking)", () => funnel(device), { timeout: 150000 });
+  await check(D, "popup 2 steps + errors → /book side by side, prefilled (no booking)", () => funnel(device), { timeout: 150000 });
   await check(D, "Replace 5 apps: 6 cards → CTA", () => replaceApps(device));
   await check(D, "features: all 38 tools → walkthrough", () => specSheet(device));
-  await check(D, "features: biggest pain picker", () => painPicker(device));
+  await check(D, "features: biggest pain picker (cut in classic)", () => painPicker(device));
   await check(D, "Watch it work: 3 tabs → panels, items, CTAs, no hold", () => watchItWork(device));
   await check(D, "Try it: tap Clock In → CTA", () => tryIt(device));
   await check(D, "Your number: slider + picks → popup prefill", () => yourNumber(device));

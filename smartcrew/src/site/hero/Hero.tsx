@@ -146,8 +146,7 @@ export default function Hero() {
                   <Flag note={OFFER.price.note} />
                 </>
               )}
-              {" · "}
-              {CTA.micro}
+              {CTA.micro && ` · ${CTA.micro}`}
             </p>
           )}
           {(BOLD || CLASSIC) && (

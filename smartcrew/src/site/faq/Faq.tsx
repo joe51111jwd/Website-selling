@@ -37,7 +37,7 @@ function offerFaqs(): FaqItem[] {
     const bands = priceBands(SIZES);
     return {
       ...f,
-      a: from ? [`${OFFER.price.faqLead(from)} ${OFFER.price.faqTail}`] : f.a,
+      a: from ? [`${OFFER.price.faqLead(from)} ${OFFER.price.faqTail}`.trim()] : f.a,
       more: bands.length ? (
         <span className="faq-prices">
           {bands.map((b) => (
@@ -199,10 +199,12 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
           <TrialButton source="faq" size="lg" />
           <DemoButton source="faq" />
         </div>
-        <p className="t-micro faq-micro">
-          {priceFrom() && `${priceFrom()}. `}
-          {CTA.micro}
-        </p>
+        {(priceFrom() || CTA.micro) && (
+          <p className="t-micro faq-micro">
+            {priceFrom() && `${priceFrom()}. `}
+            {CTA.micro}
+          </p>
+        )}
       </div>
     </div>
   );

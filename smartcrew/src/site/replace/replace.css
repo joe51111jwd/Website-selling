@@ -545,3 +545,8 @@
     transition: none;
   }
 }
+
+/* classic: the small print is cut (Andrew's Loom, Oct 20), so the buttons keep the room it left */
+html.look-classic .rp-act {
+  margin-top: clamp(30px, 3vw, 44px);
+}

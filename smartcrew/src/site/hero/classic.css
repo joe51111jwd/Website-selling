@@ -120,3 +120,15 @@ html.look-classic .hb-price i {
     font-size: 15px;
   }
 }
+
+/* Andrew's Loom (Oct 20): "We could test putting this subhead just a little bit bigger" */
+html.look-classic .hf4 .hf-sub {
+  max-width: 31em;
+  font-size: clamp(18.5px, 0.35vw + 15.5px, 22px);
+}
+
+@media (max-width: 760px) {
+  html.look-classic .hf4 .hf-sub {
+    font-size: 17px;
+  }
+}

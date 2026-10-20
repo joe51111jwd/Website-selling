@@ -14,7 +14,7 @@ import { Logo } from "../../brand/Logo";
 import { Scene } from "../scene/Scene";
 import { Cta, DemoLink } from "../ui/Cta";
 import { usePhoneLite } from "../phone";
-import { GLASS, OPTIMIZED } from "../../lib/look";
+import { CLASSIC, GLASS, OPTIMIZED } from "../../lib/look";
 import { HERO4 } from "../../content/copy";
 import { AppMark, CardIcon } from "./glyphs";
 import { Wires } from "./Wires";
@@ -100,11 +100,14 @@ export default function Replace() {
             </div>
           </div>
 
-          <div className="rp-fine">
-            {REPLACE.fine.map((f) => (
-              <p key={f}>{f}</p>
-            ))}
-          </div>
+          {/* Andrew's Loom (Oct 20): "We can cut this text right here, unnecessary" (classic) */}
+          {!CLASSIC && (
+            <div className="rp-fine">
+              {REPLACE.fine.map((f) => (
+                <p key={f}>{f}</p>
+              ))}
+            </div>
+          )}
 
           <div className="rp-act">
             <Cta source="replace" size="lg" />

@@ -4,7 +4,7 @@
 //   - the head: kicker, Andrew's headline and the sub from his mock, and "See all 38 tools" (the
 //     list of all 38 and the flat walkthrough through them, ../specsheet/AllTools.tsx + Walk.tsx);
 //   - the pain picker (./PainPicker.tsx): pick or type a headache, "We have a feature for that.",
-//     and its card opens;
+//     and its card opens (not in classic: Andrew cut it there, Oct 20);
 //   - desktop: the ten cards (./Cards.tsx) beside the office web app as a big clickable prototype
 //     (./AppWindow.tsx, its own chunk): opening a card switches the app to that feature's screen,
 //     and opening a screen from the app's sidebar opens its feature's card;
@@ -19,7 +19,7 @@ import { FEATURES, type FeatureId } from "../../content/features";
 import { Scene } from "../scene/Scene";
 import { usePhoneLite } from "../phone";
 import { useArrive } from "../phone/useArrive";
-import { FOCUS } from "../../lib/look";
+import { CLASSIC, FOCUS } from "../../lib/look";
 import { scrollToY } from "../scroll";
 import { AllTools, GridGlyph } from "../specsheet/AllTools";
 import { WALK_COPY, stepOf } from "../specsheet/Walk";
@@ -122,7 +122,9 @@ export default function Features() {
           {!phone && !FOCUS && <AllButton onClick={() => openAll(null)} />}
         </div>
 
-        <PainPicker answer={answer} onAnswer={onAnswer} />
+        {/* Andrew's Loom (Oct 20): the headache picker "kind of like muddies it up… we may cut this
+            little section… and then just have it everything built for dirt"; the other looks keep it */}
+        {!CLASSIC && <PainPicker answer={answer} onAnswer={onAnswer} />}
 
         <div ref={bodyRef} className="ft-body">
           <Cards open={open} matched={answer?.kind === "yes" ? answer.id : null} onOpen={openCard} variant={phone ? "phone" : "desk"} onShot={(id) => openAll(stepOf(featureById(id).tools[0]))} />

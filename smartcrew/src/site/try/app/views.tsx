@@ -203,7 +203,7 @@ function WorkCard({ c }: { c: Ctx }) {
           ))}
         </div>
         <div className="pc-btns">
-          <B className={`pc-btn ca-press${onBreak ? " is-break" : ""}`} onClick={() => {
+          <B className={`pc-btn tp-break ca-press${onBreak ? " is-break" : ""}`} onClick={() => {
             d({ t: "break", secs });
             c.toast(onBreak ? "Back to work · break logged" : "Break started · the task timer pauses");
           }}>

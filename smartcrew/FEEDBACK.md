@@ -4,6 +4,31 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## Andrew's Loom, Oct 20 ("Website Updates and Content Tweaks Review"), and his text after it
+
+All **Done** on Classic and /book, in his words. The item-by-item list, matched to where his cursor
+was: /mnt/project-files/smartcrew/loom-oct20/changes.md.
+
+1. Topo rings round the logo and the nav, also when the page loads scrolled (src/site/hero/land.ts:
+   the fixed header's rects subtract scrollY).
+2. Nav: Features, How it works, FAQ. Hero sub a little bigger.
+3. Katie's quote: "I've been searching for this EXACT software for 10 YEARS! It's completely changed
+   our business." Katie · DW Companies.
+4. Cut: Replace's small print, the "biggest headache" picker (Classic), the phone caption under Try it,
+   the calculator's "Think of one guy…" hint and its two small lines under the button, "No contract,
+   cancel anytime." everywhere, and the popup's "Text me call reminders" checkbox (Cal.com sends them;
+   the phone now always fills Cal.com's text-notification number).
+5. Try it: only Clock in, Break and Clock out can be tapped (the rest is aria-disabled); a hand-drawn
+   arrow swoops from "Try it yourself." into the phone.
+6. Calculator stat: his APA line (still needs a source before smartcrew.com).
+7. /book: "You're One Step Away From Getting Started.", "quick demo" for "15-minute", no free-trial
+   kicker. **One page** (his text: "2/3 width for video. Cal integration on the right. And three bullets
+   below."): no skip gate, the video keeps playing in a corner player when scrolled away, phones stack
+   video, calendar, bullets. This replaces the video-first page of Oct 19.
+8. **Waiting** on him: his logo file (the Drive link isn't shared), Watch it work Day/Week/Month ("I'll get
+   back to you"), "Get your free trial" as the third /book bullet (⚑), the calculator paragraph he'll
+   rethink, logos, testimonials and the headshot.
+
 ## Andrew's doc, Oct 20 15:11Z
 
 1. **Done. FAQ replaced.** He struck the whole FAQ (heading, intro line, every question) and wrote a new
@@ -44,7 +69,7 @@ Main page and /book; the other looks pick up the shared copy, with no design wor
 3. **Waiting on Andrew:** his /book words still promise a free trial (kicker, headline, "Get your free
    trial"), as does FAQ 10 "How does the free trial work?"; all ⚑, kept as written since he'll tweak the copy.
    The call is 15 minutes in his layout (now everywhere), but his Cal.com event is 45 minutes today (⚑).
-4. **Done. /book is video-first** (the agency owner, Oct 19: "We want them to watch the video. That should
+4. **Replaced Oct 20 by his one-page /book (see the Loom section). Was: /book is video-first** (the agency owner, Oct 19: "We want them to watch the video. That should
    be the main focus… have them make a conscious choice not to watch the video to book… the video
    basically mini-plays in the top left and continues to play while they book"). It opens on Andrew's
    video, big and alone, with "Your calendar opens when the video ends." and a secondary "Skip the video

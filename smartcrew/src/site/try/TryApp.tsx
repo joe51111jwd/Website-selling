@@ -5,6 +5,11 @@
 // Summary and Profile with what their rows open. Clocked in / out is the page's (../clock.ts: the
 // copy and the self demo follow it); the rest is the app's own state (./app/model.ts).
 // Transitions are transform / opacity only (app.css); reduced motion: instant.
+//
+// Classic keeps it to clocking in and out (Andrew's Loom, Oct 20: "limit it to like the homepage,
+// clocking in and out… or we make it so they can't actually click on these pieces", so nobody
+// lands somewhere confusing): Clock In, Break and Clock Out work; the tabs, the week strip and every
+// other control still show but can't be tapped (SIMPLE below).
 
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useReducer, useRef, useState, type PointerEvent } from "react";
@@ -12,7 +17,12 @@ import { timer } from "../../screens/kit";
 import { initial, reduce, type Task } from "./app/model";
 import { Camera, DayHeader, Docs, Jobsites, nowTime, PastDay, Profile, Ready, RouteView, Sheet, Summary, TabBar, Working, WeekStrip, type Ctx } from "./app/views";
 import { TODAY } from "../../screens/data";
+import { CLASSIC } from "../../lib/look";
 import "./app/app.css";
+
+/** The controls that still work in the simple app (classic): everything else ignores taps and keys. */
+const SIMPLE = CLASSIC;
+const SIMPLE_OK = ".tp-clockin, .tp-clockout, .tp-break";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -68,6 +78,17 @@ export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, 
     root.current?.querySelector(".ca-view")?.scrollTo(0, 0);
   }, [on]);
 
+  // the simple app: the controls that don't work aren't in the tab order either
+  useEffect(() => {
+    if (!SIMPLE) return;
+    root.current?.querySelectorAll<HTMLButtonElement>("button").forEach((b) => {
+      const off = !b.matches(SIMPLE_OK);
+      b.tabIndex = off ? -1 : 0;
+      if (off) b.setAttribute("aria-disabled", "true");
+      else b.removeAttribute("aria-disabled");
+    });
+  });
+
   const toast = useCallback((text: string) => d({ t: "toast", text }), []);
   useEffect(() => {
     if (!s.toast) return;
@@ -99,7 +120,8 @@ export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, 
   const onDown = (e: PointerEvent<HTMLDivElement>) => {
     onTouch?.();
     const el = root.current;
-    if (!el || reduced || !(e.target as Element).closest("button")) return;
+    const btn = (e.target as Element).closest("button");
+    if (!el || reduced || !btn || (SIMPLE && !btn.matches(SIMPLE_OK))) return;
     const r = el.getBoundingClientRect();
     const k = r.width / (el.offsetWidth || r.width);
     setRipple((p) => ({ x: (e.clientX - r.left) / k, y: (e.clientY - r.top) / k, n: (p?.n ?? 0) + 1 }));
@@ -168,8 +190,19 @@ export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, 
   return (
     <div
       ref={root}
-      className="sc tp-sc ca"
+      className={`sc tp-sc ca${SIMPLE ? " is-simple" : ""}`}
       onPointerDown={onDown}
+      onClickCapture={
+        SIMPLE
+          ? (e) => {
+              const btn = (e.target as Element).closest("button");
+              if (btn && !btn.matches(SIMPLE_OK)) {
+                e.preventDefault();
+                e.stopPropagation();
+              }
+            }
+          : undefined
+      }
       onKeyDown={() => onTouch?.()}
       inert={!live}
       data-cursor="hide"

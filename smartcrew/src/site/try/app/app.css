@@ -865,3 +865,10 @@
     transform: none;
   }
 }
+
+/* classic's simple app (TryApp SIMPLE): only Clock In, Break and Clock Out take a tap; the rest shows
+   as it is, with no hand cursor, hover or press, so nothing looks broken */
+.ca.is-simple button:not(.tp-clockin, .tp-clockout, .tp-break) {
+  pointer-events: none;
+  cursor: default;
+}

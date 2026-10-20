@@ -21,6 +21,7 @@ import { Odometer } from "./Odometer";
 import { DAYS_DEFAULT, PRESET, annualCost, money, parseDays, weekly } from "./calc";
 import { useSettled } from "./settle";
 import { usePhoneLite } from "../phone";
+import { CLASSIC } from "../../lib/look";
 import NumberPhone from "./NumberPhone";
 import "./number.css";
 import "./glass.css";
@@ -133,7 +134,9 @@ function Calculator() {
           label={CALC.minutesLabel}
           options={CALC.minutes}
           value={minutes}
-          after={CALC.hint}
+          // Andrew's Loom (Oct 20): "Cut this section here, cut this section here": the 7:00/7:10 line
+          // and the lines under the button go in classic
+          after={CLASSIC ? undefined : CALC.hint}
           format={(m) => String(m)}
           onPick={(m) => {
             touch("minutes");
@@ -195,13 +198,15 @@ function Calculator() {
         </p>
         <div className="num-cta">
           <SceneCta request={request} />
-          <p className="t-micro num-micro">
-            {CALC.ctaMicro}
-            <span className="flag" title="Andrew to confirm">
-              {FLAG}
-            </span>{" "}
-            <span className="num-privacy">{CALC.privacy}</span>
-          </p>
+          {!CLASSIC && (
+            <p className="t-micro num-micro">
+              {CALC.ctaMicro}
+              <span className="flag" title="Andrew to confirm">
+                {FLAG}
+              </span>{" "}
+              <span className="num-privacy">{CALC.privacy}</span>
+            </p>
+          )}
         </div>
       </div>
     </div>

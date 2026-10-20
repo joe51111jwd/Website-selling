@@ -6,12 +6,11 @@ export const config = {
   calLink: "andrew-drish/15min",
 
   /**
-   * How long the call is, as every page says it ("a 15-minute call"). Andrew's booking page layout
-   * (Oct 19, by text) says "Book a 15-minute walkthrough with Andrew", and his Cal.com link is /15min;
-   * ⚑ that link opens a 45-minute "SmartCrew Demo" today, so the copy carries a flag until he sets the
-   * event to match and flips callLengthConfirmed. Empty string: the copy says "a short call".
+   * How long the call is, if the pages ever say it ("a 15-minute call"). Empty since Andrew's Loom
+   * (Oct 20): "We're not going to call it a 15-minute walkthrough. We'll just call it a quick demo
+   * because it'll probably be 45 minutes." With it empty every page says "a quick demo" and no ⚑.
    */
-  callLength: "15-minute",
+  callLength: "",
   callLengthConfirmed: false,
 
   /**
@@ -90,5 +89,5 @@ export const config = {
   email: "hello@smartcrewhq.com",
 };
 
-/** "a 15-minute call" when the length is set, "a short call" until then. */
-export const aCall = () => (config.callLength ? `a ${config.callLength} call` : "a short call");
+/** "a 15-minute call" when the length is set, "a quick demo" otherwise (Andrew's word, Oct 20). */
+export const aCall = () => (config.callLength ? `a ${config.callLength} call` : "a quick demo");

@@ -31,9 +31,9 @@ export const CTA = {
   primary: "Try SmartCrew",
   demo: "Book a demo with Andrew",
   demoLink: "or book a demo with Andrew",
-  /** Under the FAQ's last button and the spec sheet's (round 4: the hero has none, per Andrew). */
-  // (a no-break space keeps "No contract" together: a line never ends on a lone "No")
-  micro: "No\u00a0contract, cancel anytime.",
+  /** Under the FAQ's last button and the spec sheet's (round 4: the hero has none, per Andrew). Empty
+   *  since Andrew's Loom (Oct 20): "cut, no contract cancel anytime". */
+  micro: "",
   /** One-tap links at the peaks of the One Day scene (profit and payroll moments). */
   inline: "Want this for your crew? Try SmartCrew",
 };
@@ -41,16 +41,18 @@ export const CTA = {
 // ─── Header and the phone's sticky bar ──────────────────────────────────────
 export const HEADER = {
   logoLabel: "SmartCrew, back to the top",
+  /** Andrew's Loom (Oct 20): "add like features about how it works FAQ… up here" */
   nav: [
-    { label: "How it works", href: "#features" },
+    { label: "Features", href: "#features" },
+    { label: "How it works", href: "#watch" },
     { label: "FAQ", href: "#faq" },
   ],
   cta: CTA.primary,
 };
 
 export const STICKY = {
-  title: "A walkthrough with Andrew",
-  sub: "No contract, cancel anytime",
+  /** Andrew's Loom (Oct 20): "we'll just call it a quick demo"; "No contract, cancel anytime" cut */
+  title: "A quick demo with Andrew",
   cta: CTA.primary,
 };
 
@@ -238,7 +240,8 @@ export const CALC = {
   crewUnitOne: "person in the field",
   crewEmpty: "Drag to your crew size",
   /** Andrew's round 2 (Oct 19), verbatim. ⚑ no traceable source found for the figure (Oct 17 buyer research) */
-  stat: "The American Payroll Association estimates that employees overestimate their hours by 45 minutes per day.",
+  /** Andrew's Loom (Oct 20): "That's what we actually want that to say there" */
+  stat: "The American Payroll Association estimates that employees who manually log time overestimate their hours by 45 minutes per day per employee.",
   statFlag: "Andrew to confirm the source: we couldn’t trace this figure to the American Payroll Association",
   minutesLabel: "Minutes lost per person, per day",
   /** Andrew's round 2: 10 / 15 / 30 / 45 / 60, 30 the default (calc.ts PRESET) */
@@ -267,7 +270,7 @@ export const CALC = {
 // Proof: both quotes verbatim from the live site (TRUTH.md AMBER), rough edges and caps kept, never
 // restated as our claim. The quote is split only so the figure can be set large; read in order it is
 // word for word. The family disclosure is required (FTC endorsement guides) and its wording is
-// PLAYBOOK S2's proposal: ⚑ Andrew confirms. Katie ⚑: confirm JW vs JCR Excavating + permission.
+// PLAYBOOK S2's proposal: ⚑ Andrew confirms. Katie ⚑: permission to quote.
 export const PROOF = {
   label: "What contractors say",
   phil: {
@@ -282,14 +285,15 @@ export const PROOF = {
     disclosure: "Drish Construction is Andrew’s family’s dirt work company, where SmartCrew started.",
   },
   katie: {
-    text: "I’ve searched for this EXACT software for 10 YEARS! It’s completely changed our business.",
+    /** Andrew's Loom (Oct 20), his wording */
+    text: "I’ve been searching for this EXACT software for 10 YEARS! It’s completely changed our business.",
     name: "Katie",
-    /** ⚑ the logo strip shows JCR Excavating; confirm the company and permission to quote. */
-    company: "JW Excavating",
+    /** Andrew's Loom (Oct 20): "that's actually a DW company" (the "Used by" row's DW Companies) */
+    company: "DW Companies",
   },
   flagTitle: "Andrew to confirm",
   flagDisclosure: "Andrew to confirm the disclosure and its wording",
-  flagKatie: "Andrew to confirm: JW or JCR Excavating, and permission to quote",
+  flagKatie: "Andrew to confirm permission to quote Katie",
 };
 
 // Five apps → one: the five categories and names are LV's (TRUTH.md "Replace 5 apps"), plain text,
@@ -654,7 +658,7 @@ export const OFFER = {
     { text: "Runs in the background without draining batteries" },
     /** AMBER, the FAQ's wording */
     { text: "QuickBooks integration for payroll" },
-    { text: "No contract, cancel anytime" },
+    // "No contract, cancel anytime" cut (Andrew's Loom, Oct 20)
   ] as { text: string; flag?: string }[],
   answersLabel: "Before you start",
   price: {
@@ -665,7 +669,7 @@ export const OFFER = {
     forSize: (size: string) => `For ${size} people:`,
     /** FAQ "What does it cost?" with a price: the starting figure leads, the original answer's terms follow */
     faqLead: (from: string) => `${from}, depending on your crew size and the features.`,
-    faqTail: "No contracts, cancel anytime.",
+    faqTail: "",
   },
   trialFirst: {
     note: "Andrew to decide: the free trial starts before the call (config.trialFirst), and how the login reaches them",
