@@ -4,7 +4,8 @@ import type { Booking } from "../lib/lead";
 // After booking: the time in the visitor's own words and zone, and the files that put the call
 // in his calendar and Andrew's number in his phone. Everything is built in the browser.
 
-const TITLE = "SmartCrew call with Andrew Drish";
+// Andrew (Oct 19-20): no free trial up front, "we'll just call it a quick demo", "No preparation needed."
+const TITLE = "SmartCrew quick demo with Andrew Drish";
 
 export function when(b: Booking) {
   const s = new Date(b.start);
@@ -36,8 +37,7 @@ const endOf = (b: Booking) => b.end ?? new Date(Date.parse(b.start) + 30 * 60e3)
 
 const details = () =>
   [
-    "Your free trial setup call with Andrew Drish, founder of SmartCrew.",
-    "Have these handy: your crew count, how you do timecards today, and your last payroll.",
+    "Your quick SmartCrew demo with Andrew Drish, founder of SmartCrew.",
     "Need a different time? Use the link in your confirmation email.",
   ].join("\n");
 
