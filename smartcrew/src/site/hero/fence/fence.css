@@ -793,6 +793,9 @@ html.has-opening .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-
   display: none;
 }
 
-/* Classic: the headline's orange words stay the deep orange (--orange-ink). They went to the logo's
-   lighter orange briefly; Andrew's comment-mode note, Oct 20: "may need to go darker on this again.
-   light is a little too light." */
+/* Classic: the headline's orange words between the old deep orange (#b84f00) and the logo's #ff7a01.
+   James, Oct 20, wanted them lighter to match the logo; then Andrew's comment-mode note: "may need to
+   go darker on this again. light is a little too light." */
+html.look-classic .hf-fenced {
+  color: #d06000;
+}
