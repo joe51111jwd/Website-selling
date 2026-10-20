@@ -17,7 +17,7 @@ export const T = {
   /** {PROGRAM}: round 4, "Founding Member" is cut everywhere (Andrew's doc). Oct 19 (Andrew, by text):
    *  "Let's roll with CTAs as 'Try SmartCrew' instead of the Free Trial option." */
   PROGRAM: "Try SmartCrew",
-  EMAIL: "hello@smartcrewhq.com",
+  EMAIL: "support@smartcrewhq.com",
   /** The demo company every screen shows. */
   COMPANY: "Cedar Ridge Earthworks",
   /** The demo crew size the One Day story is told with. */
@@ -473,13 +473,15 @@ export const FAQ_CLOSE = {
 };
 
 export const FOOTER_SCENE = {
-  /** [L footer] verbatim. */
-  tagline: "Ditch paper timecards. Our geofencing app fills them out automatically and updates your project dashboard daily.",
+  /** Andrew's comment-mode note, Oct 20, word for word (it replaced the [L footer] geofencing line). */
+  tagline: "The Simplest All-In-One Software For Heavy Civil and Dirtwork Companies with 5-100 Employees",
   email: T.EMAIL,
   login: "Log in",
   privacy: "Privacy",
   terms: "Terms",
   demo: "Product screens show a demo account. Names and numbers are made up.",
+  /** Andrew's comment-mode note, Oct 20: "Cut this. need a facebook disclaimer instead." His words. */
+  meta: "This website is not part of Facebook or Instagram and is not endorsed by Meta Platforms, Inc. in any way. Facebook and Instagram are trademarks of Meta Platforms, Inc.",
   trademarks:
     "busybusy, QuickBooks, ExakTime, Fleetio, MaintainX, HubSpot, Close, Dropbox, Google Drive, Google Sheets, Slack and WhatsApp are trademarks of their owners. Apple, iPhone and MacBook are trademarks of Apple Inc. Naming them doesn’t imply an endorsement.",
   /** Shown only when the Stage actually uses the Pro Display XDR model. */

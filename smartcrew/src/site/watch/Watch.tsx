@@ -289,6 +289,8 @@ export default function Watch() {
               </div>
             ))}
             {/* no "Demo account…" caption under the devices (Andrew's comment-mode note, Oct 20: "cut this") */}
+            {/* Andrew's note, Oct 20: "Center this. put "Featured At ConExpo" below it" */}
+            {CLASSIC && <p className="wt-featured">Featured At ConExpo</p>}
           </div>
         </div>
       </div>

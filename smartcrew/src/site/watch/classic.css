@@ -174,3 +174,20 @@ html.look-classic .wt-line {
     font-size: var(--fs-card-name);
   }
 }
+
+/* Andrew's comment-mode note, Oct 20: "Center this. put "Featured At ConExpo" below it". The button
+   sits centred under the devices with the ConExpo line beneath it. */
+html.look-classic .wt-act {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+html.look-classic .wt-featured {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}

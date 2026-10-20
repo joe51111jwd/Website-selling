@@ -105,7 +105,8 @@ export default function Footer() {
               <li className="ftr-copy">{FOOTER_SCENE.copyright}</li>
             </ul>
             <p className="ftr-notes" data-cursor="text">
-              {FOOTER_SCENE.demo} {FOOTER_SCENE.trademarks}
+              {/* the demo-account and trademark lines gave way to Andrew's Facebook disclaimer (comment-mode note, Oct 20) */}
+              {FOOTER_SCENE.meta}
               {xdr && <> {FOOTER_SCENE.xdr}</>}
             </p>
           </div>

@@ -89,7 +89,7 @@ export const config = {
   termsUrl: "https://smartcrewhq.com/terms-of-service",
 
   loginUrl: "https://smart-crew-app.web.app/",
-  email: "hello@smartcrewhq.com",
+  email: "support@smartcrewhq.com",
 };
 
 /** "a 15-minute call" when the length is set, "a quick demo" otherwise (Andrew's word, Oct 20). */
