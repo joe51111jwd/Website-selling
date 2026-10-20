@@ -10,6 +10,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { screenUrl } from "../../three/stage/urls";
 import type { Box } from "./PhoneFrame";
 import "./laptop-frame.css";
+import "./device-premium.css";
 
 export const WEB = { w: 1440, h: 900 } as const;
 

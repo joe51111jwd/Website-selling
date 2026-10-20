@@ -40,6 +40,29 @@
   inset: 0;
 }
 
+/* classic: the laptop and the phone in the 2D frames (../phone/device-premium.css), the phone
+   standing in front of the laptop's right corner, both resting on one line */
+.faq-devs {
+  position: relative;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: 1170 / 774;
+}
+
+.faq-devs .faq-laptop {
+  position: absolute;
+  left: 0;
+  bottom: 9%;
+  width: 82%;
+}
+
+.faq-devs .faq-phone {
+  position: absolute;
+  right: 3%;
+  bottom: 4%;
+  width: 21%;
+}
+
 /* round 4, laptops without the Stage: the devices' still fills the box */
 .faq--still .faq-still {
   display: block;
@@ -286,6 +309,11 @@
     height: auto;
     display: flex;
     justify-content: center;
+  }
+
+  .faq-devs {
+    width: min(100%, 330px);
+    height: auto;
   }
 
   .faq-still {

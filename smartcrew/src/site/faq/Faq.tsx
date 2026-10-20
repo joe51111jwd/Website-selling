@@ -17,6 +17,9 @@ import { nudgeScroll } from "../scroll";
 import { Scene } from "../scene/Scene";
 import { DemoButton, TrialButton } from "../offer/Actions";
 import { PHONE_HERO_STILL } from "../hero/still";
+import { CLASSIC } from "../../lib/look";
+import { LaptopFrame } from "../phone/LaptopFrame";
+import { PhoneFrame } from "../phone/PhoneFrame";
 import { useSeen } from "../offer/useSeen";
 import "./faq.css";
 import "./glass.css";
@@ -174,7 +177,14 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
       {/* the close: the product back on screen, Andrew's last line, the last CTA */}
       <div className="faq-close" ref={close} data-cta-held={held}>
         <div ref={anchor} className="faq-stage-box">
-          {lite || still ? (
+          {(lite || still) && CLASSIC ? (
+            // classic: the same two screens in the crisp 2D frames (James, Oct 20: premium borders and
+            // shading; the old still was a soft render on a grey band)
+            <div className="faq-devs" role="img" aria-label="SmartCrew on a laptop and a phone">
+              <LaptopFrame screens={["web-project-detail"]} className="faq-laptop" sizes="(max-width: 760px) 260px, 420px" />
+              <PhoneFrame screens={["phone-working"]} className="faq-phone" sizes="(max-width: 760px) 70px, 110px" />
+            </div>
+          ) : lite || still ? (
             // no 3D: the still of the real devices bookends the page
             <img
               className="faq-still"

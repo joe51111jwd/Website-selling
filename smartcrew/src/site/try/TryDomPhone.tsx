@@ -3,10 +3,11 @@
 // still works (and reads the same). It scrolls in with the page (no tilt); its screen is off until
 // the scene's wake (./wake.ts), then the black plate fades and the app is on.
 
-import type { Ref } from "react";
+import type { CSSProperties, Ref } from "react";
 import { StatusBar } from "../../screens/kit";
 import { TryApp, type TryAppProps } from "./TryApp";
 import "./try-phone.css";
+import "../phone/device-premium.css";
 
 /** The iPhone model's body and screen, device units (see poses.ts / TryDesk.tsx). */
 const BODY = { w: 0.79, h: 1.6336, r: 0.125 };
@@ -19,7 +20,7 @@ export default function TryDomPhone({ k, awake, rootRef, ...app }: TryAppProps &
   const scale = sw / 402;
   const sh = 874 * scale;
   return (
-    <div ref={rootRef} className="try-dom" data-cursor="hide" style={{ width: w, height: h, borderRadius: BODY.r * k }}>
+    <div ref={rootRef} className="try-dom" data-cursor="hide" style={{ width: w, height: h, borderRadius: BODY.r * k, "--u": `${w / 430}px` } as CSSProperties}>
       <div className="try-dom-screen" style={{ width: sw, height: sh, borderRadius: BODY.r * k * 0.82 }}>
         <div className="try-dom-ui" style={{ transform: `scale(${scale})` }}>
           <div className="sc try-dom-status">

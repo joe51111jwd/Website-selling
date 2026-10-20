@@ -17,6 +17,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { screenUrl } from "../../three/stage/urls";
 import "./phone-frame.css";
+import "./device-premium.css";
 
 /** Native size of the phone screens (CSS px / pt). */
 export const SCREEN = { w: 402, h: 874 } as const;

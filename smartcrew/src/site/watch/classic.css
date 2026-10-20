@@ -108,16 +108,19 @@ html.look-classic .wt :is(.lf, .pf) {
   color: var(--ink);
 }
 
-html.look-classic .wt .lf-lid {
-  box-shadow:
-    0 0 0 calc(var(--l) * 0.25) #5b5955,
-    0 0 0 calc(var(--l) * 0.45) rgb(255 255 255 / 5%),
-    inset 0 0 0 calc(var(--l) * 0.15) rgb(255 255 255 / 10%);
+/* the laptop on the dark ground (the premium finish is ../phone/device-premium.css): a lighter
+   anodised edge and base so the silhouette reads, a faint light line round the lid */
+html.look-classic .wt .lf-lid::before {
+  background: linear-gradient(180deg, #c4c3c8 0%, #7b7a80 6%, #57565b 40%, #48474c 100%);
+  box-shadow: 0 0 0 calc(var(--l) * 0.1) rgb(255 255 255 / 8%);
 }
 
 html.look-classic .wt .lf-base {
-  background: linear-gradient(to bottom, #77767b 0%, #3f3f43 34%, #29292c 100%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%);
+  background: linear-gradient(180deg, #b0afb5 0%, #7a797f 12%, #55545a 46%, #39383d 88%, #2a292d 100%);
+}
+
+html.look-classic .wt .lf-base::after {
+  background: radial-gradient(closest-side, rgb(0 0 0 / 60%), rgb(0 0 0 / 0%)) 50% 25% / 92% 40% no-repeat;
 }
 
 /* a soft light behind the devices (one static gradient, no blur filter) */

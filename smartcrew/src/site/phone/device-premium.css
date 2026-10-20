@@ -1,0 +1,284 @@
+/* Classic look only: the premium finish on every 2D device (PhoneFrame, LaptopFrame, the Try it
+   DOM phone, the FAQ close). James, Oct 20: "2D is fine, but the borders and the shaders need to
+   be right." Everything is static gradients and box-shadows painted once (no backdrop-filter, no
+   blur filter, nothing per frame). Other looks keep their frames untouched.
+
+   The shared family (the feature wheel's iPad can use the same tokens):
+     --dv-rim       the titanium band: a bright chamfer at each edge, dark polished middle
+     --dv-sheen     a top-down light over the rim (lit from above, a little shade at the bottom)
+     --dv-glare     the cover glass: one soft diagonal sweep, upper left
+   Plus, per device in its own units: an inset chamfer highlight, a hairline that cuts it from the
+   ground, and a three-layer drop shadow (contact, mid, ambient). See .pf-body below.            */
+
+html.look-classic {
+  --dv-rim: linear-gradient(
+    90deg,
+    #9a9792 0%,
+    #4a4844 0.9%,
+    #23221f 2.4%,
+    #33312e 4.2%,
+    #1c1b19 9%,
+    #1a1917 50%,
+    #1c1b19 91%,
+    #33312e 95.8%,
+    #23221f 97.6%,
+    #4a4844 99.1%,
+    #9a9792 100%
+  );
+  --dv-sheen: linear-gradient(180deg, rgb(255 255 255 / 16%) 0%, rgb(255 255 255 / 4%) 6%, rgb(255 255 255 / 0%) 22%, rgb(0 0 0 / 0%) 78%, rgb(0 0 0 / 22%) 100%);
+  --dv-glare: linear-gradient(
+    116deg,
+    rgb(255 255 255 / 16%) 0%,
+    rgb(255 255 255 / 7%) 22%,
+    rgb(255 255 255 / 0%) 38%
+  );
+}
+
+/* ── the iPhone (PhoneFrame) ── */
+
+html.look-classic .pf-body {
+  background: var(--dv-sheen), var(--dv-rim);
+  box-shadow:
+    /* the polished chamfer on the outer edge, brightest where the light lands (top) */
+    inset 0 0 0 calc(var(--u) * 0.7) rgb(255 255 255 / 20%),
+    inset 0 calc(var(--u) * 1.2) calc(var(--u) * 0.6) rgb(255 255 255 / 22%),
+    inset 0 calc(var(--u) * -1.4) calc(var(--u) * 1) rgb(0 0 0 / 45%),
+    /* the hairline that cuts it from the ground */
+    0 0 0 calc(var(--u) * 0.6) rgb(0 0 0 / 38%),
+    /* contact, mid and ambient shadow */
+    0 calc(var(--u) * 2) calc(var(--u) * 3) rgb(23 19 15 / 16%),
+    0 calc(var(--u) * 14) calc(var(--u) * 28) calc(var(--u) * -4) rgb(23 19 15 / 18%),
+    0 calc(var(--u) * 46) calc(var(--u) * 80) calc(var(--u) * -18) rgb(23 19 15 / 26%);
+}
+
+/* on dark grounds: a lighter rim edge so the silhouette reads, a faint outer light line */
+html.look-classic .pf--dark .pf-body {
+  background:
+    var(--dv-sheen),
+    linear-gradient(90deg, #b3b0aa 0%, #5c5955 0.9%, #2c2a27 2.4%, #3d3b37 4.2%, #232220 9%, #201f1d 50%, #232220 91%, #3d3b37 95.8%, #2c2a27 97.6%, #5c5955 99.1%, #b3b0aa 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--u) * 0.7) rgb(255 255 255 / 26%),
+    inset 0 calc(var(--u) * 1.2) calc(var(--u) * 0.6) rgb(255 255 255 / 28%),
+    inset 0 calc(var(--u) * -1.4) calc(var(--u) * 1) rgb(0 0 0 / 50%),
+    0 0 0 calc(var(--u) * 0.7) rgb(255 255 255 / 10%),
+    0 calc(var(--u) * 20) calc(var(--u) * 50) calc(var(--u) * -6) rgb(0 0 0 / 55%);
+}
+
+/* the black glass border round the display, with the thin inner frame where glass meets metal */
+html.look-classic .pf-bezel {
+  background: linear-gradient(160deg, #111 0%, #030303 40%, #060606 100%);
+  box-shadow:
+    0 0 0 calc(var(--u) * 0.5) rgb(0 0 0 / 90%),
+    inset 0 0 0 calc(var(--u) * 0.6) rgb(255 255 255 / 7%);
+}
+
+/* the display's own edge: a soft inner shade, and the cover glass's glare above everything */
+html.look-classic .pf-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  border-radius: inherit;
+  background: var(--dv-glare);
+  box-shadow: inset 0 0 0 calc(var(--u) * 0.6) rgb(0 0 0 / 22%), inset 0 0 calc(var(--u) * 6) rgb(0 0 0 / 8%);
+  pointer-events: none;
+}
+
+/* the Dynamic Island: a little depth and the camera's lens */
+html.look-classic .pf-island {
+  background:
+    radial-gradient(circle at 80% 50%, #2d3d52 0, #172231 calc(var(--u) * 3.2), #070b10 calc(var(--u) * 5.4), rgb(0 0 0 / 0%) calc(var(--u) * 6)),
+    #000;
+  box-shadow: inset 0 calc(var(--u) * 0.6) calc(var(--u) * 0.8) rgb(255 255 255 / 6%);
+}
+
+/* the side buttons: rounded, lit from above, with a crisp edge */
+html.look-classic .pf-btn {
+  width: calc(var(--u) * 3.4);
+  background: linear-gradient(90deg, #1b1a18 0%, #6f6c67 40%, #a3a09a 52%, #4a4744 70%, #1b1a18 100%);
+  box-shadow:
+    0 0 0 calc(var(--u) * 0.4) rgb(0 0 0 / 35%),
+    inset 0 calc(var(--u) * 1) 0 rgb(255 255 255 / 25%);
+}
+
+html.look-classic .pf--dark .pf-btn {
+  background: linear-gradient(90deg, #2a2927 0%, #8a8781 40%, #c2bfb9 52%, #5e5b57 70%, #2a2927 100%);
+}
+
+/* the contact shadow: a tight dark core and a wider soft pool (two static gradients) */
+html.look-classic .pf--shadow::after {
+  left: 4%;
+  right: 4%;
+  bottom: -3%;
+  height: 7.5%;
+  background:
+    radial-gradient(closest-side, rgb(23 19 15 / 32%), rgb(23 19 15 / 0%)) 50% 30% / 82% 46% no-repeat,
+    radial-gradient(closest-side, rgb(23 19 15 / 18%), rgb(23 19 15 / 0%));
+}
+
+html.look-classic .pf--dark.pf--shadow::after {
+  background:
+    radial-gradient(closest-side, rgb(0 0 0 / 70%), rgb(0 0 0 / 0%)) 50% 30% / 82% 46% no-repeat,
+    radial-gradient(closest-side, rgb(0 0 0 / 45%), rgb(0 0 0 / 0%));
+}
+
+/* ── the MacBook (LaptopFrame) ── */
+
+html.look-classic .lf-in {
+  isolation: isolate;
+}
+
+/* the lid: black glass bezel inside an anodised edge (a gradient ring drawn behind it) */
+html.look-classic .lf-lid {
+  background: linear-gradient(170deg, #121214 0%, #050506 45%, #08080a 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--l) * 0.12) rgb(255 255 255 / 9%),
+    0 calc(var(--l) * 1.2) calc(var(--l) * 2.4) rgb(23 19 15 / 10%);
+}
+
+html.look-classic .lf-lid::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: calc(var(--l) * -0.32);
+  border-radius: calc(var(--l) * 2.9) calc(var(--l) * 2.9) calc(var(--l) * 0.8) calc(var(--l) * 0.8);
+  background: linear-gradient(180deg, #a4a3a8 0%, #5c5b60 6%, #3a393d 40%, #2b2a2e 100%);
+  box-shadow: 0 0 0 calc(var(--l) * 0.08) rgb(0 0 0 / 45%);
+}
+
+html.look-classic .lf-screen {
+  box-shadow: 0 0 0 calc(var(--l) * 0.08) rgb(0 0 0 / 80%);
+}
+
+html.look-classic .lf-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  background: linear-gradient(120deg, rgb(255 255 255 / 12%) 0%, rgb(255 255 255 / 4%) 26%, rgb(255 255 255 / 0%) 40%);
+  box-shadow: inset 0 0 0 calc(var(--l) * 0.06) rgb(0 0 0 / 25%);
+  pointer-events: none;
+}
+
+/* the camera in the notch */
+html.look-classic .lf-notch {
+  background: linear-gradient(180deg, #050506, #0b0b0d);
+}
+
+html.look-classic .lf-notch::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  width: calc(var(--l) * 0.6);
+  height: calc(var(--l) * 0.6);
+  margin-left: calc(var(--l) * -0.3);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #34465c, #0e1520 60%, #05070a);
+}
+
+/* the base: a lit front lip, the hinge shadow on top, a soft pool underneath */
+html.look-classic .lf-base {
+  height: calc(var(--l) * 3);
+  background: linear-gradient(180deg, #8e8d93 0%, #5d5c61 12%, #3d3c41 46%, #232226 88%, #18171a 100%);
+  box-shadow:
+    inset 0 calc(var(--l) * 0.12) 0 rgb(255 255 255 / 30%),
+    inset 0 calc(var(--l) * 0.5) calc(var(--l) * 0.3) calc(var(--l) * -0.2) rgb(0 0 0 / 35%),
+    inset calc(var(--l) * 1.4) 0 calc(var(--l) * 1.2) calc(var(--l) * -1) rgb(255 255 255 / 12%),
+    inset calc(var(--l) * -1.4) 0 calc(var(--l) * 1.2) calc(var(--l) * -1) rgb(255 255 255 / 12%),
+    0 calc(var(--l) * 0.2) calc(var(--l) * 0.3) rgb(0 0 0 / 30%);
+}
+
+html.look-classic .lf-base::before {
+  background: linear-gradient(180deg, #1c1b1e, #2b2a2e);
+  box-shadow: inset 0 calc(var(--l) * 0.1) calc(var(--l) * 0.2) rgb(0 0 0 / 60%);
+}
+
+html.look-classic .lf-base::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 2%;
+  right: 2%;
+  top: 55%;
+  height: calc(var(--l) * 5.5);
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, rgb(23 19 15 / 34%), rgb(23 19 15 / 0%)) 50% 25% / 92% 40% no-repeat,
+    radial-gradient(closest-side, rgb(23 19 15 / 16%), rgb(23 19 15 / 0%));
+  pointer-events: none;
+}
+
+/* ── Try it on laptops: the live app's DOM phone (../try/TryDomPhone.tsx sets --u = 1/430 of its
+   width, so it shares the iPhone's units). The body is the rim; ::before is the black glass
+   bezel; ::after carries the side buttons; the screen gets the island and the glare. ── */
+
+html.look-classic .try-dom {
+  background: var(--dv-sheen), var(--dv-rim);
+  box-shadow:
+    inset 0 0 0 calc(var(--u) * 0.7) rgb(255 255 255 / 20%),
+    inset 0 calc(var(--u) * 1.2) calc(var(--u) * 0.6) rgb(255 255 255 / 22%),
+    inset 0 calc(var(--u) * -1.4) calc(var(--u) * 1) rgb(0 0 0 / 45%),
+    0 0 0 calc(var(--u) * 0.6) rgb(0 0 0 / 38%),
+    0 calc(var(--u) * 2) calc(var(--u) * 3) rgb(23 19 15 / 16%),
+    0 calc(var(--u) * 14) calc(var(--u) * 28) calc(var(--u) * -4) rgb(23 19 15 / 18%),
+    0 calc(var(--u) * 46) calc(var(--u) * 80) calc(var(--u) * -18) rgb(23 19 15 / 26%);
+}
+
+html.look-classic .try-dom::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--u) * 3);
+  border-radius: calc(var(--u) * 65);
+  background: linear-gradient(160deg, #111 0%, #030303 40%, #060606 100%);
+  box-shadow:
+    0 0 0 calc(var(--u) * 0.5) rgb(0 0 0 / 90%),
+    inset 0 0 0 calc(var(--u) * 0.6) rgb(255 255 255 / 7%);
+  pointer-events: none;
+}
+
+html.look-classic .try-dom::after {
+  --btn: linear-gradient(90deg, #1b1a18 0%, #6f6c67 40%, #a3a09a 52%, #4a4744 70%, #1b1a18 100%);
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--u) * -2.6);
+  right: calc(var(--u) * -2.6);
+  z-index: -1;
+  background:
+    var(--btn) 0 calc(var(--u) * 168) / calc(var(--u) * 3.4) calc(var(--u) * 34) no-repeat,
+    var(--btn) 0 calc(var(--u) * 236) / calc(var(--u) * 3.4) calc(var(--u) * 60) no-repeat,
+    var(--btn) 0 calc(var(--u) * 312) / calc(var(--u) * 3.4) calc(var(--u) * 60) no-repeat,
+    var(--btn) 100% calc(var(--u) * 262) / calc(var(--u) * 3.4) calc(var(--u) * 96) no-repeat,
+    var(--btn) 100% calc(var(--u) * 560) / calc(var(--u) * 3.4) calc(var(--u) * 58) no-repeat;
+  pointer-events: none;
+}
+
+html.look-classic .try-dom-screen::before {
+  content: "";
+  position: absolute;
+  z-index: 7;
+  top: calc(var(--u) * 11);
+  left: 50%;
+  width: calc(var(--u) * 124);
+  height: calc(var(--u) * 36);
+  margin-left: calc(var(--u) * -62);
+  border-radius: calc(var(--u) * 18);
+  background:
+    radial-gradient(circle at 80% 50%, #2d3d52 0, #172231 calc(var(--u) * 3.2), #070b10 calc(var(--u) * 5.4), rgb(0 0 0 / 0%) calc(var(--u) * 6)),
+    #000;
+  pointer-events: none;
+}
+
+html.look-classic .try-dom-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  border-radius: inherit;
+  background: var(--dv-glare);
+  box-shadow: inset 0 0 0 calc(var(--u) * 0.6) rgb(0 0 0 / 22%), inset 0 0 calc(var(--u) * 6) rgb(0 0 0 / 8%);
+  pointer-events: none;
+}
