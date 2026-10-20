@@ -362,3 +362,26 @@
 .faq-close-head {
   margin-top: 4px;
 }
+
+/* ── Classic: the shared type scale (src/styles/tokens.css, "Cards"; James, Oct 20) ── */
+html.look-classic .faq-list,
+html.look-classic .faq-item {
+  border-color: var(--card-line);
+}
+html.look-classic .faq-q {
+  font-size: var(--fs-card-title);
+}
+html.look-classic .faq-close-line {
+  font-size: var(--fs-card-body);
+}
+@media (max-width: 760px) {
+  html.look-classic .faq-q {
+    font-size: var(--fs-card-body);
+  }
+  html.look-classic .faq-a-text {
+    font-size: var(--fs-card-body);
+  }
+  html.look-classic .faq-close-line {
+    font-size: var(--fs-card-body);
+  }
+}

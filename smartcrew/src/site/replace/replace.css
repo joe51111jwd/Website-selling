@@ -563,3 +563,51 @@ img.rp-hub-logo.is-plain {
 html.look-classic .rp-act {
   margin-top: clamp(30px, 3vw, 44px);
 }
+
+/* ── Classic: the shared card set (src/styles/tokens.css, "Cards"); James, Oct 20: every card
+   border and text size the same across the page ── */
+html.look-classic .rp-cards {
+  gap: var(--card-gap);
+}
+html.look-classic .rp-card {
+  padding: var(--card-pad);
+  border-color: var(--card-line-night);
+  border-radius: var(--card-r);
+}
+html.look-classic .rp-ico {
+  border-color: var(--card-line-night);
+  border-radius: var(--card-r-sm);
+}
+html.look-classic .rp-name {
+  font-size: var(--fs-card-title);
+  line-height: 1.22;
+}
+html.look-classic .rp-line {
+  font-size: var(--fs-card-small);
+  line-height: 1.4;
+}
+html.look-classic .rp-was {
+  border-top-color: var(--card-line-night);
+}
+html.look-classic .rp-was-label {
+  font-size: var(--fs-card-meta);
+}
+html.look-classic .rp-hub {
+  padding: var(--card-pad) 32px;
+  border-width: 1px;
+  border-radius: var(--card-r);
+}
+html.look-classic .rp-hub-line {
+  font-size: var(--fs-card-small);
+}
+@media (max-width: 760px) {
+  html.look-classic .rp-cards {
+    gap: 8px;
+  }
+  html.look-classic .rp-name {
+    font-size: var(--fs-card-body); /* the name shares its line with the apps it replaces */
+  }
+  html.look-classic .rp-hub {
+    padding: var(--card-pad) 20px;
+  }
+}

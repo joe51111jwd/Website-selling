@@ -151,3 +151,31 @@
     font-size: 60px;
   }
 }
+
+/* ── Classic: the shared card set (src/styles/tokens.css, "Cards"; James, Oct 20) ── */
+html.look-classic .proof-cards {
+  gap: var(--card-gap);
+}
+html.look-classic .proof-card figure {
+  padding: var(--card-pad-lg);
+  border-color: var(--card-line);
+  border-radius: var(--card-r);
+  box-shadow: var(--card-shadow);
+}
+html.look-classic .proof-text p {
+  font-size: var(--fs-card-quote);
+  line-height: 1.25;
+}
+html.look-classic .proof-face {
+  border-color: var(--card-line);
+  font-size: var(--fs-card-body);
+}
+html.look-classic .proof-name {
+  font-size: var(--fs-card-body);
+}
+html.look-classic .proof-co {
+  font-size: var(--fs-card-small);
+}
+html.look-classic .proof-note {
+  font-size: var(--fs-card-meta);
+}

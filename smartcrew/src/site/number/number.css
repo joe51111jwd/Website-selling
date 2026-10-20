@@ -781,3 +781,35 @@ html.look-classic .num-built {
   display: block;
   margin-top: 0.6em;
 }
+
+/* ── Classic: the shared card set (src/styles/tokens.css, "Cards"; James, Oct 20) ── */
+html.look-classic .num-chip {
+  border-radius: var(--card-r-sm);
+  border-color: var(--card-line);
+  box-shadow: var(--card-shadow);
+}
+html.look-classic .num-chip:hover {
+  border-color: var(--card-line-hover);
+}
+html.look-classic .num-chip.is-on {
+  border-color: var(--ink);
+  box-shadow: var(--card-shadow-on);
+}
+html.look-classic .num-pick-k {
+  font-size: var(--fs-card-small);
+}
+html.look-classic .num-framing,
+html.look-classic .num-built {
+  font-size: var(--fs-card-small);
+}
+@media (max-width: 760px) {
+  html.look-classic .num-pick-k {
+    font-size: var(--fs-card-meta);
+  }
+  html.look-classic .num-crew-unit {
+    font-size: var(--fs-card-name);
+  }
+  html.look-classic .num-micro {
+    font-size: var(--fs-card-meta);
+  }
+}

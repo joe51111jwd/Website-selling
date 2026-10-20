@@ -217,3 +217,8 @@
     margin-top: calc(15px * 1.5 + 10px);
   }
 }
+
+/* Classic: the photo takes the page's card corner (src/styles/tokens.css, "Cards"; James, Oct 20) */
+html.look-classic .why-photo {
+  border-radius: var(--card-r);
+}

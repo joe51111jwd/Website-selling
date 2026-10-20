@@ -83,3 +83,66 @@ html.look-classic .su-win::after {
   box-shadow: inset 0 0 0 0.5px rgb(23 19 15 / 18%);
   pointer-events: none;
 }
+
+/* ── the shared card set (src/styles/tokens.css, "Cards"; James, Oct 20): the popup takes the page's
+   card corner, its fields and chips the small one, and its type the same scale ── */
+html.look-classic .su-dialog {
+  border-radius: var(--card-r);
+}
+html.look-classic .su-input,
+html.look-classic .su-chip,
+html.look-classic .su-chip-bg,
+html.look-classic .su-done,
+html.look-classic .su-root .su-input:focus-visible,
+html.look-classic .su-root .su-chip:focus-visible {
+  border-radius: var(--card-r-sm);
+}
+html.look-classic .su-chip {
+  border-color: var(--card-line);
+  box-shadow: var(--card-shadow);
+}
+html.look-classic .su-chip:hover {
+  border-color: var(--card-line-hover);
+}
+html.look-classic .su-chip.is-on {
+  border-color: var(--btn-dark);
+}
+html.look-classic .su-chip {
+  font-size: var(--fs-card-body);
+}
+html.look-classic .su-done {
+  font-size: var(--fs-card-name);
+}
+html.look-classic .su-honest,
+html.look-classic .su-label,
+html.look-classic .su-price,
+html.look-classic .su-answers li {
+  font-size: var(--fs-card-small);
+}
+html.look-classic .su-head-row,
+html.look-classic .su-hint,
+html.look-classic .su-err,
+html.look-classic .su-typo,
+html.look-classic .su-legal,
+html.look-classic .su-fine {
+  font-size: var(--fs-card-meta);
+}
+@media (max-width: 760px) {
+  html.look-classic .su-body {
+    border-radius: var(--card-r) var(--card-r) 0 0;
+  }
+  html.look-classic .su-pvc-bar {
+    border-radius: var(--card-r-sm);
+  }
+  html.look-classic .su-honest {
+    font-size: var(--fs-card-meta);
+  }
+  html.look-classic .su-chip {
+    font-size: var(--fs-card-name);
+  }
+}
+@media (max-width: 360px) {
+  html.look-classic .su-chip {
+    font-size: var(--fs-card-small);
+  }
+}

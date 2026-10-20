@@ -144,3 +144,33 @@ html.look-classic .wt-devs::before {
     --wt-line: rgb(246 240 232 / 40%);
   }
 }
+
+/* ── the shared card set (src/styles/tokens.css, "Cards"; James, Oct 20): one radius, one
+   hairline, one type scale with the rest of the page ── */
+html.look-classic .wt-tablist {
+  border-radius: var(--card-r);
+}
+html.look-classic .wt-tab,
+html.look-classic .wt-item {
+  border-radius: var(--card-r-sm);
+}
+html.look-classic .wt-tab-name {
+  font-size: var(--fs-card-body);
+}
+html.look-classic .wt-tab-who {
+  font-size: var(--fs-card-meta);
+}
+html.look-classic .wt-t {
+  font-size: var(--fs-card-body);
+}
+html.look-classic .wt-lead.is-time {
+  font-size: var(--fs-card-meta);
+}
+html.look-classic .wt-line {
+  font-size: var(--fs-card-small);
+}
+@media (max-width: 760px) {
+  html.look-classic .wt-t {
+    font-size: var(--fs-card-name);
+  }
+}

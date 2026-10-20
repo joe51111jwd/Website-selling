@@ -144,3 +144,34 @@
     --fs-hero: clamp(38px, 2.2vw + 2.2svh + 6px, 64px);
   }
 }
+
+/* ── Cards (James, Oct 20: "all the borders around all the cards need to be perfect, all the text
+   sizes"). One set for every card in the classic look, the same values as the feature cards
+   (src/site/features): each section's CSS applies them under html.look-classic. ── */
+:root {
+  --card-r: 14px; /* cards, panels, the popup, photos */
+  --card-r-sm: 10px; /* small pieces inside or beside them: chips, tabs, rows, inputs, icon wells */
+  --card-line: rgb(23 19 15 / 13%);
+  --card-line-hover: rgb(23 19 15 / 26%);
+  --card-line-night: rgb(246 240 232 / 12%); /* the same hairline on the dark bands */
+  --card-shadow: 0 1px 2px rgb(23 19 15 / 6%);
+  --card-shadow-on: 0 14px 28px -16px rgb(23 19 15 / 55%); /* a picked card (ink fill) */
+  --card-pad: 16px; /* compact cards, and every card on phones */
+  --card-pad-lg: 24px; /* big content cards on laptops: testimonials, /book's calendar card */
+  --card-gap: 16px;
+
+  /* the type scale inside cards: nothing between these steps */
+  --fs-card-meta: 13px; /* kickers, "Replaces", times, notes, fine print */
+  --fs-card-small: 14px; /* the second line in a compact card */
+  --fs-card-name: 15px; /* names and labels */
+  --fs-card-body: 16px; /* body copy and bullets */
+  --fs-card-title: 18px; /* card headlines */
+  --fs-card-quote: 22px; /* testimonial quotes (20px on phones) */
+}
+
+@media (max-width: 760px) {
+  :root {
+    --card-pad-lg: 16px;
+    --fs-card-quote: 20px;
+  }
+}

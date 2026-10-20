@@ -906,3 +906,44 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
     transition: none;
   }
 }
+
+/* ── Classic: the shared card set (src/styles/tokens.css, "Cards"; James, Oct 20): the calendar card
+   and the ticket take the page's card corner, hairline and padding, and the type its scale ── */
+html.look-classic .bk-card,
+html.look-classic .bk-ticket {
+  border-radius: var(--card-r);
+  box-shadow:
+    0 0 0 1px var(--card-line),
+    var(--card-shadow);
+}
+html.look-classic .bk-card {
+  padding: var(--card-pad-lg);
+}
+html.look-classic .bk-skel,
+html.look-classic .bk-fallback {
+  border-color: var(--card-line);
+  border-radius: var(--card-r-sm);
+}
+html.look-classic .bk-card-h {
+  font-size: var(--fs-card-title);
+}
+html.look-classic .bk-card-sub {
+  font-size: var(--fs-card-small);
+}
+html.look-classic .bk-card-note,
+html.look-classic .bk-help,
+html.look-classic .bk-ticket-move {
+  font-size: var(--fs-card-meta);
+}
+html.look-classic .bk-covers h2 {
+  font-size: var(--fs-card-title);
+}
+html.look-classic .bk-covers h3 {
+  font-size: var(--fs-card-name);
+}
+html.look-classic .bk-covers p {
+  font-size: var(--fs-card-small);
+}
+html.look-classic .bk-covers li + li {
+  border-left-color: var(--card-line);
+}
