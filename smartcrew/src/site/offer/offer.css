@@ -204,3 +204,16 @@
     font-size: clamp(32px, 3vw, 46px);
   }
 }
+
+/* Classic, laptops: Andrew's note (comment mode, Oct 20), "when you click to read the founder story
+   keep the photo aligned at the top with the headline". The photo starts level with the headline
+   (below the "Why us" kicker) and stays there while the letter opens under "Read more". */
+@media (min-width: 761px) {
+  html.look-classic .why-grid {
+    align-items: start;
+  }
+  html.look-classic .why-photo {
+    /* the kicker's line (15px × 1.5) and the headline's 10px margin */
+    margin-top: calc(15px * 1.5 + 10px);
+  }
+}

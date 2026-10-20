@@ -370,7 +370,7 @@ async function heroCta(page) {
 }
 
 // ─── the CTA walk: scroll the whole page like a visitor, click every CTA met, check the popup ──
-const CTA_TEXT = /try smartcrew|book a demo with andrew|set up smartcrew for your crew/i;
+const CTA_TEXT = /try smartcrew|book a demo (with andrew|today)|set up smartcrew for your crew/i;
 
 /**
  * In-page: every CTA button with its key (zone|name|n: the section or test id it sits in, its

@@ -13,7 +13,8 @@
 //
 //   GET    → { comments: Note[] }, oldest first (every page; the client filters by page)
 //   POST   { note fields }   → { comment }  a new note
-//   PATCH  { id, status }    → { comment }  "open" or "done"
+//   PATCH  { id, status, progress? } → { comment }  status: open, building, waiting or done;
+//          progress: a short line on where it stands ("Waiting on the logo file from Andrew")
 //   DELETE { id }            → { ok: true }
 //
 // To read them as Claude: curl -H "x-comment-key: KEY" https://smartcrew-preview.vercel.app/api/comments
@@ -26,7 +27,8 @@ const PREFIX = "comments/";
 const MAX_BODY = 12_000;
 const MAX_TEXT = 4000;
 
-type Status = "open" | "done";
+type Status = "open" | "building" | "waiting" | "done";
+const STATUSES: readonly string[] = ["open", "building", "waiting", "done"];
 
 export type Note = {
   id: string;
@@ -36,6 +38,8 @@ export type Note = {
   status: Status;
   createdAt: string;
   doneAt?: string;
+  /** where it stands, in a line, for the notes page (public/notes/index.html) */
+  progress?: string;
   /** where it's pinned: the clicked element and the spot inside it (0–1 of its width and height) */
   anchor: { selector: string; ox: number; oy: number; snippet: string; section: string };
   /** the spot in page pixels too, for when the element can't be found again */
@@ -147,12 +151,17 @@ export async function PATCH(request: Request): Promise<Response> {
   const no = gate(request);
   if (no) return no;
   const b = await readBody(request);
-  if (!b || !validId(b.id) || (b.status !== "open" && b.status !== "done")) return json({ error: "bad-request" }, 400);
+  if (!b || !validId(b.id) || typeof b.status !== "string" || !STATUSES.includes(b.status)) return json({ error: "bad-request" }, 400);
   const note = await readNote(path(b.id));
   if (!note) return json({ error: "not-found" }, 404);
-  note.status = b.status;
-  if (b.status === "done") note.doneAt = new Date().toISOString();
+  note.status = b.status as Status;
+  if (note.status === "done") note.doneAt ??= new Date().toISOString();
   else delete note.doneAt;
+  if (typeof b.progress === "string") {
+    const line = b.progress.trim().slice(0, 300);
+    if (line) note.progress = line;
+    else delete note.progress;
+  }
   await save(note, true);
   return json({ comment: note });
 }

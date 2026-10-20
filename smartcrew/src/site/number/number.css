@@ -775,3 +775,9 @@
     display: none;
   }
 }
+
+/* Classic: Andrew's two lines (comment mode, Oct 20) read as two short paragraphs */
+html.look-classic .num-built {
+  display: block;
+  margin-top: 0.6em;
+}

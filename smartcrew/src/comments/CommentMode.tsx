@@ -29,9 +29,10 @@ type Note = Spot & {
   page: string;
   text: string;
   author: string;
-  status: "open" | "done";
+  status: "open" | "building" | "waiting" | "done";
   createdAt: string;
   doneAt?: string;
+  progress?: string;
   look: string;
 };
 type Load = "loading" | "ready" | "bad-key" | "not-set-up" | "error";
@@ -252,8 +253,8 @@ function CommentMode({ apiKey }: { apiKey: string }) {
     const pages = [page, ...new Set(notes.map((n) => n.page).filter((p) => p !== page))];
     return pages.map((p) => ({ page: p, notes: notes.filter((n) => n.page === p) }));
   }, [notes, page]);
-  const openCount = notes.filter((n) => n.status === "open").length;
-  const pinned = here.filter((n) => showDone || n.status === "open" || n.id === openId);
+  const openCount = notes.filter((n) => n.status !== "done").length;
+  const pinned = here.filter((n) => showDone || n.status !== "done" || n.id === openId);
 
   tracked.current = [...pinned.map((n) => ({ id: n.id, spot: n as Spot })), ...(draft ? [{ id: DRAFT, spot: draft }] : [])];
   popFor.current = draft ? DRAFT : openId;
@@ -505,7 +506,7 @@ function CommentMode({ apiKey }: { apiKey: string }) {
           <div className="scc-scroll">
             {notes.length === 0 && <p className="scc-empty">No notes yet. Click any spot on the page to leave one.</p>}
             {groups.map((g) => {
-              const list = g.notes.filter((n) => showDone || n.status === "open");
+              const list = g.notes.filter((n) => showDone || n.status !== "done");
               if (g.page !== page && list.length === 0) return null;
               return (
                 <section key={g.page} className="scc-group">
@@ -533,6 +534,7 @@ function CommentMode({ apiKey }: { apiKey: string }) {
                               {n.author} · {when(n.createdAt)} · {n.device === "phone" ? "phone" : "laptop"}
                               {n.status === "done" ? " · done" : ""}
                             </span>
+                            {n.progress && <span className="scc-progress">{n.progress}</span>}
                           </span>
                         </button>
                       </li>
@@ -712,6 +714,7 @@ function NoteCard({
         </button>
       </header>
       <p className="scc-body">{note.text}</p>
+      {note.progress && <p className="scc-progress">{note.progress}</p>}
       <div className="scc-row">
         {sure ? (
           <button type="button" className="scc-btn scc-btn--danger" onClick={onDelete}>
@@ -722,7 +725,7 @@ function NoteCard({
             Delete
           </button>
         )}
-        {note.status === "open" ? (
+        {note.status !== "done" ? (
           <button type="button" className="scc-btn scc-btn--main" onClick={() => onStatus("done")}>
             Mark done
           </button>

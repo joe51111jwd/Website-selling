@@ -30,7 +30,8 @@ export const CTA = {
    *  experience is poor until their project data is in), so every button says "Try SmartCrew". */
   primary: "Try SmartCrew",
   demo: "Book a demo with Andrew",
-  demoLink: "or book a demo with Andrew",
+  /** Andrew's comment-mode notes on the hero and FAQ links (Oct 20): "cut with andrew. \"or book a demo today\"" */
+  demoLink: "or book a demo today",
   /** Under the FAQ's last button and the spec sheet's (round 4: the hero has none, per Andrew). Empty
    *  since Andrew's Loom (Oct 20): "cut, no contract cancel anytime". */
   micro: "",
@@ -267,8 +268,9 @@ export const CALC = {
   /** "about $561 a week" */
   week: (w: string) => `about ${w} a week`,
   /** Round 4: the calculator starts from presets (site/number/calc.ts PRESET). */
-  framing: "That’s what loose time costs at these numbers. Change them to yours.",
-  built: "SmartCrew is built to close this gap: GPS fills in the timecards and every hour goes on a cost code.",
+  /** Andrew's comment-mode note on this paragraph (Oct 20), verbatim, as two lines. */
+  framing: "Just 15 minutes of misallocated time per employee, per day, can cost you thousands.",
+  built: "SmartCrew uses GPS-powered time tracking and geofencing to accurately allocate labor hours.",
   /** ⚑ Andrew confirms he opens the call with the visitor's number (PLAYBOOK S3). */
   ctaMicro: "We’ll go over your number with you on the call.",
   privacy: "Your numbers stay on this screen unless you continue.",

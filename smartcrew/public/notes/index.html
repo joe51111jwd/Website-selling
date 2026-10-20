@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Andrew's notes · SmartCrew</title>
+    <!--
+      Every note left in comment mode (src/comments/), with where it's pinned, the words as written,
+      and where it stands: To do, Building, Waiting (on a file or a call), or Live. Claude sets the
+      status through api/comments.ts (PATCH status + progress); this page re-reads it every 10 s.
+      Opened with the review link's key (?comment=KEY), or with the key comment mode already keeps
+      in this browser. Static on purpose (public/, no build entry): nothing here touches the pages.
+    -->
+    <style>
+      :root {
+        --ink: #17130f;
+        --ink-2: #5c5249;
+        --paper: #fbf8f4;
+        --card: #fffdfa;
+        --line: rgb(23 19 15 / 0.12);
+        --orange: #ff7a01;
+        --orange-ink: #9a4100;
+        --green: #1f7a3f;
+        --green-bg: #e3f3e8;
+        --amber-bg: #fff1dc;
+        --blue: #1d4f91;
+        --blue-bg: #e4edf9;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font: 400 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      main {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 28px 16px 64px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 26px;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+      }
+      .sub {
+        margin: 6px 0 0;
+        color: var(--ink-2);
+      }
+      .counts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 18px 0 8px;
+      }
+      .count {
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        font-weight: 600;
+        font-size: 14px;
+      }
+      h2 {
+        margin: 32px 0 10px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+      }
+      ol {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+      }
+      li {
+        display: grid;
+        grid-template-columns: 30px minmax(0, 1fr);
+        gap: 4px 12px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--card);
+      }
+      li.is-done {
+        background: #f7f4ef;
+      }
+      .num {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50% 50% 50% 0;
+        background: var(--orange);
+        color: #fff;
+        font-weight: 700;
+        font-size: 13px;
+      }
+      li.is-done .num {
+        background: var(--green);
+      }
+      .top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 10px;
+      }
+      .chip {
+        padding: 2px 9px;
+        border-radius: 999px;
+        font-size: 12.5px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .chip.done {
+        background: var(--green-bg);
+        color: var(--green);
+      }
+      .chip.building {
+        background: var(--blue-bg);
+        color: var(--blue);
+      }
+      .chip.waiting {
+        background: var(--amber-bg);
+        color: var(--orange-ink);
+      }
+      .chip.open {
+        background: rgb(23 19 15 / 0.07);
+        color: var(--ink);
+      }
+      .meta {
+        color: var(--ink-2);
+        font-size: 13px;
+      }
+      .text {
+        grid-column: 2;
+        margin: 4px 0 0;
+        font-size: 16px;
+        font-weight: 500;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      li.is-done .text {
+        color: var(--ink-2);
+      }
+      .where,
+      .progress,
+      .actions {
+        grid-column: 2;
+        margin: 0;
+        font-size: 13.5px;
+        overflow-wrap: anywhere;
+      }
+      .where {
+        color: var(--ink-2);
+      }
+      .progress {
+        font-weight: 600;
+        color: var(--orange-ink);
+      }
+      li.is-done .progress {
+        color: var(--green);
+      }
+      .actions a {
+        color: var(--orange-ink);
+        font-weight: 600;
+      }
+      .empty,
+      .msg {
+        padding: 16px;
+        border: 1px dashed var(--line);
+        border-radius: 14px;
+        color: var(--ink-2);
+      }
+      .foot {
+        margin-top: 28px;
+        color: var(--ink-2);
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Andrew's notes on the site</h1>
+      <p class="sub" id="sub">Loading…</p>
+      <div class="counts" id="counts"></div>
+      <div id="list"></div>
+      <p class="foot">This page updates on its own every few seconds. “Show on page” opens the page in comment mode with that note open.</p>
+    </main>
+    <script>
+      (() => {
+        const KEY_STORE = "sc-comment-key";
+        const SHOW_STORE = "sc-comment-show";
+        const PAGES = { "/": "Main page", "/book": "Booking page" };
+        const LABEL = { done: "✓ Live", building: "Building", waiting: "Waiting", open: "To do" };
+        const $ = (id) => document.getElementById(id);
+
+        let key = null;
+        try {
+          const q = new URLSearchParams(location.search);
+          const asked = q.get("comment");
+          if (asked) localStorage.setItem(KEY_STORE, asked);
+          if (q.has("comment")) history.replaceState(null, "", location.pathname);
+          key = localStorage.getItem(KEY_STORE);
+        } catch {
+          key = new URLSearchParams(location.search).get("comment");
+        }
+
+        const el = (tag, cls, text) => {
+          const n = document.createElement(tag);
+          if (cls) n.className = cls;
+          if (text != null) n.textContent = text;
+          return n;
+        };
+        const when = (iso) => {
+          const d = new Date(iso);
+          return isNaN(d) ? "" : d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+        };
+
+        function render(notes) {
+          const by = { done: 0, building: 0, waiting: 0, open: 0 };
+          for (const n of notes) by[n.status in by ? n.status : "open"]++;
+          $("sub").textContent = notes.length
+            ? `${notes.length} ${notes.length === 1 ? "note" : "notes"} from comment mode, with where each one is pinned and where it stands.`
+            : "No notes yet.";
+          const counts = $("counts");
+          counts.replaceChildren(
+            ...[
+              ["done", "live"],
+              ["building", "building"],
+              ["waiting", "waiting"],
+              ["open", "to do"],
+            ]
+              .filter(([s]) => by[s])
+              .map(([s, word]) => el("span", "count", `${by[s]} ${word}`)),
+          );
+
+          const pages = [...new Set(["/", "/book", ...notes.map((n) => n.page)])];
+          const list = $("list");
+          list.replaceChildren();
+          for (const page of pages) {
+            const mine = notes.filter((n) => n.page === page);
+            if (!mine.length) continue;
+            list.append(el("h2", null, PAGES[page] || page));
+            const ol = el("ol");
+            mine.forEach((n, i) => {
+              const status = n.status in LABEL ? n.status : "open";
+              const li = el("li", status === "done" ? "is-done" : "");
+              li.append(el("span", "num", String(i + 1)));
+              const top = el("div", "top");
+              top.append(el("span", `chip ${status}`, LABEL[status]));
+              top.append(el("span", "meta", `${n.author} · ${when(n.createdAt)} · ${n.device === "phone" ? "phone" : "laptop"}`));
+              li.append(top);
+              li.append(el("p", "text", n.text));
+              const a = n.anchor || {};
+              const section = a.section ? a.section.replace(/^#\S+ · /, "").replace(/^#/, "") : /\bheader\b/.test(a.selector || "") ? "Header" : "";
+              const snip = (a.snippet || "").slice(0, 110) + ((a.snippet || "").length > 110 ? "…" : "");
+              const where = [section, snip && `on “${snip}”`].filter(Boolean).join(" · ");
+              if (where) li.append(el("p", "where", `Pinned: ${where}`));
+              if (n.progress) li.append(el("p", "progress", n.progress));
+              const act = el("p", "actions");
+              const link = el("a", null, "Show on page");
+              link.href = page;
+              link.addEventListener("click", () => {
+                try {
+                  localStorage.setItem(SHOW_STORE, n.id);
+                } catch {}
+              });
+              act.append(link);
+              li.append(act);
+              ol.append(li);
+            });
+            list.append(ol);
+          }
+        }
+
+        async function load() {
+          if (!key) {
+            $("sub").textContent = "";
+            $("list").replaceChildren(el("p", "msg", "Open this page from the comment link (it ends in ?comment=…) to see the notes."));
+            return false;
+          }
+          try {
+            const r = await fetch("/api/comments", { headers: { "x-comment-key": key }, cache: "no-store" });
+            if (r.status === 401) {
+              $("sub").textContent = "";
+              $("list").replaceChildren(el("p", "msg", "This comment link isn't valid. Ask James for the current one."));
+              return false;
+            }
+            if (!r.ok) throw new Error(String(r.status));
+            render((await r.json()).comments || []);
+          } catch {
+            $("sub").textContent = "Couldn't load the notes just now. Retrying…";
+          }
+          return true;
+        }
+
+        load().then((ok) => {
+          if (!ok) return;
+          setInterval(() => document.visibilityState === "visible" && load(), 10000);
+          addEventListener("focus", load);
+        });
+      })();
+    </script>
+  </body>
+</html>
