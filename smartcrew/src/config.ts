@@ -79,8 +79,10 @@ export const config = {
   katiePhoto: "",
 
   /** The ConExpo logo over classic's headline ("Featured by", Andrew's round 2; a file in public/): the
-   *  CONEXPO-CON/AGG colour logo from conexpoconagg.com, via James's asset zip (Oct 20). Empty shows the word. */
-  conexpoLogo: "logos/conexpo.webp",
+   *  CONEXPO-CON/AGG colour logo from conexpoconagg.com, via James's asset zip (Oct 20). Empty shows the word.
+   *  Off: Andrew's comment-mode note, Oct 20: "i think we just keep the name here. logo is nice. but its
+   *  also distracting to the eye." The file stays at logos/conexpo.webp. */
+  conexpoLogo: "",
 
   privacyUrl: "https://smartcrewhq.com/privacy-policy",
   termsUrl: "https://smartcrewhq.com/terms-of-service",
