@@ -87,7 +87,7 @@ export function DayHeader({ c }: { c: Ctx }) {
   return (
     <div className="pc-head">
       <span className="pc-head-day">{TODAY.weekday}</span>
-      <span className="pc-head-dot" />
+      {/* no blue dot after the day (Andrew's comment-mode note, Oct 20: "Cut blue dot") */}
       <B className="pc-head-cam ca-press" onClick={() => c.d({ t: "push", route: { k: "camera" } })} aria-label="Take a jobsite photo">
         <Icon name="camera" size={24} stroke={1.6} />
       </B>

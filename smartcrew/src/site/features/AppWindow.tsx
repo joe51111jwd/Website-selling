@@ -139,7 +139,7 @@ export default function AppWindow({ screen, onScreen, arrived }: Props) {
                 );
               })}
             </ul>
-            <p className="ft-side-note">{A.demo}</p>
+            {/* no "Demo account…" line (Andrew's comment-mode note, Oct 20: "Cut") */}
           </nav>
 
           <div ref={main} className="ft-main">
