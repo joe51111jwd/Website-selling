@@ -646,9 +646,22 @@ async function painPicker(device) {
       assert(!(await sec.getByRole("textbox", { name: /type your own/i }).count()), "the pain picker is still on the classic page");
       assert(!(await sec.getByText(/biggest headache/i).count()), "“What’s your biggest headache?” is still on the classic page");
       assert(await sec.getByRole("heading", { name: /everything\. built for dirt\./i }).count(), "no “Everything. Built for dirt.” heading");
-      const cards = await sec.locator("[data-testid^='feature-card-']").count();
-      assert(cards >= 10, `${cards} feature cards, not 10`);
-      return `classic: no picker; head and ${cards} cards`;
+      // the feature wheel (Oct 20): all ten on the desktop wheel; on phones one card at a time,
+      // its arrow steps through all ten
+      let cards = await sec.locator("[data-testid^='feature-card-']").count();
+      if (cards < 10) {
+        const seen = new Set();
+        const next = sec.getByRole("button", { name: /^next feature$/i }).first();
+        for (let i = 0; i < 12 && seen.size < 10; i++) {
+          seen.add(await sec.locator("[data-testid^='feature-card-']").first().getAttribute("data-testid"));
+          if (await next.isDisabled()) break;
+          await press(page, next, { what: "Next feature" });
+          await wait(250);
+        }
+        cards = seen.size;
+      }
+      assert(cards >= 10, `${cards} features on the wheel, not 10`);
+      return `classic: no picker; head and ${cards} features`;
     }
     const answer = sec.locator(".ft-answer");
     const said = async () => (await answer.innerText()).replace(/\s+/g, " ").trim();
