@@ -39,7 +39,6 @@ type Load = "loading" | "ready" | "bad-key" | "not-set-up" | "error";
 
 const NAME_STORE = "sc-comment-name";
 const HINT_STORE = "sc-comment-hint";
-const MINI_STORE = "sc-comment-mini";
 /** a note picked in the list on the other page, shown once that page loads */
 const SHOW_STORE = "sc-comment-show";
 const PHONE_MAX = 760;
@@ -183,8 +182,9 @@ function CommentMode({ apiKey }: { apiKey: string }) {
   const [draft, setDraft] = useState<Spot | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [panel, setPanel] = useState(false);
-  // × only folds the toolbar to a small tab; it used to clear the key, and comment mode then looked broken
-  const [mini, setMini] = useState(() => store.get(MINI_STORE) === "1");
+  // × only folds the toolbar to a small tab until the next load (James: "when you reload the page, the
+  // little comment section ... repops up"); it used to clear the key, and comment mode looked broken
+  const [mini, setMini] = useState(false);
   const [showDone, setShowDone] = useState(false);
   const [hint, setHint] = useState(() => store.get(HINT_STORE) !== "1");
   const [toast, setToast] = useState<string | null>(null);
@@ -426,7 +426,6 @@ function CommentMode({ apiKey }: { apiKey: string }) {
   };
 
   const fold = (on: boolean) => {
-    store.set(MINI_STORE, on ? "1" : null);
     setMini(on);
     setDraft(null);
     setPanel(false);
