@@ -250,6 +250,13 @@
   width: auto;
   margin-inline: auto;
 }
+/* Classic: Andrew's new logo (Oct 20), white copy with its track */
+img.rp-hub-logo {
+  height: 40px;
+}
+img.rp-hub-logo.is-plain {
+  height: 28px;
+}
 
 .rp-hub-line {
   margin-top: 9px;
@@ -490,6 +497,12 @@
   }
   .rp-hub-logo {
     height: 26px;
+  }
+  img.rp-hub-logo {
+    height: 34px;
+  }
+  img.rp-hub-logo.is-plain {
+    height: 24px;
   }
   .rp-fine {
     margin-top: 22px;

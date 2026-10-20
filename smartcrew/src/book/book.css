@@ -62,6 +62,15 @@ body {
   height: 22px;
   width: auto;
 }
+/* Classic: Andrew's new logo (Oct 20) */
+.bk-logo-img {
+  display: block;
+  height: 38px;
+  width: auto;
+}
+.bk-logo-img.is-plain {
+  height: 24px;
+}
 .bk-help {
   display: inline-flex;
   align-items: center;
@@ -797,6 +806,12 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   }
   .bk-logo-svg {
     height: 20px;
+  }
+  .bk-logo-img {
+    height: 30px;
+  }
+  .bk-logo-img.is-plain {
+    height: 21px;
   }
   .bk-help-k {
     display: none;

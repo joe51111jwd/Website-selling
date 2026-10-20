@@ -44,6 +44,16 @@
   margin-left: 10px;
 }
 
+/* Classic: Andrew's new logo (Oct 20), white copy */
+.ftr-brand-logo {
+  display: block;
+  height: 42px;
+  width: auto;
+}
+.ftr-brand-logo.is-plain {
+  height: 28px;
+}
+
 .ftr-tag {
   margin-top: 18px;
   font-size: 15px;
@@ -152,6 +162,12 @@
   }
   .ftr-word {
     height: 19px;
+  }
+  .ftr-brand-logo {
+    height: 36px;
+  }
+  .ftr-brand-logo.is-plain {
+    height: 24px;
   }
   .ftr-links {
     flex-direction: row;

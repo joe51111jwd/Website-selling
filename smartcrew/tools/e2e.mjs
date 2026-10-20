@@ -559,11 +559,12 @@ async function headerLinks(device) {
     const banner = page.getByRole("banner");
     const out = [];
     if (device.name === "desktop") {
-      // Andrew's Loom (Oct 20): Features, How it works, FAQ
+      // Andrew's Loom (Oct 20): Features, How it works, FAQ; his page note: "Add about"
       for (const [name, id] of [
         ["FAQ", "faq"],
         ["Features", "features"],
         ["How it works", "watch"],
+        ["About", "offer"],
       ]) {
         await scrollTo(page, 0, 300);
         await press(page, banner.getByRole("link", { name, exact: true }), { what: `the header's "${name}" link` });

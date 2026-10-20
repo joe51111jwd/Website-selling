@@ -1426,3 +1426,12 @@
 .ft-in.is-phone .ft-close-cta {
   margin-top: 22px;
 }
+
+/* Classic: his page note (Oct 20, comment mode) "Add a little more spacing here": the head and the
+   cards had only the sub's line gap between them once the pain picker was cut */
+html.look-classic .ft-in.is-desk .ft-body {
+  margin-top: clamp(30px, 4.4svh, 52px);
+}
+html.look-classic .ft-in.is-phone .ft-body {
+  margin-top: 28px;
+}

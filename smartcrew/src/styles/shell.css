@@ -233,3 +233,28 @@ html[data-ground="dark"] .site-nav a:hover {
     content-visibility: visible;
   }
 }
+
+/* Classic: Andrew's new logo (Oct 20), the white copy over dark grounds */
+.site-logo-img {
+  display: block;
+  height: 38px;
+  width: auto;
+}
+.site-logo-img.is-plain {
+  height: 24px;
+}
+.site-logo-img.is-white,
+html[data-ground="dark"] .site-logo-img.is-ink {
+  display: none;
+}
+html[data-ground="dark"] .site-logo-img.is-white {
+  display: block;
+}
+@media (max-width: 760px) {
+  .site-logo-img {
+    height: 30px;
+  }
+  .site-logo-img.is-plain {
+    height: 21px;
+  }
+}

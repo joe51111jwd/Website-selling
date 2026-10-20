@@ -41,10 +41,12 @@ export const CTA = {
 // ─── Header and the phone's sticky bar ──────────────────────────────────────
 export const HEADER = {
   logoLabel: "SmartCrew, back to the top",
-  /** Andrew's Loom (Oct 20): "add like features about how it works FAQ… up here" */
+  /** Andrew's Loom (Oct 20): "add like features about how it works FAQ… up here"; his page note
+   *  (Oct 20, comment mode): "Add about" (Why we built SmartCrew), in page order */
   nav: [
     { label: "Features", href: "#features" },
     { label: "How it works", href: "#watch" },
+    { label: "About", href: "#offer" },
     { label: "FAQ", href: "#faq" },
   ],
   cta: CTA.primary,
@@ -167,13 +169,16 @@ export const HERO4 = {
   usedBy: "Used by",
 };
 
-/** The six contractors on the live site ("Used by", AMBER: Andrew confirms permission). Aspect = w/h of the file. */
+/** The contractors on the live site ("Used by", AMBER: Andrew confirms permission). Aspect = w/h of the file.
+ *  His page note (Oct 20, comment mode): "cut 2nd, 3rd and 5th logo. replace with ones in doc i noted":
+ *  Rieke Grading, JCR Excavating and DW Companies out, his doc's "MSB, ECL, CORE" in their places (cut
+ *  from the logo sheet in his doc, one ink like the rest). */
 export const LOGOS: { name: string; src: string; aspect: number }[] = [
   { name: "Drish Construction", src: "logos/drish.webp", aspect: 2.16 },
-  { name: "Rieke Grading", src: "logos/rieke.webp", aspect: 1.75 },
-  { name: "JCR Excavating", src: "logos/jcr.webp", aspect: 2.61 },
+  { name: "MSB Excavating", src: "logos/msb.webp", aspect: 1.21 },
+  { name: "ECL Site Works", src: "logos/ecl.webp", aspect: 1.53 },
   { name: "Fireball Construction", src: "logos/fireball.webp", aspect: 1.49 },
-  { name: "DW Companies", src: "logos/dw.webp", aspect: 1.63 },
+  { name: "Core Utility", src: "logos/core.webp", aspect: 2.26 },
   { name: "Midwest Erosion Specialists", src: "logos/midwest.webp", aspect: 4.01 },
 ];
 
@@ -219,7 +224,7 @@ export const TRY_IT = {
   sub: TRY.sub,
   /** Andrew's round 2 mock: beside the phone, with an arrow pointing at it (he cut the two facts that
    * stood there), so people see it's the real app and not a screenshot */
-  nudgeLead: "…But don’t take our word for it…",
+  nudgeLead: "Don’t take our word for it…", // his page note (Oct 20, comment mode)
   nudge: "Try it yourself.",
   /** The jobsite's geofence tag (same job as the hero's tag and the phone screen). */
   site: INTRO.site,
@@ -285,8 +290,9 @@ export const PROOF = {
     disclosure: "Drish Construction is Andrew’s family’s dirt work company, where SmartCrew started.",
   },
   katie: {
-    /** Andrew's Loom (Oct 20), his wording */
-    text: "I’ve been searching for this EXACT software for 10 YEARS! It’s completely changed our business.",
+    /** his page note (Oct 20, comment mode), his wording: "I have been searching for this exact
+     *  software for over 10 years! - Katie - DW Companies" */
+    text: "I have been searching for this exact software for over 10 years!",
     name: "Katie",
     /** Andrew's Loom (Oct 20): "that's actually a DW company" (the "Used by" row's DW Companies) */
     company: "DW Companies",

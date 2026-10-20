@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { FLAG, FOOTER_SCENE } from "../../content/copy";
 import { config } from "../../config";
 import { Logo } from "../../brand/Logo";
+import { BrandLogo } from "../../brand/BrandLogo";
+import { CLASSIC } from "../../lib/look";
 import { devicesInUse, onStageChange } from "../../three/stage/store";
 import { Scene } from "../scene/Scene";
 import { useSeen } from "../offer/useSeen";
@@ -45,15 +47,21 @@ export default function Footer() {
                 href="#top"
                 aria-label="SmartCrew, back to the top"
               >
-                <span className="ftr-mark">
-                  <Logo className="ftr-mark-svg" variant="mark" decorative />
-                </span>
-                <Logo
-                  className="ftr-word"
-                  variant="wordmark"
-                  tone="white"
-                  decorative
-                />
+                {CLASSIC ? (
+                  <BrandLogo className="ftr-brand-logo" tone="white" />
+                ) : (
+                  <>
+                    <span className="ftr-mark">
+                      <Logo className="ftr-mark-svg" variant="mark" decorative />
+                    </span>
+                    <Logo
+                      className="ftr-word"
+                      variant="wordmark"
+                      tone="white"
+                      decorative
+                    />
+                  </>
+                )}
               </a>
               <p className="ftr-tag" data-cursor="text">{FOOTER_SCENE.tagline}</p>
             </div>

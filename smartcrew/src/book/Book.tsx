@@ -9,6 +9,8 @@ import { TRIAL_FIRST } from "../lib/offer";
 import { mountCal, mountVidalytics, vidalyticsPlayer, type VidPlayer } from "./embeds";
 import { downloadIcs, downloadVcf, googleUrl, when } from "./calendar";
 import { Logo } from "../brand/Logo";
+import { BrandLogo } from "../brand/BrandLogo";
+import { CLASSIC } from "../lib/look";
 import faceUrl from "../signup/assets/andrew-face.webp";
 import bustUrl from "../signup/assets/andrew-bust.webp";
 
@@ -176,7 +178,7 @@ export default function Book() {
     <div className={`bk${booking ? " is-booked" : ""}`} data-clarity-mask="True">
       <header className="bk-bar">
         <a href="../" className="bk-logo" aria-label="SmartCrew, back to the product page">
-          <Logo decorative className="bk-logo-svg" />
+          {CLASSIC ? <BrandLogo className="bk-logo-img" /> : <Logo decorative className="bk-logo-svg" />}
         </a>
         <a className="bk-help" href={`mailto:${config.email}`}>
           <MailIcon />

@@ -11,6 +11,7 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { REPLACE } from "../../content/replace";
 import { Logo } from "../../brand/Logo";
+import { BrandLogo } from "../../brand/BrandLogo";
 import { Scene } from "../scene/Scene";
 import { Cta, DemoLink } from "../ui/Cta";
 import { usePhoneLite } from "../phone";
@@ -95,7 +96,11 @@ export default function Replace() {
               ))}
             </ul>
             <div className="rp-hub" ref={hub} data-rp-hub="" data-testid="rp-hub">
-              <Logo className="rp-hub-logo" tone="white" title="SmartCrew" />
+              {CLASSIC ? (
+                <BrandLogo className="rp-hub-logo" tone="white" alt="SmartCrew" />
+              ) : (
+                <Logo className="rp-hub-logo" tone="white" title="SmartCrew" />
+              )}
               <p className="rp-hub-line">{REPLACE.platform}</p>
             </div>
           </div>

@@ -22,7 +22,7 @@ export const REPLACE = {
     {
       id: "time",
       name: "Time Tracking",
-      line: "Replace separate time tracking workflows.",
+      line: "Simple time tracking with GPS auto-log and supervisor options.", // his page note (Oct 20)
       apps: [
         { name: "busybusy", letter: "b" },
         { name: "QuickBooks Time", file: "quickbooks.svg" },
@@ -60,7 +60,7 @@ export const REPLACE = {
     {
       id: "comms",
       name: "Crew Communication",
-      line: "Keep your teams connected with messaging and updates.",
+      line: "Stay connected with scheduling, dispatch and messaging.", // his page note (Oct 20)
       apps: [
         { name: "Slack", file: "slack.svg" },
         { name: "WhatsApp", file: "whatsapp.svg" },

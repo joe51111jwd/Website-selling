@@ -6,8 +6,9 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Logo } from "../../brand/Logo";
+import { BrandLogo } from "../../brand/BrandLogo";
 import { HEADER } from "../../content/copy";
-import { FOCUS } from "../../lib/look";
+import { CLASSIC, FOCUS } from "../../lib/look";
 import { handleAnchorClick, scrollToY } from "../scroll";
 import { Cta } from "../ui/Cta";
 import { useHeroCtaGone } from "./heroCta";
@@ -57,7 +58,14 @@ export function Header() {
             scrollToY(0);
           }}
         >
-          <Logo className="site-logo-svg" />
+          {CLASSIC ? (
+            <>
+              <BrandLogo className="site-logo-img is-ink" />
+              <BrandLogo className="site-logo-img is-white" tone="white" />
+            </>
+          ) : (
+            <Logo className="site-logo-svg" />
+          )}
         </a>
         <nav className="site-nav" aria-label="Page">
           {HEADER.nav.map((l) => (
