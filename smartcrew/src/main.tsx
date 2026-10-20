@@ -14,6 +14,7 @@ import "./lib/flags";
 import { FOCUS } from "./lib/look";
 import { startFocus } from "./site/focus";
 import App from "./App";
+import "./comments/boot";
 
 // set in .env.watermark, so only `npm run build:watermark` carries it
 if (import.meta.env.VITE_WATERMARK) installWatermark(import.meta.env.VITE_WATERMARK);

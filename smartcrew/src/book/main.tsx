@@ -14,6 +14,7 @@ import "../lib/look";
 import { startTracking } from "../lib/track";
 import { captureAttribution } from "../lib/lead";
 import Book from "./Book";
+import "../comments/boot";
 
 // /book: the page the trial popup lands on (noindex, see book/index.html).
 captureAttribution();

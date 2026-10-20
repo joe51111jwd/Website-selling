@@ -1,0 +1,463 @@
+/* Comment mode (CommentMode.tsx). Everything is prefixed .scc- and sits in its own body child
+   ([data-scc]) above the page, so none of it touches the page's own styles. */
+
+[data-scc] {
+  --scc-ink: #17130f;
+  --scc-ink-2: #5c5249;
+  --scc-paper: #fffdfa;
+  --scc-line: rgb(23 19 15 / 0.14);
+  --scc-orange: #ff7a01;
+  --scc-orange-ink: #9a4100;
+  --scc-shadow: 0 18px 40px -12px rgb(23 19 15 / 0.38), 0 2px 8px rgb(23 19 15 / 0.16);
+  font: 500 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--scc-ink);
+  -webkit-font-smoothing: antialiased;
+}
+[data-scc] *,
+[data-scc] *::before,
+[data-scc] *::after {
+  box-sizing: border-box;
+}
+
+/* the page's own geofence cursor steps aside; while placing, a crosshair shows where the pin lands,
+   and iframes (the calendar, the video) let the click through to the page so they can be pinned too */
+html.scc-on .cur-root {
+  display: none !important;
+}
+html.scc-on.cur-on,
+html.scc-on.cur-on * {
+  cursor: auto !important;
+}
+html.scc-on.scc-placing,
+html.scc-on.scc-placing * {
+  cursor: crosshair !important;
+}
+html.scc-on.scc-placing iframe {
+  pointer-events: none !important;
+}
+html.scc-on [data-scc] button,
+html.scc-on [data-scc] a,
+html.scc-on [data-scc] label {
+  cursor: pointer !important;
+}
+html.scc-on [data-scc] textarea,
+html.scc-on [data-scc] input:not([type="checkbox"]) {
+  cursor: text !important;
+}
+
+.scc-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483100;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.scc-hover {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: none;
+  border: 1.5px dashed var(--scc-orange);
+  border-radius: 4px;
+  background: rgb(255 122 1 / 0.06);
+  pointer-events: none;
+}
+
+/* a pin: its bottom-left corner is the spot that was clicked */
+.scc-pin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 30px;
+  height: 30px;
+  margin: -30px 0 0 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 50% 50% 50% 0;
+  background: var(--scc-orange);
+  color: #fff;
+  font: 700 13px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 6px 16px -4px rgb(23 19 15 / 0.5);
+  pointer-events: auto;
+  will-change: transform;
+  transition: scale 0.15s ease;
+}
+.scc-pin[data-off="1"] {
+  visibility: hidden;
+  pointer-events: none;
+}
+.scc-pin:hover,
+.scc-pin.is-open {
+  scale: 1.12;
+  transform-origin: 0 100%;
+}
+.scc-pin.is-open {
+  outline: 3px solid rgb(255 122 1 / 0.35);
+  outline-offset: 1px;
+}
+.scc-pin.is-done {
+  background: #7d746b;
+}
+.scc-pin.is-draft {
+  background: var(--scc-ink);
+  font-size: 18px;
+  pointer-events: none;
+}
+
+/* the toolbar */
+.scc-bar {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 2147483200;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--scc-line);
+  border-radius: 14px;
+  background: var(--scc-paper);
+  box-shadow: var(--scc-shadow);
+}
+.scc-bar--msg {
+  padding: 8px 8px 8px 14px;
+  gap: 12px;
+  max-width: calc(100vw - 32px);
+}
+
+.scc-seg {
+  display: flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgb(23 19 15 / 0.07);
+}
+.scc-seg button {
+  appearance: none;
+  border: 0;
+  margin: 0;
+  padding: 7px 12px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--scc-ink-2);
+  font: inherit;
+  font-weight: 650;
+}
+.scc-seg button.is-on {
+  background: var(--scc-ink);
+  color: #fff;
+}
+
+.scc-btn {
+  appearance: none;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--scc-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--scc-ink);
+  font: inherit;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.scc-btn:hover {
+  border-color: rgb(23 19 15 / 0.3);
+}
+.scc-btn.is-on {
+  background: rgb(23 19 15 / 0.07);
+}
+.scc-btn--main {
+  border-color: var(--scc-orange);
+  background: var(--scc-orange);
+  color: #1b0f02;
+}
+.scc-btn--main:hover {
+  border-color: #e56d00;
+  background: #ff8a1f;
+}
+.scc-btn--danger {
+  border-color: #b3261e;
+  background: #b3261e;
+  color: #fff;
+}
+.scc-btn:disabled {
+  opacity: 0.45;
+  cursor: default !important;
+}
+
+.scc-x {
+  appearance: none;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  flex: none;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--scc-ink-2);
+  font: 400 22px/1 system-ui, sans-serif;
+}
+.scc-x:hover {
+  background: rgb(23 19 15 / 0.07);
+  color: var(--scc-ink);
+}
+
+/* the note box: next to its pin on a laptop, a sheet along the bottom on a phone */
+.scc-pop {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  z-index: 2147483300;
+  width: 300px;
+  padding: 12px;
+  border: 1px solid var(--scc-line);
+  border-radius: 14px;
+  background: var(--scc-paper);
+  box-shadow: var(--scc-shadow);
+}
+.scc-pop.is-sheet {
+  left: 0 !important;
+  right: 0;
+  top: auto !important;
+  bottom: 0;
+  width: auto;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0;
+}
+
+.scc-text,
+.scc-name {
+  display: block;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 9px 10px;
+  border: 1px solid rgb(23 19 15 / 0.22);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--scc-ink);
+  /* 16px stops iPhones zooming in on focus */
+  font: 400 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  resize: vertical;
+}
+.scc-text:focus,
+.scc-name:focus {
+  outline: 2px solid var(--scc-orange);
+  outline-offset: 0;
+  border-color: transparent;
+}
+.scc-as {
+  margin: 0 0 8px;
+  color: var(--scc-ink-2);
+  font-size: 13px;
+}
+.scc-link {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--scc-orange-ink);
+  font: inherit;
+  font-weight: 650;
+  text-decoration: underline;
+}
+.scc-err {
+  margin: 0 0 8px;
+  color: #b3261e;
+  font-size: 13px;
+}
+.scc-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.scc-pop-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -4px -4px 6px 0;
+}
+.scc-pop-head .scc-meta {
+  flex: 1;
+}
+.scc-body {
+  margin: 0 0 12px;
+  font-weight: 450;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 40vh;
+  overflow: auto;
+}
+.scc-num {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 12px;
+  background: var(--scc-orange);
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+}
+.is-done .scc-num {
+  background: #7d746b;
+}
+.scc-meta {
+  color: var(--scc-ink-2);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+/* the list of notes */
+.scc-panel {
+  position: fixed;
+  left: 16px;
+  bottom: 76px;
+  z-index: 2147483250;
+  width: 340px;
+  max-height: min(70vh, 560px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--scc-line);
+  border-radius: 14px;
+  background: var(--scc-paper);
+  box-shadow: var(--scc-shadow);
+  overflow: hidden;
+}
+.scc-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px 8px 14px;
+  border-bottom: 1px solid var(--scc-line);
+}
+.scc-empty {
+  margin: 0;
+  padding: 14px;
+  color: var(--scc-ink-2);
+}
+.scc-list {
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.scc-item {
+  appearance: none;
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.scc-item:hover {
+  background: rgb(23 19 15 / 0.05);
+}
+.scc-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.scc-item-text {
+  font-weight: 450;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.scc-list .is-done .scc-item-text {
+  color: var(--scc-ink-2);
+  text-decoration: line-through;
+}
+.scc-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--scc-line);
+  color: var(--scc-ink-2);
+}
+.scc-elsewhere {
+  display: block;
+  padding: 10px 14px;
+  border-top: 1px solid var(--scc-line);
+  color: var(--scc-orange-ink);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+/* first-visit help and the little "saved" line */
+.scc-hint {
+  position: fixed;
+  left: 16px;
+  bottom: 76px;
+  z-index: 2147483260;
+  width: 320px;
+  padding: 14px;
+  border: 1px solid var(--scc-line);
+  border-radius: 14px;
+  background: var(--scc-paper);
+  box-shadow: var(--scc-shadow);
+}
+.scc-hint p {
+  margin: 0 0 8px;
+}
+.scc-hint p + p {
+  color: var(--scc-ink-2);
+  font-size: 13px;
+}
+.scc-toast {
+  position: fixed;
+  left: 50%;
+  top: 16px;
+  z-index: 2147483400;
+  translate: -50% 0;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: var(--scc-ink);
+  color: #fff;
+  font-weight: 650;
+  box-shadow: var(--scc-shadow);
+  pointer-events: none;
+}
+
+/* phones: the bar sits above the page's sticky "Try SmartCrew" bar */
+@media (max-width: 760px) {
+  .scc-bar {
+    left: 50%;
+    translate: -50% 0;
+    bottom: calc(var(--sticky-h, 64px) + env(safe-area-inset-bottom) + 10px);
+    max-width: calc(100vw - 20px);
+  }
+  .scc-seg button {
+    padding: 7px 10px;
+  }
+  .scc-btn {
+    padding: 8px 10px;
+  }
+  .scc-panel,
+  .scc-hint {
+    left: 10px;
+    right: 10px;
+    width: auto;
+    bottom: calc(var(--sticky-h, 64px) + env(safe-area-inset-bottom) + 70px);
+  }
+  .scc-panel {
+    max-height: 55vh;
+  }
+}
