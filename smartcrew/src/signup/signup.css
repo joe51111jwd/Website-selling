@@ -494,8 +494,10 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
+/* Classic keeps name, email and phone on three lines (Andrew's comment-mode note, Oct 20: "make this
+   three lines") */
 @container (min-width: 440px) {
-  .su-row {
+  html:not(.look-classic) .su-row {
     grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
     gap: 12px;
     align-items: start;
@@ -704,7 +706,7 @@
 /* the mini app window, in the app's own look (Inter, white shell) */
 .su-win {
   display: grid;
-  grid-template-columns: 108px 1fr;
+  grid-template-columns: 128px 1fr;
   width: 392px;
   height: 388px;
   overflow: hidden;
@@ -748,16 +750,20 @@
   flex-direction: column;
   gap: 1px;
 }
+/* eleven rows (Dashboard + Andrew's 10 features): the long names take two lines */
 .su-win-nav li {
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 25px;
-  padding-left: 7px;
+  min-height: 22px;
+  padding: 3px 4px 3px 7px;
   border-radius: 6px;
   color: #4f4f4f;
-  font-size: 10.5px;
-  white-space: nowrap;
+  font-size: 10px;
+  line-height: 1.15;
+}
+.su-win-nav li > svg {
+  flex: none;
 }
 .su-win-nav li.is-on {
   background: #f3f3f3;

@@ -1153,7 +1153,7 @@ async function funnel(device) {
     out.push("step 1 errors + employees/company");
 
     // step 2: a bad email and a short number → errors; then good → /book
-    const start = () => dlg.getByRole("button", { name: /pick my time|pick my demo time/i }).click();
+    const start = () => dlg.getByRole("button", { name: /get started|pick my time|pick my demo time/i }).click();
     await dlg.getByLabel("Your name").fill("Pat Tester");
     await dlg.getByLabel("Work email").fill("pat@example");
     await dlg.getByLabel("Cell phone").fill("555");

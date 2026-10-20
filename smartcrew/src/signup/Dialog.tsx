@@ -26,15 +26,14 @@ import {
   type Progress,
 } from "../lib/lead";
 import { track, trackCustom } from "../lib/track";
-import { aCall, config } from "../config";
+import { config } from "../config";
 import { OFFER } from "../content/copy";
 import { SHOW_FLAGS } from "../lib/flags";
-import { BOLD, CLASSIC } from "../lib/look";
-import { PRICE_SLOTS, TRIAL_FIRST, priceFor } from "../lib/offer";
+import { BOLD } from "../lib/look";
+import { PRICE_SLOTS, priceFor } from "../lib/offer";
 import Preview from "./Preview";
 import { Flag } from "./Flag";
 import { fly } from "./pulse";
-import faceUrl from "./assets/andrew-face.webp";
 
 // The popup (BRIEF "Popup", CRO.md §4, PLAYBOOK §5). Andrew: "it's gonna feel like building an
 // account": the visitor starts a free trial, names his company and watches his own SmartCrew fill in
@@ -275,7 +274,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
   // ── focus: first empty field of each step, after it has slid in ──────────────
   const sizeLocked = sizeSaved && !editSize && !!d.size;
   const firstEmpty = (): Field => {
-    if (step === 0) return !sizeLocked && !d.size ? "size" : "company";
+    if (step === 0) return d.company.trim().length < 2 || sizeLocked || d.size ? "company" : "size";
     if (!d.name.trim()) return "name";
     return check("email", d, intent) ? "email" : "phone";
   };
@@ -443,21 +442,6 @@ export default function Dialog({ req, opener, onClose }: Props) {
     intent === "demo" ? "Book your demo with Andrew" : "Set up your SmartCrew",
     company.length >= 2 ? `Who's setting up ${company}?` : "Who's setting this up?",
   ];
-  // said before anything personal is typed: the trial is set up on a call (as a sign-up, not a callback)
-  const honest =
-    intent === "demo" ? (
-      <>Next: pick a time for your demo with Andrew.</>
-    ) : TRIAL_FIRST ? (
-      <>
-        {OFFER.trialFirst.honest}
-        <Flag note={OFFER.trialFirst.note} />
-      </>
-    ) : (
-      <>
-        It starts with {aCall()} with Andrew.
-        {config.callLength && !config.callLengthConfirmed && <Flag note="Andrew to confirm the call length (his Cal.com event is 45 minutes today)" />}
-      </>
-    );
 
   const spring: Transition = reduce ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 30, mass: 0.9 };
   const stepVariants = {
@@ -563,6 +547,18 @@ export default function Dialog({ req, opener, onClose }: Props) {
 
                     {step === 0 && (
                       <div className="su-fields">
+                        <TextField
+                          id={`${ids}-company`}
+                          field="company"
+                          label="Company name"
+                          value={d.company}
+                          error={errors.company}
+                          ok={ok.company}
+                          onChange={(v) => set("company", v)}
+                          onFocus={() => setFocus("company")}
+                          onBlur={() => onBlur("company")}
+                          input={{ name: "organization", autoComplete: "organization", autoCapitalize: "words", enterKeyHint: "next", maxLength: 80, spellCheck: false }}
+                        />
                         {sizeLocked ? (
                           <div className="su-done">
                             <span className="su-done-tick" aria-hidden="true">
@@ -614,19 +610,8 @@ export default function Dialog({ req, opener, onClose }: Props) {
                             {PRICE_SLOTS && intent !== "demo" && d.size && <PriceLine size={d.size} />}
                           </fieldset>
                         )}
-                        <TextField
-                          id={`${ids}-company`}
-                          field="company"
-                          label="Company name"
-                          value={d.company}
-                          error={errors.company}
-                          ok={ok.company}
-                          onChange={(v) => set("company", v)}
-                          onFocus={() => setFocus("company")}
-                          onBlur={() => onBlur("company")}
-                          input={{ name: "organization", autoComplete: "organization", autoCapitalize: "words", enterKeyHint: "next", maxLength: 80, spellCheck: false }}
-                        />
-                        {(BOLD || CLASSIC) && intent !== "demo" && <Answers />}
+                        {/* Classic: bullets cut (Andrew's comment-mode note, Oct 20: "cut these bullets") */}
+                        {BOLD && intent !== "demo" && <Answers />}
                       </div>
                     )}
 
@@ -649,7 +634,6 @@ export default function Dialog({ req, opener, onClose }: Props) {
                             id={`${ids}-email`}
                             field="email"
                             label="Work email"
-                            note="Gmail is fine"
                             value={d.email}
                             error={errors.email}
                             ok={ok.email}
@@ -699,36 +683,8 @@ export default function Dialog({ req, opener, onClose }: Props) {
                 </div>
 
                 <div className="su-foot">
-                    <AnimatePresence mode="wait" initial={false}>
-                    <motion.div
-                      key={last ? "next" : "honest"}
-                      className="su-pre"
-                      initial={{ opacity: 0, y: reduce ? 0 : 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: reduce ? 0 : -4 }}
-                      transition={{ duration: reduce ? 0 : 0.22 }}
-                    >
-                      <p className={`su-honest${last ? " su-honest--next" : ""}`} id={`${ids}-honest`}>
-                        <img src={faceUrl} alt="" width={28} height={28} />
-                        {last ? (
-                          <span>
-                            {intent === "demo" ? (
-                              "Next: pick a time for your demo with Andrew."
-                            ) : TRIAL_FIRST ? (
-                              <>
-                                {OFFER.trialFirst.next}
-                                <Flag note={OFFER.trialFirst.note} />
-                              </>
-                            ) : (
-                              "Next: pick a time for your quick demo with Andrew."
-                            )}
-                          </span>
-                        ) : (
-                          <span>{honest}</span>
-                        )}
-                      </p>
-                    </motion.div>
-                    </AnimatePresence>
+                    {/* The line above the button is cut on both steps (Andrew's comment-mode notes, Oct 20: "Cut
+                        this" on "It starts with a quick demo with Andrew." and "cut this" on "Next: pick a time…") */}
                     <div className="su-actions">
                       {sysError && (
                         <p className="su-sys" role="alert">
@@ -748,7 +704,8 @@ export default function Dialog({ req, opener, onClose }: Props) {
                           </>
                         ) : (
                           <>
-                            {intent === "demo" ? "Pick my demo time" : "Pick my time"}
+                            {/* Andrew's comment-mode note, Oct 20: "Get Started" (was "Pick my time") */}
+                            Get Started
                             <Arrow />
                           </>
                         )}
@@ -765,9 +722,7 @@ export default function Dialog({ req, opener, onClose }: Props) {
                           </a>
                           .
                         </p>
-                      ) : (
-                        <p className="su-legal su-legal--quiet">{step === 0 ? "Takes less than a minute." : "\u00a0"}</p>
-                      )}
+                      ) : null /* "Takes less than a minute." cut: Andrew's comment-mode note, Oct 20: "Cut" */}
                     </div>
                 </div>
                 </>

@@ -16,13 +16,20 @@ import { TRIAL_FIRST } from "../lib/offer";
 const CREW_DOTS: Record<Size, number> = { "1–5": 3, "6–12": 6, "13–25": 9, "26–50": 11, "51–100": 13, "101–250": 13, "250+": 13 };
 const MORE: Size[] = ["26–50", "51–100", "101–250", "250+"];
 
+// Andrew's comment-mode note, Oct 20: "Add all 10 features here on sidebar": his 10 features, in the
+// order of the feature cards (src/content/features.ts), under the Dashboard the window shows.
 const NAV: { label: string; icon: IconName }[] = [
   { label: "Dashboard", icon: "home" },
-  { label: "Projects", icon: "projects" },
-  { label: "Workforce", icon: "workforce" },
-  { label: "Equipment", icon: "equipment" },
+  { label: "Time Tracking", icon: "clock" },
+  { label: "Job Costing", icon: "dollarCircle" },
+  { label: "Equipment Management", icon: "equipment" },
+  { label: "Daily Reports", icon: "reports" },
+  { label: "Materials & Hauling", icon: "materials" },
   { label: "Scheduling", icon: "scheduling" },
-  { label: "Reports", icon: "reports" },
+  { label: "Sales & CRM", icon: "pipeline" },
+  { label: "Crew Communication", icon: "megaphone" },
+  { label: "Safety & Compliance", icon: "shieldCheck" },
+  { label: "File Storage & Documents", icon: "docs" },
 ];
 
 type Props = { draft: Draft; intent: Intent; focus: Field | null; compact: boolean; saving: boolean; hidden?: boolean };
@@ -46,13 +53,13 @@ function useFacts(draft: Draft) {
 
 const Caret = ({ on }: { on: boolean }) => (on ? <span className="su-caret" aria-hidden="true" /> : null);
 
-function Full({ draft, intent, focus, saving }: Props) {
+function Full({ draft, intent, focus }: Props) {
   const reduce = useReducedMotion() ?? false;
   const { company, first, email, done, count } = useFacts(draft);
   const dots = draft.size ? CREW_DOTS[draft.size] : 0;
   // trial first (src/lib/offer.ts): the call is optional setup help, not the way in
   const trialFirst = TRIAL_FIRST && intent !== "demo";
-  const callLabel = intent === "demo" ? "Demo with Andrew" : trialFirst ? OFFER.trialFirst.previewCall : "Trial setup with Andrew";
+  // the call row ("Trial setup with Andrew") is cut: Andrew's comment-mode note, Oct 20: "Cut this"
 
   const rows: { key: string; label: string; value: ReactNode; ok: boolean }[] = [
     { key: "company", label: "Company", value: company, ok: done.company },
@@ -173,7 +180,7 @@ function Full({ draft, intent, focus, saving }: Props) {
                         {count}
                       </motion.span>
                     </AnimatePresence>
-                    &nbsp;of 5
+                    &nbsp;of 4
                   </span>
                 </div>
                 <ul className="su-steps">
@@ -184,11 +191,6 @@ function Full({ draft, intent, focus, saving }: Props) {
                       <span className="su-steps-v">{r.ok ? r.value : ""}</span>
                     </li>
                   ))}
-                  <li className={`su-steps-call${saving ? " is-going" : ""}`} data-pulse="call">
-                    <span className="su-callring" aria-hidden="true" />
-                    <span className="su-steps-l">{callLabel}</span>
-                    <span className="su-steps-v">{saving ? "Opening…" : trialFirst ? OFFER.trialFirst.previewCallValue : "Pick a time"}</span>
-                  </li>
                 </ul>
               </div>
             </div>

@@ -79,7 +79,8 @@ export function check(field: Field, d: Draft, intent: Intent = "trial"): string 
   }
 }
 
-export const STEP_FIELDS: Field[][] = [["size", "company"], ["name", "email", "phone"]];
+// company name first (Andrew's comment-mode note, Oct 20: "lets make company name first")
+export const STEP_FIELDS: Field[][] = [["company", "size"], ["name", "email", "phone"]];
 /** The popup's last step (0-based): finishing it is the lead. */
 export const LAST_STEP = STEP_FIELDS.length - 1;
 
