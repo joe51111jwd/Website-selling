@@ -2,7 +2,8 @@ import { config } from "../config";
 import { attribution } from "./lead";
 import { LOOK } from "./look";
 
-// Meta Pixel, GA4 and Microsoft Clarity, each loaded only when its ID is set in config.ts. Every
+// Meta Pixel, GA4, Microsoft Clarity, Mouseflow and Crisp chat, each loaded only when its ID is set in
+// config.ts, and only on the real site (liveSite: never a *.vercel.app preview or a test host). Every
 // event is also re-dispatched on window as "smartcrew:track" so QA scripts (and a future CAPI relay)
 // can see it.
 
@@ -14,7 +15,17 @@ declare global {
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
     clarity?: ((...args: unknown[]) => void) & { q?: unknown[] };
+    _mfq?: unknown[];
+    $crisp?: unknown[][];
+    CRISP_WEBSITE_ID?: string;
   }
+}
+
+/** The real site: https, and not a preview (*.vercel.app) or a local/test host. Andrew's tags load
+ *  only here, so our test visits never reach his ad account, recordings or chat inbox. */
+export function liveSite(): boolean {
+  const h = location.hostname;
+  return location.protocol === "https:" && !!h && !/(^|\.)vercel\.app$|^localhost$|^127\.|^0\.0\.0\.0$|^\[?::1\]?$/.test(h);
 }
 
 export type TrackData = Record<string, string | number | boolean | undefined>;
@@ -25,6 +36,7 @@ let started = false;
 export function startTracking() {
   if (started) return;
   started = true;
+  if (!liveSite()) return;
   if (config.metaPixelId) {
     const f = function (...args: unknown[]) {
       if (f.callMethod) f.callMethod(...args);
@@ -53,6 +65,39 @@ export function startTracking() {
     window.gtag("config", config.gaId);
   }
   if (config.clarityId) startClarity(config.clarityId);
+  // Mouseflow's recordings start with the page (its own snippet, deferred)
+  if (config.mouseflowId) {
+    window._mfq = window._mfq || [];
+    const s = document.createElement("script");
+    s.defer = true;
+    s.src = `https://cdn.mouseflow.com/projects/${config.mouseflowId}.js`;
+    document.head.appendChild(s);
+  }
+  // Crisp's chat bubble waits until the first screen is done, so it never slows it down
+  if (config.crispId) {
+    const id = config.crispId;
+    const go = () => startCrisp(id);
+    if (document.readyState === "complete") window.setTimeout(go, 3000);
+    else window.addEventListener("load", () => window.setTimeout(go, 3000), { once: true });
+  }
+}
+
+let chatHidden = false;
+
+function startCrisp(id: string) {
+  window.$crisp = window.$crisp || [];
+  window.CRISP_WEBSITE_ID = id;
+  if (chatHidden) window.$crisp.push(["do", "chat:hide"]);
+  const s = document.createElement("script");
+  s.async = true;
+  s.src = "https://client.crisp.chat/l.js";
+  document.head.appendChild(s);
+}
+
+/** Hide Crisp's bubble while the sign-up popup is open (on phones it would sit over its buttons). */
+export function hideChat(hide: boolean) {
+  chatHidden = hide;
+  window.$crisp?.push(["do", hide ? "chat:hide" : "chat:show"]);
 }
 
 /**

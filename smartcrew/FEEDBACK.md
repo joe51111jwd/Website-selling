@@ -12,9 +12,12 @@ Every piece of feedback on the product page, in one place. Each item has a statu
    question is gone, so both ⚑ notes on them are dropped. His "Book a demo" in the last answer opens
    the demo popup (source `faq-answer`). The "Ready to simplify your business?" close is unchanged.
    Screenshots: /mnt/project-files/smartcrew/faq-oct20/.
-2. **Waiting on the agency owner: tracking codes.** The doc adds his Meta Pixel (1259016858853739),
-   Mouseflow and Crisp chat. Not wired in yet; the plan is to load them only on the real domain, never
-   on previews.
+2. **Done. Tracking codes** (the agency owner, Oct 20: "Real domain only"). His Meta Pixel
+   (1259016858853739), Mouseflow and Crisp chat load only on the real site: never on a *.vercel.app
+   preview or a local test host (src/lib/track.ts liveSite), so our test visits don't reach his ad
+   account, recordings or chat inbox. Crisp waits 3 seconds after the page loads and hides while the
+   sign-up popup is open. Checked on a fake live host: fbq set, Mouseflow and Crisp requested, the
+   bubble hidden with the popup open; on previews none of the three loads.
 
 ## Andrew's doc, Oct 20 14:25Z
 

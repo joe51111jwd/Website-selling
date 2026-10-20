@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { onSignup, type SignupRequest } from "./contract";
 import { captureAttribution } from "../lib/lead";
-import { startTracking } from "../lib/track";
+import { hideChat, startTracking } from "../lib/track";
 
 // "Set up your SmartCrew": the popup every CTA opens through openSignup() (./contract). This shell
 // is tiny so it costs nothing on first paint: it keeps the ad's attribution, listens for
@@ -37,6 +37,8 @@ export default function Signup() {
       else window.clearTimeout(id);
     };
   }, []);
+  // Crisp's chat bubble stays out of the popup's way
+  useEffect(() => hideChat(req !== null), [req]);
 
   if (!mounted) return null;
   return (

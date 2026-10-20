@@ -23,11 +23,16 @@ export const config = {
   leadWebhook: "",
 
   /**
-   * Meta Pixel and Google Analytics IDs. smartcrewhq.com uses pixel 1259016858853739 and
-   * GA4 G-FED5LLVE5W; they stay empty on previews so test clicks don't reach the ad account.
+   * Andrew's tracking (his doc, Oct 20; James: "ill install that"): the Meta Pixel, Mouseflow
+   * (session recordings) and Crisp (the chat bubble). They load only on the real site, never on a
+   * preview or test host (src/lib/track.ts liveSite: *.vercel.app, localhost), so test visits
+   * don't reach his ad account, his recordings or his chat inbox. GA4 (G-FED5LLVE5W on
+   * smartcrewhq.com) stays off until he asks for it.
    */
-  metaPixelId: "",
+  metaPixelId: "1259016858853739",
   gaId: "",
+  mouseflowId: "3e607048-41d2-4af9-8a55-56539e51f4a5",
+  crispId: "be6cf10b-a0a0-4c80-8b30-bf4c90d4f2fd",
 
   /**
    * Microsoft Clarity project ID (free heatmaps, scroll maps and session recordings: where people
