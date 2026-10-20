@@ -1,11 +1,11 @@
-// 8 · FAQ + the close. Andrew's round 2 (Oct 19): his title and sub, his 12 questions and answers
-// word for word, one open at a time; beside them the page's close: the devices' still (round 4: the
+// 8 · FAQ + the close. Andrew's doc (Oct 20): his heading and his 7 questions and answers word for
+// word (his bold kept), one open at a time; beside them the page's close: the devices' still (round 4: the
 // Stage is off) over his "Ready to simplify your business?" and the last orange CTA. That CTA waits (hidden) while the
 // offer's CTA above it is still on screen, so two orange buttons never show together
 // (src/site/shell/primaryCta.ts usePrimaryElsewhere).
 
 import { useId, useRef, useState, type ReactNode } from "react";
-import { CTA, FAQ_CLOSE, FAQ_SUB, FAQ_TITLE, FAQS, FLAG, OFFER } from "../../content/copy";
+import { CTA, FAQ_CLOSE, FAQ_TITLE, FAQS, FLAG, OFFER } from "../../content/copy";
 import { SIZES } from "../../signup/contract";
 import { Flag } from "../../signup/Flag";
 import { PRICED, PRICE_SLOTS, TRIAL_FIRST, priceBands, priceFrom } from "../../lib/offer";
@@ -64,6 +64,18 @@ function PriceSlot() {
 
 const FAQ_LIST = offerFaqs();
 
+/** One of Andrew's paragraphs: **…** in his bold, [label](demo) a link that opens the demo popup. */
+function rich(text: string): ReactNode[] {
+  return text
+    .split(/(\*\*[^*]+\*\*|\[[^\]]+\]\(demo\))/)
+    .filter(Boolean)
+    .map((part, k) => {
+      if (part.startsWith("**")) return <strong key={k}>{part.slice(2, -2)}</strong>;
+      const link = part.match(/^\[([^\]]+)\]\(demo\)$/);
+      return link ? <DemoButton key={k} source="faq-answer" label={link[1]} className="faq-link" /> : part;
+    });
+}
+
 /** Keep `el` at its current height on screen for the answer's open/close (faq.css, 0.42 s). */
 function holdOnScreen(el: HTMLElement) {
   const top = el.getBoundingClientRect().top;
@@ -114,7 +126,6 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
     <div className={`faq-grid wrap${seen ? " is-seen" : ""}`} ref={root}>
       <div className="faq-main">
         <h2 className="t-h2 faq-title">{FAQ_TITLE}</h2>
-        <p className="t-lead faq-sub">{FAQ_SUB}</p>
         <ul className="faq-list">
           {FAQ_LIST.map((f, i) => {
             const isOpen = open === i;
@@ -138,7 +149,7 @@ function FaqBody({ root, anchor, still = false }: { root: React.RefObject<HTMLDi
                     <div className="faq-a-text" data-cursor="text">
                       {f.a.map((para, j) => (
                         <p key={j}>
-                          {para}
+                          {rich(para)}
                           {j === f.a.length - 1 && (
                             <>
                               {f.flag && (

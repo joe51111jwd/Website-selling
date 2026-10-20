@@ -4,6 +4,18 @@ Every piece of feedback on the product page, in one place. Each item has a statu
 **Open** means it is being built now. **Done** means it is built and checked.
 **Waiting** means it needs an answer from the agency owner or Andrew.
 
+## Andrew's doc, Oct 20 15:11Z
+
+1. **Done. FAQ replaced.** He struck the whole FAQ (heading, intro line, every question) and wrote a new
+   one: heading "Frequently Asked Questions" (no intro line) and 7 questions, word for word with his
+   bold. Founding Member stays in the FAQ by his choice (cost, and "How do I qualify…"); the free-trial
+   question is gone, so both ⚑ notes on them are dropped. His "Book a demo" in the last answer opens
+   the demo popup (source `faq-answer`). The "Ready to simplify your business?" close is unchanged.
+   Screenshots: /mnt/project-files/smartcrew/faq-oct20/.
+2. **Waiting on the agency owner: tracking codes.** The doc adds his Meta Pixel (1259016858853739),
+   Mouseflow and Crisp chat. Not wired in yet; the plan is to load them only on the real domain, never
+   on previews.
+
 ## Andrew's doc, Oct 20 14:25Z
 
 1. **Done. FAQ: his first two questions merged.** "What size and type of construction companies is

@@ -201,8 +201,8 @@ export const APPS = {
 };
 
 /** Andrew's round 2 (Oct 19), verbatim */
-export const FAQ_TITLE = "Got questions? We've got answers.";
-export const FAQ_SUB = "Everything you need to know about getting your crews connected, eliminating paperwork, and running more profitable jobs.";
+// Andrew's doc, Oct 20: his heading, no intro line
+export const FAQ_TITLE = "Frequently Asked Questions";
 
 export const FOOTER = {
   /** CC-BY-4.0 credit, shown in the footer only if a scene ever shows the XDR (none does today). */
@@ -376,117 +376,75 @@ export const WHY = {
   signatureAlt: "Andrew’s signature",
 };
 
-/** The FAQ: Andrew's round 2 (Oct 19), his questions and answers word for word (12 since he merged his first two, Oct 20) (one string per
- *  paragraph). `id`s are ours: "cost" carries the price slot, "trial" the trial-first answer (bold
- *  look only, src/lib/offer.ts). */
+/** The FAQ: Andrew's doc, Oct 20 15:11Z: he replaced the whole FAQ with these seven, word for word
+ *  (one string per paragraph; **…** is his bold, [label](demo) opens the demo popup). `id`s are ours:
+ *  "cost" carries the price slot. Founding Member stays here by his choice (it's cut from the rest of
+ *  the page since round 1). */
 export const FAQS: { id: string; q: string; a: string[]; flag?: string }[] = [
   {
-    id: "what",
-    q: "What is SmartCrew?",
+    id: "different",
+    q: "What makes SmartCrew different from other construction software?",
     a: [
-      "SmartCrew is an all-in-one construction management platform built for dirtwork, excavation, sitework, and heavy civil contractors with 5\u2011100 employees.",
-      // Andrew's doc, Oct 20: his "What size and type of construction companies…" question folded into this one
-      "We only work with companies in dirtwork and heavy civil. Typically our clients do work like excavation, site prep, concrete, underground utilities, septic, drilling, commercial landscaping, grading, asphalt and paving, trucking and hauling, aggregate and quarries, roadways, demolition, and more.",
-      "It connects your field crews and office in one place—from GPS time tracking and equipment management to daily reports, scheduling, job costing, hauling tickets, CRM, dispatch and more.",
+      "My family has been in construction for 75 years. We know the frustration of juggling paperwork, timecards, hauling tickets, equipment maintenance, DOT logs, and a dozen different systems just to run our business.",
+      "No matter how hard I searched, I couldn't find software that was actually built for companies like ours.",
+      "Time tracking apps were too basic. Enterprise software was too complicated, confusing, and expensive.",
+      "We only run 20-30 guys and there was nothing specifically designed for our size of heavy civil business.",
+      "**That's why we built SmartCrew.**",
+      "Unlike construction software companies trying to serve every industry, we ONLY work with dirtwork and heavy civil contractors with 5–100 employees.",
+      "That means you get software that feels like it was custom-built for your business.",
+      "**Simple for the field. Powerful for management. Fairly priced for owners.**",
+    ],
+  },
+  {
+    id: "who",
+    q: "Who is SmartCrew built for?",
+    a: [
+      "SmartCrew is built for small to midsized dirtwork and heavy civil contractors, typically with 5–100 employees.",
+      "That includes excavation, sitework, grading, underground utilities, septic, drilling, paving, demolition, trucking and hauling, aggregate operations, and more.",
+      "If you manage crews, operate heavy equipment, and bid jobs, there's a good chance SmartCrew was built for you.",
     ],
   },
   {
     id: "crew",
-    q: "Will my field guys actually use it?",
+    q: "Will my crew actually use it?",
     a: [
-      "Yes. We designed SmartCrew to prioritize simplicity.",
-      "Your crew doesn't need to be tech-savvy. They can clock in, see their assignments, submit inspections, upload receipts, post reports and view project progress right from their phones.",
-      "We’re simple enough for the field but robust enough for management.",
+      "We designed SmartCrew around one thing… **simplicity.**",
+      "Our crews aren’t tech savvy. And they don’t need to be. They can clock in, see their assignments, submit inspections, upload receipts, and complete daily reports right from their phones.",
+      "SmartCrew is simple enough for the field. Powerful enough for management.",
     ],
   },
   {
-    id: "profit",
-    q: "Can SmartCrew show me whether my jobs are making money?",
+    id: "setup",
+    q: "How hard is it to get up and running?",
     a: [
-      "Yes. SmartCrew connects field activity with your job budgets so you can track labor, equipment, materials, and other job costs right against your bid.",
-      "These numbers get automatically updated daily, so Instead of waiting until the end of a project to find out whether you made money, you can monitor job performance as work happens.",
-    ],
-  },
-  {
-    id: "gps",
-    q: "How does the automated GPS time tracking work?",
-    a: [
-      "SmartCrew uses GPS and jobsite geofencing to help track employee time and verify where work happens. You can set it up to auto log employees time based on their geofencing data. (This feature is optional and you can turn it on or off.)",
-      "Hours can be assigned to specific jobs and cost codes, giving you more accurate labor costs without chasing down paper timecards.",
-    ],
-  },
-  {
-    id: "equipment",
-    q: "Can I track equipment, inspections, and maintenance?",
-    a: [
-      "Yes. Keep your equipment records, operating hours, inspections, DOT pre-trips, service requests, and maintenance history organized in one place.",
-      "You can even use the Service Queue to manage all your shop and maintenance work.",
-      "When an operator reports an issue, your team can track it before it turns into a bigger problem.",
-    ],
-  },
-  {
-    id: "paperwork",
-    q: "Can SmartCrew replace my paperwork and spreadsheets?",
-    a: [
-      "That's the goal.",
-      "SmartCrew helps bring timecards, daily reports, hauling logs, fuel records, receipts, inspections, and crew schedules into one connected system.",
-      "Your field team enters the information, and your office can access it without collecting paperwork. We handle all the organization and systems for you so you can finally ditch the apps, spreadsheets and paper.",
+      "We do the heavy lifting for you.",
+      "Our team helps set up your account, migrate your information, organize your workflows, and train your people.",
+      "Most companies are up and running within a few weeks. You can start with the features you need most and expand from there.",
     ],
   },
   {
     id: "quickbooks",
-    q: "Does SmartCrew work with QuickBooks?",
-    a: ["Yes. SmartCrew integrates with Quickbooks Online currently. We have more integrations coming for Quickbooks Desktop, Foundation, ADP and more."],
-  },
-  {
-    id: "setup",
-    q: "How long does it take to get started?",
-    a: [
-      "Most companies are up and running within a few weeks. But you don’t have to figure it all out alone.",
-      "Our team will work with you to migrate your data, build your account and even train your office staff on how to use everything and roll this out to your team.",
-      "You can start with the workflows that matter most and expand from there.",
-    ],
-  },
-  {
-    id: "trial",
-    q: "How does the free trial work?",
-    a: [
-      "SmartCrew is currently offering qualified contractors access to our private beta trial.",
-      "Start by requesting a free trial, then meet with our team for a quick walkthrough.",
-      "We'll make sure the platform fits your business and help you get started.",
-    ],
-    flag: "Andrew to update: the buttons now say \"Try SmartCrew\" and there's no free trial up front (his text, Oct 19)",
+    q: "Does SmartCrew integrate with QuickBooks?",
+    a: ["Yes! SmartCrew currently integrates with QuickBooks Online.", "We're also working on additional integrations with QuickBooks Desktop, Foundation, ADP, and more."],
   },
   {
     id: "cost",
     q: "How much does SmartCrew cost?",
     a: [
-      "Pricing depends on your company size, number of users, and the features you need.",
-      "We are significantly lower than all the other big players like ProCore, HCSS and others.",
-      "We offer plans designed for growing contractors, with volume pricing for larger teams.",
-      "Qualified Founding Members may also receive special introductory pricing.",
-    ],
-    flag: "Andrew to confirm: \"Founding Member\" was cut from the rest of the page in round 1",
-  },
-  {
-    id: "different",
-    q: "What makes SmartCrew different from other construction software?",
-    a: [
-      "We ONLY work with small to midsized dirtwork and heavy civil companies. That allows us to customize the workflows uniquely for your business.",
-      "Other apps serve multiple industries or were built for GCs and vertical builders. We are the only app that specializes in working with dirtwork and heavy civil companies.",
-      "Plus, my family has been dirtwork for 75 years. We’ve experienced all the same problems you have around time tracking, getting accurate job costing data and managing all the systems required for this work.",
-      "We know these problems deeply and built the best solution possible to solve them all.",
+      "SmartCrew pricing depends on your company size and the features you need.",
+      "We built SmartCrew to be significantly more affordable than expensive enterprise construction software, with pricing that scales as you grow.",
+      "We're also currently offering special introductory pricing through our Founding Member Program.",
     ],
   },
   {
     id: "founding",
-    q: "What is the SmartCrew Founding Member Program?",
+    q: "How do I qualify for the SmartCrew Founding Member Program?",
     a: [
-      "We're currently inviting a select group of contractors into our Founding Member Program.",
-      "Members get early access to our latest features, hands-on onboarding, and special pricing in exchange for feedback that helps shape the future of SmartCrew.",
-      "Qualifying companies can receive our Premium feature set at introductory pricing, with opportunities to lock in long-term discounts.",
+      "If you run a heavy civil or dirtwork company with 5–100 employees and are willing to share feedback to help us make the software even better, you may qualify for our Founding Member Program.",
+      "**Founding Members get significant discounts, premium support, and priority access to new features for joining our platform early.**",
+      "There are limited spots available for this program.",
+      "[Book a demo](demo) to find out if you qualify for it.",
     ],
-    flag: "Andrew to confirm: \"Founding Member\" was cut from the rest of the page in round 1",
   },
 ];
 

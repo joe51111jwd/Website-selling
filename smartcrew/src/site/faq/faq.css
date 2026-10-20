@@ -17,17 +17,10 @@
 
 .faq-title {
   max-width: 13em;
+  margin-bottom: clamp(16px, 3svh, 30px);
 }
 
-/* Andrew's sub (round 2) */
-.faq-sub {
-  max-width: 32em;
-  margin: clamp(10px, 1.6svh, 16px) 0 clamp(16px, 3svh, 30px);
-  color: var(--ink-2);
-  text-wrap: pretty;
-}
-
-/* the close: it stays in view beside the 13 questions as they scroll by */
+/* the close: it stays in view beside the questions as they scroll by */
 .faq-close {
   position: sticky;
   top: calc(var(--header-h) + clamp(12px, 3svh, 32px));
@@ -233,6 +226,19 @@
   margin-top: 0.7em;
 }
 
+.faq-a-text strong {
+  font-weight: 650;
+  color: var(--ink);
+}
+
+/* Andrew's "Book a demo" inside an answer: a link in the line, not a button row */
+.faq-a-text .faq-link {
+  display: inline;
+  min-height: 0;
+  font: inherit;
+  font-weight: 600;
+}
+
 /* ── phones ───────────────────────────────────────────────────────────── */
 
 /* PHONE MODE: compact. The questions as tight rows (one open at a time), then the close in one
@@ -248,12 +254,8 @@
   }
 
   .faq-title {
+    margin-bottom: 12px;
     font-size: clamp(26px, 7.2vw, 30px);
-  }
-
-  .faq-sub {
-    margin: 8px 0 12px;
-    font-size: 15.5px;
   }
 
   .faq-q {
