@@ -39,6 +39,7 @@ type Load = "loading" | "ready" | "bad-key" | "not-set-up" | "error";
 
 const NAME_STORE = "sc-comment-name";
 const HINT_STORE = "sc-comment-hint";
+const MINI_STORE = "sc-comment-mini";
 /** a note picked in the list on the other page, shown once that page loads */
 const SHOW_STORE = "sc-comment-show";
 const PHONE_MAX = 760;
@@ -182,6 +183,8 @@ function CommentMode({ apiKey }: { apiKey: string }) {
   const [draft, setDraft] = useState<Spot | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [panel, setPanel] = useState(false);
+  // × only folds the toolbar to a small tab; it used to clear the key, and comment mode then looked broken
+  const [mini, setMini] = useState(() => store.get(MINI_STORE) === "1");
   const [showDone, setShowDone] = useState(false);
   const [hint, setHint] = useState(() => store.get(HINT_STORE) !== "1");
   const [toast, setToast] = useState<string | null>(null);
@@ -416,9 +419,18 @@ function CommentMode({ apiKey }: { apiKey: string }) {
     else if (n.device === deviceNow()) window.scrollTo({ top: n.at.y - window.innerHeight / 2, behavior: "smooth" });
   };
 
+  // only for a bad key: drop it so the message goes away
   const exit = () => {
     store.set(KEY_STORE, null);
     location.reload();
+  };
+
+  const fold = (on: boolean) => {
+    store.set(MINI_STORE, on ? "1" : null);
+    setMini(on);
+    setDraft(null);
+    setPanel(false);
+    setMode(on ? "browse" : "comment");
   };
 
   const openNote = openId ? here.find((n) => n.id === openId) : undefined;
@@ -578,6 +590,13 @@ function CommentMode({ apiKey }: { apiKey: string }) {
         </div>
       )}
 
+      {mini ? (
+        <div className="scc-bar" role="toolbar" aria-label="Comment mode">
+          <button type="button" className="scc-btn scc-btn--main" onClick={() => fold(false)}>
+            Comment{load === "ready" && openCount ? ` (${openCount})` : ""}
+          </button>
+        </div>
+      ) : (
       <div className="scc-bar" role="toolbar" aria-label="Comment mode">
         <div className="scc-seg">
           <button type="button" className={mode === "comment" ? "is-on" : undefined} aria-pressed={mode === "comment"} onClick={() => setMode("comment")}>
@@ -603,10 +622,11 @@ function CommentMode({ apiKey }: { apiKey: string }) {
             Retry
           </button>
         )}
-        <button type="button" className="scc-x" aria-label="Leave comment mode" title="Leave comment mode" onClick={exit}>
+        <button type="button" className="scc-x" aria-label="Hide the comment bar" title="Hide the comment bar" onClick={() => fold(true)}>
           ×
         </button>
       </div>
+      )}
     </>
   );
 }
