@@ -278,16 +278,12 @@ export default function Book() {
                 exit={{ opacity: 0, scale: 0.97, ...blur(8) }}
                 transition={{ duration: reduce ? 0 : 0.6, ease, delay: reduce ? 0 : 0.25 }}
               >
-                <header className="bk-card-head">
-                  <img src={faceUrl} alt="" width={56} height={56} />
-                  <div>
-                    <h2 id="bk-card-h" className="bk-card-h">
-                      {BOOK.cardTitle}
-                      {config.callLength && !config.callLengthConfirmed && <Flag note={CALL_NOTE} />}
-                    </h2>
-                    <p className="bk-card-sub">{BOOK.cardSub}</p>
-                  </div>
-                </header>
+                {/* the face, "Book a quick demo with Andrew" and its line are cut so the calendar fits without
+                    scrolling (comment-mode note, Oct 20: "remove this so we can fit in the cal with out
+                    scrolling. minimize needed scroll."); the heading stays for screen readers */}
+                <h2 id="bk-card-h" className="sr-only">
+                  {BOOK.cardTitle}
+                </h2>
                 <div className={`bk-cal is-${cal}`} data-testid="book-cal">
                   <div ref={calRef} className="bk-cal-embed" />
                   <AnimatePresence>{cal === "loading" && <CalSkeleton key="skel" />}</AnimatePresence>
