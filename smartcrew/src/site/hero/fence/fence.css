@@ -793,8 +793,6 @@ html.has-opening .hf-root:not(.is-live) :is(.hf-ground, .hf-copy, .hf-foot, .hf-
   display: none;
 }
 
-/* Classic: the headline's orange words in the new logo's orange, the darker end of its fade
-   (James, Oct 20: "lighten the orange a bit to match it… pull from the darker shade") */
-html.look-classic .hf-fenced {
-  color: var(--orange);
-}
+/* Classic: the headline's orange words stay the deep orange (--orange-ink). They went to the logo's
+   lighter orange briefly; Andrew's comment-mode note, Oct 20: "may need to go darker on this again.
+   light is a little too light." */
