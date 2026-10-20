@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FocusLayer, useFocusMode } from "./focus";
 import { TRY_IT } from "../../content/copy";
+import { italicize } from "./italicize";
 import { CLASSIC } from "../../lib/look";
 import { useArrive } from "../phone/useArrive";
 import { Cta } from "../ui/Cta";
@@ -74,7 +75,7 @@ export default function TryPhone() {
     <div ref={ref} className={`tp${isIn ? " is-in" : ""}${clock.on ? " is-on" : ""}${focus.open ? " is-focus" : ""}`}>
       {/* the line before the tap, and after it (crossfaded in place, no layout change) */}
       <div className="tp-head wrap">
-        <h2 className="t-h2 tp-title">{TRY_IT.title}</h2>
+        <h2 className="t-h2 tp-title">{italicize(TRY_IT.title, TRY_IT.em)}</h2>
         <p className="tp-prompt">{TRY_IT.sub}</p>
         {/* Andrew's round 2 nudge, pointing down at the app (beside the phone on desktop) */}
         <p className="tp-nudge">

@@ -311,3 +311,9 @@ html .site > .scene.try--phone[data-warm] {
     opacity 0.2s var(--ease-out),
     visibility 0s linear 0.2s;
 }
+
+/* his italic "Actually" (the page ships no italic face) */
+.tp-title em {
+  font-style: italic;
+  font-synthesis: style;
+}

@@ -358,3 +358,9 @@ html.look-classic .try-nudge-swoop {
 .try-done:focus {
   outline: none;
 }
+
+/* his italic "Actually" (the page ships no italic face) */
+.try-title em {
+  font-style: italic;
+  font-synthesis: style;
+}

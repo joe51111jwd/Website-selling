@@ -71,6 +71,7 @@ export default function Offer() {
           </div>
 
           <div className="why-sign">
+            <span className="why-signoff">{WHY.signoff}</span>
             <Signature className="why-sig" title={WHY.signatureAlt} />
             <span className="why-by">{WHY.signedBy}</span>
             <span className="why-role">{WHY.signedRole}</span>

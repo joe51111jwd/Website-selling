@@ -184,8 +184,10 @@ export const LOGOS: { name: string; src: string; aspect: number }[] = [
 
 // ─── Scene headlines (starting points from the brief; scene owners refine) ──
 export const TRY = {
-  /** Andrew's round 2 (Oct 19), verbatim: the later of his two versions of this section */
+  /** Andrew's round 2 (Oct 19), verbatim: the later of his two versions of this section; his doc has
+   *  "Actually" in italics (`em`) */
   title: "So Simple… Your Crew Will Actually Use It",
+  em: "Actually",
   sub: "Simple for the field. Robust for leadership.",
 };
 
@@ -221,6 +223,7 @@ export const FOOTER = {
 // Select your task → Clock out", L FAQ (battery, privacy). The prompts are UI instructions, not claims.
 export const TRY_IT = {
   title: TRY.title,
+  em: TRY.em,
   sub: TRY.sub,
   /** Andrew's round 2 mock: beside the phone, with an arrow pointing at it (he cut the two facts that
    * stood there), so people see it's the real app and not a screenshot */
@@ -356,8 +359,9 @@ export const ANDREW = {
 /**
  * 8 · Why us. Andrew's doc, "FOUNDER STORY EDITS" (Oct 20): his headline (a line break in the middle)
  * and his story word for word, one string per paragraph; **…** is his bold, _…_ his italics. Signed
- * as he signs it. It replaces his smartcrewhq.com story from the Loom round. The first `lead`
- * paragraphs show; "Read more" opens the rest (his "little drop", Loom 2:48–3:03).
+ * as he signs it ("Respectfully,", his signature, name and role). It replaces his smartcrewhq.com
+ * story from the Loom round. The first `lead` paragraphs show; "Read more" opens the rest (his
+ * "little drop", Loom 2:48–3:03).
  */
 export const WHY = {
   kicker: "Why us",
@@ -382,6 +386,7 @@ export const WHY = {
   ],
   more: "Read more",
   less: "Show less",
+  signoff: "Respectfully,",
   signedBy: "Andrew Drish",
   signedRole: "Founder, SmartCrew",
   signatureAlt: "Andrew’s signature",

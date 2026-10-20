@@ -15,6 +15,7 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { TRY_IT } from "../../content/copy";
+import { italicize } from "./italicize";
 import { CLASSIC } from "../../lib/look";
 import { StageAnchor } from "../../three/stage/StageAnchor";
 import { clearScreen, onStatus, reducedMotion, setScreen, status } from "../../three/stage/store";
@@ -211,7 +212,7 @@ export function TryDesk() {
   return (
     <div className="try-grid wrap">
       <div className="try-copy">
-        <h2 className="t-h2 try-title">{TRY_IT.title}</h2>
+        <h2 className="t-h2 try-title">{italicize(TRY_IT.title, TRY_IT.em)}</h2>
         <p className="t-lead try-sub">{TRY_IT.sub}</p>
         <div className="try-actions">
           <SceneCta request={() => ({ intent: "trial", source: "try" })} />
