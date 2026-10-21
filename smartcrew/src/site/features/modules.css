@@ -1,7 +1,10 @@
 /* Classic on phones: the ten modules at a glance (Modules.tsx). Andrew, Oct 20: "start with High
    level modules… Or maybe just keep it high level". The app's screen on top steps through them, the
-   one it shows lit in the grid; on the site's card set and type scale (tokens.css). Sized so the
-   head, the screen, the line and all ten fit a 390x844 phone above the sticky button. */
+   one it shows lit in the grid; on the site's card set and type scale (tokens.css). Andrew, Oct 21
+   (note on the phone view): "Don't try to get headline + image + buttons in one screen. Expand the
+   Image so someone can see image + buttons." So the section head scrolls by above, and the screen
+   takes all the height the line and the ten modules leave between the header and the sticky
+   button. */
 
 html.look-classic .ft-in.is-phone .ft-body {
   margin-top: 16px;
@@ -18,6 +21,10 @@ html.look-classic .ft-in.is-phone .ft-body {
 
 .ftm-screen img {
   grid-area: 1 / 1;
+  width: 100%;
+  height: clamp(240px, calc(100svh - var(--header-h, 64px) - var(--sticky-h, 64px) - env(safe-area-inset-bottom) - 316px), 640px);
+  object-fit: cover;
+  object-position: left top;
   opacity: 0;
   transition: opacity 0.45s ease;
 }
@@ -42,6 +49,8 @@ html.look-classic .ft-in.is-phone .ft-body {
   letter-spacing: var(--track-sub);
   color: var(--ink);
   animation: ftm-line-in 0.35s var(--ease-out) both;
+  /* room for two lines, so the screen doesn't jump as the headlines change */
+  min-height: 2.5em;
 }
 
 @keyframes ftm-line-in {
@@ -137,13 +146,8 @@ html.look-classic .ft-in.is-phone .ft-body {
   }
 }
 
-/* shorter phones (a 360x740, say): the screen as a strip of its top, the modules a notch tighter */
+/* shorter phones (a 360x740, say): the modules a notch tighter */
 @media (max-height: 800px) {
-  .ftm-screen img {
-    height: 150px;
-    object-fit: cover;
-    object-position: left top;
-  }
   .ftm-mod {
     min-height: 36px;
   }
