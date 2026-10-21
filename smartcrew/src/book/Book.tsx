@@ -351,9 +351,10 @@ const BOOK = {
   cardNote: "After you book, you’ll receive a confirmation email with the meeting details.",
   coversTitle: "Here’s what we’ll cover:",
   covers: [
-    { icon: "chat", title: "Your operation", text: "We’ll learn about your crews, equipment, and how you manage jobs day-to-day." },
-    { icon: "screen", title: "See SmartCrew", text: "We’ll show you the key features and how it fits your business." },
-    { icon: "check", title: "Get your free trial", text: "If it’s a good fit, we’ll help you get your trial set up and answer any questions.", trial: true },
+    // Andrew's comment-mode note (Oct 21), verbatim
+    { icon: "chat", title: "Your Business", text: "We’ll learn how you manage your crews, equipment, and jobs today – and where your biggest headaches are." },
+    { icon: "screen", title: "Our Solutions", text: "We’ll show you how SmartCrew can simplify your operations and solve your biggest challenges." },
+    { icon: "check", title: "Founding Member Invitation", text: "If you’re a good fit, you’ll have the opportunity to join our Founding Member Program with discounted pricing and special perks." },
   ] as { icon: "chat" | "screen" | "check"; title: string; text: string; trial?: boolean }[],
 };
 
