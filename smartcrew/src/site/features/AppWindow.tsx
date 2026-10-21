@@ -52,6 +52,18 @@ export default function AppWindow({ screen, onScreen, arrived }: Props) {
     return () => ro.disconnect();
   }, []);
 
+  // how tall the window must be to show a whole page (the Dashboard down to who's on site and the
+  // cost codes), as --ft-need on the section: classic's tabs.css keeps the window at least that tall
+  // (Andrew's comment-mode notes, Oct 21: "we expand these windows to be longer", "I cant see whos on
+  // site nad cost code data. window cuts off"). The page's width sets its scale; the height follows.
+  useLayoutEffect(() => {
+    const root = main.current?.closest<HTMLElement>(".ft-in");
+    const win = main.current?.closest<HTMLElement>(".ft-win");
+    if (!size || !root || !win) return;
+    const chrome = win.offsetHeight - size.h; // the window's bar and borders
+    root.style.setProperty("--ft-need", `${Math.ceil(chrome + (H * size.w) / (W - 295))}px`);
+  }, [size?.w]);
+
   // screens mount once and stay: the shown one at once, the others one per idle moment
   const [mounted, setMounted] = useState<Set<string>>(() => new Set([screen]));
   const mountedRef = useRef(mounted);
@@ -252,7 +264,14 @@ function SpotView({
   // the name sits on the box's top edge (or its foot), from its left corner, or from its right
   // corner near the window's right edge; the line opens under the box, or over it near the foot,
   // and from the box's right corner when it would run past the window (it is the wider of the two)
-  const flip = L > size.w - 210;
+  // (the name's own width decides: a fixed guess flipped short names into their neighbour's on a
+  // narrow window, "Cost codes" over "Who's on site")
+  const btn = useRef<HTMLButtonElement>(null);
+  const [chipW, setChipW] = useState(150);
+  useLayoutEffect(() => {
+    if (btn.current) setChipW(btn.current.offsetWidth);
+  }, [s.label]);
+  const flip = L + chipW > size.w - 6;
   const tipFlip = L > size.w - 310;
   const up = B > size.h - 130;
   const chip: CSSProperties = {
@@ -268,6 +287,7 @@ function SpotView({
     <div className={`ft-spot${on ? " is-on" : ""}${up ? " is-up" : ""}`} style={{ "--i": i } as CSSProperties}>
       <span className="ft-ring" aria-hidden="true" style={{ left: L - 4, top: T - 4, width: R - L + 8, height: B - T + 8 }} />
       <button
+        ref={btn}
         type="button"
         className="ft-spot-btn"
         style={chip}

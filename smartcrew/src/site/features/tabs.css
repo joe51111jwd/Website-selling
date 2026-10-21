@@ -253,9 +253,11 @@
   margin-top: clamp(26px, 3.6svh, 44px);
 }
 
-/* the app is the screen's height less the head and the tabs above it (--ft-above, Features.tsx) */
+/* the app is the screen's height less the head and the tabs above it (--ft-above, Features.tsx), and
+   never shorter than a whole page of the app (--ft-need, AppWindow.tsx: Andrew, Oct 21, "we expand
+   these windows to be longer"): on short or zoomed-in screens the section runs past one screen */
 html.look-classic .ft-in.is-desk {
-  --ft-h: clamp(390px, calc(100svh - var(--header-h) - var(--ft-above, 300px) - 20px), 700px);
+  --ft-h: max(clamp(390px, calc(100svh - var(--header-h) - var(--ft-above, 300px) - 20px), 700px), var(--ft-need, 0px));
 }
 
 html.look-classic .ft-in.is-desk .ft-body {
