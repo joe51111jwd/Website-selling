@@ -866,9 +866,241 @@
   }
 }
 
-/* classic's simple app (TryApp SIMPLE): only Clock In, Break and Clock Out take a tap; the rest shows
-   as it is, with no hand cursor, hover or press, so nothing looks broken */
-.ca.is-simple button:not(.tp-clockin, .tp-clockout, .tp-break) {
-  pointer-events: none;
+/* classic's limited app (Andrew's note, Oct 21; LIMITED in views.tsx): rows deeper than he wants
+   show as they are but take no tap (TryApp drops it), with no hand cursor or press, so nothing
+   looks broken; the other jobsites and chats are dimmed */
+.sc.ca button.is-off {
   cursor: default;
+}
+.sc.ca button.is-off:active {
+  background: none;
+  transform: none;
+}
+.sc.ca .is-dim {
+  opacity: 0.5;
+}
+
+/* the one jobsite's page: field note history and its docs */
+.sc.ca .ca-sec {
+  margin: 22px 2px 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+}
+.sc.ca .ca-card.ca-notes {
+  margin-top: 10px;
+}
+.sc.ca .ca-fnote {
+  padding: 12px 0;
+  border-bottom: 1px solid #e6e6e6;
+}
+.sc.ca .ca-fnote:last-child {
+  border-bottom: 0;
+}
+.sc.ca .ca-fnote-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+}
+.sc.ca .ca-fnote-top b {
+  font-weight: 650;
+  color: #111;
+}
+.sc.ca .ca-fnote-top span {
+  color: #8a8a8a;
+  white-space: nowrap;
+}
+.sc.ca .ca-fnote p {
+  margin: 5px 0 6px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #333;
+}
+.sc.ca .ca-fnote-ph {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #8a8a8a;
+}
+.sc.ca .ca-li--static {
+  display: flex;
+}
+.sc.ca .ca-li--static:active {
+  background: none;
+}
+.sc.ca .ca-file {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+}
+.sc.ca .ca-file--pdf { background: #d7362e; }
+.sc.ca .ca-file--image { background: #2f6fde; }
+.sc.ca .ca-file--sheet { background: #2f9e5b; }
+
+/* Messages (takes Profile's tab in the limited app): the app's Chats screen (Oct 21 app), one chat
+   that opens */
+.sc.ca .ca-chats-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+}
+.sc.ca .ca-chats-head h3 {
+  flex: 1 1 auto;
+  font-size: 32px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0a0a0a;
+}
+.sc.ca .ca-round {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e6e6e6;
+  background: #f6f6f6;
+  color: #111;
+}
+.sc.ca .ca-chats-date {
+  flex: none;
+  margin-left: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 15px;
+  line-height: 1.15;
+}
+.sc.ca .ca-chats-date b {
+  font-weight: 500;
+  color: #111;
+}
+.sc.ca .ca-chats-date span {
+  color: #9a9a9a;
+}
+.sc.ca .ca-chats-seg {
+  margin-top: 14px;
+  padding: 3px;
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #ececec;
+}
+.sc.ca .ca-chats-seg > * {
+  height: 36px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  color: #8a8a8a;
+}
+.sc.ca .ca-chats-seg > .is-on {
+  color: #111;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 10%);
+}
+.sc.ca .ca-chats {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.sc.ca .ca-chat-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  text-align: left;
+}
+.sc.ca .ca-chat-row:not(.is-off):active {
+  background: rgb(0 0 0 / 3%);
+}
+.sc.ca .ca-chat-row.is-dim {
+  opacity: 1;
+}
+.sc.ca .ca-chat-row.is-dim .ca-chat-ic,
+.sc.ca .ca-chat-row.is-dim .ca-li-main,
+.sc.ca .ca-chat-row.is-dim .ca-chat-when {
+  opacity: 0.55;
+}
+.sc.ca .ca-chat-ic {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #f3f3f3;
+  color: #555;
+}
+.sc.ca .ca-chat-row .ca-li-main > span {
+  font-size: 14px;
+}
+.sc.ca .ca-chat-when {
+  flex: none;
+  font-size: 13px;
+  color: #8a8a8a;
+}
+.sc.ca .ca-chat {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+.sc.ca .ca-bubble {
+  align-self: flex-start;
+  max-width: 82%;
+  padding: 8px 12px 6px;
+  border-radius: 16px 16px 16px 4px;
+  background: var(--sc-surface, #f4f4f4);
+}
+.sc.ca .ca-bubble.is-mine {
+  align-self: flex-end;
+  border-radius: 16px 16px 4px 16px;
+  background: #1f1f1f;
+}
+.sc.ca .ca-bubble b {
+  display: block;
+  font-size: 12px;
+  font-weight: 650;
+  color: #555;
+}
+.sc.ca .ca-bubble p {
+  margin: 2px 0 3px;
+  font-size: 14px;
+  line-height: 1.38;
+  color: #111;
+}
+.sc.ca .ca-bubble.is-mine p {
+  color: #fff;
+}
+.sc.ca .ca-bubble > span {
+  display: block;
+  font-size: 11px;
+  color: #8a8a8a;
+  text-align: right;
+}
+.sc.ca .ca-compose {
+  margin-top: 10px;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 21px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #9a9a9a;
+  background: #f4f4f4;
 }

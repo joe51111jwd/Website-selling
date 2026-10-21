@@ -2,10 +2,17 @@
 // with Today · Entries · Week), Jobsites, Docs (the report forms), Summary, Profile, and what they
 // open (a jobsite, a report, a day, an entry, the camera, the day-off request, the crew). Every
 // control does something; demo data is Cedar Ridge Earthworks (src/screens/data.ts).
+//
+// Classic is the limited app (LIMITED; Andrew's comment-mode note, Oct 21: "I love being able to
+// click on it. but want to limit how deep into the app people can go"): one jobsite opens (Hwy 9,
+// with its field note history and docs), Messages takes Profile's tab (only the Hwy 9 crew chat
+// opens), and rows that would go a level deeper (an entry, a past day) show but don't open.
 
 import type { ButtonHTMLAttributes, Dispatch, ReactNode } from "react";
 import { Icon, timer, hm, type IconName } from "../../../screens/kit";
-import { crew, crewById, dotForm, haulingForm, me, phoneWeek, projects, reportsMenu, TODAY, weekSummary, type SummaryDay } from "../../../screens/data";
+import { crew, crewById, crewMessages, dailyReports, dotForm, fieldNotes, haulingForm, jobFiles, me, phoneWeek, projects, reportsMenu, TODAY, weekSummary, type SummaryDay } from "../../../screens/data";
+import { CLASSIC } from "../../../lib/look";
+import { ChatGlyph } from "../../../screens/phone/Messages";
 import { Stopwatch } from "../../../screens/phone/ClockParts";
 import { TRY_IT } from "../../../content/copy";
 import {
@@ -20,6 +27,8 @@ import {
   shortDate,
   summaryDay,
   TABS,
+  TABS_LIMITED,
+  TRY_JOB,
   taskSecs,
   type Action,
   type Entry,
@@ -41,10 +50,22 @@ export type Ctx = {
   toast: (text: string) => void;
 };
 
-/** Every control on the phone: a real button, with the plain cursor (no ring round it). */
-export function B({ children, className, ...rest }: ButtonHTMLAttributes<HTMLButtonElement>) {
+/** The limited app (classic): see the note at the top. */
+export const LIMITED = CLASSIC;
+
+/**
+ * Every control on the phone: a real button, with the plain cursor (no ring round it). `off`: it
+ * shows but doesn't take a tap or the focus (the limited app; TryApp swallows its clicks).
+ */
+export function B({ children, className, off, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { off?: boolean }) {
   return (
-    <button type="button" data-cursor="hide" className={className} {...rest}>
+    <button
+      type="button"
+      data-cursor="hide"
+      className={off ? `${className ?? ""} is-off` : className}
+      {...rest}
+      {...(off ? { "data-off": "", "aria-disabled": true, tabIndex: -1 } : null)}
+    >
       {children}
     </button>
   );
@@ -246,7 +267,7 @@ function Entries({ c }: { c: Ctx }) {
   return (
     <div className="ca-list ca-card">
       {rows.map((e, i) => (
-        <B key={i} className="ca-li" onClick={() => c.d({ t: "push", route: { k: "entry", i } })}>
+        <B key={i} className="ca-li" off={LIMITED} onClick={() => c.d({ t: "push", route: { k: "entry", i } })}>
           <span className={`ca-dot${e.running ? " is-live" : ""}`} />
           <span className="ca-li-main">
             <b>{e.activity}</b>
@@ -255,7 +276,7 @@ function Entries({ c }: { c: Ctx }) {
             </span>
           </span>
           <span className="ca-li-v">{timer(e.secs).slice(0, 7)}</span>
-          <Icon name="chevronRight" size={17} stroke={1.7} className="ca-chev" />
+          {!LIMITED && <Icon name="chevronRight" size={17} stroke={1.7} className="ca-chev" />}
         </B>
       ))}
     </div>
@@ -269,13 +290,13 @@ function WeekList({ c }: { c: Ctx }) {
   return (
     <div className="ca-list ca-card">
       {days.map((d) => (
-        <B key={d.date} className="ca-li" onClick={() => c.d({ t: "push", route: { k: "day", date: d.date } })}>
+        <B key={d.date} className="ca-li" off={LIMITED} onClick={() => c.d({ t: "push", route: { k: "day", date: d.date } })}>
           <span className="ca-li-dow">{d.dow}</span>
           <span className="ca-bar">
             <i style={{ transform: `scaleX(${Math.min(1, d.min / 600).toFixed(3)})` }} />
           </span>
           <span className="ca-li-v">{hm(d.min)}</span>
-          <Icon name="chevronRight" size={17} stroke={1.7} className="ca-chev" />
+          {!LIMITED && <Icon name="chevronRight" size={17} stroke={1.7} className="ca-chev" />}
         </B>
       ))}
       <div className="ca-li ca-li--total">
@@ -375,8 +396,9 @@ export function Jobsites({ c }: { c: Ctx }) {
       <div className="ca-list">
         {inProgress.map((p) => {
           const here = c.on && c.s.task.projectId === p.id;
+          const off = LIMITED && p.id !== TRY_JOB;
           return (
-            <B key={p.id} className="ca-li" onClick={() => c.d({ t: "push", route: { k: "job", id: p.id } })}>
+            <B key={p.id} className={`ca-li${off ? " is-dim" : ""}`} off={off} onClick={() => c.d({ t: "push", route: { k: "job", id: p.id } })}>
               <span className="ca-ic">
                 <Icon name="mapPin" size={20} stroke={1.7} />
               </span>
@@ -387,10 +409,53 @@ export function Jobsites({ c }: { c: Ctx }) {
                 </span>
               </span>
               {here && <span className="ca-pill">Here</span>}
-              <Icon name="chevronRight" size={17} stroke={1.7} className="ca-chev" />
+              {!off && <Icon name="chevronRight" size={17} stroke={1.7} className="ca-chev" />}
             </B>
           );
         })}
+      </div>
+    </>
+  );
+}
+
+/** The limited app's one jobsite: its field note history (newest first) and its docs. Rows don't open. */
+function JobHistory({ id }: { id: string }) {
+  const notes = [
+    ...fieldNotes.filter((n) => n.projectId === id).map((n) => ({ who: n.crewId, when: n.time, text: n.text, photos: n.photos })),
+    ...dailyReports
+      .filter((r) => r.projectId === id && !fieldNotes.some((n) => n.projectId === id && n.text === r.note))
+      .map((r) => ({ who: r.byId, when: `${shortDate(r.date)}, 2026 · ${r.submitted ?? "today"}`, text: r.note, photos: r.photos })),
+  ];
+  return (
+    <>
+      <div className="ca-sec">Field notes</div>
+      <div className="ca-card ca-notes">
+        {notes.map((n, i) => (
+          <div key={i} className="ca-fnote">
+            <div className="ca-fnote-top">
+              <b>{crewById(n.who).name}</b>
+              <span>{n.when}</span>
+            </div>
+            <p>{n.text}</p>
+            <span className="ca-fnote-ph">
+              <Icon name="camera" size={14} stroke={1.7} /> {n.photos} photos
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="ca-sec">Docs</div>
+      <div className="ca-card ca-list">
+        {jobFiles.slice(0, 6).map((f) => (
+          <div key={f.id} className="ca-li ca-li--static">
+            <span className={`ca-file ca-file--${f.kind}`}>{f.kind === "pdf" ? "PDF" : f.kind === "image" ? "JPG" : "XLS"}</span>
+            <span className="ca-li-main">
+              <b>{f.name}</b>
+              <span>
+                {f.folder} · {f.date} · {f.size}
+              </span>
+            </span>
+          </div>
+        ))}
       </div>
     </>
   );
@@ -441,6 +506,7 @@ function Job({ c, id }: { c: Ctx; id: string }) {
       <B className="ca-ghostbtn ca-press" onClick={() => c.toast(`Directions to ${town(p.address)} sent to Maps`)}>
         <Icon name="location" size={18} stroke={1.7} /> Directions
       </B>
+      {LIMITED && id === TRY_JOB && <JobHistory id={id} />}
     </>
   );
 }
@@ -615,22 +681,22 @@ export function Summary({ c }: { c: Ctx }) {
       </div>
       <div className="ca-list">
         {days.map((d) => (
-          <B key={d.date} className="ca-li" onClick={() => c.d({ t: "push", route: { k: "day", date: d.date } })}>
+          <B key={d.date} className="ca-li" off={LIMITED} onClick={() => c.d({ t: "push", route: { k: "day", date: d.date } })}>
             <span className="ca-li-dow">{d.dow}</span>
             <span className="ca-li-main">
               <b>{hm(d.minutes)}</b>
               <span>{d.location}</span>
             </span>
-            <Icon name="chevronRight" size={17} stroke={1.7} className="ca-chev" />
+            {!LIMITED && <Icon name="chevronRight" size={17} stroke={1.7} className="ca-chev" />}
           </B>
         ))}
-        <B className="ca-li" onClick={() => c.d({ t: "push", route: { k: "day", date: TODAY.iso } })}>
+        <B className="ca-li" off={LIMITED} onClick={() => c.d({ t: "push", route: { k: "day", date: TODAY.iso } })}>
           <span className="ca-li-dow">FRI</span>
           <span className="ca-li-main">
             <b>{c.on ? timer(c.secs).slice(0, 7) : c.s.entries.length ? "Logged" : "Not yet"}</b>
             <span>{c.on ? "On the clock now" : "Today"}</span>
           </span>
-          <Icon name="chevronRight" size={17} stroke={1.7} className="ca-chev" />
+          {!LIMITED && <Icon name="chevronRight" size={17} stroke={1.7} className="ca-chev" />}
         </B>
       </div>
     </>
@@ -685,6 +751,95 @@ function EntryView({ c, i }: { c: Ctx; i: number }) {
       ) : (
         <p className="ca-empty">Nothing logged yet.</p>
       )}
+    </>
+  );
+}
+
+// ── Messages (the limited app's fifth tab) ───────────────────────────────
+
+// The app's Chats screen as Andrew's updated app has it (Oct 21): chats / announcements toggle, one
+// row per group chat, the same channels and lines as the phone screen (screens/phone/Messages.tsx),
+// demo names only. Dirt Crew (today's messages, so on top) is the one that opens; the rest show but are off.
+type ChatRow = { name: string; last: string; when: string; icon: IconName };
+const last = crewMessages[crewMessages.length - 1];
+const CHAT: ChatRow = { name: "Dirt Crew", last: `${crewById(last.crewId).name.split(" ")[0]}: ${last.text}`, when: last.time, icon: "messaging" };
+const CHATS: ChatRow[] = [
+  CHAT,
+  { name: "General", last: "Elena: luis, its under i-stone ...", when: "Oct 19", icon: "megaphone" },
+  { name: "Sales", last: "Kenji: Image attachment", when: "Sep 3", icon: "messaging" },
+  { name: "Equipment", last: "Kenji: Test", when: "Aug 18", icon: "messaging" },
+  { name: "Concrete Crew", last: "No messages yet", when: "", icon: "messaging" },
+  { name: "Management", last: "No messages yet", when: "", icon: "messaging" },
+  { name: "Office", last: "No messages yet", when: "", icon: "messaging" },
+];
+
+export function Messages({ c }: { c: Ctx }) {
+  return (
+    <>
+      <div className="ca-chats-head">
+        <h3>Chats</h3>
+        {(["bell", "camera", "settings"] as const).map((k) => (
+          <B key={k} className="ca-round" off aria-label={k}>
+            <Icon name={k} size={19} stroke={1.7} />
+          </B>
+        ))}
+        <span className="ca-chats-date">
+          <b>{TODAY.monthDay.replace(" 0", " ")}</b>
+          <span>{TODAY.year}</span>
+        </span>
+      </div>
+      <div className="ca-chats-seg">
+        <span className="is-on" aria-label="Chats">
+          <ChatGlyph size={22} />
+        </span>
+        <B off aria-label="Announcements">
+          <Icon name="megaphone" size={20} stroke={1.7} />
+        </B>
+      </div>
+      <ul className="ca-chats">
+        {CHATS.map((ch) => {
+          const off = ch !== CHAT;
+          return (
+            <li key={ch.name}>
+              <B className={`ca-chat-row${off ? " is-dim" : ""}`} off={off} onClick={() => c.d({ t: "push", route: { k: "chat" } })}>
+                <span className="ca-chat-ic">
+                  {ch.icon === "megaphone" ? <Icon name="megaphone" size={21} stroke={1.7} /> : <ChatGlyph size={20} />}
+                </span>
+                <span className="ca-li-main">
+                  <b>{ch.name}</b>
+                  <span>{ch.last}</span>
+                </span>
+                {ch.when && <span className="ca-chat-when">{ch.when}</span>}
+              </B>
+            </li>
+          );
+        })}
+      </ul>
+    </>
+  );
+}
+
+function Chat({ c }: { c: Ctx }) {
+  return (
+    <>
+      <Head title="Chats" onBack={() => c.d({ t: "pop" })} />
+      <Title sub={`${new Set(crewMessages.map((m) => m.crewId)).size} people`}>{CHAT.name}</Title>
+      <div className="ca-chat">
+        {crewMessages.map((m) => {
+          const mine = m.crewId === me.id;
+          return (
+            <div key={m.id} className={`ca-bubble${mine ? " is-mine" : ""}`}>
+              {!mine && <b>{crewById(m.crewId).name}</b>}
+              <p>{m.text}</p>
+              <span>{m.time}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="ca-compose" aria-hidden="true">
+        <span>Message {CHAT.name}</span>
+        <Icon name="send" size={18} stroke={1.7} />
+      </div>
     </>
   );
 }
@@ -907,10 +1062,10 @@ export function Sheet({ c }: { c: Ctx }) {
 
 export function TabBar({ c }: { c: Ctx }) {
   const icon = (k: Tab, on: boolean): IconName =>
-    k === "Home" ? (on ? "homeFill" : "homeDoor") : k === "Jobsites" ? "mapPin" : k === "Docs" ? "docs" : k === "Summary" ? (on ? "calendarCheckFill" : "calendarCheck") : "user";
+    k === "Home" ? (on ? "homeFill" : "homeDoor") : k === "Jobsites" ? "mapPin" : k === "Docs" ? "docs" : k === "Summary" ? (on ? "calendarCheckFill" : "calendarCheck") : k === "Messages" ? "messaging" : "user";
   return (
     <nav className="sc-tabbar ca-tabbar" aria-label="App tabs">
-      {TABS.map((k) => {
+      {(LIMITED ? TABS_LIMITED : TABS).map((k) => {
         const on = c.s.tab === k;
         return (
           <B key={k} className={`sc-tab${on ? " is-active" : ""}`} aria-current={on ? "page" : undefined} onClick={() => c.d({ t: "tab", tab: k })}>
@@ -948,6 +1103,8 @@ export function RouteView({ c, r }: { c: Ctx; r: Route }) {
       return <DayOff c={c} />;
     case "crew":
       return <Crew c={c} />;
+    case "chat":
+      return <Chat c={c} />;
     case "camera":
       return null; // drawn over everything (Camera)
   }

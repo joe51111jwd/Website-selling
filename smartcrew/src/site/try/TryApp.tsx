@@ -6,23 +6,21 @@
 // copy and the self demo follow it); the rest is the app's own state (./app/model.ts).
 // Transitions are transform / opacity only (app.css); reduced motion: instant.
 //
-// Classic keeps it to clocking in and out (Andrew's Loom, Oct 20: "limit it to like the homepage,
-// clocking in and out… or we make it so they can't actually click on these pieces", so nobody
-// lands somewhere confusing): Clock In, Break and Clock Out work; the tabs, the week strip and every
-// other control still show but can't be tapped (SIMPLE below).
+// Classic is a limited app (Andrew's comment-mode note, Oct 21: "Can we add back functionality for
+// log& switch, the tabs at hte top, etc. Lets add back all the forms on the reporting page… For
+// jobsites, lets custom build one that has field note history and docs and make that the only
+// clickable one. Also want messaging to be shown… I love being ablet to click on it. but want to
+// limit how deep into the app people can go."): Home, Docs and their forms, Summary, one jobsite and
+// one chat work; Messages takes Profile's tab; deeper rows show but are off (B's `off`, LIMITED in
+// ./app/views.tsx), and taps on them do nothing here.
 
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useReducer, useRef, useState, type PointerEvent } from "react";
 import { timer } from "../../screens/kit";
 import { initial, reduce, type Task } from "./app/model";
-import { Camera, DayHeader, Docs, Jobsites, nowTime, PastDay, Profile, Ready, RouteView, Sheet, Summary, TabBar, Working, WeekStrip, type Ctx } from "./app/views";
+import { Camera, DayHeader, Docs, Jobsites, LIMITED, Messages, nowTime, PastDay, Profile, Ready, RouteView, Sheet, Summary, TabBar, Working, WeekStrip, type Ctx } from "./app/views";
 import { TODAY } from "../../screens/data";
-import { CLASSIC } from "../../lib/look";
 import "./app/app.css";
-
-/** The controls that still work in the simple app (classic): everything else ignores taps and keys. */
-const SIMPLE = CLASSIC;
-const SIMPLE_OK = ".tp-clockin, .tp-clockout, .tp-break";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -78,17 +76,6 @@ export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, 
     root.current?.querySelector(".ca-view")?.scrollTo(0, 0);
   }, [on]);
 
-  // the simple app: the controls that don't work aren't in the tab order either
-  useEffect(() => {
-    if (!SIMPLE) return;
-    root.current?.querySelectorAll<HTMLButtonElement>("button").forEach((b) => {
-      const off = !b.matches(SIMPLE_OK);
-      b.tabIndex = off ? -1 : 0;
-      if (off) b.setAttribute("aria-disabled", "true");
-      else b.removeAttribute("aria-disabled");
-    });
-  });
-
   const toast = useCallback((text: string) => d({ t: "toast", text }), []);
   useEffect(() => {
     if (!s.toast) return;
@@ -121,7 +108,7 @@ export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, 
     onTouch?.();
     const el = root.current;
     const btn = (e.target as Element).closest("button");
-    if (!el || reduced || !btn || (SIMPLE && !btn.matches(SIMPLE_OK))) return;
+    if (!el || reduced || !btn || btn.hasAttribute("data-off")) return;
     const r = el.getBoundingClientRect();
     const k = r.width / (el.offsetWidth || r.width);
     setRipple((p) => ({ x: (e.clientX - r.left) / k, y: (e.clientY - r.top) / k, n: (p?.n ?? 0) + 1 }));
@@ -146,6 +133,7 @@ export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, 
   else if (s.tab === "Docs") view = <Docs c={c} />;
   else if (s.tab === "Summary") view = <Summary c={c} />;
   else if (s.tab === "Profile") view = <Profile c={c} />;
+  else if (s.tab === "Messages") view = <Messages c={c} />;
   else {
     const chrome = (
       <>
@@ -190,13 +178,12 @@ export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, 
   return (
     <div
       ref={root}
-      className={`sc tp-sc ca${SIMPLE ? " is-simple" : ""}`}
+      className={`sc tp-sc ca${LIMITED ? " is-limited" : ""}`}
       onPointerDown={onDown}
       onClickCapture={
-        SIMPLE
+        LIMITED
           ? (e) => {
-              const btn = (e.target as Element).closest("button");
-              if (btn && !btn.matches(SIMPLE_OK)) {
+              if ((e.target as Element).closest("button[data-off]")) {
                 e.preventDefault();
                 e.stopPropagation();
               }

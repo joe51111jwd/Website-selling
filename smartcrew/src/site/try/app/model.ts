@@ -5,8 +5,12 @@
 
 import { currentActivity, phoneWeek, taskOptions, TODAY, weekSummary } from "../../../screens/data";
 
-export type Tab = "Home" | "Jobsites" | "Docs" | "Summary" | "Profile";
+export type Tab = "Home" | "Jobsites" | "Docs" | "Summary" | "Profile" | "Messages";
 export const TABS: Tab[] = ["Home", "Jobsites", "Docs", "Summary", "Profile"];
+/** The limited app (classic): Messages in Profile's place (Andrew's comment-mode note, Oct 21). */
+export const TABS_LIMITED: Tab[] = ["Home", "Jobsites", "Docs", "Summary", "Messages"];
+/** The one jobsite the limited app opens: the job the crew is on (Hwy 9). */
+export const TRY_JOB = currentActivity.projectId;
 
 export type Route =
   | { k: "job"; id: string }
@@ -15,7 +19,8 @@ export type Route =
   | { k: "entry"; i: number }
   | { k: "camera" }
   | { k: "dayoff" }
-  | { k: "crew" };
+  | { k: "crew" }
+  | { k: "chat" };
 
 export type Task = { projectId: string; activity: string; equipmentId: string };
 export type Field = keyof Task;
