@@ -345,7 +345,8 @@ const BOOK = {
   },
   help: "Need help?",
   h1: "You’re One Step Away From Getting Started.",
-  sub: "Watch this quick video to see how our private beta works, then book your quick demo with Andrew.",
+  /** Andrew's comment-mode note (Oct 21), verbatim */
+  sub: "Watch this quick video to learn about our special Founding Member Program offer.",
   cardTitle: "Book a quick demo with Andrew",
   cardSub: "Choose a time that works for you. No preparation needed.",
   cardNote: "After you book, you’ll receive a confirmation email with the meeting details.",

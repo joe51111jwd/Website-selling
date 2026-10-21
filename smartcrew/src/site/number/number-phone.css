@@ -577,3 +577,12 @@ html .site > .scene.num--phone[data-warm] {
   font-size: 14.5px;
   line-height: 1.35;
 }
+
+/* Andrew's sentence under the result (comment-mode note, Oct 21): small, so the section stays compact */
+.nph .nph-framing {
+  margin: 6px 0 10px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}

@@ -42,7 +42,7 @@ const COPY = {
 const landMs = (v: number) => (grouped(v).replace(/\D/g, "").length - 1) * 55 + 650 + 200;
 
 /** Short phones (in-app browsers with tall toolbars): a 5-row crew instead of 6, so the CTA stays on screen. */
-const SHORT = "(max-height: 640px)";
+const SHORT = "(max-height: 760px)";
 function useShort() {
   return useSyncExternalStore(
     (cb) => {
@@ -178,7 +178,7 @@ export default function NumberPhone() {
       </p>
       <p className="num-intro nph-intro">{CALC.intro}</p>
 
-      {stage >= 2 && <CrewCanvas value={crew} rows={short ? 5 : 6} arrived={arrived} onFirst={() => touch("crew")} onChange={setCrew} onDrag={setDragging} glide={GLIDE ? PRESET.crew : null} />}
+      {stage >= 2 && <CrewCanvas value={crew} rows={short ? 4 : 5} arrived={arrived} onFirst={() => touch("crew")} onChange={setCrew} onDrag={setDragging} glide={GLIDE ? PRESET.crew : null} />}
 
       {stage >= 3 && (
         <>
@@ -251,6 +251,9 @@ export default function NumberPhone() {
                 </>
               )}
             </p>
+            {/* Andrew's sentence under the result, as on laptops (his comment-mode note, Oct 21); the
+                GPS line stays laptop-only so the phone section keeps its CTA on screen */}
+            <p className="nph-framing">{CALC.framing}</p>
             <SceneCta request={request} size="lg" className="nph-cta" />
             {/* classic: cut (Andrew's Loom, Oct 20) */}
             {!CLASSIC && (
