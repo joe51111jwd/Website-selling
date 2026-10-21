@@ -21,11 +21,14 @@ export default defineConfig(({ mode }) => ({
   plugins: [react(), ...(mode === "watermark" || mode === "preview" ? [noindex] : [])],
   define: { "import.meta.env.VITE_PAIN_AI": JSON.stringify(painAi) },
   build: {
-    // two pages: the product page, and the "book a call" page the trial form lands on
+    // the product page, the "book a call" page the trial form lands on, and the two legal pages
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, "index.html"),
         book: resolve(import.meta.dirname, "book/index.html"),
+        // Andrew's legal pages, kept at smartcrewhq.com's addresses (src/legal/legal.css)
+        privacy: resolve(import.meta.dirname, "privacy-policy/index.html"),
+        terms: resolve(import.meta.dirname, "terms-of-service/index.html"),
       },
     },
   },

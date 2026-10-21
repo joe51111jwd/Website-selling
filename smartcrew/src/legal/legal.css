@@ -1,0 +1,142 @@
+/* /privacy-policy and /terms-of-service: Andrew's two legal pages, his text word for word from the
+   Webflow site (smartcrewhq.com, Effective Date: September 15, 2025), so the links on the page, in the
+   popup and anywhere else keep working once the domain points here. Plain HTML, no script: the
+   text reads without JavaScript (app store and sign-in reviewers, crawlers). */
+
+@import "../styles/fonts.css";
+@import "../styles/tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--ground);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--ink-2);
+  font-family: var(--font-text);
+  font-size: var(--fs-body);
+  line-height: 1.65;
+}
+
+.lg-bar,
+.lg-main,
+.lg-foot {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding-inline: 16px;
+}
+
+.lg-bar {
+  padding-block: 18px;
+  border-bottom: 1px solid var(--line);
+  max-width: none;
+}
+
+.lg-home {
+  display: inline-flex;
+  max-width: 760px;
+}
+
+.lg-home img {
+  display: block;
+  height: 30px;
+  width: auto;
+}
+
+@media (min-width: 792px) {
+  .lg-bar {
+    padding-inline: calc((100% - 728px) / 2);
+  }
+}
+
+.lg-main {
+  padding-block: 48px 64px;
+}
+
+.lg-main h1 {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(36px, 4vw + 16px, 52px);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+.lg-text h2 {
+  margin: 40px 0 12px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.lg-text h3 {
+  margin: 28px 0 8px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.lg-text p {
+  margin: 0 0 14px;
+}
+
+.lg-text ul,
+.lg-text ol {
+  margin: 0 0 16px;
+  padding-left: 22px;
+}
+
+.lg-text li {
+  margin: 0 0 8px;
+}
+
+.lg-text li::marker {
+  color: var(--orange);
+}
+
+.lg-text strong {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.lg-text a,
+.lg-foot a {
+  color: var(--orange-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+.lg-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding-block: 24px 40px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 14px;
+}
+
+.lg-foot a {
+  color: var(--ink-2);
+}
+
+:focus-visible {
+  outline: 2.5px solid var(--orange);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
