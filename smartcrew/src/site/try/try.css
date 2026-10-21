@@ -364,3 +364,14 @@ html.look-classic .try-nudge-swoop {
   font-style: italic;
   font-synthesis: style;
 }
+
+/* no tap flash, selection or callout on the phone (James, Oct 21) */
+.try-hit,
+.try-scr,
+.try-dom,
+.tp-app {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}

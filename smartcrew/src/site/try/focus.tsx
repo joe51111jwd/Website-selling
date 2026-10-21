@@ -21,6 +21,7 @@ export type Hole = { x: number; y: number; w: number; h: number; r: string };
 const DWELL = 220;
 const HOVER_OUT = 300;
 const SCROLL_OUT = 32;
+const SCRIM = false;
 
 export function useFocusMode({
   el,
@@ -56,6 +57,12 @@ export function useFocusMode({
     (isSoft: boolean) => {
       const node = el.current;
       if (!node || !liveRef.current) return;
+      // off (James, Oct 21: "remove that highlight thing when you click on it" on phone and
+      // computer): a tap on the phone just works the app, the page doesn't dim round it
+      if (!SCRIM) {
+        enterRef.current?.();
+        return;
+      }
       const wasOpen = openRef.current;
       softRef.current = wasOpen ? softRef.current && isSoft : isSoft;
       setSoft(softRef.current);

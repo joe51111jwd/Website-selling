@@ -559,3 +559,10 @@
     width: 100%;
   }
 }
+
+/* no tap flash on the tabs and items (James, Oct 21) */
+.wt-tab,
+.wt-item {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}

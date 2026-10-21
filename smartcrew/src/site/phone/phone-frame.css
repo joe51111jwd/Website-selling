@@ -261,3 +261,11 @@
     display: none;
   }
 }
+
+/* the phone never flashes, selects or pops a callout on tap (James, Oct 21) */
+.pf {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
