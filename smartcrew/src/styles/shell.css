@@ -198,6 +198,16 @@ html[data-ground="dark"] .site-nav a:hover {
   }
 }
 
+/* Crisp's chat bubble (Andrew, Oct 21: "a little pop-up in the bottom right-hand corner") would sit
+   on the sticky bar's button: on phones it rides just above the bar, using Crisp's own offset
+   variables (its class names are hashed and change between releases). */
+@media (max-width: 760px) {
+  html .crisp-client {
+    --crisp-customization-mobile-button-vertical: calc(var(--sticky-h) + env(safe-area-inset-bottom));
+    --crisp-customization-default-button-vertical: calc(var(--sticky-h) + env(safe-area-inset-bottom));
+  }
+}
+
 /* ── PHONE MODE (BRIEF ROUND 3, scratchpad design/v2/phone/PHONE.md): no backdrop-filter, no big
       blurred shadows on anything that sits over scrolling content. Solid grounds instead. ── */
 @media (max-width: 760px) {
