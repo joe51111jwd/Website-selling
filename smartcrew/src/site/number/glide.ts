@@ -3,7 +3,8 @@
 // first time the crew comes into view the slider runs from 0 up to the preset crew (./calc.ts
 // PRESET): slow at first, speeding up, then a soft landing. The thumb moves continuously and a hard
 // hat appears as each whole person is passed. Once per page view; never with reduced motion. The
-// visitor's first input on the slider ends it where it is and they take over.
+// visitor's first input on the slider ends it where it is and they take over. About a second end to
+// end (James, Oct 21 afternoon: "can you make the animation faster"; it was 2 s).
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { reducedMotion } from "../../three/stage/store";
@@ -13,7 +14,7 @@ export const GLIDE = typeof window !== "undefined" && !reducedMotion && typeof I
 
 /** After the crew arrives, so its empty slots have begun to ripple in first. */
 const DELAY_MS = 350;
-const GLIDE_MS = 2000;
+const GLIDE_MS = 1000;
 
 /** cubic-bezier(0.65, 0, 0.45, 1): a slow start, speeding up, then a short soft landing on the number. */
 const X1 = 0.65;
