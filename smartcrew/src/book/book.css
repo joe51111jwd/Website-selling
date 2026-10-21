@@ -947,3 +947,30 @@ html.look-classic .bk-covers p {
 html.look-classic .bk-covers li + li {
   border-left-color: var(--card-line);
 }
+
+/* phones: the full support address fits beside the logo, with no sideways scroll (it ran 11px off
+   a 390px screen as "smartcrewhq.co"). Up to 400px wide: a touch smaller logo, no envelope, 12px
+   type; on anything narrower still, the address wraps under the logo instead of overflowing. */
+@media (max-width: 760px) {
+  .bk-bar {
+    flex-wrap: wrap;
+    gap: 6px 16px;
+  }
+}
+@media (max-width: 400px) {
+  .bk-bar {
+    gap: 10px;
+  }
+  .bk-logo-img {
+    height: 28px;
+  }
+  .bk-logo-img.is-plain {
+    height: 18px;
+  }
+  .bk-help svg {
+    display: none;
+  }
+  html .bk .bk-help {
+    font-size: 12px;
+  }
+}
