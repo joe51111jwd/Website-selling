@@ -1,0 +1,69 @@
+/* Docs tab (phone): job picker, folder chips, the file list. Scoped under .sc like the kit. */
+.sc .pfl-job {
+  margin: 4px 0 12px;
+}
+.sc .pfl-folders {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.sc .pfl-chip {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 15px;
+  background: #f4f4f4;
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #3a3a3a;
+}
+.sc .pfl-chip.is-on {
+  background: #1f1f1f;
+  color: #fff;
+}
+.sc .pfl-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sc .pfl-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #efefef;
+}
+.sc .pfl-ic {
+  flex: none;
+  width: 38px;
+  height: 44px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  border: 1.5px solid currentColor;
+}
+.sc .pfl-ic--pdf { color: #d7262e; }
+.sc .pfl-ic--image { color: #2f6fde; }
+.sc .pfl-ic--sheet { color: #2f9e5b; }
+.sc .pfl-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sc .pfl-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc .pfl-meta {
+  font-size: 12.5px;
+  color: #7a7a7a;
+}

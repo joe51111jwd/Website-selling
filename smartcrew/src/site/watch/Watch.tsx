@@ -184,7 +184,13 @@ export default function Watch() {
   return (
     <Scene id="watch" pinnedViewports={0} stage="keep" label={WATCH.label} className="wt">
       <div className="wrap wt-wrap" ref={nearRef}>
-        <h2 className="t-h2 wt-title">{WATCH.title}</h2>
+        <h2 className="t-h2 wt-title">
+          {WATCH.title.split("\n").map((line, i) => (
+            <span key={i} className="wt-title-line">
+              {line}
+            </span>
+          ))}
+        </h2>
 
         <div className="wt-tablist" role="tablist" aria-label={WATCH.tabsLabel} onKeyDown={onTabKey}>
           {TABS.map((x, i) => (

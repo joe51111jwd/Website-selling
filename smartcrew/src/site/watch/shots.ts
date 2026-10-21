@@ -51,7 +51,6 @@ export const SHOTS: Record<WatchTabId, Record<string, Shot>> = {
     shop: { icon: "wrench", web: "web-service-queue", phone: "phone-add-service" },
     projects: { icon: "projects", web: "web-project-detail", phone: "phone-office-job" },
     payroll: { icon: "cash", web: "web-timecards", phone: "phone-summary" },
-    pto: { icon: "calendarOff", web: "web-scheduling", phone: "phone-home" },
   },
   // the owners' results: job costing first
   results: {
@@ -59,9 +58,11 @@ export const SHOTS: Record<WatchTabId, Record<string, Shot>> = {
     materials: { icon: "receipt", web: "web-materials", phone: "phone-hauling" },
     fleet: { icon: "equipment", web: pick("web-machine", "web-equipment"), phone: "phone-dot" },
     pipeline: { icon: "pipeline", web: "web-pipeline", phone: "phone-office-job" },
-    pto: { icon: "calendarOff", web: "web-scheduling", phone: "phone-home" },
-    safety: { icon: "shieldCheck", web: pick("web-safety", "web-messaging"), phone: "phone-reports" },
-    docs: { icon: "docs", web: pick("web-files", "web-project-detail"), phone: "phone-reports" },
+    // Andrew's comment-mode notes, Oct 21: "Show PTO request form", "Show PTO request form on web.
+    // Employees > Time Off", "Show Incident Report", "Show mobile app of files"
+    pto: { icon: "calendarOff", web: "web-time-off", phone: "phone-pto-request" },
+    safety: { icon: "shieldCheck", web: pick("web-safety", "web-messaging"), phone: "phone-incident-report" },
+    docs: { icon: "docs", web: pick("web-files", "web-project-detail"), phone: "phone-files" },
   },
 };
 

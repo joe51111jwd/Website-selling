@@ -36,7 +36,8 @@ export const WATCH = {
   /** the section's accessible name */
   label: "Watch it work",
   // Andrew's comment-mode note, Oct 20
-  title: "Watch How It Works During The Day, Week and Month",
+  /** Andrew's comment-mode note, Oct 21, word for word; "\n" is his line break. */
+  title: "Watch How SmartCrew Works\nBy Day, Week and Month",
   /** the tab list's accessible name (his name for the section) */
   tabsLabel: "A Day In The Life",
   tabs: [
@@ -76,7 +77,7 @@ export const WATCH = {
         { id: "shop", title: "Shop Management — Keep your iron running.", line: "Manage repairs, maintenance schedules, work orders, and equipment history." },
         { id: "projects", title: "Project Management — Keep every job on track.", line: "Monitor progress, review daily reports, and keep your projects organized." },
         { id: "payroll", title: "Payroll — Get your Fridays back.", line: "Review and approve timecards. Export payroll without the weekly scramble." },
-        { id: "pto", title: "PTO — Know who's available.", line: "Manage time-off requests and approvals before they disrupt your schedule." },
+        // no PTO here: it lives in The Month (Andrew's comment-mode note, Oct 21: "Cut PTO feature from this page")
       ],
       cta: { label: "See SmartCrew in Action", intent: "demo" },
     },

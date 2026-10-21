@@ -1,0 +1,29 @@
+/* Workforce › Time Off: the Safety page's card and rows with its own columns and the approve buttons. */
+.sc .scto-tr {
+  grid-template-columns: 1.3fr 0.8fr 1.1fr 0.5fr 1fr 1.7fr;
+}
+.sc .scto-act {
+  display: inline-flex;
+  gap: 8px;
+}
+.sc .scto-btn {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #dcdcdc;
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #121212;
+  background: #fff;
+}
+.sc .scto-btn--ok {
+  background: #1f1f1f;
+  border-color: #1f1f1f;
+  color: #fff;
+}
+.sc .scsf-st--Denied {
+  background: #fdecea;
+  color: #b42318;
+}

@@ -191,3 +191,8 @@ html.look-classic .wt-featured {
   color: rgba(255, 255, 255, 0.72);
   text-align: center;
 }
+
+/* Andrew's title, Oct 21: "Watch How SmartCrew Works" over "By Day, Week and Month", one line each */
+.wt-title-line {
+  display: block;
+}
