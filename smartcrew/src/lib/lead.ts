@@ -31,6 +31,15 @@ export type Attribution = {
   utm_content?: string;
   utm_term?: string;
   fbclid?: string;
+  /** Meta's dynamic URL parameters on Andrew's ads ({{ad.id}}, {{ad.name}}…), for his Close lead fields */
+  ad_id?: string;
+  ad_name?: string;
+  adset_id?: string;
+  adset_name?: string;
+  campaign_id?: string;
+  campaign_name?: string;
+  placement?: string;
+  site_source_name?: string;
   fbc?: string;
   fbp?: string;
   landing_url?: string;
@@ -186,7 +195,23 @@ function cookie(name: string) {
   return m ? decodeURIComponent(m[1]) : undefined;
 }
 
-const ATTR_PARAMS = ["angle", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid"] as const;
+const ATTR_PARAMS = [
+  "angle",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_content",
+  "utm_term",
+  "fbclid",
+  "ad_id",
+  "ad_name",
+  "adset_id",
+  "adset_name",
+  "campaign_id",
+  "campaign_name",
+  "placement",
+  "site_source_name",
+] as const;
 
 /**
  * Call once on landing. Keeps the ad's fbclid/utm/angle for the whole session (the URL can change
@@ -313,12 +338,21 @@ function formBody(l: Lead) {
   return body;
 }
 
-/** Post one stage to the webhook. Fire-and-forget; `keepalive` lets it finish after the page changes. */
+/** Post one stage to the webhook, and the finished lead to /api/lead (Close + Slack + phone alert).
+ *  Fire-and-forget; `keepalive` lets both finish after the page changes. */
 export function postStage(l: Lead): Promise<void> {
-  if (!config.leadWebhook) return Promise.resolve();
-  return fetch(config.leadWebhook, { method: "POST", body: formBody(l), keepalive: true, mode: "no-cors" })
-    .then(() => undefined)
-    .catch(() => undefined);
+  const posts: Promise<unknown>[] = [];
+  if (config.leadWebhook) posts.push(fetch(config.leadWebhook, { method: "POST", body: formBody(l), keepalive: true, mode: "no-cors" }));
+  if (config.leadApi && l.stage === "complete")
+    posts.push(
+      fetch(new URL(config.leadApi, document.baseURI).href, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ...l, page: location.href.split("?")[0], user_agent: navigator.userAgent }),
+        keepalive: true,
+      }),
+    );
+  return Promise.all(posts.map((p) => p.catch(() => undefined))).then(() => undefined);
 }
 
 /** Hand the finished lead to /book (same tab, sessionStorage; nothing personal in the URL). */

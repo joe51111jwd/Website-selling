@@ -22,6 +22,14 @@ export const config = {
   leadWebhook: "",
 
   /**
+   * The site's own lead endpoint (api/lead.ts): the finished form becomes a lead in Andrew's Close.com
+   * with the Facebook ad it came from, plus a Slack message and a phone alert (Andrew, by text, Oct 21).
+   * Each part switches on with its key in the Vercel environment; none set, nothing is sent. Test
+   * leads (example.com emails, 555 numbers) are never sent. Empty: the page doesn't call it.
+   */
+  leadApi: "/api/lead",
+
+  /**
    * Andrew's tracking (his doc, Oct 20; James: "ill install that"): the Meta Pixel, Mouseflow
    * (session recordings) and Crisp (the chat bubble). They load only on the real site, never on a
    * preview or test host (src/lib/track.ts liveSite: *.vercel.app, localhost), so test visits

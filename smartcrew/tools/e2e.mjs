@@ -1155,6 +1155,12 @@ const FAKE_VIDALYTICS = `
 async function funnel(device) {
   const ctx = await newContext(device);
   await ctx.route(/fast\.vidalytics\.com\//, (r) => r.fulfill({ status: 200, contentType: "text/javascript", body: FAKE_VIDALYTICS }));
+  // the lead never reaches api/lead (Andrew's Close, Slack, phone): caught here and checked instead
+  const sent = [];
+  await ctx.route(/\/api\/lead(\?|$)/, (r) => {
+    sent.push(r.request().postDataJSON());
+    return r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true,"dry":true}' });
+  });
   const page = await open(ctx);
   const out = [];
   try {
@@ -1200,6 +1206,8 @@ async function funnel(device) {
     assert(lead.company === "QA Test Earthworks" && lead.name === "Pat Tester" && lead.email === "pat.tester@example.com", `lead ${JSON.stringify(lead).slice(0, 160)}`);
     assert(lead.size === "13–25" && lead.phone_e164 === "+15555550123" && lead.stage === "complete", `lead size/phone ${lead.size} ${lead.phone_e164}`);
     out.push("lead handed over (company, name, email, phone, size)");
+    assert(sent.length === 1 && sent[0].lead_id === lead.lead_id && sent[0].company === "QA Test Earthworks" && sent[0].attribution, `api/lead got ${sent.length} posts: ${JSON.stringify(sent[0] ?? null).slice(0, 160)}`);
+    out.push("lead posted once to api/lead (mocked)");
 
     // /book (Andrew's Loom, Oct 20): his headline; the video and the calendar on one page, the
     // calendar to the right of the video (under it on a phone), no skip gate
