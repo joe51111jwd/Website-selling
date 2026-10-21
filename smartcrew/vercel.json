@@ -1,0 +1,18 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    { "source": "/contact", "destination": "/", "permanent": false },
+    { "source": "/contact/", "destination": "/", "permanent": false },
+    { "source": "/waitlist", "destination": "/", "permanent": false },
+    { "source": "/waitlist/", "destination": "/", "permanent": false },
+    { "source": "/demo", "destination": "/book/", "permanent": false },
+    { "source": "/demo/", "destination": "/book/", "permanent": false }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "smartcrew-preview.vercel.app" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    }
+  ]
+}

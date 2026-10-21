@@ -57,6 +57,12 @@ npm run screens          # re-shoot the app screen textures into public/screens/
 | Output directory | `dist` |
 | Node | 24 |
 
+`vercel.json` keeps smartcrewhq.com's old Webflow addresses working once the domain points here:
+`/contact` and `/waitlist` go to the home page (where the Try SmartCrew form captures the lead), and
+`/demo` goes to `/book`. It also sends `X-Robots-Tag: noindex` on smartcrew-preview.vercel.app only,
+so the real domain can be built with plain `npm run build` (no noindex tag) while the preview link
+stays out of search results.
+
 ## Config: `src/config.ts`
 
 Everything external lives in one file. An empty value switches its feature off safely.
