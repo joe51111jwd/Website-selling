@@ -49,13 +49,14 @@ export const REPLACE = {
         { name: "Close", file: "close.svg" },
       ],
     },
+    // Andrew's comment-mode note (Oct 21): "Swap Materials & Hauling here. Move File storage to the end"
     {
-      id: "files",
-      name: "File Storage",
-      line: "Organize job documents and field records.",
+      id: "hauling",
+      name: "Materials & Hauling",
+      line: "Log loads, hauling tickets and material receipts to the job.",
       apps: [
-        { name: "Dropbox", file: "dropbox.svg" },
-        { name: "Google Drive", file: "google-drive.svg" },
+        { name: "Spreadsheets", file: "google-sheets.svg" },
+        { name: "Paper load tickets", glyph: "ticket" },
       ],
     },
     {
@@ -68,12 +69,12 @@ export const REPLACE = {
       ],
     },
     {
-      id: "hauling",
-      name: "Materials & Hauling",
-      line: "Log loads, hauling tickets and material receipts to the job.",
+      id: "files",
+      name: "File Storage",
+      line: "Organize job documents and field records.",
       apps: [
-        { name: "Spreadsheets", file: "google-sheets.svg" },
-        { name: "Paper load tickets", glyph: "ticket" },
+        { name: "Dropbox", file: "dropbox.svg" },
+        { name: "Google Drive", file: "google-drive.svg" },
       ],
     },
   ] as ReadonlyArray<{
