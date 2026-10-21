@@ -611,3 +611,47 @@ html.look-classic .rp-hub-line {
     padding: var(--card-pad) 20px;
   }
 }
+
+/* Andrew's comment-mode note, Oct 21: "Lets make this one a button. I think it'll make the image more
+   balance and symmetrical." Classic: two buttons of one size side by side, centred under the platform
+   box; the demo one outlined so Try SmartCrew stays the first thing to click. Stacked on phones. */
+html.look-classic .rp-act {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 250px));
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+}
+html.look-classic .rp-act .cta {
+  display: flex;
+  width: 100%;
+}
+html.look-classic .rp .rp-demo--btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 60px;
+  padding: 0 24px;
+  border: 1.5px solid rgb(244 238 231 / 38%);
+  border-radius: 15px;
+  color: var(--ink-night);
+  font-size: 18px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+html.look-classic .rp .rp-demo--btn:hover {
+  border-color: var(--orange);
+  background: rgb(255 122 1 / 8%);
+}
+@media (max-width: 760px) {
+  html.look-classic .rp-act {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  html.look-classic .rp .rp-demo--btn {
+    height: 56px;
+    font-size: 17px;
+  }
+}

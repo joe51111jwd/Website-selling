@@ -116,7 +116,9 @@ export default function Replace() {
 
           <div className="rp-act">
             <Cta source="replace" size="lg" />
-            <DemoLink source="replace" className="rp-demo" />
+            {/* Andrew's comment-mode note, Oct 21: "Lets make this one a button. I think it'll make the image
+                more balance and symmetrical." Classic: a button the size of Try SmartCrew beside it. */}
+            <DemoLink source="replace" className={CLASSIC ? "rp-demo rp-demo--btn" : "rp-demo"} label={CLASSIC ? "Book a demo today" : undefined} />
           </div>
         </div>
       </div>
