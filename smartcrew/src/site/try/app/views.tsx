@@ -571,7 +571,8 @@ function formFor(label: string, t: Task): { rows: [string, string][]; submit: st
     case "Field Usage Report":
       return { rows: [["Project", job], ["Material", "Select fill"], ["Quantity", "6 loads · 99 t"], ["Used for", "Trench backfill"]], submit: "Submit usage", done: "Field usage sent" };
     case "DOT Inspection Report":
-      return { rows: [["Truck", dotForm.truck], ["Mileage", dotForm.mileage], ["Trailer", dotForm.trailer], ["Defects", dotForm.defectNote]], submit: "Sign & submit", done: "DOT inspection filed" };
+      // the updated app's Equipment Inspection form (James's screenshots, Oct 21; screens/phone/Dot.tsx)
+      return { rows: [["Inspection type", "DOT Inspection"], ["Equipment", "Mack Granite #1102"], ["Hours / Miles", `${dotForm.mileage} mi`], ["Brakes, steering, lights, tires…", "12 of 12 OK"]], submit: "Submit", done: "DOT inspection filed" };
     case "Scheduling":
       return {
         rows: NEXT_WEEK.map((n, i) => [`${n.dow} ${n.label}`, `${i < 3 ? "Hwy 9 Culvert" : "Riverside Storm Sewer"} · 6:30 AM`]),

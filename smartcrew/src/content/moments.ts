@@ -92,7 +92,7 @@ export const MOMENTS: Moment[] = [
     title: "A driver does the DOT pre-trip",
     outcome: "The inspection is on the truck’s record, ready for an audit.",
     dir: "up",
-    phone: { id: "phone-dot", y: 30, ring: [21, 400, 360, 74] },
+    phone: { id: "phone-dot", y: 30, ring: [14, 151, 374, 48] },
     office: { id: "web-equipment", x: 340, y: 150, mark: { b: [340, 340, 1056, 60], label: "Truck 1102 · inspections on file" } },
     features: [
       { id: "E4", label: "DOT pre-trips", line: "Drivers do the pre-trip on the phone. You get audit-ready DOT logs without the paper.", src: "L, V-tab" },

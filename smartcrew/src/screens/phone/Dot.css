@@ -1,0 +1,130 @@
+/* M8 · Equipment Inspection (DOT), from the updated app's screens (James, Oct 21). 1179 px
+   screenshots mapped onto 402 px: x ≈ 0.341. Scoped under .dot-body / its footer. */
+
+.sc .dot-body {
+  padding: 0 16px;
+  overflow: hidden;
+}
+
+.sc .dot-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 44px;
+  margin: 6px 0 22px;
+  color: #000;
+}
+.sc .dot-head .dot-title {
+  flex: 1;
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 560;
+  letter-spacing: -0.02em;
+}
+
+.sc .dot-label {
+  margin: 0 0 8px;
+  font-size: 15px;
+  line-height: 19px;
+  font-weight: 460;
+  color: #000;
+}
+
+.sc .dot-type {
+  height: 44px;
+  margin-bottom: 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid #e8e8e8;
+  background: #f4f4f4;
+  font-size: 15.5px;
+  color: #000;
+}
+.sc .dot-type.is-on {
+  border-color: #111;
+  background: #111;
+  color: #fff;
+}
+.sc .dot-type:last-of-type {
+  margin-bottom: 20px;
+}
+
+.sc .dot-input {
+  height: 48px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-radius: 14px;
+  background: #f4f4f4;
+  font-size: 16px;
+  color: #000;
+}
+.sc .dot-input--select {
+  border: 1px solid #e8e8e8;
+}
+.sc .dot-input .sc-icon {
+  color: #555;
+}
+
+.sc .dot-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+.sc .dot-item {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 10px 9px 13px;
+  border: 1px solid #e6e6e6;
+  border-radius: 11px;
+  background: #fff;
+  font-size: 15.5px;
+  line-height: 20px;
+  font-weight: 560;
+  color: #000;
+}
+.sc .dot-item > span:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.sc .dot-yes,
+.sc .dot-no {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+}
+.sc .dot-yes {
+  background: #12bc85;
+  color: #fff;
+}
+.sc .dot-no {
+  background: #f4f4f4;
+  border: 1px solid #e6e6e6;
+  color: #ec2c55;
+}
+
+/* Cancel / Submit, pill buttons as in the app (Submit greys until the form is complete) */
+.sc .dot-body + .sc-phone-footer .dot-btn {
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #f4f4f4;
+  font-size: 16px;
+  color: #9a9a9a;
+}
+.sc .dot-body + .sc-phone-footer .dot-btn--submit {
+  background: #bdbdbd;
+  color: #fff;
+}
