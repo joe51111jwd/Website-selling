@@ -176,6 +176,7 @@ export default function NumberPhone() {
           {CALC.statSource.label}
         </a>
       </p>
+      <p className="num-intro nph-intro">{CALC.intro}</p>
 
       {stage >= 2 && <CrewCanvas value={crew} rows={short ? 5 : 6} arrived={arrived} onFirst={() => touch("crew")} onChange={setCrew} onDrag={setDragging} glide={GLIDE ? PRESET.crew : null} />}
 

@@ -194,7 +194,7 @@ export const TRY = {
 
 export const NUMBER = {
   /** Andrew's round 2 (Oct 19); title from his comment-mode note, Oct 21, verbatim */
-  title: "How Much Profit Are You Losing to Inaccurate Timecards?",
+  title: "How Much Profit Are You Losing To Inaccurate Timecards?",
   hint: "Think of one guy who writes 7:00 when he showed up at 7:10.",
 };
 
@@ -253,9 +253,12 @@ export const CALC = {
   stat: "The American Payroll Association estimates that employees who manually log time overestimate their hours by 45 minutes per day per employee.",
   /** Andrew's comment-mode note (Oct 21): "Cite this study after the sentence" */
   statSource: { label: "Source", url: "https://www.pmi.org/learning/library/time-attendance-managing-punch-ins-8509" },
+  /** Andrew's comment-mode note (Oct 21), verbatim: "Add line: …" */
+  intro: "Use this calculator to discover how much inaccurate timecards are costing you.",
   minutesLabel: "Minutes lost per person, per day",
-  /** Andrew's round 2: 10 / 15 / 30 / 45 / 60, 30 the default (calc.ts PRESET) */
-  minutes: [10, 15, 30, 45, 60],
+  /** Andrew's round 2, 30 the default (calc.ts PRESET); his comment-mode note (Oct 21): "Lets only
+   *  keep 4 options here to match space below. 15/30/45/60" */
+  minutes: [15, 30, 45, 60],
   hint: NUMBER.hint,
   rateLabel: "Hourly cost per field employee",
   rateNote: "wage + taxes + insurance",
@@ -270,7 +273,8 @@ export const CALC = {
   week: (w: string) => `about ${w} a week`,
   /** Round 4: the calculator starts from presets (site/number/calc.ts PRESET). */
   /** Andrew's comment-mode note on this paragraph (Oct 20), verbatim, as two lines. */
-  framing: "Just 15 minutes of misallocated time per employee, per day, can cost you thousands.",
+  /** Andrew's comment-mode note (Oct 21), verbatim */
+  framing: "It's shocking how only 15 minutes per day can cost thousands of dollars in profit... even with a small crew.",
   built: "SmartCrew uses GPS-powered time tracking and geofencing to accurately allocate labor hours.",
   /** ⚑ Andrew confirms he opens the call with the visitor's number (PLAYBOOK S3). */
   ctaMicro: "We’ll go over your number with you on the call.",

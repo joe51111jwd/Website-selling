@@ -129,6 +129,7 @@ function Calculator() {
             {CALC.statSource.label}
           </a>
         </p>
+        <p className="num-intro">{CALC.intro}</p>
       </div>
 
       <div className="num-in">

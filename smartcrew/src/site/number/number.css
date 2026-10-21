@@ -828,3 +828,10 @@ html.look-classic .num-built {
 .num-cite:hover {
   opacity: 1;
 }
+
+/* Andrew's line under the stat (comment-mode note, Oct 21) */
+.num-intro {
+  margin-top: 10px;
+  font-weight: 600;
+  color: var(--ink);
+}
