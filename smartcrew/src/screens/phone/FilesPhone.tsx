@@ -11,7 +11,7 @@ const FOLDERS = ["Plans", "Photos", "Permits", "Change Orders", "Safety"];
 
 export default function FilesPhone() {
   return (
-    <PhoneShell tab="Docs">
+    <PhoneShell tab="Projects">
       <PhoneHeader icon="docs" title="Docs" right={<CircleButton icon="upload" />} />
       <Input select value={job.name} className="pfl-job" />
       <div className="pfl-folders">

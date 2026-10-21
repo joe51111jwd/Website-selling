@@ -19,8 +19,8 @@ const CHANNELS: Channel[] = [
   { name: "Office", last: "No messages yet" },
 ];
 
-// the app's own glyphs: two square speech bubbles (a chat), a megaphone (announcements), the bar's
-// Tools gauge
+// the app's own glyphs: two square speech bubbles (a chat), a megaphone (announcements). The bottom
+// bar is the updated app's (kit TabBar, James's screenshots Oct 21).
 const g = (d: string) => <path d={d} />;
 const Svg = ({ children, size = 24, fill = false }: { children: ReactNode; size?: number; fill?: boolean }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={fill ? "currentColor" : "none"} stroke={fill ? "none" : "currentColor"} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -48,36 +48,9 @@ const Megaphone = ({ size }: { size?: number }) => (
     {g("M6.5 14l1.2 4.2M17.6 9.2l2-1.4M18.2 12h2.4M17.6 14.8l2 1.4")}
   </Svg>
 );
-const Gauge = () => (
-  <Svg size={25}>
-    <circle cx="12" cy="12" r="9" />
-    {g("M6.8 13.2l2.6-3 2.6 3.4 2.6-4.2 2.6 2.6")}
-  </Svg>
-);
-
-function Bar() {
-  const tabs: { key: string; icon: ReactNode }[] = [
-    { key: "Home", icon: <Icon name="homeDoor" size={25} stroke={1.6} /> },
-    { key: "Messages", icon: <ChatGlyph size={25} fill /> },
-    { key: "Tools", icon: <Gauge /> },
-    { key: "Schedule", icon: <Icon name="calendar" size={25} stroke={1.6} /> },
-    { key: "Support", icon: <Icon name="headset" size={25} stroke={1.6} /> },
-  ];
-  return (
-    <div className="pchat-bar">
-      {tabs.map((t) => (
-        <div key={t.key} className={`sc-tab${t.key === "Messages" ? " is-active" : ""}`}>
-          {t.icon}
-          <span>{t.key}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export default function Messages() {
   return (
-    <PhoneShell footer={<Bar />}>
+    <PhoneShell tab="Messages">
       <div className="pchat-head">
         <h1>Chats</h1>
         <span className="pchat-btn">

@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Icon, type IconName } from "./Icon";
+import { Icon } from "./Icon";
 
-export type PhoneTab = "Home" | "Jobsites" | "Docs" | "Reports" | "Summary" | "Profile";
+export type PhoneTab = "Home" | "Projects" | "Reports" | "Messages" | "Support" | "Jobsites" | "Docs" | "Summary" | "Profile";
 
 /** iOS status bar: 9:41, signal, wifi, battery (54 px tall, leaves room for the Dynamic Island). */
 export function StatusBar({ island = false, tone = "dark" }: { island?: boolean; tone?: "dark" | "light" }) {
@@ -31,34 +31,55 @@ export function StatusBar({ island = false, tone = "dark" }: { island?: boolean;
   );
 }
 
-const TABS_V: { key: PhoneTab; icon: IconName }[] = [
-  { key: "Home", icon: "home" },
-  { key: "Jobsites", icon: "mapPin" },
-  { key: "Docs", icon: "docs" },
-  { key: "Summary", icon: "calendarCheck" },
-  { key: "Profile", icon: "user" },
-];
+const TABS: PhoneTab[] = ["Home", "Projects", "Reports", "Messages", "Support"];
+// the old bar's tabs, where the updated app has them now
+const NOW: Partial<Record<PhoneTab, PhoneTab>> = { Jobsites: "Projects", Docs: "Reports", Summary: "Home" };
 
-/** Bottom tab bar: Home · Jobsites · Docs (or Reports) · Summary · Profile, with the home indicator. */
-export function TabBar({ active, variant = "docs" }: { active: PhoneTab | null; variant?: "docs" | "reports" }) {
-  const tabs = variant === "reports" ? TABS_V.map((t) => (t.key === "Docs" ? { key: "Reports" as PhoneTab, icon: "reports" as IconName } : t)) : TABS_V;
+// the updated app's own glyphs (James's screenshots, Oct 21): the Reports pulse, the Messages bubbles
+const Pulse = ({ on }: { on: boolean }) => (
+  <svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="9.6" fill={on ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.6} />
+    <path d="M6.6 13.4l2.7-3.1 2.6 3.2 2.7-3.9 2.8 2.7" stroke={on ? "#fff" : "currentColor"} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const Bubbles = () => (
+  <svg width="25" height="25" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M2.5 3.5h12.5v9H7l-4.5 3.6z" />
+    <path d="M17 7h4.5v12.6L17.6 17H9v-2.6h8z" />
+  </svg>
+);
+const PinFill = () => (
+  <svg width="25" height="25" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 21.6s-7.2-6-7.2-11.8a7.2 7.2 0 0 1 14.4 0c0 5.8-7.2 11.8-7.2 11.8z" fill="currentColor" />
+    <circle cx="12" cy="9.8" r="2.6" fill="#fff" />
+  </svg>
+);
+
+/** Bottom tab bar, as in the updated app: Home · Projects · Reports · Messages (1 new) · Support, with the home indicator. */
+export function TabBar({ active }: { active: PhoneTab | null; variant?: "docs" | "reports" }) {
+  const lit = active ? (NOW[active] ?? active) : null;
   return (
     <div className="sc-tabbar">
-      {tabs.map(({ key, icon }) => {
-        const on = key === active;
-        const ic: IconName = key === "Home" ? (on ? "homeFill" : "homeDoor") : on && key === "Summary" ? "calendarCheckFill" : icon;
+      {TABS.map((key) => {
+        const on = key === lit;
+        const icon =
+          key === "Home" ? (
+            <Icon name={on ? "homeFill" : "homeDoor"} size={25} stroke={1.6} />
+          ) : key === "Projects" ? (
+            on ? <PinFill /> : <Icon name="mapPin" size={25} stroke={1.6} />
+          ) : key === "Reports" ? (
+            <Pulse on={on} />
+          ) : key === "Messages" ? (
+            <Bubbles />
+          ) : (
+            <Icon name="headset" size={25} stroke={on ? 2.1 : 1.6} />
+          );
         return (
           <div key={key} className={`sc-tab${on ? " is-active" : ""}`}>
-            {key === "Profile" ? (
-              <span className="sc-tab-avatar">
-                <svg viewBox="0 0 25 25" width="25" height="25" aria-hidden="true">
-                  <circle cx="12.5" cy="10" r="4.6" fill="#7d7066" />
-                  <path d="M3.6 25c.9-5.1 4.4-8 8.9-8s8 2.9 8.9 8z" fill="#5e534b" />
-                </svg>
-              </span>
-            ) : (
-              <Icon name={ic} size={25} stroke={1.6} />
-            )}
+            <span className="sc-tab-ic">
+              {icon}
+              {key === "Messages" && !on && <span className="sc-tab-badge">1</span>}
+            </span>
             <span>{key}</span>
           </div>
         );

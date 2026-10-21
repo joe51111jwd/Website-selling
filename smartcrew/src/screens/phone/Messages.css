@@ -106,15 +106,3 @@
   color: #8a8a8a;
 }
 /* the app's bar: Home · Messages · Tools · Schedule · Support */
-.sc .pchat-bar {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  align-items: start;
-  margin: -6px -16px 0;
-}
-.sc .pchat-bar .sc-tab {
-  color: #555;
-}
-.sc .pchat-bar .sc-tab.is-active {
-  color: #050505;
-}
