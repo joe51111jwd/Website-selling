@@ -4,13 +4,15 @@
 // Pointer: drag anywhere on the grid (touch waits for a sideways move so the page still scrolls);
 // keyboard: arrows ±1, Page Up/Down ±10, Home/End.
 // Arrival (once, the crew 35 % in view): the empty slots ripple in column by column and, at 1.4 s,
-// the knob nudges once (number.css); the parent keys the meter on from `onArrive`.
+// the knob nudges once (number.css); the parent keys the meter on from `onArrive`. With `glide`,
+// the slider then runs from 0 up to it (./glide.ts, James, Oct 21) until the visitor touches it.
 
 import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
 import { reducedMotion } from "../../three/stage/store";
 import { LOGO_DATA } from "../../brand/Logo";
 import { CALC } from "../../content/copy";
 import { CREW_MAX } from "./calc";
+import { useGlide } from "./glide";
 
 const ROWS = 5;
 const COLS = CREW_MAX / ROWS; // 20
@@ -28,14 +30,18 @@ export function CrewSlider({
   onFirst,
   onArrive,
   onDrag,
+  glide = null,
 }: {
   value: number | null;
   onChange: (v: number) => void;
+  /** The visitor's first touch (the parent counts it once). */
   onFirst?: () => void;
   /** The crew has come into view (once). */
   onArrive?: () => void;
   /** A drag starts / ends (the meter waits for its end). */
   onDrag?: (on: boolean) => void;
+  /** On arrival, glide from the current value (0) up to this crew (./glide.ts); null: no glide. */
+  glide?: number | null;
 }) {
   const id = useId().replace(/:/g, "");
   const area = useRef<HTMLDivElement>(null);
@@ -48,7 +54,10 @@ export function CrewSlider({
   arrive.current = onArrive;
   const dragCb = useRef(onDrag);
   dragCb.current = onDrag;
-  useEffect(() => dragCb.current?.(dragging), [dragging]);
+  const g = useGlide(glide, inView, onChange);
+  // the meter waits out the glide as it does a drag
+  const holding = dragging || g.running;
+  useEffect(() => dragCb.current?.(holding), [holding]);
 
   // the empty slots ripple in once, the first time the scene comes into view
   useEffect(() => {
@@ -79,8 +88,10 @@ export function CrewSlider({
     };
   }, []);
 
+  // the visitor's input (a click, a drag, a tap or a key): it ends the glide where it is
   const set = (v: number) => {
-    if (value == null) onFirst?.();
+    g.stop();
+    onFirst?.();
     if (v !== value) onChange(v);
   };
   // the track's box is read once per gesture (on pointerdown), never per move
@@ -142,7 +153,8 @@ export function CrewSlider({
     set(n);
   };
 
-  const p = (value ?? 0) / CREW_MAX;
+  // while it glides the thumb moves continuously; the hats follow each whole person
+  const p = (g.x ?? value ?? 0) / CREW_MAX;
   const valueText = value == null ? CALC.crewEmpty : `${value} ${value === 1 ? CALC.crewUnitOne : CALC.crewUnit}`;
 
   return (

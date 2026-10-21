@@ -4,8 +4,8 @@
 // Same arithmetic and honesty as the desktop (OFFER.md §6): it starts from the presets (round 4,
 // ./calc.ts PRESET) so a number is there at once, we only multiply and show the working, and only
 // a number the visitor has made their own goes with the lead. No scroll-driven JS: on arrival (once)
-// the empty crew ripples in and, at 1.4 s, the knob nudges once (CSS); everything else moves only
-// when the visitor touches it. The hour meter (SCROLL_SHOTS §2): his dollars appear once his
+// the empty crew ripples in (CSS) and the crew glides from 0 up to the preset (./glide.ts, James,
+// Oct 21); everything else moves only when the visitor touches it. The hour meter (SCROLL_SHOTS §2): his dollars appear once his
 // inputs have settled (250 ms after the last change), the wheels rolling up to them (transform).
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
@@ -19,6 +19,7 @@ import { CrewCanvas } from "./CrewCanvas";
 import { Odometer } from "./Odometer";
 import { DAYS_DEFAULT, PRESET, annualCost, grouped, money, parseDays, weekly } from "./calc";
 import { useSettled } from "./settle";
+import { GLIDE } from "./glide";
 import { CLASSIC } from "../../lib/look";
 import "./number-phone.css";
 
@@ -106,7 +107,8 @@ function Money({ value }: { value: number }) {
 
 export default function NumberPhone() {
   // round 4: a number at once, from the presets (./calc.ts PRESET); the visitor changes them to theirs
-  const [crew, setCrew] = useState<number | null>(PRESET.crew);
+  // the crew starts at 0 and glides to the preset as it arrives (./glide.ts), unless reduced motion
+  const [crew, setCrew] = useState<number | null>(GLIDE ? 0 : PRESET.crew);
   const [minutes, setMinutes] = useState<number | null>(PRESET.minutes);
   const [rate, setRate] = useState<number | null>(PRESET.rate);
   const [daysText, setDaysText] = useState(String(DAYS_DEFAULT));
@@ -174,7 +176,7 @@ export default function NumberPhone() {
         </span>
       </p>
 
-      {stage >= 2 && <CrewCanvas value={crew} rows={short ? 5 : 6} arrived={arrived} onFirst={() => touch("crew")} onChange={setCrew} onDrag={setDragging} />}
+      {stage >= 2 && <CrewCanvas value={crew} rows={short ? 5 : 6} arrived={arrived} onFirst={() => touch("crew")} onChange={setCrew} onDrag={setDragging} glide={GLIDE ? PRESET.crew : null} />}
 
       {stage >= 3 && (
         <>

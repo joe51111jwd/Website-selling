@@ -5,11 +5,14 @@
 // while something is still moving (a short rAF burst after each change), never on scroll.
 // The thumb and the fill move by transform. The track's box is read on pointerdown (not per move).
 // Touch waits for a sideways move so the page still scrolls; keyboard: arrows ±1, Page ±10, Home/End.
+// With `glide`, on arrival it runs from 0 up to it (./glide.ts, James, Oct 21) until the visitor
+// sets it (a scroll that starts on it doesn't stop it).
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { LOGO_DATA } from "../../brand/Logo";
 import { CALC } from "../../content/copy";
 import { CREW_MAX } from "./calc";
+import { useGlide } from "./glide";
 
 const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -40,6 +43,7 @@ export function CrewCanvas({
   onDrag,
   arrived,
   rows,
+  glide = null,
 }: {
   value: number | null;
   onChange: (v: number) => void;
@@ -50,6 +54,8 @@ export function CrewCanvas({
   arrived: boolean;
   /** rows of the grid (columns = 100 / rows); the grid fills column by column so its edge follows the thumb */
   rows: number;
+  /** On arrival, glide from the current value (0) up to this crew (./glide.ts); null: no glide. */
+  glide?: number | null;
 }) {
   const cols = Math.ceil(CREW_MAX / rows);
   const area = useRef<HTMLDivElement>(null);
@@ -67,7 +73,10 @@ export function CrewCanvas({
   const [dragging, setDragging] = useState(false);
   const dragCb = useRef(onDrag);
   dragCb.current = onDrag;
-  useEffect(() => dragCb.current?.(dragging), [dragging]);
+  const g = useGlide(glide, arrived, onChange);
+  // the meter waits out the glide as it does a drag
+  const holding = dragging || g.running;
+  useEffect(() => dragCb.current?.(holding), [holding]);
 
   // per slot: when it was turned on / off (ms, performance.now()), for the pop and the fade
   const born = useRef<Float64Array>(new Float64Array(CREW_MAX));
@@ -202,8 +211,10 @@ export function CrewCanvas({
 
   useEffect(() => () => cancelAnimationFrame(raf.current), []);
 
+  // the visitor's input (a drag, a tap or a key): it ends the glide where it is
   const set = (v: number) => {
-    if (value == null) onFirst?.();
+    g.stop();
+    onFirst?.();
     if (v !== value) onChange(v);
   };
   const fromX = (clientX: number) => {
@@ -279,7 +290,8 @@ export function CrewCanvas({
     set(n);
   };
 
-  const p = (value ?? 0) / CREW_MAX;
+  // while it glides the thumb moves continuously; the hats follow each whole person
+  const p = (g.x ?? value ?? 0) / CREW_MAX;
   const touched = value != null;
   const valueText = value == null ? CALC.crewEmpty : `${value} ${value === 1 ? CALC.crewUnitOne : CALC.crewUnit}`;
 

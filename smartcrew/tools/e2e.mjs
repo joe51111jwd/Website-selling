@@ -782,6 +782,14 @@ async function tryIt(device) {
 
 async function yourNumber(device) {
   const ctx = await newContext(device);
+  // the crew glides from 0 up to the preset as it arrives (James, Oct 21; src/site/number/glide.ts):
+  // record every value the slider passes through
+  await ctx.addInitScript(() => {
+    window.__crewSeen = [];
+    new MutationObserver((ms) => {
+      for (const m of ms) if (m.target.closest?.("#number")) window.__crewSeen.push(m.target.getAttribute("aria-valuenow"));
+    }).observe(document, { subtree: true, attributes: true, attributeFilter: ["aria-valuenow"] });
+  });
   const page = await open(ctx);
   try {
     await waitScenes(page);
@@ -790,6 +798,10 @@ async function yourNumber(device) {
     const slider = sec.getByRole("slider").first();
     await slider.waitFor({ state: "visible", timeout: 8000 });
     await slider.scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => document.querySelector("#number [role=slider]")?.getAttribute("aria-valuenow") === "15", null, { timeout: 8000 }).catch(() => {});
+    const seen = await page.evaluate(() => window.__crewSeen.map(Number));
+    assert((await slider.getAttribute("aria-valuenow")) === "15", `the crew didn't land on 15 (at ${await slider.getAttribute("aria-valuenow")})`);
+    assert(seen.some((v) => v > 0 && v < 15), `the crew didn't glide up to 15 (values seen: ${seen.join(",") || "none"})`);
     await slider.focus();
     // it starts from the preset crew (src/site/number/calc.ts PRESET): set it from 1
     await page.keyboard.press("Home"); // 1
@@ -819,7 +831,7 @@ async function yourNumber(device) {
     assert(dlg.includes("13–25"), "the popup doesn't show the crew size as saved");
     assert(dlg.includes(money), `the popup doesn't show the estimate ${money}`);
     await closePopup(page);
-    return `18 people × 15 min × $40 → ${money} a year, carried into the popup (crew size 13–25 pre-filled)`;
+    return `glides 0 → 15 on arrival; 18 people × 15 min × $40 → ${money} a year, carried into the popup (crew size 13–25 pre-filled)`;
   } finally {
     await ctx.close();
   }

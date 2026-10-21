@@ -6,8 +6,9 @@
 // popup once it is theirs (they changed something).
 // The scroll moment is the "hour meter" (scratchpad design/v2/scroll/SCROLL_SHOTS.md §2): as the
 // crew comes into view the empty slots ripple in and the meter keys on (every wheel turns once);
-// at 1.4 s the knob nudges once; when his inputs settle (250 ms after the last change) the wheels
-// roll to his number, and "a year" and the weekly line come up 200 ms after the last one lands.
+// the crew glides from 0 up to the preset (./glide.ts, James, Oct 21); when his inputs settle (250 ms
+// after the last change, or the glide's end) the wheels roll to his number, and "a year" and the
+// weekly line come up 200 ms after the last one lands.
 
 import { useEffect, useRef, useState } from "react";
 import { CALC, FLAG } from "../../content/copy";
@@ -20,6 +21,7 @@ import { CrewSlider } from "./CrewSlider";
 import { Odometer } from "./Odometer";
 import { DAYS_DEFAULT, PRESET, annualCost, money, parseDays, weekly } from "./calc";
 import { useSettled } from "./settle";
+import { GLIDE } from "./glide";
 import { usePhoneLite } from "../phone";
 import { CLASSIC } from "../../lib/look";
 import NumberPhone from "./NumberPhone";
@@ -73,7 +75,8 @@ function Chips<T extends number>({
 }
 
 function Calculator() {
-  const [crew, setCrew] = useState<number | null>(PRESET.crew);
+  // the crew starts at 0 and glides to the preset as it arrives (./glide.ts), unless reduced motion
+  const [crew, setCrew] = useState<number | null>(GLIDE ? 0 : PRESET.crew);
   const [minutes, setMinutes] = useState<number | null>(PRESET.minutes);
   const [rate, setRate] = useState<number | null>(PRESET.rate);
   const [daysText, setDaysText] = useState(String(DAYS_DEFAULT));
@@ -128,7 +131,14 @@ function Calculator() {
       </div>
 
       <div className="num-in">
-        <CrewSlider value={crew} onChange={setCrew} onFirst={() => touch("crew")} onArrive={() => setArrived(true)} onDrag={setDragging} />
+        <CrewSlider
+          value={crew}
+          onChange={setCrew}
+          onFirst={() => touch("crew")}
+          onArrive={() => setArrived(true)}
+          onDrag={setDragging}
+          glide={GLIDE ? PRESET.crew : null}
+        />
         <Chips
           name="minutes"
           label={CALC.minutesLabel}
