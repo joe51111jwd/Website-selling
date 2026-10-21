@@ -10,15 +10,17 @@
 // log& switch, the tabs at hte top, etc. Lets add back all the forms on the reporting page… For
 // jobsites, lets custom build one that has field note history and docs and make that the only
 // clickable one. Also want messaging to be shown… I love being ablet to click on it. but want to
-// limit how deep into the app people can go."): Home, Docs and their forms, Summary, one jobsite and
-// one chat work; Messages takes Profile's tab; deeper rows show but are off (B's `off`, LIMITED in
+// limit how deep into the app people can go."), on the updated app's tabs (his texts the same day:
+// "lets redo this one based on mobile now"; announcements "viewable too"): Home (Today · week),
+// Projects, Reports and their forms, Messages (Posts · Chats) and Support work at their top level,
+// with one project and one chat that open; deeper rows show but are off (B's `off`, LIMITED in
 // ./app/views.tsx), and taps on them do nothing here.
 
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useReducer, useRef, useState, type PointerEvent } from "react";
 import { timer } from "../../screens/kit";
 import { initial, reduce, type Task } from "./app/model";
-import { Camera, DayHeader, Docs, Jobsites, LIMITED, Messages, nowTime, PastDay, Profile, Ready, RouteView, Sheet, Summary, TabBar, Working, WeekStrip, type Ctx } from "./app/views";
+import { Camera, DayHeader, Docs, HomeSeg, Jobsites, LIMITED, Messages, nowTime, PastDay, Profile, Projects, Ready, Reports, RouteView, Sheet, Summary, Support, TabBar, Working, WeekList, WeekStrip, type Ctx } from "./app/views";
 import { TODAY } from "../../screens/data";
 import "./app/app.css";
 
@@ -134,6 +136,9 @@ export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, 
   else if (s.tab === "Summary") view = <Summary c={c} />;
   else if (s.tab === "Profile") view = <Profile c={c} />;
   else if (s.tab === "Messages") view = <Messages c={c} />;
+  else if (s.tab === "Projects") view = <Projects c={c} />;
+  else if (s.tab === "Reports") view = <Reports c={c} />;
+  else if (s.tab === "Support") view = <Support c={c} />;
   else {
     const chrome = (
       <>
@@ -144,8 +149,13 @@ export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, 
     view = (
       <>
         {!staged ? chrome : at >= 2 ? <div className="tp-chrome">{chrome}</div> : <div className="tp-chrome tp-chrome--wait" aria-hidden="true" />}
+        {LIMITED && at >= 1 && <HomeSeg c={c} />}
         {at < 1 ? null : s.day !== TODAY.iso ? (
           <PastDay c={c} />
+        ) : LIMITED && s.seg === "Week" ? (
+          <div className="ca-fade">
+            <WeekList c={c} />
+          </div>
         ) : (
           <AnimatePresence mode="wait" initial={false}>
             {!on ? (
@@ -195,7 +205,7 @@ export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, 
       data-cursor="hide"
     >
       <div className="ca-main">
-        <div key={viewKey} className={`ca-view${s.tab === "Home" && !route ? " ca-view--home" : ""} ca-in--${dir}`}>
+        <div key={viewKey} className={`ca-view${s.tab === "Home" && !route ? " ca-view--home" : ""}${s.tab === "Support" && !route ? " ca-view--help" : ""} ca-in--${dir}`}>
           {view}
         </div>
         {s.toast && (

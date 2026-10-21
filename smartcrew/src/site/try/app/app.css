@@ -1104,3 +1104,475 @@
   color: #9a9a9a;
   background: #f4f4f4;
 }
+
+/* ── the limited app on the updated app's tabs (Oct 21): Home · Projects · Reports · Messages ·
+   Support (views.tsx) ─────────────────────────────────────────────────── */
+
+/* the tab bar: the Messages badge sits on its icon */
+.sc.ca .ca-tab-ic {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+}
+.sc.ca .ca-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  background: #ef3b36;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+/* headers: big title, round buttons, the date */
+.sc.ca .ca-tabhead h3 {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sc.ca .ca-tabhead--stack {
+  padding-top: 6px;
+}
+.sc.ca .ca-tabhead--stack h3 {
+  font-size: 36px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0a0a0a;
+}
+.sc.ca .ca-tabhead-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.sc.ca .ca-round.is-off {
+  color: #111;
+}
+.sc.ca .ca-dayhead .ca-dayhead-btns {
+  display: flex;
+  gap: 7px;
+  margin-left: auto;
+}
+.sc.ca .ca-dayhead .ca-chats-date {
+  margin-left: 10px;
+}
+
+/* Home: Today · this week */
+.sc.ca .ca-homeseg {
+  margin-top: 14px;
+  height: 42px;
+  border-radius: 12px;
+  background: #ececec;
+  padding: 3px;
+}
+.sc.ca .ca-homeseg > button {
+  border-radius: 9px;
+}
+.sc.ca .ca-homeseg > button.is-on {
+  box-shadow: 0 1px 3px rgb(0 0 0 / 10%);
+}
+.sc.ca .ca-view--home > .ca-fade > .ca-list {
+  margin-top: 12px;
+}
+
+/* Projects */
+.sc.ca .ca-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  margin-top: 12px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 15.5px;
+  color: #a3a3a3;
+  background: #f4f4f4;
+}
+.sc.ca .ca-pcard {
+  margin-top: 10px;
+  padding: 14px 16px 14px;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  background: #fff;
+}
+.sc.ca .ca-pcard.is-dim {
+  opacity: 1;
+}
+.sc.ca .ca-pcard.is-dim .ca-pcard-main,
+.sc.ca .ca-pcard.is-dim .ca-status {
+  opacity: 0.6;
+}
+.sc.ca .ca-pcard-main {
+  width: 100%;
+  align-items: flex-start;
+  gap: 10px;
+}
+.sc.ca .ca-pcard-main .ca-li-main > b {
+  font-size: 18px;
+  font-weight: 650;
+  white-space: normal;
+}
+.sc.ca .ca-pcard-main .ca-li-main > span {
+  font-size: 14px;
+}
+.sc.ca .ca-pcard-chev {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  color: #555;
+  background: #f4f4f4;
+}
+.sc.ca .ca-pcard-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.sc.ca .ca-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #111;
+  background: #f4f4f4;
+}
+.sc.ca .ca-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22b05a;
+}
+.sc.ca .ca-status.is-ended {
+  color: #111;
+  background: #fde8e7;
+}
+.sc.ca .ca-status.is-ended::before {
+  background: #ef3b36;
+}
+.sc.ca .ca-dir {
+  margin-left: auto;
+  height: 34px;
+  padding: 0 13px;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid #e3e3e3;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #111;
+  background: #f6f6f6;
+}
+
+/* Reports: the app's groups, each row with its line under it */
+.sc.ca .ca-rgroup {
+  margin: 20px 0 2px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #6a6a6a;
+}
+.sc.ca .ca-rlist {
+  margin-top: 0;
+}
+.sc.ca .ca-rrow {
+  align-items: center;
+  min-height: 70px;
+}
+.sc.ca .ca-rrow-main > span {
+  white-space: normal;
+  line-height: 1.3;
+}
+.sc.ca .ca-rrow-main > b {
+  font-size: 16.5px;
+}
+
+/* Messages · Posts: the office's announcements, each opening in place */
+.sc.ca .ca-posts {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+}
+.sc.ca .ca-post {
+  margin-top: 10px;
+  border: 1px solid #e6e6e6;
+  border-radius: 16px;
+  background: #fff;
+  overflow: hidden;
+}
+.sc.ca .ca-post-main {
+  width: 100%;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 14px 16px 12px;
+}
+.sc.ca .ca-post-main:active {
+  background: rgb(0 0 0 / 3%);
+}
+.sc.ca .ca-post-title {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #0a0a0a;
+}
+.sc.ca .ca-post-by {
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+.sc.ca .ca-post-when {
+  font-size: 13.5px;
+  color: #8a8a8a;
+}
+.sc.ca .ca-post-body {
+  margin-top: 6px;
+  font-size: 14.5px;
+  line-height: 1.42;
+  color: #333;
+  white-space: pre-line;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.sc.ca .ca-post.is-open .ca-post-body {
+  display: block;
+  -webkit-line-clamp: unset;
+}
+.sc.ca .ca-post-more {
+  margin-top: 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #111;
+}
+.sc.ca .ca-post-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 16px 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f6f6f6;
+}
+.sc.ca .ca-post-file .ca-file {
+  width: 36px;
+  height: 36px;
+}
+.sc.ca .ca-post-file .ca-li-main > b {
+  font-size: 14px;
+}
+.sc.ca .ca-fab {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: auto;
+  padding-top: 0;
+  border-radius: 14px;
+  box-shadow: 0 0 0 10px #fff;
+}
+.sc.ca .ca-posts > .ca-fab {
+  margin-top: 16px;
+}
+.sc.ca .ca-posts > .ca-chats + .ca-fab {
+  margin-top: auto;
+}
+
+/* Support: the app's help desk, with its own bar */
+.sc.ca .ca-view--help,
+.tp .tp-ui .sc.ca .ca-view.ca-view--help {
+  padding: 0;
+}
+.sc.ca .ca-help {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 auto;
+  min-height: 100%;
+  background: #fff;
+}
+.sc.ca .ca-help--home {
+  background:
+    radial-gradient(90% 55% at 85% 30%, rgb(170 170 240 / 75%), transparent 70%),
+    radial-gradient(90% 60% at 10% 35%, rgb(240 160 220 / 80%), transparent 70%),
+    linear-gradient(180deg, #f6d4f4 0%, #f3cdef 35%, #fff 62%);
+}
+.sc.ca .ca-help-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 8px 20px 0;
+}
+.sc.ca .ca-help:not(.ca-help--home) .ca-help-top {
+  border-bottom: 1px solid #eee;
+}
+.sc.ca .ca-help-title {
+  font-size: 17px;
+  font-weight: 600;
+}
+.sc.ca .ca-help-x {
+  position: absolute;
+  right: 18px;
+  top: 12px;
+}
+.sc.ca .ca-help-body {
+  flex: 1 0 auto;
+  padding: 0 20px 20px;
+}
+.sc.ca .ca-help-logo {
+  display: block;
+  width: 34px;
+  height: 34px;
+  margin-top: 10px;
+  border-radius: 50%;
+  border: 5px solid #111;
+  border-right-color: transparent;
+  transform: rotate(-30deg);
+}
+.sc.ca .ca-help-hi {
+  margin-top: 54px;
+  font-size: 28px;
+  font-weight: 800;
+  color: #5b3550;
+}
+.sc.ca .ca-help-q {
+  margin-top: 2px;
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0a0a0a;
+}
+.sc.ca .ca-help-ask {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 54px;
+  margin-top: 22px;
+  padding: 0 8px 0 20px;
+  border-radius: 999px;
+  font-size: 16px;
+  color: #777;
+  background: #fff;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 8%);
+}
+.sc.ca .ca-help-ask .sc-icon {
+  width: 38px;
+  height: 38px;
+  padding: 10px;
+  border-radius: 50%;
+  color: #777;
+  background: #e8e8e8;
+  transform: rotate(-45deg);
+}
+.sc.ca .ca-help-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.sc.ca .ca-help-chip {
+  height: 36px;
+  padding: 0 13px;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgb(0 0 0 / 8%);
+  font-size: 14px;
+  font-weight: 500;
+  color: #111;
+  background: rgb(255 255 255 / 65%);
+}
+.sc.ca .ca-help-av {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 9px, #fff 9.5px, #fff 12px, transparent 12.5px),
+    #111;
+}
+.sc.ca .ca-help-news {
+  padding: 14px 0;
+  border-bottom: 1px solid #eee;
+}
+.sc.ca .ca-help-news > span {
+  font-size: 12.5px;
+  color: #8a8a8a;
+}
+.sc.ca .ca-help-news > b {
+  display: block;
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 650;
+}
+.sc.ca .ca-help-news > p {
+  margin-top: 3px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #555;
+}
+.sc.ca .ca-help-road {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid #eee;
+}
+.sc.ca .ca-help-vote {
+  flex: none;
+  width: 42px;
+  height: 50px;
+  border-radius: 10px;
+  border: 1px solid #e6e6e6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 600;
+}
+.sc.ca .ca-help-bar {
+  position: sticky;
+  bottom: 12px;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0 18px 12px;
+  padding: 8px 6px;
+  border-radius: 26px;
+  border: 1px solid #eee;
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 4px 16px rgb(0 0 0 / 7%);
+}
+.sc.ca .ca-help-bar > button {
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  color: #222;
+}
+.sc.ca .ca-help-bar > button.is-on {
+  font-weight: 700;
+  color: #000;
+}

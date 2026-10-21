@@ -746,19 +746,21 @@ async function tryIt(device) {
     }
     await press(page, clockIn, { what: "Clock In" });
     await sec.getByText(/currently working on/i).first().waitFor({ state: "attached", timeout: 8000 });
-    // classic (Andrew's comment-mode note, Oct 21): a limited app. The five tabs work and Messages
-    // takes Profile's place; rows deeper than he wants are off; the jobsite caption under the phone
-    // stays gone
+    // classic (Andrew's comment-mode note, Oct 21): a limited app, on the updated app's tabs (his
+    // texts the same day: "lets redo this one based on mobile now"): Home, Projects, Reports,
+    // Messages, Support all work; rows deeper than he wants are off; the jobsite caption under the
+    // phone stays gone
     let simple = "";
     if (!LOOK || LOOK === "classic") {
       const app = sec.locator(".ca.is-limited").first();
       assert(await app.count(), "the Try it app isn't in its limited mode");
       const tabs = await app.locator(".sc-tab").allTextContents();
-      assert(tabs.join("|").includes("Messages") && !tabs.join("|").includes("Profile"), `the tabs are ${tabs.join(", ")}`);
+      const names = ["Home", "Projects", "Reports", "Messages", "Support"];
+      assert(tabs.length === 5 && names.every((n, i) => tabs[i].includes(n)), `the tabs are ${tabs.join(", ")}`);
       assert(!(await app.locator(".sc-tab[aria-disabled='true']").count()), "a tab is switched off");
       assert(!(await app.locator(".tp-clockout[aria-disabled='true'], .tp-break[aria-disabled='true']").count()), "Clock Out or Break is switched off");
       assert(!(await sec.locator(".try-cap, .tp-stamp").count()), "the jobsite caption is still under the phone");
-      simple = ", limited app (tabs on, Messages in place of Profile)";
+      simple = ", limited app (Home · Projects · Reports · Messages · Support)";
     }
     // the CTA under the headline (or on phones the sheet's), or (while the tap has dimmed the rest of
     // the page: focus mode, src/site/try/focus.tsx) the one beside the phone / in the dimmed header

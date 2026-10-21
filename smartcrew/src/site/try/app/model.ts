@@ -5,10 +5,13 @@
 
 import { currentActivity, phoneWeek, taskOptions, TODAY, weekSummary } from "../../../screens/data";
 
-export type Tab = "Home" | "Jobsites" | "Docs" | "Summary" | "Profile" | "Messages";
+export type Tab = "Home" | "Jobsites" | "Docs" | "Summary" | "Profile" | "Messages" | "Projects" | "Reports" | "Support";
 export const TABS: Tab[] = ["Home", "Jobsites", "Docs", "Summary", "Profile"];
-/** The limited app (classic): Messages in Profile's place (Andrew's comment-mode note, Oct 21). */
-export const TABS_LIMITED: Tab[] = ["Home", "Jobsites", "Docs", "Summary", "Messages"];
+/**
+ * The limited app (classic): the updated app's bar (Andrew, Oct 21: "lets redo this one based on
+ * mobile now"; James's screenshots of the app the same day): Home, Projects, Reports, Messages, Support.
+ */
+export const TABS_LIMITED: Tab[] = ["Home", "Projects", "Reports", "Messages", "Support"];
 /** The one jobsite the limited app opens: the job the crew is on (Hwy 9). */
 export const TRY_JOB = currentActivity.projectId;
 
@@ -27,6 +30,8 @@ export type Field = keyof Task;
 /** A finished stretch of work today (`secs` excludes breaks). */
 export type Entry = Task & { from: string; to: string; secs: number };
 export type Seg = "Today" | "Entries" | "Week";
+/** The limited app's toggles at the top of a tab: Projects · Schedule, Posts · Chats, and Support's own bar. */
+export type Sub = { projects: "Projects" | "Schedule"; messages: "Posts" | "Chats"; support: "Home" | "Messages" | "News" | "Roadmap" };
 
 export type State = {
   tab: Tab;
@@ -53,6 +58,11 @@ export type State = {
   sent: string[];
   /** length of the last finished shift, seconds */
   lastShift: number | null;
+  sub: Sub;
+  /** posts opened to read in full (Messages · Posts) */
+  read: string[];
+  /** the Messages tab has been opened (its red badge goes) */
+  seenMsgs: boolean;
 };
 
 export const DEFAULT_TASK: Task = {
@@ -81,6 +91,9 @@ export const initial: State = {
   photos: 0,
   sent: [],
   lastShift: null,
+  sub: { projects: "Projects", messages: "Posts", support: "Home" },
+  read: [],
+  seenMsgs: false,
 };
 
 export type Action =
@@ -104,7 +117,9 @@ export type Action =
   | { t: "notify" }
   | { t: "spanish" }
   | { t: "photo" }
-  | { t: "sent"; label: string };
+  | { t: "sent"; label: string }
+  | { [K in keyof Sub]: { t: "sub"; k: K; v: Sub[K] } }[keyof Sub]
+  | { t: "post"; id: string };
 
 /** Seconds on the current task right now (breaks don't count). */
 export function taskSecs(s: State, secs: number) {
@@ -124,7 +139,7 @@ export function reduce(s: State, a: Action): State {
   switch (a.t) {
     case "tab":
       // tapping the tab you're on goes back to its top
-      return { ...s, tab: a.tab, stack: [], sheet: null };
+      return { ...s, tab: a.tab, stack: [], sheet: null, seenMsgs: s.seenMsgs || a.tab === "Messages" };
     case "push":
       return { ...s, stack: [...s.stack, a.route] };
     case "pop":
@@ -199,6 +214,10 @@ export function reduce(s: State, a: Action): State {
       return { ...s, photos: s.photos + 1 };
     case "sent":
       return { ...s, sent: s.sent.includes(a.label) ? s.sent : [...s.sent, a.label] };
+    case "sub":
+      return { ...s, sub: { ...s.sub, [a.k]: a.v } };
+    case "post":
+      return { ...s, read: s.read.includes(a.id) ? s.read.filter((x) => x !== a.id) : [...s.read, a.id] };
   }
 }
 
