@@ -271,6 +271,9 @@ export const SCREENS: ScreenDef[] = [
     feature: "comms",
     icon: "messaging",
     crop: 295,
+    // the crew's group chat, its channels listed (Andrew's comment-mode note, Oct 21: "Add mobile
+    // view of group chat screen so peopel can see the different chat channels")
+    phone: "phone-messages",
     spots: spots([
       ["C3", [359, 266, 1017, 42]],
       ["dispatch", [338, 628, 1059, 118]],
