@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { PhoneShell } from "../kit";
 import logoUrl from "../kit/smartcrew-logo.svg";
 import { crewMessages, scheduleBlocks } from "../data";
@@ -23,14 +24,13 @@ const NOTES = [
   { when: "1m ago", title: "Message from the office", body: office.text },
 ];
 
-export default function Push() {
+/** Any phone screen with SmartCrew notifications stacked over its top (lock-screen style). */
+export function WithAlerts({ notes, children }: { notes: { when: string; title: string; body: string }[]; children: ReactNode }) {
   return (
     <div className="pn">
-      <PhoneShell tab="Home">
-        <HomeBody />
-      </PhoneShell>
+      {children}
       <div className="pn-stack">
-        {NOTES.map((n) => (
+        {notes.map((n) => (
           <div className="pn-note" key={n.title}>
             <img className="pn-app" src={logoUrl} alt="" draggable={false} />
             <div className="pn-text">
@@ -45,5 +45,15 @@ export default function Push() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function Push() {
+  return (
+    <WithAlerts notes={NOTES}>
+      <PhoneShell tab="Home">
+        <HomeBody />
+      </PhoneShell>
+    </WithAlerts>
   );
 }

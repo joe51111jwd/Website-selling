@@ -1020,7 +1020,7 @@ export const announcements: Announcement[] = [
     body:
       "Here's who's where this week. Check your start time and jobsite before you head out.\n\n" +
       "Hwy 9 Culvert Replacement: Marcus Bell's crew, 6:30 AM. CAT 336 and two tandems. Flaggers on site by 6:45.\n" +
-      "Maple Ridge Subdivision Ph. 2: Elena Ruiz's crew, 7:00 AM. Finish grading lots 14 to 22, then curb prep.\n" +
+      "Maple Ridge Subdivision Ph. 2: Kenji Mori's crew, 7:00 AM. Finish grading lots 14 to 22, then curb prep.\n" +
       "Riverside Storm Sewer: Andre Whitfield's crew, 7:00 AM. Trench box goes in before anyone's in the hole.\n" +
       "Shop: Luis Delgado on the D6 track repair. Call him before you drop off a machine.\n\n" +
       "Questions or swaps, message the office before 5 PM Sunday. Full sheet attached.",

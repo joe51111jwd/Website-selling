@@ -50,6 +50,12 @@ export const SCREENS: ScreenDef[] = [
   { id: "phone-push", kind: "phone", title: "Push notifications · dispatch", load: () => import("./phone/Push") },
   { id: "phone-add-project", kind: "phone", title: "Add Project", load: () => import("./phone/AddProject") },
   { id: "phone-add-service", kind: "phone", title: "Add Service Record", load: () => import("./phone/AddService") },
+  { id: "phone-home-plan", kind: "phone", title: "Home · today's plan alert", load: () => import("./phone/HomePlan") },
+  { id: "phone-summary-clockout", kind: "phone", title: "Weekly summary · clock-out reminder", load: () => import("./phone/SummaryClockOut") },
+  { id: "phone-messages", kind: "phone", title: "Group messaging · channels", load: () => import("./phone/Messages") },
+  { id: "phone-change-order", kind: "phone", title: "Change Order form", load: () => import("./phone/ChangeOrderForm") },
+  { id: "phone-service-request", kind: "phone", title: "Service Request form", load: () => import("./phone/ServiceRequest") },
+  { id: "phone-daily-report", kind: "phone", title: "Daily Report form", load: () => import("./phone/DailyReportForm") },
 ];
 
 export const screenById = (id: string) => SCREENS.find((s) => s.id === id);

@@ -1,0 +1,81 @@
+/* Group messaging (phone): search, then one row per chat channel. Scoped under .sc like the kit. */
+.sc .pmsg-search {
+  margin: 4px 0 12px;
+  height: 40px;
+  border-radius: 12px;
+  background: #f4f4f4;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #949494;
+}
+.sc .pmsg-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sc .pmsg-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid #efefef;
+}
+.sc .pmsg-av {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+.sc .pmsg-av--orange { background: #f28a1b; }
+.sc .pmsg-av--dark { background: #1f1f1f; }
+.sc .pmsg-av--green { background: #2f9e5b; }
+.sc .pmsg-av--blue { background: #2f6fde; }
+.sc .pmsg-av--grey { background: #8a8a8a; }
+.sc .pmsg-av--purple { background: #7a5cd6; }
+.sc .pmsg-av--red { background: #d7362e; }
+.sc .pmsg-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sc .pmsg-top,
+.sc .pmsg-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sc .pmsg-name {
+  font-size: 15px;
+  font-weight: 650;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc .pmsg-time {
+  flex: none;
+  font-size: 12px;
+  color: #8a8a8a;
+}
+.sc .pmsg-last {
+  font-size: 13px;
+  line-height: 17px;
+  color: #6b6b6b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sc .pmsg-last b {
+  font-weight: 600;
+  color: #3a3a3a;
+}

@@ -26,15 +26,17 @@ export type Shot = { icon: IconName; web: string; phone: string };
 export const SHOTS: Record<WatchTabId, Record<string, Shot>> = {
   // the crew's day: the crew app on the phone, what it lands in on the office laptop
   day: {
-    plan: { icon: "calendar", web: "web-project-detail", phone: "phone-home" },
+    plan: { icon: "calendar", web: "web-project-detail", phone: "phone-home-plan" },
     clockin: { icon: "clock", web: "web-dashboard", phone: "phone-working" },
     inspect: { icon: "clipboardCheck", web: "web-equipment", phone: "phone-dot" },
     loads: { icon: "dumpTruck", web: "web-materials", phone: "phone-hauling" },
-    chat: { icon: "messaging", web: "web-messaging", phone: "phone-working" },
-    change: { icon: "fileText", web: "web-project-detail", phone: "phone-reports" },
-    breakdown: { icon: "wrench", web: "web-service-queue", phone: "phone-reports" },
-    report: { icon: "camera", web: pick("web-daily-reports", "web-project-detail"), phone: "phone-reports" },
-    clockout: { icon: "logout", web: "web-timecards", phone: "phone-summary" },
+    // Andrew's comment-mode notes, Oct 21: the app's group chat; the Change Orders tab and the change
+    // order form; the Service Request form; the Daily Report form
+    chat: { icon: "messaging", web: "web-messaging", phone: "phone-messages" },
+    change: { icon: "fileText", web: "web-project-changeorders", phone: "phone-change-order" },
+    breakdown: { icon: "wrench", web: "web-service-queue", phone: "phone-service-request" },
+    report: { icon: "camera", web: pick("web-daily-reports", "web-project-detail"), phone: "phone-daily-report" },
+    clockout: { icon: "logout", web: "web-timecards", phone: "phone-summary-clockout" },
   },
   // the admins' week: the office app, with the crew's phone where the plan reaches it
   week: {
