@@ -286,7 +286,9 @@ export const SCREENS: ScreenDef[] = [
     feature: "safety",
     icon: "hardHat",
     crop: 295,
-    phone: "phone-reports",
+    // the Incident Report form (Andrew's comment-mode note, Oct 21: "Change this screen to the
+    // Incident Report Screen")
+    phone: "phone-incident-report",
     spots: spots([
       ["E7", [339, 376, 1057, 224]],
       ["E5", [874, 163, 256, 86]],
