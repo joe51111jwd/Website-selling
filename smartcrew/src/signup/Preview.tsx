@@ -17,19 +17,21 @@ const CREW_DOTS: Record<Size, number> = { "1–5": 3, "6–12": 6, "13–25": 9,
 const MORE: Size[] = ["26–50", "51–100", "101–250", "250+"];
 
 // Andrew's comment-mode note, Oct 20: "Add all 10 features here on sidebar": his 10 features, in the
-// order of the feature cards (src/content/features.ts), under the Dashboard the window shows.
+// order of the feature cards (src/content/features.ts), under the Dashboard the window shows. His
+// note, Oct 21: "Cut two line titles. Equipment (cut mgmt) Materials (cut hauling) Messaging (instead
+// of crew communication) Safety Documents".
 const NAV: { label: string; icon: IconName }[] = [
   { label: "Dashboard", icon: "home" },
   { label: "Time Tracking", icon: "clock" },
   { label: "Job Costing", icon: "dollarCircle" },
-  { label: "Equipment Management", icon: "equipment" },
+  { label: "Equipment", icon: "equipment" },
   { label: "Daily Reports", icon: "reports" },
-  { label: "Materials & Hauling", icon: "materials" },
+  { label: "Materials", icon: "materials" },
   { label: "Scheduling", icon: "scheduling" },
   { label: "Sales & CRM", icon: "pipeline" },
-  { label: "Crew Communication", icon: "megaphone" },
-  { label: "Safety & Compliance", icon: "shieldCheck" },
-  { label: "File Storage & Documents", icon: "docs" },
+  { label: "Messaging", icon: "messaging" },
+  { label: "Safety", icon: "shieldCheck" },
+  { label: "Documents", icon: "docs" },
 ];
 
 type Props = { draft: Draft; intent: Intent; focus: Field | null; compact: boolean; saving: boolean; hidden?: boolean };
