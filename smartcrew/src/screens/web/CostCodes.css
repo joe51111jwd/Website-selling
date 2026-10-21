@@ -111,3 +111,88 @@
 .sc .sccc-tr--co {
   grid-template-columns: 2.4fr 1fr 1fr 1fr 1fr;
 }
+
+/* the Cost Codes tab as Andrew sent it (Oct 21; prefix sccx-): the codes with hours, labor,
+   equipment, material, variance, consumed and pace, then the category roll-up and the total */
+.sc .sccx-tr {
+  height: 42px;
+  display: grid;
+  grid-template-columns: 1.55fr 0.8fr 1fr 1.1fr 1.1fr 1fr 1fr 1fr 0.9fr 1fr;
+  align-items: center;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--sc-line);
+  font-size: 13.5px;
+  line-height: 17px;
+  color: #0a0a0a;
+  font-variant-numeric: tabular-nums;
+}
+.sc .sccx-tr > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.sc .sccx-tr > div:first-child {
+  justify-content: flex-start;
+  padding-left: 8px;
+}
+.sc .sccx-tr--head {
+  height: 44px;
+  background: #f6f6f6;
+  font-weight: 600;
+  color: #3d3d3d;
+}
+.sc .sccx-tr--head .sc-icon {
+  color: #9a9a9a;
+}
+.sc .sccx-code {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #f4f4f4;
+  box-shadow: inset 0 0 0 1px #e6e6e6;
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: #222;
+}
+.sc .sccx-var {
+  font-weight: 600;
+  color: var(--sc-green-ink);
+}
+.sc .sccx-ahead {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sc-green-ink);
+}
+.sc .sccx-nopace {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #f07a1a;
+}
+.sc .sccx-pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  height: 46px;
+  padding-right: 22px;
+  font-size: 12.5px;
+  color: #3d3d3d;
+}
+.sc .sccx-tr--cat {
+  grid-template-columns: 2.1fr 1fr 1fr 1fr 1fr 1fr;
+  height: 34px;
+  border-bottom: 0;
+}
+.sc .sccx-tr--cat.sccx-tr--head {
+  height: 42px;
+  border-top: 1px solid var(--sc-line);
+}
+.sc .sccx-tr--cat.is-total {
+  font-weight: 700;
+}

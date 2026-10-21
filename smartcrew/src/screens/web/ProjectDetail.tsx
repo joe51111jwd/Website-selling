@@ -77,7 +77,7 @@ function BudgetCard({ title, b }: { title: string; b: Bucket }) {
   );
 }
 
-export const PROJECT_TABS = ["Labor", "Materials", "Equipment", "Cost Codes", "Change Orders", "Other Expenses", "Documents", "Field Notes"] as const;
+export const PROJECT_TABS = ["Labor", "Materials", "Equipment", "Cost Codes", "Change Orders", "Other Expenses", "Documents", "Field Notes", "Daily Reports"] as const;
 export type ProjectTab = (typeof PROJECT_TABS)[number];
 
 export default function ProjectDetail() {
@@ -85,7 +85,9 @@ export default function ProjectDetail() {
 }
 
 /** The project page with `tab` open: its table under the tab strip (the Labor table by default). */
-export function ProjectPage({ tab, children }: { tab: ProjectTab; children?: ReactNode }) {
+/** bare: the header and the tabbed card only, the card's table up top (the cost codes view as
+ *  Andrew sent it, Oct 21), with the tabs as in the app: Change Orders' badge, Sort alone. */
+export function ProjectPage({ tab, children, bare = false }: { tab: ProjectTab; children?: ReactNode; bare?: boolean }) {
   return (
     <WebShell active="Projects" collapsed contentClassName="scp">
       {/* header */}
@@ -105,70 +107,76 @@ export function ProjectPage({ tab, children }: { tab: ProjectTab; children?: Rea
         </span>
       </div>
 
-      {/* info + money | map */}
-      <div className="scpd-top">
-        <div className="scpd-left">
-          <div className="scpd-info">
-            <div className="scpd-irow">
-              <InfoCell icon="info" label="ID">
-                {P.number}
-              </InfoCell>
-              <InfoCell icon="target" label="Status">
-                <span className="scpd-status">{P.status}</span>
-              </InfoCell>
+      {!bare && (
+        <>
+          {/* info + money | map */}
+          <div className="scpd-top">
+            <div className="scpd-left">
+              <div className="scpd-info">
+                <div className="scpd-irow">
+                  <InfoCell icon="info" label="ID">
+                    {P.number}
+                  </InfoCell>
+                  <InfoCell icon="target" label="Status">
+                    <span className="scpd-status">{P.status}</span>
+                  </InfoCell>
+                </div>
+                <div className="scpd-irow">
+                  <InfoCell icon="calendar" label="Start date">
+                    {P.startDate}
+                  </InfoCell>
+                  <InfoCell icon="calendarOff" label="End date">
+                    {P.endDate}
+                  </InfoCell>
+                </div>
+                <div className="scpd-irow">
+                  <InfoCell icon="refresh" label="Working days">
+                    {P.workingDays.done}/{P.workingDays.total}
+                  </InfoCell>
+                  <InfoCell icon="checkCircle" label="Progress">
+                    {P.progress}%
+                  </InfoCell>
+                </div>
+                <div className="scpd-irow">
+                  <InfoCell icon="briefcase" label="Company">
+                    {P.client}
+                  </InfoCell>
+                </div>
+                <div className="scpd-irow">
+                  <InfoCell icon="mapPin" label="Location">
+                    {P.address}
+                  </InfoCell>
+                </div>
+              </div>
+              <div className="scpd-kpis">
+                <Kpi icon="cash" label="Revenue" value={money(P.revenue)} />
+                <Kpi icon="trendingUp" label="Expenses" value={money(P.expenses)} />
+                <Kpi icon="dollarCircle" label="Profit" value={money(P.profit)} />
+              </div>
             </div>
-            <div className="scpd-irow">
-              <InfoCell icon="calendar" label="Start date">
-                {P.startDate}
-              </InfoCell>
-              <InfoCell icon="calendarOff" label="End date">
-                {P.endDate}
-              </InfoCell>
-            </div>
-            <div className="scpd-irow">
-              <InfoCell icon="refresh" label="Working days">
-                {P.workingDays.done}/{P.workingDays.total}
-              </InfoCell>
-              <InfoCell icon="checkCircle" label="Progress">
-                {P.progress}%
-              </InfoCell>
-            </div>
-            <div className="scpd-irow">
-              <InfoCell icon="briefcase" label="Company">
-                {P.client}
-              </InfoCell>
-            </div>
-            <div className="scpd-irow">
-              <InfoCell icon="mapPin" label="Location">
-                {P.address}
-              </InfoCell>
-            </div>
+            <MapPanel width={621.5} height={286} center={{ x: 700, y: 285 }} zoom={0.72} marker={P.map} controls="move" />
           </div>
-          <div className="scpd-kpis">
-            <Kpi icon="cash" label="Revenue" value={money(P.revenue)} />
-            <Kpi icon="trendingUp" label="Expenses" value={money(P.expenses)} />
-            <Kpi icon="dollarCircle" label="Profit" value={money(P.profit)} />
-          </div>
-        </div>
-        <MapPanel width={621.5} height={286} center={{ x: 700, y: 285 }} zoom={0.72} marker={P.map} controls="move" />
-      </div>
 
-      {/* budget vs spent per bucket */}
-      <div className="scpd-budgets">
-        <BudgetCard title="Labor" b={P.labor} />
-        <BudgetCard title="Materials" b={P.materials} />
-        <BudgetCard title="Equipment" b={P.equipment} />
-        <BudgetCard title="Other" b={P.other} />
-        <BudgetCard title="Change orders" b={P.changeOrderBucket} />
-      </div>
+          {/* budget vs spent per bucket */}
+          <div className="scpd-budgets">
+            <BudgetCard title="Labor" b={P.labor} />
+            <BudgetCard title="Materials" b={P.materials} />
+            <BudgetCard title="Equipment" b={P.equipment} />
+            <BudgetCard title="Other" b={P.other} />
+            <BudgetCard title="Change orders" b={P.changeOrderBucket} />
+          </div>
+        </>
+      )}
 
       {/* tabs + the tab's table */}
       <div className="scpd-card">
         <div className="scpd-toolbar">
-          <Segmented items={[...PROJECT_TABS]} value={tab} />
-          <Button icon="filter" className="scpd-tbtn">
-            Filters
-          </Button>
+          <Segmented items={bare ? PROJECT_TABS.map((t) => (t === "Change Orders" ? { label: t, badge: 1 } : t)) : [...PROJECT_TABS]} value={tab} />
+          {!bare && (
+            <Button icon="filter" className="scpd-tbtn">
+              Filters
+            </Button>
+          )}
           <Button icon="sort" className="scpd-tbtn">
             Sort
           </Button>

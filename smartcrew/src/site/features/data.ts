@@ -139,14 +139,16 @@ export const SCREENS: ScreenDef[] = [
     icon: "dollarCircle",
     under: "web-projects",
     crop: 95,
+    // (the table up top, as Andrew sent it, Oct 21: "for budget bids vs actual costs, lets use a
+    // shot like this")
     spots: spots([
-      ["M1", [560, 385, 199, 66]],
-      ["M2", [1155, 467, 242, 138]],
-      ["bidVsActual", [1110, 686, 284, 508]],
+      ["bidVsActual", [540, 578, 470, 236]],
+      ["M1", [1052, 232, 100, 288]],
+      ["M2", [480, 181, 136, 28]],
     ]),
     links: [
       { to: "web-projects", box: [138, 110, 74, 36] },
-      { to: "web-project-detail", box: [157, 640, 57, 28] },
+      { to: "web-project-detail", box: [157, 181, 57, 28] },
     ],
   },
   {
