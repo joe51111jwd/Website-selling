@@ -19,6 +19,7 @@ import { useArrive } from "../phone/useArrive";
 import { Cta } from "../ui/Cta";
 import { localTime, useClock, useElapsed, useSelfDemo } from "./clock";
 import { TryApp } from "./TryApp";
+import TryDomPhone from "./TryDomPhone";
 import { useStaged } from "./warm";
 import "./try-phone.css";
 
@@ -59,6 +60,20 @@ export default function TryPhone() {
   }, []);
   const focus = useFocusMode({ el: app, live: isIn, hover: false, measure, onEnter: clock.touch });
 
+  // Classic: the whole app, tab bar included, in a phone sized to the space left under the line
+  // (James, Oct 21: on his phone the edge-to-edge app looked "really cut off and weird"; "size down
+  // ... the same info"). k is TryDomPhone's device unit: its body is 0.79k × 1.6336k.
+  const [k, setK] = useState(0);
+  useEffect(() => {
+    const n = app.current;
+    if (!CLASSIC || !n) return;
+    const fit = () => setK(Math.max(0, Math.min((n.clientHeight - 36) / 1.6336, (n.clientWidth - 32) / 0.79)));
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(n);
+    return () => ro.disconnect();
+  }, []);
+
   useEffect(() => {
     if (!clock.on) {
       setSheet(false);
@@ -86,6 +101,25 @@ export default function TryPhone() {
         </p>
       </div>
 
+      {CLASSIC ? (
+        <div ref={app} className="tp-app tp-app--framed" data-cursor="hide">
+          {k > 0 && (
+            <TryDomPhone
+              k={k}
+              awake={isIn}
+              on={clock.on}
+              secs={secs}
+              ghost={clock.ghost}
+              live={arrived || stage >= 4}
+              stage={stage - 1}
+              breathe={isIn && !clock.on && !clock.touched && !clock.demoed}
+              onClockIn={() => clock.clockIn("visitor")}
+              onClockOut={clock.clockOut}
+              onTouch={clock.touch}
+            />
+          )}
+        </div>
+      ) : (
       <div ref={app} className="tp-app tp-ui" data-cursor="hide">
         <TryApp
           on={clock.on}
@@ -101,6 +135,7 @@ export default function TryPhone() {
         />
         <div className="tp-wake" aria-hidden="true" />
       </div>
+      )}
 
       {sheet && (
         <div className="tp-sheet" role="status">

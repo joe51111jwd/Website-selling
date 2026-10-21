@@ -317,3 +317,28 @@ html .site > .scene.try--phone[data-warm] {
   font-style: italic;
   font-synthesis: style;
 }
+
+/* Classic: the app in a phone that fits the space under the line, tab bar and all (James, Oct 21:
+   the edge-to-edge app looked cut off on his phone). TryDomPhone centres itself in this box. */
+.tp-app.tp-app--framed {
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+/* the phone sits a little above the box's bottom, clear of the browser's toolbar */
+.tp-app.tp-app--framed .try-dom {
+  top: calc(50% - 8px);
+}
+
+/* in the phone the tab bar keeps its own height and home bar (as on desktop), so the labels sit
+   clear of the screen's rounded corners; the edge-to-edge rules above don't apply here */
+.tp .tp-app--framed .tp-ui .sc-tabbar {
+  height: 113px;
+  padding-top: 10.5px;
+}
+
+.tp .tp-app--framed .tp-ui .sc-homebar {
+  display: block;
+}
