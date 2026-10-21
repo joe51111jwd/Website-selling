@@ -124,9 +124,10 @@ function Calculator() {
         <h2 className="t-h2 num-title">{CALC.title}</h2>
         <p className="num-stat">
           {CALC.stat}
-          <span className="flag" title={CALC.statFlag} aria-label={CALC.statFlag}>
-            {FLAG}
-          </span>
+          {" "}
+          <a className="num-cite" href={CALC.statSource.url} target="_blank" rel="noopener noreferrer">
+            {CALC.statSource.label}
+          </a>
         </p>
       </div>
 

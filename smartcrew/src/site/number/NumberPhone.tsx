@@ -171,9 +171,10 @@ export default function NumberPhone() {
       <h2 className="t-h2 nph-title">{CALC.title}</h2>
       <p className="nph-stat">
         {CALC.stat}
-        <span className="flag" title={CALC.statFlag} aria-label={CALC.statFlag}>
-          {FLAG}
-        </span>
+        {" "}
+        <a className="num-cite" href={CALC.statSource.url} target="_blank" rel="noopener noreferrer">
+          {CALC.statSource.label}
+        </a>
       </p>
 
       {stage >= 2 && <CrewCanvas value={crew} rows={short ? 5 : 6} arrived={arrived} onFirst={() => touch("crew")} onChange={setCrew} onDrag={setDragging} glide={GLIDE ? PRESET.crew : null} />}

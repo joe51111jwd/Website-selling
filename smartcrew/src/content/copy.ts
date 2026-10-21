@@ -251,7 +251,8 @@ export const CALC = {
   /** Andrew's round 2 (Oct 19), verbatim. ⚑ no traceable source found for the figure (Oct 17 buyer research) */
   /** Andrew's Loom (Oct 20): "That's what we actually want that to say there" */
   stat: "The American Payroll Association estimates that employees who manually log time overestimate their hours by 45 minutes per day per employee.",
-  statFlag: "Andrew to confirm the source: we couldn’t trace this figure to the American Payroll Association",
+  /** Andrew's comment-mode note (Oct 21): "Cite this study after the sentence" */
+  statSource: { label: "Source", url: "https://www.pmi.org/learning/library/time-attendance-managing-punch-ins-8509" },
   minutesLabel: "Minutes lost per person, per day",
   /** Andrew's round 2: 10 / 15 / 30 / 45 / 60, 30 the default (calc.ts PRESET) */
   minutes: [10, 15, 30, 45, 60],

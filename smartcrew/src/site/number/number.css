@@ -813,3 +813,18 @@ html.look-classic .num-built {
     font-size: var(--fs-card-meta);
   }
 }
+
+/* Andrew's source for the stat (comment-mode note, Oct 21): a quiet link after the sentence */
+.num-cite {
+  color: inherit;
+  font-size: 0.86em;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.num-cite:hover {
+  opacity: 1;
+}
