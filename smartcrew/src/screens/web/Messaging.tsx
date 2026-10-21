@@ -67,9 +67,14 @@ export default function Messaging() {
               </div>
             </div>
             <p className="scmsg-body">{a.body}</p>
+            {/* a small file chip, not a big empty preview (Andrew's note, Oct 21: "the PDF image just takes up dead space") */}
             {a.attachment && (
               <div className="scmsg-attach">
                 <PdfFile />
+                <span className="scmsg-file">
+                  <span className="scmsg-file-name">{a.attachment.name}</span>
+                  <span className="scmsg-file-size">PDF · {a.attachment.size}</span>
+                </span>
               </div>
             )}
           </article>

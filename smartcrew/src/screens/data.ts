@@ -1015,7 +1015,15 @@ export const announcements: Announcement[] = [
     date: "Oct 5, 2026",
     time: "6:05 AM",
     by: "office@cedarridge.example",
-    body: "This week's crew and truck assignments are attached. Check your start time and jobsite before you head out.",
+    // Andrew's comment-mode note, Oct 21: "Draft this message to be longer with text. right now the PDF image
+    // just takes up dead space without communicating anything." The assignments are written out.
+    body:
+      "Here's who's where this week. Check your start time and jobsite before you head out.\n\n" +
+      "Hwy 9 Culvert Replacement: Marcus Bell's crew, 6:30 AM. CAT 336 and two tandems. Flaggers on site by 6:45.\n" +
+      "Maple Ridge Subdivision Ph. 2: Elena Ruiz's crew, 7:00 AM. Finish grading lots 14 to 22, then curb prep.\n" +
+      "Riverside Storm Sewer: Andre Whitfield's crew, 7:00 AM. Trench box goes in before anyone's in the hole.\n" +
+      "Shop: Luis Delgado on the D6 track repair. Call him before you drop off a machine.\n\n" +
+      "Questions or swaps, message the office before 5 PM Sunday. Full sheet attached.",
     attachment: { name: "Crew-Assignments-Oct-5.pdf", kind: "pdf", size: "212 KB" },
   },
   {
