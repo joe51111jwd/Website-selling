@@ -193,8 +193,8 @@ export const TRY = {
 };
 
 export const NUMBER = {
-  /** Andrew's round 2 (Oct 19), verbatim */
-  title: "How Much Profit Are You Losing In Misallocated Time?",
+  /** Andrew's round 2 (Oct 19); title from his comment-mode note, Oct 21, verbatim */
+  title: "How Much Profit Are You Losing to Inaccurate Timecards?",
   hint: "Think of one guy who writes 7:00 when he showed up at 7:10.",
 };
 
