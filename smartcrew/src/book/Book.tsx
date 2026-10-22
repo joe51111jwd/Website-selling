@@ -13,6 +13,8 @@ import { BrandLogo } from "../brand/BrandLogo";
 import { CLASSIC } from "../lib/look";
 import faceUrl from "../signup/assets/andrew-face.webp";
 import bustUrl from "../signup/assets/andrew-bust.webp";
+import founderUrl from "./assets/founding-member.mp4";
+import founderPoster from "./assets/founding-member-poster.webp";
 
 // /book: Andrew's words and blocks (Oct 19, his layout by text; his Loom, Oct 20). His headline
 // centred, then his two columns: the video with "Here's what we'll cover" under it on the left, the
@@ -21,9 +23,10 @@ import bustUrl from "../signup/assets/andrew-bust.webp";
 // want it all on the same page… probably to the right"; this replaces the video-first page of
 // Oct 19). Once the video is playing and they scroll it out of sight, it keeps playing in a corner
 // player top-left ("I love how… that keeps running"). After booking, the page becomes his final
-// confirmation page (his doc, Oct 20 17:30Z): his "You're Booked!" headline and line over the same
-// video, now centred and wide, the call's ticket under it. The video stays as it is until the
-// agency owner's new one arrives.
+// confirmation page (his doc, Oct 20 17:30Z): his "You're Booked!" headline and line over his
+// walkthrough video, now centred and wide, the call's ticket under it. Before booking the video is his
+// Founding Member Program video (recorded Oct 22, hosted with the site); after, his walkthrough
+// (Vidalytics), as his confirmation page's line says.
 
 const LITE = typeof window !== "undefined" && window.matchMedia("(pointer: coarse), (max-width: 760px)").matches;
 const blur = (px: number): { filter?: string } => (LITE ? {} : { filter: `blur(${px}px)` });
@@ -69,7 +72,32 @@ export default function Book() {
     track("ViewContent", { content_name: "Book a call", intent: lead?.intent ?? "direct" }, lead?.lead_id ? `${lead.lead_id}-book` : undefined);
   }, [lead]);
 
-  // Andrew's video right after first paint; a tap on the poster loads the player at once
+  // Before booking: Andrew's Founding Member Program video (his recording, Oct 22; James: "this vid
+  // needs be in there"). It starts as a muted preview the way his Vidalytics videos do; a tap plays it
+  // from the start with sound and brings up its controls.
+  const mp4 = useRef<HTMLVideoElement>(null);
+  const [sound, setSound] = useState(false);
+  useEffect(() => {
+    const v = mp4.current;
+    if (booking || !v) return;
+    v.muted = true;
+    v.defaultMuted = true;
+    if (!reduce) v.play().catch(() => {});
+  }, [booking, reduce]);
+  const hearAndrew = () => {
+    const v = mp4.current;
+    if (!v) return;
+    v.muted = false;
+    v.loop = false;
+    v.currentTime = 0;
+    setSound(true);
+    setDismissed(false);
+    trackCustom("video_sound_on");
+    // the muted preview is usually already playing, so no play event follows: mark it here
+    v.play().then(() => setPlaying(true)).catch(() => {});
+  };
+
+  // After booking: his walkthrough, right after first paint; a tap on the poster loads the player at once
   const video = useRef(false);
   const [vidOn, setVidOn] = useState(false);
   const mountVideo = () => {
@@ -92,10 +120,11 @@ export default function Book() {
     mountVidalytics(config.vidalytics.walkthrough, () => setVideoFailed(true));
   };
   useEffect(() => {
+    if (!booking) return;
     const id = window.setTimeout(mountVideo, 60);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [booking]);
   // the video's slot in sight or not (the corner player takes over when it isn't)
   useEffect(() => {
     const el = slotRef.current;
@@ -107,6 +136,7 @@ export default function Book() {
   /** The corner player's ×: the video stops and goes back to its place (play again and it can follow). */
   const closeMini = () => {
     player.current?.pause();
+    mp4.current?.pause();
     setDismissed(true);
   };
 
@@ -239,20 +269,67 @@ export default function Book() {
             transition={{ duration: reduce ? 0 : 0.7, ease, delay: reduce ? 0 : 0.15 }}
           >
             <div className="bk-video-frame">
-              <div className="bk-poster" aria-hidden="true">
-                <img src={bustUrl} alt="" />
-                {videoFailed ? (
-                  <span className="bk-poster-note">Andrew's video didn't load here.</span>
-                ) : (
-                  <span className="bk-poster-play">
-                    <svg width="22" height="22" viewBox="0 0 18 18">
-                      <path d="M5 3.2v11.6L14.6 9z" fill="currentColor" />
-                    </svg>
-                  </span>
-                )}
-              </div>
-              <div id={`vidalytics_embed_${config.vidalytics.walkthrough}`} className="bk-vid" />
-              {!vidOn && <button type="button" className="bk-poster-go" onClick={mountVideo} aria-label="Play Andrew’s video" />}
+              {booking ? (
+                <>
+                  <div className="bk-poster" aria-hidden="true">
+                    <img src={bustUrl} alt="" />
+                    {videoFailed ? (
+                      <span className="bk-poster-note">Andrew's video didn't load here.</span>
+                    ) : (
+                      <span className="bk-poster-play">
+                        <svg width="22" height="22" viewBox="0 0 18 18">
+                          <path d="M5 3.2v11.6L14.6 9z" fill="currentColor" />
+                        </svg>
+                      </span>
+                    )}
+                  </div>
+                  <div id={`vidalytics_embed_${config.vidalytics.walkthrough}`} className="bk-vid" />
+                  {!vidOn && <button type="button" className="bk-poster-go" onClick={mountVideo} aria-label="Play Andrew’s video" />}
+                </>
+              ) : (
+                <>
+                  <video
+                    ref={mp4}
+                    className="bk-mp4"
+                    data-testid="book-mp4"
+                    src={founderUrl}
+                    poster={founderPoster}
+                    playsInline
+                    loop={!sound}
+                    controls={sound}
+                    preload={reduce ? "metadata" : "auto"}
+                    onPlay={(e) => {
+                      if (e.currentTarget.muted) return;
+                      setPlaying(true);
+                      setDismissed(false);
+                    }}
+                    onPause={() => setPlaying(false)}
+                    onEnded={() => {
+                      setPlaying(false);
+                      if (sound) trackCustom("video_ended");
+                    }}
+                    onError={() => setVideoFailed(true)}
+                  />
+                  {videoFailed ? (
+                    <div className="bk-poster" aria-hidden="true">
+                      <img src={bustUrl} alt="" />
+                      <span className="bk-poster-note">Andrew's video didn't load here.</span>
+                    </div>
+                  ) : (
+                    !sound && (
+                      <button type="button" className="bk-hear" onClick={hearAndrew} aria-label="Play Andrew’s video with sound">
+                        <span className="bk-hear-pill">
+                          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                            <path d="M2.5 6.6h2.6L9 3.4v11.2L5.1 11.4H2.5z" fill="currentColor" />
+                            <path d="M11.6 6.2a3.6 3.6 0 0 1 0 5.6M13.6 4.2a6.4 6.4 0 0 1 0 9.6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                          </svg>
+                          {LITE ? "Tap" : "Click"} to hear Andrew
+                        </span>
+                      </button>
+                    )
+                  )}
+                </>
+              )}
             </div>
             {mini && (
               <button type="button" className="bk-mini-x" onClick={closeMini} aria-label="Close the video">

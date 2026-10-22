@@ -45,6 +45,7 @@ const SIZE = copySrc.match(/SIZE: "([^"]+)"/)?.[1] ?? "";
 const HERO_H1 = (copySrc.match(/export const HERO4 = \{[\s\S]*?h1: `([^`]+)`/)?.[1] ?? "").replace("${T.SIZE}", SIZE);
 const LOGIN_URL = configSrc.match(/loginUrl:\s*"([^"]+)"/)?.[1];
 const VIDEO_ID = configSrc.match(/walkthrough:\s*"([^"]+)"/)?.[1];
+const FOUNDER_TEST_CLIP = readFileSync(fileURLToPath(new URL("./fixtures/founder-test.webm", import.meta.url)));
 const norm = (s) => (s ?? "").toLowerCase().replace(/[^a-z0-9$]/g, "");
 
 // ─── devices ────────────────────────────────────────────────────────────────────────────────
@@ -138,6 +139,9 @@ async function newContext(device, { kind = "gl", reducedMotion, init } = {}) {
   });
   if (LOOK) await ctx.addInitScript((look) => { try { sessionStorage.setItem("sc-look", look); } catch {} }, LOOK);
   if (init) await ctx.addInitScript(init.fn, init.arg);
+  // Andrew's Founding Member video on /book is H.264, which this test Chromium can't decode: a tiny
+  // WebM stands in for it (same element, same events)
+  await ctx.route(/\/assets\/founding-member[^/]*\.mp4(\?|$)/, (r) => r.fulfill({ status: 200, contentType: "video/webm", body: FOUNDER_TEST_CLIP }));
   ctx.on("page", (p) => watch(p, device.name));
   touchCtx.set(ctx, !!device.ctx.hasTouch);
   return ctx;
@@ -1228,21 +1232,30 @@ async function funnel(device) {
     assert(!/15-minute/i.test(bookText), "/book still says 15-minute");
     const video = page.getByTestId("book-video");
     assert(await video.isVisible(), "Andrew's video isn't on /book");
-    assert(await page.locator(`#vidalytics_embed_${VIDEO_ID}`).count(), `no Vidalytics container #vidalytics_embed_${VIDEO_ID}`);
+    // before booking: his Founding Member video (Oct 22), hosted with the site, as a muted preview
+    const mp4 = page.getByTestId("book-mp4");
+    assert(/founding-member[^/]*\.mp4/.test((await mp4.getAttribute("src")) ?? ""), `the /book video is ${await mp4.getAttribute("src")}`);
+    assert(await mp4.getAttribute("poster"), "Andrew's video has no poster");
+    assert(!(await page.locator(`#vidalytics_embed_${VIDEO_ID}`).count()), "the walkthrough is still on /book before booking");
     const cardHead = page.locator("#bk-card-h");
     await cardHead.waitFor({ state: "visible", timeout: 10000 });
     assert(/quick demo/i.test(await cardHead.innerText()), `the calendar card says "${await cardHead.innerText()}"`);
     assert(!(await page.getByRole("button", { name: /skip the video/i }).count()), "the skip button is back");
-    await page.waitForFunction(() => window.__vid, null, { timeout: 15000 }).catch(() => {});
-    assert(await page.evaluate(() => !!window.__vid), "the page never got Andrew's video player");
+    await page.waitForFunction(() => document.querySelector("[data-testid=book-mp4]")?.muted && !document.querySelector("[data-testid=book-mp4]").paused, null, { timeout: 15000 }).catch(() => {});
+    assert(await mp4.evaluate((v) => v.muted && !v.paused), "Andrew's video isn't playing as a muted preview");
     const vb = await video.boundingBox();
     const cb = await page.locator(".bk-card").boundingBox();
     if (device.name === "phone") assert(cb.y >= vb.y + vb.height - 2, `the calendar isn't under the video: card ${Math.round(cb.y)}, video ends ${Math.round(vb.y + vb.height)}`);
     else assert(cb.x >= vb.x + vb.width - 2 && cb.y < vb.y + vb.height, `the calendar isn't to the right of the video: ${JSON.stringify(cb)} vs ${JSON.stringify(vb)}`);
     out.push(`/book: video ${Math.round(vb.width)}px + calendar ${device.name === "phone" ? "under it" : "to its right"}, no gate`);
 
+    // a tap: his voice, from the start
+    await press(page, page.getByRole("button", { name: /play andrew.s video with sound/i }), { what: "the video's sound button" });
+    await page.waitForFunction(() => { const v = document.querySelector("[data-testid=book-mp4]"); return v && !v.muted && !v.paused; }, null, { timeout: 5000 }).catch(() => {});
+    assert(await mp4.evaluate((v) => !v.muted && !v.paused && v.controls), "a tap didn't play Andrew's video with sound");
+    out.push("his Founding Member video plays muted, a tap plays it with sound");
+
     // playing, then scrolled out of sight: it keeps playing in the top-left corner; its × stops it
-    await page.evaluate(() => window.__vid.fire("play"));
     const slotEnd = await page.locator(".bk-video-slot").evaluate((el) => Math.round(el.getBoundingClientRect().bottom + scrollY));
     const room = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
     if (room >= slotEnd) {
@@ -1251,10 +1264,10 @@ async function funnel(device) {
       const mini = await video.boundingBox();
       const fixed = await video.evaluate((el) => getComputedStyle(el).position);
       assert(fixed === "fixed" && mini && mini.x < 40 && mini.y < 40 && mini.width < vb.width * 0.8, `the video didn't go to the corner: ${fixed} ${JSON.stringify(mini)}`);
-      assert(!(await page.evaluate(() => window.__vid.paused())), "the corner video isn't playing");
+      assert(!(await mp4.evaluate((v) => v.paused)), "the corner video isn't playing");
       await press(page, page.getByRole("button", { name: "Close the video" }), { what: "the corner video's ×" });
       await wait(400);
-      assert(await page.evaluate(() => window.__vid.paused()), "the corner video's × didn't stop it");
+      assert(await mp4.evaluate((v) => v.paused), "the corner video's × didn't stop it");
       assert(!(await page.locator(".bk-video.is-mini").count()), "the corner video stayed after its ×");
       out.push(`scrolled away while playing → corner video ${Math.round(mini.width)}×${Math.round(mini.height)}, × stops it`);
       await scrollTo(page, 0, 600);
@@ -1292,7 +1305,7 @@ async function funnel(device) {
     assert(items === 3, `${items} items under "Here's what we'll cover"`);
 
     // the video plays to the end in its place: nothing moves
-    await page.evaluate(() => window.__vid.fire("ended"));
+    await mp4.evaluate((v) => v.dispatchEvent(new Event("ended")));
     await wait(400);
     assert(!(await page.locator(".bk-video.is-mini").count()), "the corner video showed after the video ended");
     out.push("video ends → stays in place");
