@@ -2,7 +2,7 @@
 // Everything. Built for dirt., Watch it work, Play with it, the cost calculator, testimonials, Why
 // us and the FAQ; the header, the phone's sticky CTA bar and the trial popup around them. All 2D:
 // the 3D Stage is off (STAGE_ON below), so three.js never loads and scenes that still carry pose
-// keys show their poster stills. Phones (src/site/phone.ts) also get no Lenis and no custom cursor.
+// keys show their poster stills. Phones (src/site/phone.ts) also get no Lenis.
 
 import { lazy, memo, startTransition, Suspense, useEffect, useState, type ComponentType } from "react";
 import { MotionConfig } from "motion/react";
@@ -28,7 +28,6 @@ const STAGE_ON = false;
 // Never on phones: the import only runs when <Stage/> first renders.
 const Stage = lazy(() => import("./three/stage/Stage"));
 // the geofence cursor (mouse/trackpad only): its own chunk, never fetched on phones
-const Cursor = lazy(() => import("./cursor/Cursor"));
 
 /**
  * The scenes after Replace 5 apps, in page order, each in its own chunk (with its CSS and its phone
@@ -246,12 +245,8 @@ export default function App() {
       </main>
       <StickyBar />
       <Signup />
-      {/* the geofence cursor: mounts only for a mouse or trackpad (fine pointer), portals to <body>; never on phones */}
-      {!phone && (
-        <Suspense fallback={null}>
-          <Cursor />
-        </Suspense>
-      )}
+      {/* no custom cursor: the regular one (Andrew, Oct 22: "Let's stick with a regular cursor on this. I
+          demoed it and it was confusing to a couple people"); src/cursor stays for the dev pages */}
     </MotionConfig>
   );
 }

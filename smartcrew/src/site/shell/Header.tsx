@@ -1,7 +1,9 @@
 // The header: logo, two quiet links and the primary CTA. Transparent over the hero, solid once
-// the page scrolls. The CTA steps in once the hero's own button has scrolled away, and steps aside
-// again whenever a scene's own primary CTA is on screen, so two orange buttons are never on screen
-// together. Phones show the logo only; the sticky bar at the bottom carries the CTA there.
+// the page scrolls. In the classic look the CTA stays put the whole time (Andrew, Oct 22: "just
+// leave it there the whole time versus having it pop up and down"; his notes: "dont cut button on
+// upper right"); the other looks still bring it in once the hero's own button has scrolled away and
+// step it aside while a scene's own primary CTA is on screen. Phones show the logo only; the sticky
+// bar at the bottom carries the CTA there.
 // The focus look makes the header a real liquid-glass lens on desktop Chromium (./LiquidGlass.tsx).
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
@@ -25,7 +27,7 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const heroGone = useHeroCtaGone();
   const sceneCta = usePrimaryInView();
-  const ctaOn = heroGone && !sceneCta;
+  const ctaOn = CLASSIC || (heroGone && !sceneCta);
   useEffect(() => {
     // only on a change (a setState per scroll event re-renders the header on every frame)
     let last: boolean | null = null;

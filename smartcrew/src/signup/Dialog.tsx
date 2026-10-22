@@ -213,7 +213,9 @@ export default function Dialog({ req, opener, onClose }: Props) {
   }, [open]);
   const bodyNow = !phone || reduce || bodyOn;
 
-  // the resume pill (laptops): after closing halfway, a quiet way back in
+  // the resume pill (laptops): after closing halfway, the way back in. Andrew, Oct 22: "I love that button. But
+  // let's make it bigger and more prominent … more obvious and a better call out", so it sits at the
+  // bottom centre (clear of his comment bar and the chat bubble) with an orange Continue
   useEffect(() => {
     if (open) return;
     const p = loadProgress();
@@ -801,15 +803,18 @@ export default function Dialog({ req, opener, onClose }: Props) {
           >
             <button type="button" className="su-pill-go" onClick={() => openSignup({ intent: pill.intent, source: "resume-pill" })}>
               <span className="su-pill-ring" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 22 22">
+                <svg width="30" height="30" viewBox="0 0 22 22">
                   <circle cx="11" cy="11" r="9" fill="none" stroke="rgb(255 255 255 / 18%)" strokeWidth="2.4" />
                   <circle cx="11" cy="11" r="9" fill="none" stroke="var(--orange)" strokeWidth="2.4" strokeLinecap="round" strokeDasharray={`${(pill.step / STEP_FIELDS.length) * 56.5} 56.5`} transform="rotate(-90 11 11)" />
                 </svg>
               </span>
-              <span>
+              <span className="su-pill-text">
                 Finish setting up <b>{pill.draft.company.trim()}</b>
               </span>
-              <Arrow />
+              <span className="su-pill-cta">
+                Continue
+                <Arrow />
+              </span>
             </button>
             <button type="button" className="su-pill-x" aria-label="Dismiss" onClick={() => setPillGone(true)}>
               <svg width="10" height="10" viewBox="0 0 14 14" aria-hidden="true">

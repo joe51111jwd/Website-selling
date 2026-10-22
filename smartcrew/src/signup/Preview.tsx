@@ -3,14 +3,16 @@ import { AnimatePresence, motion, useReducedMotion, useSpring } from "motion/rea
 import "@fontsource-variable/inter";
 import { Icon, type IconName } from "../screens/kit/Icon";
 import type { Intent, Size } from "./contract";
-import { digits, firstName, initials, type Draft, type Field } from "../lib/lead";
+import { check, digits, firstName, initials, type Draft, type Field } from "../lib/lead";
 import markUrl from "./assets/mark.svg";
-import { OFFER } from "../content/copy";
-import { TRIAL_FIRST } from "../lib/offer";
 
 // The visitor's own SmartCrew, building itself as he types (the IKEA / endowed-progress moment).
 // A small, dedicated copy of the real app's look (src/screens: white shell, Inter, the sidebar,
-// the company + login in the top bar). It's labelled a preview; Andrew sets up the real one.
+// the company + who's signed in in the top bar). Andrew's fixes video, Oct 22: the top bar keeps
+// the company and the name ("it's pretty cool when they see this go up"), the work email goes
+// down into the setup list with the cell phone ("let's keep email down here and cell phone. So it
+// looks like they're filling this format right here"), and the "A preview. Andrew sets up the
+// real one…" line under it is cut ("This can get cut right here. That's unnecessary.").
 
 /** How many people marks the Workforce card shows per bucket (it holds 13); bigger buckets add a "+". */
 const CREW_DOTS: Record<Size, number> = { "1–5": 3, "6–12": 6, "13–25": 9, "26–50": 11, "51–100": 13, "101–250": 13, "250+": 13 };
@@ -47,28 +49,54 @@ function useFacts(draft: Draft) {
     company: company.length >= 2,
     size: !!draft.size,
     admin: draft.name.trim().length >= 2,
+    email: !check("email", draft),
     mobile: digits(draft.phone).length === 10,
   };
   const count = Object.values(done).filter(Boolean).length;
-  return { company, first, email: draft.email.trim(), done, count };
+  return { company, first, name: draft.name.trim(), email: draft.email.trim(), done, count };
 }
 
 const Caret = ({ on }: { on: boolean }) => (on ? <span className="su-caret" aria-hidden="true" /> : null);
 
-function Full({ draft, intent, focus }: Props) {
+function Full({ draft, focus }: Props) {
   const reduce = useReducedMotion() ?? false;
-  const { company, first, email, done, count } = useFacts(draft);
+  const { company, first, name, email, done, count } = useFacts(draft);
   const dots = draft.size ? CREW_DOTS[draft.size] : 0;
-  // trial first (src/lib/offer.ts): the call is optional setup help, not the way in
-  const trialFirst = TRIAL_FIRST && intent !== "demo";
   // the call row ("Trial setup with Andrew") is cut: Andrew's comment-mode note, Oct 20: "Cut this"
 
+  // the email and the cell phone fill in here as they're typed; the tick comes once each is complete
   const rows: { key: string; label: string; value: ReactNode; ok: boolean }[] = [
     { key: "company", label: "Company", value: company, ok: done.company },
     { key: "crew", label: "Employees", value: draft.size ?? "", ok: done.size },
     { key: "admin", label: "Admin", value: first, ok: done.admin },
-    { key: "mobile", label: "Cell phone", value: draft.phone, ok: done.mobile },
+    {
+      key: "email",
+      label: "Work email",
+      value: email || focus === "email" ? (
+        <>
+          {email}
+          <Caret on={focus === "email"} />
+        </>
+      ) : (
+        ""
+      ),
+      ok: done.email,
+    },
+    {
+      key: "mobile",
+      label: "Cell phone",
+      value: draft.phone || focus === "phone" ? (
+        <>
+          {draft.phone}
+          <Caret on={focus === "phone"} />
+        </>
+      ) : (
+        ""
+      ),
+      ok: done.mobile,
+    },
   ];
+  const live = (k: string) => k === "email" || k === "mobile";
 
   return (
     <div className="su-pv">
@@ -102,8 +130,8 @@ function Full({ draft, intent, focus }: Props) {
                   <Caret on={focus === "company"} />
                 </span>
                 <span className="su-acct-mail">
-                  {email ? <span className="su-acct-v">{email}</span> : <span className="su-skel su-skel--mail" />}
-                  <Caret on={focus === "email"} />
+                  {name ? <span className="su-acct-v">{name}</span> : <span className="su-skel su-skel--mail" />}
+                  <Caret on={focus === "name"} />
                 </span>
               </div>
               <Icon name="chevronDown" size={11} stroke={1.8} />
@@ -182,7 +210,7 @@ function Full({ draft, intent, focus }: Props) {
                         {count}
                       </motion.span>
                     </AnimatePresence>
-                    &nbsp;of 4
+                    &nbsp;of {rows.length}
                   </span>
                 </div>
                 <ul className="su-steps">
@@ -190,7 +218,7 @@ function Full({ draft, intent, focus }: Props) {
                     <li key={r.key} className={r.ok ? "is-ok" : undefined} data-pulse={r.key === "admin" ? "admin" : undefined}>
                       <Tick on={r.ok} reduce={reduce} />
                       <span className="su-steps-l">{r.label}</span>
-                      <span className="su-steps-v">{r.ok ? r.value : ""}</span>
+                      <span className="su-steps-v">{r.ok || live(r.key) ? r.value : ""}</span>
                     </li>
                   ))}
                 </ul>
@@ -200,7 +228,6 @@ function Full({ draft, intent, focus }: Props) {
         </div>
       </Tilt>
 
-      <p className="su-pv-note">{intent === "demo" ? "A preview. Andrew shows you the real thing on your demo." : trialFirst ? OFFER.trialFirst.previewNote : "A preview. Andrew sets up the real one with you on the call."}</p>
     </div>
   );
 }

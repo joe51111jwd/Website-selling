@@ -526,7 +526,10 @@ const ORANGE_FN = `({ vis }) => {
 }`;
 
 async function oneOrangeAtATime(device) {
-  // never two primary (orange) buttons on screen at once, sampled through the whole page
+  // never two primary (orange) buttons on screen at once, sampled through the whole page. In the
+  // classic look the header's button stays put the whole time (Andrew, Oct 22: "just leave it there
+  // the whole time versus having it pop up and down"), so it doesn't count there.
+  const fixedHeader = !LOOK || LOOK === "classic";
   const ctx = await newContext(device);
   const page = await open(ctx);
   try {
@@ -536,14 +539,14 @@ async function oneOrangeAtATime(device) {
     const bad = [];
     for (let y = 0; y <= total; y += Math.round(H * 0.25)) {
       await scrollTo(page, y, device.settle + 300);
-      const vis = await page.evaluate(new Function(`return (${ORANGE_FN})`)(), { vis: VISIBLE_FN });
+      const vis = (await page.evaluate(new Function(`return (${ORANGE_FN})`)(), { vis: VISIBLE_FN })).filter((z) => !(fixedHeader && z === "header"));
       // two at once: the header's and the bar's step-aside runs on the next animation frame, which
       // headless software WebGL can hold back for a second or two; a real overlap is still there
       // after a quiet beat
       if (vis.length > 1) {
         await quiet(page, 10000);
         await wait(800);
-        const again = await page.evaluate(new Function(`return (${ORANGE_FN})`)(), { vis: VISIBLE_FN });
+        const again = (await page.evaluate(new Function(`return (${ORANGE_FN})`)(), { vis: VISIBLE_FN })).filter((z) => !(fixedHeader && z === "header"));
         if (again.length > 1) bad.push(`y=${y}: ${again.join(" + ")}`);
         else note(`y=${y}: ${vis.join(" + ")} for a moment`);
       }
