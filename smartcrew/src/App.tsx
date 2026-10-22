@@ -44,8 +44,10 @@ function lateScene(load: () => Promise<SceneModule>) {
 }
 const LATER_SCENES = [
   lateScene(() => import("./site/features/Features")),
-  lateScene(() => import("./site/watch/Watch")),
-  lateScene(() => import("./site/try/TryIt")),
+  // phones: Try it above Watch it work (James, Oct 22: "Yes, move it above"); laptop keeps Andrew's order
+  ...(phoneAtLoad
+    ? [lateScene(() => import("./site/try/TryIt")), lateScene(() => import("./site/watch/Watch"))]
+    : [lateScene(() => import("./site/watch/Watch")), lateScene(() => import("./site/try/TryIt"))]),
   lateScene(() => import("./site/number/YourNumber")),
   lateScene(() => import("./site/proof/Proof")),
   lateScene(() => import("./site/offer/Offer")),
