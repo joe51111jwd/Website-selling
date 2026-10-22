@@ -762,6 +762,13 @@ async function tryIt(device) {
       assert(!(await sec.locator(".try-cap, .tp-stamp").count()), "the jobsite caption is still under the phone");
       simple = ", limited app (Home · Projects · Reports · Messages · Support)";
     }
+    // classic phones: just the phone, no sheet popping up over it after the tap (James, Oct 22); the
+    // sticky bar is the CTA there (the CTA walk clicks it)
+    if ((!LOOK || LOOK === "classic") && device.name === "phone") {
+      await wait(1200);
+      assert(!(await sec.locator(".tp-sheet").count()), "a sheet popped up over the phone after the tap");
+      return `tap → clocked in${simple}, nothing pops up over the phone`;
+    }
     // the CTA under the headline (or on phones the sheet's), or (while the tap has dimmed the rest of
     // the page: focus mode, src/site/try/focus.tsx) the one beside the phone / in the dimmed header
     const ctas = [sec.getByRole("button", { name: /try smartcrew/i }).first(), page.locator(".fx.is-open .fx-cta").getByRole("button", { name: /try smartcrew/i }).first()];

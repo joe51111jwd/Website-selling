@@ -49,7 +49,9 @@ export default function TryPhone() {
   // built before it scrolls in, a piece per idle moment: 1 the scene lays out (still off screen),
   // 2 the Clock In body, 3 the day header + week strip, 4 the tab bar (./warm.ts)
   const stage = useStaged(el, 4);
-  useSelfDemo(clock, arrived && onView);
+  // classic: just the phone, nothing moving or popping up by itself (James, Oct 22: "when you
+  // scroll down it's just a phone and you can just click it ... nothing distracting at all")
+  useSelfDemo(clock, !CLASSIC && arrived && onView);
   const isIn = arrived && stage >= 4;
 
   // focus mode: the hole is the app (top edge to the bottom of the screen)
@@ -112,7 +114,7 @@ export default function TryPhone() {
               ghost={clock.ghost}
               live={arrived || stage >= 4}
               stage={stage - 1}
-              breathe={isIn && !clock.on && !clock.touched && !clock.demoed}
+              breathe={false}
               onClockIn={() => clock.clockIn("visitor")}
               onClockOut={clock.clockOut}
               onTouch={clock.touch}
@@ -137,7 +139,8 @@ export default function TryPhone() {
       </div>
       )}
 
-      {sheet && (
+      {/* classic: no sheet over the phone after the tap (James, Oct 22); the sticky bar keeps the CTA */}
+      {sheet && !CLASSIC && (
         <div className="tp-sheet" role="status">
           <span className="sr-only">
             {TRY_IT.live}
