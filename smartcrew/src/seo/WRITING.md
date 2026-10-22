@@ -130,3 +130,38 @@ page has to carry real substance a contractor can't get from the next page.
 - Getting started: "Try SmartCrew" starts with a short call with Andrew (the buttons do this).
 - Not SmartCrew: estimating/takeoff, GPS machine control, telematics hardware, payroll processing,
   ELD/hours-of-service. Say so plainly when a page's topic touches them.
+
+## What can get a site penalized, and how these pages avoid it
+
+Google's spam policies (scaled content abuse, site reputation abuse, thin content, doorway pages,
+cloaking, hidden text, link schemes, structured data that doesn't match the page) and the legal
+risk of false competitor claims are the whole list. Rules for every page:
+
+1. **Every page earns its own URL.** One distinct search intent per page, with its own numbers,
+   screens, sources and "where they're better" section. Never swap a competitor name into a
+   template and publish. Under ~900 words of real copy, or a table that is the same on two pages,
+   fails the lint.
+2. **No unsourced competitor claims.** Every competitor fact links to their own page with a
+   checked date. "Unknown" is written "Not listed", never "doesn't have". Prices are labeled list
+   prices with a date. Ratings are quoted as numbers with the site and date. No insults, no
+   guesses about their business.
+3. **No fake proof.** No invented reviews, stars, customer counts, quotes, prices or stats about
+   SmartCrew. Structured data (Article, BreadcrumbList, FAQPage) only describes text that is
+   visible on the page. No AggregateRating markup.
+4. **Write for readers first.** Answer in the lede, plain words, real specifics (yards, tickets,
+   machines). The lint bans AI-filler phrases and em dashes. A human reads each page before it
+   ships. Don't run "AI humanizer" tools: they swap words without adding facts, and facts are
+   what pass quality checks.
+5. **No keyword stuffing, hidden text, cloaking.** One main keyword in the title, H1 and lede, used
+   naturally. The same HTML goes to people, search engines and AI crawlers.
+6. **Don't publish in bulk.** Add pages in waves chosen by search volume and real usefulness, and
+   check Search Console for "Crawled, currently not indexed" before the next wave.
+7. **No link schemes.** No paid links, link swaps or comment spam. Internal links only where a
+   reader would want them.
+8. **Preview stays noindex.** smartcrew-preview.vercel.app is noindex on purpose so it never
+   competes with the real domain as duplicate content. The real domain builds with the plain
+   build (indexable) and the sitemap goes into Search Console at launch.
+9. **Trademarks.** Competitor names appear only to compare, in text, with no logos or look-alike
+   branding.
+10. **Speed and access.** Static HTML, no JS needed to read, images with alt text and sizes, no
+    blocking of crawlers in robots.txt.
