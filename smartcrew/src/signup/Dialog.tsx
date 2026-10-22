@@ -262,6 +262,49 @@ export default function Dialog({ req, opener, onClose }: Props) {
     };
   }, [open]);
 
+  // phones, keyboard up: the button flows under the fields instead of sitting over them (signup.css,
+  // .is-kb), and the field being typed in is scrolled into view each time the keyboard opens or
+  // resizes the sheet (James's iPhone recording, Oct 21: Get Started covered the box he was typing in).
+  // On the step's last field the button comes into view with it when both fit.
+  useEffect(() => {
+    if (!open || !kb) return;
+    const node = panel.current;
+    if (!node) return;
+    let raf = 0;
+    const keep = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const input = document.activeElement;
+        if (!(input instanceof HTMLElement) || !node.contains(input) || !input.matches("input, textarea")) return;
+        let box: HTMLElement | null = input.parentElement;
+        while (box && box !== node && !(getComputedStyle(box).overflowY === "auto" && box.scrollHeight > box.clientHeight)) box = box.parentElement;
+        if (!box || box === node) return;
+        const field = input.closest<HTMLElement>(".su-field") ?? input;
+        const s = box.getBoundingClientRect();
+        const r = field.getBoundingClientRect();
+        let top = r.top;
+        let bottom = r.bottom;
+        const fs = STEP_FIELDS[step] ?? [];
+        const btn = node.querySelector<HTMLElement>(".su-btn");
+        if (btn && input.dataset.field === fs[fs.length - 1]) {
+          const b = btn.getBoundingClientRect();
+          if (b.bottom - top <= s.height - 16) bottom = Math.max(bottom, b.bottom);
+        }
+        if (top < s.top + 8) box.scrollTop += top - s.top - 8;
+        else if (bottom > s.bottom - 8) box.scrollTop += Math.min(bottom - s.bottom + 8, top - s.top - 8);
+      });
+    };
+    keep();
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", keep);
+    node.addEventListener("focusin", keep);
+    return () => {
+      cancelAnimationFrame(raf);
+      vv?.removeEventListener("resize", keep);
+      node.removeEventListener("focusin", keep);
+    };
+  }, [open, kb, step]);
+
   const close = useCallback(() => {
     if (pushed.current && history.state?.scSignup) {
       history.back(); // popstate closes it

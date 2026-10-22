@@ -1300,6 +1300,11 @@
   .su-dialog.is-kb .su-pre {
     display: none;
   }
+  /* "Welcome back. Let's finish setting up …" is cut on phones: the strip above and the title already
+     name the company (James's iPhone recording, Oct 21: simplify step 2) */
+  .su-welcome {
+    display: none;
+  }
   .su-title {
     font-size: 26px;
     line-height: 1.08;
@@ -1323,8 +1328,47 @@
   .su-pre {
     padding-top: 12px;
   }
+  /* keyboard up: the whole form scrolls as one and the button follows the fields, so it never sits
+     over the box being typed in (James's iPhone recording, Oct 21); Dialog.tsx keeps that box in view */
+  .su-dialog.is-kb .su-body {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .su-dialog.is-kb .su-scroll {
+    overflow: visible;
+  }
+  /* …and tighter, so the step's fields fit in the room left above the keyboard (James, Oct 22:
+     "so it's not smashed… utilize our space properly") */
+  .su-dialog.is-kb .su-head-row {
+    min-height: 34px;
+  }
+  .su-dialog.is-kb .su-progress {
+    margin-top: 6px;
+  }
+  .su-dialog.is-kb .su-step {
+    padding: 16px 0 4px;
+  }
+  .su-dialog.is-kb .su-title {
+    font-size: 22px;
+  }
+  .su-dialog.is-kb .su-fields {
+    margin-top: 14px;
+    gap: 12px;
+  }
+  .su-dialog.is-kb .su-label {
+    margin-bottom: 6px;
+  }
+  .su-dialog.is-kb .su-input {
+    height: 46px;
+  }
+  .su-dialog.is-kb .su-chip {
+    height: 42px;
+  }
   .su-dialog.is-kb .su-foot {
     padding-top: 10px;
+    box-shadow: none;
   }
   .su-legal {
     font-size: 12.5px;
