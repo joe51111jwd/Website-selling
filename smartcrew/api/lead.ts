@@ -9,9 +9,11 @@
 // talks to is switched on by the project's environment, server side only, and anything missing is
 // simply skipped:
 //   CLOSE_API_KEY        Close → Settings → Developer → API keys. The lead, its contact, and a note
-//                        with the rest. Ad fields land in the lead's custom fields whose names match
-//                        (fbclid, ad_id, ad_name, adset_id, adset_name, campaign_id, campaign_name,
-//                        utm_…), looked up by name, so Andrew's existing fields fill in as they are.
+//                        with the rest. Ad fields land in the contact's (or lead's) custom fields whose
+//                        names match (fbclid, fbc, fbp, ad_id, ad_name, adset_id, adset_name,
+//                        campaign_id, campaign_name, utm_source…), looked up by name, so Andrew's
+//                        existing fields fill in as they are; his lead fields Company Size and Lead
+//                        Source (Facebook for an ad click, else Website) too.
 //   SLACK_WEBHOOK_URL    a Slack incoming webhook (https://hooks.slack.com/services/…) for the channel.
 //   phone, either one:
 //     NTFY_TOPIC         a push to the free ntfy app (ntfy.sh), subscribed to this topic. Make it long
@@ -153,7 +155,8 @@ export function isTest(l: In) {
 
 // ─── Close ──────────────────────────────────────────────────────────────────
 
-type CloseField = { id: string; name: string; type: string; choices?: string[]; accepts_multiple_values?: boolean };
+/** A custom field on Close's lead or contact (Andrew keeps the ad fields on the contact). */
+type CloseField = { id: string; name: string; type: string; choices?: string[]; accepts_multiple_values?: boolean; on: "lead" | "contact" };
 
 const auth = (key: string) => `Basic ${btoa(`${key}:`)}`;
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -164,13 +167,14 @@ async function call(url: string, init: RequestInit): Promise<Response> {
 
 async function closeFields(key: string): Promise<CloseField[]> {
   const out: CloseField[] = [];
-  for (let skip = 0; skip < 1000; skip += 100) {
-    const r = await call(`${CLOSE}/custom_field/lead/?_limit=100&_skip=${skip}`, { headers: { authorization: auth(key) } });
-    if (!r.ok) throw new Error(`close fields ${r.status}`);
-    const page = (await r.json()) as { data?: CloseField[]; has_more?: boolean };
-    out.push(...(page.data ?? []));
-    if (!page.has_more) break;
-  }
+  for (const on of ["lead", "contact"] as const)
+    for (let skip = 0; skip < 1000; skip += 100) {
+      const r = await call(`${CLOSE}/custom_field/${on}/?_limit=100&_skip=${skip}`, { headers: { authorization: auth(key) } });
+      if (!r.ok) throw new Error(`close fields ${r.status}`);
+      const page = (await r.json()) as { data?: Omit<CloseField, "on">[]; has_more?: boolean };
+      out.push(...(page.data ?? []).map((f) => ({ ...f, on })));
+      if (!page.has_more) break;
+    }
   return out;
 }
 
@@ -180,7 +184,12 @@ const ALIASES: Record<string, string[]> = {
   landing_url: ["landingpage", "landingurl"],
   referrer: ["referrer", "referer"],
   source: ["entrysource", "formsource"],
+  lead_source: ["leadsource"],
 };
+
+/** Andrew's "Lead Source" choices include Facebook and Website: a click from his ads is Facebook. */
+export const leadSource = (l: In) =>
+  l.ad.fbclid || l.ad.ad_id || l.ad.campaign_id || /^(facebook|fb|ig|instagram|meta)/i.test(l.ad.utm_source ?? "") ? "Facebook" : "Website";
 
 /** Our values → Close's "custom.cf_…" keys, for the fields Andrew's Close has; the rest go in the note. */
 export function mapFields(l: In, fields: CloseField[]) {
@@ -188,8 +197,12 @@ export function mapFields(l: In, fields: CloseField[]) {
   if (l.size) values.size = l.size;
   if (l.landing_url) values.landing_url = l.landing_url;
   if (l.referrer) values.referrer = l.referrer;
-  const byName = new Map(fields.map((f) => [norm(f.name), f]));
+  values.lead_source = leadSource(l);
+  // contact fields first: that's where Andrew's Close keeps fbclid, ad_id, campaign_name…
+  const byName = new Map<string, CloseField>();
+  for (const f of [...fields].sort((a, b) => (a.on === b.on ? 0 : a.on === "contact" ? -1 : 1))) if (!byName.has(norm(f.name))) byName.set(norm(f.name), f);
   const custom: Record<string, string | number> = {};
+  const contact: Record<string, string | number> = {};
   const mapped: Record<string, string> = {};
   for (const [k, v] of Object.entries(values)) {
     const f = [k, ...(ALIASES[k] ?? [])].map((n) => byName.get(norm(n))).find(Boolean);
@@ -199,10 +212,10 @@ export function mapFields(l: In, fields: CloseField[]) {
     else if (f.type === "number") value = Number.isFinite(Number(v)) ? Number(v) : undefined;
     else if (f.type === "choices") value = f.choices?.find((c) => norm(c) === norm(v));
     if (value === undefined) continue;
-    custom[`custom.${f.id}`] = f.accepts_multiple_values ? ([value] as unknown as string) : value;
-    mapped[k] = f.name;
+    (f.on === "contact" ? contact : custom)[`custom.${f.id}`] = f.accepts_multiple_values ? ([value] as unknown as string) : value;
+    mapped[k] = `${f.on}: ${f.name}`;
   }
-  return { custom, mapped };
+  return { custom, contact, mapped };
 }
 
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
@@ -233,10 +246,12 @@ export function noteText(l: In) {
   return lines.join("\n");
 }
 
-export function closeLeadBody(l: In, custom: Record<string, string | number>) {
+type Custom = Record<string, string | number>;
+
+export function closeLeadBody(l: In, custom: Custom = {}, contact: Custom = {}) {
   return {
     name: l.company,
-    contacts: [{ name: l.name, emails: [{ email: l.email, type: "office" }], phones: [{ phone: l.phone, type: "mobile" }] }],
+    contacts: [{ name: l.name, emails: [{ email: l.email, type: "office" }], phones: [{ phone: l.phone, type: "mobile" }], ...contact }],
     ...custom,
   };
 }
@@ -248,14 +263,14 @@ async function toClose(key: string, l: In): Promise<{ id?: string; mapped: Recor
   } catch {
     /* no field list: the lead still goes in, the ad data rides in the note */
   }
-  const { custom, mapped } = mapFields(l, fields);
+  const { custom, contact, mapped } = mapFields(l, fields);
   const post = (body: unknown) =>
     call(`${CLOSE}/lead/`, { method: "POST", headers: { authorization: auth(key), "content-type": "application/json" }, body: JSON.stringify(body) });
-  let r = await post(closeLeadBody(l, custom));
+  let r = await post(closeLeadBody(l, custom, contact));
   let used = mapped;
-  if (r.status === 400 && Object.keys(custom).length) {
+  if (r.status === 400 && Object.keys({ ...custom, ...contact }).length) {
     // a field Close won't take as typed: make the lead without them, everything is in the note anyway
-    r = await post(closeLeadBody(l, {}));
+    r = await post(closeLeadBody(l));
     used = {};
   }
   if (!r.ok) return { mapped: used, status: `failed-${r.status}` };
@@ -412,12 +427,13 @@ export async function POST(request: Request): Promise<Response> {
   if (dryAsked || test || process.env.LEADS_DRY_RUN === "1") {
     let mapped: Record<string, string> = {};
     if (e.close && dryAsked) mapped = mapFields(lead, await closeFields(e.close).catch(() => [])).mapped;
+    // (closeLeadBody below leaves the custom fields out: the dry answer names them instead)
     return json({
       ok: true,
       dry: true,
       why: dryAsked ? "dry=1" : test ? "test lead" : "LEADS_DRY_RUN",
       would: {
-        close: e.close ? { lead: closeLeadBody(lead, {}), custom_fields: mapped, note: noteText(lead) } : "no CLOSE_API_KEY",
+        close: e.close ? { lead: closeLeadBody(lead), custom_fields: mapped, note: noteText(lead) } : "no CLOSE_API_KEY",
         slack: e.slack ? slackBody(lead) : "no SLACK_WEBHOOK_URL",
         phone: e.twilio ? { sms: alertText(lead) } : e.ntfy ? { push: alertText(lead) } : "no phone alert set up",
       },
