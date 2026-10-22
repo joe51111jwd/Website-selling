@@ -227,17 +227,19 @@ export function Ready({
   c,
   ghost,
   breathe,
+  tapMe,
 }: {
   c: Ctx;
   ghost: boolean;
   breathe?: boolean;
+  tapMe?: boolean;
 }) {
   const { s, d } = c;
   return (
     <div className="pc-ready tp-ready">
       <div className="pc-ready-q">Ready to clock in?</div>
       <B
-        className={`pc-clockin tp-clockin${ghost ? " is-ghost" : ""}${breathe ? " is-breathe" : ""}`}
+        className={`pc-clockin tp-clockin${ghost ? " is-ghost" : ""}${breathe ? " is-breathe" : ""}${tapMe ? " is-tapme" : ""}`}
         onClick={() => c.clockIn()}
         aria-label={TRY_IT.clockIn}
       >

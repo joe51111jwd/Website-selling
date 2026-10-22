@@ -158,6 +158,22 @@ html .site > .scene.try--phone[data-warm] {
   }
 }
 
+/* the phone is the call to action (Andrew, Oct 22: "People didn't know this was clickable"): a soft
+   orange ring keeps pulsing out of Clock In until the first tap */
+.tp-ui .tp-clockin.is-tapme {
+  animation: tp-tapme 1.6s cubic-bezier(0.25, 0.5, 0.4, 1) 0.6s infinite;
+}
+
+@keyframes tp-tapme {
+  0% {
+    box-shadow: 0 0 0 0 rgb(255 122 1 / 0.75);
+  }
+  75%,
+  100% {
+    box-shadow: 0 0 0 26px rgb(255 122 1 / 0);
+  }
+}
+
 .tp-ghost {
   position: absolute;
   left: 50%;
@@ -274,6 +290,7 @@ html .site > .scene.try--phone[data-warm] {
     display: none;
   }
   .tp-ui .tp-clockin.is-breathe,
+  .tp-ui .tp-clockin.is-tapme,
   .tp-sheet,
   .tp .tp-chrome,
   .tp .sc-tabbar {
@@ -341,4 +358,22 @@ html .site > .scene.try--phone[data-warm] {
 
 .tp .tp-app--framed .tp-ui .sc-homebar {
   display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* still: one steady orange ring instead of the pulse */
+  .tp-ui .tp-clockin.is-tapme {
+    box-shadow: 0 0 0 5px rgb(255 122 1 / 0.45);
+  }
+}
+
+/* classic phones (Andrew, Oct 22): "Don't take our word for it… Play with the app yourself." leads;
+   "So Simple…" follows, smaller */
+html.look-classic .tp-prompt--so {
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink);
 }

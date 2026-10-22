@@ -153,7 +153,9 @@ export function TryDesk() {
   useEffect(() => {
     if (pinned) setCaptioned(true);
   }, [pinned]);
-  useSelfDemo(clock, pinned);
+  // classic: no self demo; the phone waits for his tap with Clock In pulsing (Andrew, Oct 22: people
+  // didn't know it was clickable, so playing with it is the section's call to action)
+  useSelfDemo(clock, !CLASSIC && pinned);
   // the 3D phone floats a little; the DOM phone holds still
   useFloat(layer, fit.k, pinned && !no3d, holeRef);
 
@@ -195,6 +197,8 @@ export function TryDesk() {
     ghost: clock.ghost,
     live,
     breathe: breathed && untouched,
+    // classic: Clock In pulses until he taps (Andrew, Oct 22: make the phone "the primary call to action")
+    tapMe: CLASSIC && live && !clock.on && !clock.touched,
     onClockIn,
     onClockOut,
     onTouch: clock.touch,
@@ -207,7 +211,7 @@ export function TryDesk() {
     const h = BODY.h * k + 4;
     return { x: f.left + f.width / 2 - w / 2, y: f.top + f.height / 2 - h / 2, w, h, r: `${(BODY.r * k + 2).toFixed(1)}px` };
   }, [k]);
-  const focus = useFocusMode({ el: hit, live, hover: true, measure, onEnter: clock.touch });
+  const focus = useFocusMode({ el: hit, live, hover: true, measure, onEnter: CLASSIC ? undefined : clock.touch });
 
   return (
     <div className="try-grid wrap">
@@ -293,7 +297,9 @@ export function TryDesk() {
           his Loom (Oct 20): "some cool design piece that has the arrow coming here", so classic's arrow
           is hand drawn, loops once and runs right up to the phone, drawing itself in as the section
           arrives (try.css) */}
-      <div className="try-nudge" aria-hidden="true">
+      {/* classic (Andrew's fixes video, Oct 22): this is now the section's headline, left of the
+          phone with the arrow pointing right at it; "So Simple…" and the button sit right of it */}
+      <div className="try-nudge" aria-hidden={CLASSIC ? undefined : true}>
         <p className="try-nudge-lead">{TRY_IT.nudgeLead}</p>
         <p className="try-nudge-try">{TRY_IT.nudge}</p>
         {CLASSIC ? (

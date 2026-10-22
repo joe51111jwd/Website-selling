@@ -38,6 +38,11 @@ export type TryAppProps = {
    * Set while it should play; leave it off after the first tap so it never plays again.
    */
   breathe?: boolean;
+  /**
+   * Andrew (Oct 22): "People didn't know this was clickable … I want to make that like the primary
+   * call to action there." A soft orange ring pulses out of Clock In until the visitor taps.
+   */
+  tapMe?: boolean;
   onClockIn: () => void;
   onClockOut?: () => void;
   /** Any tap or key inside the app (the visitor is using it: no self demo). */
@@ -50,7 +55,7 @@ export type TryAppProps = {
   stage?: number;
 };
 
-export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, onTouch, stage }: TryAppProps) {
+export function TryApp({ on, secs, ghost, live, breathe, tapMe, onClockIn, onClockOut, onTouch, stage }: TryAppProps) {
   const [s, d] = useReducer(reduce, initial);
   const at = stage ?? 3;
   const staged = stage !== undefined;
@@ -167,7 +172,7 @@ export function TryApp({ on, secs, ghost, live, breathe, onClockIn, onClockOut, 
                 exit={reduced ? undefined : { opacity: 0, scale: 0.96, transition: { duration: 0.18 } }}
                 transition={{ duration: reduced ? 0 : 0.3, ease }}
               >
-                <Ready c={c} ghost={ghost} breathe={breathe} />
+                <Ready c={c} ghost={ghost} breathe={breathe} tapMe={tapMe} />
               </motion.div>
             ) : (
               <motion.div

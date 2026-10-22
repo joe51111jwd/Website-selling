@@ -229,7 +229,9 @@ export const TRY_IT = {
   /** Andrew's round 2 mock: beside the phone, with an arrow pointing at it (he cut the two facts that
    * stood there), so people see it's the real app and not a screenshot */
   nudgeLead: "Don’t take our word for it…", // his page note (Oct 20, comment mode)
-  nudge: "Try it yourself.",
+  // Andrew's fixes video (Oct 22): "the headline here that says: Don't take our word for it. Play
+  // with the app yourself." (it now leads the section, left of the phone)
+  nudge: "Play with the app yourself.",
   /** The jobsite's geofence tag (same job as the hero's tag and the phone screen). */
   site: INTRO.site,
   /** Tag once clocked in; {time} = the visitor's local time. */

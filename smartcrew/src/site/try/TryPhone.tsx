@@ -92,15 +92,26 @@ export default function TryPhone() {
     <div ref={ref} className={`tp${isIn ? " is-in" : ""}${clock.on ? " is-on" : ""}${focus.open ? " is-focus" : ""}`}>
       {/* the line before the tap, and after it (crossfaded in place, no layout change) */}
       <div className="tp-head wrap">
-        <h2 className="t-h2 tp-title">{italicize(TRY_IT.title, TRY_IT.em)}</h2>
-        <p className="tp-prompt">{TRY_IT.sub}</p>
+        {CLASSIC ? (
+          // Andrew's fixes video (Oct 22): "Don't take our word for it. Play with the app yourself."
+          // leads; "So Simple…" follows under it, smaller
+          <>
+            <h2 className="t-h2 tp-title">{TRY_IT.nudgeLead} {TRY_IT.nudge}</h2>
+            <p className="tp-prompt tp-prompt--so">{italicize(TRY_IT.title, TRY_IT.em)}</p>
+          </>
+        ) : (
+          <>
+            <h2 className="t-h2 tp-title">{italicize(TRY_IT.title, TRY_IT.em)}</h2>
+            <p className="tp-prompt">{TRY_IT.sub}</p>
+          </>
+        )}
         {/* Andrew's round 2 nudge, pointing down at the app (beside the phone on desktop) */}
-        <p className="tp-nudge">
+        {!CLASSIC && <p className="tp-nudge">
           {TRY_IT.nudge}
           <svg className="tp-nudge-arrow" viewBox="0 0 16 22" fill="none" aria-hidden="true">
             <path d="M8 2v16M2.5 12.5 8 18l5.5-5.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </p>
+        </p>}
       </div>
 
       {CLASSIC ? (
@@ -115,6 +126,8 @@ export default function TryPhone() {
               live={arrived || stage >= 4}
               stage={stage - 1}
               breathe={false}
+              // the one cue: a soft ring out of Clock In until the first tap (Andrew, Oct 22)
+              tapMe={isIn && !clock.on && !clock.touched}
               onClockIn={() => clock.clockIn("visitor")}
               onClockOut={clock.clockOut}
               onTouch={clock.touch}
