@@ -12,5 +12,8 @@ import { page as p8 } from "./compare/raken-alternative";
 import { page as p9 } from "./compare/workmax-alternative";
 import { page as p10 } from "./feature/construction-job-costing";
 import { page as p11 } from "./feature/construction-time-tracking";
+import { page as p12 } from "./feature/hauling-software";
+import { page as p13 } from "./feature/heavy-equipment-maintenance-software";
+import { page as p14 } from "./feature/pre-trip-inspection-app";
 
-export const PAGES: SeoPage[] = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11];
+export const PAGES: SeoPage[] = [p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14];
