@@ -655,3 +655,18 @@ html.look-classic .rp .rp-demo--btn:hover {
     font-size: 17px;
   }
 }
+
+/* Andrew's text, Oct 22: "On mobile can we cut subhead on these so we get all in one screen".
+   Phones only: each card is one row (icon, name, the apps it replaces); laptop keeps the line. */
+@media (max-width: 760px) {
+  html.look-classic .rp-line {
+    display: none;
+  }
+  html.look-classic .rp-card {
+    grid-template-areas: "ico name was";
+    padding: 12px 14px;
+  }
+  html.look-classic .rp-ico {
+    align-self: center;
+  }
+}
