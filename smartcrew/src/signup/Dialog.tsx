@@ -564,9 +564,13 @@ export default function Dialog({ req, opener, onClose }: Props) {
                 </div>
               </header>
 
-              <aside className="su-side" aria-label="Preview of your SmartCrew">
-                <Preview draft={d} intent={intent} focus={focus} compact={phone} saving={saving} hidden={phone && kb} />
-              </aside>
+              {/* phones: no preview strip ("Drish Construction · 6–12 people · Preview") over the form
+                  (James, Oct 22: move that bar, use the space properly); laptops keep the live preview */}
+              {!phone && (
+                <aside className="su-side" aria-label="Preview of your SmartCrew">
+                  <Preview draft={d} intent={intent} focus={focus} compact={false} saving={saving} />
+                </aside>
+              )}
 
               <form className="su-body" noValidate onSubmit={submit} data-step={step}>
                 {bodyNow && (
