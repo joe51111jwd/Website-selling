@@ -73,17 +73,50 @@ export default function Book() {
   }, [lead]);
 
   // Before booking: Andrew's Founding Member Program video (his recording, Oct 22; James: "this vid
-  // needs be in there"). It starts as a muted preview the way his Vidalytics videos do; a tap plays it
-  // from the start with sound and brings up its controls.
+  // needs be in there"). It starts by itself (James, Oct 22: "make that video autoplay"): with sound
+  // where the browser allows it (they just clicked through the popup), otherwise as a muted preview
+  // with "Tap to hear Andrew", the way his Vidalytics videos do; a tap plays it from the start with
+  // sound and brings up its controls. iPhone Low Power Mode blocks even a muted start, so there the
+  // first tap anywhere on the page starts the preview.
   const mp4 = useRef<HTMLVideoElement>(null);
   const [sound, setSound] = useState(false);
   useEffect(() => {
     const v = mp4.current;
     if (booking || !v) return;
-    v.muted = true;
-    v.defaultMuted = true;
-    if (!reduce) v.play().catch(() => {});
-  }, [booking, reduce]);
+    let gone = false;
+    const preview = () => {
+      v.muted = true;
+      v.defaultMuted = true;
+      v.setAttribute("muted", "");
+      return v.play().catch(() => {});
+    };
+    const kick = () => {
+      if (!gone && v.paused && !v.currentTime) void preview();
+    };
+    const started = () => {
+      document.removeEventListener("click", kick, true);
+      document.removeEventListener("touchend", kick, true);
+    };
+    document.addEventListener("click", kick, true);
+    document.addEventListener("touchend", kick, true);
+    v.addEventListener("playing", started, { once: true });
+    v.muted = false;
+    v.play().then(
+      () => {
+        if (gone) return;
+        setSound(true);
+        trackCustom("video_autoplay_sound");
+      },
+      () => {
+        if (!gone) void preview();
+      },
+    );
+    return () => {
+      gone = true;
+      started();
+      v.removeEventListener("playing", started);
+    };
+  }, [booking]);
   const hearAndrew = () => {
     const v = mp4.current;
     if (!v) return;
@@ -297,7 +330,7 @@ export default function Book() {
                     playsInline
                     loop={!sound}
                     controls={sound}
-                    preload={reduce ? "metadata" : "auto"}
+                    preload="auto"
                     onPlay={(e) => {
                       if (e.currentTarget.muted) return;
                       setPlaying(true);

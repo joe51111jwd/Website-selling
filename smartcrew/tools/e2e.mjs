@@ -1241,19 +1241,27 @@ async function funnel(device) {
     await cardHead.waitFor({ state: "visible", timeout: 10000 });
     assert(/quick demo/i.test(await cardHead.innerText()), `the calendar card says "${await cardHead.innerText()}"`);
     assert(!(await page.getByRole("button", { name: /skip the video/i }).count()), "the skip button is back");
-    await page.waitForFunction(() => document.querySelector("[data-testid=book-mp4]")?.muted && !document.querySelector("[data-testid=book-mp4]").paused, null, { timeout: 15000 }).catch(() => {});
-    assert(await mp4.evaluate((v) => v.muted && !v.paused), "Andrew's video isn't playing as a muted preview");
+    // it starts by itself (James, Oct 22): with sound where the browser allows it, else muted with "Tap to hear Andrew"
+    await page.waitForFunction(() => { const v = document.querySelector("[data-testid=book-mp4]"); return v && !v.paused && v.currentTime > 0; }, null, { timeout: 15000 }).catch(() => {});
+    assert(await mp4.evaluate((v) => !v.paused && v.currentTime > 0), "Andrew's video didn't start by itself");
+    const autoSound = await mp4.evaluate((v) => !v.muted);
     const vb = await video.boundingBox();
     const cb = await page.locator(".bk-card").boundingBox();
     if (device.name === "phone") assert(cb.y >= vb.y + vb.height - 2, `the calendar isn't under the video: card ${Math.round(cb.y)}, video ends ${Math.round(vb.y + vb.height)}`);
     else assert(cb.x >= vb.x + vb.width - 2 && cb.y < vb.y + vb.height, `the calendar isn't to the right of the video: ${JSON.stringify(cb)} vs ${JSON.stringify(vb)}`);
     out.push(`/book: video ${Math.round(vb.width)}px + calendar ${device.name === "phone" ? "under it" : "to its right"}, no gate`);
 
-    // a tap: his voice, from the start
-    await press(page, page.getByRole("button", { name: /play andrew.s video with sound/i }), { what: "the video's sound button" });
-    await page.waitForFunction(() => { const v = document.querySelector("[data-testid=book-mp4]"); return v && !v.muted && !v.paused; }, null, { timeout: 5000 }).catch(() => {});
-    assert(await mp4.evaluate((v) => !v.muted && !v.paused && v.controls), "a tap didn't play Andrew's video with sound");
-    out.push("his Founding Member video plays muted, a tap plays it with sound");
+    if (autoSound) {
+      assert(await mp4.evaluate((v) => v.controls), "his video started with sound but has no controls");
+      assert(!(await page.getByRole("button", { name: /play andrew.s video with sound/i }).count()), "the sound button shows while he's already talking");
+      out.push("his Founding Member video started by itself with sound");
+    } else {
+      // a tap: his voice, from the start
+      await press(page, page.getByRole("button", { name: /play andrew.s video with sound/i }), { what: "the video's sound button" });
+      await page.waitForFunction(() => { const v = document.querySelector("[data-testid=book-mp4]"); return v && !v.muted && !v.paused; }, null, { timeout: 5000 }).catch(() => {});
+      assert(await mp4.evaluate((v) => !v.muted && !v.paused && v.controls), "a tap didn't play Andrew's video with sound");
+      out.push("his Founding Member video started by itself, muted; a tap plays it with sound");
+    }
 
     // playing, then scrolled out of sight: it keeps playing in the top-left corner; its × stops it
     const slotEnd = await page.locator(".bk-video-slot").evaluate((el) => Math.round(el.getBoundingClientRect().bottom + scrollY));
