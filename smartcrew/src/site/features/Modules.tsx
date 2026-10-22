@@ -15,6 +15,13 @@ import { Icon } from "../../screens/kit/Icon";
 import { FEATURE_LIST, featureById } from "./data";
 
 const STEP_MS = 2600;
+
+// the screens zoomed out (Andrew, Oct 22: "those screens on this section were still really hard to
+// [see]. So we might need to zoom those out a little bit farther"): each module's page below the
+// app's top bar, 820 × 830 of its 1440 × 900, so far more of it shows than the desktop stills' crops
+const TALL = import.meta.glob<string>("./shots/tall/*.webp", { eager: true, import: "default" });
+const TALL_W = 1100;
+const TALL_H = 1113;
 const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 type Props = {
@@ -59,9 +66,9 @@ export function FeatureModules({ onShot }: Props) {
           <img
             key={x.id}
             className={x.id === on ? "is-on" : undefined}
-            src={x.shot.src}
-            width={x.shot.w}
-            height={x.shot.h}
+            src={TALL[`./shots/tall/${x.id}.webp`] ?? x.shot.src}
+            width={TALL_W}
+            height={TALL_H}
             alt=""
             loading="lazy"
             decoding="async"

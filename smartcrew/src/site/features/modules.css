@@ -3,8 +3,8 @@
    one it shows lit in the grid; on the site's card set and type scale (tokens.css). Andrew, Oct 21
    (note on the phone view): "Don't try to get headline + image + buttons in one screen. Expand the
    Image so someone can see image + buttons." So the section head scrolls by above, and the screen
-   takes all the height the line and the ten modules leave between the header and the sticky
-   button. */
+   (zoomed out, Oct 22: Modules.tsx TALL) shows whole at the phone's width, never taller than the
+   room the line and the ten modules leave between the header and the sticky button. */
 
 html.look-classic .ft-in.is-phone .ft-body {
   margin-top: 16px;
@@ -22,7 +22,9 @@ html.look-classic .ft-in.is-phone .ft-body {
 .ftm-screen img {
   grid-area: 1 / 1;
   width: 100%;
-  height: clamp(240px, calc(100svh - var(--header-h, 64px) - var(--sticky-h, 64px) - env(safe-area-inset-bottom) - 316px), 640px);
+  height: auto;
+  aspect-ratio: 1100 / 1113;
+  max-height: clamp(240px, calc(100svh - var(--header-h, 64px) - var(--sticky-h, 64px) - env(safe-area-inset-bottom) - 316px), 640px);
   object-fit: cover;
   object-position: left top;
   opacity: 0;

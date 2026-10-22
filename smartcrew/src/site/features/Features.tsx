@@ -152,7 +152,9 @@ function TabsOrCards() {
       <div ref={arriveRef} className={`ft-in wrap${phone ? " is-phone" : " is-desk"}`} data-in={arrived || reduce ? "" : undefined}>
         <div className="ft-head">
           <div className="ft-head-text" data-ft-in="1">
-            <p className="ft-kicker">{FEATURES.kicker}</p>
+            {/* Andrew's fixes video (Oct 22): "You can cut this header right here" (his notes: "cut
+                subheads on app section"); the other looks keep it */}
+            {!CLASSIC && <p className="ft-kicker">{FEATURES.kicker}</p>}
             <h2 className="t-h2 ft-title">{FEATURES.title}</h2>
             <p className="t-lead ft-sub">{FEATURES.sub}</p>
           </div>

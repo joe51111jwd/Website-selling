@@ -492,3 +492,8 @@ html.look-classic .ft-in.is-phone .ft-sub {
     padding: 9px 20px 10px;
   }
 }
+
+/* no eyebrow over the title (Andrew, Oct 22: "You can cut this header right here") */
+html.look-classic .ft-in .ft-head-text > .ft-title:first-child {
+  margin-top: 0;
+}
