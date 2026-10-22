@@ -219,17 +219,7 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
     0 0 0 1px rgb(23 19 15 / 10%),
     0 18px 40px -12px rgb(23 19 15 / 45%);
 }
-/* the poster's play button and note, sized for the corner */
-.bk-video.is-mini .bk-poster-play {
-  width: 40px;
-  height: 40px;
-  margin: -20px 0 0 -20px;
-}
-.bk-video.is-mini .bk-poster-play svg {
-  width: 16px;
-  height: 16px;
-  margin-left: 2px;
-}
+/* the failed-video note, too small for the corner */
 .bk-video.is-mini .bk-poster-note {
   display: none;
 }
@@ -284,25 +274,6 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   width: auto;
   opacity: 0.92;
 }
-.bk-poster-play {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  display: grid;
-  place-items: center;
-  width: 72px;
-  height: 72px;
-  margin: -36px 0 0 -36px;
-  border-radius: 50%;
-  background: rgb(255 255 255 / 94%);
-  color: var(--ink);
-  box-shadow: 0 12px 34px rgb(0 0 0 / 40%);
-  transition: transform 0.2s var(--ease-out);
-}
-.bk-poster-go:hover ~ .bk-poster .bk-poster-play,
-.bk-video-frame:hover .bk-poster-play {
-  transform: scale(1.06);
-}
 .bk-poster-note {
   position: absolute;
   left: 28px;
@@ -313,17 +284,9 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   line-height: 1.4;
   color: rgb(255 255 255 / 72%);
 }
-.bk-poster-play svg {
-  margin-left: 4px;
-}
-.bk-vid {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  padding-top: 56.25%;
-}
-/* Andrew's Founding Member video (before booking): his own 16:9 recording, hosted with the site,
-   playing muted as a preview until a tap brings his voice in from the start */
+/* Andrew's videos (his Founding Member video before booking, his demo after): his own 16:9
+   recordings, hosted with the site, playing muted as a preview until a tap brings his voice in from
+   the start */
 .bk-mp4 {
   position: relative;
   z-index: 1;
@@ -379,19 +342,6 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   height: 36px;
   padding: 0 14px 0 12px;
   font-size: 13px;
-}
-/* until the player has loaded: a tap on the poster loads it at once */
-.bk-poster-go {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
 }
 
 .bk-stage {
@@ -887,11 +837,6 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   .bk-video:not(.is-mini) .bk-video-frame {
     border-radius: 0;
   }
-  .bk-poster-play {
-    width: 60px;
-    height: 60px;
-    margin: -30px 0 0 -30px;
-  }
   .bk-poster-note {
     left: 16px;
     max-width: 44%;
@@ -959,9 +904,6 @@ html:not(.show-flags) :is(.flag, .sc-flag, [data-review-only]) {
   .bk-skel-grid span,
   .bk-skel-times span {
     animation: none;
-  }
-  .bk-poster-play {
-    transition: none;
   }
 }
 

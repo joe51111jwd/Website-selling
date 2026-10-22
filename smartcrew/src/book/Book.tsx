@@ -6,7 +6,7 @@ import { track, trackCustom } from "../lib/track";
 import { Flag } from "../signup/Flag";
 import { OFFER } from "../content/copy";
 import { TRIAL_FIRST } from "../lib/offer";
-import { mountCal, mountVidalytics, vidalyticsPlayer, type VidPlayer } from "./embeds";
+import { mountCal } from "./embeds";
 import { downloadIcs, downloadVcf, googleUrl, when } from "./calendar";
 import { Logo } from "../brand/Logo";
 import { BrandLogo } from "../brand/BrandLogo";
@@ -15,6 +15,8 @@ import faceUrl from "../signup/assets/andrew-face.webp";
 import bustUrl from "../signup/assets/andrew-bust.webp";
 import founderUrl from "./assets/founding-member.mp4";
 import founderPoster from "./assets/founding-member-poster.webp";
+import demoUrl from "./assets/andrew-demo.mp4";
+import demoPoster from "./assets/andrew-demo-poster.webp";
 
 // /book: Andrew's words and blocks (Oct 19, his layout by text; his Loom, Oct 20). His headline
 // centred, then his two columns: the video with "Here's what we'll cover" under it on the left, the
@@ -24,9 +26,10 @@ import founderPoster from "./assets/founding-member-poster.webp";
 // Oct 19). Once the video is playing and they scroll it out of sight, it keeps playing in a corner
 // player top-left ("I love how… that keeps running"). After booking, the page becomes his final
 // confirmation page (his doc, Oct 20 17:30Z): his "You're Booked!" headline and line over his
-// walkthrough video, now centred and wide, the call's ticket under it. Before booking the video is his
-// Founding Member Program video (recorded Oct 22, hosted with the site); after, his walkthrough
-// (Vidalytics), as his confirmation page's line says.
+// video, now centred and wide, the call's ticket under it. Before booking the video is his Founding
+// Member Program video (recorded Oct 22, hosted with the site); after, his demo (Oct 22: "After, once
+// you already book"): his intro, his web walkthrough and his phone walkthrough stitched into one
+// video, also hosted with the site, in place of the Vidalytics walkthrough.
 
 const LITE = typeof window !== "undefined" && window.matchMedia("(pointer: coarse), (max-width: 760px)").matches;
 const blur = (px: number): { filter?: string } => (LITE ? {} : { filter: `blur(${px}px)` });
@@ -48,7 +51,10 @@ export default function Book() {
   const [lead] = useState<Lead | null>(() => savedLead());
   const [booking, setBooking] = useState<Booking | null>(() => devBooking() ?? savedBooking());
   const [cal, setCal] = useState<"loading" | "ready" | "failed">("loading");
-  const [videoFailed, setVideoFailed] = useState(false);
+  /** which of his videos is on the page: the Founding Member video before booking, his demo after */
+  const clip = booking ? "demo" : "founding_member";
+  const [failedClip, setFailedClip] = useState<string | null>(null);
+  const videoFailed = failedClip === clip;
   const calRef = useRef<HTMLDivElement>(null);
   /** the video in the corner, still playing, while they book: it is playing, its slot has scrolled
    *  out of sight, and they haven't closed the corner player since they last pressed play */
@@ -57,7 +63,6 @@ export default function Book() {
   const [dismissed, setDismissed] = useState(false);
   const mini = playing && slotOut && !dismissed && !booking && !videoFailed;
   const slotRef = useRef<HTMLDivElement>(null);
-  const player = useRef<VidPlayer | null>(null);
 
   const first = lead?.first || (lead ? firstName(lead.name) : "");
   const demo = lead?.intent === "demo";
@@ -73,16 +78,17 @@ export default function Book() {
   }, [lead]);
 
   // Before booking: Andrew's Founding Member Program video (his recording, Oct 22; James: "this vid
-  // needs be in there"). It starts by itself (James, Oct 22: "make that video autoplay"): with sound
-  // where the browser allows it (they just clicked through the popup), otherwise as a muted preview
-  // with "Tap to hear Andrew", the way his Vidalytics videos do; a tap plays it from the start with
-  // sound and brings up its controls. iPhone Low Power Mode blocks even a muted start, so there the
-  // first tap anywhere on the page starts the preview.
+  // needs be in there"); once booked, his demo. Each starts by itself (James, Oct 22: "make that video
+  // autoplay"): with sound where the browser allows it (they just clicked through the popup or the
+  // calendar), otherwise as a muted preview with "Tap to hear Andrew", the way his Vidalytics videos
+  // do; a tap plays it from the start with sound and brings up its controls. iPhone Low Power Mode
+  // blocks even a muted start, so there the first tap anywhere on the page starts the preview.
   const mp4 = useRef<HTMLVideoElement>(null);
-  const [sound, setSound] = useState(false);
+  const [soundClip, setSoundClip] = useState<string | null>(null);
+  const sound = soundClip === clip;
   useEffect(() => {
     const v = mp4.current;
-    if (booking || !v) return;
+    if (!v) return;
     let gone = false;
     const preview = () => {
       v.muted = true;
@@ -104,8 +110,8 @@ export default function Book() {
     v.play().then(
       () => {
         if (gone) return;
-        setSound(true);
-        trackCustom("video_autoplay_sound");
+        setSoundClip(clip);
+        trackCustom("video_autoplay_sound", { video: clip });
       },
       () => {
         if (!gone) void preview();
@@ -116,48 +122,20 @@ export default function Book() {
       started();
       v.removeEventListener("playing", started);
     };
-  }, [booking]);
+  }, [clip]);
   const hearAndrew = () => {
     const v = mp4.current;
     if (!v) return;
     v.muted = false;
     v.loop = false;
     v.currentTime = 0;
-    setSound(true);
+    setSoundClip(clip);
     setDismissed(false);
-    trackCustom("video_sound_on");
+    trackCustom("video_sound_on", { video: clip });
     // the muted preview is usually already playing, so no play event follows: mark it here
     v.play().then(() => setPlaying(true)).catch(() => {});
   };
 
-  // After booking: his walkthrough, right after first paint; a tap on the poster loads the player at once
-  const video = useRef(false);
-  const [vidOn, setVidOn] = useState(false);
-  const mountVideo = () => {
-    if (video.current) return;
-    video.current = true;
-    setVidOn(true);
-    vidalyticsPlayer(config.vidalytics.walkthrough).then((p) => {
-      if (!p) return;
-      player.current = p;
-      p.on("play", () => {
-        setPlaying(true);
-        setDismissed(false);
-      });
-      p.on("pause", () => setPlaying(false));
-      p.on("ended", () => {
-        setPlaying(false);
-        trackCustom("video_ended");
-      });
-    });
-    mountVidalytics(config.vidalytics.walkthrough, () => setVideoFailed(true));
-  };
-  useEffect(() => {
-    if (!booking) return;
-    const id = window.setTimeout(mountVideo, 60);
-    return () => window.clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [booking]);
   // the video's slot in sight or not (the corner player takes over when it isn't)
   useEffect(() => {
     const el = slotRef.current;
@@ -168,7 +146,6 @@ export default function Book() {
   }, []);
   /** The corner player's ×: the video stops and goes back to its place (play again and it can follow). */
   const closeMini = () => {
-    player.current?.pause();
     mp4.current?.pause();
     setDismissed(true);
   };
@@ -302,66 +279,46 @@ export default function Book() {
             transition={{ duration: reduce ? 0 : 0.7, ease, delay: reduce ? 0 : 0.15 }}
           >
             <div className="bk-video-frame">
-              {booking ? (
-                <>
-                  <div className="bk-poster" aria-hidden="true">
-                    <img src={bustUrl} alt="" />
-                    {videoFailed ? (
-                      <span className="bk-poster-note">Andrew's video didn't load here.</span>
-                    ) : (
-                      <span className="bk-poster-play">
-                        <svg width="22" height="22" viewBox="0 0 18 18">
-                          <path d="M5 3.2v11.6L14.6 9z" fill="currentColor" />
-                        </svg>
-                      </span>
-                    )}
-                  </div>
-                  <div id={`vidalytics_embed_${config.vidalytics.walkthrough}`} className="bk-vid" />
-                  {!vidOn && <button type="button" className="bk-poster-go" onClick={mountVideo} aria-label="Play Andrew’s video" />}
-                </>
+              <video
+                key={clip}
+                ref={mp4}
+                className="bk-mp4"
+                data-testid="book-mp4"
+                src={booking ? demoUrl : founderUrl}
+                poster={booking ? demoPoster : founderPoster}
+                playsInline
+                loop={!sound}
+                controls={sound}
+                preload={booking ? "metadata" : "auto"}
+                onPlay={(e) => {
+                  if (e.currentTarget.muted) return;
+                  setPlaying(true);
+                  setDismissed(false);
+                }}
+                onPause={() => setPlaying(false)}
+                onEnded={() => {
+                  setPlaying(false);
+                  if (sound) trackCustom("video_ended", { video: clip });
+                }}
+                onError={() => setFailedClip(clip)}
+              />
+              {videoFailed ? (
+                <div className="bk-poster" aria-hidden="true">
+                  <img src={bustUrl} alt="" />
+                  <span className="bk-poster-note">Andrew's video didn't load here.</span>
+                </div>
               ) : (
-                <>
-                  <video
-                    ref={mp4}
-                    className="bk-mp4"
-                    data-testid="book-mp4"
-                    src={founderUrl}
-                    poster={founderPoster}
-                    playsInline
-                    loop={!sound}
-                    controls={sound}
-                    preload="auto"
-                    onPlay={(e) => {
-                      if (e.currentTarget.muted) return;
-                      setPlaying(true);
-                      setDismissed(false);
-                    }}
-                    onPause={() => setPlaying(false)}
-                    onEnded={() => {
-                      setPlaying(false);
-                      if (sound) trackCustom("video_ended");
-                    }}
-                    onError={() => setVideoFailed(true)}
-                  />
-                  {videoFailed ? (
-                    <div className="bk-poster" aria-hidden="true">
-                      <img src={bustUrl} alt="" />
-                      <span className="bk-poster-note">Andrew's video didn't load here.</span>
-                    </div>
-                  ) : (
-                    !sound && (
-                      <button type="button" className="bk-hear" onClick={hearAndrew} aria-label="Play Andrew’s video with sound">
-                        <span className="bk-hear-pill">
-                          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-                            <path d="M2.5 6.6h2.6L9 3.4v11.2L5.1 11.4H2.5z" fill="currentColor" />
-                            <path d="M11.6 6.2a3.6 3.6 0 0 1 0 5.6M13.6 4.2a6.4 6.4 0 0 1 0 9.6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                          </svg>
-                          {LITE ? "Tap" : "Click"} to hear Andrew
-                        </span>
-                      </button>
-                    )
-                  )}
-                </>
+                !sound && (
+                  <button type="button" className="bk-hear" onClick={hearAndrew} aria-label="Play Andrew’s video with sound">
+                    <span className="bk-hear-pill">
+                      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                        <path d="M2.5 6.6h2.6L9 3.4v11.2L5.1 11.4H2.5z" fill="currentColor" />
+                        <path d="M11.6 6.2a3.6 3.6 0 0 1 0 5.6M13.6 4.2a6.4 6.4 0 0 1 0 9.6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                      </svg>
+                      {LITE ? "Tap" : "Click"} to hear Andrew
+                    </span>
+                  </button>
+                )
               )}
             </div>
             {mini && (

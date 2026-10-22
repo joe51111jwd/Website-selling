@@ -141,7 +141,7 @@ async function newContext(device, { kind = "gl", reducedMotion, init } = {}) {
   if (init) await ctx.addInitScript(init.fn, init.arg);
   // Andrew's Founding Member video on /book is H.264, which this test Chromium can't decode: a tiny
   // WebM stands in for it (same element, same events)
-  await ctx.route(/\/assets\/founding-member[^/]*\.mp4(\?|$)/, (r) => r.fulfill({ status: 200, contentType: "video/webm", body: FOUNDER_TEST_CLIP }));
+  await ctx.route(/\/assets\/(founding-member|andrew-demo)[^/]*\.mp4(\?|$)/, (r) => r.fulfill({ status: 200, contentType: "video/webm", body: FOUNDER_TEST_CLIP }));
   ctx.on("page", (p) => watch(p, device.name));
   touchCtx.set(ctx, !!device.ctx.hasTouch);
   return ctx;
@@ -1338,8 +1338,20 @@ async function funnel(device) {
     const [vidTop, ticketTop] = [await topOf("book-video"), await page.locator(".bk-ticket").evaluate((el) => Math.round(el.getBoundingClientRect().top + scrollY))];
     assert(vidTop < ticketTop, `booked order: video ${vidTop}, ticket ${ticketTop}`);
     assert(!(await page.getByTestId("book-covers").count()) && !(await page.getByTestId("book-cal").count()), "the booked page still shows the calendar or the three bullets");
+    // his demo (Oct 22: intro + web + phone, stitched), hosted with the site, in place of the Vidalytics walkthrough; it starts by itself too
+    const demo = page.getByTestId("book-mp4");
+    assert(/andrew-demo[^/]*\.mp4/.test((await demo.getAttribute("src")) ?? ""), `the booked video is ${await demo.getAttribute("src")}`);
+    assert(await demo.getAttribute("poster"), "his demo has no poster");
+    assert(!(await page.locator(`#vidalytics_embed_${VIDEO_ID}`).count()), "the Vidalytics walkthrough is still on the booked page");
+    await page.waitForFunction(() => { const v = document.querySelector("[data-testid=book-mp4]"); return v && !v.paused && v.currentTime > 0; }, null, { timeout: 15000 }).catch(() => {});
+    assert(await demo.evaluate((v) => !v.paused && v.currentTime > 0), "his demo didn't start by itself");
+    if (!(await demo.evaluate((v) => !v.muted))) {
+      await press(page, page.getByRole("button", { name: /play andrew.s video with sound/i }), { what: "the demo's sound button" });
+      await page.waitForFunction(() => { const v = document.querySelector("[data-testid=book-mp4]"); return v && !v.muted && !v.paused; }, null, { timeout: 5000 }).catch(() => {});
+      assert(await demo.evaluate((v) => !v.muted && !v.paused && v.controls), "a tap didn't play his demo with sound");
+    }
     await page.evaluate(() => localStorage.removeItem("sc_booking"));
-    out.push("booked → his confirmation page (headline, line, video, ticket under it)");
+    out.push("booked → his confirmation page (headline, line, his demo playing, ticket under it)");
 
     // no lead sent anywhere (no email to Andrew or the visitor from a test): leadWebhook is empty
     assert(/leadWebhook:\s*""/.test(configSrc), "config.leadWebhook is set: a test run would send leads");

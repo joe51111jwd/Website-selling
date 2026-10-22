@@ -80,7 +80,6 @@ function warmBooking() {
   try {
     add("prefetch", new URL("book/", document.baseURI).href, "document");
     add("preconnect", "https://app.cal.com");
-    add("preconnect", "https://fast.vidalytics.com");
   } catch {
     /* ignore */
   }
