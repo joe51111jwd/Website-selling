@@ -37,6 +37,22 @@ export default function Signup() {
       else window.clearTimeout(id);
     };
   }, []);
+  // The SEO library's "Try SmartCrew" buttons (src/seo) land here as /?try=<page>: open the same popup
+  // they'd get from the page's own button, and take ?try out of the address bar.
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(location.search);
+      const from = q.get("try");
+      if (!from) return;
+      q.delete("try");
+      const rest = q.toString();
+      history.replaceState(history.state, "", `${location.pathname}${rest ? `?${rest}` : ""}${location.hash}`);
+      setReq({ intent: "trial", source: `seo:${from.slice(0, 60)}` });
+      setMounted(true);
+    } catch {
+      /* no popup, the page is still there */
+    }
+  }, []);
   // Crisp's chat bubble stays out of the popup's way
   useEffect(() => hideChat(req !== null), [req]);
 

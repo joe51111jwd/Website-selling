@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import { seoPages } from "./seo.plugin";
 
 // Preview builds (`--mode preview`, `--mode watermark`) ask search engines not to
 // index; the watermark build also carries the watermark.
@@ -18,7 +19,7 @@ const painAi = process.env.VITE_PAIN_AI ?? (process.env.VERCEL && process.env.OP
 
 export default defineConfig(({ mode }) => ({
   base: "./",
-  plugins: [react(), ...(mode === "watermark" || mode === "preview" ? [noindex] : [])],
+  plugins: [react(), seoPages(), ...(mode === "watermark" || mode === "preview" ? [noindex] : [])],
   define: { "import.meta.env.VITE_PAIN_AI": JSON.stringify(painAi) },
   build: {
     // the product page, the "book a call" page the trial form lands on, and the two legal pages
