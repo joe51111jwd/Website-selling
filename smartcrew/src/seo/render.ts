@@ -3,6 +3,7 @@
 // the right (laptops). No script is needed to read anything: crawlers and AI assistants get the
 // whole text, tables and FAQ in the HTML, plus JSON-LD (Article, BreadcrumbList, FAQPage).
 
+import { previewRobotsSnippet } from "../lib/preview-robots";
 import { trackingSnippets } from "../lib/tracking-snippet";
 import { SHOTS } from "./shots";
 import type { Block, Cell, Faq, Kind, SeoPage, Shot } from "./types";
@@ -249,7 +250,7 @@ function relatedHtml(lib: Library, page: SeoPage) {
     .join("")}</div></nav>`;
 }
 
-type HeadOpts = { title: string; description: string; path: string; jsonld: object[]; noindex: boolean; css: string };
+type HeadOpts = { title: string; description: string; path: string; jsonld: object[]; css: string };
 
 function head(o: HeadOpts) {
   const url = `${SITE}${o.path}`;
@@ -259,7 +260,8 @@ function head(o: HeadOpts) {
 <title>${esc(o.title)}</title>
 <meta name="description" content="${esc(o.description)}" />
 <link rel="canonical" href="${url}" />
-${o.noindex ? '<meta name="robots" content="noindex, nofollow" />\n' : '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />\n'}<meta name="theme-color" content="#FBF8F4" />
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+<meta name="theme-color" content="#FBF8F4" />
 <meta property="og:type" content="article" />
 <meta property="og:site_name" content="SmartCrew" />
 <meta property="og:title" content="${esc(o.title)}" />
@@ -272,6 +274,7 @@ ${o.noindex ? '<meta name="robots" content="noindex, nofollow" />\n' : '<meta na
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/finlandica-text-var.latin.woff2" />
 <link rel="stylesheet" href="${o.css}" />
 ${o.jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, "\\u003c")}</script>`).join("\n")}
+${previewRobotsSnippet()}
 ${trackingSnippets()}
 </head>`;
 }
@@ -299,7 +302,7 @@ const crumbs = (items: { name: string; path: string }[]) => ({
   itemListElement: items.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: `${SITE}${c.path}` })),
 });
 
-export type RenderOpts = { noindex: boolean; css: string };
+export type RenderOpts = { css: string };
 
 export function renderPage(lib: Library, page: SeoPage, o: RenderOpts): string {
   const hub = kindOf(page.kind);
@@ -349,7 +352,7 @@ export function renderPage(lib: Library, page: SeoPage, o: RenderOpts): string {
   ${relatedHtml(lib, page)}
 </article>`;
 
-  return shell(lib, page.slug, head({ title: page.title, description: page.description, path, jsonld, noindex: o.noindex, css: o.css }), body, toc(page));
+  return shell(lib, page.slug, head({ title: page.title, description: page.description, path, jsonld, css: o.css }), body, toc(page));
 }
 
 function shell(lib: Library, current: string, headHtml: string, main: string, right: string) {
@@ -399,7 +402,7 @@ export function renderHub(lib: Library, kind: Kind, o: RenderOpts): string {
     .join("")}</div>
   ${ctaBand(h.slug)}
 </article>`;
-  return shell(lib, h.slug, head({ title: `${h.title} · SmartCrew`, description: h.description, path, jsonld, noindex: o.noindex, css: o.css }), body, "");
+  return shell(lib, h.slug, head({ title: `${h.title} · SmartCrew`, description: h.description, path, jsonld, css: o.css }), body, "");
 }
 
 /** sitemap.xml for the library (the product page and /book are listed too). */

@@ -1,5 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "proxy": {
+    "entrypoint": "proxy.ts",
+    "matcher": "/robots.txt"
+  },
   "redirects": [
     {
       "source": "/contact",
@@ -200,18 +204,8 @@
   "headers": [
     {
       "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "smartcrew-preview.vercel.app"
-        }
-      ],
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "noindex, nofollow"
-        }
-      ]
+      "has": [{ "type": "host", "value": "\\.vercel\\.app$" }],
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }
   ]
 }
