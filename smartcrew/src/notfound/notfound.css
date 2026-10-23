@@ -1,0 +1,199 @@
+/* The 404 page (notfound.plugin.ts): the product page's classic look, no script. It is served at any
+   address that doesn't exist, so everything it loads is by absolute path. Tokens come from
+   src/styles/tokens.css, flattened in ahead of this sheet. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  background: var(--ground);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  color: var(--ink-2);
+  font-family: var(--font-text);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+a {
+  color: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--orange);
+  outline-offset: 3px;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  height: 72px;
+  padding: 0 clamp(20px, 4vw, 48px);
+}
+.home {
+  display: inline-flex;
+  padding: 4px 0;
+  border-radius: 6px;
+}
+.home img {
+  display: block;
+  height: 38px;
+  width: auto;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 16px clamp(20px, 4vw, 48px) 72px;
+  text-align: center;
+}
+.code {
+  margin: 0;
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-weight: 760;
+  font-size: clamp(96px, 20vw, 168px);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--orange);
+  user-select: none;
+}
+.eyebrow {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+h1 {
+  margin: 10px 0 0;
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-weight: 720;
+  font-size: clamp(30px, 4vw, 42px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.sub {
+  margin: 12px auto 0;
+  max-width: 46ch;
+  font-size: 16px;
+  color: var(--ink-2);
+  text-wrap: balance;
+}
+
+/* the product page's orange button, flattened (the same as the SEO pages' and /demo's) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  margin-top: 28px;
+  padding: 0 32px;
+  border-radius: 999px;
+  background: var(--orange);
+  color: #1a0d00;
+  font-family: var(--font-display);
+  font-stretch: 100%;
+  font-size: 18px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 45%) inset,
+    0 10px 24px -8px rgb(255 122 1 / 70%);
+  transition:
+    transform var(--dur-1) var(--ease-out),
+    box-shadow var(--dur-1);
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 45%) inset,
+    0 14px 30px -8px rgb(255 122 1 / 80%);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+
+.or {
+  margin: 40px 0 14px;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--card-gap);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+.links a {
+  display: block;
+  height: 100%;
+  padding: var(--card-pad);
+  border: 1px solid var(--card-line);
+  border-radius: var(--card-r);
+  background: var(--paper);
+  box-shadow: var(--card-shadow);
+  text-decoration: none;
+  transition: border-color var(--dur-1);
+}
+.links a:hover {
+  border-color: var(--card-line-hover);
+}
+.links b {
+  display: block;
+  font-size: var(--fs-card-name);
+  font-weight: 650;
+  color: var(--ink);
+}
+.links span {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-card-small);
+  color: var(--ink-3);
+}
+
+@media (max-width: 760px) {
+  .bar {
+    height: 60px;
+  }
+  .home img {
+    height: 30px;
+  }
+  main {
+    justify-content: flex-start;
+    padding-bottom: 48px;
+  }
+  .btn {
+    width: 100%;
+    max-width: 420px;
+  }
+  .links {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

@@ -7,6 +7,7 @@ import { Flag } from "../signup/Flag";
 import { OFFER } from "../content/copy";
 import { TRIAL_FIRST } from "../lib/offer";
 import { mountCal } from "./embeds";
+import { useVideoStart } from "./useVideoStart";
 import { downloadIcs, downloadVcf, googleUrl, when } from "./calendar";
 import { Logo } from "../brand/Logo";
 import { BrandLogo } from "../brand/BrandLogo";
@@ -78,62 +79,11 @@ export default function Book() {
   }, [lead]);
 
   // Before booking: Andrew's Founding Member Program video (his recording, Oct 22; James: "this vid
-  // needs be in there"); once booked, his demo. Each starts by itself (James, Oct 22: "make that video
-  // autoplay"): with sound where the browser allows it (they just clicked through the popup or the
-  // calendar), otherwise as a muted preview with "Tap to hear Andrew", the way his Vidalytics videos
-  // do; a tap plays it from the start with sound and brings up its controls. iPhone Low Power Mode
-  // blocks even a muted start, so there the first tap anywhere on the page starts the preview.
-  const mp4 = useRef<HTMLVideoElement>(null);
-  const [soundClip, setSoundClip] = useState<string | null>(null);
-  const sound = soundClip === clip;
-  useEffect(() => {
-    const v = mp4.current;
-    if (!v) return;
-    let gone = false;
-    const preview = () => {
-      v.muted = true;
-      v.defaultMuted = true;
-      v.setAttribute("muted", "");
-      return v.play().catch(() => {});
-    };
-    const kick = () => {
-      if (!gone && v.paused && !v.currentTime) void preview();
-    };
-    const started = () => {
-      document.removeEventListener("click", kick, true);
-      document.removeEventListener("touchend", kick, true);
-    };
-    document.addEventListener("click", kick, true);
-    document.addEventListener("touchend", kick, true);
-    v.addEventListener("playing", started, { once: true });
-    v.muted = false;
-    v.play().then(
-      () => {
-        if (gone) return;
-        setSoundClip(clip);
-        trackCustom("video_autoplay_sound", { video: clip });
-      },
-      () => {
-        if (!gone) void preview();
-      },
-    );
-    return () => {
-      gone = true;
-      started();
-      v.removeEventListener("playing", started);
-    };
-  }, [clip]);
+  // needs be in there"); once booked, his demo. Each starts by itself (src/book/useVideoStart.ts).
+  const { ref: mp4, sound, hear } = useVideoStart(clip);
   const hearAndrew = () => {
-    const v = mp4.current;
-    if (!v) return;
-    v.muted = false;
-    v.loop = false;
-    v.currentTime = 0;
-    setSoundClip(clip);
     setDismissed(false);
-    trackCustom("video_sound_on", { video: clip });
-    // the muted preview is usually already playing, so no play event follows: mark it here
-    v.play().then(() => setPlaying(true)).catch(() => {});
+    hear()?.then(() => setPlaying(true)).catch(() => {});
   };
 
   // the video's slot in sight or not (the corner player takes over when it isn't)

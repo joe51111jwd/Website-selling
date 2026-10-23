@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { seoPages } from "./seo.plugin";
+import { notFoundPage } from "./notfound.plugin";
 import { previewRobotsSnippet } from "./src/lib/preview-robots";
 import { trackingSnippets } from "./src/lib/tracking-snippet";
 import { homeHeadTags } from "./src/seo/entity";
@@ -50,14 +51,16 @@ const painAi = process.env.VITE_PAIN_AI ?? (process.env.VERCEL && process.env.OP
 
 export default defineConfig(() => ({
   base: "./",
-  plugins: [react(), pages, seoPages()],
+  plugins: [react(), pages, seoPages(), notFoundPage()],
   define: { "import.meta.env.VITE_PAIN_AI": JSON.stringify(painAi) },
   build: {
-    // the product page, the "book a call" page the trial form lands on, and the two legal pages
+    // the product page, the "book a call" page the trial form lands on, the demo page, and the two legal pages
     rollupOptions: {
       input: {
         main: resolve(import.meta.dirname, "index.html"),
         book: resolve(import.meta.dirname, "book/index.html"),
+        // the demo video on a page of its own, to send to people (no booking)
+        demo: resolve(import.meta.dirname, "demo/index.html"),
         // Andrew's legal pages, kept at smartcrewhq.com's addresses (src/legal/legal.css)
         privacy: resolve(import.meta.dirname, "privacy-policy/index.html"),
         terms: resolve(import.meta.dirname, "terms-of-service/index.html"),

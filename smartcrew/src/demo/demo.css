@@ -1,0 +1,68 @@
+/* /demo: the headline, the line, Andrew's video and one button, on /book's classic look (book.css
+   carries the bar, headline, video and "Tap to hear" styles). */
+
+.dm-main {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 var(--bk-pad) 56px;
+}
+.dm-intro {
+  padding-inline: 0;
+}
+.dm-video {
+  margin-top: 28px;
+  grid-area: auto;
+}
+.dm-cta-row {
+  display: flex;
+  justify-content: center;
+  margin: 36px 0 0;
+}
+/* the product page's orange button, flattened (the same as the SEO pages' .btn) */
+.dm-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 0 32px;
+  border-radius: 999px;
+  background: var(--orange);
+  color: #1a0d00 !important;
+  font-family: var(--font-display);
+  font-stretch: 100%;
+  font-size: 18px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 45%) inset,
+    0 10px 24px -8px rgb(255 122 1 / 70%);
+  transition:
+    transform var(--dur-1) var(--ease-out),
+    box-shadow var(--dur-1);
+}
+.dm-cta:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 45%) inset,
+    0 14px 30px -8px rgb(255 122 1 / 80%);
+}
+.dm-cta:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 760px) {
+  .dm-main {
+    padding-bottom: 40px;
+  }
+  .dm-video {
+    margin-top: 22px;
+  }
+  .dm-cta-row {
+    margin-top: 28px;
+  }
+  .dm-cta {
+    width: 100%;
+    max-width: 420px;
+  }
+}
