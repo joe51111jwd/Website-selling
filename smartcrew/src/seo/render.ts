@@ -3,6 +3,7 @@
 // the right (laptops). No script is needed to read anything: crawlers and AI assistants get the
 // whole text, tables and FAQ in the HTML, plus JSON-LD (Article, BreadcrumbList, FAQPage).
 
+import { trackingSnippets } from "../lib/tracking-snippet";
 import { SHOTS } from "./shots";
 import type { Block, Cell, Faq, Kind, SeoPage, Shot } from "./types";
 
@@ -271,6 +272,7 @@ ${o.noindex ? '<meta name="robots" content="noindex, nofollow" />\n' : '<meta na
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/finlandica-text-var.latin.woff2" />
 <link rel="stylesheet" href="${o.css}" />
 ${o.jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, "\\u003c")}</script>`).join("\n")}
+${trackingSnippets()}
 </head>`;
 }
 
