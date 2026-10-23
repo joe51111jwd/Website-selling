@@ -1,5 +1,5 @@
 // Builds the SEO library (src/seo) into static pages: /<slug>/index.html for every page, a hub per
-// kind (/industries/, /compare/, /vs/, /features/, /guides/), sitemap.xml, robots.txt and llms.txt.
+// kind (/industries/, /compare/, /vs/, /features/, /guides/), sitemap.xml, robots.txt, llms.txt and llms-full.txt.
 // Preview builds (`--mode preview`) mark every page noindex, like the rest of the preview site.
 // In `vite dev` the same pages are served from memory, so they can be checked at localhost.
 
@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Plugin } from "vite";
 import { PAGES } from "./src/seo/pages";
+import { llmsFull } from "./src/seo/llms-full";
 import { HUBS, llms, renderHub, renderPage, sitemap } from "./src/seo/render";
 
 const root = import.meta.dirname;
@@ -34,7 +35,8 @@ function build(noindex: boolean, cssHref: string) {
   for (const p of PAGES) files[`${p.slug}/index.html`] = renderPage(lib, p, { noindex, css: cssHref });
   for (const h of HUBS) if (PAGES.some((p) => p.kind === h.kind)) files[`${h.slug}/index.html`] = renderHub(lib, h.kind, { noindex, css: cssHref });
   files["sitemap.xml"] = sitemap(lib);
-  files["llms.txt"] = llms(lib);
+  files["llms.txt"] = `${llms(lib)}\n## Full text\n\n- [All guides as one markdown file](https://www.smartcrewhq.com/llms-full.txt): the same text as the pages, for assistants that read one file.\n`;
+  files["llms-full.txt"] = llmsFull(PAGES);
   files["robots.txt"] = `User-agent: *\nAllow: /\n\n# Search and AI answer crawlers, allowed by name so a later blanket rule cannot block them by accident.\nUser-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: GPTBot\nUser-agent: ClaudeBot\nUser-agent: Claude-SearchBot\nUser-agent: PerplexityBot\nUser-agent: Google-Extended\nUser-agent: meta-externalagent\nUser-agent: meta-webindexer\nUser-agent: Bingbot\nAllow: /\n\nSitemap: https://www.smartcrewhq.com/sitemap.xml\n`;
   return files;
 }
