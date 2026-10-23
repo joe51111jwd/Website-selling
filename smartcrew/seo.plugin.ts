@@ -35,7 +35,7 @@ function build(noindex: boolean, cssHref: string) {
   for (const h of HUBS) if (PAGES.some((p) => p.kind === h.kind)) files[`${h.slug}/index.html`] = renderHub(lib, h.kind, { noindex, css: cssHref });
   files["sitemap.xml"] = sitemap(lib);
   files["llms.txt"] = llms(lib);
-  files["robots.txt"] = `User-agent: *\nAllow: /\n\nSitemap: https://www.smartcrewhq.com/sitemap.xml\n`;
+  files["robots.txt"] = `User-agent: *\nAllow: /\n\n# Search and AI answer crawlers, allowed by name so a later blanket rule cannot block them by accident.\nUser-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: GPTBot\nUser-agent: ClaudeBot\nUser-agent: Claude-SearchBot\nUser-agent: PerplexityBot\nUser-agent: Google-Extended\nUser-agent: meta-externalagent\nUser-agent: meta-webindexer\nUser-agent: Bingbot\nAllow: /\n\nSitemap: https://www.smartcrewhq.com/sitemap.xml\n`;
   return files;
 }
 
