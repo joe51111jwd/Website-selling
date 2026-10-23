@@ -63,9 +63,59 @@ real update, bump `updated`, which feeds sitemap lastmod. Never bump the date wi
   `chatgpt|openai|perplexity|gemini\.google|copilot\.microsoft|claude\.ai|deepseek`. It undercounts.
 - Rerun the prompt set monthly and the full audit every quarter.
 
-## Still missing in the library (wave 4 candidates)
+## Wave 4 (October 22, 2026)
 
-- Comparison and pricing pages need the competitor JSON files (WRITING.md rule 2), which are not on
-  this box: ClockShark pricing, busybusy pricing, HCSS vs busybusy.
-- Trades: septic, drilling, paving, demolition, trucking, aggregate.
-- Features: sales and CRM, file storage.
+Added: six trade pages (septic, drilling, paving, demolition, trucking, aggregate), two feature
+pages (construction CRM, file storage), a Fieldwire alternative, HCSS vs busybusy, and one
+cross-tool pricing guide at /guides/construction-software-pricing/. Separate "ClockShark pricing"
+and "busybusy pricing" pages were not made: the compare pages already carry those price tables,
+so extra pages would be near duplicates. Competitor facts came from each vendor's own public pages
+(WRITING.md rule 2's JSON files are not on this box); every URL and its check date is in
+sources/wave-4.md.
+
+Technical: Organization sameAs hook (empty until TODO(andrew) below), more AI crawlers named in
+robots.txt (Claude-User, Perplexity-User, Applebot, Applebot-Extended, Googlebot, DuckAssistBot,
+MistralAI-User), "Last updated" and pricing lines in llms.txt, a redirect stub in vercel.json for
+URLs people and assistants guess (/pricing, /about, /features/crm, /septic and others; all
+non-permanent until checked against real 404s), and lint checks for duplicate titles and
+descriptions.
+
+- TODO(andrew): SmartCrew's official profile URLs (LinkedIn, YouTube, Facebook, X, App Store,
+  Google Play) for SAME_AS in render.ts.
+- TODO(andrew): file storage: how permissions are set (by role, job or file), storage limits per
+  plan, file types, offline access (see the comment at the top of
+  pages/feature/construction-file-storage.ts).
+- TODO(andrew): once the Webflow site is replaced, make the stub redirects permanent and add any
+  404s that AI referrals land on.
+
+## Audit steps (from the @wespreadjam 14-step AEO audit and Nicholas Dulait's AEO guide)
+
+Rerun quarterly: check AI crawlers aren't blocked (robots, CDN, firewall); confirm pages render
+without JavaScript; run the prompt set in ChatGPT, Perplexity, Google AI Mode and Claude and log
+who gets cited; check each page opens with a direct answer; check headings are questions with a
+standalone answer under each; check schema (Organization, Article, FAQ, Breadcrumb) validates;
+check freshness dates and sitemap lastmod; check entity consistency (same name, description and
+facts everywhere, sameAs); check comparison and pricing coverage; check third-party mentions
+(reviews, directories, Reddit, YouTube); check internal links; check llms.txt; track AI referral
+traffic; fix what's missing and repeat.
+
+Best-practice references: Google Search Central, "AI features and your website"
+(https://developers.google.com/search/docs/appearance/ai-features); OpenAI crawlers
+(https://platform.openai.com/docs/bots); Ahrefs on AI search optimization.
+
+## No-penalty checklist (check before every merge)
+
+- Every page answers a distinct query; no near duplicate or city/keyword swap pages (doorways).
+- Unique title and description per page (the lint fails on duplicates).
+- Canonical is the page's own www.smartcrewhq.com URL; preview host is noindex.
+- Same HTML for bots and people: no cloaking, no hidden text, no keyword stuffing.
+- No fake reviews, ratings or aggregateRating schema; no invented competitor features or prices.
+- Competitor facts link to the vendor's own page, with the check date in sources/.
+- Anything uncertain is labelled uncertain on the page; "Not listed", never "doesn't have".
+- No em dashes; new copy writes ranges as "5 to 100", not with en dashes.
+
+## Still missing in the library (wave 5 candidates)
+
+- Third-party listings and reviews (Capterra, G2, Reddit, YouTube): needs Andrew.
+- vs pages: ClockShark vs busybusy, Raken vs Fieldwire, if search demand shows up.
+- Fleetio comparison: its pricing page didn't load for us on October 22, 2026.
