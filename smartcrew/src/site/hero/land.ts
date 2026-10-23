@@ -8,13 +8,15 @@
 // PHONE MODE: the same, with the phone's line breaks; transform and opacity only, no rAF.
 
 import { BOLD, CLASSIC, GLASS } from "../../lib/look";
+import { cssLengthPx, pageScale } from "../../lib/cssLength";
 import { markFirstScreenDone, markPageReady } from "../ready";
 import { contoursSliced, type Rect, type TopoInput } from "./fence/topo";
 
 const EO = "cubic-bezier(0.22, 1, 0.36, 1)";
-/** Headline size limits, px. */
+/** Headline size limits and the laptop headline's widest column, px at 100% (times pageScale()). */
 const FS_MAX = { desk: 84, phone: 46 };
 const FS_MIN = { desk: 34, phone: 26 };
+const COLUMN_MAX = 1240;
 /** The button counts as landed (READY) this long after the entrance starts. */
 const CTA_LANDED = 420;
 
@@ -32,18 +34,19 @@ export function mountLanding(root: HTMLElement, opts: { phone: boolean; reduced:
     if (!h1 || !lines.length) return;
     h1.style.setProperty("--fs", "100px");
     const widest = Math.max(...lines.map((l) => l.scrollWidth));
-    const g = parseFloat(getComputedStyle(root).getPropertyValue("--g")) || 20;
+    const sc = pageScale();
+    const g = cssLengthPx(root, "--g", 20);
     // the bold look's laptop headline fills its own column (the product sits beside it)
     const col = BOLD && !phone ? q(".hf-copy") : null;
     const cs = col ? getComputedStyle(col) : null;
-    const avail = cs ? col!.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) : Math.min(root.clientWidth - g * 2, phone ? 9999 : 1240);
+    const avail = cs ? col!.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) : Math.min(root.clientWidth - g * 2, phone ? 9999 : COLUMN_MAX * sc);
     let fs = (avail / widest) * 100 * 0.98;
     // desktop: the headline never takes more than ~44% of the screen's height; classic's fold carries
     // more since round 2 ("Featured by" ConExpo, Katie's quote) and grows past the screen when it must
     // (./classic.css), so its share is smaller and measured against the screen itself
     if (!phone) fs = Math.min(fs, CLASSIC ? (Math.min(root.clientHeight, innerHeight) * 0.34) / (lines.length * 0.98) : (root.clientHeight * 0.44) / (lines.length * 0.98));
     const lim = phone ? 0 : 1;
-    fs = Math.max(lim ? FS_MIN.desk : FS_MIN.phone, Math.min(lim ? FS_MAX.desk : FS_MAX.phone, fs));
+    fs = Math.max((lim ? FS_MIN.desk : FS_MIN.phone) * sc, Math.min((lim ? FS_MAX.desk : FS_MAX.phone) * sc, fs));
     h1.style.setProperty("--fs", `${fs.toFixed(1)}px`);
   }
 

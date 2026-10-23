@@ -15,6 +15,7 @@
 // so neither flashes in during the hand-over.
 
 import { useSyncExternalStore } from "react";
+import { cssLengthPx } from "../../lib/cssLength";
 import { isPhoneLite } from "../phone";
 
 const els = new Set<HTMLElement>();
@@ -56,7 +57,7 @@ function opaque(el: HTMLElement) {
 }
 
 function headerH() {
-  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 64;
+  return cssLengthPx(document.documentElement, "--header-h", 64);
 }
 
 function check() {

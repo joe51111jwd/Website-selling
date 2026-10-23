@@ -59,6 +59,15 @@
   }
 }
 
+/* Page size. Every length in the CSS is rem (px-rem.postcss.ts), so this is the one dial: on a desktop
+   the page shows at 90%, the size Andrew picked by zooming out (Oct 23). Phones and touch tablets stay
+   at 100%. Widths in media queries still follow the real window. */
+@media (min-width: 1024px) and (hover: hover) {
+  html {
+    font-size: 90%;
+  }
+}
+
 /* ── Extensions for the One Day page (added by the lead; names above are unchanged) ── */
 :root {
   /* ink on dark grounds */

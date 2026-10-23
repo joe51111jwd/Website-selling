@@ -4,7 +4,9 @@ import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { seoPages } from "./seo.plugin";
 import { notFoundPage } from "./notfound.plugin";
+import { pxToRemPlugin } from "./px-rem.postcss";
 import { previewRobotsSnippet } from "./src/lib/preview-robots";
+import { iconTags } from "./src/lib/favicon-tags";
 import { trackingSnippets } from "./src/lib/tracking-snippet";
 import { homeHeadTags } from "./src/seo/entity";
 
@@ -30,7 +32,9 @@ const pages: Plugin = {
 };
 
 function injectPage(html: string, filename: string) {
-  let out = html;
+  // one set of tab icons on every page (a page without any gets the host's /favicon.ico)
+  let out = html.replace(/[ \t]*<link rel="icon"[^>]*>\n?/g, "");
+  if (!out.includes('href="/favicon.ico"')) out = out.replace("</head>", `${iconTags()}\n</head>`);
   if (resolve(filename) === homeHtml && !out.includes('rel="canonical"')) {
     out = out.replace("</head>", `${homeHeadTags()}\n</head>`);
   }
@@ -53,6 +57,8 @@ export default defineConfig(() => ({
   base: "./",
   plugins: [react(), pages, seoPages(), notFoundPage()],
   define: { "import.meta.env.VITE_PAIN_AI": JSON.stringify(painAi) },
+  // every px length in the CSS becomes rem, so the page size is one root font-size (see tokens.css)
+  css: { postcss: { plugins: [pxToRemPlugin()] } },
   build: {
     // the product page, the "book a call" page the trial form lands on, the demo page, and the two legal pages
     rollupOptions: {

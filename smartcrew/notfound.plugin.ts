@@ -6,6 +6,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Plugin } from "vite";
+import { iconTags } from "./src/lib/favicon-tags";
+import { pxToRemCss } from "./px-rem.postcss";
 import { PAGES } from "./src/seo/pages";
 import { HUBS } from "./src/seo/render";
 
@@ -35,7 +37,7 @@ function page(css: string) {
 <title>Page not found · SmartCrew</title>
 <meta name="robots" content="noindex" />
 <meta name="theme-color" content="#FBF8F4" />
-<link rel="icon" type="image/svg+xml" href="/brand/mark.svg" />
+${iconTags()}
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/special-gothic-var.latin.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/finlandica-text-var.latin.woff2" />
 <style>${css}</style>
@@ -62,7 +64,7 @@ export function notFoundPage(): Plugin {
   return {
     name: "smartcrew-404",
     generateBundle() {
-      const css = ["src/styles/fonts.css", "src/styles/tokens.css", "src/notfound/notfound.css"].map((p) => read(p).toString()).join("\n");
+      const css = pxToRemCss(["src/styles/fonts.css", "src/styles/tokens.css", "src/notfound/notfound.css"].map((p) => read(p).toString()).join("\n"));
       this.emitFile({ type: "asset", fileName: LOGO.slice(1), source: read("src/brand/assets/smartcrew-logo.webp") });
       this.emitFile({ type: "asset", fileName: "404.html", source: page(css) });
     },

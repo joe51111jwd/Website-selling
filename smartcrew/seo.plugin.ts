@@ -8,6 +8,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Plugin } from "vite";
+import { pxToRemCss } from "./px-rem.postcss";
 import { PAGES } from "./src/seo/pages";
 import { HUBS, llms, renderHub, renderPage, sitemap } from "./src/seo/render";
 import { productionRobots, robotsForHost } from "./src/seo/robots";
@@ -15,9 +16,9 @@ import { productionRobots, robotsForHost } from "./src/seo/robots";
 const root = import.meta.dirname;
 const read = (p: string) => readFileSync(resolve(root, p));
 
-/** tokens + fonts + the template's own sheet, as one file (the @imports of legal.css, flattened) */
+/** tokens + fonts + the template's own sheet, as one file (the @imports of legal.css, flattened), in rem like the rest of the site */
 function css() {
-  return ["src/styles/fonts.css", "src/styles/tokens.css", "src/seo/seo.css"].map((p) => read(p).toString()).join("\n");
+  return pxToRemCss(["src/styles/fonts.css", "src/styles/tokens.css", "src/seo/seo.css"].map((p) => read(p).toString()).join("\n"));
 }
 
 function check() {

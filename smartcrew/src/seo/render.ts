@@ -3,6 +3,7 @@
 // the right (laptops). No script is needed to read anything: crawlers and AI assistants get the
 // whole text, tables and FAQ in the HTML, plus JSON-LD (Article, BreadcrumbList, FAQPage).
 
+import { iconTags } from "../lib/favicon-tags";
 import { previewRobotsSnippet } from "../lib/preview-robots";
 import { trackingSnippets } from "../lib/tracking-snippet";
 import { SHOTS } from "./shots";
@@ -269,7 +270,7 @@ function head(o: HeadOpts) {
 <meta property="og:url" content="${url}" />
 <meta property="og:image" content="${SITE}/phone/screens/web-dashboard-960.webp" />
 <meta name="twitter:card" content="summary_large_image" />
-<link rel="icon" type="image/svg+xml" href="/brand/mark.svg" />
+${iconTags()}
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/special-gothic-var.latin.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/finlandica-text-var.latin.woff2" />
 <link rel="stylesheet" href="${o.css}" />

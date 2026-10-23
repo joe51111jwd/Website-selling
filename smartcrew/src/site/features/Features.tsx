@@ -22,6 +22,7 @@ import { FEATURES, type FeatureId } from "../../content/features";
 import { Scene } from "../scene/Scene";
 import { usePhoneLite } from "../phone";
 import { useArrive } from "../phone/useArrive";
+import { cssLengthPx } from "../../lib/cssLength";
 import { CLASSIC, FOCUS } from "../../lib/look";
 import { scrollToY } from "../scroll";
 import { AllTools, GridGlyph } from "../specsheet/AllTools";
@@ -106,7 +107,7 @@ function TabsOrCards() {
   );
 
   const reveal = (id: FeatureId) => {
-    const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 64;
+    const header = cssLengthPx(document.documentElement, "--header-h", 64);
     const vh = window.innerHeight;
     if (phone) {
       // phones: the opened card, just under the header
