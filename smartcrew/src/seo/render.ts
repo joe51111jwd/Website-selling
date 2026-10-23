@@ -3,6 +3,8 @@
 // the right (laptops). No script is needed to read anything: crawlers and AI assistants get the
 // whole text, tables and FAQ in the HTML, plus JSON-LD (Article, BreadcrumbList, FAQPage).
 
+import { previewRobotsSnippet } from "../lib/preview-robots";
+import { trackingSnippets } from "../lib/tracking-snippet";
 import { SHOTS } from "./shots";
 import type { Block, Cell, Faq, Kind, SeoPage, Shot } from "./types";
 
@@ -248,7 +250,7 @@ function relatedHtml(lib: Library, page: SeoPage) {
     .join("")}</div></nav>`;
 }
 
-type HeadOpts = { title: string; description: string; path: string; jsonld: object[]; noindex: boolean; css: string };
+type HeadOpts = { title: string; description: string; path: string; jsonld: object[]; css: string };
 
 function head(o: HeadOpts) {
   const url = `${SITE}${o.path}`;
@@ -258,7 +260,8 @@ function head(o: HeadOpts) {
 <title>${esc(o.title)}</title>
 <meta name="description" content="${esc(o.description)}" />
 <link rel="canonical" href="${url}" />
-${o.noindex ? '<meta name="robots" content="noindex, nofollow" />\n' : '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />\n'}<meta name="theme-color" content="#FBF8F4" />
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+<meta name="theme-color" content="#FBF8F4" />
 <meta property="og:type" content="article" />
 <meta property="og:site_name" content="SmartCrew" />
 <meta property="og:title" content="${esc(o.title)}" />
@@ -271,8 +274,14 @@ ${o.noindex ? '<meta name="robots" content="noindex, nofollow" />\n' : '<meta na
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/finlandica-text-var.latin.woff2" />
 <link rel="stylesheet" href="${o.css}" />
 ${o.jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, "\\u003c")}</script>`).join("\n")}
+${previewRobotsSnippet()}
+${trackingSnippets()}
 </head>`;
 }
+
+// TODO(andrew): add SmartCrew's official profile URLs (LinkedIn, YouTube, Facebook, X, app store
+// listings). None are in the repo, so the list is empty and no sameAs is published.
+const SAME_AS: string[] = [];
 
 const ORG = {
   "@type": "Organization",
@@ -283,6 +292,8 @@ const ORG = {
   logo: `${SITE}/seo-assets/smartcrew-logo.webp`,
   email: "support@smartcrewhq.com",
   founder: { "@type": "Person", name: "Andrew Drish" },
+  // sameAs is emitted only when there is at least one verified profile URL.
+  ...(SAME_AS.length ? { sameAs: SAME_AS } : {}),
 };
 
 const crumbs = (items: { name: string; path: string }[]) => ({
@@ -291,7 +302,7 @@ const crumbs = (items: { name: string; path: string }[]) => ({
   itemListElement: items.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: `${SITE}${c.path}` })),
 });
 
-export type RenderOpts = { noindex: boolean; css: string };
+export type RenderOpts = { css: string };
 
 export function renderPage(lib: Library, page: SeoPage, o: RenderOpts): string {
   const hub = kindOf(page.kind);
@@ -341,7 +352,7 @@ export function renderPage(lib: Library, page: SeoPage, o: RenderOpts): string {
   ${relatedHtml(lib, page)}
 </article>`;
 
-  return shell(lib, page.slug, head({ title: page.title, description: page.description, path, jsonld, noindex: o.noindex, css: o.css }), body, toc(page));
+  return shell(lib, page.slug, head({ title: page.title, description: page.description, path, jsonld, css: o.css }), body, toc(page));
 }
 
 function shell(lib: Library, current: string, headHtml: string, main: string, right: string) {
@@ -391,7 +402,7 @@ export function renderHub(lib: Library, kind: Kind, o: RenderOpts): string {
     .join("")}</div>
   ${ctaBand(h.slug)}
 </article>`;
-  return shell(lib, h.slug, head({ title: `${h.title} · SmartCrew`, description: h.description, path, jsonld, noindex: o.noindex, css: o.css }), body, "");
+  return shell(lib, h.slug, head({ title: `${h.title} · SmartCrew`, description: h.description, path, jsonld, css: o.css }), body, "");
 }
 
 /** sitemap.xml for the library (the product page and /book are listed too). */
@@ -416,6 +427,10 @@ export function llms(lib: Library) {
   return `# SmartCrew
 
 > SmartCrew is all-in-one software for heavy civil and dirt work contractors with 5–100 employees: GPS time tracking, job costing against the bid, equipment maintenance and DOT inspections, hauling tickets and materials, daily reports, scheduling, sales pipeline, crew messaging, safety forms and file storage, with QuickBooks Online integration. Founded by Andrew Drish, whose family has been in construction for 75 years. Website: ${SITE}/ · Contact: support@smartcrewhq.com
+
+Last updated: ${lib.pages.map((p) => p.updated).sort().at(-1)}
+
+Pricing: depends on company size and features; built to be well below enterprise construction software. You get a number on a short call with Andrew (${SITE}/book/). Fleet Management, Sales CRM, and Scheduling & Communications are Premium categories.
 
 ${HUBS.map((h) => {
   const items = lib.pages.filter((p) => p.kind === h.kind);

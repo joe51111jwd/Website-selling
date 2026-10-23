@@ -230,5 +230,5 @@ export const page: SeoPage = {
     { label: "AlignOps: busybusy acquisition (Dec 5, 2023)", url: "https://alignops.com/newsroom/align-expands-its-construction-operations-capabilities-to-include-field-management-with-acquisition-of-busybusy", accessed: "2026-10-22" },
     { label: "busybusy on Capterra", url: "https://www.capterra.com/p/132787/busybusy/", accessed: "2026-10-22" },
   ],
-  related: ["compare/clockshark-alternative", "features/construction-time-tracking", "excavation-software", "compare/jobber-alternative"],
+  related: ["compare/clockshark-alternative", "features/construction-time-tracking", "excavation-software", "compare/jobber-alternative", "vs/clockshark-vs-busybusy"],
 };

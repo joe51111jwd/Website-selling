@@ -195,5 +195,5 @@ export const page: SeoPage = {
     { label: "ClockShark about", url: "https://www.clockshark.com/about/", accessed: "2026-10-22" },
     { label: "ClockShark on Capterra", url: "https://www.capterra.com/p/155467/ClockShark/", accessed: "2026-10-22" },
   ],
-  related: ["compare/busybusy-alternative", "features/construction-time-tracking", "features/construction-job-costing", "excavation-software"],
+  related: ["compare/busybusy-alternative", "features/construction-time-tracking", "features/construction-job-costing", "excavation-software", "vs/clockshark-vs-busybusy"],
 };

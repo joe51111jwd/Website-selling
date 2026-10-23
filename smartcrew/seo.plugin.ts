@@ -1,14 +1,17 @@
 // Builds the SEO library (src/seo) into static pages: /<slug>/index.html for every page, a hub per
-// kind (/industries/, /compare/, /vs/, /features/, /guides/), sitemap.xml, robots.txt and llms.txt.
-// Preview builds (`--mode preview`) mark every page noindex, like the rest of the preview site.
-// In `vite dev` the same pages are served from memory, so they can be checked at localhost.
+// kind (/industries/, /compare/, /vs/, /features/, /guides/), sitemap.xml, robots.txt, llms.txt and llms-full.txt.
+// Pages are indexable in every build mode. *.vercel.app is noindex by request host (the inline
+// script in render.ts, X-Robots-Tag in vercel.json, and robots.txt from proxy.ts). In `vite dev`
+// the same pages are served from memory, and /robots.txt follows the request Host.
 
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { Plugin } from "vite";
 import { PAGES } from "./src/seo/pages";
+import { llmsFull } from "./src/seo/llms-full";
 import { HUBS, llms, renderHub, renderPage, sitemap } from "./src/seo/render";
+import { productionRobots, robotsForHost } from "./src/seo/robots";
 
 const root = import.meta.dirname;
 const read = (p: string) => readFileSync(resolve(root, p));
@@ -27,32 +30,35 @@ function check() {
   }
 }
 
-function build(noindex: boolean, cssHref: string) {
+function build(cssHref: string) {
   check();
   const lib = { pages: PAGES };
   const files: Record<string, string> = {};
-  for (const p of PAGES) files[`${p.slug}/index.html`] = renderPage(lib, p, { noindex, css: cssHref });
-  for (const h of HUBS) if (PAGES.some((p) => p.kind === h.kind)) files[`${h.slug}/index.html`] = renderHub(lib, h.kind, { noindex, css: cssHref });
+  for (const p of PAGES) files[`${p.slug}/index.html`] = renderPage(lib, p, { css: cssHref });
+  for (const h of HUBS) if (PAGES.some((p) => p.kind === h.kind)) files[`${h.slug}/index.html`] = renderHub(lib, h.kind, { css: cssHref });
   files["sitemap.xml"] = sitemap(lib);
-  files["llms.txt"] = llms(lib);
-  files["robots.txt"] = `User-agent: *\nAllow: /\n\n# Search and AI answer crawlers, allowed by name so a later blanket rule cannot block them by accident.\nUser-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: GPTBot\nUser-agent: ClaudeBot\nUser-agent: Claude-SearchBot\nUser-agent: PerplexityBot\nUser-agent: Google-Extended\nUser-agent: meta-externalagent\nUser-agent: meta-webindexer\nUser-agent: Bingbot\nAllow: /\n\nSitemap: https://www.smartcrewhq.com/sitemap.xml\n`;
+  files["llms.txt"] = `${llms(lib)}\n## Full text\n\n- [All guides as one markdown file](https://www.smartcrewhq.com/llms-full.txt): the same text as the pages, for assistants that read one file.\n`;
+  files["llms-full.txt"] = llmsFull(PAGES);
+  // Fallback if proxy.ts does not run. On Vercel, proxy.ts replaces this per host.
+  files["robots.txt"] = productionRobots();
   return files;
 }
 
+function hostOf(req: { headers: { host?: string | string[] } }): string {
+  const host = req.headers.host;
+  return Array.isArray(host) ? (host[0] ?? "") : (host ?? "");
+}
+
 export function seoPages(): Plugin {
-  let noindex = false;
   return {
     name: "smartcrew-seo",
-    configResolved(c) {
-      noindex = c.mode === "preview" || c.mode === "watermark";
-    },
     generateBundle() {
       const sheet = css();
       const hash = createHash("sha256").update(sheet).digest("hex").slice(0, 10);
       const href = `/seo-assets/library-${hash}.css`;
       this.emitFile({ type: "asset", fileName: href.slice(1), source: sheet });
       this.emitFile({ type: "asset", fileName: "seo-assets/smartcrew-logo.webp", source: read("src/brand/assets/smartcrew-logo.webp") });
-      for (const [fileName, source] of Object.entries(build(noindex, href))) this.emitFile({ type: "asset", fileName, source });
+      for (const [fileName, source] of Object.entries(build(href))) this.emitFile({ type: "asset", fileName, source });
     },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
@@ -67,9 +73,15 @@ export function seoPages(): Plugin {
         }
         const key = url === "/" ? "" : url.replace(/^\//, "").replace(/\/?$/, url.endsWith(".xml") || url.endsWith(".txt") ? "" : "/index.html");
         if (!key) return next();
+        if (key === "robots.txt") {
+          res.setHeader("Content-Type", "text/plain; charset=utf-8");
+          res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+          res.setHeader("Vary", "Host");
+          return res.end(robotsForHost(hostOf(req)));
+        }
         let files: Record<string, string>;
         try {
-          files = build(false, "/seo-assets/library.css");
+          files = build("/seo-assets/library.css");
         } catch (e) {
           return next(e);
         }

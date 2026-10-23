@@ -139,5 +139,5 @@ export const page: SeoPage = {
       a: "Pricing depends on your company size and the features you need, and it's built to be well below the cost of enterprise construction software. You get a number on a short call with Andrew.",
     },
   ],
-  related: ["features/pre-trip-inspection-app", "features/construction-job-costing", "features/construction-time-tracking", "compare/hcss-heavyjob-alternative"],
+  related: ["features/pre-trip-inspection-app", "features/construction-job-costing", "features/construction-time-tracking", "compare/hcss-heavyjob-alternative", "guides/equipment-cost-per-hour"],
 };

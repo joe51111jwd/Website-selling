@@ -91,6 +91,40 @@ export const page: SeoPage = {
       text: "Take one person who writes 7:00 when they showed up at 7:10. That's ten minutes a day, five days a week: about 43 hours a year. At $35 an hour that's roughly $1,500 a year for one person. This is a worked example, not a SmartCrew statistic. Plug in your own crew size and wage.",
     },
 
+    { t: "h2", text: "Is it legal to track employees with GPS on their own phones?" },
+    {
+      t: "p",
+      text: "In most of the US, GPS on a work time clock is lawful when the crew knows about it, it serves a business purpose such as checking that hours were worked on site, and it stays on work time. Rules differ by state, and some states require consent to track vehicles, with rules that can depend on whether the vehicle is company or privately owned. Employment lawyers at Fisher Phillips advise written notice of what is collected and why, keeping the purpose narrow, and not tracking people outside working hours ([Fisher Phillips, January 2025](https://www.fisherphillips.com/print/v2/content/38654/7-best-privacy-practices-for-employers.pdf)). This is general information, not legal advice; check your state's rules.",
+    },
+    {
+      t: "p",
+      text: "In SmartCrew, GPS records where each person clocked in, and the office sees live crew locations next to who is clocked in on which job. TODO(andrew): confirm whether SmartCrew collects any location after clock-out or during breaks, so this page can state it plainly.",
+    },
+
+    { t: "h2", text: "How do you stop buddy punching and padded hours on a crew?" },
+    {
+      t: "p",
+      text: "Buddy punching and padded hours stop when every punch carries a location and a person's own phone, and someone reviews the exceptions each week. A paper card or a shared code lets one worker clock in for another; a GPS clock-in on each worker's phone records where that phone was. SmartCrew records the clock-in location, shows the supervisor who is clocked in where, and puts each day's hours by job on the weekly timecard the worker submits, so a 7:00 start written for a 7:10 arrival is visible before payroll.",
+    },
+
+    { t: "h2", text: "What happens when a worker forgets to clock in?" },
+    {
+      t: "p",
+      text: "A missed punch is cheaper to prevent than to fix, which is why SmartCrew sends clock in and clock out reminders to the crew. When one is missed anyway, it surfaces on the weekly summary the worker reviews before tapping Submit Timecard, and again when the office reviews timecards by employee and day. TODO(andrew): describe who can correct a missed punch (worker, foreman or office) and whether edits are logged.",
+    },
+
+    { t: "h2", text: "Does a construction time clock app work without cell service?" },
+    {
+      t: "p",
+      text: "Pits, cuts and rural sites often have no signal, so ask any vendor exactly what happens to a punch made offline: is it stored on the phone with its time and location and sent later, or is it lost? Contractors comparing apps on Reddit bring this up often. TODO(andrew): state whether SmartCrew's clock-in, Log & Switch and forms work offline and sync later; until then this page makes no claim either way.",
+    },
+
+    { t: "h2", text: "Can SmartCrew handle certified payroll or prevailing wage jobs?" },
+    {
+      t: "p",
+      text: "SmartCrew is not a payroll processor, so it doesn't run payroll or file certified payroll reports itself. It produces payroll-ready timecards split by job and cost code and sends hours to QuickBooks Online, where payroll is run. TODO(andrew): confirm whether timecards can be exported in the shape a certified payroll (WH-347) preparer needs, and whether prevailing wage rates can be set per job.",
+    },
+
     { t: "h2", text: "Questions to ask any time tracking app" },
     {
       t: "ul",
@@ -129,9 +163,16 @@ export const page: SeoPage = {
       a: "No. It also covers job costing against the bid, equipment and DOT inspections, hauling tickets, daily reports, scheduling, sales, crew chat, safety and file storage, so time tracking is one part of one app.",
     },
     {
+      q: "Can I require GPS on my crew's personal phones?",
+      a: "Usually yes for work time, if you tell the crew in writing what is collected and why and you don't track them off the clock, but state laws differ. Check your state's rules or ask an employment lawyer.",
+    },
+    {
       q: "How much does SmartCrew cost?",
       a: "Pricing depends on your company size and the features you need, and it's built to be well below the cost of enterprise construction software. You get a number on a short call with Andrew.",
     },
   ],
-  related: ["features/construction-job-costing", "excavation-software", "compare/jobber-alternative", "compare/procore-alternative"],
+  sources: [
+    { label: "Fisher Phillips: 7 best privacy practices for employers using geolocation tools (Jan 8, 2025)", url: "https://www.fisherphillips.com/print/v2/content/38654/7-best-privacy-practices-for-employers.pdf", accessed: "2026-10-22" },
+  ],
+  related: ["features/construction-job-costing", "excavation-software", "vs/clockshark-vs-busybusy", "compare/jobber-alternative", "compare/procore-alternative"],
 };
