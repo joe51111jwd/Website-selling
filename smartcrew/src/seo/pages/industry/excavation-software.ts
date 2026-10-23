@@ -169,5 +169,5 @@ export const page: SeoPage = {
       a: "SmartCrew’s pricing depends on your company size and the features you need, and it’s built to be well below the cost of enterprise construction software. You get a number on a short call with Andrew. For other products, see each comparison page, where we link to their own pricing pages.",
     },
   ],
-  related: [],
+  related: ["site-work-software", "underground-utility-software", "features/construction-job-costing", "features/hauling-software", "guides/what-is-smartcrew"],
 };
