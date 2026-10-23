@@ -63,7 +63,7 @@ npm run screens          # re-shoot the app screen textures into public/screens/
 when the request host ends in `.vercel.app`, and is absent on `smartcrewhq.com` and
 `www.smartcrewhq.com`:
 
-- `X-Robots-Tag: noindex, nofollow` from `vercel.json`, `has` host regex `\.vercel\.app$`.
+- `X-Robots-Tag: noindex, nofollow` from `vercel.json`, `has` host regex `(^|\.)vercel\.app$`.
 - An inline script (`sc-preview-robots`) adds `<meta name="robots" content="noindex, nofollow">`
   only when `location.hostname` matches `/(^|\.)vercel\.app$/i`. The built HTML of public pages
   does not contain that meta. `/book` and `/notes` keep their own noindex on every host.
