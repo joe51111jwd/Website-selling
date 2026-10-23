@@ -1,18 +1,217 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
-    { "source": "/contact", "destination": "/", "permanent": false },
-    { "source": "/contact/", "destination": "/", "permanent": false },
-    { "source": "/waitlist", "destination": "/", "permanent": false },
-    { "source": "/waitlist/", "destination": "/", "permanent": false },
-    { "source": "/demo", "destination": "/book/", "permanent": false },
-    { "source": "/demo/", "destination": "/book/", "permanent": false }
+    {
+      "source": "/contact",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/contact/",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/waitlist",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/waitlist/",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/demo",
+      "destination": "/book/",
+      "permanent": false
+    },
+    {
+      "source": "/demo/",
+      "destination": "/book/",
+      "permanent": false
+    },
+    {
+      "source": "/pricing",
+      "destination": "/guides/construction-software-pricing/",
+      "permanent": false
+    },
+    {
+      "source": "/pricing/",
+      "destination": "/guides/construction-software-pricing/",
+      "permanent": false
+    },
+    {
+      "source": "/features",
+      "destination": "/features/",
+      "permanent": false
+    },
+    {
+      "source": "/industries",
+      "destination": "/industries/",
+      "permanent": false
+    },
+    {
+      "source": "/compare",
+      "destination": "/compare/",
+      "permanent": false
+    },
+    {
+      "source": "/about",
+      "destination": "/guides/what-is-smartcrew/",
+      "permanent": false
+    },
+    {
+      "source": "/about/",
+      "destination": "/guides/what-is-smartcrew/",
+      "permanent": false
+    },
+    {
+      "source": "/features/crm",
+      "destination": "/features/construction-crm/",
+      "permanent": false
+    },
+    {
+      "source": "/features/crm/",
+      "destination": "/features/construction-crm/",
+      "permanent": false
+    },
+    {
+      "source": "/features/file-storage",
+      "destination": "/features/construction-file-storage/",
+      "permanent": false
+    },
+    {
+      "source": "/features/file-storage/",
+      "destination": "/features/construction-file-storage/",
+      "permanent": false
+    },
+    {
+      "source": "/features/time-tracking",
+      "destination": "/features/construction-time-tracking/",
+      "permanent": false
+    },
+    {
+      "source": "/features/time-tracking/",
+      "destination": "/features/construction-time-tracking/",
+      "permanent": false
+    },
+    {
+      "source": "/features/job-costing",
+      "destination": "/features/construction-job-costing/",
+      "permanent": false
+    },
+    {
+      "source": "/features/job-costing/",
+      "destination": "/features/construction-job-costing/",
+      "permanent": false
+    },
+    {
+      "source": "/features/dot-inspections",
+      "destination": "/features/pre-trip-inspection-app/",
+      "permanent": false
+    },
+    {
+      "source": "/features/dot-inspections/",
+      "destination": "/features/pre-trip-inspection-app/",
+      "permanent": false
+    },
+    {
+      "source": "/features/equipment",
+      "destination": "/features/heavy-equipment-maintenance-software/",
+      "permanent": false
+    },
+    {
+      "source": "/features/equipment/",
+      "destination": "/features/heavy-equipment-maintenance-software/",
+      "permanent": false
+    },
+    {
+      "source": "/septic",
+      "destination": "/septic-software/",
+      "permanent": false
+    },
+    {
+      "source": "/septic/",
+      "destination": "/septic-software/",
+      "permanent": false
+    },
+    {
+      "source": "/paving",
+      "destination": "/paving-software/",
+      "permanent": false
+    },
+    {
+      "source": "/paving/",
+      "destination": "/paving-software/",
+      "permanent": false
+    },
+    {
+      "source": "/demolition",
+      "destination": "/demolition-software/",
+      "permanent": false
+    },
+    {
+      "source": "/demolition/",
+      "destination": "/demolition-software/",
+      "permanent": false
+    },
+    {
+      "source": "/trucking",
+      "destination": "/trucking-software/",
+      "permanent": false
+    },
+    {
+      "source": "/trucking/",
+      "destination": "/trucking-software/",
+      "permanent": false
+    },
+    {
+      "source": "/drilling",
+      "destination": "/drilling-software/",
+      "permanent": false
+    },
+    {
+      "source": "/drilling/",
+      "destination": "/drilling-software/",
+      "permanent": false
+    },
+    {
+      "source": "/aggregate",
+      "destination": "/aggregate-software/",
+      "permanent": false
+    },
+    {
+      "source": "/aggregate/",
+      "destination": "/aggregate-software/",
+      "permanent": false
+    },
+    {
+      "source": "/excavation",
+      "destination": "/excavation-software/",
+      "permanent": false
+    },
+    {
+      "source": "/excavation/",
+      "destination": "/excavation-software/",
+      "permanent": false
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "smartcrew-preview.vercel.app" }],
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+      "has": [
+        {
+          "type": "host",
+          "value": "smartcrew-preview.vercel.app"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
     }
   ]
 }

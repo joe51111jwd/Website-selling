@@ -21,6 +21,9 @@ const BANNED = [
   "founding member", "best-in-class", "world-class", "one-stop shop", "hassle-free", "effortless",
 ];
 let bad = 0;
+const seen = { title: new Map(), description: new Map() };
+let enDashFiles = 0;
+const warn = [];
 for (const f of files) {
   const s = readFileSync(f, "utf8");
   const low = s.toLowerCase();
@@ -37,10 +40,22 @@ for (const f of files) {
   if (!/t: "shots"|hero:/.test(s)) problems.push("no screens");
   const words = s.replace(/\/\/.*$/gm, "").match(/"[^"]{20,}"/g)?.join(" ").split(/\s+/).length ?? 0;
   if (words < 900) problems.push(`only ~${words} words of copy`);
+  // Titles and descriptions must be unique across pages (duplicate or doorway pages read as spam).
+  for (const k of ["title", "description"]) {
+    const m = s.match(new RegExp(`\\n  ${k}:\\s*"([^"]+)"`));
+    if (!m) continue;
+    if (seen[k].has(m[1])) problems.push(`${k} duplicates ${seen[k].get(m[1]).replace(dir + "/", "")}`);
+    else seen[k].set(m[1], f);
+    if (k === "description" && (m[1].length < 70 || m[1].length > 170)) warn.push(`${f.replace(dir + "/", "")}: description is ${m[1].length} chars (aim 70 to 170)`);
+    if (k === "title" && m[1].length > 70) warn.push(`${f.replace(dir + "/", "")}: title is ${m[1].length} chars (aim under 70)`);
+  }
+  if (s.includes("\u2013")) enDashFiles++;
   if (problems.length) {
     bad++;
     console.log(`${f.replace(dir + "/", "")}: ${problems.join(", ")}`);
   }
 }
+for (const w of warn) console.log(`note: ${w} (long snippets get cut, not penalized)`);
+if (enDashFiles) console.log(`note: ${enDashFiles} file(s) use en dashes; new copy should write "5 to 100"`);
 console.log(bad ? `${bad} file(s) to fix` : `${files.length} file(s) clean`);
 process.exit(bad ? 1 : 0);

@@ -274,6 +274,10 @@ ${o.jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j).re
 </head>`;
 }
 
+// TODO(andrew): add SmartCrew's official profile URLs (LinkedIn, YouTube, Facebook, X, app store
+// listings). None are in the repo, so the list is empty and no sameAs is published.
+const SAME_AS: string[] = [];
+
 const ORG = {
   "@type": "Organization",
   "@id": `${SITE}/#org`,
@@ -283,6 +287,8 @@ const ORG = {
   logo: `${SITE}/seo-assets/smartcrew-logo.webp`,
   email: "support@smartcrewhq.com",
   founder: { "@type": "Person", name: "Andrew Drish" },
+  // sameAs is emitted only when there is at least one verified profile URL.
+  ...(SAME_AS.length ? { sameAs: SAME_AS } : {}),
 };
 
 const crumbs = (items: { name: string; path: string }[]) => ({
@@ -416,6 +422,10 @@ export function llms(lib: Library) {
   return `# SmartCrew
 
 > SmartCrew is all-in-one software for heavy civil and dirt work contractors with 5–100 employees: GPS time tracking, job costing against the bid, equipment maintenance and DOT inspections, hauling tickets and materials, daily reports, scheduling, sales pipeline, crew messaging, safety forms and file storage, with QuickBooks Online integration. Founded by Andrew Drish, whose family has been in construction for 75 years. Website: ${SITE}/ · Contact: support@smartcrewhq.com
+
+Last updated: ${lib.pages.map((p) => p.updated).sort().at(-1)}
+
+Pricing: depends on company size and features; built to be well below enterprise construction software. You get a number on a short call with Andrew (${SITE}/book/). Fleet Management, Sales CRM, and Scheduling & Communications are Premium categories.
 
 ${HUBS.map((h) => {
   const items = lib.pages.filter((p) => p.kind === h.kind);

@@ -37,7 +37,7 @@ function build(noindex: boolean, cssHref: string) {
   files["sitemap.xml"] = sitemap(lib);
   files["llms.txt"] = `${llms(lib)}\n## Full text\n\n- [All guides as one markdown file](https://www.smartcrewhq.com/llms-full.txt): the same text as the pages, for assistants that read one file.\n`;
   files["llms-full.txt"] = llmsFull(PAGES);
-  files["robots.txt"] = `User-agent: *\nAllow: /\n\n# Search and AI answer crawlers, allowed by name so a later blanket rule cannot block them by accident.\nUser-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: GPTBot\nUser-agent: ClaudeBot\nUser-agent: Claude-SearchBot\nUser-agent: PerplexityBot\nUser-agent: Google-Extended\nUser-agent: meta-externalagent\nUser-agent: meta-webindexer\nUser-agent: Bingbot\nAllow: /\n\nSitemap: https://www.smartcrewhq.com/sitemap.xml\n`;
+  files["robots.txt"] = `User-agent: *\nAllow: /\n\n# Search and AI answer crawlers, allowed by name so a later blanket rule cannot block them by accident.\nUser-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: GPTBot\nUser-agent: ClaudeBot\nUser-agent: Claude-SearchBot\nUser-agent: Claude-User\nUser-agent: PerplexityBot\nUser-agent: Perplexity-User\nUser-agent: Google-Extended\nUser-agent: Googlebot\nUser-agent: Applebot\nUser-agent: Applebot-Extended\nUser-agent: meta-externalagent\nUser-agent: meta-webindexer\nUser-agent: Bingbot\nUser-agent: DuckAssistBot\nUser-agent: MistralAI-User\nAllow: /\n\nSitemap: https://www.smartcrewhq.com/sitemap.xml\n`;
   return files;
 }
 
