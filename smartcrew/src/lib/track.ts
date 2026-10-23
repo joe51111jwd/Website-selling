@@ -40,12 +40,17 @@ export type StandardEvent = "Lead" | "Schedule" | "ViewContent" | "InitiateCheck
 
 let started = false;
 
+function tagAlready(srcPart: string) {
+  return !!document.querySelector(`script[src*="${srcPart}"]`);
+}
+
 export function startTracking() {
   if (started) return;
   started = true;
   const live = liveSite();
-  // Mouseflow's recordings start with the page (its own snippet, deferred)
-  if (config.mouseflowId && (live || mouseflowPreview())) {
+  // The same tags are in the HTML (trackingSnippets) on every page. Don't load a second copy,
+  // which would send PageView twice and open two chat bubbles.
+  if (config.mouseflowId && !tagAlready("cdn.mouseflow.com/projects/") && (live || mouseflowPreview())) {
     window._mfq = window._mfq || [];
     const s = document.createElement("script");
     s.defer = true;
@@ -53,7 +58,7 @@ export function startTracking() {
     document.head.appendChild(s);
   }
   if (!live) return;
-  if (config.metaPixelId) {
+  if (config.metaPixelId && !window.fbq) {
     const f = function (...args: unknown[]) {
       if (f.callMethod) f.callMethod(...args);
       else f.queue!.push(args);
@@ -82,7 +87,7 @@ export function startTracking() {
   }
   if (config.clarityId) startClarity(config.clarityId);
   // Crisp's chat bubble waits until the first screen is done, so it never slows it down
-  if (config.crispId) {
+  if (config.crispId && !window.CRISP_WEBSITE_ID) {
     const id = config.crispId;
     const go = () => startCrisp(id);
     if (document.readyState === "complete") window.setTimeout(go, 3000);

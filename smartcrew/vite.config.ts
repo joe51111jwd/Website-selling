@@ -1,7 +1,9 @@
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { seoPages } from "./seo.plugin";
+import { trackingSnippets } from "./src/lib/tracking-snippet";
 
 // Preview builds (`--mode preview`, `--mode watermark`) ask search engines not to
 // index; the watermark build also carries the watermark.
@@ -9,6 +11,28 @@ const noindex: Plugin = {
   name: "noindex",
   transformIndexHtml: (html) => html.replace("</head>", '    <meta name="robots" content="noindex, nofollow" />\n  </head>'),
 };
+
+// Home, /book, the legal pages (transformIndexHtml) and /notes (copied from public/, patched after emit).
+// SEO pages get the same block from src/seo/render.ts.
+const tracking: Plugin = {
+  name: "smartcrew-tracking",
+  transformIndexHtml(html) {
+    return injectTracking(html);
+  },
+  writeBundle(options) {
+    if (!options.dir) return;
+    const notes = resolve(options.dir, "notes/index.html");
+    if (!existsSync(notes)) return;
+    writeFileSync(notes, injectTracking(readFileSync(notes, "utf8")));
+  },
+};
+
+function injectTracking(html: string) {
+  if (html.includes("cdn.mouseflow.com/projects/")) return html;
+  const block = trackingSnippets();
+  if (!block) return html;
+  return html.replace("</head>", `${block}\n</head>`);
+}
 
 // The pain picker asks /api/match-pain (api/match-pain.ts, a Vercel function) only in a build where
 // that function can answer: on Vercel, with OPENROUTER_API_KEY in the environment. Elsewhere (vite
@@ -19,7 +43,7 @@ const painAi = process.env.VITE_PAIN_AI ?? (process.env.VERCEL && process.env.OP
 
 export default defineConfig(({ mode }) => ({
   base: "./",
-  plugins: [react(), seoPages(), ...(mode === "watermark" || mode === "preview" ? [noindex] : [])],
+  plugins: [react(), tracking, seoPages(), ...(mode === "watermark" || mode === "preview" ? [noindex] : [])],
   define: { "import.meta.env.VITE_PAIN_AI": JSON.stringify(painAi) },
   build: {
     // the product page, the "book a call" page the trial form lands on, and the two legal pages
