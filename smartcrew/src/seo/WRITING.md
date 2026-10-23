@@ -158,9 +158,11 @@ risk of false competitor claims are the whole list. Rules for every page:
    check Search Console for "Crawled, currently not indexed" before the next wave.
 7. **No link schemes.** No paid links, link swaps or comment spam. Internal links only where a
    reader would want them.
-8. **Preview stays noindex.** smartcrew-preview.vercel.app is noindex on purpose so it never
-   competes with the real domain as duplicate content. The real domain builds with the plain
-   build (indexable) and the sitemap goes into Search Console at launch.
+8. **Preview stays noindex.** Any host ending in `.vercel.app` is noindex (response header,
+   the `sc-preview-robots` script, and `Disallow: /` in robots.txt) so a preview never competes
+   with the real domain. Do not bake a noindex meta into public pages: the same build is what
+   smartcrewhq.com serves, and that host must not send noindex. The sitemap goes into Search
+   Console at launch.
 9. **Trademarks.** Competitor names appear only to compare, in text, with no logos or look-alike
    branding.
 10. **Speed and access.** Static HTML, no JS needed to read, images with alt text and sizes, no

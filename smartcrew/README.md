@@ -38,7 +38,7 @@ npm run dev              # http://localhost:5173 (the team's QA server runs on :
 npm run typecheck        # tsc, strict
 npm run typecheck:build  # the deploy's typecheck (tsconfig.build.json)
 npm run build            # typecheck + dist/ (dist/index.html and dist/book/index.html)
-npm run build:preview    # same, plus noindex: what the preview deploy runs
+npm run build:preview    # what the preview deploy runs (same HTML as build; noindex is by host)
 npm run preview          # serve dist/
 npm run e2e              # end-to-end test (below); needs a server running
 npm run screens          # re-shoot the app screen textures into public/screens/ (dev server up)
@@ -59,9 +59,16 @@ npm run screens          # re-shoot the app screen textures into public/screens/
 
 `vercel.json` keeps smartcrewhq.com's old Webflow addresses working once the domain points here:
 `/contact` and `/waitlist` go to the home page (where the Try SmartCrew form captures the lead), and
-`/demo` goes to `/book`. It also sends `X-Robots-Tag: noindex` on smartcrew-preview.vercel.app only,
-so the real domain can be built with plain `npm run build` (no noindex tag) while the preview link
-stays out of search results.
+`/demo` goes to `/book`. One build serves the preview and the real domain. Noindex applies only
+when the request host ends in `.vercel.app`, and is absent on `smartcrewhq.com` and
+`www.smartcrewhq.com`:
+
+- `X-Robots-Tag: noindex, nofollow` from `vercel.json`, `has` host regex `\.vercel\.app$`.
+- An inline script (`sc-preview-robots`) adds `<meta name="robots" content="noindex, nofollow">`
+  only when `location.hostname` matches `/(^|\.)vercel\.app$/i`. The built HTML of public pages
+  does not contain that meta. `/book` and `/notes` keep their own noindex on every host.
+- `/robots.txt` is answered by `proxy.ts`: `Disallow: /` on a vercel.app host, the public allow
+  rules otherwise (`Vary: Host`, `Cache-Control: public, max-age=0, must-revalidate`).
 
 ## Config: `src/config.ts`
 

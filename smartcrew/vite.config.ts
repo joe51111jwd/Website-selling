@@ -3,35 +3,42 @@ import { resolve } from "node:path";
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { seoPages } from "./seo.plugin";
+import { previewRobotsSnippet } from "./src/lib/preview-robots";
 import { trackingSnippets } from "./src/lib/tracking-snippet";
+import { homeHeadTags } from "./src/seo/entity";
 
-// Preview builds (`--mode preview`, `--mode watermark`) ask search engines not to
-// index; the watermark build also carries the watermark.
-const noindex: Plugin = {
-  name: "noindex",
-  transformIndexHtml: (html) => html.replace("</head>", '    <meta name="robots" content="noindex, nofollow" />\n  </head>'),
-};
+const homeHtml = resolve(import.meta.dirname, "index.html");
 
 // Home, /book, the legal pages (transformIndexHtml) and /notes (copied from public/, patched after emit).
-// SEO pages get the same block from src/seo/render.ts.
-const tracking: Plugin = {
-  name: "smartcrew-tracking",
-  transformIndexHtml(html) {
-    return injectTracking(html);
+// SEO pages get the same blocks from src/seo/render.ts. Noindex is not baked in: one build is served
+// on the preview and, after DNS, on the real domain. See src/lib/preview-robots.ts.
+const pages: Plugin = {
+  name: "smartcrew-pages",
+  transformIndexHtml: {
+    order: "pre",
+    handler(html, ctx) {
+      return injectPage(html, ctx.filename);
+    },
   },
   writeBundle(options) {
     if (!options.dir) return;
     const notes = resolve(options.dir, "notes/index.html");
     if (!existsSync(notes)) return;
-    writeFileSync(notes, injectTracking(readFileSync(notes, "utf8")));
+    writeFileSync(notes, injectPage(readFileSync(notes, "utf8"), notes));
   },
 };
 
-function injectTracking(html: string) {
-  if (html.includes("cdn.mouseflow.com/projects/")) return html;
-  const block = trackingSnippets();
-  if (!block) return html;
-  return html.replace("</head>", `${block}\n</head>`);
+function injectPage(html: string, filename: string) {
+  let out = html;
+  if (resolve(filename) === homeHtml && !out.includes('rel="canonical"')) {
+    out = out.replace("</head>", `${homeHeadTags()}\n</head>`);
+  }
+  if (!out.includes("sc-preview-robots")) out = out.replace("</head>", `${previewRobotsSnippet()}\n</head>`);
+  if (!out.includes("cdn.mouseflow.com/projects/")) {
+    const block = trackingSnippets();
+    if (block) out = out.replace("</head>", `${block}\n</head>`);
+  }
+  return out;
 }
 
 // The pain picker asks /api/match-pain (api/match-pain.ts, a Vercel function) only in a build where
@@ -41,9 +48,9 @@ function injectTracking(html: string) {
 // =0 decides it by hand (1 to try the call against a stub).
 const painAi = process.env.VITE_PAIN_AI ?? (process.env.VERCEL && process.env.OPENROUTER_API_KEY ? "1" : "0");
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
   base: "./",
-  plugins: [react(), tracking, seoPages(), ...(mode === "watermark" || mode === "preview" ? [noindex] : [])],
+  plugins: [react(), pages, seoPages()],
   define: { "import.meta.env.VITE_PAIN_AI": JSON.stringify(painAi) },
   build: {
     // the product page, the "book a call" page the trial form lands on, and the two legal pages
