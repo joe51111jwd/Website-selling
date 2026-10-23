@@ -129,6 +129,16 @@ export const page: SeoPage = {
       text: "That’s the gap SmartCrew is built for: a company big enough to need real job costing and equipment records, and small enough that it can’t spend months standing up an enterprise system. It only serves dirt work and heavy civil contractors: excavation, site work, grading, underground utilities, septic, drilling, paving, demolition, trucking and hauling, and aggregate.",
     },
 
+    { t: "h2", text: "Can a small excavation company run on Excel and paper?" },
+    {
+      t: "p",
+      text: "Yes, plenty of 5 to 15 person excavation companies run on a spreadsheet, paper time cards and a group text, and it works until the office is retyping the same numbers three times. The break point is usually one of three things: Friday payroll takes most of a day, nobody can say whether a job is over budget until it's done, or load tickets go missing between the truck and the invoice. A spreadsheet holds what someone types into it; it can't take a clock-in from the cut, a ticket photo from the truck or an inspection from the yard.",
+    },
+    {
+      t: "p",
+      text: "When you move off it, keep what works: your job list, cost codes and equipment list. SmartCrew's team moves that information over and sets up the account, so the crew starts with the same job names they already use.",
+    },
+
     { t: "h2", text: "What to ask any excavation software vendor" },
     {
       t: "ol",

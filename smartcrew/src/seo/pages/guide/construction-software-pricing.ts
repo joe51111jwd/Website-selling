@@ -98,6 +98,17 @@ export const page: SeoPage = {
     },
     { t: "cta", title: "Get a SmartCrew number for your company", text: "A short call with Andrew: tell him your head count and what you need, and he gives you a price." },
 
+    { t: "h2", text: "Is per-user or flat pricing cheaper for a seasonal crew?" },
+    {
+      t: "p",
+      text: "Per-user pricing is usually cheaper for a crew that swells in summer and shrinks in winter, as long as the vendor bills only active users; flat pricing wins when headcount stays high all year. busybusy and ClockShark both say they bill for active users ([busybusy pricing](" + BB + "), [ClockShark pricing](" + CS + ")).",
+    },
+    {
+      t: "note",
+      title: "Example: 30 people in season, 10 in winter",
+      text: "Made-up prices to show the arithmetic. At $10 per active user a month, eight months at 30 people and four at 10 cost (8 × 30 × $10) + (4 × 10 × $10) = $2,400 + $400 = $2,800 a year. A $300 flat monthly fee costs 12 × $300 = $3,600. If the crew stayed at 30 all year, per-user would be 12 × 30 × $10 = $3,600, the same as flat. Check whether an annual plan locks in your peak headcount.",
+    },
+
     { t: "h2", text: "How does SmartCrew price?" },
     {
       t: "p",

@@ -36,6 +36,16 @@ export const page: SeoPage = {
       text: "General scheduling apps are built for shift work: a worker, a location and a start time. A dirt work schedule has more pieces. The excavator has to be on the lowboy before the operator gets there. The trucks have to match what the loader can fill. The pipe crew can't start until the trench is open. That's why the schedule has to hold equipment as well as people.",
     },
 
+    { t: "h2", text: "What is construction dispatch software, and is it the same as scheduling?" },
+    {
+      t: "p",
+      text: "Construction dispatch software sends today's assignments to the field and tells people the moment they change; scheduling software plans who and what goes where over the coming days. A dirt work company needs both in one place, because tomorrow's plan becomes this morning's dispatch. In SmartCrew, the drag-and-drop schedule holds crew, job and equipment assignments, and dispatch goes out with instant alerts to the people affected, with job-specific chat for the details. Both sit in the Scheduling & Communications category, which is Premium.",
+    },
+    {
+      t: "p",
+      text: "Dispatch here means sending crews and machines to jobs. It is not truck load-board dispatch or ELD hours of service, which SmartCrew doesn't do; see [trucking software](trucking-software) for where that line sits.",
+    },
+
     { t: "h2", text: "Why the whiteboard and group text stop working" },
     {
       t: "p",

@@ -119,3 +119,21 @@ Best-practice references: Google Search Central, "AI features and your website"
 - Third-party listings and reviews (Capterra, G2, Reddit, YouTube): needs Andrew.
 - vs pages: ClockShark vs busybusy, Raken vs Fieldwire, if search demand shows up.
 - Fleetio comparison: its pricing page didn't load for us on October 22, 2026.
+
+## Wave 5 (October 22, 2026)
+
+Read both bookmarked posts in full and turned every step into research/bookmark-checklist.md (50
+items, each done, done in wave 5, or blocked with the exact ask). Collected the 50 questions
+contractors ask in this space into research/top-50-questions.md, with sources and the one page that
+answers each: 35 were already answered, 15 got new answer-first sections or pages.
+
+Added: /vs/clockshark-vs-busybusy/ (from wave 4 sources only) and /guides/equipment-cost-per-hour/
+(FAO machine rate method, worked example). New sections on the time tracking page (GPS on personal
+phones, buddy punching, missed punches, no signal, certified payroll), scheduling (dispatch vs
+scheduling), excavation (Excel and paper) and the pricing guide (seasonal crews). Sources in
+sources/wave-5.md.
+
+- TODO(andrew): offline clock-in, location after clock-out, who edits a missed punch, certified
+  payroll export, and how the equipment cost on a job page is priced (TODOs on the pages).
+- TODO(andrew): confirm busybusy's monthly-billing prices on compare/busybusy-alternative (our fetch
+  is blocked; wave 4 could not see them).
