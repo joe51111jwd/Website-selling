@@ -3,7 +3,7 @@ import bpy, json, sys
 from bpy_extras.object_utils import world_to_camera_view
 scene = bpy.context.scene
 cam = scene.camera
-names = ["down", "side", "up", "hire6", "slack", "hire9", "crm", "agency", "ops", "apps", "hire12", "sops", "ai", "burn", "sku", "hire15", "meet", "systems"]
+names = ["down", "side", "up", "hire6", "slack", "hire9", "crm", "agency", "ops", "apps", "hire12", "sops", "ai", "burn", "sku", "hire15", "meet", "retention", "profit", "content", "spire_3"]
 out = {"frames": [], "names": names}
 for f in range(1, scene.frame_end + 1):
     scene.frame_set(f)

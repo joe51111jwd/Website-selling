@@ -20,9 +20,14 @@ export type Beat = {
 export type SiteCopy = {
   hero: { kicker: string; title: string; sub: string; detail: string; preorder: string };
   beats: Beat[];
-  bootloader: { kicker: string; headline: string; body: string; detail: string; steps: string[]; button: string; copied: string; notice: { title: string; paragraphs: string[] } };
-  book: { kicker: string; headline: string; subtitle: string; body: string; why: { label: string; text: string }; proofTitle: string; proof: { label: string; text: string }[]; proofClose: string; parts: { title: string; text: string }[]; button: string; soon: string; author: string };
-  footer: { kicker: string; headline: string; body: string; detail: string };
+  ending: {
+    couplet: { back: string; front: string; lead: string };
+    desk: { kicker: string; headline: string; sub: string; answer: string };
+    hinge: { quote: string; line: string; sign: string };
+    notice: { title: string; paragraphs: string[] };
+  };
+  book: { kicker: string; headline: string; subtitle: string; body: string; free: string; proofTitle: string; proof: { n: string; tone: "up" | "down"; label: string; title: string; text: string }[]; proofClose: string; button: string; soon: string };
+  footer: { kicker: string; headline: string; body: string; detail: string; scale: [string, string][] };
 };
 
 export const COPY: SiteCopy = {
@@ -33,123 +38,95 @@ export const COPY: SiteCopy = {
     detail: "Half of this book is meant to be read. The other half is meant to be used. The pages are reference. The file is the operating system.", // L234, L4497
     preorder: "Pre-order the book",
   },
+  // One idea per scroll moment, and the picture does most of the telling. Phones show the kicker
+  // and headline only; desktop adds the one detail line.
   beats: [
     {
       id: "grow",
-      at: [0.05, 0.14],
+      at: [0.05, 0.145],
       kicker: "Our best quarter ever", // L464
       tone: "up",
-      headline: "Every business book said hire when you're overwhelmed. So we did.", // L576
-      body: "The consultant said add a layer of management. So we added. The podcast said 10x. So we pushed harder.", // L576
-      detail: "Your best quarter can be the most dangerous moment in your business.", // L462
-    },
-    {
-      id: "math",
-      at: [0.15, 0.235],
-      kicker: "The coordination tax", // L755
-      tone: "ink",
-      headline: "The math doesn't grow in a straight line. It explodes.", // L765-767
-      body: "Five people already create ten communication pathways. Twelve people create sixty-six. At twenty people, there are one hundred ninety.", // L773-775
-      detail: "It wasn't a leadership failure. It was physics.", // L780
+      headline: "Always launching. Always hiring. Always adding.", // L1993
+      detail: "But inside, nothing ever settled.", // L1995
     },
     {
       id: "redline",
-      at: [0.245, 0.3],
+      at: [0.155, 0.23],
       kicker: "The equation",
       tone: "down",
       headline: "Complexity > Capacity = Redline.", // L2997
-      body: "Everyone was working harder. No one was accomplishing more. You can't outwork gravity.", // L1072, L1173
+      detail: "Every addition makes it worse.", // L2997
     },
     {
       id: "collapse",
-      at: [0.31, 0.415],
-      kicker: "Past twelve", // L3509
+      at: [0.24, 0.305],
+      kicker: "The shape of the break", // L1120
       tone: "down",
-      headline: "Something breaks. Not gradually. Structurally.", // L3509-3511
-      body: "Revenue was up. Margin was down. The team was bigger. I was more exhausted.", // L582
+      headline: "Past twelve, something breaks.", // L3509
       detail: "We were Scaling Upside Down.", // L461
     },
     {
       id: "trap",
-      at: [0.425, 0.5],
-      kicker: "The Scaling Trap", // L1175
+      at: [0.315, 0.377],
+      kicker: "12–40 people", // L3562 (the picture's tag names it: The Graveyard)
       tone: "down",
-      headline: "Too big to be small, too small to be big.", // L1835
-      body: "This zone has a name. I started calling it The Graveyard.", // L1177
-      stats: [
-        { value: "8–12", label: "Team" },
-        { value: "12–40", label: "The Graveyard" },
-        { value: "40–70", label: "Team of Teams" },
-      ], // L989, L3562, L991
-      detail: "There is nothing wrong with you. You just walked into a trap that no one told you was there.", // L1245-1247
-    },
-    {
-      id: "map",
-      at: [0.51, 0.585],
-      kicker: "The borrowed map", // L574
-      tone: "ink",
-      headline: "The playbook came from venture-backed companies.", // L373
-      body: "The 4% crossed the valley because they had bridges. You're being told to cross the same valley by swimming.", // L391
-      stats: [
-        { value: "96%", label: "stay small" },
-        { value: "4%", label: "reach $1 million" },
-        { value: "0.4%", label: "reach $10 million" },
-      ], // L980-982
-      note: "Of roughly 28 million firms in the United States. The numbers come from Verne Harnish.", // L976-980
-      detail: "Bootstrapped companies don't buy scale. They rent it.", // L1680
+      headline: "Complexity that accumulated faster than the structure could hold.", // L2021
     },
     {
       id: "side",
-      at: [0.595, 0.66],
-      kicker: "Scaling Sideways",
+      at: [0.39, 0.548],
+      kicker: "Scaling Sideways", // L1716
       tone: "side",
-      headline: "Pause. Integrate. Stabilize.", // L2060
-      body: "You have to digest every gain before you can reach for the next.", // L1680
-      detail: "Not Scaling Upside Down—the diagnosis. Scaling Up-Side-Down—a cycle with three phases.", // L1722, L1723
+      headline: "Systems were what actually held the weight.", // L2408
+      detail: "Four for Scaling Up, four for Scaling Sideways, four for Scaling Down. Twelve.", // L3119
     },
     {
       id: "down",
-      at: [0.67, 0.775],
-      kicker: "Scaling Down",
+      at: [0.555, 0.612],
+      kicker: "Scaling Down", // L1717
       tone: "down",
-      headline: "Stop. Release. Simplify.", // L2061
-      body: "Tools nobody used. Processes that created friction. Work we'd been carrying for no reason.", // L3321
-      detail: "Forty-three subscriptions. Over $12,000 a month in software alone.", // L600
+      headline: "Something needs to be cut.", // L2564
+      detail: "The business stops asking for more and starts asking what to keep.", // L2564
     },
     {
       id: "up",
-      at: [0.785, 0.865],
-      kicker: "Scaling Up",
+      at: [0.62, 0.845],
+      kicker: "Scaling Up", // L1715
       tone: "up",
-      headline: "Add. Grow. Capture.", // L2059
-      body: "Capacity > Complexity = Oxygen. You can breathe. The systems can carry what the business creates.", // L2999
-      detail: "Team. Eight to twelve people. A destination worth defending.", // L1813
+      headline: "Capacity > Complexity = Oxygen.", // L2999
+      detail: "The systems can carry what the business creates.", // L2999
     },
     {
       id: "repeat",
-      at: [0.875, 0.99],
+      at: [0.905, 0.995],
       kicker: "Up. Side. Down. Repeat.", // L1713
       tone: "ink",
-      headline: "“Enough” is a destination.", // L4518
-      body: "We finally let the cycle complete. Our margins stopped shrinking.", // L3313, L3319
-      note: "In an open system, AI accelerates chaos. In a closed system, AI accelerates clarity.", // L4523
+      headline: "The business held. Not just held—it grew.", // L192, L194
+      detail: "Our margins stopped shrinking.", // L3319
       cta: true,
     },
   ],
-  bootloader: {
-    kicker: "The SUSD Bootloader",
-    headline: "This SUSD Bootloader changes how you operate.", // L4555
-    body: "Then instead of asking AI a generic question like “Should I hire?” and getting generic advice, you can ask the same question inside the logic of this book.", // L244
-    detail: "Tell it what's happening in the business. Ask whether you should hire. Tell it you're overwhelmed.", // L4545
-    steps: [
-      "Copy the prompt.",
-      "Paste it into the AI assistant you already use.",
-      "Answer the first question: How many people are on your team? Then talk to it normally.",
-    ],
-    button: "Copy the prompt",
-    copied: "Copied. Now paste it into your AI.",
+  // After the story: two lines in two focal planes, the desk where the prompt is copied,
+  // and Michael's caution before the book.
+  ending: {
+    couplet: {
+      back: "The book changed how you think.", // L4553
+      front: "This SUSD Bootloader changes how you operate.", // L4555
+      lead: "Then instead of asking AI a generic question like “Should I hire?” and getting generic advice, you can ask the same question inside the logic of this book.", // L244 (2nd sentence)
+    },
+    desk: {
+      kicker: "The SUSD Bootloader",
+      headline: "You're not meant to read this.", // L4491
+      sub: "The pages are reference. The file is the operating system.", // L4497
+      answer: "How many people are on your team?", // L4537
+    },
+    hinge: {
+      quote: "You may be tempted to skip straight to it. I wouldn't.", // L246
+      line: "That's what the chapters are for.", // L250 (1st sentence)
+      sign: "— Michael", // L4463
+    },
     notice: {
-      title: "Read the use notice",
+      title: "SUSD Bootloader Use Notice", // L4557
       paragraphs: [
         "Before You Load the SUSD Bootloader Into an AI System",
         "The SUSD Bootloader is a specification designed for use with third-party artificial-intelligence systems. Please read this notice before copying, uploading, or using it with an AI platform.",
@@ -177,29 +154,26 @@ export const COPY: SiteCopy = {
     headline: "You were never the problem. The model you inherited was.", // L216
     subtitle: "Revenue Up. Margins Down. How to Avoid the Scaling Trap.", // cover
     body: "This book is for the ones who felt the map was wrong but couldn't say why.", // L415
-    why: {
-      label: "About the free prompt",
-      text: "You may be tempted to skip straight to it. I wouldn't. If you skip the questions that led to the system, it's easy to use a new system in the same old way. That's what the chapters are for.", // L246, L248, L250
-    },
+    free: "Start with the free prompt",
     proofTitle: "Two launches of Izabella's books",
     proof: [
-      { label: "40 people", text: "Hashimoto's Protocol hit #1 on the New York Times. That launch consumed everything." }, // L3459
-      { label: "12 people", text: "Adrenal Transformation Protocol reached the Publishers Weekly bestseller list. The team held." }, // L3461
+      { n: "40", tone: "down", label: "People · #1 New York Times", title: "Hashimoto's Protocol", text: "People saw the list. They didn't see the cost." }, // L3459
+      { n: "12", tone: "up", label: "People · Publishers Weekly bestseller", title: "Adrenal Transformation Protocol", text: "Customers stayed served. The team held." }, // L3461
     ],
     proofClose: "The contrast wasn't the ranking. The contrast was the cost.", // L3463
-    parts: [
-      { title: "Part I · Scaling Upside Down", text: "The diagnosis." },
-      { title: "Part II · Scaling Up-Side-Down", text: "The cycle." },
-      { title: "Part III · Scaling USD", text: "The moat, the middle, and the summit." },
-    ],
     button: "Pre-order the book",
     soon: "Pre-orders open soon",
-    author: "Michael Wentz co-founded the Thyroid Pharmacist and Rootcology brands, serving more than a million customers. He and his wife, Izabella, started at a kitchen table.",
   },
   footer: {
     kicker: "The first question",
-    headline: "How many people are on your team?", // L4535
-    body: "That number locates you on the map before anything else happens.", // L4541
-    detail: "Not payroll headcount. The people you actually coordinate.", // L4537
+    headline: "How many people are on your team?", // L4537
+    body: "That number locates you on the map before anything else happens.", // L4541 (1st sentence)
+    detail: "Not payroll headcount.", // L4539 (1st sentence)
+    scale: [
+      ["1–3", "Small Team"],
+      ["8–12", "Team"],
+      ["12–40", "The Graveyard"],
+      ["40–70", "Team of Teams"],
+    ],
   },
 };

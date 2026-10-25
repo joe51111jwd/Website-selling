@@ -1,9 +1,15 @@
-import { useEffect, useRef, useState, type PointerEvent as RPointerEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useScroll, useTransform } from "motion/react";
 import * as m from "motion/react-m";
+import { AssistantChips } from "./AssistantChips";
 import { CopyButton } from "./CopyButton";
-import { loadBootloader, wordCount } from "../bootloader";
+import { openNotice } from "./NoticeDialog";
 import type { SiteCopy } from "../copy";
 import { LINKS, preorderHref } from "../links";
+import { sp } from "../story";
+
+const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const still = <T,>(a: T[]) => (reduced ? a.map(() => a[a.length - 1]) : a);
 
 const reveal = {
   initial: { opacity: 0, y: 28 },
@@ -17,8 +23,10 @@ export function Nav() {
   const [mode, setMode] = useState<"story" | "page" | "dark">("story");
   useEffect(() => {
     const on = () => {
-      setPastHero(window.scrollY > window.innerHeight * 0.35);
       const story = document.getElementById("story");
+      // the copy button joins the menu once the title (with its own) has gone: the opening is the blocks alone
+      const v = story ? (window.scrollY - story.offsetTop) / Math.max(1, story.offsetHeight - window.innerHeight) : 1;
+      setPastHero(v > sp(0.045));
       const foot = document.querySelector(".foot");
       const storyEnd = story ? story.offsetTop + story.offsetHeight - window.innerHeight : 0;
       setMode(foot && foot.getBoundingClientRect().top < 64 ? "dark" : window.scrollY < storyEnd ? "story" : "page");
@@ -46,170 +54,70 @@ export function Nav() {
         <a className="nav-book" href="#book">
           Book
         </a>
-        <CopyButton size="sm" />
+        <CopyButton source="nav" size="sm" />
       </div>
     </header>
   );
 }
 
-function Sheet({ preview, words }: { preview: string; words: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const move = (e: RPointerEvent<HTMLDivElement>) => {
-    const el = ref.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const r = el.getBoundingClientRect();
-    el.style.setProperty("--ry", `${((e.clientX - r.left) / r.width - 0.5) * 7}deg`);
-    el.style.setProperty("--rx", `${-((e.clientY - r.top) / r.height - 0.5) * 5}deg`);
-  };
-  const leave = () => {
-    ref.current?.style.setProperty("--rx", "0deg");
-    ref.current?.style.setProperty("--ry", "0deg");
-  };
-  return (
-    <div className="sheet-wrap" ref={ref} onPointerMove={move} onPointerLeave={leave}>
-      <div className="sheet-under two" aria-hidden="true" />
-      <div className="sheet-under one" aria-hidden="true" />
-      <div className="sheet">
-        <div className="sheet-bar">
-          <span>SUSD-Bootloader.md</span>
-          <span className="sheet-meta">{words ? `${words.toLocaleString()} words · Markdown` : "Markdown"}</span>
-        </div>
-        <pre className="sheet-text" aria-hidden="true">{preview}</pre>
-        <div className="sheet-fade" aria-hidden="true" />
-      </div>
-    </div>
-  );
-}
-
-export function Bootloader({ copy }: { copy: SiteCopy["bootloader"] }) {
-  const [preview, setPreview] = useState("");
-  const [words, setWords] = useState(0);
-  useEffect(() => {
-    // a failed first fetch retries, so the sheet and the word count still appear
-    let alive = true;
-    let tries = 0;
-    const run = () =>
-      void loadBootloader().then((t) => {
-        if (!alive) return;
-        if (!t) {
-          if (++tries < 4) window.setTimeout(run, 1500 * tries);
-          return;
-        }
-        setPreview(t.split("\n").slice(0, 40).join("\n"));
-        setWords(wordCount(t));
-      });
-    run();
-    return () => {
-      alive = false;
-    };
-  }, []);
-  return (
-    <section className="boot" id="bootloader">
-      <div className="boot-in">
-        <m.div className="boot-copy" {...reveal}>
-          <p className="kick">
-            <i className="dot up" />
-            {copy.kicker}
-          </p>
-          <h2>{copy.headline}</h2>
-          <p className="lead">{copy.body}</p>
-          <p className="lead soft">{copy.detail}</p>
-          <ol className="steps">
-            {copy.steps.map((s, n) => (
-              <li key={s}>
-                <span className="n">{String(n + 1).padStart(2, "0")}</span>
-                <span>{s}</span>
-              </li>
-            ))}
-          </ol>
-          <div className="boot-cta">
-            <CopyButton size="lg" label={copy.button} copied={copy.copied} />
-            <a className="ghost" href={`${import.meta.env.BASE_URL}bootloader.md`} download="SUSD-Bootloader.md">
-              Download the file
-            </a>
-          </div>
-          <p className="fine">{words ? `${words.toLocaleString()} words. Copies the whole file.` : "Copies the whole file."}</p>
-          <details className="notice">
-            <summary>{copy.notice.title}</summary>
-            <div className="notice-body">
-              {copy.notice.paragraphs.map((p) =>
-                p.startsWith("## ") ? <h3 key={p}>{p.slice(3)}</h3> : <p key={p.slice(0, 32)}>{p}</p>,
-              )}
-            </div>
-          </details>
-        </m.div>
-        <m.div className="boot-file" {...reveal} transition={{ ...reveal.transition, delay: 0.12 }}>
-          <Sheet preview={preview} words={words} />
-        </m.div>
-      </div>
-    </section>
-  );
-}
-
 export function Book({ copy }: { copy: SiteCopy["book"] }) {
+  const art = useRef<HTMLDivElement>(null);
+  const proof = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: arrive } = useScroll({ target: art, offset: ["start end", "start 0.3"] });
+  const artScale = useTransform(arrive, [0, 1], still([1.04, 1]));
+  // the two numerals sit at slightly different depths
+  const { scrollYProgress: pass } = useScroll({ target: proof, offset: ["start end", "end start"] });
+  const y40 = useTransform(pass, [0, 1], still([36, -36]));
   return (
     <section className="book" id="book">
       <div className="book-in">
-        <m.div className="book-art" {...reveal}>
-          <img src={`${import.meta.env.BASE_URL}book.jpg`} alt="The hardcover of Scaling Up-Side-Down by Michael Wentz, standing next to the three wooden blocks from its cover" loading="lazy" />
+        <m.div className="book-art" ref={art} {...reveal}>
+          <m.img style={{ scale: artScale }} src={`${import.meta.env.BASE_URL}book.jpg`} alt="The hardcover of Scaling Up-Side-Down by Michael Wentz, standing next to the three wooden blocks from its cover" loading="lazy" />
         </m.div>
-        <m.div className="book-copy" {...reveal} transition={{ ...reveal.transition, delay: 0.1 }}>
-          <p className="kick">
-            <i className="dot down" />
-            {copy.kicker}
-          </p>
-          <h2>{copy.headline}</h2>
-          <p className="sub">{copy.subtitle}</p>
-          <p className="lead">{copy.body}</p>
-          <div className="book-cta">
-            {LINKS.preorder ? (
-              <a className="btn" href={LINKS.preorder} target="_blank" rel="noopener">
-                {copy.button}
-              </a>
-            ) : (
-              <>
-                <a className="btn" href="#bootloader">
-                  Start with the free prompt
+        <div className="book-copy">
+          <m.div {...reveal} transition={{ ...reveal.transition, delay: 0.1 }}>
+            <p className="kick">
+              <i className="dot down" />
+              {copy.kicker}
+            </p>
+            <h2>{copy.headline}</h2>
+            <p className="sub">{copy.subtitle}</p>
+            <p className="lead">{copy.body}</p>
+            <div className="book-cta">
+              {LINKS.preorder ? (
+                <a className="btn" href={LINKS.preorder} target="_blank" rel="noopener">
+                  {copy.button}
                 </a>
-                <span className="soon" role="status">
-                  <i className="dot down" />
-                  {copy.soon}
-                </span>
-              </>
-            )}
-          </div>
-          <div className="why">
-            <p className="why-t">{copy.why.label}</p>
-            <p>{copy.why.text}</p>
-          </div>
-          <div className="proof">
+              ) : (
+                <>
+                  <a className="btn" href="#bootloader">
+                    {copy.free}
+                  </a>
+                  <span className="soon">
+                    <i className="dot down" />
+                    {copy.soon}
+                  </span>
+                </>
+              )}
+            </div>
+          </m.div>
+          <m.div className="proof2" ref={proof} {...reveal}>
             <p className="proof-t">{copy.proofTitle}</p>
-            <ol>
-              {copy.proof.map((p) => (
-                <li key={p.label}>
-                  <span className="n">{p.label}</span>
-                  <span>{p.text}</span>
-                </li>
+            <div className="proof2-cols">
+              {copy.proof.map((p, i) => (
+                <div key={p.n} className={`pc tone-${p.tone}`}>
+                  <m.b className="pn ink" style={i === 0 ? { y: y40 } : undefined}>
+                    {p.n}
+                  </m.b>
+                  <span className="pl">{p.label}</span>
+                  <i className="ptitle">{p.title}</i>
+                  <p>{p.text}</p>
+                </div>
               ))}
-            </ol>
+            </div>
             <p className="proof-c">{copy.proofClose}</p>
-          </div>
-          <ol className="parts">
-            {copy.parts.map((p, n) => (
-              <li key={p.title}>
-                <i className={["down", "side", "up"][n] ?? "up"} />
-                <span>
-                  <b>{p.title}</b>
-                  <small>{p.text}</small>
-                </span>
-              </li>
-            ))}
-          </ol>
-          <div className="author">
-            <img src={`${import.meta.env.BASE_URL}michael.jpg`} alt="" loading="lazy" decoding="async" width="54" height="54" />
-            <p>{copy.author}</p>
-          </div>
-        </m.div>
+          </m.div>
+        </div>
       </div>
     </section>
   );
@@ -224,24 +132,22 @@ export function Footer({ copy }: { copy: SiteCopy["footer"] }) {
           {copy.kicker}
         </p>
         <h2>{copy.headline}</h2>
+      </m.div>
+      <m.div className="foot-left" {...reveal} transition={{ ...reveal.transition, delay: 0.08 }}>
         <p className="lead">{copy.body}</p>
-        <p className="lead soft">{copy.detail}</p>
+        <p className="foot-detail">{copy.detail}</p>
         <div className="foot-cta">
-          <CopyButton size="lg" className="on-dark" label="Copy the AI prompt" />
+          <CopyButton source="footer" size="lg" className="on-dark" label="Copy the AI prompt" />
           <a className="ghost on-dark" href={preorderHref()}>
             {LINKS.preorder ? "Pre-order the book" : "The book"}
           </a>
         </div>
+        <AssistantChips variant="ink" />
       </m.div>
-      <m.dl className="foot-map" {...reveal} transition={{ ...reveal.transition, delay: 0.12 }}>
-        {[
-          ["1–3", "Small Team"],
-          ["8–12", "Team"],
-          ["12–40", "The Graveyard"],
-          ["40–70", "Team of Teams"],
-        ].map(([v, l]) => (
+      <m.dl className="foot-ruler" {...reveal} transition={{ ...reveal.transition, delay: 0.14 }}>
+        {copy.scale.map(([v, l]) => (
           <div key={l} className={l === "The Graveyard" ? "warn" : ""}>
-            <dt>{v}</dt>
+            <dt className="ink">{v}</dt>
             <dd>{l}</dd>
           </div>
         ))}
@@ -255,6 +161,9 @@ export function Footer({ copy }: { copy: SiteCopy["footer"] }) {
           </span>
           Scaling Up-Side-Down
         </span>
+        <button type="button" className="foot-notice" onClick={(e) => openNotice(e.currentTarget)}>
+          Use notice
+        </button>
         <span>© 2026 Michael Wentz</span>
       </div>
     </footer>

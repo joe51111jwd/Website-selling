@@ -3,14 +3,18 @@ import { LazyMotion, MotionConfig, domAnimation } from "motion/react";
 import Lenis from "lenis";
 import { COPY } from "./copy";
 import { Story } from "./components/Story";
-import { Bootloader, Book, Footer, Nav } from "./components/Sections";
-import { loadBootloader } from "./bootloader";
+import { Book, Footer, Nav } from "./components/Sections";
+import { Couplet, Desk, Hinge } from "./components/Ending";
+import { Announcer } from "./components/Announcer";
+import { NoticeDialog } from "./components/NoticeDialog";
+import { preloadBootloader } from "./bootloader";
+import { setLenis } from "./lenis";
 
 type Entry = { y?: number } | null;
 
 export default function App() {
   useEffect(() => {
-    void loadBootloader();
+    preloadBootloader();
     // the page is drawn by script, so the browser can't restore the scroll position itself.
     // Each history entry remembers its own position instead (reload, Back, Forward).
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -42,6 +46,7 @@ export default function App() {
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const lenis = reduced ? null : new Lenis({ autoRaf: true, lerp: 0.09 });
+    setLenis(lenis);
     const goTo = (to: HTMLElement | number) => {
       if (lenis) {
         lenis.resize();
@@ -85,6 +90,7 @@ export default function App() {
       window.removeEventListener("scroll", onScroll);
       window.clearTimeout(settle);
       lenis?.destroy();
+      setLenis(null);
     };
   }, []);
 
@@ -94,10 +100,14 @@ export default function App() {
         <Nav />
         <main>
           <Story beats={COPY.beats} hero={COPY.hero} />
-          <Bootloader copy={COPY.bootloader} />
+          <Couplet copy={COPY.ending.couplet} />
+          <Desk copy={COPY.ending.desk} />
+          <Hinge copy={COPY.ending.hinge} />
           <Book copy={COPY.book} />
         </main>
         <Footer copy={COPY.footer} />
+        <NoticeDialog copy={COPY.ending.notice} />
+        <Announcer />
       </MotionConfig>
     </LazyMotion>
   );

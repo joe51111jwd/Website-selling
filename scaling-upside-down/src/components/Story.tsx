@@ -1,10 +1,11 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { useScroll, useTransform, type MotionValue } from "motion/react";
+import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { FrameStore, fetchOk } from "../frames";
-import { CALLOUTS, HERO_FRAME, INTRO_FRAMES, STORY_VH, YEARS, focusAt, frameAt, portraitScale, progressAt, yearAt } from "../story";
+import { CALLOUTS, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, frameAt, portraitFit, progressAt, sp, yearAt } from "../story";
 import type { Beat } from "../copy";
 import { CopyButton } from "./CopyButton";
+import { ensureBootloader } from "../bootloader";
 import { LINKS, preorderHref } from "../links";
 
 type Anchors = { names: string[]; frames: Record<string, [number, number]>[] };
@@ -23,7 +24,7 @@ function BeatView({ beat, progress }: { beat: Beat; progress: MotionValue<number
   const events = useTransform(opacity, (o) => (o > 0.6 ? "auto" : "none"));
   const ctaVis = useTransform(opacity, shown);
   return (
-    <m.article className={`beat beat-${beat.id} tone-${beat.tone ?? "ink"}`} style={{ opacity, y, pointerEvents: events }}>
+    <m.article className={`beat beat-${beat.id} tone-${beat.tone ?? "ink"}${beat.headline.split(" ").length > 10 ? " is-long" : ""}`} style={{ opacity, y, pointerEvents: events }}>
       {beat.kicker && (
         <p className="beat-k">
           <i />
@@ -46,7 +47,7 @@ function BeatView({ beat, progress }: { beat: Beat; progress: MotionValue<number
       {beat.detail && <p className="beat-d">{beat.detail}</p>}
       {beat.cta && (
         <m.div className="beat-cta" style={{ visibility: ctaVis }}>
-          <CopyButton size="lg" label="Copy the AI prompt" />
+          <CopyButton source="story" size="lg" label="Copy the AI prompt" />
           <a className="ghost" href={preorderHref()}>
             {LINKS.preorder ? "Pre-order the book" : "The book"}
           </a>
@@ -61,19 +62,31 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
   const canvas = useRef<HTMLCanvasElement>(null);
   const callouts = useRef<(HTMLDivElement | null)[]>([]);
   const hud = useRef<HTMLDivElement>(null);
-  const [phase, setPhase] = useState<"loading" | "intro" | "ready">("loading");
+  const [phase, setPhase] = useState<"loading" | "ready">("loading");
   const [load, setLoad] = useState(0);
   const { scrollYProgress } = useScroll({ target: section, offset: ["start start", "end end"] });
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.025], [1, 0]);
-  const heroY = useTransform(scrollYProgress, [0, 0.03], reduced ? [0, 0] : [0, -40]);
+  // the film's own 0-1, after the opening (the beats, the chapters and the margin panel run on it)
+  const film = useTransform(scrollYProgress, filmP);
+  // the page opens on the blocks alone; the title arrives as they finish stacking, and leaves as the rush starts
+  const heroOpacity = useTransform(scrollYProgress, [OPEN_P * 0.6, OPEN_P * 0.86, sp(0.02), sp(0.045)], [0, 1, 1, 0]);
+  const heroY = useTransform(scrollYProgress, [OPEN_P * 0.6, OPEN_P * 0.86, sp(0), sp(0.04)], reduced ? [0, 0, 0, 0] : [18, 0, 0, -40]);
+  const [heroIn, setHeroIn] = useState(false);
   const heroVis = useTransform(heroOpacity, shown);
   const heroEvents = useTransform(heroOpacity, (o) => (o > 0.05 ? "auto" : "none"));
   const hudIn = progressAt(YEARS[0].from);
-  const hudOpacity = useTransform(scrollYProgress, [hudIn - 0.01, hudIn + 0.004, 0.405, 0.418], [0, 1, 1, 0]);
-  const verdict = useTransform(scrollYProgress, [0.318, 0.332, 0.405, 0.418], [0, 1, 1, 0]);
+  const hudOpacity = useTransform(scrollYProgress, [hudIn - 0.01, hudIn + 0.004, sp(0.295), sp(0.305)], [0, 1, 1, 0]);
   const cueOpacity = useTransform(scrollYProgress, [0, 0.012], [1, 0]);
   // gone once faded, so its looping animation stops too
   const cueDisplay = useTransform(cueOpacity, (o) => (o > 0 ? "" : "none"));
+  // the prompt is about to be wanted: make sure it is here, so the copy never waits on the network
+  const fetched = useRef(false);
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    if (v > OPEN_P * 0.62 && !heroIn) setHeroIn(true);
+    if (v > sp(0.6) && !fetched.current) {
+      fetched.current = true;
+      ensureBootloader("high").catch(() => {});
+    }
+  });
 
   useEffect(() => {
     const cv = canvas.current!;
@@ -85,8 +98,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
     let raf = 0;
     let disposed = false;
     let onScreen = true;
-    let cur = HERO_FRAME;
-    let introFrame = -1;
+    let cur = 0;
     let lastKey = "";
     let lastPlaced = Number.NaN;
     let fit = { w: 1, h: 1, ox: 0, oy: 0, dpr: 1 };
@@ -110,11 +122,13 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
       let dh: number;
       let oy: number;
       if (cw / ch < 1) {
-        // phones: sit the render low and continue its backdrop upward, leaving room for words
-        dh = ch * portraitScale(frame);
+        // phones: the hero fills the screen; after it the picture sits above the words, and the
+        // studio backdrop continues above and below it
+        const { scale, bottom } = portraitFit(frame);
+        dh = ch * scale;
         dw = Math.max(cw, dh * aspect);
         dh = dw / aspect;
-        oy = ch - dh;
+        oy = ch * bottom - dh;
       } else if (cw / ch > aspect) {
         // wider than the render (16:9 and up): never crop the tower, continue the backdrop at the sides
         dh = ch;
@@ -130,6 +144,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
       const ox = dw > cw ? Math.min(0, Math.max(cw - dw, cw / 2 - focusAt(frame) * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - focusAt(frame) * dw));
       ctx.drawImage(bmp, ox, oy, dw, dh);
       if (oy > 0) ctx.drawImage(bmp, 0, 0, bmp.width, 2, ox, 0, dw, oy + 1);
+      if (oy + dh < ch) ctx.drawImage(bmp, 0, bmp.height - 2, bmp.width, 2, ox, oy + dh - 1, dw, ch - oy - dh + 1);
       if (ox > 0) ctx.drawImage(bmp, 0, 0, 2, bmp.height, 0, oy, ox + 1, dh);
       if (ox + dw < cw) ctx.drawImage(bmp, bmp.width - 2, 0, 2, bmp.height, ox + dw - 1, oy, cw - ox - dw + 1, dh);
       fit = { w: dw, h: dh, ox, oy, dpr: scale };
@@ -141,8 +156,9 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
       const w = Math.round(r.width * scale);
       const h = Math.round(r.height * scale);
       if (w !== cv.width || h !== cv.height) {
-        cv.width = w; // clears the canvas, so repaint before the browser shows it
+        cv.width = w; // clears the canvas (and its settings), so repaint before the browser shows it
         cv.height = h;
+        ctx.imageSmoothingQuality = "high"; // the frames are scaled to the screen: keep edges clean
         if (lastBmp && lastBmp.width) draw(lastBmp, lastFrame);
         else {
           ctx.fillStyle = "#d9cfc0"; // the studio backdrop, so the words stay readable before frames arrive
@@ -174,11 +190,14 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
       // a tag never sits under the words, the HUD or the nav. Read everything first, then write.
       let rects: DOMRect[] | null = null;
       const blockers = () =>
-        (rects ??= [hud.current, cv.parentElement?.querySelector<HTMLElement>(".hud .verdict"), document.querySelector<HTMLElement>(".nav .brand"), document.querySelector<HTMLElement>(".nav-cta"), ...(cv.parentElement?.querySelectorAll<HTMLElement>(".beat") ?? [])]
+        (rects ??= [hud.current, document.querySelector<HTMLElement>(".nav .brand"), document.querySelector<HTMLElement>(".nav-cta"), ...(cv.parentElement?.querySelectorAll<HTMLElement>(".beat") ?? [])]
           .filter((e): e is HTMLElement => !!e && parseFloat(getComputedStyle(e).opacity) > 0.3)
           .map((e) => e.getBoundingClientRect()));
       const taken: { l: number; r: number; t: number; b: number }[] = [];
+      const narrow = vw <= 900;
+      let shownTags = 0;
       const plan = CALLOUTS.map((c, k) => {
+        if (narrow && (c.wide || (shownTags >= 1 && frame < LAST_SHOT))) return null;
         const fade = 2.5;
         const o = Math.max(0, Math.min(1, (frame - c.from) / fade, (c.to - frame) / fade));
         const a = row[c.anchor];
@@ -195,6 +214,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
         const box = { l: left, r: left + tw, t: y - 15, b: y + 15 };
         if (taken.some((q) => box.l < q.r && box.r > q.l && box.t < q.b && box.b > q.t)) return null;
         taken.push(box);
+        shownTags++;
         return { o, x, y, side };
       });
       plan.forEach((p, k) => {
@@ -238,12 +258,12 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
     const loop = () => {
       raf = 0;
       if (disposed || !lo) return;
-      const target = introFrame >= 0 ? introFrame : frameAt(scrollYProgress.get());
+      const target = frameAt(scrollYProgress.get());
       // off screen: jump to the true frame, draw it once, then sleep, so the canvas is right when it scrolls back in
       if (!onScreen && cur === target && lastKey) return;
       raf = requestAnimationFrame(loop);
       const diff = target - cur;
-      cur = reduced || introFrame >= 0 || !onScreen ? target : Math.abs(diff) < 0.02 ? target : cur + diff * 0.2;
+      cur = reduced || !onScreen ? target : Math.abs(diff) < 0.02 ? target : cur + diff * 0.2;
       const i = Math.max(0, Math.min(lo.m.count - 1, Math.round(cur)));
       const dir = Math.sign(diff) || 1;
       // full quality when it is decoded (or one a frame or two away); the small set only fills gaps
@@ -298,70 +318,48 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
         const decodeW = Math.min(1600, Math.round(Math.max(window.innerWidth, window.innerHeight * 1.6) * dpr()));
         const loLimit = 24;
         const hiLimit = small ? 12 : 24;
+        const FIRST = 20; // frames decoded before the story shows
         // the full-quality manifest is requested alongside the small set, not after it; the story runs without it if it fails
         const hiOpen = FrameStore.open(`${import.meta.env.BASE_URL}frames/hi/`, hiLimit, decodeW, () => undefined).catch(() => null);
         const smallSet = await FrameStore.open(`${import.meta.env.BASE_URL}frames/lo/`, loLimit, 9999, () => setLoad(smallSet.loadedChunks / smallSet.chunkCount));
         if (disposed) return smallSet.dispose();
         // let a restored scroll position (reload, deep link) land before deciding where the story starts
         await new Promise((r) => requestAnimationFrame(r));
-        const playIntro = window.scrollY < 40 && !reduced;
-        const at = playIntro ? 0 : Math.round(frameAt(scrollYProgress.get()));
+        const at = Math.round(frameAt(scrollYProgress.get()));
         lo = smallSet;
-        // only the chunk on screen holds the story up; the rest streams behind the intro (and retries what failed)
+        // only the chunk on screen holds the story up; the rest streams behind it (and retries what failed)
         await lo.loadChunk(lo.chunkOf(at)).catch(() => undefined);
         if (disposed) return;
         void lo.loadAll([lo.chunkOf(at)], 2);
-        if (playIntro) introFrame = 0;
         cur = at;
         lo.aim(at);
         const first = Math.max(0, Math.min(lo.m.count - (loLimit - 4), at - 4));
-        await Promise.all(Array.from({ length: Math.min(INTRO_FRAMES, loLimit - 4) }, (_, f) => lo!.decode(playIntro ? f : first + f)));
+        await Promise.all(Array.from({ length: Math.min(FIRST, loLimit - 4) }, (_, n) => lo!.decode(first + n)));
         if (disposed) return;
         start();
         const hiStore = await hiOpen;
         if (disposed) return hiStore?.dispose();
         let rest: Promise<void> = Promise.resolve();
-        let introChunks: number[] = [];
         if (hiStore) {
           store = hiStore;
           hiStore.aim(at);
-          introChunks = [...new Set(Array.from({ length: INTRO_FRAMES }, (_, f) => hiStore.chunkOf(Math.min(hiStore.m.count - 1, at + f))))];
-          rest = hiStore.loadAll(introChunks, 2);
+          const firstChunks = [...new Set(Array.from({ length: FIRST }, (_, n) => hiStore.chunkOf(Math.min(hiStore.m.count - 1, at + n))))];
+          rest = hiStore.loadAll(firstChunks, 2);
+          // the opening picture is the first impression: give the sharp one a moment to arrive (never long)
+          const conn = (navigator as Navigator & { connection?: { effectiveType?: string; saveData?: boolean } }).connection;
+          const slow = !!conn && (!!conn.saveData || (conn.effectiveType ?? "4g") !== "4g");
+          await Promise.race([hiStore.loadChunk(hiStore.chunkOf(at)).catch(() => undefined), new Promise((r) => setTimeout(r, slow ? 0 : 600))]);
+          if (disposed) return;
+          await hiStore.decode(at).catch(() => undefined);
+          if (disposed) return;
         }
-        if (playIntro) {
-          if (hiStore) {
-            // on a slow connection the intro plays on the small frames rather than holding the hero back
-            const conn = (navigator as Navigator & { connection?: { effectiveType?: string; saveData?: boolean } }).connection;
-            const slow = !!conn && (!!conn.saveData || (conn.effectiveType ?? "4g") !== "4g");
-            await Promise.race([Promise.all(introChunks.map((c) => hiStore.loadChunk(c))).catch(() => undefined), new Promise((r) => setTimeout(r, slow ? 0 : 600))]);
-            if (disposed) return;
-            await Promise.all(Array.from({ length: Math.min(INTRO_FRAMES, hiLimit - 4) }, (_, f) => hiStore.decode(f)));
-            if (disposed) return;
-          }
-          setPhase("intro");
-          void loadAnchors();
-          const t0 = performance.now();
-          await new Promise<void>((done) => {
-            const step = () => {
-              const f = Math.floor(((performance.now() - t0) / 1000) * 24);
-              introFrame = Math.min(HERO_FRAME, f);
-              // scrolling ends the intro at once, so the words and the frames never disagree
-              if (f >= HERO_FRAME || disposed || window.scrollY > 40) {
-                introFrame = -1;
-                done();
-              } else requestAnimationFrame(step);
-            };
-            step();
-          });
-        } else void loadAnchors();
-        if (disposed) return;
-        introFrame = -1;
+        void loadAnchors();
         cur = frameAt(scrollYProgress.get());
+        if (scrollYProgress.get() > OPEN_P * 0.62) setHeroIn(true); // a reload or a link that lands past the opening
         setPhase("ready");
         await rest;
       } catch {
         // nothing here may leave the story dark or unlabelled
-        introFrame = -1;
         if (!disposed) {
           setPhase("ready");
           start();
@@ -381,7 +379,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
     };
   }, [scrollYProgress]);
 
-  const shownHero = phase !== "loading";
+  const shownHero = phase !== "loading" && heroIn;
   return (
     <section ref={section} className={`story is-${phase}`} style={{ height: `${STORY_VH}vh` }} id="story">
       <div className="stage">
@@ -389,7 +387,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
           ref={canvas}
           className="frames"
           role="img"
-          aria-label="A stack of wooden blocks labelled with hires and tools grows past twelve and the top falls. Two blocks, Agency and 43 apps, are pulled out, the wreckage is cleared, and one Systems block lands on a stack that holds."
+          aria-label="The Up, Side and Down blocks lie face up on a table, then stand up and stack. Blocks labelled with hires and tools are stacked on the Up, Side and Down blocks faster and faster until the tower falls over. Twelve painted system blocks widen the base into a three-colour foundation, the dead weight is cleared, and the same team is stacked back on it into a taller building that holds."
         />
         <div className="scrim" aria-hidden="true" />
 
@@ -422,7 +420,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
             {hero.detail}
           </m.p>
           <m.div className="hero-cta" style={{ visibility: heroVis }} initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 14 }} transition={{ duration: 0.8, delay: 0.55 }}>
-            <CopyButton size="lg" label="Copy the AI prompt" />
+            <CopyButton source="hero" size="lg" label="Copy the AI prompt" />
             <a className="ghost" href={preorderHref()}>
               {LINKS.preorder ? hero.preorder : "The book"}
             </a>
@@ -464,22 +462,19 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
             <b data-k="lines">66</b>
             <i className="down">↑</i>
           </div>
-          <m.p className="verdict" style={{ opacity: verdict }}>
-            {VERDICT}
-          </m.p>
           <footer>Illustration from Chapter 17</footer>
         </m.aside>
 
         <div className="beats">
           {beats.map((b) => (
             <Fragment key={b.id}>
-              <BeatView beat={b} progress={scrollYProgress} />
+              <BeatView beat={b} progress={film} />
               {b.id === "collapse" && <MarginTable />}
             </Fragment>
           ))}
         </div>
 
-        <Chapters progress={scrollYProgress} />
+        <Chapters progress={film} />
 
         <div className={`loader ${phase === "loading" ? "on" : ""}`} aria-hidden={phase !== "loading"}>
           <div className="loader-bars">
@@ -493,8 +488,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
     </section>
   );
 }
-
-const VERDICT = "The founder doubled the team, increased revenue 40%, and lost 83% of their income.";
 
 /** the HUD's numbers for screen readers, read where the story reaches them */
 function MarginTable() {
@@ -525,15 +518,14 @@ function MarginTable() {
           ))}
         </tbody>
       </table>
-      <p>{VERDICT}</p>
     </div>
   );
 }
 
 const CHAPTERS: [string, number, number][] = [
-  ["Grow", 0.04, 0.3],
-  ["Break", 0.3, 0.585],
-  ["Up · Side · Down", 0.585, 1],
+  ["Too fast", 0.035, 0.24],
+  ["Falls over", 0.24, 0.385],
+  ["Foundation", 0.385, 1],
 ];
 
 function Chapters({ progress }: { progress: MotionValue<number> }) {

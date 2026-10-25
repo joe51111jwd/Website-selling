@@ -181,14 +181,15 @@ def block(name, loc, rot_z, front_mat, other_mat, size=1.0, depth=1.0):
 def backdrop():
     # cyclorama: floor that bends up into a wall, extruded along x
     r = 7.0
-    prof = [(-14 + i * (22 / 29), 0.0) for i in range(30)]
+    # deep enough in front and wide enough that the wide shots never see past the set
+    prof = [(-70 + i * (78 / 29), 0.0) for i in range(30)]
     for i in range(1, 25):
         a = (math.pi / 2) * i / 24
         prof.append((8 + r * math.sin(a), r - r * math.cos(a)))
-    for i in range(1, 12):
-        prof.append((8 + r, r + i * 2.0))
+    for i in range(1, 18):
+        prof.append((8 + r, r + i * 3.0))
     verts, faces = [], []
-    xs = [-40, -20, 0, 20, 40]
+    xs = [-110, -55, 0, 55, 110]
     for x in xs:
         for (y, z) in prof:
             verts.append((x, y, z))
