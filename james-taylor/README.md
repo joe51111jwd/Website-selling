@@ -49,16 +49,12 @@ Plain bpy, no add-ons, Cycles on CPU, Blender 4.5 LTS. Assets are CC0 from Poly 
 | `blender/films.py` | The burger teardown and the ribeye split, plus per-frame label anchors |
 | `blender/lineup.py` | All five on the pass, for the hero |
 | `blender/look.py` | Quick look-dev still of one dish (`--dish burger --explode 1`, `--dish ribeye --split`) |
-| `blender/hero.py` | A single cut-ribeye still under broiler light (not used on the page; kept for stills) |
 
 Render everything (each job resumes where it stopped), then pack it for the site:
 
 ```
 scripts/render_queue.sh burger-film burger latkes chicken pie ribeye steak-film lineup
-python3 scripts/pack.py blender/out/film/burger film-burger --width 640 --quality 80 --anchors
-python3 scripts/pack.py blender/out/film/steak film-steak --width 1280 --quality 78
-for d in ribeye burger latkes chicken pie; do python3 scripts/pack.py blender/out/turn/$d turn-$d --width 720 --quality 80; done
-python3 scripts/lineup_og.py   # public/media/lineup.webp and public/og.jpg
+scripts/pack_all.sh   # WebP frames + manifests into public/seq/, lineup.webp and og.jpg into public/
 ```
 
 On a 4-core CPU a turntable frame takes about 10 s and a film frame 15 to 25 s.

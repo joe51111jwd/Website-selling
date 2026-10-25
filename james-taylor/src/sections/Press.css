@@ -2,6 +2,9 @@
   padding: 20vh 0 16vh;
   background: linear-gradient(180deg, var(--char), #110c09 50%, var(--char));
 }
+.press h2 {
+  margin: 0;
+}
 .press-list {
   list-style: none;
   margin: 40px 0 0;

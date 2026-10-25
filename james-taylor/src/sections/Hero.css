@@ -188,11 +188,8 @@
   .hero-pass {
     width: 210vw;
   }
-  .hero-temp,
-  .hero-hint {
-    display: none;
-  }
+  /* phones scroll by nature, and the cue would sit on the ribeye */
   .hero-foot {
-    justify-content: center;
+    display: none;
   }
 }

@@ -38,6 +38,7 @@
 }
 .nh-big {
   margin: 10px 0 18px;
+  font-weight: 900;
   font-size: clamp(110px, 17vw, 280px);
   color: var(--bone);
   text-shadow: 0 0 80px rgba(255, 110, 40, 0.35);

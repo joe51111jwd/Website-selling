@@ -17,9 +17,7 @@ export function Burgerability() {
   const place = (i: number, rect: { x: number; y: number; w: number; h: number }, a: Anchors | null) => {
     if (!a) return;
     const show = Math.max(0, Math.min(1, (i - 38) / 14));
-    const stage = ref.current?.querySelector<HTMLElement>(".bur-stage");
-    const sw = stage?.clientWidth ?? window.innerWidth;
-    const col = Math.min(rect.x + rect.w * 0.86, sw - 190);
+    const col = rect.x + rect.w * 0.86; // labels line up in a column just right of the stack
     BURGER_LAYERS.forEach((L, k) => {
       const el = labels.current[k];
       const p = a.parts[L.key]?.[Math.min(i, a.frames - 1)];

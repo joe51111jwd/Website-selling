@@ -45,7 +45,7 @@
 }
 .bur-stage {
   position: absolute;
-  inset: 0;
+  inset: 0 0 0 26vw; /* the stack stands right of the copy, labels to its right */
   z-index: 1;
 }
 .bur-film {
@@ -108,10 +108,13 @@
   position: relative;
   z-index: 3;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 24px;
-  padding-bottom: 28px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 26px;
+  padding-bottom: 32px;
+}
+.bur-foot > * {
+  max-width: min(30vw, 420px);
 }
 .bur-q {
   margin: 0;
@@ -150,14 +153,21 @@
 }
 
 @media (max-width: 900px) {
-  .bur-foot {
-    flex-direction: column;
-    align-items: flex-start;
+  .bur-foot > * {
+    max-width: none;
   }
   .bur-q {
     display: none;
   }
   .bur-tag span {
     display: none;
+  }
+  /* give the labels the right third of the screen */
+  .bur-stage {
+    right: 36vw;
+    left: -4vw;
+  }
+  .bur-tag b {
+    font-size: 15px;
   }
 }

@@ -44,9 +44,9 @@ function Split() {
         <div className="nh-shade" aria-hidden />
         <motion.div className="nh-card wrap" style={{ opacity: a }}>
           <p className="eyebrow">No. 01 · Chicago style</p>
-          <p className="nh-big display">
+          <h2 className="nh-big display" aria-label="900 degrees, Chicago style">
             900<sup>°</sup>
-          </p>
+          </h2>
           <blockquote>
             <p className="serif">
               “cooked from above using a broiler heated to about 900 degrees rather than from below with grill flames.”

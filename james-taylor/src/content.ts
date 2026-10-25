@@ -2,8 +2,6 @@
 // facts come from the same reporting (see SOURCES at the bottom).
 
 export const SITE = {
-  name: "James Taylor",
-  role: "Chef",
   line: "American nostalgia, cooked at 900°.",
   restaurant: "The Joyce",
   address: "448 Española Way, Miami Beach",
@@ -18,7 +16,6 @@ export type Ticket = {
   when: string;
   where: string;
   what: string;
-  note?: string;
   quote?: string;
   stamp?: string;
 };
@@ -161,7 +158,7 @@ export const DISHES: Dish[] = [
 ];
 
 export const BURGER_LAYERS: { key: string; label: string; detail: string }[] = [
-  { key: "crown", label: "Brioche + Joyce sauce", detail: "The bun that beat at least twenty others" },
+  { key: "crown", label: "Brioche + Joyce sauce", detail: "Picked over 20+ buns" },
   { key: "cheese_high", label: "American cheese", detail: "Melted to the edges" },
   { key: "patty_high", label: "75:25 beef", detail: "Seared hard on a hot griddle" },
   { key: "cheese_low", label: "American cheese", detail: "Again" },

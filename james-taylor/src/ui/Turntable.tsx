@@ -13,6 +13,7 @@ export function Turntable({ name, label }: { name: string; label: string }) {
   const [loaded, setLoaded] = useState(0);
   const [near, setNear] = useState(false);
   const [touched, setTouched] = useState(false);
+  const calm = useRef(reducedMotion());
   const dragging = useRef(false);
   const lastX = useRef(0);
   const lastT = useRef(0);
@@ -54,7 +55,10 @@ export function Turntable({ name, label }: { name: string; label: string }) {
     const c = canvas.current;
     const n = count.current || frames.current.length;
     if (!c || !n) return;
-    const i = ((Math.round(pos.current) % n) + n) % n;
+    // scrolling past turns the dish too: half a turn across one screen of travel
+    const r = box.current?.getBoundingClientRect();
+    const scrollTurn = r && !calm.current ? (-(r.top + r.height / 2 - window.innerHeight / 2) / window.innerHeight) * n * 0.5 : 0;
+    const i = ((Math.round(pos.current + scrollTurn) % n) + n) % n;
     const img = nearest(frames.current, i);
     if (img) drawFit(c, img, "contain");
     const deg = Math.round((i / n) * 360);
@@ -69,7 +73,7 @@ export function Turntable({ name, label }: { name: string; label: string }) {
     let raf = 0;
     let visible = false;
     let last = performance.now();
-    const idle = reducedMotion() ? 0 : 5; // frames per second
+    const idle = calm.current ? 0 : 5; // frames per second
     const loop = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;

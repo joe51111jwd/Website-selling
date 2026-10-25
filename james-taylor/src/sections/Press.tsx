@@ -7,7 +7,7 @@ export function Press() {
   return (
     <section className="press" aria-label="Press">
       <div className="wrap">
-        <p className="eyebrow">Word from the dining room</p>
+        <h2 className="eyebrow">Word from the dining room</h2>
         <ul className="press-list">
           {PRESS.map((q, i) => (
             <motion.li
