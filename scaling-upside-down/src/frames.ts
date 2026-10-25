@@ -15,8 +15,7 @@ export class FrameStore {
   private decoded = new Map<number, ImageBitmap>();
   private pending = new Map<number, Promise<ImageBitmap | null>>();
   private chunkLoads = new Map<number, Promise<void>>();
-  private lastUsed = new Map<number, number>();
-  private tick = 0;
+  private head = 0; // the frame on screen; eviction keeps a window around it
   loadedChunks = 0;
 
   constructor(
@@ -81,18 +80,21 @@ export class FrameStore {
 
   /** decoded frame if ready; otherwise starts decoding it */
   get(i: number): ImageBitmap | null {
+    this.head = i;
     const bmp = this.decoded.get(i);
-    if (bmp) {
-      this.lastUsed.set(i, ++this.tick);
-      return bmp;
-    }
+    if (bmp) return bmp;
     void this.decode(i);
     return null;
   }
 
+  /** decoded frame if ready, without starting a decode */
+  peek(i: number): ImageBitmap | null {
+    return this.decoded.get(i) ?? null;
+  }
+
   /** closest decoded frame, preferring the side we are coming from */
-  nearest(i: number, dir: number): ImageBitmap | null {
-    for (let d = 1; d < 40; d++) {
+  nearest(i: number, dir: number, range = 40): ImageBitmap | null {
+    for (let d = 1; d <= range; d++) {
       const a = this.decoded.get(i - d * Math.sign(dir || 1));
       if (a) return a;
       const b = this.decoded.get(i + d * Math.sign(dir || 1));
@@ -115,10 +117,13 @@ export class FrameStore {
         : {};
     p = createImageBitmap(blob, opts)
       .then((bmp) => {
-        this.decoded.set(i, bmp);
-        this.lastUsed.set(i, ++this.tick);
         this.pending.delete(i);
-        this.evict(i);
+        if (this.disposed) {
+          bmp.close();
+          return null;
+        }
+        this.decoded.set(i, bmp);
+        this.evict();
         this.onChange();
         return bmp;
       })
@@ -137,15 +142,27 @@ export class FrameStore {
     for (let d = 1; d <= 3; d++) void this.decode(i - d * s);
   }
 
-  private evict(keep: number) {
+  /** drop the frames farthest from the playhead, never the ones about to play */
+  private evict() {
     if (this.decoded.size <= this.limit) return;
-    const byAge = [...this.decoded.keys()].sort((a, b) => (this.lastUsed.get(a) ?? 0) - (this.lastUsed.get(b) ?? 0));
-    for (const k of byAge) {
-      if (this.decoded.size <= this.limit) break;
-      if (Math.abs(k - keep) < 4) continue;
+    const h = this.head;
+    const far = [...this.decoded.keys()].sort((a, b) => Math.abs(b - h) - Math.abs(a - h));
+    for (const k of far) {
+      if (this.decoded.size <= this.limit || Math.abs(k - h) <= 10) break;
       this.decoded.get(k)?.close();
       this.decoded.delete(k);
-      this.lastUsed.delete(k);
     }
+  }
+
+  /** move the playhead without drawing, so eviction protects the frames about to play */
+  aim(i: number) {
+    this.head = i;
+  }
+
+  private disposed = false;
+  dispose() {
+    this.disposed = true;
+    this.decoded.forEach((b) => b.close());
+    this.decoded.clear();
   }
 }

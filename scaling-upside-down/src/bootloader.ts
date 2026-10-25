@@ -7,7 +7,8 @@ let loading: Promise<string> | null = null;
 export function loadBootloader(): Promise<string> {
   if (text !== null) return Promise.resolve(text);
   if (!loading) {
-    loading = fetch(`${import.meta.env.BASE_URL}bootloader.md`)
+    // low priority: the first frames matter more while the page is loading
+    loading = fetch(`${import.meta.env.BASE_URL}bootloader.md`, { priority: "low" } as RequestInit)
       .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
       .then((t) => (text = t))
       .catch(() => {
@@ -27,6 +28,7 @@ export async function copyBootloader(): Promise<number> {
     await navigator.clipboard.writeText(t);
   } catch {
     // older app views refuse the async clipboard; fall back to a selection copy
+    const prev = document.activeElement as HTMLElement | null;
     const area = document.createElement("textarea");
     area.value = t;
     area.setAttribute("readonly", "");
@@ -34,8 +36,10 @@ export async function copyBootloader(): Promise<number> {
     area.style.opacity = "0";
     document.body.appendChild(area);
     area.select();
+    area.setSelectionRange(0, t.length);
     const ok = document.execCommand("copy");
     area.remove();
+    prev?.focus({ preventScroll: true });
     if (!ok) throw new Error("copy refused");
   }
   return wordCount(t);

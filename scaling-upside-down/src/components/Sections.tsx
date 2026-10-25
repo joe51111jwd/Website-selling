@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent as RPointerEvent } from "react";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { CopyButton } from "./CopyButton";
 import { loadBootloader, wordCount } from "../bootloader";
 import type { SiteCopy } from "../copy";
@@ -74,7 +74,7 @@ function Sheet({ preview, words }: { preview: string; words: number }) {
           <span>SUSD-Bootloader.md</span>
           <span className="sheet-meta">{words ? `${words.toLocaleString()} words · Markdown` : "Markdown"}</span>
         </div>
-        <pre className="sheet-text">{preview}</pre>
+        <pre className="sheet-text" aria-hidden="true">{preview}</pre>
         <div className="sheet-fade" aria-hidden="true" />
       </div>
     </div>
@@ -85,15 +85,28 @@ export function Bootloader({ copy }: { copy: SiteCopy["bootloader"] }) {
   const [preview, setPreview] = useState("");
   const [words, setWords] = useState(0);
   useEffect(() => {
-    void loadBootloader().then((t) => {
-      setPreview(t.split("\n").slice(0, 40).join("\n"));
-      setWords(wordCount(t));
-    });
+    // a failed first fetch retries, so the sheet and the word count still appear
+    let alive = true;
+    let tries = 0;
+    const run = () =>
+      void loadBootloader().then((t) => {
+        if (!alive) return;
+        if (!t) {
+          if (++tries < 4) window.setTimeout(run, 1500 * tries);
+          return;
+        }
+        setPreview(t.split("\n").slice(0, 40).join("\n"));
+        setWords(wordCount(t));
+      });
+    run();
+    return () => {
+      alive = false;
+    };
   }, []);
   return (
     <section className="boot" id="bootloader">
       <div className="boot-in">
-        <motion.div className="boot-copy" {...reveal}>
+        <m.div className="boot-copy" {...reveal}>
           <p className="kick">
             <i className="dot up" />
             {copy.kicker}
@@ -120,14 +133,14 @@ export function Bootloader({ copy }: { copy: SiteCopy["bootloader"] }) {
             <summary>{copy.notice.title}</summary>
             <div className="notice-body" data-lenis-prevent>
               {copy.notice.paragraphs.map((p) =>
-                p.startsWith("## ") ? <h4 key={p}>{p.slice(3)}</h4> : <p key={p.slice(0, 32)}>{p}</p>,
+                p.startsWith("## ") ? <h3 key={p}>{p.slice(3)}</h3> : <p key={p.slice(0, 32)}>{p}</p>,
               )}
             </div>
           </details>
-        </motion.div>
-        <motion.div className="boot-file" {...reveal} transition={{ ...reveal.transition, delay: 0.12 }}>
+        </m.div>
+        <m.div className="boot-file" {...reveal} transition={{ ...reveal.transition, delay: 0.12 }}>
           <Sheet preview={preview} words={words} />
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );
@@ -137,10 +150,10 @@ export function Book({ copy }: { copy: SiteCopy["book"] }) {
   return (
     <section className="book" id="book">
       <div className="book-in">
-        <motion.div className="book-art" {...reveal}>
+        <m.div className="book-art" {...reveal}>
           <img src={`${import.meta.env.BASE_URL}book.jpg`} alt="The hardcover of Scaling Up-Side-Down by Michael Wentz, standing next to the three wooden blocks from its cover" loading="lazy" />
-        </motion.div>
-        <motion.div className="book-copy" {...reveal} transition={{ ...reveal.transition, delay: 0.1 }}>
+        </m.div>
+        <m.div className="book-copy" {...reveal} transition={{ ...reveal.transition, delay: 0.1 }}>
           <p className="kick">
             <i className="dot down" />
             {copy.kicker}
@@ -189,10 +202,10 @@ export function Book({ copy }: { copy: SiteCopy["book"] }) {
             ))}
           </ol>
           <div className="author">
-            <img src={`${import.meta.env.BASE_URL}michael.jpg`} alt="" />
+            <img src={`${import.meta.env.BASE_URL}michael.jpg`} alt="" loading="lazy" decoding="async" width="54" height="54" />
             <p>{copy.author}</p>
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );
@@ -201,7 +214,7 @@ export function Book({ copy }: { copy: SiteCopy["book"] }) {
 export function Footer({ copy }: { copy: SiteCopy["footer"] }) {
   return (
     <footer className="foot">
-      <motion.div className="foot-in" {...reveal}>
+      <m.div className="foot-in" {...reveal}>
         <p className="kick on-dark">
           <i className="dot side" />
           {copy.kicker}
@@ -215,8 +228,8 @@ export function Footer({ copy }: { copy: SiteCopy["footer"] }) {
             {LINKS.preorder ? "Pre-order the book" : "The book"}
           </a>
         </div>
-      </motion.div>
-      <motion.dl className="foot-map" {...reveal} transition={{ ...reveal.transition, delay: 0.12 }}>
+      </m.div>
+      <m.dl className="foot-map" {...reveal} transition={{ ...reveal.transition, delay: 0.12 }}>
         {[
           ["1–3", "Small Team"],
           ["8–12", "Team"],
@@ -228,7 +241,7 @@ export function Footer({ copy }: { copy: SiteCopy["footer"] }) {
             <dd>{l}</dd>
           </div>
         ))}
-      </motion.dl>
+      </m.dl>
       <div className="foot-bar">
         <span className="brand">
           <span className="mark" aria-hidden="true">
