@@ -145,7 +145,7 @@ def steak_mesh(name="Ribeye", seed=7, n_theta=160):
     tex2.noise_depth = 1
     d2 = o.modifiers.new("swell", "DISPLACE")
     d2.texture = tex2
-    d2.strength = 0.007
+    d2.strength = 0.004
     d2.mid_level = 0.5
     d2.texture_coords = "OBJECT"
     tex3 = bpy.data.textures.new("steak_knots", "CLOUDS")
@@ -246,7 +246,15 @@ def crust_material(img):
     fsm = kit.ramp(nt, [(0.3, (0, 0, 0, 1)), (0.75, (0.7, 0.7, 0.7, 1))], (-200, 900))
     kit.link(nt, fmask, fsm, 0, "Fac")
     col = kit.mix_rgb(nt, fsm.outputs[0], meat3.outputs[2], fatc.outputs[0], "MIX", (0, 400))
-    kit.link(nt, col, b, 2, "Base Color")
+    # the sides are deeper and darker than the broiled top: they never faced the heat
+    sideshade = kit.node(nt, "ShaderNodeMapRange", (0, 650))
+    sideshade.inputs["From Min"].default_value = 0.0
+    sideshade.inputs["From Max"].default_value = 0.75
+    sideshade.inputs["To Min"].default_value = 0.42
+    sideshade.inputs["To Max"].default_value = 1.0
+    kit.link(nt, sidez, sideshade, 0, "Value")
+    col2 = kit.mix_rgb(nt, 1.0, col.outputs[2], sideshade.outputs[0], "MULTIPLY", (200, 450))
+    kit.link(nt, col2, b, 2, "Base Color")
     # mostly satin, with wet patches of fat and juice
     wet = kit.noise(nt, obj, 12, 3, 0.5, (-700, -500))
     wetr = kit.ramp(nt, [(0.46, (0.32, 0.32, 0.32, 1)), (0.6, (0.13, 0.13, 0.13, 1))], (-450, -500))

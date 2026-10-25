@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValueEvent, useScroll, useTransform } from "motion/react";
+import { motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import { ScrubFilm } from "../ui/ScrubFilm";
 import { BroilerFire } from "../ui/BroilerFire";
 import { reducedMotion } from "../lib/media";
@@ -25,12 +25,6 @@ function Split() {
   const a = useTransform(p, [0.0, 0.06, 0.3, 0.36], [0, 1, 1, 0]);
   const b = useTransform(p, [0.36, 0.42, 0.64, 0.7], [0, 1, 1, 0]);
   const c = useTransform(p, [0.7, 0.78, 1], [0, 1, 1]);
-  const [clock, setClock] = useState("45:00");
-  useMotionValueEvent(p, "change", (v) => {
-    const k = Math.max(0, Math.min(1, (v - 0.38) / 0.28));
-    const s = Math.round(45 * 60 * (1 - k));
-    setClock(`${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`);
-  });
   return (
     <div ref={ref} className="nh-split">
       <div className="nh-stick">
@@ -38,6 +32,7 @@ function Split() {
           name="film-steak"
           progress={film}
           fit="cover"
+          portrait={{ fit: 0.4, x: 0.64, y: 0.1 }}
           className="nh-film"
           label="The Chicago Cut Ribeye on a board, cut through the middle; the halves part to show a rosy medium-rare inside."
         />
@@ -56,7 +51,7 @@ function Split() {
         </motion.div>
         <motion.div className="nh-card wrap" style={{ opacity: b }}>
           <p className="eyebrow">Then it rests</p>
-          <p className="nh-big display nh-clock">{clock}</p>
+          <RestClock p={p} />
           <blockquote>
             <p className="serif">
               “The meat then rests for up to 45 minutes, depending on its size, allowing the juices to settle and stay
@@ -78,6 +73,17 @@ function Split() {
       </div>
     </div>
   );
+}
+
+/** 45:00 counting down to zero as the second card scrolls by (its own component, so only it re-renders). */
+function RestClock({ p }: { p: MotionValue<number> }) {
+  const [clock, setClock] = useState("45:00");
+  useMotionValueEvent(p, "change", (v) => {
+    const k = Math.max(0, Math.min(1, (v - 0.38) / 0.28));
+    const s = Math.round(45 * 60 * (1 - k));
+    setClock(`${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`);
+  });
+  return <p className="nh-big display nh-clock">{clock}</p>;
 }
 
 function Fire() {

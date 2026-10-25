@@ -24,7 +24,7 @@ kit.shadow_catcher(size=6.0)
 ORDER = [("chicken", 0.66, 0.02, 0), ("pie", -0.64, 0.0, -20), ("latkes", -0.33, 0.03, 15),
          ("ribeye", 0.0, -0.02, 8), ("burger", 0.34, 0.0, 30)]
 for name, x, y, rot in ORDER:
-    root, _ = dishes.stage(name, round=True)
+    root, _ = dishes.stage(name, round=True, split=name == "ribeye")
     root.location.x += x
     root.location.y += y
     root.rotation_euler.z += math.radians(rot)

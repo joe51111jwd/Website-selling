@@ -33,6 +33,69 @@ export function manifest(name: string): Promise<Manifest> {
   return p;
 }
 
+// One shared pool of frame downloads for the whole page. Each sequence is a job; free slots go to
+// the job asked for (or bumped) most recently, so the section on screen is served before the ones
+// scrolled past on the way. Kept below the browser's six connections per host, so manifests and
+// fonts still get through.
+type Job = {
+  name: string;
+  m: Manifest;
+  order: number[];
+  next: number;
+  inflight: number;
+  onFrame: (i: number, img: ImageBitmap | HTMLImageElement) => void;
+  signal: AbortSignal;
+  done: () => void;
+};
+const jobs: Job[] = [];
+const SLOTS = 4;
+let busy = 0;
+
+function pump() {
+  while (busy < SLOTS) {
+    let job: Job | undefined;
+    for (let k = jobs.length - 1; k >= 0; k--) {
+      const j = jobs[k];
+      if (!j.signal.aborted && j.next < j.order.length) {
+        job = j;
+        break;
+      }
+    }
+    if (!job) return;
+    const j = job;
+    const i = j.order[j.next++];
+    j.inflight++;
+    busy++;
+    decode(frameUrl(j.name, j.m, i))
+      .then((img) => {
+        if (!j.signal.aborted) j.onFrame(i, img);
+      })
+      .catch(() => {
+        /* a missing frame just leaves a gap the scrubber skips over */
+      })
+      .finally(() => {
+        busy--;
+        j.inflight--;
+        if (j.next >= j.order.length || j.signal.aborted) finish(j);
+        pump();
+      });
+  }
+}
+
+/** Retire a job once nothing of it is still downloading. */
+function finish(job: Job) {
+  const k = jobs.indexOf(job);
+  if (k < 0 || job.inflight > 0) return;
+  jobs.splice(k, 1);
+  job.done();
+}
+
+/** Move a sequence's download to the front of the queue (it just came on screen). */
+export function bump(name: string) {
+  const k = jobs.findIndex((j) => j.name === name && !j.signal.aborted);
+  if (k >= 0 && k < jobs.length - 1) jobs.push(...jobs.splice(k, 1));
+}
+
 /** Load every frame of a sequence as decoded bitmaps, in an order that fills in coarse-to-fine
  * (every 8th frame first), so a scrub works early and sharpens as the rest arrive. */
 export function loadFrames(
@@ -40,32 +103,26 @@ export function loadFrames(
   onFrame: (i: number, img: ImageBitmap | HTMLImageElement) => void,
   signal: AbortSignal,
 ): Promise<Manifest> {
-  return manifest(name).then(async (m) => {
-    const order: number[] = [];
-    const seen = new Set<number>();
-    for (const step of [8, 4, 2, 1]) {
-      for (let i = 0; i < m.count; i += step) {
-        if (!seen.has(i)) {
-          seen.add(i);
-          order.push(i);
+  return manifest(name).then(
+    (m) =>
+      new Promise<Manifest>((resolve) => {
+        const order: number[] = [];
+        const seen = new Set<number>();
+        for (const step of [8, 4, 2, 1]) {
+          for (let i = 0; i < m.count; i += step) {
+            if (!seen.has(i)) {
+              seen.add(i);
+              order.push(i);
+            }
+          }
         }
-      }
-    }
-    let next = 0;
-    const worker = async () => {
-      while (next < order.length && !signal.aborted) {
-        const i = order[next++];
-        try {
-          const img = await decode(frameUrl(name, m, i));
-          if (!signal.aborted) onFrame(i, img);
-        } catch {
-          /* a missing frame just leaves a gap the scrubber skips over */
-        }
-      }
-    };
-    await Promise.all([worker(), worker(), worker(), worker()]);
-    return m;
-  });
+        if (signal.aborted || !order.length) return resolve(m);
+        const job: Job = { name, m, order, next: 0, inflight: 0, onFrame, signal, done: () => resolve(m) };
+        jobs.push(job);
+        signal.addEventListener("abort", () => finish(job), { once: true });
+        pump();
+      }),
+  );
 }
 
 async function decode(url: string): Promise<ImageBitmap | HTMLImageElement> {
@@ -93,29 +150,37 @@ export function nearest<T>(frames: (T | undefined)[], i: number): T | undefined 
   return undefined;
 }
 
-/** Draw an image to a canvas sized to its box (object-fit: contain or cover). */
+/** How an image sits in its canvas: "contain", "cover", or a number between them (0 contain, 1 cover). */
+export type Fit = "contain" | "cover" | number;
+
+/** Draw an image into a canvas at device resolution. Returns the rectangle it landed in, in CSS px. */
 export function drawFit(
   canvas: HTMLCanvasElement,
   img: CanvasImageSource & { width: number; height: number },
-  fit: "contain" | "cover" = "contain",
+  fit: Fit = "contain",
+  focusX = 0.5, // where to anchor horizontally when the image overflows (0 left, 1 right)
+  focusY = 0.5,
 ) {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
-  if (!w || !h) return;
+  if (!w || !h) return null;
   if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
   }
   const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-  const s = fit === "contain" ? Math.min(w / img.width, h / img.height) : Math.max(w / img.width, h / img.height);
-  const dw = img.width * s;
-  const dh = img.height * s;
+  if (!ctx) return null;
+  const contain = Math.min(w / img.width, h / img.height);
+  const cover = Math.max(w / img.width, h / img.height);
+  const zoom = fit === "contain" ? 0 : fit === "cover" ? 1 : fit;
+  const s = contain + (cover - contain) * zoom;
+  const rect = { x: (w - img.width * s) * focusX, y: (h - img.height * s) * focusY, w: img.width * s, h: img.height * s };
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h);
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  ctx.drawImage(img, rect.x, rect.y, rect.w, rect.h);
+  return rect;
 }
 
 export const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;

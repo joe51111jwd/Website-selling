@@ -173,7 +173,8 @@
 
 @media (max-width: 760px) {
   .nh-shade {
-    background: linear-gradient(180deg, var(--char) 0%, rgba(10, 8, 6, 0.6) 30%, rgba(10, 8, 6, 0.2) 60%, var(--char) 100%);
+    /* the steak sits up top on phones; the copy below it gets the dark */
+    background: linear-gradient(180deg, var(--char) 0%, rgba(10, 8, 6, 0) 14%, rgba(10, 8, 6, 0) 46%, rgba(10, 8, 6, 0.82) 66%, var(--char) 100%);
   }
   .nh-card {
     top: auto;

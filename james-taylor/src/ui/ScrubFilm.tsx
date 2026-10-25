@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMotionValueEvent, type MotionValue } from "motion/react";
-import { drawFit, loadFrames, manifest, nearest, seqUrl, type Manifest } from "../lib/media";
+import { bump, drawFit, loadFrames, manifest, nearest, seqUrl, type Fit, type Manifest } from "../lib/media";
 
 export type Anchor = { x: number; cx: number; y: number };
 export type Anchors = { frames: number; parts: Record<string, Anchor[]> };
@@ -11,13 +11,16 @@ export function ScrubFilm({
   name,
   progress,
   fit = "contain",
+  portrait,
   onFrame,
   className,
   label,
 }: {
   name: string;
   progress: MotionValue<number>;
-  fit?: "contain" | "cover";
+  fit?: Fit;
+  /** framing for canvases taller than wide (phones), where a landscape film would crop hard */
+  portrait?: { fit: Fit; x: number; y: number };
   onFrame?: (i: number, rect: { x: number; y: number; w: number; h: number }, anchors: Anchors | null) => void;
   className?: string;
   label: string;
@@ -33,7 +36,13 @@ export function ScrubFilm({
     if (!el) return;
     const io = new IntersectionObserver(([e]) => e.isIntersecting && setNear(true), { rootMargin: "1200px 0px" });
     io.observe(el);
-    return () => io.disconnect();
+    // on screen: its frames jump the download queue
+    const onScreen = new IntersectionObserver(([e]) => e.isIntersecting && bump(name));
+    onScreen.observe(el);
+    return () => {
+      io.disconnect();
+      onScreen.disconnect();
+    };
   }, []);
 
   const draw = () => {
@@ -43,13 +52,9 @@ export function ScrubFilm({
     const i = Math.max(0, Math.min(m.count - 1, Math.round(progress.get() * (m.count - 1))));
     const img = nearest(frames.current, i);
     if (!img) return;
-    drawFit(c, img, fit);
-    if (onFrame) {
-      const w = c.clientWidth;
-      const h = c.clientHeight;
-      const s = fit === "contain" ? Math.min(w / m.width, h / m.height) : Math.max(w / m.width, h / m.height);
-      onFrame(i, { x: (w - m.width * s) / 2, y: (h - m.height * s) / 2, w: m.width * s, h: m.height * s }, anchors.current);
-    }
+    const tall = portrait && c.clientWidth < c.clientHeight;
+    const rect = tall ? drawFit(c, img, portrait.fit, portrait.x, portrait.y) : drawFit(c, img, fit);
+    if (rect && onFrame) onFrame(i, rect, anchors.current);
   };
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { drawFit, loadFrames, nearest, reducedMotion } from "../lib/media";
+import { bump, drawFit, loadFrames, nearest, reducedMotion } from "../lib/media";
 import "./Turntable.css";
 
 /** A dish rendered as a full turn in Blender. It idles round slowly; drag (or arrow keys) to turn it. */
@@ -92,6 +92,7 @@ export function Turntable({ name, label }: { name: string; label: string }) {
       visible = e.isIntersecting;
       cancelAnimationFrame(raf);
       if (visible) {
+        bump(name);
         last = performance.now();
         raf = requestAnimationFrame(loop);
       }
