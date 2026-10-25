@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Andrew Drish</title>
+<meta name="description" content="Andrew Drish builds and invests in companies and advises founders. Advisor to Jasper, angel in Powur, co-founder of The Art of Love.">
+<meta property="og:title" content="Andrew Drish">
+<meta property="og:description" content="I build and invest in companies, and advise the founders who run them.">
+<meta property="og:image" content="/frames/f001.webp">
+<meta name="theme-color" content="#0d0c0b">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap">
+<link rel="preload" as="image" href="/frames/f001.webp">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<nav class="nav g">
+  <a href="#top" class="nav-name">Andrew Drish</a>
+  <span class="nav-links"><a href="#proof">Track record</a><a href="#deck">Companies</a><a href="#phases">Phases</a></span>
+  <a href="#deals" class="nav-cta">Bring me a deal</a>
+</nav>
+
+<!-- 1. Dawn on the lake. A Blender-rendered camera move down his dock, scrubbed by scroll. -->
+<header class="hero" id="top">
+  <div class="hero-pin">
+    <img class="hero-poster" src="/frames/f001.webp" alt="A wooden dock reaching into a misty lake at dawn">
+    <canvas class="hero-canvas" id="lake" aria-hidden="true"></canvas>
+    <div class="hero-shade"></div>
+    <div class="hero-copy g">
+      <h1 class="hero-name"><span>Andrew</span><span>Drish</span></h1>
+      <p class="hero-line" data-at="0.28">I build and invest in companies,<br>and advise the founders who run them.</p>
+    </div>
+    <p class="hero-place g" data-at="0.72"><span>Minnesota</span><span>150 acres · a 50-acre lake</span></p>
+    <div class="hero-scroll g"><span>Scroll</span><i></i></div>
+  </div>
+</header>
+
+<!-- 2. The numbers, fast -->
+<section class="proof g" id="proof">
+  <div class="wrap">
+    <p class="eyebrow">Track record</p>
+    <div class="stats">
+      <div class="stat"><b data-count="1.5" data-pre="$" data-suf="B" data-dec="1">$1.5B</b><span>Jasper valuation</span><em>Advisor</em></div>
+      <div class="stat"><b data-count="350" data-pre="$" data-suf="M">$350M</b><span>a year at Powur</span><em>Angel investor</em></div>
+      <div class="stat"><b data-count="10" data-pre="$" data-suf="M+">$10M+</b><span>sold with Rising Woman</span><em>Partner</em></div>
+      <div class="stat"><b data-count="5" data-suf="×">5×</b><span>on the Inc. 5000</span><em>Across the portfolio</em></div>
+    </div>
+    <div class="film">
+      <img src="/img/film.jpg" alt="We Rise Up film poster" loading="lazy">
+      <p>Featured in <strong>We Rise Up</strong> alongside Tony Robbins, Richard Branson, the Dalai Lama, Peter Diamandis and Arianna Huffington.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Companies, dealt from a deck of business cards -->
+<section class="deck g" id="deck">
+  <div class="wrap head">
+    <h2>The deck</h2>
+    <p><span class="eyebrow">Eight companies · tap a card to flip it</span><button class="redeal" id="redeal">Deal again</button></p>
+  </div>
+  <div class="stage" id="stage"></div>
+</section>
+
+<!-- 4. Phases -->
+<section class="phases g" id="phases">
+  <div class="wrap head">
+    <h2>Phases</h2>
+    <p class="eyebrow">My life, one obsession at a time</p>
+  </div>
+  <div class="strip" id="strip"></div>
+</section>
+
+<!-- 5. Deal flow -->
+<section class="deals g" id="deals">
+  <div class="wrap">
+    <h2>Bring me a deal.</h2>
+    <div class="ways">
+      <div><p class="eyebrow">Invest</p><p>Seasoned founders with a unique product who want to 10x.</p></div>
+      <div><p class="eyebrow">Advise</p><p>Teams in hypergrowth. I was there when Jasper went from $1M to $100M ARR.</p></div>
+      <div><p class="eyebrow">Partner</p><p>Brands ready to scale with paid media. Rising Woman sold $10M+ that way.</p></div>
+    </div>
+    <form class="pitch" id="pitch">
+      <label><span>Name</span><input id="f-name" name="name" required autocomplete="name"></label>
+      <label><span>Email</span><input id="f-email" name="email" type="email" required autocomplete="email"></label>
+      <label class="wide"><span>What are you building?</span><input id="f-what" name="what" required placeholder="One line is enough"></label>
+      <button type="submit">Send it to Andrew <span>→</span></button>
+      <p class="pitch-note" id="pitch-note" role="status"></p>
+    </form>
+  </div>
+</section>
+
+<footer class="foot g">
+  <span>Andrew Drish</span>
+  <a href="https://andrewdrish.com/about">My story</a>
+  <span>Minnesota</span>
+</footer>
+
+<script src="/main.js" defer></script>
+</body>
+</html>
