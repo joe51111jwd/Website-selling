@@ -54,13 +54,16 @@
   </div>
 </section>
 
-<!-- 3. Companies, dealt from a deck of business cards -->
-<section class="deck g" id="deck">
-  <div class="wrap head">
-    <h2>The deck</h2>
-    <p><span class="eyebrow">Eight companies · tap a card to flip it</span><button class="redeal" id="redeal">Deal again</button></p>
+<!-- 3. Companies: a real deck (Blender-rendered cards), dealt one card per scroll step -->
+<section class="deck" id="deck">
+  <div class="deck-pin">
+    <div class="deck-head g">
+      <h2>The deck</h2>
+      <p class="eyebrow"><span id="deck-count">00 / 08</span><span class="deck-hint">Scroll to deal</span></p>
+    </div>
+    <div class="table" id="table"></div>
+    <p class="deck-cap" id="deck-cap" aria-live="polite"></p>
   </div>
-  <div class="stage" id="stage"></div>
 </section>
 
 <!-- 4. Phases -->
