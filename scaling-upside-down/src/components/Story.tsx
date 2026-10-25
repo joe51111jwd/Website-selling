@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
-import { FrameStore } from "../frames";
+import { FrameStore, fetchOk } from "../frames";
 import { CALLOUTS, HERO_FRAME, INTRO_FRAMES, STORY_VH, YEARS, focusAt, frameAt, portraitScale, progressAt, yearAt } from "../story";
 import type { Beat } from "../copy";
 import { CopyButton } from "./CopyButton";
@@ -23,7 +23,7 @@ function BeatView({ beat, progress }: { beat: Beat; progress: MotionValue<number
   const events = useTransform(opacity, (o) => (o > 0.6 ? "auto" : "none"));
   const ctaVis = useTransform(opacity, shown);
   return (
-    <m.article className={`beat beat-${beat.id} tone-${beat.tone ?? "ink"}`} style={{ opacity, y, pointerEvents: events }} aria-label={beat.headline}>
+    <m.article className={`beat beat-${beat.id} tone-${beat.tone ?? "ink"}`} style={{ opacity, y, pointerEvents: events }}>
       {beat.kicker && (
         <p className="beat-k">
           <i />
@@ -46,7 +46,7 @@ function BeatView({ beat, progress }: { beat: Beat; progress: MotionValue<number
       {beat.detail && <p className="beat-d">{beat.detail}</p>}
       {beat.cta && (
         <m.div className="beat-cta" style={{ visibility: ctaVis }}>
-          <CopyButton size="lg" />
+          <CopyButton size="lg" label="Copy the AI prompt" />
           <a className="ghost" href={preorderHref()}>
             {LINKS.preorder ? "Pre-order the book" : "The book"}
           </a>
@@ -67,12 +67,13 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
   const heroOpacity = useTransform(scrollYProgress, [0, 0.025], [1, 0]);
   const heroY = useTransform(scrollYProgress, [0, 0.03], reduced ? [0, 0] : [0, -40]);
   const heroVis = useTransform(heroOpacity, shown);
+  const heroEvents = useTransform(heroOpacity, (o) => (o > 0.05 ? "auto" : "none"));
   const hudIn = progressAt(YEARS[0].from);
   const hudOpacity = useTransform(scrollYProgress, [hudIn - 0.01, hudIn + 0.004, 0.405, 0.418], [0, 1, 1, 0]);
   const verdict = useTransform(scrollYProgress, [0.318, 0.332, 0.405, 0.418], [0, 1, 1, 0]);
   const cueOpacity = useTransform(scrollYProgress, [0, 0.012], [1, 0]);
   // gone once faded, so its looping animation stops too
-  const cueDisplay = useTransform(cueOpacity, (o) => (o > 0 ? "flex" : "none"));
+  const cueDisplay = useTransform(cueOpacity, (o) => (o > 0 ? "" : "none"));
 
   useEffect(() => {
     const cv = canvas.current!;
@@ -89,6 +90,8 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
     let lastKey = "";
     let lastPlaced = Number.NaN;
     let fit = { w: 1, h: 1, ox: 0, oy: 0, dpr: 1 };
+    let lastBmp: ImageBitmap | null = null;
+    let lastFrame = 0;
     let scale = 1; // the device pixel ratio the canvas was sized with
     let widths: number[] = [];
     let lastHud = -1;
@@ -99,28 +102,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
       widths = callouts.current.map((el) => (el?.lastElementChild as HTMLElement | null)?.offsetWidth ?? 0);
       lastPlaced = Number.NaN;
     };
-    const resize = () => {
-      const r = cv.getBoundingClientRect();
-      scale = dpr();
-      cv.width = Math.round(r.width * scale);
-      cv.height = Math.round(r.height * scale);
-      lastKey = "";
-      measure();
-    };
-    const ro = new ResizeObserver(resize);
-    ro.observe(cv);
-    resize();
-    void document.fonts?.ready.then(() => !disposed && measure());
-    // moving the window between screens changes the pixel ratio without resizing the canvas
-    let mq = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
-    const onDpr = () => {
-      resize();
-      mq.removeEventListener("change", onDpr);
-      mq = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
-      mq.addEventListener("change", onDpr);
-    };
-    mq.addEventListener("change", onDpr);
-
     const draw = (bmp: ImageBitmap, frame: number) => {
       const cw = cv.width;
       const ch = cv.height;
@@ -154,6 +135,37 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
       fit = { w: dw, h: dh, ox, oy, dpr: scale };
     };
 
+    const resize = () => {
+      const r = cv.getBoundingClientRect();
+      scale = dpr();
+      const w = Math.round(r.width * scale);
+      const h = Math.round(r.height * scale);
+      if (w !== cv.width || h !== cv.height) {
+        cv.width = w; // clears the canvas, so repaint before the browser shows it
+        cv.height = h;
+        if (lastBmp && lastBmp.width) draw(lastBmp, lastFrame);
+        else {
+          ctx.fillStyle = "#d9cfc0"; // the studio backdrop, so the words stay readable before frames arrive
+          ctx.fillRect(0, 0, w, h);
+        }
+      }
+      lastKey = "";
+      measure();
+    };
+    const ro = new ResizeObserver(resize);
+    ro.observe(cv);
+    resize();
+    void document.fonts?.ready.then(() => !disposed && measure());
+    // moving the window between screens changes the pixel ratio without resizing the canvas
+    let mq = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+    const onDpr = () => {
+      resize();
+      mq.removeEventListener("change", onDpr);
+      mq = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+      mq.addEventListener("change", onDpr);
+    };
+    mq.addEventListener("change", onDpr);
+
     const placeCallouts = (frame: number) => {
       if (!anchors) return;
       const row = anchors.frames[Math.max(0, Math.min(anchors.frames.length - 1, Math.round(frame)))];
@@ -165,6 +177,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
         (rects ??= [hud.current, cv.parentElement?.querySelector<HTMLElement>(".hud .verdict"), document.querySelector<HTMLElement>(".nav .brand"), document.querySelector<HTMLElement>(".nav-cta"), ...(cv.parentElement?.querySelectorAll<HTMLElement>(".beat") ?? [])]
           .filter((e): e is HTMLElement => !!e && parseFloat(getComputedStyle(e).opacity) > 0.3)
           .map((e) => e.getBoundingClientRect()));
+      const taken: { l: number; r: number; t: number; b: number }[] = [];
       const plan = CALLOUTS.map((c, k) => {
         const fade = 2.5;
         const o = Math.max(0, Math.min(1, (frame - c.from) / fade, (c.to - frame) / fade));
@@ -179,6 +192,9 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
         const left = side === "right" ? x + 80 : x - 80 - tw;
         if (y < 92 || y > vh - 70 || left < 12 || left + tw > vw - 12) return null;
         if (blockers().some((r) => y + 14 > r.top && y - 14 < r.bottom && left + tw > r.left && left < r.right)) return null;
+        const box = { l: left, r: left + tw, t: y - 15, b: y + 15 };
+        if (taken.some((q) => box.l < q.r && box.r > q.l && box.t < q.b && box.b > q.t)) return null;
+        taken.push(box);
         return { o, x, y, side };
       });
       plan.forEach((p, k) => {
@@ -221,11 +237,13 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
 
     const loop = () => {
       raf = 0;
-      if (disposed || !onScreen || !lo) return;
-      raf = requestAnimationFrame(loop);
+      if (disposed || !lo) return;
       const target = introFrame >= 0 ? introFrame : frameAt(scrollYProgress.get());
+      // off screen: jump to the true frame, draw it once, then sleep, so the canvas is right when it scrolls back in
+      if (!onScreen && cur === target && lastKey) return;
+      raf = requestAnimationFrame(loop);
       const diff = target - cur;
-      cur = reduced || introFrame >= 0 ? target : Math.abs(diff) < 0.02 ? target : cur + diff * 0.2;
+      cur = reduced || introFrame >= 0 || !onScreen ? target : Math.abs(diff) < 0.02 ? target : cur + diff * 0.2;
       const i = Math.max(0, Math.min(lo.m.count - 1, Math.round(cur)));
       const dir = Math.sign(diff) || 1;
       // full quality when it is decoded (or one a frame or two away); the small set only fills gaps
@@ -235,9 +253,11 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
       const bmp = hi ?? (hiHas ? store!.nearest(i, dir, 2) : null) ?? lo.peek(i) ?? lo.get(i) ?? lo.nearest(i, dir) ?? store?.nearest(i, dir) ?? null;
       if (!hiHas) lo.prefetch(i, dir, 6);
       const exact = !!(hi || lo.peek(i));
-      const key = `${i}:${cv.width}x${cv.height}:${bmp ? bmp.width : 0}`;
-      if (bmp && key !== lastKey) {
+      const key = `${i}:${cv.width}x${cv.height}`;
+      if (bmp && (key !== lastKey || bmp !== lastBmp)) {
         draw(bmp, i);
+        lastBmp = bmp;
+        lastFrame = i;
         lastKey = exact ? key : "";
         lastPlaced = Number.NaN;
       }
@@ -252,14 +272,20 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
       if (!raf && !disposed) raf = requestAnimationFrame(loop);
     };
     // the loop sleeps while the story is off screen
-    const io = new IntersectionObserver(([e]) => {
-      onScreen = e.isIntersecting;
-      if (onScreen) start();
-    });
+    // touching the viewport edge (where #bootloader lands) is not on screen
+    const io = new IntersectionObserver(
+      ([e]) => {
+        onScreen = e.intersectionRatio > 0;
+        start();
+      },
+      { threshold: [0, 0.01] },
+    );
     io.observe(cv);
 
     const loadAnchors = () =>
-      fetch(`${import.meta.env.BASE_URL}anchors.json`)
+      anchors
+        ? Promise.resolve()
+        : fetchOk(`${import.meta.env.BASE_URL}anchors.json`)
         .then((r) => r.json())
         .then((a: Anchors) => {
           anchors = a;
@@ -272,6 +298,8 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
         const decodeW = Math.min(1600, Math.round(Math.max(window.innerWidth, window.innerHeight * 1.6) * dpr()));
         const loLimit = 24;
         const hiLimit = small ? 12 : 24;
+        // the full-quality manifest is requested alongside the small set, not after it; the story runs without it if it fails
+        const hiOpen = FrameStore.open(`${import.meta.env.BASE_URL}frames/hi/`, hiLimit, decodeW, () => undefined).catch(() => null);
         const smallSet = await FrameStore.open(`${import.meta.env.BASE_URL}frames/lo/`, loLimit, 9999, () => setLoad(smallSet.loadedChunks / smallSet.chunkCount));
         if (disposed) return smallSet.dispose();
         // let a restored scroll position (reload, deep link) land before deciding where the story starts
@@ -279,10 +307,10 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
         const playIntro = window.scrollY < 40 && !reduced;
         const at = playIntro ? 0 : Math.round(frameAt(scrollYProgress.get()));
         lo = smallSet;
-        // only the chunk on screen holds the story up; the rest streams behind the intro
-        await lo.loadChunk(lo.chunkOf(at));
+        // only the chunk on screen holds the story up; the rest streams behind the intro (and retries what failed)
+        await lo.loadChunk(lo.chunkOf(at)).catch(() => undefined);
         if (disposed) return;
-        void lo.loadAll([], 2);
+        void lo.loadAll([lo.chunkOf(at)], 2);
         if (playIntro) introFrame = 0;
         cur = at;
         lo.aim(at);
@@ -290,18 +318,26 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
         await Promise.all(Array.from({ length: Math.min(INTRO_FRAMES, loLimit - 4) }, (_, f) => lo!.decode(playIntro ? f : first + f)));
         if (disposed) return;
         start();
-        // full-quality frames, intro frames first
-        const hiStore = await FrameStore.open(`${import.meta.env.BASE_URL}frames/hi/`, hiLimit, decodeW, () => undefined);
-        if (disposed) return hiStore.dispose();
-        store = hiStore;
-        hiStore.aim(at);
-        const introChunks = [...new Set(Array.from({ length: INTRO_FRAMES }, (_, f) => hiStore.chunkOf(Math.min(hiStore.m.count - 1, at + f))))];
-        const rest = hiStore.loadAll(introChunks, 2);
+        const hiStore = await hiOpen;
+        if (disposed) return hiStore?.dispose();
+        let rest: Promise<void> = Promise.resolve();
+        let introChunks: number[] = [];
+        if (hiStore) {
+          store = hiStore;
+          hiStore.aim(at);
+          introChunks = [...new Set(Array.from({ length: INTRO_FRAMES }, (_, f) => hiStore.chunkOf(Math.min(hiStore.m.count - 1, at + f))))];
+          rest = hiStore.loadAll(introChunks, 2);
+        }
         if (playIntro) {
-          await Promise.race([Promise.all(introChunks.map((c) => hiStore.loadChunk(c))), new Promise((r) => setTimeout(r, 600))]);
-          if (disposed) return;
-          await Promise.all(Array.from({ length: Math.min(INTRO_FRAMES, hiLimit - 4) }, (_, f) => hiStore.decode(f)));
-          if (disposed) return;
+          if (hiStore) {
+            // on a slow connection the intro plays on the small frames rather than holding the hero back
+            const conn = (navigator as Navigator & { connection?: { effectiveType?: string; saveData?: boolean } }).connection;
+            const slow = !!conn && (!!conn.saveData || (conn.effectiveType ?? "4g") !== "4g");
+            await Promise.race([Promise.all(introChunks.map((c) => hiStore.loadChunk(c))).catch(() => undefined), new Promise((r) => setTimeout(r, slow ? 0 : 600))]);
+            if (disposed) return;
+            await Promise.all(Array.from({ length: Math.min(INTRO_FRAMES, hiLimit - 4) }, (_, f) => hiStore.decode(f)));
+            if (disposed) return;
+          }
           setPhase("intro");
           void loadAnchors();
           const t0 = performance.now();
@@ -324,8 +360,13 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
         setPhase("ready");
         await rest;
       } catch {
+        // nothing here may leave the story dark or unlabelled
         introFrame = -1;
-        if (!disposed) setPhase("ready");
+        if (!disposed) {
+          setPhase("ready");
+          start();
+          void loadAnchors();
+        }
       }
     })();
 
@@ -361,7 +402,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
           ))}
         </div>
 
-        <m.div className="hero" style={{ opacity: heroOpacity, y: heroY, visibility: heroVis }}>
+        <m.div className="hero" style={{ opacity: heroOpacity, y: heroY, pointerEvents: heroEvents }}>
           <m.p className="hero-k" initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 12 }} transition={{ duration: 0.7, delay: 0.05 }}>
             {hero.kicker}
           </m.p>
@@ -380,8 +421,8 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
           <m.p className="hero-d" initial={false} animate={{ opacity: shownHero ? 1 : 0 }} transition={{ duration: 0.8, delay: 0.45 }}>
             {hero.detail}
           </m.p>
-          <m.div className="hero-cta" initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 14 }} transition={{ duration: 0.8, delay: 0.55 }}>
-            <CopyButton size="lg" />
+          <m.div className="hero-cta" style={{ visibility: heroVis }} initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 14 }} transition={{ duration: 0.8, delay: 0.55 }}>
+            <CopyButton size="lg" label="Copy the AI prompt" />
             <a className="ghost" href={preorderHref()}>
               {LINKS.preorder ? hero.preorder : "The book"}
             </a>
@@ -393,70 +434,48 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
           <i />
         </m.div>
 
-        <m.aside className="hud" ref={hud} style={{ opacity: hudOpacity }} aria-label="The margin inversion, an illustration from Chapter 17">
-          <header aria-hidden="true">
+        <m.aside className="hud" ref={hud} style={{ opacity: hudOpacity }} aria-hidden="true">
+          <header>
             <span>The margin inversion</span>
             <em data-k="year">Year 0</em>
           </header>
-          <div aria-hidden="true">
+          <div>
             <span>Team</span>
             <b data-k="team">12</b>
             <i className="up">↑</i>
           </div>
-          <div aria-hidden="true">
+          <div>
             <span>Revenue</span>
             <b data-k="revenue">$3M</b>
             <i className="up">↑</i>
           </div>
-          <div aria-hidden="true">
+          <div>
             <span>Margin</span>
             <b data-k="margin">20%</b>
             <i className="down">↓</i>
           </div>
-          <div aria-hidden="true">
+          <div>
             <span>Owner take</span>
             <b data-k="take">$900K</b>
             <i className="down">↓</i>
           </div>
-          <div className="lines" aria-hidden="true">
+          <div className="lines">
             <span>Communication pathways</span>
             <b data-k="lines">66</b>
             <i className="down">↑</i>
           </div>
-          <table className="sr-only">
-            <caption>The margin inversion, an illustration from Chapter 17</caption>
-            <thead>
-              <tr>
-                <th scope="col">Year</th>
-                <th scope="col">Team</th>
-                <th scope="col">Revenue</th>
-                <th scope="col">Profit margin</th>
-                <th scope="col">Owner take</th>
-                <th scope="col">Communication pathways</th>
-              </tr>
-            </thead>
-            <tbody>
-              {YEARS.map((y) => (
-                <tr key={y.year}>
-                  <th scope="row">{y.year}</th>
-                  <td>{y.team}</td>
-                  <td>{y.revenue}</td>
-                  <td>{y.margin}</td>
-                  <td>{y.take}</td>
-                  <td>{y.lines}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
           <m.p className="verdict" style={{ opacity: verdict }}>
-            The founder doubled the team, increased revenue 40%, and lost 83% of their income.
+            {VERDICT}
           </m.p>
           <footer>Illustration from Chapter 17</footer>
         </m.aside>
 
         <div className="beats">
           {beats.map((b) => (
-            <BeatView key={b.id} beat={b} progress={scrollYProgress} />
+            <Fragment key={b.id}>
+              <BeatView beat={b} progress={scrollYProgress} />
+              {b.id === "collapse" && <MarginTable />}
+            </Fragment>
           ))}
         </div>
 
@@ -472,6 +491,42 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
         </div>
       </div>
     </section>
+  );
+}
+
+const VERDICT = "The founder doubled the team, increased revenue 40%, and lost 83% of their income.";
+
+/** the HUD's numbers for screen readers, read where the story reaches them */
+function MarginTable() {
+  return (
+    <div className="sr-only">
+      <table>
+        <caption>The margin inversion, an illustration from Chapter 17</caption>
+        <thead>
+          <tr>
+            <th scope="col">Year</th>
+            <th scope="col">Team</th>
+            <th scope="col">Revenue</th>
+            <th scope="col">Profit margin</th>
+            <th scope="col">Owner take</th>
+            <th scope="col">Communication pathways</th>
+          </tr>
+        </thead>
+        <tbody>
+          {YEARS.map((y) => (
+            <tr key={y.year}>
+              <th scope="row">{y.year}</th>
+              <td>{y.team}</td>
+              <td>{y.revenue}</td>
+              <td>{y.margin}</td>
+              <td>{y.take}</td>
+              <td>{y.lines}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>{VERDICT}</p>
+    </div>
   );
 }
 

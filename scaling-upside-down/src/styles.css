@@ -45,6 +45,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 img { display: block; max-width: 100%; }
 :focus-visible { outline: 2px solid var(--down); outline-offset: 3px; border-radius: 4px; }
 .foot :focus-visible, .nav.is-dark :focus-visible { outline-color: var(--paper-hi); }
+[tabindex="-1"]:focus { outline: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 .mark { display: inline-flex; flex-direction: column; gap: 2px; width: 16px; }
@@ -230,6 +231,8 @@ img { display: block; max-width: 100%; }
 .loader-bars .down { background: var(--down); }
 .loader p { font: 500 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); }
 
+.hero-k, .beat-k, .beat-stats dd, .beat-n, .hud header em, .hud div span, .hud footer, .cue { color: #3e372e; }
+
 /* ---------- bootloader ---------- */
 .kick { display: flex; align-items: center; gap: 10px; font: 500 12px var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--soft); }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
@@ -253,10 +256,13 @@ img { display: block; max-width: 100%; }
 .notice summary::before { content: "+" / ""; font: 500 14px var(--mono); }
 .notice[open] summary::before { content: "\2013" / ""; }
 .notice summary::-webkit-details-marker { display: none; }
-.notice-body { max-height: 320px; overflow: auto; margin-top: 8px; padding-right: 8px; }
+.notice-body { margin-top: 8px; padding-right: 8px; }
 .notice h3 { font: 600 13px var(--sans); margin-top: 14px; }
 .notice p { font: 400 13px / 1.55 var(--sans); color: var(--soft); margin-top: 8px; }
 .book .sub { font: italic 400 clamp(17px, 1.3vw, 20px) / 1.4 var(--serif); color: var(--soft); margin-top: 14px; max-width: 34ch; text-wrap: balance; }
+.why { margin-top: 30px; max-width: var(--measure); padding-left: 16px; border-left: 2px solid var(--side); }
+.why-t { font: 500 11px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); }
+.why p:last-child { font: italic 400 17px / 1.45 var(--serif); color: var(--ink); margin-top: 6px; text-wrap: pretty; }
 .proof { margin-top: 32px; max-width: var(--measure); }
 .proof-t { font: 500 11px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); padding-bottom: 10px; border-bottom: 1px solid var(--line); }
 .proof ol { list-style: none; }
@@ -347,7 +353,6 @@ img { display: block; max-width: 100%; }
   .nav.is-dark .nav-cta { opacity: 0; transform: translateY(-8px); pointer-events: none; visibility: hidden; }
   .nav.is-dark .brand { background: rgba(23, 20, 15, 0.88); border-color: rgba(250, 246, 239, 0.14); }
   .notice summary { min-height: 44px; }
-  .notice-body { max-height: none; overflow: visible; }
   .boot-in, .book-in { grid-template-columns: 1fr; }
   .book-art { position: static; }
   .foot { grid-template-columns: 1fr; row-gap: 56px; }
@@ -365,15 +370,32 @@ img { display: block; max-width: 100%; }
   .hero-s { margin-top: 14px; font-size: 17px; }
   .hero-cta { margin-top: 20px; }
   .hero-cta .copy-lg { height: 50px; }
+  /* short phones (an iPhone SE with Safari's toolbars is ~550px): tighter cards that clear the nav, HUD and verdict */
+  .beat { bottom: 64px; padding: 14px 16px 16px; }
+  .beat-k { margin-bottom: 10px; }
+  .beat-h { font-size: clamp(24px, 7.4vw, 32px); }
+  .beat-b { font-size: 15px; margin-top: 8px; }
+  .beat-d { font-size: 17px; margin-top: 10px; padding-top: 10px; }
+  .beat-n { font-size: 11px; margin-top: 6px; }
+  .beat-stats { margin-top: 12px; padding-top: 10px; }
+  .beat-stats dt { font-size: 22px; }
+  .hud footer { display: none; }
+  .chapters { bottom: 10px; }
+}
+
+/* portrait phones: the HUD is gone by the Graveyard, so those cards move up and the wreckage stays in view */
+@media (max-width: 900px) and (orientation: portrait) {
+  .beat.beat-trap, .beat.beat-map { top: 76px; bottom: auto; }
 }
 
 /* landscape phones: words left, render right, HUD top right */
 @media (max-width: 900px) and (orientation: landscape) {
-  .hero { justify-content: center; padding-top: 48px; right: auto; max-width: 52vw; }
+  .hero { justify-content: center; padding-top: 40px; right: auto; max-width: 52vw; }
+  .hero-d { display: block; font-size: 13px; margin-top: 8px; max-width: 40ch; }
   .hero-k { margin-bottom: 10px; }
   .hero-t { font-size: clamp(36px, 12.5vh, 60px); }
   .hero-s { font-size: 16px; margin-top: 12px; }
-  .hero-cta { margin-top: 16px; }
+  .hero-cta { margin-top: 12px; }
   .hero-cta .copy-lg { height: 48px; }
   .cue { display: none; }
   .scrim { background: linear-gradient(90deg, rgba(241, 234, 223, 0.75) 0%, rgba(241, 234, 223, 0.3) 36%, rgba(241, 234, 223, 0) 50%); }

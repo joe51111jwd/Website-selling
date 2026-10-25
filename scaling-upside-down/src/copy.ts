@@ -21,7 +21,7 @@ export type SiteCopy = {
   hero: { kicker: string; title: string; sub: string; detail: string; preorder: string };
   beats: Beat[];
   bootloader: { kicker: string; headline: string; body: string; detail: string; steps: string[]; button: string; copied: string; notice: { title: string; paragraphs: string[] } };
-  book: { kicker: string; headline: string; subtitle: string; body: string; proofTitle: string; proof: { label: string; text: string }[]; proofClose: string; parts: { title: string; text: string }[]; button: string; soon: string; author: string };
+  book: { kicker: string; headline: string; subtitle: string; body: string; why: { label: string; text: string }; proofTitle: string; proof: { label: string; text: string }[]; proofClose: string; parts: { title: string; text: string }[]; button: string; soon: string; author: string };
   footer: { kicker: string; headline: string; body: string; detail: string };
 };
 
@@ -30,7 +30,7 @@ export const COPY: SiteCopy = {
     kicker: "Michael Wentz · For bootstrapped founders",
     title: "Scaling\nUp-Side-Down",
     sub: "Every hire compounds complexity before it compounds capacity.", // L696
-    detail: "Half of this book is meant to be read. The other half is meant to be used. The prompt is that half: a file designed to be loaded into any AI assistant you already use.", // L234, L4475
+    detail: "Half of this book is meant to be read. The other half is meant to be used. The pages are reference. The file is the operating system.", // L234, L4497
     preorder: "Pre-order the book",
   },
   beats: [
@@ -89,7 +89,7 @@ export const COPY: SiteCopy = {
       kicker: "The borrowed map", // L574
       tone: "ink",
       headline: "The playbook came from venture-backed companies.", // L373
-      body: "You're being told to cross the same valley by swimming.", // L391
+      body: "The 4% crossed the valley because they had bridges. You're being told to cross the same valley by swimming.", // L391
       stats: [
         { value: "96%", label: "stay small" },
         { value: "4%", label: "reach $1 million" },
@@ -105,7 +105,7 @@ export const COPY: SiteCopy = {
       tone: "side",
       headline: "Pause. Integrate. Stabilize.", // L2060
       body: "You have to digest every gain before you can reach for the next.", // L1680
-      note: "Scaling Up-Side-Down: a cycle with three phases. They take turns.", // L1723, L2055
+      detail: "Not Scaling Upside Down—the diagnosis. Scaling Up-Side-Down—a cycle with three phases.", // L1722, L1723
     },
     {
       id: "down",
@@ -122,7 +122,8 @@ export const COPY: SiteCopy = {
       kicker: "Scaling Up",
       tone: "up",
       headline: "Add. Grow. Capture.", // L2059
-      body: "Team. Eight to twelve people. A destination worth defending.", // L1813
+      body: "Capacity > Complexity = Oxygen. You can breathe. The systems can carry what the business creates.", // L2999
+      detail: "Team. Eight to twelve people. A destination worth defending.", // L1813
     },
     {
       id: "repeat",
@@ -131,13 +132,14 @@ export const COPY: SiteCopy = {
       tone: "ink",
       headline: "“Enough” is a destination.", // L4518
       body: "We finally let the cycle complete. Our margins stopped shrinking.", // L3313, L3319
+      note: "In an open system, AI accelerates chaos. In a closed system, AI accelerates clarity.", // L4523
       cta: true,
     },
   ],
   bootloader: {
     kicker: "The SUSD Bootloader",
-    headline: "Ask “Should I hire?” inside the logic of this book.",
-    body: "In an open system, AI accelerates chaos. In a closed system, AI accelerates clarity.", // L4523
+    headline: "This SUSD Bootloader changes how you operate.", // L4555
+    body: "Then instead of asking AI a generic question like “Should I hire?” and getting generic advice, you can ask the same question inside the logic of this book.", // L244
     detail: "Tell it what's happening in the business. Ask whether you should hire. Tell it you're overwhelmed.", // L4545
     steps: [
       "Copy the prompt.",
@@ -175,6 +177,10 @@ export const COPY: SiteCopy = {
     headline: "You were never the problem. The model you inherited was.", // L216
     subtitle: "Revenue Up. Margins Down. How to Avoid the Scaling Trap.", // cover
     body: "This book is for the ones who felt the map was wrong but couldn't say why.", // L415
+    why: {
+      label: "About the free prompt",
+      text: "You may be tempted to skip straight to it. I wouldn't. If you skip the questions that led to the system, it's easy to use a new system in the same old way. That's what the chapters are for.", // L246, L248, L250
+    },
     proofTitle: "Two launches of Izabella's books",
     proof: [
       { label: "40 people", text: "Hashimoto's Protocol hit #1 on the New York Times. That launch consumed everything." }, // L3459

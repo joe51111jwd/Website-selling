@@ -81,11 +81,15 @@ export function yearAt(frame: number): Year | null {
 export type Callout = { anchor: string; from: number; to: number; text: string; tone?: "red" | "green" | "ink"; side?: "left" | "right" };
 export const CALLOUTS: Callout[] = [
   ...BLOCKS.map((b, i) => ({ anchor: b.id, from: landsAt(i), to: landsAt(i) + 9, text: b.label, side: "right" as const })),
-  { anchor: "hire12", from: 121, to: 160, text: "Twelve holds", tone: "ink", side: "right" },
-  { anchor: "sops", from: 125, to: 160, text: "Past twelve", tone: "red", side: "right" },
+  // earlier entries win when two tags would overlap; both leave before the falling blocks meet
+  { anchor: "sops", from: 125, to: 150, text: "Past twelve", tone: "red", side: "right" },
+  { anchor: "hire12", from: 121, to: 150, text: "Twelve holds", tone: "ink", side: "right" },
+  // the held wreckage frame under the Trap and Map beats: name the pile and the stack that stood
+  { anchor: "burn", from: 183, to: 192, text: "The Graveyard", tone: "red", side: "right" },
+  { anchor: "hire12", from: 183, to: 192, text: "Twelve holds", tone: "ink", side: "right" },
   { anchor: "agency", from: 214, to: 228, text: "Agency: pruned", tone: "red", side: "right" },
   { anchor: "apps", from: 235, to: 249, text: "43 apps: pruned", tone: "red", side: "right" },
-  { anchor: "systems", from: 275, to: 299, text: "Systems", tone: "green", side: "right" },
+  { anchor: "systems", from: 270, to: 299, text: "Systems", tone: "green", side: "right" },
 ];
 
 // where to keep the subject when a narrow screen crops the 16:10 frame (0-1 across)

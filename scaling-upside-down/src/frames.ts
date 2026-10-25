@@ -10,11 +10,26 @@ export type Manifest = {
   frames: [chunk: number, offset: number, length: number][];
 };
 
+/** fetch that retries a dropped connection or a server error a couple of times */
+export async function fetchOk(url: string, tries = 3): Promise<Response> {
+  for (let n = 1; ; n++) {
+    try {
+      const r = await fetch(url);
+      if (r.ok) return r;
+      if (n >= tries) throw new Error(`${url} ${r.status}`);
+    } catch (e) {
+      if (n >= tries) throw e;
+    }
+    await new Promise((r) => setTimeout(r, 800 * n));
+  }
+}
+
 export class FrameStore {
   readonly blobs: (Blob | null)[];
   private decoded = new Map<number, ImageBitmap>();
   private pending = new Map<number, Promise<ImageBitmap | null>>();
   private chunkLoads = new Map<number, Promise<void>>();
+  private loaded = new Set<number>();
   private head = 0; // the frame on screen; eviction keeps a window around it
   loadedChunks = 0;
 
@@ -29,8 +44,7 @@ export class FrameStore {
   }
 
   static async open(base: string, limit: number, decodeWidth: number, onChange: () => void) {
-    const res = await fetch(base + "manifest.json");
-    if (!res.ok) throw new Error(`manifest ${res.status}`);
+    const res = await fetchOk(base + "manifest.json");
     return new FrameStore(base, (await res.json()) as Manifest, limit, decodeWidth, onChange);
   }
 
@@ -45,37 +59,38 @@ export class FrameStore {
   loadChunk(c: number): Promise<void> {
     let p = this.chunkLoads.get(c);
     if (p) return p;
-    p = fetch(this.base + this.m.chunks[c])
-      .then((r) => {
-        if (!r.ok) throw new Error(`chunk ${c} ${r.status}`);
-        return r.arrayBuffer();
-      })
+    p = fetchOk(this.base + this.m.chunks[c])
+      .then((r) => r.arrayBuffer())
       .then((buf) => {
         this.m.frames.forEach(([ci, off, len], i) => {
           if (ci === c) this.blobs[i] = new Blob([buf.slice(off, off + len)], { type: "image/webp" });
         });
+        this.loaded.add(c);
         this.loadedChunks++;
         this.onChange();
+      })
+      .catch((e: unknown) => {
+        this.chunkLoads.delete(c); // so a later call can try again
+        throw e;
       });
     this.chunkLoads.set(c, p);
     return p;
   }
 
-  /** load every chunk, starting with the ones the visitor needs first */
+  /** load every chunk, starting with the ones the visitor needs first; one more pass picks up failures */
   async loadAll(first: number[], concurrency = 2) {
-    const order = [...new Set([...first, ...this.m.chunks.map((_, i) => i)])];
-    let next = 0;
-    const worker = async () => {
-      while (next < order.length) {
-        const c = order[next++];
-        try {
-          await this.loadChunk(c);
-        } catch {
-          this.chunkLoads.delete(c);
+    for (let pass = 0; pass < 2; pass++) {
+      const order = [...new Set([...first, ...this.m.chunks.map((_, i) => i)])].filter((c) => !this.loaded.has(c));
+      if (!order.length) return;
+      if (pass) await new Promise((r) => setTimeout(r, 3000));
+      let next = 0;
+      const worker = async () => {
+        while (next < order.length && !this.disposed) {
+          await this.loadChunk(order[next++]).catch(() => undefined);
         }
-      }
-    };
-    await Promise.all(Array.from({ length: concurrency }, worker));
+      };
+      await Promise.all(Array.from({ length: concurrency }, worker));
+    }
   }
 
   /** decoded frame if ready; otherwise starts decoding it */

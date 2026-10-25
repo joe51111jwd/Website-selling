@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { copyBootloader } from "../bootloader";
+import { COPY } from "../copy";
 
 type State = "idle" | "done" | "error";
 
@@ -36,7 +37,7 @@ export function CopyButton({ className = "", label = "Copy the prompt", copied, 
           </svg>
         </span>
         <span className="copy-label">
-          {state === "done" ? (copied ?? `Copied${words ? ` · ${words.toLocaleString()} words` : ""}`) : state === "error" ? "Couldn't copy. Try again." : label}
+          {state === "done" ? (copied ?? (size === "sm" ? `Copied${words ? ` · ${words.toLocaleString()} words` : ""}` : COPY.bootloader.copied)) : state === "error" ? "Couldn't copy. Try again." : label}
         </span>
       </button>
       <span className="sr-only" role="status">

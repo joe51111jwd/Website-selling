@@ -131,7 +131,7 @@ export function Bootloader({ copy }: { copy: SiteCopy["bootloader"] }) {
           <p className="fine">{words ? `${words.toLocaleString()} words. Copies the whole file.` : "Copies the whole file."}</p>
           <details className="notice">
             <summary>{copy.notice.title}</summary>
-            <div className="notice-body" data-lenis-prevent>
+            <div className="notice-body">
               {copy.notice.paragraphs.map((p) =>
                 p.startsWith("## ") ? <h3 key={p}>{p.slice(3)}</h3> : <p key={p.slice(0, 32)}>{p}</p>,
               )}
@@ -178,6 +178,10 @@ export function Book({ copy }: { copy: SiteCopy["book"] }) {
               </>
             )}
           </div>
+          <div className="why">
+            <p className="why-t">{copy.why.label}</p>
+            <p>{copy.why.text}</p>
+          </div>
           <div className="proof">
             <p className="proof-t">{copy.proofTitle}</p>
             <ol>
@@ -223,7 +227,7 @@ export function Footer({ copy }: { copy: SiteCopy["footer"] }) {
         <p className="lead">{copy.body}</p>
         <p className="lead soft">{copy.detail}</p>
         <div className="foot-cta">
-          <CopyButton size="lg" className="on-dark" />
+          <CopyButton size="lg" className="on-dark" label="Copy the AI prompt" />
           <a className="ghost on-dark" href={preorderHref()}>
             {LINKS.preorder ? "Pre-order the book" : "The book"}
           </a>
