@@ -1,0 +1,151 @@
+// Frame store for the rendered sequence.
+// Chunks arrive as compressed WebP blobs; only a window of frames around the
+// playhead is decoded at a time, so memory stays bounded on phones.
+
+export type Manifest = {
+  count: number;
+  width: number;
+  height: number;
+  chunks: string[];
+  frames: [chunk: number, offset: number, length: number][];
+};
+
+export class FrameStore {
+  readonly blobs: (Blob | null)[];
+  private decoded = new Map<number, ImageBitmap>();
+  private pending = new Map<number, Promise<ImageBitmap | null>>();
+  private chunkLoads = new Map<number, Promise<void>>();
+  private lastUsed = new Map<number, number>();
+  private tick = 0;
+  loadedChunks = 0;
+
+  constructor(
+    readonly base: string,
+    readonly m: Manifest,
+    private readonly limit: number,
+    private readonly decodeWidth: number,
+    private readonly onChange: () => void,
+  ) {
+    this.blobs = new Array(m.count).fill(null);
+  }
+
+  static async open(base: string, limit: number, decodeWidth: number, onChange: () => void) {
+    const res = await fetch(base + "manifest.json");
+    if (!res.ok) throw new Error(`manifest ${res.status}`);
+    return new FrameStore(base, (await res.json()) as Manifest, limit, decodeWidth, onChange);
+  }
+
+  get chunkCount() {
+    return this.m.chunks.length;
+  }
+
+  chunkOf(frame: number) {
+    return this.m.frames[frame][0];
+  }
+
+  loadChunk(c: number): Promise<void> {
+    let p = this.chunkLoads.get(c);
+    if (p) return p;
+    p = fetch(this.base + this.m.chunks[c])
+      .then((r) => {
+        if (!r.ok) throw new Error(`chunk ${c} ${r.status}`);
+        return r.arrayBuffer();
+      })
+      .then((buf) => {
+        this.m.frames.forEach(([ci, off, len], i) => {
+          if (ci === c) this.blobs[i] = new Blob([buf.slice(off, off + len)], { type: "image/webp" });
+        });
+        this.loadedChunks++;
+        this.onChange();
+      });
+    this.chunkLoads.set(c, p);
+    return p;
+  }
+
+  /** load every chunk, starting with the ones the visitor needs first */
+  async loadAll(first: number[], concurrency = 2) {
+    const order = [...new Set([...first, ...this.m.chunks.map((_, i) => i)])];
+    let next = 0;
+    const worker = async () => {
+      while (next < order.length) {
+        const c = order[next++];
+        try {
+          await this.loadChunk(c);
+        } catch {
+          this.chunkLoads.delete(c);
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: concurrency }, worker));
+  }
+
+  /** decoded frame if ready; otherwise starts decoding it */
+  get(i: number): ImageBitmap | null {
+    const bmp = this.decoded.get(i);
+    if (bmp) {
+      this.lastUsed.set(i, ++this.tick);
+      return bmp;
+    }
+    void this.decode(i);
+    return null;
+  }
+
+  /** closest decoded frame, preferring the side we are coming from */
+  nearest(i: number, dir: number): ImageBitmap | null {
+    for (let d = 1; d < 40; d++) {
+      const a = this.decoded.get(i - d * Math.sign(dir || 1));
+      if (a) return a;
+      const b = this.decoded.get(i + d * Math.sign(dir || 1));
+      if (b) return b;
+    }
+    return null;
+  }
+
+  decode(i: number): Promise<ImageBitmap | null> {
+    if (i < 0 || i >= this.m.count) return Promise.resolve(null);
+    const have = this.decoded.get(i);
+    if (have) return Promise.resolve(have);
+    const blob = this.blobs[i];
+    if (!blob) return Promise.resolve(null);
+    let p = this.pending.get(i);
+    if (p) return p;
+    const opts: ImageBitmapOptions =
+      this.decodeWidth < this.m.width
+        ? { resizeWidth: this.decodeWidth, resizeHeight: Math.round((this.m.height * this.decodeWidth) / this.m.width), resizeQuality: "high" }
+        : {};
+    p = createImageBitmap(blob, opts)
+      .then((bmp) => {
+        this.decoded.set(i, bmp);
+        this.lastUsed.set(i, ++this.tick);
+        this.pending.delete(i);
+        this.evict(i);
+        this.onChange();
+        return bmp;
+      })
+      .catch(() => {
+        this.pending.delete(i);
+        return null;
+      });
+    this.pending.set(i, p);
+    return p;
+  }
+
+  /** decode a window ahead of the playhead in the direction of travel */
+  prefetch(i: number, dir: number, ahead = 10) {
+    const s = dir < 0 ? -1 : 1;
+    for (let d = 0; d <= ahead; d++) void this.decode(i + d * s);
+    for (let d = 1; d <= 3; d++) void this.decode(i - d * s);
+  }
+
+  private evict(keep: number) {
+    if (this.decoded.size <= this.limit) return;
+    const byAge = [...this.decoded.keys()].sort((a, b) => (this.lastUsed.get(a) ?? 0) - (this.lastUsed.get(b) ?? 0));
+    for (const k of byAge) {
+      if (this.decoded.size <= this.limit) break;
+      if (Math.abs(k - keep) < 4) continue;
+      this.decoded.get(k)?.close();
+      this.decoded.delete(k);
+      this.lastUsed.delete(k);
+    }
+  }
+}

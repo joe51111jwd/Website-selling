@@ -1,2 +1,7 @@
 node_modules
 dist
+render/out
+render/tex
+render/fonts
+*.blend
+*.blend1

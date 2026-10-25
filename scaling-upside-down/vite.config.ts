@@ -1,8 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// relative base so the build also works from a subfolder (previews, artifact hosting)
+const onVercel = Boolean((globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env.VERCEL);
+
+// absolute paths on Vercel (so /appendix works), relative everywhere else (previews, artifact hosting)
 export default defineConfig({
-  base: "./",
+  base: onVercel ? "/" : "./",
   plugins: [react()],
 });
