@@ -1,0 +1,55 @@
+.foot {
+  padding: 14vh 0 28px;
+  background: #070504;
+  color: rgba(241, 232, 218, 0.78);
+  font-size: 15px;
+}
+.foot-name {
+  margin: 0 0 8vh;
+  font-size: clamp(64px, 14.5vw, 250px);
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(241, 232, 218, 0.25);
+  white-space: nowrap;
+}
+.foot-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  gap: 40px;
+}
+.foot-grid p {
+  margin: 12px 0 0;
+}
+.foot a {
+  text-decoration-color: rgba(255, 90, 31, 0.6);
+  text-underline-offset: 3px;
+}
+.foot a:hover {
+  color: var(--flame);
+}
+.foot-src {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  font-size: 13.5px;
+}
+.foot-base {
+  margin: 10vh 0 0;
+  padding-top: 20px;
+  border-top: 1px solid rgba(241, 232, 218, 0.1);
+  display: flex;
+  justify-content: space-between;
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+@media (max-width: 900px) {
+  .foot-grid {
+    grid-template-columns: 1fr;
+  }
+  .foot-name {
+    white-space: normal;
+  }
+}

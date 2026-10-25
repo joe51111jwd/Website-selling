@@ -1,0 +1,163 @@
+.bur {
+  position: relative;
+  height: 360svh;
+  background: radial-gradient(60% 50% at 50% 45%, rgba(255, 140, 60, 0.1), transparent 70%), var(--char);
+}
+.bur-stick {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+.bur-intro {
+  position: relative;
+  z-index: 3;
+  padding-top: 92px;
+}
+.bur-intro h2 {
+  margin: 8px 0 0;
+  font-size: clamp(60px, 10vw, 170px);
+}
+.bur-dot {
+  color: var(--ember);
+}
+.bur-def {
+  margin: 10px 0 0;
+  max-width: 30em;
+  color: rgba(241, 232, 218, 0.8);
+  font-size: 16px;
+}
+.bur-def .serif {
+  color: var(--flame);
+  font-size: 20px;
+  margin-right: 6px;
+}
+.bur-def cite {
+  display: block;
+  margin-top: 6px;
+  font: 500 11px/1 var(--mono);
+  font-style: normal;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+.bur-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.bur-film {
+  width: 100%;
+  height: 100%;
+}
+.bur-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.bur-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.bur-lead {
+  position: absolute;
+  left: 4px;
+  top: -0.5px;
+  width: var(--lead, 40px);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 162, 74, 0.9), rgba(241, 232, 218, 0.35));
+}
+.bur-lead::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--flame);
+  box-shadow: 0 0 10px var(--ember);
+}
+.bur-tag {
+  position: absolute;
+  left: calc(var(--lead, 40px) + 12px);
+  top: -14px;
+  white-space: nowrap;
+  display: grid;
+  gap: 3px;
+}
+.bur-tag b {
+  font: 700 clamp(18px, 1.7vw, 26px) / 1 var(--display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  color: var(--bone);
+}
+.bur-tag span {
+  font: 500 10.5px/1.2 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+.bur-foot {
+  grid-row: 3; /* the film stage is absolutely placed, so pin the footer to the last row */
+  position: relative;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  padding-bottom: 28px;
+}
+.bur-q {
+  margin: 0;
+  max-width: 24em;
+}
+.bur-q p {
+  margin: 0;
+  font-size: clamp(19px, 1.7vw, 26px);
+  line-height: 1.15;
+  color: var(--gold);
+}
+.bur-q cite {
+  display: block;
+  margin-top: 8px;
+  font: 500 10.5px/1 var(--mono);
+  font-style: normal;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+.bur-stats {
+  display: flex;
+  gap: clamp(18px, 3vw, 48px);
+  margin: 0;
+}
+.bur-stats dt {
+  font: 900 clamp(44px, 5vw, 84px) / 0.9 var(--display);
+  color: var(--bone);
+}
+.bur-stats dd {
+  margin: 6px 0 0;
+  font: 500 10.5px/1.2 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+@media (max-width: 900px) {
+  .bur-foot {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .bur-q {
+    display: none;
+  }
+  .bur-tag span {
+    display: none;
+  }
+}

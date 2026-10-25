@@ -1,0 +1,44 @@
+.creed {
+  position: relative;
+  padding: 18vh 0 16vh;
+  background: radial-gradient(80% 60% at 70% 0%, rgba(255, 90, 31, 0.08), transparent 70%), var(--char);
+}
+.creed-q {
+  margin: 28px 0 0;
+  max-width: 17em;
+  font: 400 clamp(38px, 6.2vw, 104px) / 1.02 var(--serif);
+  letter-spacing: -0.01em;
+}
+.creed-w {
+  display: inline;
+}
+.creed-foot {
+  margin-top: 40px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 18px 28px;
+}
+.creed-foot .serif {
+  font-size: clamp(22px, 2.4vw, 34px);
+  color: var(--gold);
+}
+.creed-tag {
+  margin: 14vh 0 0;
+  font-size: clamp(56px, 11.5vw, 200px);
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(241, 232, 218, 0.22);
+  white-space: nowrap;
+}
+.creed-tag em {
+  -webkit-text-stroke: 0;
+  color: var(--ember);
+  text-transform: none;
+  font-size: 0.82em;
+  letter-spacing: -0.02em;
+}
+@media (max-width: 760px) {
+  .creed-tag {
+    white-space: normal;
+  }
+}

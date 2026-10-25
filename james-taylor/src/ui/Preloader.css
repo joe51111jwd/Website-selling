@@ -1,0 +1,64 @@
+.pre {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--char);
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  padding: 22px var(--gutter);
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ash);
+  transition: transform 1s cubic-bezier(0.7, 0, 0.2, 1), opacity 0.9s ease 0.2s;
+}
+.pre.lift {
+  transform: translateY(-100%);
+}
+.pre-top,
+.pre-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.pre-top span:first-child {
+  color: var(--bone);
+}
+.pre-dial {
+  align-self: center;
+  justify-self: center;
+  display: flex;
+  align-items: flex-start;
+  font-family: var(--display);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  /* the numerals heat up with the dial */
+  color: color-mix(in oklab, #5a1d0c calc((1 - var(--k)) * 100%), #ffe2b0);
+  text-shadow: 0 0 calc(var(--k) * 60px) rgba(255, 120, 40, calc(var(--k) * 0.8));
+}
+.pre-num {
+  font-size: clamp(120px, 30vw, 380px);
+  line-height: 0.8;
+  font-variant-numeric: tabular-nums;
+}
+.pre-deg {
+  font-size: clamp(28px, 6vw, 72px);
+  margin-top: 0.15em;
+}
+.pre-element {
+  position: relative;
+  height: 6px;
+  margin: 0 0 22px;
+  border-radius: 6px;
+  background: #1c1410;
+  overflow: hidden;
+}
+.pre-element i {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 50%;
+  transform: scaleX(var(--k));
+  border-radius: 6px;
+  background: linear-gradient(90deg, #4a1206, #c2360e 40%, #ff7a2a 70%, #ffe3a8);
+  box-shadow: 0 0 24px 4px rgba(255, 100, 30, calc(var(--k) * 0.9));
+}

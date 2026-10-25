@@ -1,0 +1,162 @@
+.joyce {
+  position: relative;
+  height: 280svh;
+  background: var(--joyce);
+}
+.joyce-stick {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 50% at 50% 35%, rgba(207, 169, 94, 0.14), transparent 70%),
+    linear-gradient(180deg, #0a1d16, var(--joyce));
+}
+.joyce-room {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+}
+.joyce-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 6vw;
+  align-items: end;
+}
+.joyce h2 {
+  margin: 10px 0 18px;
+  font-size: clamp(76px, 12vw, 210px);
+  color: #efe3c4;
+}
+.joyce h2 .serif {
+  text-transform: none;
+  color: var(--brass);
+  font-size: 0.9em;
+}
+.joyce-addr {
+  margin: 0;
+  font: 500 14px/1.4 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.joyce-partners {
+  margin: 14px 0 30px;
+  max-width: 30em;
+  color: rgba(239, 227, 196, 0.72);
+}
+.joyce-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.joyce .btn {
+  background: var(--brass);
+}
+.joyce .btn:hover {
+  background: #e7c983;
+  box-shadow: 0 10px 50px -10px rgba(207, 169, 94, 0.7);
+}
+.joyce .btn.ghost {
+  background: transparent;
+  color: #efe3c4;
+  box-shadow: inset 0 0 0 1px rgba(239, 227, 196, 0.3);
+}
+.joyce-facts {
+  margin: 0;
+  font: 500 12px/1.4 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.joyce-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 13px 0;
+  border-top: 1px solid rgba(207, 169, 94, 0.22);
+}
+.joyce-facts dt {
+  color: rgba(239, 227, 196, 0.55);
+}
+.joyce-facts dd {
+  margin: 0;
+  color: #efe3c4;
+  text-align: right;
+}
+
+/* the drapery: velvet, deep folds, lit from above */
+.curtain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 51%;
+  z-index: 3;
+  background:
+    linear-gradient(180deg, rgba(255, 230, 170, 0.12), transparent 18%, transparent 80%, rgba(0, 0, 0, 0.55)),
+    repeating-linear-gradient(90deg,
+      rgba(0, 0, 0, 0.62) 0px, rgba(0, 0, 0, 0.15) 22px, rgba(140, 220, 170, 0.1) 44px,
+      rgba(0, 0, 0, 0.08) 60px, rgba(0, 0, 0, 0.55) 86px),
+    url("../assets/velvet.jpg") 0 0 / 260px,
+    #0f3326;
+  box-shadow: inset 0 -80px 120px rgba(0, 0, 0, 0.5);
+  will-change: transform;
+}
+.curtain.l {
+  left: 0;
+  transform-origin: 0 50%;
+}
+.curtain.r {
+  right: 0;
+  transform-origin: 100% 50%;
+}
+.curtain.l::after,
+.curtain.r::after {
+  /* the edge where the two panels meet catches the light */
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.6), rgba(160, 230, 190, 0.12), rgba(0, 0, 0, 0.5));
+}
+.curtain.l::after {
+  right: 0;
+}
+.curtain.r::after {
+  left: 0;
+}
+.joyce-secret {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 50%;
+  width: min(92vw, 15em);
+  margin: 0;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-size: clamp(38px, 5.2vw, 84px);
+  pointer-events: none;
+}
+.joyce-secret p {
+  margin: 0;
+  line-height: 1.02;
+  color: #f3e7c8;
+  text-shadow: 0 4px 40px rgba(0, 0, 0, 0.7);
+}
+.joyce-secret cite {
+  display: block;
+  margin-top: 18px;
+  font: 500 11px/1 var(--mono);
+  font-style: normal;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+
+@media (max-width: 900px) {
+  .joyce-grid {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+}

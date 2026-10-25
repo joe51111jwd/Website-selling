@@ -1,0 +1,185 @@
+.nh {
+  position: relative;
+}
+.nh-split {
+  position: relative;
+  height: 340svh;
+}
+.nh-stick {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+.nh-film {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.nh-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(10, 8, 6, 0.92) 0%, rgba(10, 8, 6, 0.55) 34%, rgba(10, 8, 6, 0) 58%),
+    linear-gradient(180deg, var(--char) 0%, rgba(10, 8, 6, 0) 18%, rgba(10, 8, 6, 0) 80%, var(--char) 100%);
+  pointer-events: none;
+}
+.nh-card {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.nh-card > * {
+  max-width: 36rem;
+}
+.nh-big {
+  margin: 10px 0 18px;
+  font-size: clamp(110px, 17vw, 280px);
+  color: var(--bone);
+  text-shadow: 0 0 80px rgba(255, 110, 40, 0.35);
+}
+.nh-big sup {
+  font-size: 0.45em;
+  vertical-align: 0.9em;
+  color: var(--ember);
+}
+.nh-big .serif {
+  color: var(--ember);
+  text-transform: none;
+}
+.nh-clock {
+  font-variant-numeric: tabular-nums;
+}
+.nh-card blockquote {
+  margin: 0;
+}
+.nh-card blockquote p {
+  margin: 0;
+  font-size: clamp(22px, 2.2vw, 32px);
+  line-height: 1.14;
+  color: var(--gold);
+}
+.nh-card cite {
+  display: block;
+  margin-top: 12px;
+  font: 500 10.5px/1 var(--mono);
+  font-style: normal;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+/* hold to fire */
+.nh-fire {
+  position: relative;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background: radial-gradient(70% 50% at 50% 0%, #1d120c, var(--char) 70%);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.broiler-fire {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.nh-fire::before {
+  /* the broiler's steel lip along the top */
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 10px;
+  z-index: 2;
+  background: linear-gradient(180deg, #2b2724, #0e0c0a);
+}
+.nh-fire-steak {
+  position: absolute;
+  left: 50%;
+  bottom: -4%;
+  width: min(62vw, 640px);
+  transform: translateX(-50%);
+  filter: brightness(calc(0.55 + var(--h) * 0.7)) saturate(calc(0.9 + var(--h) * 0.4)) sepia(calc(var(--h) * 0.25));
+}
+.nh-fire-copy {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.nh-temp {
+  margin: 8px 0 26px;
+  font-size: clamp(96px, 15vw, 240px);
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.6);
+}
+.nh-temp span {
+  font-size: 0.32em;
+  margin-left: 8px;
+  color: var(--ember);
+}
+.nh-btn {
+  position: relative;
+  align-self: flex-start;
+  padding: 22px 34px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--bone);
+  color: var(--char);
+  font: 700 13px/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  transition: transform 0.25s var(--ease), background 0.3s;
+}
+.nh-btn:active,
+.nh-fire.hold .nh-btn {
+  transform: scale(0.96);
+  background: var(--flame);
+}
+.nh-fire.done .nh-btn {
+  background: var(--ember);
+}
+.nh-btn-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 162, 74, 0.5);
+  animation: ring 2s var(--ease) infinite;
+}
+@keyframes ring {
+  0% {
+    transform: scale(0.94);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.12);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .nh-shade {
+    background: linear-gradient(180deg, var(--char) 0%, rgba(10, 8, 6, 0.6) 30%, rgba(10, 8, 6, 0.2) 60%, var(--char) 100%);
+  }
+  .nh-card {
+    top: auto;
+    bottom: 10vh;
+    transform: none;
+  }
+  .nh-fire-steak {
+    width: 110vw;
+  }
+}

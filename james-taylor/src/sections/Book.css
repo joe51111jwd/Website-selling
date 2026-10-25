@@ -1,0 +1,31 @@
+.book {
+  position: relative;
+  padding: 22vh 0;
+  overflow: hidden;
+  background: radial-gradient(70% 60% at 50% 100%, rgba(255, 90, 31, 0.22), transparent 70%), var(--char);
+}
+.book-in {
+  text-align: center;
+}
+.book h2 {
+  margin: 16px 0 26px;
+  font-size: clamp(70px, 11vw, 190px);
+}
+.book-fire {
+  background: linear-gradient(180deg, #ffe3b0, var(--flame) 45%, var(--ember));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.book-copy {
+  margin: 0 auto 36px;
+  max-width: 34em;
+  font-size: 18px;
+  color: rgba(241, 232, 218, 0.8);
+}
+.book-cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
