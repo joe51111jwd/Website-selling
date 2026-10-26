@@ -61,5 +61,13 @@ python3 scripts/pack_frames.py render/out/clseq public/closed/lo --width 480 --q
 ```
 
 That also writes `src/closed.json` (where things sit in the picture, the paper colour that joins
-the sections, and the hashed file names). The word count and file size on the page are read live
+the sections, and the hashed file names). The copy button is a block from the same render (`--shot copyblock`): a long
+blank block in Quality's own red, stamped COPY by the page, so the word count can run on its face.
+Clicking it drops it and Quality together, closes the loop and turns it green. Its pictures, stamp
+font and `src/copyblock.json` come from:
+
+```
+python3 scripts/make_copyblock_assets.py render/out/copyblock render/fonts/playfair_black.ttf
+```
+ The word count and file size on the page are read live
 from `public/bootloader.md`, so replacing the prompt needs nothing else.

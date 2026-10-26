@@ -1,0 +1,41 @@
+{
+ "bodyAR": 0.41866,
+ "faceAR": 0.35077,
+ "face": [
+  0.01256,
+  0.02546,
+  0.97488,
+  0.83785
+ ],
+ "block": [
+  -0.00672,
+  -0.01783,
+  1.01343,
+  1.03565
+ ],
+ "shd": [
+  -0.17687,
+  -0.20321,
+  1.36867,
+  1.43672
+ ],
+ "drift": [
+  0.02083,
+  -0.06006
+ ],
+ "slot": 0.683,
+ "comma": 0.278,
+ "contrast": {
+  "red": 4.0,
+  "green": 4.86
+ },
+ "files": {
+  "red": "cb_red-ead349f1.webp",
+  "red_m": "cb_red_m-108ad9db.webp",
+  "green": "cb_green-5e963d4b.webp",
+  "green_m": "cb_green_m-758c4fd9.webp",
+  "rest": "cb_shd_rest-a23e25e4.webp",
+  "lift": "cb_shd_lift-35819bb4.webp",
+  "font": "stamp-75a0d68f.woff2"
+ }
+}

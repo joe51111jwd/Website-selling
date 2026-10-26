@@ -23,8 +23,9 @@ export type SiteCopy = {
   closed: {
     open: { kicker: string; headline: string };
     closing: { kicker: string; headline: string; detail: string };
-    copy: { kicker: string; headline: string; scope: string };
+    copy: { kicker: string; headline: string };
     after: { kicker: string; question: string; line: string };
+    block: { copy: string; copied: string; again: string; words: string; copying: string; tryAgain: string; name: string; nameAgain: string; pasteInto: string };
     pair: { book: string; file: string };
     book: { kicker: string; quote: string; sign: string; headline: string; soon: string; button: string };
   };
@@ -123,13 +124,14 @@ export const COPY: SiteCopy = {
     copy: {
       kicker: "The Closed Loop", // L4551 (heading)
       headline: "This document is the closed system.", // L4525
-      scope: "Finite scope — 12 systems, defined destinations", // L4512 (table cell)
     },
     after: {
       kicker: "First question",
       question: "How many people are on your team?", // L4537
-      line: "The architecture is there so the system can hold what you no longer have to.", // L4547 (last sentence)
+      line: "Then talk to it normally.", // L4543
     },
+    // the COPY block's stamp and its accessible name: UI labels, not sentences
+    block: { copy: "Copy", copied: "Copied", again: "Again", words: "words", copying: "Copying", tryAgain: "Try again", name: "Copy the prompt", nameAgain: "Copy the prompt again", pasteInto: "into" },
     pair: {
       book: "The pages are reference.", // L4497 (1st sentence)
       file: "The file is the operating system.", // L4497 (2nd sentence)

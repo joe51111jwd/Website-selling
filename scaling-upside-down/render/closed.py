@@ -8,6 +8,7 @@
 #   blender -b foundation.blend -P closed.py -- --shot seq --out out/clseq [--frames 1-44] [--blur 1] [--proxy 1]
 #   blender -b foundation.blend -P closed.py -- --shot layers --out out/closed
 #   blender -b foundation.blend -P closed.py -- --shot pano --out out/closed
+#   blender -b foundation.blend -P closed.py -- --shot copyblock --out out/copyblock   (the page's COPY button)
 # Or all three: ./render_closed.sh. Then see README.md, step 6.
 import json
 import math
@@ -309,8 +310,107 @@ elif shot == "pano":
     shoot(os.path.join(OUT, "pano.png"), pw, ph, 8 if PROXY else 64)
     cd.sensor_width, cd.shift_x = 36, -0.14
 
+elif shot == "copyblock":
+    # The page's COPY button: a long blank block in Quality's own paint, seen from the opening
+    # shot's 80° elevation and lit by the same studio. Red and green paint (the page stamps the
+    # words), and its shadow at rest and lifted, all from one camera so they register.
+    sc.frame_set(END)
+    for o in sc.objects:
+        if o.type == "MESH" and o.name != "cyc":
+            o.hide_render = True
+
+    def blank_face(name, hexcol):  # Quality's face material, its letters replaced by flat paint
+        m = bpy.data.materials["sys_quality"].copy()
+        m.name = name
+        nt = m.node_tree
+        ft = next(n for n in nt.nodes if n.type == "TEX_IMAGE" and n.image and n.image.name.startswith("sys_quality"))
+        rgb = nt.nodes.new("ShaderNodeRGB")
+        rgb.outputs[0].default_value = srgb(hexcol)
+        for link in list(ft.outputs["Color"].links):
+            nt.links.new(rgb.outputs[0], link.to_socket)
+        return m
+
+    BL, BD, BH_ = 2.6, 1.0, 0.8
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=1.0)
+    for v in bm.verts:
+        v.co.x *= BL
+        v.co.y *= BD
+        v.co.z *= BH_
+    uvl = bm.loops.layers.uv.new("UVMap")
+    for f in bm.faces:
+        n = f.normal
+        if abs(n.z) > 0.5:
+            ax, ay = Vector((1, 0, 0)), Vector((0, 1, 0))
+        else:
+            ay = Vector((0, 0, 1))
+            ax = ay.cross(n).normalized()
+        pts = [(lp.vert.co.dot(ax), lp.vert.co.dot(ay)) for lp in f.loops]
+        mx, my = min(q[0] for q in pts), min(q[1] for q in pts)
+        for lp, (u, v) in zip(f.loops, pts):
+            lp[uvl].uv = (u - mx, v - my)  # world units: the grain keeps the cubes' scale
+        f.material_index = 0 if n.z > 0.5 else 1
+    me = bpy.data.meshes.new("copyblock")
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new("copyblock", me)
+    sc.collection.objects.link(ob)
+    ob.location = (0, 0, BH_ / 2)
+    red, green = blank_face("cb_face_red", "#97201a"), blank_face("cb_face_green", "#1f4a2b")
+    me.materials.append(red)
+    me.materials.append(bpy.data.materials["sysp_down"])
+    bev = ob.modifiers.new("bevel", "BEVEL")
+    bev.width, bev.segments, bev.harden_normals = 0.035, 4, True
+    for poly in me.polygons:
+        poly.use_smooth = True
+
+    bd = bpy.data.cameras.new("cbcam")
+    bd.lens, bd.sensor_fit, bd.sensor_width = 200, "HORIZONTAL", 36
+    bd.dof.use_dof = False
+    cbc = bpy.data.objects.new("cbcam", bd)
+    sc.collection.objects.link(cbc)
+    tgt, E = Vector((0, 0, BH_ / 2)), math.radians(80)
+    cbc.location = tgt + 22.0 * Vector((0, -math.cos(E), math.sin(E)))
+    cbc.rotation_euler = (tgt - cbc.location).to_track_quat("-Z", "Y").to_euler()
+    sc.camera = cbc
+    BW, BHt = (400, 250) if PROXY else (2000, 1250)
+    r.film_transparent = True
+    cyc.visible_camera = False  # still bounces light
+    shoot(os.path.join(OUT, "cb_red.png"), BW, BHt, 8 if PROXY else 128)
+    me.materials[0], me.materials[1] = green, bpy.data.materials["sysp_up"]
+    shoot(os.path.join(OUT, "cb_green.png"), BW, BHt, 8 if PROXY else 128)
+    me.materials[0], me.materials[1] = red, bpy.data.materials["sysp_down"]
+    # the shadows: 1.6x the field at half the pixel density, so at x2 the middle registers with the paint
+    cyc.visible_camera = True
+    cyc.is_shadow_catcher = True
+    ob.visible_camera = False
+    bd.sensor_width = 36 * 1.6
+    SW, SH = int(BW * 0.8), int(BHt * 0.8)
+    shoot(os.path.join(OUT, "cb_shd_rest.png"), SW, SH, 8 if PROXY else 64)
+    ob.location.z += 0.5
+    shoot(os.path.join(OUT, "cb_shd_lift.png"), SW, SH, 8 if PROXY else 64)
+    ob.location.z -= 0.5
+    bd.sensor_width = 36
+    r.resolution_x, r.resolution_y = BW, BHt
+    bpy.context.view_layer.update()
+
+    def pj(v):
+        q = world_to_camera_view(sc, cbc, Vector(v))
+        return [round(q.x, 5), round(1 - q.y, 5)]
+
+    cbgeo = {
+        "frame": [BW, BHt],
+        "shdScale": 1.6,
+        "bevel": 0.035,
+        "top": [pj((sx * BL / 2, sy * BD / 2, BH_)) for sx in (-1, 1) for sy in (-1, 1)],
+        "all": [pj((sx * BL / 2, sy * BD / 2, z)) for sx in (-1, 1) for sy in (-1, 1) for z in (0, BH_)],
+        "size": [BL, BD, BH_],
+    }
+    json.dump(cbgeo, open(os.path.join(OUT, "cb_geo.json"), "w"), indent=1)
+    sc.camera = cam
+
 # ---- geometry for the page: where things land in the frame-50 picture, in fractions (y down) ----
-if shot in ("layers", "pano") or PROXY:
+if shot in ("layers", "pano") or (PROXY and shot != "copyblock"):
     sc.frame_set(END)
     r.resolution_x, r.resolution_y = 1600, 1000
     cd.sensor_width, cd.shift_x = 36, -0.14

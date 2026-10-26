@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type CSSProperties, type MouseEvent } from "react";
+import { useEffect, useId, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { ASSISTANTS, remember, remembered, type AssistantId } from "../assistants";
 import { copyNow, peek } from "../bootloader";
 import { useCopy } from "../copyStore";
@@ -8,7 +8,7 @@ const coarse = typeof window !== "undefined" && window.matchMedia("(pointer: coa
 // "Copy + open in": each chip copies the prompt and then opens the assistant.
 // They are real links. The copy runs inside the click, and the link's own navigation is the
 // "then open" step, so no popup blocker gets involved and phones can hand over to the app.
-export function AssistantChips({ variant }: { variant: "paper" | "ink" }) {
+export function AssistantChips({ variant, lead }: { variant: "paper" | "ink"; lead?: ReactNode }) {
   const { seq } = useCopy();
   const [mine, setMine] = useState<AssistantId | null>(remembered);
   const [armed, setArmed] = useState<AssistantId | null>(null);
@@ -36,7 +36,7 @@ export function AssistantChips({ variant }: { variant: "paper" | "ink" }) {
   return (
     <div className={`chips chips-${variant}${seq > 0 ? " is-after" : ""}`} role="group" aria-labelledby={label}>
       <span className="chips-l" id={label}>
-        {seq > 0 ? "Now open" : "Copy + open in"}
+        {lead ?? (seq > 0 ? "Now open" : "Copy + open in")}
       </span>
       <span className="chips-row">
         {ASSISTANTS.map((a, i) => (

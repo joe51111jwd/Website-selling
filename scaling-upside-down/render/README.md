@@ -21,7 +21,7 @@ team back on, on the systems, and the building keeps rising past where the rush 
 | `prologue.py` | The opening: the three cover blocks lie face up, seen from above, then stand up and stack while the camera cranes down to the story's hero shot (frame 28) |
 | `render.sh` | Renders `foundation.blend` into `out/seq` (motion blur on the rush and the fall only) |
 | `book.py` | The hardcover with the three blocks beside it |
-| `closed.py` | The closed loop after the story: the row buried under what AI keeps adding, swept clear, then eleven systems set down in a ring (50 frames); Quality on its own in layers (block, shadow at rest and lifted) for the copy; and a wide panorama of the same table with the book further along |
+| `closed.py` | The closed loop after the story: the row buried under what AI keeps adding, swept clear, then eleven systems set down in a ring (50 frames); Quality on its own in layers (block, shadow at rest and lifted) for the copy; a wide panorama of the same table with the book further along; and the page's COPY button, a long blank block in Quality's paint (red and green) with its shadows (`--shot copyblock`) |
 | `render_closed.sh` | Renders all of `closed.py`'s shots; a stopped run picks up where it left off |
 | `anchors.py` | Exports each frame's screen position of the labelled blocks, so the site can pin labels to them |
 
@@ -41,6 +41,8 @@ team back on, on the systems, and the building keeps rising past where the rush 
    the proof pictures and `src/closed.json`), and pack the sequence:
    `python3 scripts/pack_frames.py render/out/clseq public/closed/hi --width 1600 --quality 78 --per 25`
    `python3 scripts/pack_frames.py render/out/clseq public/closed/lo --width 480 --quality 60 --per 50`
+   The COPY button: `python3 scripts/make_copyblock_assets.py render/out/copyblock render/fonts/playfair_black.ttf`
+   (the block's pictures, its stamp font and `src/copyblock.json`; it checks the stamp reads on both paints and that the red is Quality's)
 7. Join the opening and the story, then pack the frames for the site, from the project root:
    `python3 scripts/sequence.py render/out/proseq render/out/seq render/out/site render/out/anchors.json public/anchors.json`
    `python3 scripts/pack_frames.py render/out/site public/frames/hi --width 1600 --quality 78 --per 25`

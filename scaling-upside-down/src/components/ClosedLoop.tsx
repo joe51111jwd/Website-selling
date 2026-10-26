@@ -6,9 +6,9 @@ import { copyNow, ensureBootloader } from "../bootloader";
 import { getCopy, useCopy } from "../copyStore";
 import { FrameStore, fetchOk } from "../frames";
 import { LINKS } from "../links";
-import { BEATS, BOOK_P, BOOTLOADER_P, CL_VH, T, frameAt, geo, hairEase, hapticPattern, poseRect, seqRect, smooth, truckRect, type Rect } from "../closedloop";
+import { BEATS, BOOK_P, BOOTLOADER_P, CL_VH, LIFT, T, blockFit, cb, fmtWords, frameAt, geo, hairEase, hapticPattern, poseRect, seqRect, smooth, truckRect, type BlockMode, type Rect } from "../closedloop";
 import { AssistantChips } from "./AssistantChips";
-import { CopyButton } from "./CopyButton";
+import { CopyBlock } from "./CopyBlock";
 import { openNotice } from "./NoticeDialog";
 
 const BASE = import.meta.env.BASE_URL;
@@ -61,9 +61,10 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const plate = useRef<HTMLDivElement>(null);
   const hair = useRef<SVGPathElement>(null);
-  const num = useRef<HTMLSpanElement>(null);
+  const digits = useRef<HTMLSpanElement>(null);
+  const wave = useRef<HTMLDivElement>(null);
   const beatC = useRef<HTMLDivElement>(null);
-  const pill = useRef<HTMLButtonElement>(null);
+  const btn = useRef<HTMLButtonElement>(null);
   const leader = useRef<HTMLDivElement>(null);
   const capBook = useRef<HTMLParagraphElement>(null);
   const capRing = useRef<HTMLParagraphElement>(null);
@@ -76,11 +77,13 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const [press, setPress] = useState(false);
   const [instant, setInstant] = useState(start != null);
   const [after, setAfter] = useState(start === "copied");
+  const [cbLoad, setCbLoad] = useState<false | "hi" | "lo">(false);
+  const blockW = useRef(320); // the COPY block's width, from the last layout
+  const live = useRef(false); // the copy beat is up
   const now = useRef<Ring>(ring);
   const timers = useRef<number[]>([]);
   const raf = useRef(0);
   const seen = useRef(seq);
-  const viaKey = useRef(false);
   const inView = useRef(false);
   const pressTimer = useRef(0);
   const startXY = useRef<[number, number] | null>(null);
@@ -88,13 +91,13 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const { scrollYProgress: p } = useScroll({ target: section, offset: ["start start", "end end"] });
   // Quality is lowered over its gap as the ring is finished (.45-.462)
   const lower = useTransform(p, [0.45, 0.462], [0, 1]);
-  const railShow = useTransform(p, [0, 0.02, 0.72, 0.745], [0, 1, 1, 0]);
+  const railShow = useTransform(p, [0, 0.02, 0.44, 0.47], [0, 1, 1, 0]);
   // the layers over the picture (Quality, the line, the tag) belong to the finished ring
   const plateIn = useTransform(p, [0.445, 0.452], [0, 1]);
   const plateVis = useTransform(plateIn, (o) => (o > 0.5 ? "visible" : "hidden"));
   const railFill = useTransform(p, [0, 0.47], [0, 1]);
   const [narrow] = useState(() => win && window.innerWidth > 900 && window.innerWidth <= 1200);
-  const scrim = useTransform(p, [0, 0.42, 0.46, 0.72, 0.745], narrow ? [1, 1, 1, 1, 0] : [1, 1, 0, 0, 0]);
+  const scrim = useTransform(p, narrow ? [0, 0.44, 0.47] : [0, 0.42, 0.46], narrow ? [1, 1, 0] : [1, 1, 0]);
 
   const go = (r: Ring) => {
     now.current = r;
@@ -108,91 +111,151 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   };
   useEffect(() => () => clearTimers(), []);
 
-  // the count is written by hand, so the sweep can run it without React redrawing over it
-  const counting = useRef(false);
-  useEffect(() => {
-    if (num.current && !counting.current) num.current.textContent = words ? words.toLocaleString() : "· · ·";
-  }, [words]);
+  // the block's face (data-face) and its count are written by hand, so the ritual never re-renders
+  const face = (k: "copy" | "wait" | "count" | "done" | "again" | "error") => {
+    if (btn.current) btn.current.dataset.face = k;
+  };
+  const body = () => btn.current?.querySelector<HTMLElement>(".cb-body") ?? null;
+  // fixed slots, right-aligned like the final number, so the digits never jostle; only changes are written
+  const writeCount = (n: number) => {
+    const el = digits.current;
+    const final = getCopy().words;
+    if (!el || !final) return;
+    const target = fmtWords(final);
+    if (el.childElementCount !== target.length)
+      el.replaceChildren(
+        ...[...target].map((ch) => {
+          const i = document.createElement("i");
+          if (ch === ",") i.className = "c";
+          return i;
+        }),
+      );
+    const str = fmtWords(Math.min(n, final)).padStart(target.length, " ");
+    for (let k = 0; k < str.length; k++) {
+      const c = str[k] === " " ? "" : str[k];
+      const i = el.children[k];
+      if (i.textContent !== c) i.textContent = c;
+    }
+  };
+  useLayoutEffect(() => {
+    face(start === "copied" ? "again" : start === "error" ? "error" : "copy");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // the hairline closes around the ring while the count runs up to the file's real size
-  const sweep = (ms: number, count: boolean) => {
+  const sweep = (ms: number, onDone: () => void) => {
     const path = hair.current;
     const n = getCopy().words;
     const t0 = performance.now();
-    counting.current = count;
     const step = () => {
       const t = Math.min(1, (performance.now() - t0) / ms);
       const e = hairEase(t);
       if (path) path.style.strokeDashoffset = String(1 - e);
-      if (count && num.current && n) num.current.textContent = Math.round(n * e).toLocaleString();
+      if (n) writeCount(Math.round(n * e));
       if (t < 1) raf.current = requestAnimationFrame(step);
-      else counting.current = false;
+      else onDone();
     };
     step();
   };
 
+  // the line meets itself: the block turns green and reads Copied; the page asks the first question
+  const seal = (fresh: boolean) => {
+    face("done");
+    later(T.flash, () => face("again"));
+    if (fresh)
+      later(reduced ? 0 : T.swapAfterSeal, () => {
+        go("closed");
+        setAfter(true);
+      });
+  };
   const close = (fresh: boolean) => {
-    if (reduced) {
-      go("closed");
-      setAfter(true);
-      return;
-    }
-    sweep(fresh ? T.hairMs : T.againMs, true);
-    later(fresh ? T.swap : T.againMs, () => {
-      go("closed");
-      setAfter(true);
-    });
+    if (reduced) return seal(fresh);
+    face("count");
+    writeCount(0);
+    sweep(fresh ? T.hairMs : T.againMs, () => seal(fresh));
+  };
+  const shake = () =>
+    body()?.animate(
+      [{ transform: "none" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(-4px)" }, { transform: "translateX(3px)" }, { transform: "none" }],
+      { duration: T.shake, easing: "ease-out" },
+    );
+  const fail = () => {
+    clearTimers();
+    if (hair.current) hair.current.style.strokeDashoffset = ""; // back to the open ring's
+    go("error");
+    face("error");
+    if (!reduced) later(T.shakeDelay, shake);
+    later(T.errorMs, () => now.current === "error" && face("copy"));
   };
 
-  // the copy: Quality drops into its gap, the ring closes, the page asks the first question
+  // the landing: the COPY block and Quality touch down on the same frame
+  const impact = (own: boolean, resolved: boolean) => {
+    const st = stage.current;
+    st?.classList.remove("is-thud");
+    void st?.offsetWidth;
+    st?.classList.add("is-thud");
+    body()?.animate([{ transform: "scale(1)" }, { transform: "scale(0.988)" }, { transform: "scale(1)" }], { duration: 80, easing: "ease-out" });
+    wave.current?.animate(
+      [
+        { transform: "scale(1)", opacity: 0.32 },
+        { transform: "scale(1.5)", opacity: 0 },
+      ],
+      { duration: T.wave, easing: "cubic-bezier(0.2, 0.7, 0.2, 1)" },
+    );
+    if (own) navigator.vibrate?.(hapticPattern());
+    if (resolved) {
+      face("count");
+      writeCount(0);
+    } else face("wait"); // the file is still on its way: the clipboard is waiting for it
+  };
+
+  // copy again, ring already closed: a small lift and set, the line redrawn, the count run again
+  const again = (prom: Promise<number>, own: boolean) => {
+    clearTimers();
+    prom.then(
+      () => {
+        const st = stage.current;
+        st?.classList.remove("is-again");
+        void st?.offsetWidth;
+        st?.classList.add("is-again");
+        if (reduced) return seal(false);
+        body()?.animate([{ transform: "scale(1)" }, { transform: "scale(1.045)", offset: 0.45 }, { transform: "scale(1)" }], { duration: T.againLift, easing: "cubic-bezier(0.3, 0.7, 0.3, 1)" });
+        btn.current?.querySelector(".cb-shd.lift")?.animate([{ opacity: 0 }, { opacity: 0.5 }, { opacity: 0 }], { duration: T.againLift });
+        if (own) navigator.vibrate?.(10);
+        close(false);
+      },
+      () => {
+        clearTimers();
+        face("error");
+        if (!reduced) shake();
+        later(T.errorMs, () => face("again"));
+      },
+    );
+  };
+
+  // the copy: both blocks fall into place, the ring closes, the block turns green
   const ritual = (prom: Promise<number>, own: boolean) => {
     const s = now.current;
     setPress(false);
+    setArmed(false); // a mouse resting on the block does not lift it again over the payoff
     if (s === "dropping") return; // already on its way
-    if (s === "closed") {
-      // copy again: a small lift and set, the line redrawn
-      prom.then(
-        () => {
-          stage.current?.classList.remove("is-again");
-          void stage.current?.offsetWidth;
-          stage.current?.classList.add("is-again");
-          if (reduced) return;
-          navigator.vibrate?.(10);
-          sweep(T.againMs, true);
-        },
-        () => {},
-      );
-      return;
-    }
+    if (s === "closed") return again(prom, own);
     clearTimers();
     setInstant(false);
-    const toChips = () => own && viaKey.current && later(reduced ? 0 : T.focus, () => section.current?.querySelector<HTMLElement>(".cl-c .chip")?.focus({ preventScroll: true }));
     if (reduced) {
-      prom.then(
-        () => {
-          close(true);
-          toChips();
-        },
-        () => go("error"),
-      );
+      face("wait");
+      prom.then(() => close(true), fail);
       return;
     }
     const t0 = performance.now();
-    go("dropping");
-    later(T.drop, () => {
-      stage.current?.classList.remove("is-thud");
-      void stage.current?.offsetWidth;
-      stage.current?.classList.add("is-thud");
-      if (own) navigator.vibrate?.(hapticPattern());
-    });
+    let resolved = false;
     prom.then(
-      () => later(Math.max(0, T.hairStart - (performance.now() - t0)), () => close(true)),
-      () => {
-        clearTimers();
-        go("error");
-      },
+      () => void (resolved = true),
+      () => {},
     );
-    prom.then(toChips, () => {});
+    go("dropping");
+    later(T.fall, () => now.current === "dropping" && impact(own, resolved));
+    prom.then(() => later(Math.max(0, T.hairStart - (performance.now() - t0)), () => close(true)), fail);
   };
 
   const activate = () => {
@@ -202,28 +265,20 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
     return prom;
   };
 
-  // a copy from anywhere else: play it here if the ring is on screen, otherwise just show it closed
+  // a copy from anywhere else plays here only while this beat is up (a copy in the use notice, once it closes)
   useEffect(() => {
     if (seq === seen.current) return;
     seen.current = seq;
-    if (getCopy().source === "loop" && now.current !== "error") return;
-    const s = now.current;
-    if (s === "closed" || s === "dropping") return;
-    const v = p.get();
-    if (inView.current && v > 0.46 && v < 0.75 && !reduced) ritual(Promise.resolve(getCopy().words), false);
-    else {
-      clearTimers();
-      setInstant(true);
-      go("closed");
-      setAfter(true);
-      if (hair.current) hair.current.style.strokeDashoffset = "0";
-    }
+    if (getCopy().source === "loop") return;
+    const play = () => live.current && now.current !== "dropping" && ritual(Promise.resolve(getCopy().words), false);
+    const dlg = document.querySelector("dialog[open]");
+    if (dlg) dlg.addEventListener("close", play, { once: true });
+    else play();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seq]);
 
   // the press: at once for a mouse or a key, after 80ms of stillness for a finger (a scroll never presses)
   const down = (e: RPointerEvent) => {
-    viaKey.current = false;
     if (e.pointerType === "mouse") {
       if (e.button === 0) setPress(true);
       return;
@@ -254,10 +309,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
     }, 350);
   };
   const key = (e: KeyboardEvent) => {
-    if ((e.key === " " || e.key === "Enter") && !e.repeat) {
-      viaKey.current = true;
-      setPress(true);
-    }
+    if ((e.key === " " || e.key === "Enter") && !e.repeat) setPress(true);
   };
   const hover = (on: boolean) => () => !coarse && setArmed(on);
   const press$ = { onPointerDown: down, onPointerMove: move, onPointerUp: up, onPointerCancel: cancel };
@@ -272,6 +324,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   // the nav's copy button steps aside while this one is on screen
   const cIn = useTransform(p, [BEATS.copy[0], BEATS.copy[0] + 0.02, BEATS.copy[1] - 0.02, BEATS.copy[1]], [0, 1, 1, 0]);
   useMotionValueEvent(cIn, "change", (o) => {
+    live.current = o > 0.5;
     if (o > 0.5) document.documentElement.dataset.stamp = "";
     else delete document.documentElement.dataset.stamp;
   });
@@ -294,7 +347,9 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
     let lastKey = "";
     let dpr = 1;
     let phone = isPhone();
-    let pose: Rect = poseRect(window.innerWidth, window.innerHeight, phone);
+    let vw = cv.clientWidth || window.innerWidth;
+    let vh = cv.clientHeight || window.innerHeight;
+    let pose: Rect = poseRect(vw, vh, phone);
 
     const seam = geo.seam.match(/\w\w/g)!.map((h) => parseInt(h, 16)).join(",");
     const edge = (x0: number, y0: number, x1: number, y1: number, x: number, y: number, w: number, h: number, alpha: number) => {
@@ -311,7 +366,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
       const ch = cv.height;
       const { ox, oy, dw, dh } = r;
       const fy = 0.08 * dh;
-      const fx = 0.06 * dw;
+      const fx = 0.14 * dw; // the ring sits in the middle half, so the sides can fade a long way
       ctx.fillStyle = `rgba(${seam},${alpha})`;
       if (oy > 0.5) ctx.fillRect(0, 0, cw, oy);
       if (oy + dh < ch - 0.5) ctx.fillRect(0, oy + dh, cw, ch - oy - dh);
@@ -351,7 +406,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
         const tx = r.ox + TAG[0] * r.dw;
         const ty = r.oy + TAG[1] * r.dh;
         tagW ||= (t.lastElementChild as HTMLElement | null)?.offsetWidth ?? 190;
-        const left = tx + 80 + tagW > window.innerWidth - 16;
+        const left = tx + 80 + tagW > vw - 16;
         t.classList.toggle("side-left", left);
         t.classList.toggle("side-right", !left);
         t.style.transform = `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, 0)`;
@@ -367,8 +422,8 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
       if (!onScreen && cur === target && lastKey) return; // off screen: drawn once, then asleep
       const diff = target - cur;
       cur = reduced || !onScreen || Math.abs(diff) < 0.02 ? target : cur + diff * 0.2;
-      const cw = window.innerWidth;
-      const ch = window.innerHeight;
+      const cw = vw;
+      const ch = vh;
       if (v >= 0.45 && pano) {
         // frame 50 is the panorama's middle, so the hand-over is seamless. At the copy pose the paper
         // hides the panorama's far ends; it gives way as the camera starts to slide.
@@ -415,7 +470,9 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
     const resize = () => {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
       phone = isPhone();
-      pose = poseRect(window.innerWidth, window.innerHeight, phone);
+      vw = cv.clientWidth || window.innerWidth;
+      vh = cv.clientHeight || window.innerHeight;
+      pose = poseRect(vw, vh, phone);
       const w = Math.round(cv.clientWidth * dpr);
       const h = Math.round(cv.clientHeight * dpr);
       if (w !== cv.width || h !== cv.height) {
@@ -466,6 +523,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
       if (started) return;
       started = true;
       ensureBootloader("high").catch(() => {});
+      setCbLoad(LIFT * blockW.current * Math.min(window.devicePixelRatio || 1, 3) > 700 ? "hi" : "lo");
       try {
         if (!lo) {
           const decodeW = Math.min(1600, Math.round(Math.max(window.innerWidth, window.innerHeight * 1.6) * dpr));
@@ -532,42 +590,77 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
     };
   }, [p]);
 
-  // beat C's button lines up with Quality, and a fine line joins them (desktop)
+  // the COPY block's size, and on desktop its face level with Quality's, a fine line joining them
   useLayoutEffect(() => {
+    const st = stage.current;
     const place = () => {
       const c = beatC.current;
-      const b = pill.current;
+      const b = btn.current;
       const l = leader.current;
-      if (!c || !b || !l) return;
-      if (isPhone()) {
+      if (!st || !c || !b || !l) return;
+      const cw = st.clientWidth;
+      const ch = st.clientHeight;
+      const mode: BlockMode = !isPhone() ? "desk" : cw > ch ? "land" : "phone";
+      const put = (W: number, big: number, small: number, gapb: number, ml: string) => {
+        blockW.current = W;
+        c.style.setProperty("--cbw", `${W.toFixed(1)}px`);
+        c.style.setProperty("--big", `${big}px`);
+        c.style.setProperty("--small", `${small}px`);
+        c.style.setProperty("--gapb", `${gapb}px`);
+        c.style.setProperty("--cbml", ml);
+      };
+      c.classList.remove("is-tight", "is-tighter");
+      if (mode !== "desk") {
         c.style.top = "";
+        c.style.width = "";
+        c.style.maxWidth = "";
         l.style.display = "none";
+        // everything in the column but the block, then the block takes what is left above the rows
+        const rest = c.offsetHeight - b.offsetHeight - (parseFloat(getComputedStyle(b).marginTop) || 0);
+        const colW = c.clientWidth;
+        let room: number;
+        if (mode === "phone") {
+          const r = poseRect(cw, ch, true);
+          const below = parseFloat(getComputedStyle(c).bottom) || 14;
+          room = ch - below - (r.oy + (RCY + HAIR.ry) * r.dh + 8); // under the ring's line
+        } else room = ch - 14 - c.offsetTop;
+        const f = blockFit(mode, colW, room, rest, ch);
+        const full = f.W >= colW / LIFT - 1;
+        put(f.W, f.big, f.small, f.gapb, full ? `${(0.04 * f.W).toFixed(1)}px` : "auto");
+        if (f.short) st.dataset.fit = "short";
+        else delete st.dataset.fit;
         return;
       }
-      const r = poseRect(window.innerWidth, window.innerHeight, false);
+      delete st.dataset.fit;
+      const r = poseRect(cw, ch, false);
+      const gut = c.offsetLeft;
       const ringLeft = r.ox + (RCX - HAIR.rx) * r.dw;
-      c.style.maxWidth = `${Math.max(280, Math.min(500, 0.35 * window.innerWidth, ringLeft - 16 - c.offsetLeft))}px`;
-      // a short window: drop the closing line rather than run into the rail
-      c.classList.remove("is-tight");
-      if (c.offsetHeight > window.innerHeight - 96 - 88) c.classList.add("is-tight");
+      const colW = Math.max(280, Math.min(500, 0.35 * cw, ringLeft - 16 - gut));
+      c.style.maxWidth = "";
+      c.style.width = `${colW}px`;
+      const f = blockFit("desk", colW, 0, 0, ch, ringLeft - gut - 96);
+      put(f.W, f.big, f.small, f.gapb, `${(0.04 * f.W).toFixed(1)}px`);
+      // a short window: the follow line goes first, then the kicker
+      if (c.offsetHeight > ch - 120) c.classList.add("is-tight");
+      if (c.offsetHeight > ch - 120) c.classList.add("is-tighter");
       const qy = r.oy + QC[1] * r.dh;
       const qx = r.ox + Q[0] * r.dw;
-      const off = b.offsetTop + b.offsetHeight / 2;
-      const top = Math.max(96, Math.min(window.innerHeight - c.offsetHeight - 88, qy - off)); // clear of the rail
+      const faceC = b.offsetTop + (cb.face[1] + cb.face[3] / 2) * b.offsetHeight;
+      const top = Math.max(96, Math.min(ch - c.offsetHeight - 24, qy - faceC));
       c.style.top = `${top}px`;
-      const by = top + off;
-      const x0 = c.offsetLeft + b.offsetLeft + b.offsetWidth + 12;
+      const x0 = c.offsetLeft + b.offsetLeft + (b.offsetWidth * (1 + LIFT)) / 2 + 12;
       const x1 = qx - 16;
-      const ok = Math.abs(by - qy) <= 8 && x1 - x0 > 24;
+      const ok = Math.abs(top + faceC - qy) <= 8 && x1 - x0 >= 24 && x1 - x0 <= 320;
       l.style.display = ok ? "" : "none";
       l.style.left = `${x0}px`;
       l.style.top = `${qy}px`;
       l.style.width = `${x1 - x0}px`;
     };
     place();
-    window.addEventListener("resize", place);
+    const ro = new ResizeObserver(place);
+    if (st) ro.observe(st);
     void document.fonts?.ready.then(place);
-    return () => window.removeEventListener("resize", place);
+    return () => ro.disconnect();
   }, [after]);
 
   const book = copy.book;
@@ -603,7 +696,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
             ref={canvas}
             className="cl-canvas"
             role="img"
-            aria-label="Seen from above, the Up, Side and Down blocks lie face up under blocks labelled SOPs, AI tools, apps, Slack and CRM. The pile is swept off the table and twelve painted system blocks are set down in a ring around them, green for Scaling Up, ochre for Scaling Sideways, red for Scaling Down. The last block, Quality, waits above its gap. Further along the same table lies the hardcover of the book."
+            aria-label="Seen from above, the Up, Side and Down blocks lie face up under blocks labelled SOPs, AI tools, apps, Slack and CRM. The pile is swept off the table and twelve painted system blocks are set down in a ring around them, green for Scaling Up, ochre for Scaling Sideways, red for Scaling Down. The last block, Quality, waits above its gap; copying the prompt sets it in. Further along the same table lies the hardcover of the book."
           />
           <m.div ref={plate} className="cl-plate" style={{ "--qlow": lower, opacity: plateIn, visibility: plateVis } as unknown as CSSProperties} aria-hidden="true">
             <img className="cl-shd lift" src={asset(geo.files.q_shd_lift)} alt="" style={layer("q_shd_lift")} draggable={false} />
@@ -616,6 +709,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
             <svg className="cl-hair" viewBox="0 0 1600 1000" preserveAspectRatio="none">
               <path ref={hair} d={hairD} pathLength={1} />
             </svg>
+            <div ref={wave} className="cl-wave" style={{ left: qStyle.left, top: qStyle.top, width: qStyle.width, height: qStyle.height }} />
             <div
               className="cl-hit"
               role="presentation"
@@ -625,7 +719,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
                 width: `max(96px, ${(Q[2] - Q[0]) * 100}%)`,
                 height: `max(96px, ${(Q[3] - Q[1]) * 100}%)`,
               }}
-              onClick={() => pill.current?.click()}
+              onClick={() => btn.current?.click()}
               onPointerEnter={hover(true)}
               onPointerLeave={(e) => {
                 hover(false)();
@@ -671,80 +765,107 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
         <CopyBeat p={p} refEl={beatC}>
           <p className="beat-k">
             <TriDot />
-            <span className="cl-swap ph" data-on={after ? "b" : "a"}>
-              <span className="a">{copy.copy.kicker}</span>
+            <span className="cl-swap" data-on={after ? "b" : "a"}>
+              <span className="a" aria-hidden={after}>
+                {copy.copy.kicker}
+              </span>
               <span className="b" aria-hidden={!after}>
                 {copy.after.kicker}
               </span>
             </span>
           </p>
           <h2 className="beat-h cl-h" id="cl-h">
-            <span className="cl-swap ph" data-on={after ? "b" : "a"}>
-              <span className="a">{copy.copy.headline}</span>
+            <span className="cl-swap" data-on={after ? "b" : "a"}>
+              <span className="a" aria-hidden={after}>
+                {copy.copy.headline}
+              </span>
               <span className="b" aria-hidden={!after}>
                 {copy.after.question}
               </span>
             </span>
           </h2>
-          <div className="cl-meter">
-            <span className="cl-num" aria-hidden="true" ref={num} />
-            <span className="cl-meta" aria-hidden="true">
-              <span className="cl-swap" data-on={after ? "b" : "a"}>
-                <span className="a">
-                  <b>Words</b>
-                  <em>{copy.copy.scope}</em>
-                </span>
-                <span className="b">
-                  <b>Words · Copied</b>
-                  <em>
-                    {coarse ? (
-                      "Long-press → Paste · may attach as a file"
-                    ) : (
-                      <>
-                        Paste <kbd>{mac ? "⌘" : "Ctrl"}</kbd>
-                        <kbd>V</kbd> · may attach as a file
-                      </>
-                    )}
-                  </em>
-                </span>
-              </span>
-            </span>
-            <span className="sr-only" id="cl-meter">
-              {words ? `The whole file, ${words.toLocaleString()} words` : "The whole file"}
-            </span>
-          </div>
-          <div
-            className="cl-pill"
+          <CopyBlock
+            ref={btn}
+            digitsRef={digits}
+            words={words}
+            closed={ring === "closed"}
+            labels={copy.block}
+            load={cbLoad}
+            onClick={activate}
+            onKeyDown={key}
+            onFocus={() => setArmed(true)}
+            onBlur={() => (setArmed(false), cancel())}
             onPointerEnter={hover(true)}
             onPointerLeave={(e) => {
               hover(false)();
               if (e.pointerType === "mouse") setPress(false);
             }}
-          >
-            <CopyButton ref={pill} source="loop" size="lg" run={activate} flashMs={3400} aria-describedby="cl-meter" onKeyDown={key} onFocus={() => setArmed(true)} onBlur={() => (setArmed(false), cancel())} {...press$} />
-          </div>
-          <div className="cl-dl">
-            <a className={`dl${ring === "error" ? " is-promoted" : ""}`} href={`${BASE}bootloader.md`} download="SUSD-Bootloader.md">
-              <span aria-hidden="true">↓</span> Download
-              <small>{kb ? `SUSD-Bootloader.md · ${kb}` : "SUSD-Bootloader.md"}</small>
-            </a>
-            {ring === "error" && (
-              <a className="dl-open" href={`${BASE}bootloader.txt`} target="_blank" rel="noopener">
-                Open the file
+            {...press$}
+          />
+          <div className="cl-rows">
+            {ring === "error" ? (
+              <>
+                <div className="cl-row-a" key="err">
+                  <a className="dl is-promoted" href={`${BASE}bootloader.md`} download="SUSD-Bootloader.md">
+                <span aria-hidden="true">↓</span> Download
+                
               </a>
+                  <a className="dl-open" href={`${BASE}bootloader.txt`} target="_blank" rel="noopener">
+                    Open the file
+                  </a>
+                </div>
+                <div className="cl-row-b" key="err-b">
+                  <button type="button" className="notice-link" onClick={(e) => openNotice(e.currentTarget)}>
+                    Use notice
+                  </button>
+                </div>
+              </>
+            ) : after ? (
+              <>
+                <div className="cl-row-a" key="after">
+                  <AssistantChips
+                    variant="paper"
+                    lead={
+                      coarse ? undefined : (
+                        <>
+                          Paste <kbd>{mac ? "⌘" : "Ctrl"}</kbd>
+                          <kbd>V</kbd> {copy.block.pasteInto}
+                        </>
+                      )
+                    }
+                  />
+                </div>
+                <div className="cl-row-b" key="after-b">
+                  <a className="dl" href={`${BASE}bootloader.md`} download="SUSD-Bootloader.md">
+                <span aria-hidden="true">↓</span> Download
+                <small>{kb}</small>
+              </a>
+                  <button type="button" className="notice-link" onClick={(e) => openNotice(e.currentTarget)}>
+                    Use notice
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="cl-row-a" key="before">
+                  <a className="dl" href={`${BASE}bootloader.md`} download="SUSD-Bootloader.md">
+                <span aria-hidden="true">↓</span> Download
+                <small>
+                    <span className="fn">SUSD-Bootloader.md{kb ? " · " : ""}</span>
+                    {kb}
+                  </small>
+              </a>
+                  <button type="button" className="notice-link" onClick={(e) => openNotice(e.currentTarget)}>
+                    Use notice
+                  </button>
+                </div>
+                <div className="cl-row-b" key="before-b" />
+              </>
             )}
-            <button type="button" className="notice-link" onClick={(e) => openNotice(e.currentTarget)}>
-              Use notice
-            </button>
           </div>
-          <div className="cl-c">
-            <AssistantChips variant="paper" />
-          </div>
-          <div className="cl-after desk-only" aria-hidden={!after}>
-            <p className="cl-after-k">{copy.after.kicker}</p>
-            <p className="cl-after-q">{copy.after.question}</p>
-            <p className="cl-after-l">{copy.after.line}</p>
-          </div>
+          <p className="cl-follow desk-only" aria-hidden={!after}>
+            {copy.after.line}
+          </p>
         </CopyBeat>
 
         <Win p={p} at={BEATS.pair} className="cl-pair desk-only">

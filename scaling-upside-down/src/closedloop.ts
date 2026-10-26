@@ -6,8 +6,9 @@
 // .45-.48 Quality is lowered over the last gap; .47-.73 the copy pose (copying drops it in)
 // .74-.92 the camera slides along the table to the book; then the book
 import geo from "./closed.json";
+import cb from "./copyblock.json";
 
-export { geo };
+export { cb, geo };
 export const CL_VH = 480;
 export const BOOTLOADER_P = 0.53;
 export const BOOK_P = 0.955;
@@ -37,8 +38,12 @@ export const BEATS = {
   book: [0.915, 1], // stays up as the stage scrolls away
 } as const;
 
-// the copy ritual, in ms
-export const T = { drop: 240, jolt: 140, hairStart: 260, hairMs: 1000, swap: 1300, focus: 1400, againMs: 600 };
+// the copy ritual, in ms: the COPY block and Quality fall together and land on one frame (fall),
+// the line closes round the ring while the count runs (hairMs), the block turns green (seal)
+export const T = { fall: 240, hairStart: 260, hairMs: 1000, swapAfterSeal: 40, flash: 3400, againMs: 600, againLift: 360, wave: 420, shakeDelay: 300, shake: 320, errorMs: 4000 };
+/** the COPY block is laid out at its lifted size; every state is a scale at or below 1 of that, so it stays sharp */
+export const LIFT = 1.08;
+export const fmtWords = (n: number) => n.toLocaleString("en-US");
 
 export const smooth = (t: number) => {
   const c = Math.max(0, Math.min(1, t));
@@ -144,4 +149,31 @@ export function truckRect(p: number, cw: number, ch: number, phone: boolean): Re
   if (p < 0.8) return mix(r0, r1, smooth((p - 0.74) / 0.06));
   if (p < 0.86) return r1;
   return mix(r1, r2, smooth((p - 0.86) / 0.06));
+}
+
+export type BlockMode = "desk" | "phone" | "land";
+export type BlockFit = { W: number; faceH: number; big: number; small: number; gapb: number; short: boolean };
+/**
+ * The COPY block's size. `rest` is the height of everything else in the column (kicker, headline,
+ * the rows below), measured from the page; `room` is the height the whole column may take.
+ */
+export function blockFit(mode: BlockMode, colW: number, room: number, rest: number, ch: number, ringRoom = Infinity): BlockFit {
+  const gapb = mode === "desk" ? 0 : ch <= 620 ? 12 : ch <= 760 ? 16 : 22;
+  let W: number;
+  let short = false;
+  if (mode === "desk") {
+    W = Math.max(260, Math.min(colW / LIFT, ringRoom, 0.6 * ch, 460));
+  } else {
+    const max = Math.min(460, colW / LIFT);
+    const fit = (room - rest - gapb) / cb.bodyAR;
+    W = Math.min(max, fit);
+    if (W < 0.7 * max) {
+      W = 0.7 * max;
+      short = true; // a very short screen: the block keeps its size, the headline steps aside
+    }
+  }
+  const faceH = W * cb.faceAR;
+  const big = Math.round(0.5 * faceH);
+  const small = Math.max(19, Math.round(0.25 * big));
+  return { W, faceH, big, small, gapb: mode === "desk" ? Math.max(40, Math.round(0.25 * faceH + 6)) : gapb, short };
 }
