@@ -65,7 +65,8 @@
   font-size: clamp(150px, 24vw, 400px);
   line-height: 0.8;
   color: var(--bone);
-  text-shadow: 0 0 80px rgba(255, 120, 40, 0.6);
+  /* it lands on the flash, the brightest frame in the film */
+  text-shadow: 0 4px 34px rgba(13, 10, 8, 0.75), 0 0 80px rgba(255, 120, 40, 0.5);
 }
 .sf-huge sup {
   font-size: 0.4em;
@@ -74,6 +75,7 @@
 }
 .sf-card .note {
   font-size: clamp(22px, 2.2vw, 34px);
+  text-shadow: 0 2px 14px rgba(13, 10, 8, 0.8);
 }
 .sf-clip {
   rotate: -1.5deg;
