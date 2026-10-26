@@ -11,7 +11,8 @@ const URL_ = `${import.meta.env.BASE_URL}bootloader.md`;
 let text: string | null = null;
 let inflight: Promise<string> | null = null;
 
-export const wordCount = (t: string) => (t.match(/\S+/g) ?? []).length;
+// words, not Markdown: a table's pipes, rules and checkboxes don't count
+export const wordCount = (t: string) => (t.match(/\S*[\p{L}\p{N}]\S*/gu) ?? []).length;
 
 /** the file, if it has loaded */
 export const peek = () => text;
