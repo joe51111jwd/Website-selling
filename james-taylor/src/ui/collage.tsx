@@ -151,18 +151,10 @@ export function Clip({
   }, []);
   return (
     <figure className={`print print-${frame} print-clip ${className}`}>
-      <video
-        ref={ref}
-        src={`${BASE}${c.file}`}
-        poster={`${BASE}${c.poster}`}
-        width={c.w}
-        height={c.h}
-        muted
-        loop
-        playsInline
-        preload="none"
-        aria-label={c.alt}
-      />
+      <video ref={ref} poster={`${BASE}${c.poster}`} width={c.w} height={c.h} muted loop playsInline preload="none" aria-label={c.alt}>
+        <source src={`${BASE}${c.webm}`} type="video/webm" />
+        <source src={`${BASE}${c.file}`} type="video/mp4" />
+      </video>
       {caption && <figcaption className={frame === "polaroid" ? "hand" : "type"}>{caption}</figcaption>}
       <Tapes at={tape} />
     </figure>

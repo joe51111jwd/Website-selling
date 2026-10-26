@@ -4,8 +4,8 @@ for the moving prints on the page.
     python3 scripts/clips.py            # everything in photos/clips.json
     python3 scripts/clips.py cuts       # just one
 
-Only the needed seconds are fetched (ffmpeg seeks over HTTP). Writes public/clips/<id>.mp4 plus a
-poster <id>.jpg, and src/clips.ts with sizes and credits. Needs ffmpeg.
+Only the needed seconds are fetched (ffmpeg seeks over HTTP). Writes public/clips/<id>.mp4 (H.264),
+<id>.webm (VP9) and a poster <id>.jpg, and src/clips.ts with sizes and credits. Needs ffmpeg.
 """
 import json
 import os
@@ -31,6 +31,9 @@ def main():
                         "-i", url, "-an", "-vf", "scale=720:-2:flags=lanczos,eq=contrast=1.06:saturation=1.05,fps=24",
                         "-c:v", "libx264", "-preset", "slow", "-crf", "27", "-pix_fmt", "yuv420p", "-movflags", "+faststart", mp4],
                        check=True)
+        # VP9 too, for browsers built without H.264
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", mp4, "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "38",
+                        "-row-mt", "1", "-deadline", "good", "-cpu-used", "2", os.path.join(OUT, c["id"] + ".webm")], check=True)
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", mp4, "-frames:v", "1", "-q:v", "4",
                         os.path.join(OUT, c["id"] + ".jpg")], check=True)
         print(f"{c['id']:<12} {os.path.getsize(mp4) / 1e3:.0f} KB")
@@ -48,7 +51,7 @@ def main():
             if c["id"] not in sizes:
                 continue
             w, h = sizes[c["id"]]
-            entry = {"file": f"clips/{c['id']}.mp4", "poster": f"clips/{c['id']}.jpg", "w": w, "h": h, "alt": c["alt"],
+            entry = {"file": f"clips/{c['id']}.mp4", "webm": f"clips/{c['id']}.webm", "poster": f"clips/{c['id']}.jpg", "w": w, "h": h, "alt": c["alt"],
                      "credit": {"title": c["title"], "author": c["author"], "license": "Public domain",
                                 "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
                                 "page": f"https://archive.org/details/{c['item']}"}}
