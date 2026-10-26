@@ -1,0 +1,11 @@
+// Written by scripts/clips.py from photos/clips.json. Do not edit by hand.
+
+export const CLIPS = {
+  "dinner-1950": {"file": "clips/dinner-1950.mp4", "poster": "clips/dinner-1950.jpg", "w": 720, "h": 540, "alt": "A family at the dinner table, 1950.", "credit": {"title": "A Date With Your Family (1950)", "author": "Simmel-Meservey", "license": "Public domain", "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/", "page": "https://archive.org/details/DateWith1950"}},
+  "miami-1955": {"file": "clips/miami-1955.mp4", "poster": "clips/miami-1955.jpg", "w": 720, "h": 540, "alt": "Miami Beach from a helicopter, 1955.", "credit": {"title": "Where the Sun Reigns (1955)", "author": "Reela Films for the Dade County Advertising Advisory Board", "license": "Public domain", "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/", "page": "https://archive.org/details/Wherethe1955"}},
+  "neon-1955": {"file": "clips/neon-1955.mp4", "poster": "clips/neon-1955.jpg", "w": 720, "h": 540, "alt": "Miami Beach restaurant neon at night, 1955.", "credit": {"title": "Where the Sun Reigns (1955)", "author": "Reela Films for the Dade County Advertising Advisory Board", "license": "Public domain", "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/", "page": "https://archive.org/details/Wherethe1955"}},
+  "cuts": {"file": "clips/cuts.mp4", "poster": "clips/cuts.jpg", "w": 720, "h": 540, "alt": "Raw rib steaks laid out on a butcher's table, in 1950s colour film.", "credit": {"title": "Carving Magic", "author": "Swift & Company", "license": "Public domain", "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/", "page": "https://archive.org/details/carving_magic"}},
+  "carving": {"file": "clips/carving.mp4", "poster": "clips/carving.jpg", "w": 720, "h": 540, "alt": "A standing rib roast being carved, in 1950s colour film.", "credit": {"title": "Carving Magic", "author": "Swift & Company", "license": "Public domain", "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/", "page": "https://archive.org/details/carving_magic"}},
+};
+
+export type ClipId = keyof typeof CLIPS;

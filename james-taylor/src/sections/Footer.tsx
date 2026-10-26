@@ -1,5 +1,16 @@
 import { SITE, SOURCES } from "../content";
 import { PHOTOS } from "../photos";
+import { CLIPS } from "../clips";
+import { SCANS } from "../scans";
+
+// every credit, once: photos, archive films (one per film, not per clip) and 3D scans
+const CREDITS = [
+  ...Object.values(PHOTOS).map((p) => p.credit),
+  ...Object.values(CLIPS)
+    .map((c) => c.credit)
+    .filter((c, i, all) => all.findIndex((d) => d.page === c.page) === i),
+  ...SCANS.map((s) => ({ ...s, title: `${s.title} (3D scan)` })),
+];
 import "./Footer.css";
 
 export function Footer() {
@@ -40,29 +51,29 @@ export function Footer() {
           <div>
             <p className="eyebrow">The pictures</p>
             <p>
-              Places, ingredients and fire, from photographers who share their work openly. Not his plates:
-              those are better seen in person.
+              Photographs, public-domain film from the 1950s and 3D scans of real steaks, all from people who
+              share their work openly. Not his plates: those are better seen in person.
             </p>
             <details className="foot-credits">
-              <summary>Photo credits ({Object.keys(PHOTOS).length})</summary>
+              <summary>Credits ({CREDITS.length})</summary>
               <ul>
-                {Object.entries(PHOTOS).map(([id, p]) => (
-                  <li key={id}>
-                    <a href={p.credit.page} target="_blank" rel="noreferrer">
-                      {p.credit.title}
+                {CREDITS.map((c) => (
+                  <li key={c.page}>
+                    <a href={c.page} target="_blank" rel="noreferrer">
+                      {c.title}
                     </a>{" "}
-                    by {p.credit.author},{" "}
-                    {p.credit.licenseUrl ? (
-                      <a href={p.credit.licenseUrl} target="_blank" rel="noreferrer">
-                        {p.credit.license}
+                    by {c.author},{" "}
+                    {c.licenseUrl ? (
+                      <a href={c.licenseUrl} target="_blank" rel="noreferrer">
+                        {c.license}
                       </a>
                     ) : (
-                      p.credit.license
+                      c.license
                     )}
                   </li>
                 ))}
               </ul>
-              <p className="foot-note">Some are cropped, cut out or recoloured for the collage.</p>
+              <p className="foot-note">Photos are cropped, cut out or recoloured for the collage; film clips are cut short.</p>
             </details>
           </div>
         </div>

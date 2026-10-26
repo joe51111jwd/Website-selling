@@ -13,6 +13,26 @@
   background-repeat: no-repeat;
   background-position: 0 0;
 }
+.creed-clip {
+  width: min(78vw, 340px);
+  margin: 48px 0 0 auto;
+  rotate: 3deg;
+}
+@media (min-width: 900px) {
+  .creed {
+    position: relative;
+  }
+  .creed-q {
+    max-width: min(17em, 62vw);
+  }
+  .creed-clip {
+    position: absolute;
+    right: calc(var(--gutter) + 1vw);
+    top: 30%;
+    width: clamp(260px, 24vw, 380px);
+    margin: 0;
+  }
+}
 .creed-by {
   margin: 28px 0 0;
   font-size: 14px;
@@ -35,6 +55,6 @@
 }
 @media (min-width: 900px) {
   .creed-magic {
-    margin-left: 46%;
+    margin-left: 22%;
   }
 }

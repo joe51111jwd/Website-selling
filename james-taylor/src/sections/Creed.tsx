@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { PHILOSOPHY } from "../content";
-import { Doodle, Note } from "../ui/collage";
+import { Clip, Doodle, Note } from "../ui/collage";
 import "./Creed.css";
 
 const MARK = new Set(["memorable", "meals"]);
@@ -24,6 +24,15 @@ export function Creed() {
           ))}
         </blockquote>
         <p className="creed-by type">{PHILOSOPHY.by}</p>
+        <motion.div
+          className="creed-clip"
+          initial={{ opacity: 0, scale: 1.25, rotate: 10 }}
+          whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ type: "spring", stiffness: 300, damping: 22 }}
+        >
+          <Clip id="dinner-1950" caption="dinner, 1950 (archive film)" tape="top" />
+        </motion.div>
         <div className="creed-magic">
           <Note color="marker">{PHILOSOPHY.magic}</Note>
           <Doodle kind="underline" className="creed-line" />

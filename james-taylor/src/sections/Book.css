@@ -30,3 +30,19 @@
   justify-content: center;
   gap: 12px;
 }
+.book-neon {
+  position: relative;
+  z-index: 2;
+  width: min(70vw, 300px);
+  margin: -6vh auto 8vh;
+  rotate: -4deg;
+}
+@media (min-width: 1000px) {
+  .book-neon {
+    position: absolute;
+    left: calc(var(--gutter) + 1vw);
+    bottom: 12vh;
+    width: clamp(220px, 19vw, 320px);
+    margin: 0;
+  }
+}

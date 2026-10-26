@@ -1,51 +1,129 @@
 .heat {
   position: relative;
   z-index: 2;
-  padding: 16vh 0 14vh;
   margin: 8vh 0;
+  background: var(--char);
+}
+
+/* the film: real scans under the broiler, scrubbed by scroll */
+.sf {
+  position: relative;
+  height: 420svh;
+}
+.sf-stick {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+.sf-film {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.sf-ceiling {
+  /* the broiler itself: a band of live flame across the top of the shot */
+  position: absolute;
+  inset: 0 0 auto;
+  height: 34%;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+.sf-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(13, 10, 8, 0.85) 0%, rgba(13, 10, 8, 0.35) 34%, rgba(13, 10, 8, 0) 55%),
+    linear-gradient(180deg, rgba(13, 10, 8, 0) 70%, rgba(13, 10, 8, 0.85) 100%);
+}
+.sf-card {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  translate: 0 -40%;
+  pointer-events: none;
+}
+.sf-card > * {
+  max-width: 34rem;
+}
+.sf-center {
+  text-align: center;
+}
+.sf-center > * {
+  max-width: none;
+}
+.sf-big {
+  margin: 14px 0 12px;
+  font-size: clamp(84px, 11vw, 190px);
+  color: var(--bone);
+}
+.sf-huge {
+  margin: 0;
+  font-size: clamp(150px, 24vw, 400px);
+  line-height: 0.8;
+  color: var(--bone);
+  text-shadow: 0 0 80px rgba(255, 120, 40, 0.6);
+}
+.sf-huge sup {
+  font-size: 0.4em;
+  vertical-align: 1em;
+  color: var(--ember);
+}
+.sf-card .note {
+  font-size: clamp(22px, 2.2vw, 34px);
+}
+.sf-clip {
+  rotate: -1.5deg;
+}
+.sf-clip .clip-q {
+  font-size: clamp(24px, 2.3vw, 36px);
+}
+.sf-eyebrow {
+  color: var(--ash);
+}
+.sf-clock {
+  margin: 6px 0 22px;
+  font-size: clamp(90px, 12vw, 200px);
+  font-variant-numeric: tabular-nums;
+  color: var(--bone);
+}
+.sf-credit {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 18px;
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgba(243, 235, 220, 0.5);
+}
+
+/* your turn */
+.heat-turn {
+  position: relative;
+  padding: 14vh 0 16vh;
   background: radial-gradient(70% 60% at 70% 30%, #24160e, var(--char) 70%);
 }
 .heat-grid {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  grid-template-areas: "head box" "clips box";
-  gap: 0 clamp(24px, 5vw, 80px);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: clamp(24px, 5vw, 80px);
   align-items: center;
 }
-.heat-head {
-  grid-area: head;
-  align-self: end;
-}
-.heat-clips {
-  grid-area: clips;
-  align-self: start;
-}
-.heat-box {
-  grid-area: box;
+.heat-sub {
+  max-width: 24em;
+  font-size: 17px;
+  line-height: 1.5;
+  color: rgba(243, 235, 220, 0.8);
 }
 .heat-big {
-  margin: 10px 0 24px;
-  font-size: clamp(120px, 17vw, 300px);
+  margin: 10px 0 18px;
+  font-size: clamp(90px, 11vw, 190px);
   color: var(--bone);
   text-shadow: 0 0 80px rgba(255, 110, 40, 0.4);
 }
-.heat-big sup {
-  font-size: 0.42em;
-  vertical-align: 0.95em;
-  color: var(--ember);
-}
-.heat-clip {
-  max-width: 30rem;
-  rotate: -1.5deg;
-}
-.heat-clip .clip-q {
-  font-size: clamp(22px, 2vw, 32px);
-}
-.heat-clip-2 {
-  margin: 22px 0 0 8% !important;
-  rotate: 1.5deg;
-}
-
 /* the broiler: a window torn in the page with the fire behind it */
 .heat-box {
   position: relative;
@@ -155,9 +233,19 @@
 @media (max-width: 900px) {
   .heat-grid {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "head" "box" "clips";
   }
-  .heat-clips {
-    margin-top: 7vh;
+  .sf-shade {
+    background: linear-gradient(180deg, rgba(13, 10, 8, 0.2) 0%, rgba(13, 10, 8, 0) 40%, rgba(13, 10, 8, 0.75) 66%, rgba(13, 10, 8, 0.95) 100%);
+  }
+  .sf-card {
+    top: auto;
+    bottom: 9vh;
+    translate: none;
+  }
+  .sf-center {
+    bottom: 30vh;
+  }
+  .sf-ceiling {
+    height: 22%;
   }
 }

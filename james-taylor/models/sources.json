@@ -1,0 +1,32 @@
+[
+ {
+  "id": "raw",
+  "uid": "4a780837e8494759b881c980e302aaa2",
+  "name": "Prime rib on barbecue grill",
+  "author": "alban",
+  "username": "alban",
+  "license": "CC Attribution",
+  "page": "https://sketchfab.com/3d-models/4a780837e8494759b881c980e302aaa2",
+  "alt": "A raw bone-in rib steak on a grill grate (photogrammetry scan)."
+ },
+ {
+  "id": "seared",
+  "uid": "0d72ef49ea764361a865207e4d0d8252",
+  "name": "Prime rib on wood board",
+  "author": "alban",
+  "username": "alban",
+  "license": "CC Attribution",
+  "page": "https://sketchfab.com/3d-models/0d72ef49ea764361a865207e4d0d8252",
+  "alt": "A cooked bone-in rib steak on a wooden board (photogrammetry scan)."
+ },
+ {
+  "id": "sliced",
+  "uid": "969285ae788c41cd914387cecf088708",
+  "name": "Florence Steak - Fiorentina bistecca",
+  "author": "Shahriar Shahrabi",
+  "username": "shahriyarshahrabi",
+  "license": "CC Attribution",
+  "page": "https://sketchfab.com/3d-models/969285ae788c41cd914387cecf088708",
+  "alt": "A bone-in steak sliced on a plate, pink inside (photogrammetry scan)."
+ }
+]

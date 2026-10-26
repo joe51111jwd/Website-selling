@@ -64,6 +64,14 @@
   line-height: 1.1;
   color: var(--ink);
 }
+.print video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #1a1612;
+  /* archive film: a little warmer and softer than the prints around it */
+  filter: sepia(0.18) contrast(1.05);
+}
 .print-copy {
   background: transparent;
   padding: 0;

@@ -1,7 +1,8 @@
-import { createContext, useContext, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { PHOTOS, type PhotoId } from "../photos";
-import { finePointer } from "../lib/motion";
+import { CLIPS, type ClipId } from "../clips";
+import { finePointer, reducedMotion } from "../lib/motion";
 import "./collage.css";
 
 const BASE = import.meta.env.BASE_URL;
@@ -113,6 +114,55 @@ export function Print({
   return (
     <figure className={`print print-${frame} ${className}`}>
       <img src={photoUrl(id)} width={p.w} height={p.h} alt={p.alt} loading="lazy" decoding="async" />
+      {caption && <figcaption className={frame === "polaroid" ? "hand" : "type"}>{caption}</figcaption>}
+      <Tapes at={tape} />
+    </figure>
+  );
+}
+
+/** A moving print: a few silent seconds of archive film, looping while it's on screen. */
+export function Clip({
+  id,
+  frame = "polaroid",
+  caption,
+  tape = "none",
+  className = "",
+}: {
+  id: ClipId;
+  frame?: "border" | "polaroid";
+  caption?: ReactNode;
+  tape?: "top" | "corners" | "side" | "none";
+  className?: string;
+}) {
+  const c = CLIPS[id];
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const v = ref.current;
+    if (!v || reducedMotion()) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) void v.play().catch(() => {});
+        else v.pause();
+      },
+      { threshold: 0.2 },
+    );
+    io.observe(v);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <figure className={`print print-${frame} print-clip ${className}`}>
+      <video
+        ref={ref}
+        src={`${BASE}${c.file}`}
+        poster={`${BASE}${c.poster}`}
+        width={c.w}
+        height={c.h}
+        muted
+        loop
+        playsInline
+        preload="none"
+        aria-label={c.alt}
+      />
       {caption && <figcaption className={frame === "polaroid" ? "hand" : "type"}>{caption}</figcaption>}
       <Tapes at={tape} />
     </figure>

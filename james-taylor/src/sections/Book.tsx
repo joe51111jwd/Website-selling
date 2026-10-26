@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
 import { SITE } from "../content";
-import { Torn } from "../ui/collage";
+import { Clip, Torn } from "../ui/collage";
 import "./Book.css";
 
 /** Before The Joyce he cooked privately; the dining room hosts private events, menus built by him. */
@@ -8,6 +8,9 @@ export function Book() {
   return (
     <section id="book" className="book">
       <Torn edge="top" color="var(--char)" seed={31} depth={34} />
+      <div className="book-neon">
+        <Clip id="neon-1955" frame="border" caption="Miami Beach after dark, 1955" tape="top" />
+      </div>
       <div className="wrap book-in">
         <motion.div
           initial={{ opacity: 0, y: 40 }}

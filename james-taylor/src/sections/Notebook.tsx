@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { motion } from "motion/react";
 import { DISHES, type Dish } from "../content";
-import { Clipping, Cutout, Doodle, Label, Note, Piece, Print, Scrap, Spread } from "../ui/collage";
+import { Clip, Clipping, Cutout, Doodle, Label, Note, Piece, Print, Scrap, Spread } from "../ui/collage";
 import { Counter } from "../ui/Counter";
 import "./Notebook.css";
 
@@ -21,24 +21,24 @@ export function Notebook() {
       </header>
 
       {/* 01 ribeye */}
-      <Page id="ribeye" h="100vh" mh="135svh">
+      <Page id="ribeye" h="104vh" mh="165svh">
         <Piece at={{ x: 5, y: 6, w: 44, z: 3 }} m={{ x: 4, y: 1, w: 92, z: 3 }}>
           <Head d={dish("ribeye")} />
         </Piece>
-        <Piece at={{ x: 50, y: 4, w: 46, r: -6, z: 4 }} m={{ x: 4, y: 22, w: 92, r: -6, z: 4 }} depth={0.22} drag order={1}>
+        <Piece at={{ x: 50, y: 4, w: 46, r: -6, z: 4 }} m={{ x: 4, y: 17, w: 92, r: -6, z: 4 }} depth={0.22} drag order={1}>
           <Cutout id="rib-cooked" />
         </Piece>
-        <Piece at={{ x: 6, y: 42, w: 30, r: -1, z: 3 }} m={{ x: 5, y: 52, w: 72, r: -1, z: 3 }} depth={0.04} order={2}>
+        <Piece at={{ x: 6, y: 42, w: 30, r: -1, z: 3 }} m={{ x: 5, y: 44, w: 72, r: -1, z: 3 }} depth={0.04} order={2}>
           <Specs d={dish("ribeye")} />
         </Piece>
         <Piece at={{ x: 55, y: 62, w: 18, r: -5, z: 5 }} m={{ x: 50, y: 18, w: 46, r: -5, z: 5 }} depth={0.3} order={3}>
           <Note>broiled from ABOVE</Note>
           <Doodle kind="arrowDown" className="nb-up" />
         </Piece>
-        <Piece at={{ x: 76, y: 64, w: 18, r: 4, z: 5 }} m={{ x: 0, y: 0, w: 0 }} className="desk" depth={0.34} order={4}>
-          <Note color="biro">then it rests, up to 45 min</Note>
+        <Piece at={{ x: 75, y: 58, w: 21, r: 5, z: 5 }} m={{ x: 30, y: 66, w: 64, r: 5, z: 5 }} depth={0.26} drag order={4}>
+          <Clip id="carving" caption="carving the rib, 1950s film" />
         </Piece>
-        <Piece at={{ x: 24, y: 70, w: 30, r: -2, z: 6 }} m={{ x: 6, y: 74, w: 88, r: -2, z: 6 }} depth={0.12} order={5}>
+        <Piece at={{ x: 24, y: 70, w: 30, r: -2, z: 6 }} m={{ x: 6, y: 86, w: 88, r: -2, z: 6 }} depth={0.12} order={5}>
           <Clipping outlet="The Infatuation" when="March 2026" rating="8.0">
             {dish("ribeye").quote!.text}
           </Clipping>
