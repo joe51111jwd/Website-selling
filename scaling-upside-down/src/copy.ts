@@ -25,7 +25,16 @@ export type SiteCopy = {
     closing: { kicker: string; headline: string; detail: string };
     copy: { kicker: string; headline: string };
     after: { kicker: string; question: string; line: string };
-    block: { copy: string; copied: string; again: string; words: string; copying: string; tryAgain: string; name: string; nameAgain: string; pasteInto: string };
+    block: {
+      copy: string;
+      copied: string;
+      again: string;
+      words: string;
+      copying: string;
+      tryAgain: string;
+      pasteInto: string;
+      names: Record<"copy" | "done" | "again" | "error" | "copyNoCount" | "doneNoCount" | "againNoCount" | "errorNoCount" | "busy", string>;
+    };
     pair: { book: string; file: string };
     book: { kicker: string; quote: string; sign: string; headline: string; soon: string; button: string };
   };
@@ -131,7 +140,27 @@ export const COPY: SiteCopy = {
       line: "Then talk to it normally.", // L4543
     },
     // the COPY block's stamp and its accessible name: UI labels, not sentences
-    block: { copy: "Copy", copied: "Copied", again: "Again", words: "words", copying: "Copying", tryAgain: "Try again", name: "Copy the prompt", nameAgain: "Copy the prompt again", pasteInto: "into" },
+    block: {
+      copy: "Copy",
+      copied: "Copied",
+      again: "Again",
+      words: "words",
+      copying: "Copying",
+      tryAgain: "Try again",
+      pasteInto: "into",
+      // the button's accessible name begins with what its face says
+      names: {
+        copy: "Copy {n} words: the whole prompt",
+        done: "Copied {n} words: the whole prompt",
+        again: "Copy again: the whole prompt, {n} words",
+        error: "Copy, try again: the whole prompt, {n} words",
+        copyNoCount: "Copy the prompt",
+        doneNoCount: "Copied the prompt",
+        againNoCount: "Copy again: the prompt",
+        errorNoCount: "Copy, try again: the prompt",
+        busy: "Copying the prompt",
+      },
+    },
     pair: {
       book: "The pages are reference.", // L4497 (1st sentence)
       file: "The file is the operating system.", // L4497 (2nd sentence)

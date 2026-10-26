@@ -19,14 +19,12 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "public" / "cb"
 src, font_path = Path(sys.argv[1]), Path(sys.argv[2])
-OUT.mkdir(parents=True, exist_ok=True)
-for f in OUT.glob("*"):
-    f.unlink()
+staged = {}  # nothing is written until every check has passed
 
 
 def save(data, stem, ext):
     name = f"{stem}-{hashlib.sha1(data).hexdigest()[:8]}.{ext}"
-    (OUT / name).write_bytes(data)
+    staged[name] = data
     return name
 
 
@@ -164,7 +162,7 @@ if not ok:
 from fontTools import subset  # noqa: E402
 from fontTools.ttLib import TTFont  # noqa: E402
 
-f = TTFont(font_path)
+f = TTFont(font_path, recalcTimestamp=False)  # the source's own date, so the same font hashes the same
 names = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 for table in f["cmap"].tables:
     if table.isUnicode():
@@ -203,5 +201,10 @@ out = {
     "contrast": contrast,
     "files": files,
 }
+OUT.mkdir(parents=True, exist_ok=True)
+for old in OUT.glob("*"):
+    old.unlink()
+for name, data in staged.items():
+    (OUT / name).write_bytes(data)
 (ROOT / "src" / "copyblock.json").write_text(json.dumps(out, indent=1) + "\n")
 print(json.dumps({k: v for k, v in out.items() if k != "files"}), "files", len(files))

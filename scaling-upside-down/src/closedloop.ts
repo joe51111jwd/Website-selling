@@ -63,12 +63,16 @@ export function hairEase(t: number) {
   return 3 * (1 - u) * u * u + u * u * u;
 }
 
-/** one tick per system as the hairline passes it (Android), after a short thud */
-export function hapticPattern(): number[] {
-  const out = [10, 18];
-  let last = 0;
+/**
+ * Android: a thud as the blocks land (with `thud`), then one 3ms tick as the line passes each system.
+ * A vibration pattern alternates buzz and pause, starting with a buzz.
+ */
+export function hapticPattern(thud: boolean): number[] {
+  const lead = thud ? T.hairStart - T.fall : 0; // the line starts this long after the thud
+  const out = [thud ? 10 : 0];
+  let t = out[0];
   for (let k = 0; k < 12; k++) {
-    // time when the eased sweep reaches (k + .5) / 12
+    // when the eased sweep reaches the middle of system k
     const target = (k + 0.5) / 12;
     let lo = 0;
     let hi = 1;
@@ -77,36 +81,47 @@ export function hapticPattern(): number[] {
       if (hairEase(mid) < target) lo = mid;
       else hi = mid;
     }
-    const at = Math.round(lo * T.hairMs);
-    out.push(Math.max(0, at - last - (k === 0 ? 0 : 3)), 3);
-    last = at;
+    const pause = Math.max(0, Math.round(lead + lo * T.hairMs) - t);
+    out.push(pause, 3);
+    t += pause + 3;
   }
   return out;
 }
 
 export type Rect = { ox: number; oy: number; dw: number; dh: number };
+/** desk: words left, ring right; phone: ring above the words; land: a phone on its side */
+export type Mode = "desk" | "phone" | "land";
 const RATIO = 1.6;
 const RING_H = 0.75; // the ring's outer diameter, as a share of the frame's height
+const COL = 320; // the words' column (280) and its gutters, left of the ring's line on a desk
+
+/** the layout for this window, decided the way the stylesheet's media queries decide it */
+export function modeNow(): Mode {
+  if (window.innerWidth > 900) return "desk";
+  return window.matchMedia("(orientation: landscape)").matches ? "land" : "phone";
+}
 
 /** where frame 50 sits on screen at the copy pose */
-export function poseRect(cw: number, ch: number, phone: boolean): Rect {
+export function poseRect(cw: number, ch: number, mode: Mode): Rect {
   const [rx, ry] = geo.ringC;
-  if (phone && cw > ch) {
+  if (mode === "land") {
     // a phone on its side: the ring right of the words, as large as the height allows, clear of the menu
     const dh = Math.min(0.86 * ch, 0.6 * cw);
     const dw = dh * RATIO;
     return { ox: 0.72 * cw - rx * dw, oy: 0.5 * ch + 22 - ry * dh, dw, dh };
   }
-  if (phone) {
+  if (mode === "phone") {
     // the ring's centre sits half a frame below the menu
     const d = Math.min(0.88 * cw, (ch <= 600 ? 0.33 : ch <= 760 ? 0.36 : 0.42) * ch);
     const dh = d / RING_H;
     const dw = dh * RATIO;
     return { ox: 0.5 * cw - rx * dw, oy: 56 + 0.5 * dh - ry * dh, dw, dh };
   }
-  const dh = ch;
+  // the table fills the height; a squarer window shrinks it, so the ring's line stays clear of the words
+  const fit = (rx * cw - COL) / (geo.hair.rx * RATIO);
+  const dh = Math.min(ch, Math.max(0.4 * ch, fit));
   const dw = dh * RATIO;
-  return { ox: rx * cw - rx * dw, oy: 0, dw, dh };
+  return { ox: rx * cw - rx * dw, oy: (ch - dh) / 2, dw, dh };
 }
 
 /** the opening of the sequence on a phone: the buried row, larger, at the top */
@@ -122,22 +137,22 @@ const mix = (a: Rect, b: Rect, t: number): Rect => {
 };
 
 /** the sequence frames' rect (upright phones ease from the open fit to the pose as the ring is set) */
-export function seqRect(frame: number, cw: number, ch: number, phone: boolean): Rect {
-  const pose = poseRect(cw, ch, phone);
-  if (!phone || cw > ch) return pose;
+export function seqRect(frame: number, cw: number, ch: number, mode: Mode): Rect {
+  const pose = poseRect(cw, ch, mode);
+  if (mode !== "phone") return pose;
   return mix(openRect(cw, ch), pose, smooth((frame - 12) / 36));
 }
 
 /** the slide along the table: the pose, then the pair (desktop), then the book */
-export function truckRect(p: number, cw: number, ch: number, phone: boolean): Rect {
-  const r0 = poseRect(cw, ch, phone);
+export function truckRect(p: number, cw: number, ch: number, mode: Mode): Rect {
+  const r0 = poseRect(cw, ch, mode);
   const rx = geo.ringC[0];
   const bx = geo.book.c[0];
   const by = geo.book.c[1];
   // the book ends where the ring was, at the same size
   const r2 = { ox: r0.ox + (rx - bx) * r0.dw, oy: r0.oy, dw: r0.dw, dh: r0.dh };
-  if (phone && cw > ch) return mix(r0, r2, smooth((p - 0.76) / 0.11));
-  if (phone) {
+  if (mode === "land") return mix(r0, r2, smooth((p - 0.76) / 0.11));
+  if (mode === "phone") {
     const dw = 1.21 * r0.dw;
     const dh = dw / RATIO;
     // upright: the book centred above the words, a little closer
@@ -151,29 +166,34 @@ export function truckRect(p: number, cw: number, ch: number, phone: boolean): Re
   return mix(r1, r2, smooth((p - 0.86) / 0.06));
 }
 
-export type BlockMode = "desk" | "phone" | "land";
-export type BlockFit = { W: number; faceH: number; big: number; small: number; gapb: number; short: boolean };
+/** the stamp's two sizes for a block W wide */
+export function stampFor(W: number) {
+  const faceH = W * cb.faceAR;
+  const big = Math.round(0.5 * faceH);
+  return { faceH, big, small: Math.max(19, Math.round(0.25 * big)) };
+}
+
+export type BlockFit = { W: number; big: number; small: number; gapb: number; short: boolean };
 /**
  * The COPY block's size. `rest` is the height of everything else in the column (kicker, headline,
  * the rows below), measured from the page; `room` is the height the whole column may take.
  */
-export function blockFit(mode: BlockMode, colW: number, room: number, rest: number, ch: number, ringRoom = Infinity): BlockFit {
-  const gapb = mode === "desk" ? 0 : ch <= 620 ? 12 : ch <= 760 ? 16 : 22;
+export function blockFit(mode: Mode, colW: number, room: number, rest: number, ch: number, ringRoom = Infinity): BlockFit {
   let W: number;
   let short = false;
+  let gapb: number;
   if (mode === "desk") {
-    W = Math.max(260, Math.min(colW / LIFT, ringRoom, 0.6 * ch, 460));
+    W = Math.min(colW / LIFT, Math.max(260, Math.min(ringRoom, 0.6 * ch, 460))); // never into the ring
+    gapb = Math.max(40, Math.round(0.25 * stampFor(W).faceH + 6));
   } else {
+    gapb = mode === "land" || ch <= 620 ? 12 : ch <= 760 ? 16 : 22;
     const max = Math.min(460, colW / LIFT);
-    const fit = (room - rest - gapb) / cb.bodyAR;
-    W = Math.min(max, fit);
+    W = Math.min(max, (room - rest - gapb) / cb.bodyAR);
     if (W < 0.7 * max) {
       W = 0.7 * max;
       short = true; // a very short screen: the block keeps its size, the headline steps aside
     }
   }
-  const faceH = W * cb.faceAR;
-  const big = Math.round(0.5 * faceH);
-  const small = Math.max(19, Math.round(0.25 * big));
-  return { W, faceH, big, small, gapb: mode === "desk" ? Math.max(40, Math.round(0.25 * faceH + 6)) : gapb, short };
+  const { big, small } = stampFor(W);
+  return { W, big, small, gapb, short };
 }

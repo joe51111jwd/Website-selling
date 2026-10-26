@@ -424,8 +424,8 @@ html[data-stamp] .cl-hit { pointer-events: auto; } /* Quality copies only while 
 .beat-k i.tri b:nth-child(2) { background: var(--side); }
 .beat-k i.tri b:nth-child(3) { background: var(--down); }
 .cl-swap { display: inline-grid; }
-.cl-swap > span { grid-area: 1 / 1; transition: opacity 0.4s var(--ease), transform 0.4s var(--ease); }
-.cl-swap[data-on="b"] > .a, .cl-swap[data-on="a"] > .b { opacity: 0; visibility: hidden; transform: translateY(6px); }
+.cl-swap > span { grid-area: 1 / 1; transition: opacity 0.4s var(--ease), transform 0.4s var(--ease), visibility 0s; }
+.cl-swap[data-on="b"] > .a, .cl-swap[data-on="a"] > .b { opacity: 0; visibility: hidden; transform: translateY(6px); transition-delay: 0s, 0s, 0.4s; }
 .cl-copy .beat-h { font-size: clamp(40px, 4.1vw, 60px); }
 
 /* ---------- the COPY block: one painted block, the page stamps its words ----------
@@ -433,6 +433,7 @@ html[data-stamp] .cl-hit { pointer-events: auto; } /* Quality copies only while 
    (--lift) and every state scales it at or below 1, so the picture and the stamp stay sharp. */
 .cb { --lift: 1.08; --deb: rgba(70, 12, 8, 0.35); position: relative; display: block; width: var(--cbw, 320px); aspect-ratio: 1 / var(--cb-ar, 0.42); margin: var(--gapb, 40px) auto 0 var(--cbml, 13px); padding: 0; background: none; border: 0; border-radius: 6px; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
 .cb img { position: absolute; display: block; width: 100%; height: 100%; max-width: none; pointer-events: none; -webkit-user-drag: none; }
+.cb-shd, .cb-pose { pointer-events: none; }
 .cb-shd { position: absolute; opacity: 0; transition: opacity 220ms ease-out, translate 160ms ease-out, scale 160ms ease-out; }
 .cb-shd img { inset: 0; }
 .cb-pose { position: absolute; left: 50%; top: 50%; width: calc(100% * var(--lift)); height: calc(100% * var(--lift)); translate: -50% -50%; scale: calc(1.06 / 1.08); transition: scale 220ms ease-out; }
@@ -485,24 +486,27 @@ html[data-stamp] .cb-pose { will-change: scale; }
 .cb-num { display: inline-flex; justify-content: flex-end; }
 .cb-num i { display: inline-block; width: var(--slot, 0.683em); text-align: center; font-style: normal; }
 .cb-num i.c { width: var(--comma, 0.278em); }
-.cb-num i:empty { width: 0; }
 .cb:focus-visible { outline: none; }
 .cb:focus-visible .cb-pose { outline: 2px solid var(--ink); outline-offset: 6px; border-radius: 10px; }
 
 /* under the block: the file (before), the assistants (after), the file again, smaller */
-.cl-rows { margin-top: 22px; container-type: inline-size; }
-.cl-row-a { display: flex; align-items: center; gap: 4px 18px; min-height: 44px; flex-wrap: nowrap; white-space: nowrap; }
-.cl-row-b { display: flex; align-items: center; gap: 18px; height: 32px; margin-top: 2px; white-space: nowrap; }
+.cl-rows { display: flex; flex-direction: column; gap: 2px; margin-top: 22px; container-type: inline-size; }
+.cl-files, .cl-lead { display: flex; align-items: center; gap: 4px 18px; flex-wrap: nowrap; white-space: nowrap; }
+.cl-files { order: 0; min-height: 44px; }
+.cl-lead { order: 1; min-height: 32px; }
+.cl-rows[data-rows="after"] .cl-lead { order: 0; min-height: 44px; }
+.cl-rows[data-rows="after"] .cl-files { order: 1; min-height: 32px; }
+.cl-rows[data-rows="after"] .cl-files :is(.dl, .notice-link) { min-height: 32px; font: 500 13px var(--sans); }
+.cl-rows[data-rows="after"] .cl-files > * { animation: cl-in 300ms var(--ease) 80ms both; }
 .cl-rows .dl small { margin-left: 4px; font: 500 11px var(--mono); letter-spacing: 0.04em; color: var(--soft); text-decoration: none; }
-.cl-row-b :is(.dl, .notice-link) { min-height: 32px; font: 500 13px var(--sans); }
 .cl-rows .dl.is-promoted { height: 44px; padding: 0 20px; }
-.cl-row-a .chips { margin: 0; padding: 0; flex-wrap: nowrap; gap: 12px; }
-.cl-row-a .chips-row { flex-wrap: nowrap; }
-.cl-row-a .chips-paper.is-after .chip { animation-delay: calc(var(--i) * 60ms); }
+.cl-lead > .dl-open { min-height: 32px; font-size: 13px; animation: cl-in 300ms var(--ease) 80ms both; }
+.cl-lead .chips { margin: 0; padding: 0; flex-wrap: nowrap; gap: 12px; min-width: 0; }
+.cl-lead .chips-row { flex-wrap: nowrap; min-width: 0; gap: 8px; }
+.cl-lead .chips-paper.is-after .chip { animation-delay: calc(var(--i) * 60ms); }
 .cl-rows kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; margin: 0 1px; border-radius: 4px; background: var(--paper-hi); border: 1px solid rgba(23, 20, 15, 0.2); box-shadow: 0 1px 0 rgba(23, 20, 15, 0.2); font: 500 10px var(--mono); color: var(--ink); text-transform: none; }
-.cl-row-b > *, .cl-row-a > .dl-open, .cl-row-a > .dl.is-promoted { animation: cl-in 300ms var(--ease) 80ms both; }
 @keyframes cl-in { from { opacity: 0; translate: 0 4px; } }
-@container (max-width: 420px) { .cl-row-a .chips-l { display: none; } }
+@container (max-width: 470px) { .cl-lead .chips-l { display: none; } }
 @container (max-width: 380px) { .cl-rows .fn { display: none; } }
 .cl-follow { margin-top: 14px; font: italic 400 17px / 1.4 var(--serif); color: #3e372e; visibility: hidden; opacity: 0; transition: opacity 400ms var(--ease) 200ms, visibility 0s 200ms; }
 .cl-stage[data-after] .cl-follow { visibility: visible; opacity: 1; }
@@ -552,21 +556,37 @@ html[data-stamp] .cb-pose { will-change: scale; }
 .foot-notice { min-height: 44px; font: 500 12px var(--mono); color: var(--soft); text-decoration: underline; text-underline-offset: 3px; }
 .foot-notice:hover { color: var(--ink); }
 
+/* ---------- the copy column on phones, and on windows too short for the desk column ---------- */
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-rows { margin-top: 10px; max-width: var(--rowsw, 100%); } /* as wide as the block, on its left edge */
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-files { justify-content: space-between; gap: 4px 12px; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-lead .chips, .cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-lead .chips-row { flex: 1 1 auto; gap: 8px; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-lead .chip { flex: 1 1 0; min-width: 0; justify-content: center; height: 44px; padding: 0 8px; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) :is(.cl-lead .chips-l, .cl-rows .fn) { display: none; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-files .dl { font-size: 15px; }
+.cl-copy[data-mode="phone"] { top: auto; bottom: max(14px, env(safe-area-inset-bottom, 0px)); left: var(--gut); right: var(--gut-r); width: auto; translate: none; margin-top: 0; padding: 0; }
+.cl-copy[data-mode="phone"] .beat-h { font-size: 29px; }
+.cl-copy[data-mode="phone"] .beat-k { margin-bottom: 10px; }
+.cl-copy[data-mode="land"] { top: 74px; bottom: auto; left: var(--gut); right: auto; width: min(380px, 42vw); translate: none; margin-top: 0; padding: 0; }
+.cl-copy[data-mode="land"] .beat-k { display: none; }
+.cl-copy[data-mode="land"] .beat-h { font-size: clamp(20px, 6.2vh, 24px); }
+.cl-copy[data-mode="land"] .cl-rows { margin-top: 8px; }
+@media (max-height: 760px) {
+  .cl-copy[data-mode="phone"] .beat-k { display: none; }
+  .cl-copy[data-mode="phone"] .beat-h { font-size: 25px; }
+  .cl-copy[data-mode="desk"] .beat-h { font-size: clamp(36px, 4.1vw, 48px); }
+  .cl-copy[data-mode="desk"] .cl-follow { display: none; }
+}
+@media (max-height: 620px) {
+  .cl-copy[data-mode="phone"] .beat-h { font-size: 23px; }
+}
+/* a very short phone: the headline steps aside for the block, but stays the section's heading */
+.cl-stage[data-fit="short"] .cl-copy :is(.beat-k, .beat-h) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; margin: 0; }
+
 /* ---------- the closed loop, proof and footer on phones ---------- */
 @media (max-width: 900px) {
   .cl-scrim { display: none; }
   .cl-scrim-m { display: block; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(249, 243, 223, 0) 51%, rgba(249, 243, 223, 0.94) 59%); }
-  .cl-copy .beat-h { font-size: 29px; }
-  .cl-beat.cl-copy { top: auto; bottom: max(14px, env(safe-area-inset-bottom, 0px)); left: var(--gut); right: var(--gut-r); width: auto; }
-  .cl-copy .beat-k { margin-bottom: 10px; }
   .cl-tag { display: none; }
-  .cl-rows { margin-top: 10px; }
-  .cl-row-a { justify-content: space-between; gap: 4px 12px; }
-  .cl-row-a .chips { width: 100%; }
-  .cl-row-a .chips-row { width: 100%; justify-content: space-between; gap: 8px; }
-  .cl-row-a .chip { height: 44px; padding: 0 13px; }
-  .cl-row-a .chips-l, .cl-rows .fn { display: none; }
-  .cl-rows .dl { font-size: 15px; }
   /* the moment owns the screen: the menu's pills step aside with the copy pill */
   html[data-stamp] .nav-book { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s, visibility 0s 0.3s; }
   .proof3 { display: block; min-height: 0; padding-bottom: 72px; }
@@ -580,26 +600,10 @@ html[data-stamp] .cb-pose { will-change: scale; }
   .foot-line { font-size: 26px; }
   .foot-bar { flex-direction: column; margin-top: 48px; }
 }
-@media (max-width: 900px) and (max-height: 760px) {
-  .cl-copy .beat-k { display: none; }
-  .cl-copy .beat-h { font-size: 25px; }
-}
-@media (max-width: 900px) and (max-height: 620px) {
-  .cl-copy .beat-h { font-size: 23px; }
-}
-.cl-stage[data-fit="short"] .cl-copy :is(.beat-k, .beat-h) { display: none; }
-@media (min-width: 901px) and (max-height: 760px) {
-  .cl-copy .beat-h { font-size: clamp(36px, 4.1vw, 48px); }
-  .cl-follow { display: none; }
-}
 /* a phone on its side: words left, ring right, so the scrim runs sideways */
 @media (max-width: 900px) and (orientation: landscape) {
   .cl-scrim { display: block; }
   .cl-scrim-m { display: none; }
-  .cl-beat.cl-copy { top: 74px; bottom: auto; translate: none; margin-top: 0; padding: 0; right: auto; width: min(380px, 42vw); }
-  .cl-copy .beat-k { display: none; }
-  .cl-copy .beat-h { font-size: clamp(20px, 6.2vh, 24px); }
-  .cl-rows { margin-top: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -609,17 +613,18 @@ html[data-stamp] .cb-pose { will-change: scale; }
   .cb-pose, .cl-stage .cb-pose { scale: calc(1.06 / 1.08) !important; transition: none !important; }
   .cb-big > b, .cb-small > b { scale: 1 !important; transition: opacity 150ms linear; }
   .cb-shd, .cb-paint { transition: opacity 150ms linear !important; translate: none !important; scale: 1 !important; }
-  .cl-row-b > *, .cl-row-a > *, .cl-row-a .chip { animation: none !important; }
+  .cl-rows *, .cl-rows .chip { animation: none !important; }
   .proof3-roll { display: grid; }
   .proof3-roll span { grid-area: 1 / 1; }
   .cl-swap > span, .cl-follow, .cl-tag.callout { transition: opacity 150ms linear; translate: none !important; }
-  .cl-swap > span { transform: none !important; }
+  .cl-swap > span { transform: none !important; transition: opacity 150ms linear, visibility 0s; }
+  .cl-swap[data-on="b"] > .a, .cl-swap[data-on="a"] > .b { transition-delay: 0s, 150ms; }
   .chips-paper.is-after .chip, .dl.is-promoted::after { animation: none; }
   .copy.is-copying .copy-label { animation: none; background-position: 0 100%; background-size: 100% 1px; }
 }
 
 @media (forced-colors: active) {
-  .cb-paint, .cb-shd { display: none; }
+  .cb img.cb-paint, .cb .cb-shd { display: none; }
   .cb-body { background: ButtonFace !important; border: 2px solid ButtonText; box-shadow: none !important; }
   .cb-face { color: ButtonText; text-shadow: none; opacity: 1; }
 }
