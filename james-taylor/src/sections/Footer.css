@@ -40,8 +40,8 @@
   border-top: 1px solid rgba(241, 232, 218, 0.1);
   display: flex;
   justify-content: space-between;
-  font: 500 11px/1 var(--mono);
-  letter-spacing: 0.14em;
+  font: 400 12px/1 var(--type);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ash);
 }
@@ -52,4 +52,27 @@
   .foot-name {
     white-space: normal;
   }
+}
+.foot-credits {
+  margin-top: 16px;
+  font-size: 13px;
+}
+.foot-credits summary {
+  cursor: pointer;
+  font: 400 13px/1.4 var(--type);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--flame);
+}
+.foot-credits ul {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  color: rgba(241, 232, 218, 0.62);
+}
+.foot-note {
+  font-size: 12px;
+  color: var(--ash);
 }

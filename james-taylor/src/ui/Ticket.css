@@ -1,0 +1,81 @@
+.ticket {
+  position: relative;
+  padding: 1.5em 1.3em 3.6em;
+  color: #1d1916;
+  font: 400 clamp(12px, 0.95vw, 14px) / 1.45 var(--type);
+  background:
+    radial-gradient(120% 60% at 50% 0%, rgba(0, 0, 0, 0.06), transparent 40%),
+    linear-gradient(180deg, #fbf8f2, #efe8db);
+  box-shadow:
+    0 22px 30px -18px rgba(23, 18, 14, 0.6),
+    0 1px 1px rgba(23, 18, 14, 0.25);
+  /* the bottom tears off the printer */
+  -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 12px 8px repeat-x;
+  mask: linear-gradient(#000 0 0) top / 100% calc(100% - 8px) no-repeat,
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / 12px 8px repeat-x;
+}
+.ticket header,
+.ticket footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #5d554d;
+}
+.ticket footer {
+  position: absolute;
+  left: 1.3em;
+  right: 1.3em;
+  bottom: 1.6em;
+  border-top: 1px dashed rgba(29, 25, 22, 0.35);
+  padding-top: 0.6em;
+}
+.ticket-rule {
+  margin: 0.8em 0 1em;
+  border-top: 1px dashed rgba(29, 25, 22, 0.35);
+}
+.ticket-when {
+  margin: 0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b23a17;
+}
+.ticket-where {
+  margin: 0.2em 0 0.4em;
+  font: 900 clamp(26px, 2.6vw, 44px) / 0.9 var(--display);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: #15110e;
+}
+.ticket-what {
+  margin: 0;
+}
+.ticket-stamp {
+  /* over the ticket's header, where it doesn't hide the place */
+  position: absolute;
+  right: 0.6em;
+  top: 0.5em;
+  padding: 0.18em 0.4em 0.08em;
+  border: 3px solid var(--marker);
+  border-radius: 6px;
+  font: 900 clamp(22px, 2.1vw, 32px) / 1 var(--display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--marker);
+  mix-blend-mode: multiply;
+}
+.ticket-stamp.open {
+  color: #136b47;
+  border-color: #136b47;
+}
+.ticket-sm {
+  padding-bottom: 3.3em;
+}
+.ticket-sm .ticket-where {
+  font-size: clamp(22px, 2vw, 32px);
+}
+.ticket-sm .ticket-stamp {
+  font-size: clamp(16px, 1.5vw, 24px);
+}

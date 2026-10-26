@@ -4,9 +4,9 @@ import "./Nav.css";
 
 const LINKS = [
   ["#story", "Story"],
-  ["#menu", "Signatures"],
-  ["#burger", "Burger"],
+  ["#menu", "Notebook"],
   ["#heat", "900°"],
+  ["#press", "Press"],
   ["#joyce", "The Joyce"],
 ] as const;
 

@@ -35,11 +35,7 @@
   font-size: 0.9em;
 }
 .joyce-addr {
-  margin: 0;
-  font: 500 14px/1.4 var(--mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--brass);
+  rotate: -1.5deg;
 }
 .joyce-partners {
   margin: 14px 0 30px;
@@ -63,25 +59,47 @@
   color: #efe3c4;
   box-shadow: inset 0 0 0 1px rgba(239, 227, 196, 0.3);
 }
+.joyce-side {
+  position: relative;
+}
+.joyce-print {
+  position: absolute;
+  z-index: 2;
+  width: 46%;
+  right: -6%;
+  top: -86%;
+  rotate: 5deg;
+}
 .joyce-facts {
+  position: relative;
   margin: 0;
-  font: 500 12px/1.4 var(--mono);
-  letter-spacing: 0.08em;
+  padding: 22px 24px 18px;
+  background: var(--newsprint) var(--paper-tex);
+  color: var(--ink);
+  font: 400 13px/1.4 var(--type);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  rotate: -2deg;
+  box-shadow: 0 30px 50px -24px rgba(0, 0, 0, 0.8);
+}
+.joyce-card-head {
+  margin: 0 0 8px;
+  font: 900 22px/1 var(--display);
+  letter-spacing: 0.04em;
+  color: var(--velvet);
 }
 .joyce-facts div {
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  padding: 13px 0;
-  border-top: 1px solid rgba(207, 169, 94, 0.22);
+  padding: 10px 0;
+  border-top: 1px dashed rgba(23, 18, 14, 0.3);
 }
 .joyce-facts dt {
-  color: rgba(239, 227, 196, 0.55);
+  color: var(--pencil);
 }
 .joyce-facts dd {
   margin: 0;
-  color: #efe3c4;
   text-align: right;
 }
 
@@ -158,5 +176,8 @@
   .joyce-grid {
     grid-template-columns: 1fr;
     gap: 34px;
+  }
+  .joyce-print {
+    display: none;
   }
 }

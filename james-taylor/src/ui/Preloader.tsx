@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { reducedMotion } from "../lib/media";
+import { isHeroReady, reducedMotion } from "../lib/motion";
 import "./Preloader.css";
 
-// The broiler preheats while the hero film loads: the dial climbs from room temperature to 900°F,
+// The broiler preheats while the hero loads: the dial climbs from room temperature to 900°F,
 // the element glows from dull red to white-hot, then the cover lifts.
 const FROM = 72;
 const TO = 900;
@@ -18,7 +18,7 @@ export function Preloader({ onDone }: { onDone: () => void }) {
     document.getElementById("boot")?.remove();
     document.body.classList.add("loading");
     const quick = reducedMotion();
-    let heroReady = false;
+    let heroReady = isHeroReady();
     const onReady = () => (heroReady = true);
     window.addEventListener("hero:ready", onReady, { once: true });
     const t0 = performance.now();

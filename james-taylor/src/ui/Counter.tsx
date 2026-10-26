@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { reducedMotion } from "../lib/media";
+import { reducedMotion } from "../lib/motion";
 
 /** Counts up from zero the first time it scrolls into view. */
 export function Counter({ to, suffix = "", ms = 1400 }: { to: number; suffix?: string; ms?: number }) {

@@ -1,0 +1,170 @@
+/* the signatures sit on a page of graph paper with a margin rule */
+.book-pages {
+  position: relative;
+  padding: 16vh 0 6vh;
+  background:
+    linear-gradient(90deg, transparent calc(var(--gutter) * 0.6), rgba(214, 40, 28, 0.35) calc(var(--gutter) * 0.6) calc(var(--gutter) * 0.6 + 2px), transparent 0),
+    repeating-linear-gradient(90deg, rgba(31, 63, 163, 0.08) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(180deg, rgba(31, 63, 163, 0.08) 0 1px, transparent 1px 28px),
+    #f4efe2;
+}
+.nb-head {
+  padding-bottom: 8vh;
+}
+.nb-head h2 {
+  margin: 12px 0 0;
+  font-size: clamp(64px, 10vw, 180px);
+}
+.nb-scrawl {
+  display: inline-block;
+  font-size: 0.62em;
+  text-transform: none;
+  color: var(--marker);
+  rotate: -5deg;
+  translate: 0 -0.1em;
+}
+.nb-sub {
+  margin: 18px 0 0;
+  font-size: clamp(15px, 1.2vw, 18px);
+  color: var(--ink-2);
+}
+
+.nb {
+  height: var(--h);
+  min-height: 680px;
+  margin-bottom: 6vh;
+}
+.nb-dish {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.nb-dish h3 {
+  margin: 0;
+  font-size: clamp(48px, 6.2vw, 112px);
+}
+.nb-subline {
+  margin: 0;
+  font-size: clamp(18px, 1.6vw, 26px);
+  color: var(--biro);
+  rotate: -1.5deg;
+}
+.nb-up {
+  width: 26%;
+  margin: 6px 0 0 18%;
+  scale: 1 -1; /* the arrow points up, at the broiler */
+}
+
+.specs {
+  font-size: clamp(14px, 1.05vw, 16px);
+}
+.specs-blurb {
+  margin: 0 0 1em !important;
+  line-height: 1.5;
+}
+.specs dl {
+  margin: 0;
+}
+.specs dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1em;
+  padding: 0.45em 0;
+  border-top: 1px dashed rgba(23, 18, 14, 0.3);
+  font-family: var(--type);
+}
+.specs dt {
+  color: var(--pencil);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.85em;
+}
+.specs dd {
+  margin: 0;
+  text-align: right;
+}
+
+/* a dictionary entry, cut out */
+.dict-word {
+  font: 400 clamp(26px, 2.6vw, 42px) / 1 var(--serif);
+}
+.dict-word b {
+  font-weight: 400;
+}
+.dict-word i {
+  font-size: 0.6em;
+  color: var(--pencil);
+}
+.dict-def {
+  margin-top: 0.6em !important;
+  font: italic 400 clamp(18px, 1.5vw, 24px) / 1.25 var(--serif);
+}
+
+.buns-title {
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+.bun-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px 10px;
+  margin: 10px 0 8px;
+  color: var(--biro);
+}
+.bun {
+  position: relative;
+}
+.bun svg {
+  display: block;
+  width: 100%;
+}
+.bun-x {
+  position: absolute;
+  inset: 4% 18%;
+}
+.bun-x .doodle {
+  width: 100%;
+  height: 100%;
+}
+.bun-ring {
+  position: absolute;
+  inset: -22% -26%;
+  width: 152%;
+  height: 144%;
+}
+.buns-note {
+  font-size: clamp(16px, 1.3vw, 21px);
+}
+
+.nb-quote {
+  font-size: clamp(20px, 1.8vw, 28px);
+  line-height: 1.15;
+}
+.nb-stats {
+  display: flex;
+  gap: clamp(16px, 3vw, 44px);
+  margin: 0;
+}
+.nb-stats dt {
+  font-size: clamp(56px, 6vw, 100px);
+  line-height: 0.9;
+  color: var(--ember);
+  text-shadow: 2px 2px 0 var(--ink);
+}
+.nb-stats dd {
+  margin: 6px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+@media (max-width: 760px) {
+  .nb {
+    height: var(--mh);
+    min-height: 0;
+  }
+}

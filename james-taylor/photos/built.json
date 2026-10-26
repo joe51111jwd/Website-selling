@@ -1,0 +1,282 @@
+{
+ "rib-raw": {
+  "id": "rib-raw",
+  "file": "photos/rib-raw.webp",
+  "w": 1200,
+  "h": 820,
+  "alt": "A raw bone-in ribeye, deep red and marbled.",
+  "credit": {
+   "title": "Rib eye steak from Harris Ranch - August 2023 - Sarah Stierch",
+   "author": "Missvain",
+   "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+   "page": "https://commons.wikimedia.org/wiki/File:Rib_eye_steak_from_Harris_Ranch_-_August_2023_-_Sarah_Stierch.jpg"
+  }
+ },
+ "chiles": {
+  "id": "chiles",
+  "file": "photos/chiles.webp",
+  "w": 708,
+  "h": 617,
+  "alt": "A bunch of dried red chiles.",
+  "credit": {
+   "title": "Bouquet of Dried Chili Peppers",
+   "author": "qubodup",
+   "license": "CC0",
+   "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "page": "https://www.flickr.com/photos/21051491@N02/7698347366"
+  }
+ },
+ "orange": {
+  "id": "orange",
+  "file": "photos/orange.webp",
+  "w": 700,
+  "h": 667,
+  "alt": "A Seville sour orange.",
+  "credit": {
+   "title": "Seville Orange",
+   "author": "amandabhslater",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+   "page": "https://www.flickr.com/photos/15181848@N02/45861532315"
+  }
+ },
+ "caviar": {
+  "id": "caviar",
+  "file": "photos/caviar.webp",
+  "w": 743,
+  "h": 641,
+  "alt": "An open tin of caviar with its key.",
+  "credit": {
+   "title": "Caviar",
+   "author": "eamathe",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+   "page": "https://www.flickr.com/photos/93839835@N04/45564748555"
+  }
+ },
+ "potato": {
+  "id": "potato",
+  "file": "photos/potato.webp",
+  "w": 700,
+  "h": 277,
+  "alt": "A potato.",
+  "credit": {
+   "title": "Potato!",
+   "author": "LoopZilla",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+   "page": "https://www.flickr.com/photos/24987280@N00/216740919"
+  }
+ },
+ "bun": {
+  "id": "bun",
+  "file": "photos/bun.jpg",
+  "w": 532,
+  "h": 455,
+  "alt": "A glossy brioche burger bun.",
+  "credit": {
+   "title": "Brioche Hamburger buns for the pulled pork",
+   "author": "The Meat Case",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+   "page": "https://www.flickr.com/photos/24152400@N08/3782967153"
+  }
+ },
+ "lifeguard": {
+  "id": "lifeguard",
+  "file": "photos/lifeguard.jpg",
+  "w": 900,
+  "h": 964,
+  "alt": "A red and orange lifeguard tower on Miami Beach.",
+  "credit": {
+   "title": "Lifeguard Tower",
+   "author": "Phillip Pessar",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+   "page": "https://www.flickr.com/photos/25955895@N03/6950363697"
+  }
+ },
+ "embers": {
+  "id": "embers",
+  "file": "photos/embers.jpg",
+  "w": 960,
+  "h": 720,
+  "alt": "Glowing embers and flame.",
+  "credit": {
+   "title": "Fire Flames",
+   "author": "Pawel Kadysz",
+   "license": "CC0",
+   "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "page": "https://stocksnap.io/photo/fire-flames-K5CCEEPQPK"
+  }
+ },
+ "chicago": {
+  "id": "chicago",
+  "file": "photos/chicago.jpg",
+  "w": 1024,
+  "h": 765,
+  "alt": "The Chicago skyline over the river.",
+  "credit": {
+   "title": "chicago skyline",
+   "author": "dennis",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+   "page": "https://www.flickr.com/photos/41894190608@N01/7642560184"
+  }
+ },
+ "rib-cooked": {
+  "id": "rib-cooked",
+  "file": "photos/rib-cooked.webp",
+  "w": 801,
+  "h": 571,
+  "alt": "A seared bone-in ribeye with a dark crust.",
+  "credit": {
+   "title": "Harris Ranch rib eye",
+   "author": "sarahstierch",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+   "page": "https://www.flickr.com/photos/7633518@N08/53144956367"
+  }
+ },
+ "chicago-l": {
+  "id": "chicago-l",
+  "file": "photos/chicago-l.jpg",
+  "w": 1024,
+  "h": 768,
+  "alt": "Chicago's elevated train crossing over a downtown street.",
+  "credit": {
+   "title": "Chicago - 'L' train over street",
+   "author": "ruffin_ready",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+   "page": "https://www.flickr.com/photos/51668926@N00/4592707889"
+  }
+ },
+ "fridays": {
+  "id": "fridays",
+  "file": "photos/fridays.jpg",
+  "w": 1024,
+  "h": 702,
+  "alt": "A TGI Fridays under its red and white striped awnings.",
+  "credit": {
+   "title": "TGI Friday's Restaurant",
+   "author": "JeepersMedia",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+   "page": "https://www.flickr.com/photos/39160147@N03/13907477095"
+  }
+ },
+ "fridays-sign": {
+  "id": "fridays-sign",
+  "file": "photos/fridays-sign.jpg",
+  "w": 1024,
+  "h": 326,
+  "alt": "The T.G.I. Friday's sign.",
+  "credit": {
+   "title": "TGI Friday's",
+   "author": "JeepersMedia",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+   "page": "https://www.flickr.com/photos/39160147@N03/14326740016"
+  }
+ },
+ "alinea-balloon": {
+  "id": "alinea-balloon",
+  "file": "photos/alinea-balloon.jpg",
+  "w": 1024,
+  "h": 768,
+  "alt": "Alinea's edible helium balloon dessert floating over the table.",
+  "credit": {
+   "title": "Alinea 2012 Balloon",
+   "author": "Edsel L",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+   "page": "https://www.flickr.com/photos/27119975@N00/7303714802"
+  }
+ },
+ "alinea-menu": {
+  "id": "alinea-menu",
+  "file": "photos/alinea-menu.jpg",
+  "w": 768,
+  "h": 1024,
+  "alt": "An Alinea tasting menu, its courses marked with circles.",
+  "credit": {
+   "title": "Alinea 2012 - Menu",
+   "author": "Edsel L",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+   "page": "https://www.flickr.com/photos/27119975@N00/7305455482"
+  }
+ },
+ "alinea-dessert": {
+  "id": "alinea-dessert",
+  "file": "photos/alinea-dessert.jpg",
+  "w": 1024,
+  "h": 768,
+  "alt": "Alinea's white chocolate dessert, broken open on the table.",
+  "credit": {
+   "title": "Alinea 2012 White Chocolate",
+   "author": "Edsel L",
+   "license": "CC BY-SA 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+   "page": "https://www.flickr.com/photos/27119975@N00/7303866818"
+  }
+ },
+ "ocean-drive": {
+  "id": "ocean-drive",
+  "file": "photos/ocean-drive.jpg",
+  "w": 1024,
+  "h": 768,
+  "alt": "Ocean Drive's neon at night.",
+  "credit": {
+   "title": "Miami Ocean Drive Night",
+   "author": "patrickcam",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+   "page": "https://www.flickr.com/photos/89011323@N03/8127624633"
+  }
+ },
+ "espanola": {
+  "id": "espanola",
+  "file": "photos/espanola.jpg",
+  "w": 1024,
+  "h": 768,
+  "alt": "Espa\u00f1ola Way, Miami Beach: pink Mediterranean buildings and palms.",
+  "credit": {
+   "title": "Espanola Way",
+   "author": "Phillip Pessar",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+   "page": "https://www.flickr.com/photos/25955895@N03/32583963621"
+  }
+ },
+ "espanola-film": {
+  "id": "espanola-film",
+  "file": "photos/espanola-film.jpg",
+  "w": 1024,
+  "h": 1000,
+  "alt": "Caf\u00e9 tables on Espa\u00f1ola Way, shot on film.",
+  "credit": {
+   "title": "Espanola Way South Beach On 126 Film",
+   "author": "Phillip Pessar",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+   "page": "https://www.flickr.com/photos/25955895@N03/5159120715"
+  }
+ },
+ "espanola-corner": {
+  "id": "espanola-corner",
+  "file": "photos/espanola-corner.jpg",
+  "w": 1024,
+  "h": 768,
+  "alt": "The corner of Espa\u00f1ola Way under red and green umbrellas.",
+  "credit": {
+   "title": "Espanola Way",
+   "author": "Phillip Pessar",
+   "license": "CC BY 2.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+   "page": "https://www.flickr.com/photos/25955895@N03/32666114986"
+  }
+ }
+}

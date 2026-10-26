@@ -1,67 +1,52 @@
 .press {
-  padding: 20vh 0 16vh;
-  background: linear-gradient(180deg, var(--char), #110c09 50%, var(--char));
+  height: 110vh;
+  min-height: 760px;
 }
-.press h2 {
-  margin: 0;
+.press-head {
+  position: absolute;
+  inset: 4vh 0 auto;
 }
-.press-list {
-  list-style: none;
-  margin: 40px 0 0;
-  padding: 0;
+.press-pin {
+  position: relative;
+}
+.press .clip-q {
+  font-size: clamp(28px, 3.2vw, 56px);
+}
+.seal {
   display: grid;
-  gap: 12vh;
+  place-items: center;
+  aspect-ratio: 1;
+  padding: 16%;
+  border-radius: 50%;
+  text-align: center;
+  font: 400 clamp(11px, 0.9vw, 14px) / 1.25 var(--type);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow:
+    inset 0 0 0 5px rgba(255, 255, 255, 0.25),
+    inset 0 0 0 7px rgba(0, 0, 0, 0.15),
+    0 14px 22px -12px rgba(23, 18, 14, 0.6);
 }
-.press-q {
-  max-width: 18em;
-  font-size: clamp(40px, 5.6vw, 92px);
+.seal-red {
+  background: radial-gradient(circle at 35% 30%, #f05a3a, #b8230f);
+  color: #fff4e4;
 }
-.press-q.alt {
-  margin-left: auto;
-  text-align: right;
+.seal-gold {
+  background: radial-gradient(circle at 35% 30%, #f5d27c, #c08e2a);
+  color: var(--ink);
 }
-.press-q blockquote {
-  margin: 0;
+.seal-star {
+  font-size: 1.8em;
   line-height: 1;
-  letter-spacing: -0.01em;
-  color: var(--bone);
 }
-.press-by {
-  margin: 22px 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 18px;
-  align-items: center;
-  font: 500 11px/1 var(--mono);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ash);
+.seal-text {
+  display: block;
+  margin-top: -1.2em;
 }
-.press-q.alt .press-by {
-  justify-content: flex-end;
-}
-.press-by b {
-  color: var(--bone);
-  font-weight: 600;
-}
-.press-rate {
-  color: var(--flame);
-  letter-spacing: 0.1em;
-}
-.press-awards {
-  list-style: none;
-  margin: 14vh 0 0;
-  padding: 26px 0 0;
-  border-top: 1px solid rgba(241, 232, 218, 0.12);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px 40px;
-  font: 500 12px/1.4 var(--mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(241, 232, 218, 0.75);
-}
-.press-awards span {
-  color: var(--brass);
-  margin-right: 6px;
+
+@media (max-width: 760px) {
+  .press {
+    height: 150svh;
+    min-height: 0;
+  }
 }

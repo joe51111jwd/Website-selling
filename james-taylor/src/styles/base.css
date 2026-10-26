@@ -1,26 +1,40 @@
 :root {
-  --char: #0a0806;
-  --soot: #14100d;
-  --smoke: #211b16;
-  --ember: #ff5a1f;
-  --flame: #ffa24a;
-  --gold: #f2c26b;
-  --bone: #f1e8da;
-  --paper: #f6f1e7;
-  --ash: #8d8278;
-  --ink: #1a1512;
-  --joyce: #0c241b;
-  --velvet: #133a2c;
+  /* paper and ink */
+  --paper: #ece3d1;
+  --paper-2: #e4d8c1;
+  --kraft: #c9a878;
+  --newsprint: #f1ebdd;
+  --ink: #17120e;
+  --ink-2: #3a3029;
+  --pencil: #6f645a;
+  /* the kitchen */
+  --char: #0d0a08;
+  --soot: #1a1410;
+  --ember: #ff4f1a;
+  --flame: #ff9a3c;
+  --gold: #f0bf5e;
+  --bone: #f3ebdc;
+  --ash: #9a8f84;
+  /* marks */
+  --marker: #d6281c;
+  --biro: #1f3fa3;
+  --tape: rgba(236, 222, 168, 0.72);
+  /* the restaurant */
+  --joyce: #0f2a1f;
+  --velvet: #163f2e;
   --brass: #cfa95e;
-  --stamp: #c8301e;
 
   --display: "Big Shoulders Display", "Oswald", Impact, sans-serif;
   --serif: "Instrument Serif", Georgia, serif;
   --sans: "Inter", system-ui, -apple-system, sans-serif;
+  --type: "Special Elite", "Courier New", monospace;
+  --hand: "Permanent Marker", "Marker Felt", "Comic Sans MS", cursive;
   --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --gutter: clamp(16px, 4vw, 56px);
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* a sheet of paper: fibres and a little tooth */
+  --paper-tex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75 0.06' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.28 0 0 0 0 0.2 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
 }
 
 * {
@@ -28,9 +42,9 @@
 }
 
 html {
-  background: var(--char);
-  color: var(--bone);
-  color-scheme: dark;
+  background: var(--paper);
+  color: var(--ink);
+  color-scheme: light;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -45,7 +59,7 @@ html.lenis body {
 body {
   margin: 0;
   font: 400 16px/1.55 var(--sans);
-  background: var(--char);
+  background: var(--paper) var(--paper-tex);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -72,13 +86,25 @@ button {
 
 ::selection {
   background: var(--ember);
-  color: var(--char);
+  color: var(--ink);
+}
+
+.paper {
+  background: var(--paper) var(--paper-tex);
+  color: var(--ink);
+}
+.dark {
+  background: var(--char);
+  color: var(--bone);
 }
 
 .eyebrow {
-  font: 500 11px/1 var(--mono);
-  letter-spacing: 0.18em;
+  font: 400 13px/1.2 var(--type);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: var(--pencil);
+}
+.dark .eyebrow {
   color: var(--ash);
 }
 
@@ -86,7 +112,7 @@ button {
   font-family: var(--display);
   font-weight: 900;
   text-transform: uppercase;
-  line-height: 0.82;
+  line-height: 0.84;
   letter-spacing: -0.01em;
 }
 
@@ -94,6 +120,16 @@ button {
   font-family: var(--serif);
   font-style: italic;
   font-weight: 400;
+}
+
+.hand {
+  font-family: var(--hand);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.type {
+  font-family: var(--type);
 }
 
 .wrap {
@@ -112,43 +148,48 @@ button {
   white-space: nowrap;
 }
 
+/* buttons are stamped tickets */
 .btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 26px;
-  border-radius: 999px;
-  font: 600 13px/1 var(--mono);
-  letter-spacing: 0.12em;
+  padding: 17px 26px 15px;
+  font: 400 15px/1 var(--type);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   text-decoration: none;
   background: var(--ember);
-  color: var(--char);
+  color: var(--ink);
   border: 0;
   cursor: pointer;
-  transition: transform 0.4s var(--ease), background 0.3s, box-shadow 0.4s;
-  box-shadow: 0 0 0 rgba(255, 90, 31, 0);
+  rotate: -1deg;
+  box-shadow: 0 2px 0 rgba(23, 18, 14, 0.9), 0 12px 24px -12px rgba(23, 18, 14, 0.55);
+  transition: transform 0.4s var(--ease), rotate 0.4s var(--ease), box-shadow 0.4s var(--ease), background 0.3s;
 }
 .btn:hover {
+  transform: translateY(-3px);
+  rotate: 0deg;
   background: var(--flame);
-  box-shadow: 0 10px 50px -10px rgba(255, 110, 40, 0.8);
-  transform: translateY(-2px);
+  box-shadow: 0 5px 0 rgba(23, 18, 14, 0.9), 0 22px 30px -14px rgba(23, 18, 14, 0.6);
 }
 .btn.ghost {
-  background: transparent;
-  color: var(--bone);
-  box-shadow: inset 0 0 0 1px rgba(241, 232, 218, 0.3);
+  background: var(--newsprint);
+  rotate: 1.2deg;
 }
 .btn.ghost:hover {
-  box-shadow: inset 0 0 0 1px var(--bone);
-  background: rgba(241, 232, 218, 0.06);
+  background: #fff;
 }
 .btn .arrow {
   display: inline-block;
   transition: transform 0.4s var(--ease);
 }
 .btn:hover .arrow {
-  transform: translateX(4px);
+  transform: translate(3px, -3px);
+}
+:focus-visible {
+  outline: 3px solid var(--biro);
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,0 +1,99 @@
+.story {
+  position: relative;
+  padding-top: 8vh;
+}
+.story-head {
+  position: relative;
+  padding-bottom: 6vh;
+}
+.story-head h2 {
+  margin: 14px 0 0;
+  font-size: clamp(64px, 10vw, 180px);
+}
+.story-fire {
+  color: var(--ember);
+}
+.story-sub {
+  margin-top: 18px;
+  rotate: -2deg;
+  font-size: clamp(20px, 2vw, 30px);
+}
+
+.ch {
+  height: var(--h);
+  min-height: 720px;
+  margin-bottom: 4vh;
+}
+.ch-n {
+  position: absolute;
+  right: 2vw;
+  bottom: -2vh;
+  font-size: clamp(160px, 26vw, 420px);
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(23, 18, 14, 0.12);
+  pointer-events: none;
+  user-select: none;
+}
+.ch:nth-of-type(even) .ch-n {
+  right: auto;
+  left: 2vw;
+}
+.ch-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.ch-title {
+  margin: 0;
+  font-size: clamp(54px, 7.2vw, 128px);
+}
+.ch-body {
+  font-size: clamp(15px, 1.2vw, 18px);
+  line-height: 1.5;
+}
+.ch-quote {
+  margin: 1em 0 0;
+  font-size: clamp(20px, 1.7vw, 28px);
+  line-height: 1.12;
+  color: var(--biro);
+}
+.story-by {
+  display: block;
+  margin-top: 0.6em;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pencil);
+}
+.story-quote {
+  font-size: clamp(20px, 1.9vw, 30px);
+  line-height: 1.12;
+  color: var(--biro);
+}
+.story-arrow-r {
+  width: 42%;
+  margin: 6px 0 0 40%;
+  rotate: 8deg;
+}
+.w-80 {
+  width: 80%;
+}
+.story-stars {
+  display: flex;
+  gap: 4%;
+}
+.story-stars .doodle {
+  width: 32%;
+}
+
+@media (max-width: 760px) {
+  .ch {
+    height: var(--mh);
+    min-height: 0;
+  }
+  .ch-n {
+    font-size: 44vw;
+  }
+}

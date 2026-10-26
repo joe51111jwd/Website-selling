@@ -1,0 +1,163 @@
+[
+ {
+  "id": "rib-raw",
+  "file": "File:Rib eye steak from Harris Ranch - August 2023 - Sarah Stierch.jpg",
+  "treat": "cutout",
+  "width": 1200,
+  "alt": "A raw bone-in ribeye, deep red and marbled.",
+  "meta": {
+   "url": "https://upload.wikimedia.org/wikipedia/commons/1/10/Rib_eye_steak_from_Harris_Ranch_-_August_2023_-_Sarah_Stierch.jpg",
+   "page": "https://commons.wikimedia.org/wiki/File:Rib_eye_steak_from_Harris_Ranch_-_August_2023_-_Sarah_Stierch.jpg",
+   "author": "Missvain",
+   "license": "CC BY 4.0",
+   "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+   "title": "Rib eye steak from Harris Ranch - August 2023 - Sarah Stierch"
+  },
+  "ovw": "ba20a623-6da6-4435-ac87-0574fa1274ae"
+ },
+ {
+  "id": "chiles",
+  "ov": "f8251ce7-00e1-42ce-9964-87e33baf5435",
+  "treat": "cutout",
+  "width": 900,
+  "alt": "A bunch of dried red chiles."
+ },
+ {
+  "id": "orange",
+  "ov": "902fc646-71fe-485e-902b-97f830bd3a41",
+  "treat": "cutout",
+  "width": 700,
+  "alt": "A Seville sour orange."
+ },
+ {
+  "id": "caviar",
+  "ov": "bf8e8856-af7e-4742-8beb-247c8884b9d1",
+  "treat": "cutout",
+  "width": 800,
+  "alt": "An open tin of caviar with its key.",
+  "crop": [
+   0.12,
+   0.0,
+   1.0,
+   1.0
+  ]
+ },
+ {
+  "id": "potato",
+  "ov": "83cf7a3d-e85a-4855-9819-f71b79ac2d04",
+  "treat": "cutout",
+  "width": 700,
+  "alt": "A potato."
+ },
+ {
+  "id": "bun",
+  "ov": "8743d3ec-7a30-4232-9e58-c8379fc05701",
+  "treat": "print",
+  "width": 700,
+  "alt": "A glossy brioche burger bun.",
+  "crop": [
+   0.04,
+   0.17,
+   0.56,
+   0.84
+  ]
+ },
+ {
+  "id": "lifeguard",
+  "ov": "e240bd33-421f-4918-b2ce-0410defadbd8",
+  "treat": "print",
+  "width": 900,
+  "alt": "A red and orange lifeguard tower on Miami Beach."
+ },
+ {
+  "id": "embers",
+  "ov": "491be698-86c8-4adc-9fd1-bfb20c8e0b07",
+  "treat": "print",
+  "width": 1400,
+  "alt": "Glowing embers and flame."
+ },
+ {
+  "id": "chicago",
+  "ov": "4fbc0c64-2662-4c69-9df6-93ff12fea03b",
+  "treat": "print",
+  "width": 1100,
+  "alt": "The Chicago skyline over the river."
+ },
+ {
+  "id": "rib-cooked",
+  "ov": "bafcb14b-a7d7-4bd2-aa13-bbb43d75fc1d",
+  "treat": "cutout",
+  "width": 1000,
+  "alt": "A seared bone-in ribeye with a dark crust."
+ },
+ {
+  "id": "chicago-l",
+  "ov": "adb92ab7-859b-4f43-8bfe-71a1837a6ea8",
+  "treat": "copy",
+  "width": 1024,
+  "alt": "Chicago's elevated train crossing over a downtown street."
+ },
+ {
+  "id": "fridays",
+  "ov": "064e72a1-1bb2-4f28-9fd4-fd16c5c2e149",
+  "treat": "print",
+  "width": 1024,
+  "alt": "A TGI Fridays under its red and white striped awnings."
+ },
+ {
+  "id": "fridays-sign",
+  "ov": "b757b490-cf48-4b37-8b12-0e10f6a668a9",
+  "treat": "print",
+  "width": 1024,
+  "alt": "The T.G.I. Friday's sign."
+ },
+ {
+  "id": "alinea-balloon",
+  "ov": "3291fabe-2cd7-42a4-87cb-0358e33b81cd",
+  "treat": "print",
+  "width": 1024,
+  "alt": "Alinea's edible helium balloon dessert floating over the table."
+ },
+ {
+  "id": "alinea-menu",
+  "ov": "c3831363-63dc-45a9-b4f3-8939fe70cf65",
+  "treat": "print",
+  "width": 768,
+  "alt": "An Alinea tasting menu, its courses marked with circles."
+ },
+ {
+  "id": "alinea-dessert",
+  "ov": "242fe94b-a187-4808-9129-3b489044eb58",
+  "treat": "print",
+  "width": 1024,
+  "alt": "Alinea's white chocolate dessert, broken open on the table."
+ },
+ {
+  "id": "ocean-drive",
+  "ov": "726eeb35-7213-4f9a-b057-9ffe8778fcc0",
+  "treat": "print",
+  "width": 1024,
+  "alt": "Ocean Drive's neon at night."
+ },
+ {
+  "id": "espanola",
+  "ov": "e66439d2-a3c7-4a7e-8990-e9a9bca54e44",
+  "treat": "print",
+  "width": 1024,
+  "alt": "Española Way, Miami Beach: pink Mediterranean buildings and palms."
+ },
+ {
+  "id": "espanola-film",
+  "ov": "ddd32987-32e8-4829-b6af-a8fce0b7b695",
+  "treat": "print",
+  "width": 1024,
+  "alt": "Café tables on Española Way, shot on film."
+ },
+ {
+  "id": "espanola-corner",
+  "ov": "a483912c-7edf-47cf-8dcf-18b929ff8d36",
+  "treat": "print",
+  "width": 1024,
+  "alt": "The corner of Española Way under red and green umbrellas."
+ }
+]

@@ -1,195 +1,154 @@
 .hero {
-  position: relative;
-  height: 170svh;
-}
-.hero-stick {
-  position: sticky;
-  top: 0;
   height: 100svh;
-  min-height: 560px;
+  min-height: 680px;
   overflow: hidden;
-  background:
-    radial-gradient(90% 55% at 50% 0%, #2a130a 0%, rgba(10, 8, 6, 0) 70%),
-    radial-gradient(60% 30% at 50% 100%, rgba(255, 120, 40, 0.16), transparent 70%),
-    var(--char);
-}
-/* the broiler hood: a steel band the nav sits on, with the burner face glowing under it */
-.hero-stick::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 70px;
-  z-index: 1;
-  background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 4px),
-    linear-gradient(180deg, #2c2724 0%, #1a1613 60%, #0c0a08 100%);
-  box-shadow: 0 1px 0 rgba(255, 170, 90, 0.35), 0 6px 18px rgba(0, 0, 0, 0.6);
+  background: var(--char);
 }
 .hero-fire {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 70px;
-  bottom: 0;
-  z-index: 0;
+  inset: 0 0 auto 0;
+  height: 62%;
 }
-.hero-copy {
+.hero-sheet {
   position: absolute;
   left: 0;
   right: 0;
-  top: 36%;
+  top: 56%;
+  bottom: 0;
   z-index: 2;
-  text-align: center;
 }
-.hero-eyebrow {
-  color: rgba(241, 232, 218, 0.8);
+
+/* the name, in cut-out letters */
+.hero-title {
+  position: absolute;
+  z-index: 5;
+  left: var(--gutter);
+  top: 15%;
+  pointer-events: none;
+}
+.hero-role {
+  font-size: clamp(11px, 1.05vw, 16px);
+  rotate: -1.5deg;
   opacity: 0;
-  transition: opacity 1.2s ease 1.2s;
+  transition: opacity 0.4s 0.15s;
 }
-.hero.in .hero-eyebrow {
+.hero.in .hero-role {
   opacity: 1;
 }
 .hero-name {
-  margin: 1.4vh 0 0;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  column-gap: 0.16em;
-  font-size: clamp(84px, 16.5vw, 300px);
-  line-height: 0.8;
+  margin: 0.22em 0 0;
+  font: 900 clamp(64px, 11.6vw, 216px) / 0.86 var(--display);
+  text-transform: uppercase;
+  letter-spacing: 0;
 }
 .hero-word {
-  display: inline-flex;
-  overflow: hidden;
-  padding: 0.05em 0 0.03em;
+  display: block;
+  white-space: nowrap;
 }
-.hero-ch {
+.hero-word + .hero-word {
+  margin: 0.04em 0 0 0.8em;
+}
+.chip {
   display: inline-block;
-  background: linear-gradient(180deg, #fff1d6 0%, #ffd29a 24%, var(--bone) 55%, #cdbfab 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  transform: translateY(108%);
-  transition: transform 1.4s var(--ease);
-  transition-delay: calc(0.2s + var(--i) * 0.055s);
-}
-.hero.in .hero-ch {
-  transform: none;
-}
-.hero-line {
-  margin: 2vh 0 0;
-  font-size: clamp(22px, 2.5vw, 38px);
-  line-height: 1.1;
-  color: var(--gold);
+  padding: 0.06em 0.06em 0;
+  margin: 0 0.015em;
+  rotate: var(--t);
+  box-shadow: 0 0.06em 0.12em -0.04em rgba(23, 18, 14, 0.5);
+  clip-path: polygon(3% 1%, 97% 0, 100% 96%, 1% 100%);
   opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 1.2s ease 1s, transform 1.4s var(--ease) 1s;
 }
-.hero.in .hero-line {
-  opacity: 1;
-  transform: none;
+.chip:nth-child(3n) {
+  clip-path: polygon(0 4%, 100% 0, 97% 100%, 3% 97%);
 }
-.hero-pass {
-  position: absolute;
-  left: 50%;
-  bottom: -1vh;
-  z-index: 1;
-  width: min(1500px, 108vw);
-  transform-origin: 50% 100%;
-  translate: -50% 0;
-  opacity: 0;
-  transition: opacity 1.6s ease 0.6s;
+.chip:nth-child(3n + 1) {
+  clip-path: polygon(1% 0, 99% 3%, 97% 98%, 0 100%);
 }
-.hero.in .hero-pass {
-  opacity: 1;
+.hero.in .chip {
+  animation: slap 0.55s cubic-bezier(0.3, 1.45, 0.5, 1) both;
+  animation-delay: calc(var(--i) * 65ms + 180ms);
 }
-.hero-pass img {
-  width: 100%;
-  height: auto;
-}
-.hero-foot {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 3;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding-bottom: 20px;
-  font: 500 11px/1 var(--mono);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(241, 232, 218, 0.7);
-  opacity: 0;
-  transition: opacity 1s ease 1.8s;
-}
-.hero.in .hero-foot {
-  opacity: 1;
-}
-.hero-temp {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-.hero-temp i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--ember);
-  box-shadow: 0 0 12px 2px var(--ember);
-  animation: pulse 1.6s ease-in-out infinite;
-}
-.hero-scroll::after {
-  content: "";
-  display: inline-block;
-  width: 1px;
-  height: 22px;
-  margin-left: 12px;
-  vertical-align: middle;
-  background: linear-gradient(var(--bone), transparent);
-  animation: drip 1.8s var(--ease) infinite;
-  transform-origin: 50% 0;
-}
-@keyframes pulse {
-  50% {
-    opacity: 0.35;
-    box-shadow: 0 0 4px 1px var(--ember);
-  }
-}
-@keyframes drip {
+@keyframes slap {
   0% {
-    transform: scaleY(0);
+    opacity: 0;
+    transform: scale(1.8) rotate(14deg);
   }
-  60% {
-    transform: scaleY(1);
+  45% {
+    opacity: 1;
   }
   100% {
-    transform: scaleY(1);
-    opacity: 0;
+    opacity: 1;
+    transform: none;
   }
 }
-@media (hover: none) {
-  .hero-hint {
+.chip-n {
+  background: var(--newsprint);
+  color: var(--ink);
+}
+.chip-k {
+  background: var(--kraft);
+  color: var(--ink);
+}
+.chip-b {
+  background: var(--ink);
+  color: var(--bone);
+}
+.chip-e {
+  background: var(--ember);
+  color: var(--ink);
+}
+
+.hero-line {
+  font-size: clamp(18px, 1.75vw, 28px);
+  line-height: 1.2;
+}
+.hero-line .type {
+  font-size: 1em;
+}
+.hero-line-sub {
+  margin-top: 0.5em !important;
+  font-size: 0.72em;
+  line-height: 1.15;
+  color: var(--biro);
+}
+.hero-pick {
+  pointer-events: none;
+}
+.hero-pick .note {
+  font-size: clamp(16px, 1.4vw, 22px);
+  text-align: center;
+}
+.hero-pick-arrow {
+  width: 70%;
+  margin: 2px 0 0 30%;
+}
+@media (pointer: coarse) {
+  .hero-pick {
     display: none;
   }
 }
+
 @media (max-width: 760px) {
-  .hero-copy {
-    top: 30%;
+  .hero-fire {
+    height: 48%;
+  }
+  .hero-sheet {
+    top: 43%;
+  }
+  .hero-title {
+    top: 12%;
   }
   .hero-name {
-    flex-direction: column;
-    align-items: center;
-    font-size: clamp(92px, 29vw, 170px);
+    font-size: 19.5vw;
   }
-  .hero-pass {
-    width: 210vw;
+  .hero-word + .hero-word {
+    margin-left: 0.35em;
   }
-  /* phones scroll by nature, and the cue would sit on the ribeye */
-  .hero-foot {
+  .hero-line {
+    font-size: 16px;
+  }
+}
+@media (max-width: 760px) {
+  .piece.desk {
     display: none;
   }
 }

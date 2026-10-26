@@ -82,6 +82,56 @@ export const TICKETS: Ticket[] = [
   },
 ];
 
+// The story, as scrapbook pages.
+export type Chapter = {
+  id: "fridays" | "chicago" | "alinea" | "miami" | "espanola";
+  n: string;
+  when: string;
+  title: string;
+  body: string;
+  quote?: string;
+};
+
+export const CHAPTERS: Chapter[] = [
+  {
+    id: "fridays",
+    n: "01",
+    when: "Age 5",
+    title: "TGI Fridays",
+    body: "His first kitchen was his dad's.",
+    quote: "I grew up working in the kitchen at TGI Fridays with my dad beginning at the age of 5.",
+  },
+  {
+    id: "chicago",
+    n: "02",
+    when: "Age 18",
+    title: "Chicago",
+    body: "Culinary school at Le Cordon Bleu, then three years at Bavette's Bar & Boeuf, a steakhouse in his native Chicago.",
+  },
+  {
+    id: "alinea",
+    n: "03",
+    when: "Roister, then Alinea",
+    title: "Alinea",
+    body: "Opening executive sous chef at Roister, the Alinea Group's first casual restaurant. Then Alinea itself, three Michelin stars, starting as chef de tournant.",
+    quote: "Over the next three years, I became the Executive Sous Chef.",
+  },
+  {
+    id: "miami",
+    n: "04",
+    when: "2021",
+    title: "Miami",
+    body: "South, to Miami, cooking as a private chef.",
+  },
+  {
+    id: "espanola",
+    n: "05",
+    when: "Dec 2024 · Jan 10, 2025",
+    title: "Española Way",
+    body: "First The Window at The Joyce, a walk-up burger window like a Cuban ventanita. Then the dining room itself: executive chef and partner of The Joyce, 45 seats behind dark green drapery.",
+  },
+];
+
 export type Dish = {
   id: "ribeye" | "burger" | "latkes" | "chicken" | "pie";
   no: string;

@@ -1,0 +1,301 @@
+/* ---------- spreads and pieces ---------- */
+.spread {
+  position: relative;
+  /* pieces may hang off the edge of the page; the page doesn't scroll sideways for them */
+  overflow-x: clip;
+}
+.piece {
+  position: absolute;
+  left: calc(var(--x) * 1%);
+  top: calc(var(--y) * 1%);
+  width: calc(var(--w) * 1%);
+  rotate: calc(var(--r) * 1deg);
+  z-index: var(--z);
+}
+.piece-in {
+  position: relative;
+  transform-origin: 50% 40%;
+}
+.piece.can-drag .piece-in {
+  cursor: grab;
+  touch-action: pan-y;
+}
+.piece.can-drag .piece-in:active {
+  cursor: grabbing;
+}
+@media (max-width: 760px) {
+  .piece {
+    left: calc(var(--mx) * 1%);
+    top: calc(var(--my) * 1%);
+    width: calc(var(--mw) * 1%);
+    rotate: calc(var(--mr) * 1deg);
+    z-index: var(--mz);
+  }
+}
+
+/* ---------- prints ---------- */
+.print {
+  position: relative;
+  margin: 0;
+  background: #fbf8f1;
+  padding: 3.2%;
+  box-shadow:
+    0 1px 1px rgba(23, 18, 14, 0.2),
+    0 18px 30px -16px rgba(23, 18, 14, 0.55),
+    0 40px 60px -40px rgba(23, 18, 14, 0.35);
+}
+.print img {
+  width: 100%;
+  height: auto;
+  filter: contrast(1.02) saturate(0.94);
+}
+.print figcaption {
+  margin-top: 0.7em;
+  font-size: clamp(11px, 0.9vw, 14px);
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.print-polaroid {
+  padding: 4% 4% 0;
+}
+.print-polaroid figcaption {
+  padding: 0.5em 0 0.8em;
+  font-size: clamp(15px, 1.35vw, 22px);
+  line-height: 1.1;
+  color: var(--ink);
+}
+.print-copy {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+}
+.print-copy img {
+  mix-blend-mode: multiply;
+  filter: contrast(1.15) sepia(0.15);
+}
+.print-copy figcaption {
+  font-family: var(--type);
+}
+.print-bare {
+  padding: 0;
+}
+
+/* a strip of masking tape */
+.tape {
+  position: absolute;
+  z-index: 3;
+  width: clamp(54px, 8vw, 110px);
+  height: clamp(18px, 1.9vw, 28px);
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0 2px, transparent 2px 5px),
+    var(--tape);
+  box-shadow: 0 1px 2px rgba(23, 18, 14, 0.18);
+  /* torn ends */
+  clip-path: polygon(0 8%, 5% 0, 9% 10%, 14% 0, 100% 0, 96% 14%, 100% 30%, 95% 48%, 100% 66%, 96% 84%, 100% 100%, 6% 100%, 0 86%, 4% 70%, 0 52%, 5% 34%, 0 18%);
+  mix-blend-mode: multiply;
+}
+.tape-top {
+  top: -0.9em;
+  left: 50%;
+  translate: -50% 0;
+  rotate: -3deg;
+}
+.tape-tl {
+  top: 2px;
+  left: -26px;
+  rotate: -38deg;
+}
+.tape-br {
+  bottom: 4px;
+  right: -26px;
+  rotate: -36deg;
+}
+.tape-side {
+  top: 40%;
+  right: -40px;
+  rotate: 84deg;
+}
+
+/* ---------- cut-outs ---------- */
+.cutout {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 2px 1px rgba(23, 18, 14, 0.25)) drop-shadow(0 18px 18px rgba(23, 18, 14, 0.32));
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ---------- hand ---------- */
+.note {
+  margin: 0;
+  font-size: clamp(20px, 2vw, 34px);
+  line-height: 1.05;
+}
+.note-marker {
+  color: var(--marker);
+}
+.note-biro {
+  color: var(--biro);
+  font-family: var(--hand);
+}
+.note-ink {
+  color: var(--ink);
+}
+.note-bone {
+  color: var(--bone);
+}
+.note-flame {
+  color: var(--flame);
+}
+.doodle {
+  display: block;
+  overflow: visible;
+}
+.doodle path {
+  stroke: currentColor;
+}
+.doodle-marker {
+  color: var(--marker);
+}
+.doodle-biro {
+  color: var(--biro);
+}
+.doodle-ink {
+  color: var(--ink);
+}
+.doodle-bone {
+  color: var(--bone);
+}
+.doodle-flame {
+  color: var(--flame);
+}
+
+/* ---------- label-maker tape ---------- */
+.dymo {
+  display: inline-block;
+  padding: 0.36em 0.7em 0.3em;
+  font: 700 clamp(15px, 1.5vw, 22px) / 1 var(--display);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35),
+    0 -1px 0 rgba(0, 0, 0, 0.5);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.35),
+    0 3px 8px -2px rgba(23, 18, 14, 0.45);
+}
+.dymo-black {
+  background: linear-gradient(180deg, #2b2724, #121010);
+}
+.dymo-red {
+  background: linear-gradient(180deg, #d93a23, #a3200f);
+}
+
+/* ---------- scraps of paper ---------- */
+.scrap {
+  position: relative;
+  padding: 1.6em 1.5em 1.7em;
+  color: var(--ink);
+  filter: drop-shadow(0 12px 14px rgba(23, 18, 14, 0.25)) drop-shadow(0 1px 1px rgba(23, 18, 14, 0.25));
+  --tear: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='10' preserveAspectRatio='none'%3E%3Cpath d='M0 10 L0 4 L7 6 L12 2 L19 5 L26 1 L31 6 L38 3 L44 7 L51 2 L58 5 L63 1 L70 6 L76 3 L83 7 L89 2 L96 5 L102 1 L109 6 L115 3 L120 5 L120 10 Z'/%3E%3C/svg%3E");
+  -webkit-mask:
+    var(--tear) top / 120px 10px repeat-x,
+    linear-gradient(#000, #000) center / 100% calc(100% - 18px) no-repeat,
+    var(--tear) bottom / 120px 10px repeat-x;
+  mask:
+    var(--tear) top / 120px 10px repeat-x,
+    linear-gradient(#000, #000) center / 100% calc(100% - 18px) no-repeat,
+    var(--tear) bottom / 120px 10px repeat-x;
+}
+/* the bottom tear points the other way */
+.scrap::after {
+  content: none;
+}
+.scrap-newsprint {
+  background: var(--newsprint) var(--paper-tex);
+}
+.scrap-white {
+  background: #fdfbf6;
+}
+.scrap-kraft {
+  background: var(--kraft) var(--paper-tex);
+}
+.scrap-lined {
+  background:
+    linear-gradient(90deg, transparent 2.2em, rgba(214, 40, 28, 0.45) 2.2em 2.3em, transparent 2.3em),
+    repeating-linear-gradient(180deg, transparent 0 1.55em, rgba(31, 63, 163, 0.22) 1.55em calc(1.55em + 1px)),
+    #fbf9f2;
+  padding-left: 3em;
+}
+.scrap-grid {
+  background:
+    repeating-linear-gradient(90deg, rgba(31, 63, 163, 0.12) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(180deg, rgba(31, 63, 163, 0.12) 0 1px, transparent 1px 22px),
+    #f8f6ee;
+}
+.scrap p {
+  margin: 0;
+}
+
+/* ---------- press clippings ---------- */
+.clip {
+  position: relative;
+  margin: 0;
+  padding: 1.3em 1.4em 1.5em;
+  background: var(--newsprint) var(--paper-tex);
+  color: var(--ink);
+  /* cut with scissors, not quite straight */
+  clip-path: polygon(0.6% 1.2%, 38% 0, 71% 0.9%, 99.4% 0, 100% 48%, 99.2% 100%, 62% 99%, 24% 100%, 0 99.2%, 0.8% 52%);
+  filter: drop-shadow(0 14px 16px rgba(23, 18, 14, 0.28));
+}
+.clip-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1em;
+  padding-bottom: 0.6em;
+  margin-bottom: 0.8em;
+  border-bottom: 3px double rgba(23, 18, 14, 0.7);
+  font: 700 clamp(10px, 0.85vw, 12px) / 1.1 var(--sans);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.clip-q {
+  margin: 0;
+  font: 400 clamp(24px, 2.6vw, 44px) / 1.02 var(--serif);
+  letter-spacing: -0.01em;
+}
+.clip-rate {
+  position: relative;
+  display: inline-block;
+  margin: 0.7em 0 0;
+  padding: 0.1em 0.3em;
+  color: var(--marker);
+  font-size: clamp(20px, 1.8vw, 28px);
+}
+.clip-ring {
+  position: absolute;
+  inset: -40% -30%;
+  width: 160%;
+  height: 180%;
+}
+
+/* ---------- torn edges between sections ---------- */
+.torn {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  z-index: 5;
+  pointer-events: none;
+}
+.torn-top {
+  bottom: calc(100% - 1px);
+  /* the sheet's edge lifts a little off what's under it */
+  filter: drop-shadow(0 -5px 8px rgba(0, 0, 0, 0.28));
+}
+.torn-bottom {
+  top: calc(100% - 1px);
+  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.22));
+}

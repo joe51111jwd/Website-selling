@@ -1,11 +1,13 @@
 import { motion } from "motion/react";
 import { SITE } from "../content";
+import { Torn } from "../ui/collage";
 import "./Book.css";
 
 /** Before The Joyce he cooked privately; the dining room hosts private events, menus built by him. */
 export function Book() {
   return (
     <section id="book" className="book">
+      <Torn edge="top" color="var(--char)" seed={31} depth={34} />
       <div className="wrap book-in">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -20,8 +22,8 @@ export function Book() {
             <span className="book-fire">His fire.</span>
           </h2>
           <p className="book-copy">
-            Before The Joyce, James cooked for private clients across the country. Today the art-filled dining room on
-            Española Way takes private events, with a menu he builds for each one.
+            Before The Joyce, James cooked in Miami as a private chef. Today the
+            art-filled dining room on Española Way takes private events.
           </p>
           <div className="book-cta">
             <a className="btn" href={SITE.privateEvents} target="_blank" rel="noreferrer">

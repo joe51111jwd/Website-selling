@@ -3,19 +3,17 @@ import { MotionConfig } from "motion/react";
 import Lenis from "lenis";
 import { Preloader } from "./ui/Preloader";
 import { Nav } from "./ui/Nav";
-import { EmberCursor } from "./ui/EmberCursor";
 import { Grain } from "./ui/Grain";
 import { Hero } from "./sections/Hero";
 import { Creed } from "./sections/Creed";
-import { Rail } from "./sections/Rail";
-import { Menu } from "./sections/Menu";
-import { Burgerability } from "./sections/Burgerability";
-import { NineHundred } from "./sections/NineHundred";
+import { Story } from "./sections/Story";
+import { Notebook } from "./sections/Notebook";
+import { Broiler } from "./sections/Broiler";
 import { Press } from "./sections/Press";
 import { Joyce } from "./sections/Joyce";
 import { Book } from "./sections/Book";
 import { Footer } from "./sections/Footer";
-import { reducedMotion } from "./lib/media";
+import { reducedMotion } from "./lib/motion";
 
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -49,15 +47,13 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <Preloader onDone={() => setReady(true)} />
       <Grain />
-      <EmberCursor />
       <Nav />
       <main>
         <Hero ready={ready} />
         <Creed />
-        <Rail />
-        <Menu />
-        <Burgerability />
-        <NineHundred />
+        <Story />
+        <Notebook />
+        <Broiler />
         <Press />
         <Joyce />
         <Book />

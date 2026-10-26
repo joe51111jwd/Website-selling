@@ -1,42 +1,44 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { PHILOSOPHY } from "../content";
+import { Doodle, Note } from "../ui/collage";
 import "./Creed.css";
 
-/** His own description of his food. The words catch, one after another, as it scrolls past. */
+const MARK = new Set(["memorable", "meals"]);
+
+/** His own description of his food, typed out. The words ink in as it scrolls past; the ones that
+ * matter get the highlighter. */
 export function Creed() {
   const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 75%", "end 55%"] });
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 80%", "end 60%"] });
   const words = `“${PHILOSOPHY.quote.charAt(0).toUpperCase()}${PHILOSOPHY.quote.slice(1)}.”`.split(" ");
   return (
     <section ref={ref} className="creed" aria-label="Philosophy">
       <div className="wrap">
-        <p className="eyebrow">The food</p>
+        <p className="eyebrow">The food, in his words</p>
         <blockquote className="creed-q">
           {words.map((w, i) => (
-            <Word key={i} p={scrollYProgress} at={i / words.length} span={1 / words.length}>
+            <Word key={i} p={scrollYProgress} at={i / words.length} span={1 / words.length} mark={MARK.has(w.replace(/\W/g, ""))}>
               {w}
             </Word>
           ))}
         </blockquote>
-        <div className="creed-foot">
-          <span className="serif">{PHILOSOPHY.magic}</span>
-          <span className="eyebrow">{PHILOSOPHY.by}</span>
+        <p className="creed-by type">{PHILOSOPHY.by}</p>
+        <div className="creed-magic">
+          <Note color="marker">{PHILOSOPHY.magic}</Note>
+          <Doodle kind="underline" className="creed-line" />
         </div>
-        <p className="creed-tag display">
-          American <em className="serif">nostalgia</em>
-        </p>
       </div>
     </section>
   );
 }
 
-function Word({ p, at, span, children }: { p: MotionValue<number>; at: number; span: number; children: string }) {
+function Word({ p, at, span, mark, children }: { p: MotionValue<number>; at: number; span: number; mark: boolean; children: string }) {
   const k = useTransform(p, [at, at + span * 2.5], [0, 1], { clamp: true });
-  const color = useTransform(k, [0, 0.5, 1], ["rgba(141,130,120,0.28)", "#ff7a2c", "#f1e8da"]);
-  const glow = useTransform(k, [0, 0.5, 1], ["0 0 0px rgba(255,90,31,0)", "0 0 28px rgba(255,90,31,0.9)", "0 0 0px rgba(255,90,31,0)"]);
+  const color = useTransform(k, [0, 1], ["rgba(23,18,14,0.14)", "rgba(23,18,14,1)"]);
+  const swipe = useTransform(k, [0.4, 1], ["0% 100%", "100% 100%"]);
   return (
-    <motion.span className="creed-w" style={{ color, textShadow: glow }}>
+    <motion.span className={`creed-w ${mark ? "mark" : ""}`} style={mark ? { color, backgroundSize: swipe } : { color }}>
       {children}{" "}
     </motion.span>
   );

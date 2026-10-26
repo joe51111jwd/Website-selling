@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
 import { JOYCE, SITE } from "../content";
+import { Label, Print } from "../ui/collage";
 import "./Joyce.css";
 
 /** The Joyce sits behind dark green drapery off Española Way. The curtain parts as you scroll. */
@@ -23,7 +24,7 @@ export function Joyce() {
               <h2 className="display">
                 The <span className="serif">Joyce</span>
               </h2>
-              <p className="joyce-addr">{SITE.address}</p>
+              <Label className="joyce-addr">{SITE.address}</Label>
               <p className="joyce-partners">{JOYCE.partners}</p>
               <div className="joyce-cta">
                 <a className="btn" href={SITE.reserve} target="_blank" rel="noreferrer">
@@ -34,14 +35,18 @@ export function Joyce() {
                 </a>
               </div>
             </div>
-            <dl className="joyce-facts">
-              {JOYCE.facts.map(([k, v]) => (
-                <div key={k}>
-                  <dt>{k}</dt>
-                  <dd>{v}</dd>
-                </div>
-              ))}
-            </dl>
+            <div className="joyce-side">
+              <Print id="espanola-corner" caption="Española Way" tape="top" className="joyce-print" />
+              <dl className="joyce-facts">
+                <p className="joyce-card-head">The Joyce · house notes</p>
+                {JOYCE.facts.map(([k, v]) => (
+                  <div key={k}>
+                    <dt>{k}</dt>
+                    <dd>{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
           </div>
         </motion.div>
         <motion.div className="curtain l" style={{ x: left, scaleX: squash }} aria-hidden />

@@ -1,4 +1,5 @@
 import { SITE, SOURCES } from "../content";
+import { PHOTOS } from "../photos";
 import "./Footer.css";
 
 export function Footer() {
@@ -37,13 +38,37 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <p className="eyebrow">The dishes</p>
-            <p>Modelled, lit and rendered in Blender: every plate on this page is 3D, not a photograph.</p>
+            <p className="eyebrow">The pictures</p>
+            <p>
+              Places, ingredients and fire, from photographers who share their work openly. Not his plates:
+              those are better seen in person.
+            </p>
+            <details className="foot-credits">
+              <summary>Photo credits ({Object.keys(PHOTOS).length})</summary>
+              <ul>
+                {Object.entries(PHOTOS).map(([id, p]) => (
+                  <li key={id}>
+                    <a href={p.credit.page} target="_blank" rel="noreferrer">
+                      {p.credit.title}
+                    </a>{" "}
+                    by {p.credit.author},{" "}
+                    {p.credit.licenseUrl ? (
+                      <a href={p.credit.licenseUrl} target="_blank" rel="noreferrer">
+                        {p.credit.license}
+                      </a>
+                    ) : (
+                      p.credit.license
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <p className="foot-note">Some are cropped, cut out or recoloured for the collage.</p>
+            </details>
           </div>
         </div>
         <p className="foot-base">
           <span>© {new Date().getFullYear()} James Taylor</span>
-          <a href="#top">Back to the fire ↑</a>
+          <a href="#top">Back to the top ↑</a>
         </p>
       </div>
     </footer>
