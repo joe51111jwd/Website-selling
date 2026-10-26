@@ -7,7 +7,7 @@ import { CopyButton } from "./CopyButton";
 /** open the use notice from anywhere; focus goes back to `trigger` when it closes */
 export const openNotice = (trigger?: HTMLElement | null) => window.dispatchEvent(new CustomEvent("susd:notice", { detail: trigger ?? null }));
 
-export function NoticeDialog({ copy }: { copy: SiteCopy["ending"]["notice"] }) {
+export function NoticeDialog({ copy }: { copy: SiteCopy["notice"] }) {
   const ref = useRef<HTMLDialogElement>(null);
   const back = useRef<HTMLElement | null>(null);
 

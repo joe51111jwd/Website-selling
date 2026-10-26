@@ -21,7 +21,8 @@ team back on, on the systems, and the building keeps rising past where the rush 
 | `prologue.py` | The opening: the three cover blocks lie face up, seen from above, then stand up and stack while the camera cranes down to the story's hero shot (frame 28) |
 | `render.sh` | Renders `foundation.blend` into `out/seq` (motion blur on the rush and the fall only) |
 | `book.py` | The hardcover with the three blocks beside it |
-| `flatlay.py` | The desk at the end of the page: the three blocks face up, seen from above, rendered in layers (each block, its shadow at rest and lifted, two props) that all share one camera |
+| `closed.py` | The closed loop after the story: the row buried under what AI keeps adding, swept clear, then eleven systems set down in a ring (50 frames); Quality on its own in layers (block, shadow at rest and lifted) for the copy; and a wide panorama of the same table with the book further along |
+| `render_closed.sh` | Renders all of `closed.py`'s shots; a stopped run picks up where it left off |
 | `anchors.py` | Exports each frame's screen position of the labelled blocks, so the site can pin labels to them |
 
 ## Steps
@@ -34,8 +35,12 @@ team back on, on the systems, and the building keeps rising past where the rush 
    Opening: `blender -b foundation.blend -P prologue.py -- --out out/proseq/p --samples 18` (add `--proxy 1 --w 400 --h 250 --samples 6` for a quick look)
 4. Anchors: `blender -b foundation.blend -P anchors.py -- out/anchors.json` (joined to the opening in step 7)
 5. Book: `blender -b -P book.py -- --w 1500 --h 1500 --samples 128 --out out/book.png`
-6. Desk: `blender -b -P flatlay.py -- --outdir out/flatlay` (add `--proxy 1` for a quick framing check), then from the project root
-   `python3 scripts/make_flatlay_assets.py render/tex render/out/flatlay` (it also makes the ink prints and grain masks, and writes `src/flatlay.json`)
+6. Closed loop: `BLENDER=blender ./render_closed.sh` (or one shot at a time, `--proxy 1` for a quick framing check:
+   `blender -b foundation.blend -P closed.py -- --shot seq|layers|pano --out out/clseq|out/closed`), then from the project root
+   `python3 scripts/make_closed_assets.py render/out/closed render/out/clseq render/out/seq` (Quality's layers, the panorama, the footer seal,
+   the proof pictures and `src/closed.json`), and pack the sequence:
+   `python3 scripts/pack_frames.py render/out/clseq public/closed/hi --width 1600 --quality 78 --per 25`
+   `python3 scripts/pack_frames.py render/out/clseq public/closed/lo --width 480 --quality 60 --per 50`
 7. Join the opening and the story, then pack the frames for the site, from the project root:
    `python3 scripts/sequence.py render/out/proseq render/out/seq render/out/site render/out/anchors.json public/anchors.json`
    `python3 scripts/pack_frames.py render/out/site public/frames/hi --width 1600 --quality 78 --per 25`

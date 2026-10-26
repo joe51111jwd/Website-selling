@@ -5,7 +5,7 @@
 // any wait before the write as leaving the click. So the file is fetched ahead of time, and
 // copyNow() calls the clipboard first, synchronously, before anything else happens.
 import type { AssistantId } from "./assistants";
-import { markCopied, markError, setCopying, setWords, type CopySource } from "./copyStore";
+import { markCopied, markError, setCopying, setFile, type CopySource } from "./copyStore";
 
 const URL_ = `${import.meta.env.BASE_URL}bootloader.md`;
 let text: string | null = null;
@@ -24,7 +24,7 @@ export function ensureBootloader(priority: "low" | "high" = "low"): Promise<stri
     .then((t) => {
       if (!t.trim()) throw new Error("bootloader empty");
       text = t;
-      setWords(wordCount(t));
+      setFile(wordCount(t), new Blob([t]).size);
       return t;
     })
     .finally(() => {

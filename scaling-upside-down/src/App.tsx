@@ -3,8 +3,8 @@ import { LazyMotion, MotionConfig, domAnimation } from "motion/react";
 import Lenis from "lenis";
 import { COPY } from "./copy";
 import { Story } from "./components/Story";
-import { Book, Footer, Nav } from "./components/Sections";
-import { Couplet, Desk, Hinge } from "./components/Ending";
+import { Footer, Nav, Proof } from "./components/Sections";
+import { ClosedLoop } from "./components/ClosedLoop";
 import { Announcer } from "./components/Announcer";
 import { NoticeDialog } from "./components/NoticeDialog";
 import { preloadBootloader } from "./bootloader";
@@ -100,13 +100,11 @@ export default function App() {
         <Nav />
         <main>
           <Story beats={COPY.beats} hero={COPY.hero} />
-          <Couplet copy={COPY.ending.couplet} />
-          <Desk copy={COPY.ending.desk} />
-          <Hinge copy={COPY.ending.hinge} />
-          <Book copy={COPY.book} />
+          <ClosedLoop copy={COPY.closed} />
+          <Proof copy={COPY.proof} />
         </main>
         <Footer copy={COPY.footer} />
-        <NoticeDialog copy={COPY.ending.notice} />
+        <NoticeDialog copy={COPY.notice} />
         <Announcer />
       </MotionConfig>
     </LazyMotion>

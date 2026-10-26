@@ -47,5 +47,19 @@ python3 scripts/pack_frames.py render/out/site public/frames/hi --width 1600 --q
 python3 scripts/pack_frames.py render/out/site public/frames/lo --width 480 --quality 60 --per 50
 ```
 
-The desk at the end of the page (the copy "stamp") uses its own render, `render/flatlay.py`,
-turned into page layers by `scripts/make_flatlay_assets.py`.
+## The closed loop
+
+After the story, the page looks down at the table again: the pile AI keeps adding is swept off and
+the twelve systems are set down around Up / Side / Down; copying the prompt drops the last one,
+Quality, into its gap. It is its own render, `render/closed.py` (see `render/README.md`), turned
+into page layers by:
+
+```
+python3 scripts/make_closed_assets.py render/out/closed render/out/clseq render/out/seq
+python3 scripts/pack_frames.py render/out/clseq public/closed/hi --width 1600 --quality 78 --per 25
+python3 scripts/pack_frames.py render/out/clseq public/closed/lo --width 480 --quality 60 --per 50
+```
+
+That also writes `src/closed.json` (where things sit in the picture, the paper colour that joins
+the sections, and the hashed file names). The word count and file size on the page are read live
+from `public/bootloader.md`, so replacing the prompt needs nothing else.

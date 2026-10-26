@@ -169,6 +169,12 @@ export class FrameStore {
     }
   }
 
+  /** let go of every decoded picture (the compressed ones stay); they decode again when needed */
+  release() {
+    this.decoded.forEach((b) => b.close());
+    this.decoded.clear();
+  }
+
   /** move the playhead without drawing, so eviction protects the frames about to play */
   aim(i: number) {
     this.head = i;

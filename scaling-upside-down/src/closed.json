@@ -1,0 +1,81 @@
+{
+ "frame": [
+  1600,
+  1000
+ ],
+ "ringC": [
+  0.64,
+  0.5
+ ],
+ "vp": [
+  0.64,
+  0.6086
+ ],
+ "hair": {
+  "rx": 0.2561,
+  "ry": 0.4077
+ },
+ "inner": {
+  "rx": 0.1442,
+  "ry": 0.23
+ },
+ "row": [
+  0.5159,
+  0.4333,
+  0.7636,
+  0.5677
+ ],
+ "q": {
+  "box": [
+   0.4073,
+   0.4354,
+   0.4945,
+   0.5665
+  ]
+ },
+ "seamDeg": 270,
+ "tagDeg": 30,
+ "book": {
+  "c": [
+   -0.219,
+   0.5026
+  ],
+  "base": [
+   -0.2086,
+   0.8411
+  ]
+ },
+ "seam": "#f6f0dd",
+ "layers": {
+  "q_block": [
+   0.40188,
+   0.426,
+   0.09812,
+   0.149
+  ],
+  "q_shd_rest": [
+   0.2575,
+   0.0,
+   0.7425,
+   0.702
+  ],
+  "q_shd_lift": [
+   0.0,
+   0.0,
+   1.0,
+   0.813
+  ]
+ },
+ "files": {
+  "pano": "pano-b35cbf4b.webp",
+  "q_block": "q_block-26ce7bd1.webp",
+  "q_shd_rest": "q_shd_rest-d0985ced.webp",
+  "q_shd_lift": "q_shd_lift-1cdc58be.webp",
+  "seal": "seal-e6c1a02f.webp",
+  "proof_needle_d": "proof_needle_d-53247552.webp",
+  "proof_needle_m": "proof_needle_m-60cc9723.webp",
+  "proof_building_d": "proof_building_d-98e7df42.webp",
+  "proof_building_m": "proof_building_m-c1957648.webp"
+ },
+ "sequence": 50
+}

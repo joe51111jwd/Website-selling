@@ -293,9 +293,18 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
     };
     // the loop sleeps while the story is off screen
     // touching the viewport edge (where #bootloader lands) is not on screen
+    // off screen for a couple of seconds: let go of the decoded pictures (phones run short of memory)
+    let sleep = 0;
     const io = new IntersectionObserver(
       ([e]) => {
         onScreen = e.intersectionRatio > 0;
+        window.clearTimeout(sleep);
+        if (onScreen) lastKey = "";
+        else
+          sleep = window.setTimeout(() => {
+            lo?.release();
+            store?.release();
+          }, 2000);
         start();
       },
       { threshold: [0, 0.01] },
@@ -371,6 +380,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
     return () => {
       disposed = true;
       cancelAnimationFrame(raf);
+      window.clearTimeout(sleep);
       ro.disconnect();
       io.disconnect();
       mq.removeEventListener("change", onDpr);
