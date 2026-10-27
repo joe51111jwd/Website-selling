@@ -41,8 +41,9 @@ export type SiteCopy = {
       sendFailed: string;
       sentTo: string;
       notLive: string;
+      already: string;
       appendix: string;
-      names: Record<"copy" | "sent" | "yours" | "error" | "copyNoCount" | "sentNoCount" | "yoursNoCount" | "errorNoCount" | "busy", string>;
+      names: Record<"copy" | "file" | "sent" | "yours" | "already" | "error" | "copyNoCount" | "fileNoCount" | "sentNoCount" | "yoursNoCount" | "alreadyNoCount" | "errorNoCount" | "busy", string>;
     };
     pair: { book: string; file: string };
     book: { kicker: string; quote: string; sign: string; headline: string; soon: string; button: string };
@@ -162,19 +163,24 @@ export const COPY: SiteCopy = {
       email: "Email address",
       placeholder: "you@company.com",
       badEmail: "Enter your email address.",
-      sendFailed: "Couldn't send. Download the file below.",
+      sendFailed: "Couldn't send. Download below.",
       sentTo: "Sent to {email}.",
-      notLive: "Email delivery isn't connected yet, so the file is downloading now.",
+      notLive: "Email isn't connected yet. The file is downloading.",
+      already: "You're already on the list. Here's the file.",
       appendix: "Read the Appendix",
       // the button's accessible name begins with what its face says
       names: {
         copy: "Get it: the Bootloader, {n} words, by email",
+        file: "Get it: the Bootloader, {n} words, as a file", // no email service: the click downloads it
         sent: "Sent: check inbox. Download the file",
         yours: "Yours: {n} words. Download the file again",
+        already: "Yours: {n} words. Already on the list. Download the file again",
         error: "Get it, try again: the Bootloader, {n} words",
         copyNoCount: "Get it: the Bootloader, by email",
+        fileNoCount: "Get it: the Bootloader, as a file",
         sentNoCount: "Sent: check inbox. Download the file",
         yoursNoCount: "Yours: the Bootloader. Download the file again",
+        alreadyNoCount: "Yours: the Bootloader. Already on the list. Download the file again",
         errorNoCount: "Get it, try again: the Bootloader",
         busy: "Sending the Bootloader",
       },

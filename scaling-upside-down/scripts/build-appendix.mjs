@@ -1,21 +1,26 @@
 // The Appendix: the SUSD Bootloader as one static page, for readers and for AI crawlers (which read
 // the HTML and do not run JavaScript). Runs after `vite build` (npm run build):
 //
-//   node scripts/build-appendix.mjs            SITE_URL=https://scalingupsidedown.com node scripts/build-appendix.mjs
+//   node scripts/build-appendix.mjs
+//
+// Absolute URLs use the origin from scripts/site.mjs: SITE_URL if set, else Vercel's production domain
+// (VERCEL_PROJECT_PRODUCTION_URL), else the vercel.app address. APPENDIX_OUT=<folder> writes somewhere other
+// than dist/ (for testing).
 //
 // Reads public/bootloader.md and src/notice.json; writes dist/appendix.html (served at /appendix),
 // dist/llms.txt, dist/llms-full.txt, dist/sitemap.xml and dist/robots.txt. The page's CSS and JS
 // (scripts/appendix/) are inlined, so it is one request. Every heading and every term in the
 // Vocabulary Lock gets a permanent anchor, so any part of the system has its own citable URL.
 import { execFileSync } from "node:child_process";
-import { readFileSync, statSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Marked } from "marked";
+import { siteUrl } from "./site.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = process.env.APPENDIX_OUT || join(ROOT, "dist"); // the built site
-const SITE = (process.env.SITE_URL || "https://scaling-up-side-down.vercel.app").replace(/\/+$/, "");
+const SITE = siteUrl();
 const PAGE = `${SITE}/appendix`;
 const HOST = SITE.replace(/^https?:\/\//, "");
 const MD_PATH = join(ROOT, "public", "bootloader.md");
@@ -43,6 +48,23 @@ const updatedIso = (() => {
   const i = m ? MONTHS.indexOf(m[1]) : -1;
   return i >= 0 ? `${m[2]}-${String(i + 1).padStart(2, "0")}` : "";
 })();
+// The day the Bootloader last changed, for the sitemap's <lastmod> and the JSON-LD dateModified. It must not
+// move on a redeploy, so it is the file's own "Document Version: ... (October 2026)" as the first of that
+// month, unless git history names the commit that last changed the file. A shallow clone's oldest commit does
+// not count (there every file looks newly added), and the file's mtime never does (that is the checkout time).
+const modified = (() => {
+  const git = (...args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  try {
+    const [hash, day] = git("log", "-1", "--format=%H %cs", "--", "public/bootloader.md").split(" ");
+    if (hash && /^\d{4}-\d{2}-\d{2}$/.test(day ?? "")) {
+      const parentless = git("rev-list", "--parents", "-n", "1", hash).split(" ").length === 1;
+      if (!(parentless && git("rev-parse", "--is-shallow-repository") === "true")) return day;
+    }
+  } catch {
+    /* no git here: the file's own date */
+  }
+  return updatedIso ? `${updatedIso}-01` : "";
+})();
 const promptMatch = md.match(/\*\*Canonical Prompt \(For Users\)\*\*[\s\S]*?```[^\n]*\n([\s\S]*?)\n```/);
 const startingPrompt = promptMatch ? promptMatch[1] : "";
 const purpose = (md.match(/## PURPOSE\s+([^\n]+)/) || [])[1] || ""; // the Bootloader's own first lines
@@ -67,7 +89,7 @@ const slugify = (s) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "") || "section";
 // ids the page itself uses, so no heading can take one; then first come, first served, in document order
-const used = new Set(["top", "main", "nav", "contents", "toc-search", "toc-empty", "get", "get-h", "load-h", "optin", "optin-email", "optin-msg", "copy-prompt", "starting-prompt", "canonical-prompt", "bootloader", "use-notice", "use-notice-h", "cite", "cite-h", "end", "foot", "optin-sent", "optin-file", "optin-error"]);
+const used = new Set(["top", "main", "nav", "contents", "toc-search", "toc-empty", "get", "get-h", "load-h", "optin", "optin-email", "optin-msg", "copy-prompt", "copy-status", "starting-prompt", "canonical-prompt", "bootloader", "use-notice", "use-notice-h", "cite", "cite-h", "end", "foot", "optin-sent", "optin-file", "optin-already", "optin-failed", "optin-error"]);
 const unique = (base) => {
   let id = base;
   for (let n = 2; used.has(id); n++) id = `${base}-${n}`;
@@ -76,7 +98,7 @@ const unique = (base) => {
 };
 
 // ---------- the document ----------
-const toc = []; // { depth: 2 | 3, id, text }
+const toc = []; // { depth: 2 | 3 | 4, id, text } (h4s are listed hidden: the contents search finds them)
 const terms = []; // { id, term }
 let pageTitleSeen = false;
 const marked = new Marked({ gfm: true });
@@ -97,7 +119,7 @@ marked.use({
       }
       const base = slugify(plain);
       const id = unique(/^\d/.test(base) ? `sec-${base}` : base); // "2.4 The 12 Systems" -> #sec-2-4-the-12-systems
-      if (depth <= 3) toc.push({ depth, id, text: plain });
+      if (depth <= 4) toc.push({ depth, id, text: plain });
       // the section number in mono, the words unchanged (the text a crawler reads stays the file's)
       const shown = inner.replace(/^(Section \d+(?: \(Continued\))?:|INVERSION #\d+:|\d+(?:\.\d+)+[a-z]?(?=\s))/, '<span class="hn">$1</span>');
       return `<h${depth} id="${id}"><a class="anchor" href="#${id}" aria-hidden="true" tabindex="-1"></a>${shown}</h${depth}>\n`;
@@ -106,7 +128,8 @@ marked.use({
       const head = token.header.map((c) => this.parser.parseInline(c.tokens));
       const isTerms = text(head[0]).startsWith("Use This"); // the Vocabulary Lock: one anchor per term
       const al = (i) => (token.align[i] ? ` style="text-align:${token.align[i]}"` : "");
-      let out = `<div class="tw" role="region" aria-label="${isTerms ? "Vocabulary Lock table" : "Table"}" tabindex="0"><table class="c${head.length}${isTerms ? " terms" : ""}"><thead><tr>`;
+      // a plain wrapper: appendix.js makes it a named, focusable region only while it actually scrolls sideways
+      let out = `<div class="tw"><table class="c${head.length}${isTerms ? " terms" : ""}"><thead><tr>`;
       out += head.map((h, i) => `<th scope="col"${al(i)}>${h}</th>`).join("");
       out += "</tr></thead><tbody>";
       for (const row of token.rows) {
@@ -137,21 +160,47 @@ const label = (t) => esc(t).replace(/^(Section \d+(?: \(Continued\))?:|INVERSION
 const tocList = (() => {
   let out = '<ol class="toc-l">';
   out += '<li class="x"><a href="#get">Get the Bootloader</a></li>';
-  let open = false;
+  // sections (h2) hold their subsections (h3); an h3 holds its h4s, which stay hidden until the search finds them
+  let open2 = false;
+  let open3 = false;
+  let open4 = false;
+  const close4 = () => {
+    if (open4) out += "</ol>";
+    open4 = false;
+  };
+  const close3 = () => {
+    close4();
+    if (open3) out += "</li>";
+    open3 = false;
+  };
+  const close2 = () => {
+    close3();
+    if (open2) out += "</ol></li>";
+    open2 = false;
+  };
   for (const t of toc) {
+    const link = `<a href="#${t.id}">${label(t.text)}</a>`;
     if (t.depth === 2) {
-      if (open) out += "</ol></li>";
-      out += `<li><a href="#${t.id}">${label(t.text)}</a><ol>`;
-      open = true;
-    } else {
-      if (!open) {
-        out += "<li><ol>";
-        open = true;
-      }
-      out += `<li><a href="#${t.id}">${label(t.text)}</a></li>`;
+      close2();
+      out += `<li>${link}<ol>`;
+      open2 = true;
+      continue;
     }
+    if (!open2) {
+      out += "<li><ol>";
+      open2 = true;
+    }
+    if (t.depth === 3) {
+      close3();
+      out += `<li>${link}`;
+      open3 = true;
+    } else if (open3) {
+      if (!open4) out += '<ol class="t4l">';
+      open4 = true;
+      out += `<li class="t4" hidden>${link}</li>`;
+    } else out += `<li class="t4" hidden>${link}</li>`; // an h4 straight under a section
   }
-  if (open) out += "</ol></li>";
+  close2();
   out += '<li class="x"><a href="#use-notice">Use notice</a></li><li class="x"><a href="#cite">How to cite</a></li>';
   return `${out}</ol>`;
 })();
@@ -194,9 +243,9 @@ const ld = [
     creator: { "@type": "Person", name: "Michael Wentz" },
     version,
     wordCount: words,
-    ...(updatedIso ? { dateModified: updatedIso } : {}),
+    ...(modified ? { dateModified: modified } : {}),
     inLanguage: "en",
-    isPartOf: { "@type": "Book", name: "Scaling Up-Side-Down", alternateName: "Revenue Up. Margins Down. How to Avoid the Scaling Trap.", author: { "@type": "Person", name: "Michael Wentz" }, url: `${SITE}/` },
+    isPartOf: { "@type": "Book", "@id": `${SITE}/#book`, name: "Scaling Up-Side-Down", url: `${SITE}/` }, // the home page's Book
     encoding: { "@type": "MediaObject", contentUrl: `${SITE}/bootloader.md`, encodingFormat: "text/markdown", contentSize: kb, name: "SUSD-Bootloader.md" },
     articleSection: toc.filter((t) => t.depth === 2).map((t) => t.text),
     keywords: terms.slice(0, 40).map((t) => t.term).join(", "),
@@ -214,6 +263,7 @@ const ldTags = ld.map((o) => `<script type="application/ld+json">${JSON.stringif
 
 // ---------- the page ----------
 const tri = '<span class="tri" aria-hidden="true"><i></i><i></i><i></i></span>';
+const dl = '<a href="/bootloader.md" download="SUSD-Bootloader.md">Download the Bootloader (.md)</a>';
 const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -259,7 +309,7 @@ ${ldTags}
   <div class="toc-in">
     <label class="toc-find"><span class="sr">Search the contents</span><input id="toc-search" type="search" placeholder="Search the contents" autocomplete="off" spellcheck="false"></label>
     <nav class="toc-nav" aria-label="Contents">${tocList}</nav>
-    <p class="toc-empty" id="toc-empty" hidden>No section matches.</p>
+    <p class="toc-empty" id="toc-empty" role="status"></p>
   </div>
 </details>
 <main id="main">
@@ -289,14 +339,18 @@ ${ldTags}
         <input id="optin-email" name="email" type="email" inputmode="email" autocomplete="email" required placeholder="you@company.com" aria-describedby="optin-msg">
         <button type="submit" class="btn">Send me the Bootloader</button>
       </div>
-      <div class="hp" aria-hidden="true"><label>Company <input name="company" type="text" tabindex="-1" autocomplete="off"></label></div>
+      <div class="hp" aria-hidden="true" data-nosnippet><label>Company <input name="company" type="text" tabindex="-1" autocomplete="off"></label></div>
       <input type="hidden" name="source" value="appendix">
       <p class="msg" id="optin-msg" role="status" aria-live="polite"></p>
     </form>
-    <!-- where a plain form post (no JavaScript) lands: /api/optin answers with a 303 to one of these -->
-    <p class="done ok" id="optin-sent">Sent. Check your inbox.</p>
-    <p class="done ok" id="optin-file">Email delivery isn't connected yet, so here's the file now. <a href="/bootloader.md" download="SUSD-Bootloader.md">Download the Bootloader (.md)</a></p>
-    <p class="done err" id="optin-error">That email address didn't look right. Try again.</p>
+    <!-- where a plain form post (no JavaScript) lands: /api/optin answers with a 303 to one of these. Hidden
+         unless targeted, and kept out of snippets (they are in the HTML a crawler reads), so each must read true
+         on its own -->
+    <div class="done ok" id="optin-sent" data-nosnippet>Sent. Check your inbox.</div>
+    <div class="done ok" id="optin-file" data-nosnippet>Here's the file. ${dl}</div>
+    <div class="done ok" id="optin-already" data-nosnippet>You're already on the list. Here's the file. ${dl}</div>
+    <div class="done err" id="optin-failed" data-nosnippet>Couldn't send. Download the file instead. ${dl}</div>
+    <div class="done err" id="optin-error" data-nosnippet>That email address didn't look right. Try again.</div>
   </div>
   <div class="get-load" aria-labelledby="load-h">
     <h3 id="load-h">Load it into your AI</h3>
@@ -309,6 +363,7 @@ ${ldTags}
         <p>${esc(UPLOAD)}</p>
         <pre class="code prompt" id="starting-prompt"><code>${esc(startingPrompt)}</code></pre>
         <button type="button" class="btn ghost" id="copy-prompt">Copy the starting prompt</button>
+        <span class="sr" id="copy-status" role="status"></span>
       </li>
     </ol>
     <p class="fine"><a href="#use-notice">Use notice</a></p>
@@ -325,8 +380,8 @@ ${noticeHtml}
   <p class="kicker">${tri}Reference</p>
   <h2 id="cite-h">How to cite</h2>
   <p class="cite-ref">Wentz, M. (2026). <cite>The SUSD Bootloader</cite> (${esc(version)}). <i>Scaling Up-Side-Down</i>. <a href="${PAGE}">${esc(HOST)}/appendix</a></p>
-  <p class="cite-note">Every section and every defined term has its own anchor. To cite one, append it to the address: <a href="#term-cyclical-growth"><code>${esc(HOST)}/appendix#term-cyclical-growth</code></a></p>
-  <p class="cite-note">The same document as a file: <a href="/bootloader.md"><code>${esc(HOST)}/bootloader.md</code></a></p>
+  <p class="cite-note">Cite a section or term: <a href="#term-cyclical-growth"><code>${esc(HOST)}/appendix#term-cyclical-growth</code></a></p>
+  <p class="cite-note">File: <a href="/bootloader.md"><code>${esc(HOST)}/bootloader.md</code></a></p>
 </section>
 <p class="end" id="end">End of document · SUSD Bootloader ${esc(version)} · <a href="${PAGE}">${esc(HOST)}/appendix</a></p>
 </main>
@@ -342,21 +397,15 @@ ${noticeHtml}
 `;
 
 // ---------- files for crawlers ----------
-const lastmod = (() => {
-  try {
-    const d = execFileSync("git", ["log", "-1", "--format=%cs", "--", "public/bootloader.md"], { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
-  } catch {
-    /* no git history here: fall back to the file's own date */
-  }
-  return statSync(MD_PATH).mtime.toISOString().slice(0, 10);
-})();
-const today = new Date().toISOString().slice(0, 10);
 const llms = `# Scaling Up-Side-Down
 
 > ${SPEC} ${purpose.replace(/^This document is designed to be read by both humans and AI\.\s*/, "")}
 
-${TWO_FORMS} ${REFERENCE} Scaling Up-Side-Down is a book by Michael Wentz; the SUSD Bootloader (${version}, ${words.toLocaleString("en-US")} words) is its appendix.
+- Book: Scaling Up-Side-Down
+- Author: Michael Wentz
+- Appendix: SUSD Bootloader ${version}, ${words.toLocaleString("en-US")} words
+- Page: ${PAGE}
+- File: ${SITE}/bootloader.md
 
 ## Docs
 
@@ -374,8 +423,8 @@ Source: ${PAGE} · Markdown: ${SITE}/bootloader.md · Author: Michael Wentz
 ${md}`;
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>${SITE}/</loc><lastmod>${today}</lastmod></url>
-  <url><loc>${PAGE}</loc><lastmod>${lastmod}</lastmod></url>
+  <url><loc>${SITE}/</loc></url>
+  <url><loc>${PAGE}</loc>${modified ? `<lastmod>${modified}</lastmod>` : ""}</url>
 </urlset>
 `;
 const robots = `# Scaling Up-Side-Down: everything here may be read, by people and by AI.
@@ -414,4 +463,4 @@ for (const [name, body] of [
   ["robots.txt", robots],
 ])
   writeFileSync(join(DIST, name), body);
-console.log(`appendix: ${toc.filter((t) => t.depth === 2).length} sections, ${toc.filter((t) => t.depth === 3).length} subsections, ${terms.length} terms, ${words.toLocaleString("en-US")} words, ${Math.round(Buffer.byteLength(html) / 1024)} KB html · ${SITE}`);
+console.log(`appendix: ${toc.filter((t) => t.depth === 2).length} sections, ${toc.filter((t) => t.depth === 3).length} subsections, ${toc.filter((t) => t.depth === 4).length} h4s, ${terms.length} terms, updated ${modified || "?"}, ${words.toLocaleString("en-US")} words, ${Math.round(Buffer.byteLength(html) / 1024)} KB html · ${SITE}`);

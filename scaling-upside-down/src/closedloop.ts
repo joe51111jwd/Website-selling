@@ -166,19 +166,23 @@ export function truckRect(p: number, cw: number, ch: number, mode: Mode): Rect {
   return mix(r1, r2, smooth((p - 0.86) / 0.06));
 }
 
-/** the stamp's two sizes for a block W wide */
+/** the widest small line ("THE BOOTLOADER"), in px per px of type, its 0.12em tracking included (measured in the stamp face) */
+const SMALL_EM = 11.5;
+/** the stamp's two sizes for a block W wide: the small line never wider than 90% of the face */
 export function stampFor(W: number) {
   const faceH = W * cb.faceAR;
   const big = Math.round(0.5 * faceH);
-  return { faceH, big, small: Math.max(19, Math.round(0.25 * big)) };
+  const fits = Math.floor((0.9 * W * cb.face[2]) / SMALL_EM);
+  return { faceH, big, small: Math.min(Math.max(19, Math.round(0.25 * big)), fits) };
 }
 
 export type BlockFit = { W: number; big: number; small: number; gapb: number; short: boolean };
 /**
  * The COPY block's size. `rest` is the height of everything else in the column (kicker, headline,
  * the rows below), measured from the page; `room` is the height the whole column may take.
+ * On a phone the block keeps at least `floor` of its full size, or the screen counts as short.
  */
-export function blockFit(mode: Mode, colW: number, room: number, rest: number, ch: number, ringRoom = Infinity): BlockFit {
+export function blockFit(mode: Mode, colW: number, room: number, rest: number, ch: number, ringRoom = Infinity, floor = 0.7): BlockFit {
   let W: number;
   let short = false;
   let gapb: number;
@@ -189,8 +193,8 @@ export function blockFit(mode: Mode, colW: number, room: number, rest: number, c
     gapb = mode === "land" || ch <= 620 ? 12 : ch <= 760 ? 16 : 22;
     const max = Math.min(460, colW / LIFT);
     W = Math.min(max, (room - rest - gapb) / cb.bodyAR);
-    if (W < 0.7 * max) {
-      W = 0.7 * max;
+    if (W < floor * max) {
+      W = floor * max;
       short = true; // a very short screen: the block keeps its size, the headline steps aside
     }
   }

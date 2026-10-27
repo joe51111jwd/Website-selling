@@ -416,21 +416,31 @@ html[data-stamp] .cl-hit { pointer-events: auto; } /* Quality copies only while 
 .beat-k i.tri b:nth-child(3) { background: var(--down); }
 .cl-swap { display: inline-grid; }
 .cl-swap > * { grid-area: 1 / 1; transition: opacity 0.4s var(--ease), transform 0.4s var(--ease), visibility 0s; }
-.cl-head { display: grid; }
+.cl-head { display: grid; position: relative; }
+/* the headline not showing steps out of the flow, so the column is only as tall as the one that is */
+.cl-head[data-on="a"] > .b, .cl-head[data-on="b"] > .a { position: absolute; inset: 0 0 auto 0; }
 .cl-deck { margin-top: 12px; max-width: 34ch; font: italic 400 18px / 1.4 var(--serif); color: #3e372e; text-wrap: pretty; }
 .cl-swap[data-on="b"] > .a, .cl-swap[data-on="a"] > .b { opacity: 0; visibility: hidden; transform: translateY(6px); transition-delay: 0s, 0s, 0.4s; }
 .cl-copy .beat-h { font-size: clamp(34px, 3.3vw, 48px); }
 .cl-form { margin-top: 20px; }
 .cl-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-/* the field and its one line of message keep their height in every state, so nothing moves */
-.cl-field { position: relative; width: min(100%, var(--rowsw, 100%)); height: 66px; }
-.cl-email { display: block; width: 100%; height: 46px; padding: 0 2px; border: 0; border-bottom: 1.5px solid rgba(23, 20, 15, 0.35); border-radius: 0; background: transparent; font: 500 19px var(--sans); letter-spacing: -0.01em; color: var(--ink); transition: border-color 0.2s, box-shadow 0.2s; }
-.cl-email::placeholder { color: rgba(23, 20, 15, 0.38); }
-.cl-email:hover { border-bottom-color: rgba(23, 20, 15, 0.6); }
+/* the field: its label, the address, one line of message; after the opt-in the status takes its place.
+   At least that tall in every state, so nothing moves; a longer message or address makes it taller
+   (and the block is fitted again), never spills */
+.cl-field { position: relative; width: min(100%, var(--rowsw, 100%)); min-width: 0; min-height: 66px; }
+.cl-label { display: block; height: 14px; font: 500 10.5px / 14px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft); cursor: text; }
+.cl-email { display: block; width: 100%; height: 32px; padding: 0 2px; border: 0; border-bottom: 1.5px solid rgba(23, 20, 15, 0.55); border-radius: 0; background: transparent; font: 500 19px var(--sans); letter-spacing: -0.01em; color: var(--ink); transition: border-color 0.2s, box-shadow 0.2s; }
+.cl-email::placeholder { color: rgba(23, 20, 15, 0.62); }
+.cl-email:hover { border-bottom-color: rgba(23, 20, 15, 0.8); }
 .cl-email:focus { outline: none; border-bottom-color: var(--ink); box-shadow: 0 1.5px 0 var(--ink); }
 .cl-field[data-state="err"] .cl-email { border-bottom-color: var(--down); box-shadow: 0 1.5px 0 var(--down); }
-.cl-msg { margin-top: 4px; min-height: 16px; font: 500 12.5px / 16px var(--sans); color: var(--down); }
-.cl-status { display: flex; align-items: center; height: 46px; border-bottom: 1.5px solid rgba(43, 90, 55, 0.5); font: 500 15px / 1.3 var(--sans); color: var(--ink); animation: cl-in 300ms var(--ease) both; }
+.cl-msg { margin-top: 4px; min-height: 16px; font: 500 12.5px / 16px var(--sans); color: var(--down); overflow-wrap: anywhere; }
+/* on a desk the gap above the block holds the message, so the column is no taller than the label and the field */
+.cl-copy[data-mode="desk"] .cl-field { min-height: 46px; }
+.cl-copy[data-mode="desk"] .cl-msg { position: absolute; left: 0; right: 0; top: 100%; }
+.cl-copy[data-mode="desk"] .cl-label { font-size: 11px; }
+.cl-status { display: flex; align-items: flex-end; min-height: 46px; min-width: 0; padding: 4px 0 7px; border-bottom: 1.5px solid rgba(43, 90, 55, 0.5); font: 500 15px / 1.3 var(--sans); color: var(--ink); overflow-wrap: anywhere; animation: cl-in 300ms var(--ease) both; }
+.cl-status[data-addr] { word-break: break-all; } /* "Sent to {email}.": the address breaks at any letter, from the first line */
 .cl-read { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; font: 600 14px var(--sans); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(23, 20, 15, 0.3); }
 .cl-read:hover { text-decoration-color: var(--ink); }
 .cl-lead .copy { height: 44px; }
@@ -493,7 +503,7 @@ html[data-stamp] .cb-pose { will-change: scale; }
 .cb-num i { display: inline-block; width: var(--slot, 0.683em); text-align: center; font-style: normal; }
 .cb-num i.c { width: var(--comma, 0.278em); }
 .cb:focus-visible { outline: none; }
-.cb:focus-visible .cb-pose { outline: 2px solid var(--ink); outline-offset: 6px; border-radius: 10px; }
+.cb:focus-visible .cb-pose { outline: 2px solid var(--ink); outline-offset: 4px; border-radius: 9px; } /* clear of the row under the block */
 
 /* under the block: the file (before), the assistants (after), the file again, smaller */
 .cl-rows { display: flex; flex-direction: column; gap: 2px; margin-top: 22px; container-type: inline-size; }
@@ -506,12 +516,22 @@ html[data-stamp] .cb-pose { will-change: scale; }
 .cl-rows[data-rows="after"] .cl-files > * { animation: cl-in 300ms var(--ease) 80ms both; }
 .cl-rows .dl small { margin-left: 4px; font: 500 11px var(--mono); letter-spacing: 0.04em; color: var(--soft); text-decoration: none; }
 .cl-rows .dl.is-promoted { height: 44px; padding: 0 20px; }
+.cl-rows .dl.is-promoted small { color: rgba(250, 246, 239, 0.72); }
 .cl-rows kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; margin: 0 1px; border-radius: 4px; background: var(--paper-hi); border: 1px solid rgba(23, 20, 15, 0.2); box-shadow: 0 1px 0 rgba(23, 20, 15, 0.2); font: 500 10px var(--mono); color: var(--ink); text-transform: none; }
 @keyframes cl-in { from { opacity: 0; translate: 0 4px; } }
 @container (max-width: 380px) { .cl-rows .fn { display: none; } }
 .cl-follow { margin-top: 14px; font: italic 400 17px / 1.4 var(--serif); color: #3e372e; visibility: hidden; opacity: 0; transition: opacity 400ms var(--ease) 200ms, visibility 0s 200ms; }
 .cl-stage[data-after] .cl-follow { visibility: visible; opacity: 1; }
-.cl-copy.is-tight .cl-follow, .cl-copy.is-tighter .beat-k { display: none; }
+.cl-copy.is-tight .cl-follow, .cl-copy.is-tighter .beat-k, .cl-copy.is-tightest .cl-deck { display: none; }
+/* a short phone: before the opt-in the Appendix link steps aside; after it the field gives up its spare
+   line, and if need be the status is only spoken */
+.cl-copy.is-snug .cl-rows:not([data-rows="after"]) .cl-lead { display: none; }
+.cl-copy:is(.is-snug, .is-bare) .cl-field[data-state="done"] { min-height: 0; }
+/* a long status on a short phone: two lines (or one, --stl), cut at the end; the underline moves to
+   the field, so nothing of the next line shows in the gap above it */
+.cl-copy.is-clamp .cl-field[data-state="done"] { padding-bottom: 7px; border-bottom: 1.5px solid rgba(43, 90, 55, 0.5); }
+.cl-copy.is-clamp .cl-field .cl-status { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--stl, 2); line-clamp: var(--stl, 2); overflow: hidden; min-height: 0; padding-bottom: 0; border-bottom: 0; }
+.cl-copy.is-bare .cl-status { position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .cl-stage[data-instant] .cl-rows * { animation: none !important; }
 .cl-beat.cl-pair { left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
 .cl-cap { position: absolute; left: 0; top: 0; font: italic 400 20px / 1.3 var(--serif); white-space: nowrap; }
@@ -566,25 +586,34 @@ html[data-stamp] .cb-pose { will-change: scale; }
 .cl-copy[data-mode="phone"] .beat-h { font-size: 27px; }
 .cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-form { margin-top: 12px; }
 .cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-deck { margin-top: 6px; font-size: 14.5px; }
-.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-field { height: 60px; }
-.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-email { font-size: 17px; height: 44px; }
-.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-status { height: 44px; font-size: 14px; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-field { min-height: 64px; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-email { font-size: 17px; height: 30px; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-status { min-height: 44px; font-size: 14px; }
+/* the status may run the column's width: a long address wraps over fewer lines */
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-field[data-state="done"] { width: 100%; }
+/* the instruction after the opt-in is a long line: set a size smaller than the claim's */
+.cl-copy[data-mode="phone"] .cl-head > .b .beat-h { font-size: 23px; line-height: 1.1; }
 .cl-copy[data-mode="phone"] .beat-k { margin-bottom: 10px; }
 .cl-copy[data-mode="land"] { top: 74px; bottom: auto; left: var(--gut); right: auto; width: min(380px, 42vw); translate: none; margin-top: 0; padding: 0; }
-.cl-copy[data-mode="land"] :is(.beat-k, .cl-deck) { display: none; }
+.cl-copy[data-mode="land"] :is(.beat-k, .cl-deck, .cl-follow) { display: none; }
 .cl-copy[data-mode="land"] .beat-h { font-size: clamp(20px, 6.2vh, 24px); }
+.cl-copy[data-mode="land"] .cl-head > .b .beat-h { font-size: clamp(17px, 5.2vh, 20px); line-height: 1.12; }
 .cl-copy[data-mode="land"] .cl-rows { margin-top: 8px; }
 @media (max-height: 760px) {
   .cl-copy[data-mode="phone"] :is(.beat-k, .cl-deck) { display: none; }
   .cl-copy[data-mode="phone"] .beat-h { font-size: 25px; }
-  .cl-copy[data-mode="desk"] .beat-h { font-size: clamp(36px, 4.1vw, 48px); }
+  .cl-copy[data-mode="phone"] .cl-head > .b .beat-h { font-size: 22px; }
+  .cl-copy[data-mode="desk"] .beat-h { font-size: clamp(30px, 3vw, 42px); }
   .cl-copy[data-mode="desk"] .cl-follow { display: none; }
 }
 @media (max-height: 620px) {
   .cl-copy[data-mode="phone"] .beat-h { font-size: 23px; }
+  .cl-copy[data-mode="phone"] .cl-head > .b .beat-h { font-size: 20px; }
 }
-/* a very short phone: the headline steps aside for the block, but stays the section's heading */
-.cl-stage[data-fit="short"] .cl-copy :is(.beat-k, .cl-head) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; margin: 0; }
+/* a very short phone: the headline steps aside for the block, but stays the section's heading.
+   After the opt-in it stays on screen: it says how to use the file (two lines at most) */
+.cl-stage[data-fit="short"]:not([data-after]) .cl-copy :is(.beat-k, .cl-head), .cl-stage[data-fit="short"][data-after] .cl-copy .beat-k { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; margin: 0; }
+.cl-stage[data-fit="short"][data-after] .cl-head > .b .beat-h { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 
 /* ---------- the closed loop, proof and footer on phones ---------- */
 @media (max-width: 900px) {

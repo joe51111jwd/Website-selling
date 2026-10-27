@@ -5,7 +5,7 @@
   --paper-hi: #fbf8ef;
   --ink: #17140f;
   --soft: #675e52;
-  --mute: #8a8073;
+  --mute: #6d6458; /* 4.6:1 or more on every paper here, hover tints included */
   --line: rgba(23, 20, 15, 0.14);
   --line-soft: rgba(23, 20, 15, 0.08);
   --up: #2b5a37;
@@ -63,7 +63,7 @@ main { min-width: 0; padding: 64px 0 40px; }
 .toc > summary::-webkit-details-marker { display: none; }
 .toc-count { color: var(--mute); }
 .toc-in { position: relative; }
-.toc-find input { width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper-hi); color: var(--ink); font: 400 13px var(--mono); }
+.toc-find input { width: 100%; height: 38px; padding: 0 12px; border: 1px solid rgba(23, 20, 15, 0.5); border-radius: 8px; background: var(--paper-hi); color: var(--ink); font: 400 13px var(--mono); }
 .toc-find input::placeholder { color: var(--mute); }
 .toc-nav { max-height: calc(100vh - var(--nav) - 132px); max-height: calc(100dvh - var(--nav) - 132px); overflow-y: auto; overscroll-behavior: contain; margin-top: 14px; padding: 0 6px 40px 0; scrollbar-width: thin; scrollbar-color: rgba(23, 20, 15, 0.25) transparent; }
 .toc-l, .toc-l ol { list-style: none; margin: 0; padding: 0; }
@@ -71,8 +71,11 @@ main { min-width: 0; padding: 64px 0 40px; }
 .toc-l > li:first-child { border-top: 0; }
 .toc-l ol { margin-top: 3px; }
 .toc-l ol:empty { display: none; }
-.toc-l a { display: block; padding: 3px 8px; border-radius: 5px; font: 500 13px/1.35 var(--sans); color: var(--ink); text-decoration: none; }
+.toc-l a { display: block; min-height: 24px; padding: 3px 8px; border-radius: 5px; font: 500 13px/1.35 var(--sans); color: var(--ink); text-decoration: none; }
 .toc-l ol a { padding-left: 16px; font-weight: 400; font-size: 12.5px; color: var(--soft); }
+/* h4s: listed only while the search finds them */
+.toc-l .t4l { margin-top: 0; }
+.toc-l .t4 a { padding-left: 28px; font-size: 12px; }
 .toc-l a:hover { background: rgba(23, 20, 15, 0.05); color: var(--ink); }
 .toc-l a[aria-current] { background: var(--ink); color: var(--paper-hi); }
 .toc-l a[aria-current] .tn { color: rgba(250, 246, 239, 0.7); }
@@ -80,6 +83,10 @@ main { min-width: 0; padding: 64px 0 40px; }
 .toc-l .x a[aria-current] { color: var(--paper-hi); }
 .tn { margin-right: 6px; font: 500 0.88em var(--mono); color: var(--mute); }
 .toc-empty { margin: 14px 8px; font: 400 13px var(--mono); color: var(--mute); }
+.toc-empty:empty { margin: 0; }
+@media (pointer: coarse) {
+  .toc-l a { min-height: 32px; padding-top: 7px; padding-bottom: 7px; }
+}
 
 /* ---------- the document's header ---------- */
 .kicker { display: flex; align-items: center; gap: 10px; margin: 0; font: 500 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); }
@@ -101,7 +108,7 @@ main { min-width: 0; padding: 64px 0 40px; }
 .get h3 { margin: 0 0 14px; font: 500 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); }
 .lbl { display: block; margin-bottom: 8px; font: 500 11px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); }
 .optin-row { display: flex; flex-direction: column; gap: 10px; }
-.optin input[type="email"] { width: 100%; height: 52px; padding: 0 16px; border: 1px solid rgba(23, 20, 15, 0.22); border-radius: 12px; background: #fff; color: var(--ink); font: 400 17px var(--sans); transition: border-color 0.2s, box-shadow 0.2s; }
+.optin input[type="email"] { width: 100%; height: 52px; padding: 0 16px; border: 1px solid rgba(23, 20, 15, 0.5); border-radius: 12px; background: #fff; color: var(--ink); font: 400 17px var(--sans); transition: border-color 0.2s, box-shadow 0.2s; }
 .optin input[type="email"]::placeholder { color: #a99f92; }
 .optin input[type="email"]:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px rgba(23, 20, 15, 0.08); }
 .optin input[aria-invalid="true"] { border-color: var(--down); box-shadow: 0 0 0 4px rgba(178, 50, 42, 0.12); }
@@ -135,6 +142,10 @@ main { min-width: 0; padding: 64px 0 40px; }
 .doc { margin-top: 24px; }
 .doc > :where(p, ul, ol, blockquote, hr, h2, h3, h4, h5, h6) { max-width: var(--measure); }
 .doc p { margin: 0 0 1em; }
+/* a long file name must not widen a phone's page. Table cells only break a word that can't fit at all:
+   'anywhere' there would let a table squeeze its columns and split ordinary words */
+.doc :is(p, li, blockquote) { overflow-wrap: anywhere; }
+.doc :is(td, th) { overflow-wrap: break-word; }
 .doc strong { font-weight: 700; }
 .doc em { font-style: italic; }
 .doc ul, .doc ol { margin: 0 0 1.1em; padding-left: 1.4em; }

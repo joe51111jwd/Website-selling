@@ -4,7 +4,7 @@ import * as m from "motion/react-m";
 import type { SiteCopy } from "../copy";
 import { ensureBootloader } from "../bootloader";
 import { getCopy, useCopy } from "../copyStore";
-import { APPENDIX_URL, FILE_NAME, FILE_URL, downloadFile, optinLive, sendOptin, validEmail } from "../optin";
+import { APPENDIX_URL, FILE_NAME, FILE_URL, downloadFile, optinLive, sendOptin, validEmail, type OptinResult } from "../optin";
 import { FrameStore, fetchOk } from "../frames";
 import { LINKS } from "../links";
 import { BEATS, BOOK_P, BOOTLOADER_P, CL_VH, LIFT, T, blockFit, cb, fmtWords, frameAt, geo, hairEase, hapticPattern, modeNow, poseRect, seqRect, smooth, stampFor, truckRect, type Mode, type Rect } from "../closedloop";
@@ -28,6 +28,8 @@ const VP = geo.vp;
 const TAG = [RCX + HAIR.rx * Math.sin(Math.PI / 6), RCY - HAIR.ry * Math.cos(Math.PI / 6)];
 
 type Ring = "open" | "dropping" | "closed" | "error";
+/** how the opt-in ended: emailed, the file itself (no email service), or the file itself (signed up before) */
+type Done = "sent" | "yours" | "already";
 
 /** a block of words that fades in and out over a window of the stage's progress */
 function Win({ p, at, className = "", children, style }: { p: MotionValue<number>; at: readonly [number, number]; className?: string; children: ReactNode; style?: CSSProperties }) {
@@ -71,15 +73,16 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const cursor = useRef<HTMLDivElement>(null);
   const tag = useRef<HTMLDivElement>(null);
 
-  // ?closed=sent | yours | error opens the beat in that state (for checking the page)
+  // ?closed=sent | yours | already | error opens the beat in that state (for checking the page)
   const start = query.get("closed");
-  const startDone = start === "sent" || start === "yours" || start === "copied";
+  const startDone = start === "sent" || start === "yours" || start === "already" || start === "copied";
+  const startResult: Done | null = startDone ? (start === "sent" || start === "already" ? start : "yours") : null;
   const [ring, setRing] = useState<Ring>(startDone ? "closed" : start === "error" ? "error" : "open");
   const [armed, setArmed] = useState(false);
   const [press, setPress] = useState(false);
   const [instant, setInstant] = useState(start != null);
   const [after, setAfter] = useState(startDone);
-  const [result, setResult] = useState<"sent" | "yours" | null>(startDone ? (start === "sent" ? "sent" : "yours") : null);
+  const [result, setResult] = useState<Done | null>(startResult);
   const [fieldErr, setFieldErr] = useState<"" | "email" | "send">(start === "error" ? "send" : "");
   const [sentTo, setSentTo] = useState("");
   const mailLive = useRef<boolean | null>(null); // is an email service connected (api/optin)
@@ -118,16 +121,17 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
 
   // the block's face (data-face) and its count are written by hand, so the ritual never re-renders.
   // Its accessible name starts with the words on its face.
-  type Face = "copy" | "wait" | "count" | "sent" | "yours" | "error";
+  type Face = "copy" | "wait" | "count" | "sent" | "yours" | "already" | "error";
   const faceNow = useRef<Face>("copy");
   const face = (k: Face) => {
     faceNow.current = k;
     const el = btn.current;
     if (!el) return;
-    el.dataset.face = k;
+    el.dataset.face = k === "already" ? "yours" : k; // the same green face; its name says why
     const n = getCopy().words;
     const N = copy.block.names;
-    const name = k === "wait" || k === "count" ? N.busy : n ? N[k].replace("{n}", fmtWords(n)) : N[`${k}NoCount`];
+    const say = k === "copy" && mailLive.current === false ? "file" : k; // no email service: the click is the file
+    const name = say === "wait" || say === "count" ? N.busy : n ? N[say].replace("{n}", fmtWords(n)) : N[`${say}NoCount`];
     el.setAttribute("aria-label", name);
   };
   useEffect(() => face(faceNow.current), [words]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -154,13 +158,14 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
     }
   };
   useLayoutEffect(() => {
-    face(startDone ? (start === "sent" ? "sent" : "yours") : start === "error" ? "error" : "copy");
+    face(startResult ?? (start === "error" ? "error" : "copy"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // each copy gets a number; an answer that arrives after a newer copy began changes nothing
   const gen = useRef(0);
-  const inFlight = useRef<Promise<{ emailed: boolean }> | null>(null);
+  const inFlight = useRef<Promise<OptinResult> | null>(null);
+  const handing = useRef(false); // focus is being handed to the block by the page, not by the visitor
 
   // the hairline closes around the ring while the count runs up to the file's real size
   const sweep = (ms: number, onDone: () => void) => {
@@ -181,9 +186,15 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
 
   // the line meets itself: the block turns green (Sent, or Yours when the file came straight down);
   // the page says how to use it
-  const seal = (r: { emailed: boolean }, fresh: boolean) => {
-    const k = r.emailed ? "sent" : "yours";
+  const seal = (r: OptinResult, fresh: boolean) => {
+    const k: Done = r.emailed ? "sent" : r.already ? "already" : "yours";
     face(k);
+    // the field gives way to the status: a focus in it moves to the block, never to the page
+    if (field.current && document.activeElement === field.current) {
+      handing.current = true;
+      btn.current?.focus({ preventScroll: true });
+      handing.current = false;
+    }
     setResult(k);
     if (fresh)
       later(reduced ? 0 : T.swapAfterSeal, () => {
@@ -191,7 +202,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
         setAfter(true);
       });
   };
-  const close = (r: { emailed: boolean }, fresh: boolean, ticks: boolean) => {
+  const close = (r: OptinResult, fresh: boolean, ticks: boolean) => {
     if (reduced) return seal(r, fresh);
     const g = gen.current;
     face("count");
@@ -269,17 +280,18 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
     st?.classList.remove("is-again");
     void st?.offsetWidth;
     st?.classList.add("is-again");
-    if (reduced) return face("yours");
+    const end: Face = result === "already" ? "already" : "yours";
+    if (reduced) return face(end);
     body()?.animate([{ transform: "scale(1)" }, { transform: "scale(1.045)", offset: 0.45 }, { transform: "scale(1)" }], { duration: T.againLift, easing: "cubic-bezier(0.3, 0.7, 0.3, 1)" });
     btn.current?.querySelector(".cb-shd.lift")?.animate([{ opacity: 0 }, { opacity: 0.5 }, { opacity: 0 }], { duration: T.againLift });
     navigator.vibrate?.(10);
     face("count");
     writeCount(0);
-    sweep(T.againMs, () => g === gen.current && face("yours"));
+    sweep(T.againMs, () => g === gen.current && face(end));
   };
 
   // the opt-in: both blocks fall into place, the ring closes, the block turns green
-  const ritual = (prom: Promise<{ emailed: boolean }>, own: boolean) => {
+  const ritual = (prom: Promise<OptinResult>, own: boolean) => {
     setPress(false);
     setArmed(false); // a mouse resting on the block does not lift it again over the payoff
     setInstant(false);
@@ -315,6 +327,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
+    setPress(false); // a key or a press never leaves the block held down
     if (inFlight.current || now.current === "dropping") return; // already on its way
     window.clearTimeout(pressTimer.current);
     if (now.current === "closed") {
@@ -325,11 +338,17 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
     if (!validEmail(email)) return refuse();
     setFieldErr("");
     setSentTo(email.trim());
-    let prom: Promise<{ emailed: boolean }>;
+    let prom: Promise<OptinResult>;
     if (mailLive.current === false) {
       downloadFile(); // no email service connected yet: the file itself, now, from the click
       prom = Promise.resolve({ emailed: false });
-    } else prom = sendOptin(email, "home");
+    } else
+      // not known, or connected: the answer decides. Not emailed (no service after all, or signed up
+      // before, so it won't be sent again): the file itself, as soon as that's known
+      prom = sendOptin(email, "home").then((r) => {
+        if (!r.emailed) downloadFile();
+        return r;
+      });
     inFlight.current = prom;
     const done = () => {
       if (inFlight.current === prom) inFlight.current = null;
@@ -372,6 +391,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const key = (e: KeyboardEvent) => {
     if ((e.key === " " || e.key === "Enter") && !e.repeat) setPress(true);
   };
+  const keyUp = () => setPress(false);
   const hover = (on: boolean) => () => !coarse && setArmed(on);
   const press$ = { onPointerDown: down, onPointerMove: move, onPointerUp: up, onPointerCancel: cancel };
 
@@ -584,7 +604,10 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
       if (started) return;
       started = true;
       ensureBootloader("high").catch(() => {});
-      void optinLive().then((v) => (mailLive.current = v));
+      void optinLive().then((v) => {
+        mailLive.current = v; // null: not known (the ask failed), so a submit asks the function itself
+        face(faceNow.current);
+      });
       setCbLoad(LIFT * blockW.current * Math.min(window.devicePixelRatio || 1, 3) > 700 ? "hi" : "lo");
       try {
         if (!lo) {
@@ -654,6 +677,8 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
 
   // the COPY block's size, and on desktop its face level with Quality's, a fine line joining them.
   // Runs on mount, on resizes of the stage or the column, and once the fonts are in; never on scroll.
+  const placeRef = useRef<() => void>(() => {});
+  const wBefore = useRef(Infinity); // the block's width before the opt-in
   useLayoutEffect(() => {
     const st = stage.current;
     const c = beatC.current;
@@ -676,8 +701,13 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
         c.style.setProperty("--gapb", `${gapb}px`);
         c.style.setProperty("--cbml", `${(0.04 * W).toFixed(1)}px`);
         c.style.setProperty("--rowsw", `${(LIFT * W).toFixed(1)}px`);
+        // the stamp's small line stays inside the face whatever the face says (and before its type is in)
+        const face = b.querySelector<HTMLElement>(".cb-face");
+        const wide = Math.max(0, ...[...b.querySelectorAll<HTMLElement>(".cb-small > b")].map((e) => e.offsetWidth));
+        if (face && wide > 0.92 * face.offsetWidth) c.style.setProperty("--small", `${Math.floor((small * 0.92 * face.offsetWidth) / wide)}px`);
       };
-      c.classList.remove("is-tight", "is-tighter");
+      c.classList.remove("is-tight", "is-tighter", "is-tightest", "is-snug", "is-clamp", "is-bare");
+      c.style.removeProperty("--stl");
       delete st.dataset.fit; // measure with the headline showing
       if (mode !== "desk") {
         c.style.top = "";
@@ -685,7 +715,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
         c.style.maxWidth = "";
         l.style.display = "none";
         // everything in the column but the block, then the block takes what is left above the rows
-        const rest = c.offsetHeight - b.offsetHeight - (parseFloat(getComputedStyle(b).marginTop) || 0);
+        const rest = () => c.offsetHeight - b.offsetHeight - (parseFloat(getComputedStyle(b).marginTop) || 0);
         const colW = c.clientWidth;
         let room: number;
         if (mode === "phone") {
@@ -693,8 +723,35 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
           const below = parseFloat(getComputedStyle(c).bottom) || 14;
           room = ch - below - (r.oy + (RCY + HAIR.ry) * r.dh + 8); // under the ring's line
         } else room = ch - 14 - c.offsetTop;
-        const f = blockFit(mode, colW, room, rest, ch);
-        put(f.W, f.gapb);
+        // the two headlines (before, after): only the one showing takes up room
+        const after = st.hasAttribute("data-after");
+        const h = (k: "a" | "b") => c.querySelector<HTMLElement>(`.cl-head > .${k}`)?.offsetHeight ?? 0;
+        const [ha, hb] = [h("a"), h("b")];
+        const fit = (floor?: number) => blockFit(mode, colW, room, rest(), ch, Infinity, floor);
+        // room for the longer headline, so the block stays put when they swap
+        let f = blockFit(mode, colW, room, rest() - (after ? hb : ha) + Math.max(ha, hb), ch);
+        if (f.short) f = fit(); // then this state's own: the block resizes at the swap
+        if (f.short) {
+          c.classList.add("is-snug"); // before the opt-in the Appendix link steps aside; after it, the field's spare line
+          f = fit();
+        }
+        if (f.short && after) {
+          f = fit(0.5); // after it: the block may be smaller, its work done
+          if (f.short) {
+            c.classList.add("is-clamp"); // a long status keeps two lines, cut at the end (all of it is spoken)
+            f = fit(0.5);
+            if (f.short) {
+              c.style.setProperty("--stl", "1"); // then one
+              f = fit(0.5);
+            }
+          }
+          if (f.short) {
+            c.classList.add("is-bare"); // and the status line is only spoken
+            f = fit(0.5);
+          }
+        }
+        put(c.classList.contains("is-bare") ? Math.min(f.W, wBefore.current) : f.W, f.gapb); // never larger than it was
+        if (!after) wBefore.current = f.W;
         if (f.short) st.dataset.fit = "short";
         return;
       }
@@ -711,27 +768,47 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
       if (c.offsetHeight > room) c.classList.add("is-tight");
       if (c.offsetHeight > room) c.classList.add("is-tighter");
       const over = c.offsetHeight - room;
-      if (over > 0) put(Math.max(180, Math.min(f.W, f.W - (over - (f.gapb - 24)) / cb.bodyAR)), 24);
+      if (over > 0) put(Math.max(180, Math.min(f.W, f.W - (over - (f.gapb - 28)) / cb.bodyAR)), 28); // the gap still holds the message
       const qy = r.oy + QC[1] * r.dh;
       const qx = r.ox + Q[0] * r.dw;
-      const faceC = b.offsetTop + (cb.face[1] + cb.face[3] / 2) * b.offsetHeight;
-      const top = Math.max(Math.min(96, ch - c.offsetHeight - 14), Math.min(ch - c.offsetHeight - 24, qy - faceC));
+      const faceC = () => b.offsetTop + (cb.face[1] + cb.face[3] / 2) * b.offsetHeight;
+      // the face level with Quality's: the column may rise to just under the menu, and if that is
+      // still not high enough, the kicker and then the deck step aside
+      const lo = Math.ceil((document.querySelector(".nav")?.getBoundingClientRect().bottom ?? 56) + 8);
+      const want = () => qy - faceC();
+      if (want() < lo) {
+        const kicker = c.classList.contains("is-tighter"); // already gone for a short window
+        const only = (k: boolean, d: boolean) => {
+          c.classList.toggle("is-tighter", k || kicker);
+          c.classList.toggle("is-tightest", d);
+          return want() >= lo;
+        };
+        // the kicker, else the deck, else both; if even that cannot line up, keep the words
+        if (!only(true, false) && !only(false, true) && !only(true, true)) only(false, false);
+      }
+      const top = Math.max(Math.min(want() >= lo ? lo : 96, ch - c.offsetHeight - 14), Math.min(ch - c.offsetHeight - 24, want()));
       c.style.top = `${top}px`;
       const x0 = c.offsetLeft + b.offsetLeft + (b.offsetWidth * (1 + LIFT)) / 2 + 12;
       const x1 = qx - 16;
-      const ok = Math.abs(top + faceC - qy) <= 8 && x1 - x0 >= 24 && x1 - x0 <= 320;
+      const ok = Math.abs(top + faceC() - qy) <= 8 && x1 - x0 >= 24 && x1 - x0 <= 320;
       l.style.display = ok ? "" : "none";
       l.style.left = `${x0}px`;
       l.style.top = `${qy}px`;
       l.style.width = `${x1 - x0}px`;
     };
+    placeRef.current = place;
     place();
     const ro = new ResizeObserver(place);
     if (st) ro.observe(st);
     if (c) ro.observe(c);
+    // the stamp's type arriving (or the count) changes how wide its lines are
+    const small = btn.current?.querySelector(".cb-small");
+    if (small) ro.observe(small);
     void document.fonts?.ready.then(place);
     return () => ro.disconnect();
   }, []);
+  // the opt-in changes what the column holds (the headline, the status, the rows): fit it again at once
+  useLayoutEffect(() => placeRef.current(), [after, result, fieldErr]);
 
   const book = copy.book;
   const rowsState = ring === "error" ? "error" : after ? "after" : "before";
@@ -941,13 +1018,9 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
               </label>
             </div>
             <div className="cl-field" data-state={result ? "done" : fieldErr ? "err" : undefined}>
-              {result ? (
-                <p className="cl-status" role="status">
-                  {result === "sent" ? copy.block.sentTo.replace("{email}", sentTo) : copy.block.notLive}
-                </p>
-              ) : (
+              {!result && (
                 <>
-                  <label className="sr-only" htmlFor="cl-email">
+                  <label className="cl-label" htmlFor="cl-email">
                     {copy.block.email}
                   </label>
                   <input
@@ -965,11 +1038,17 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
                     aria-describedby="cl-email-msg"
                     onInput={() => fieldErr === "email" && setFieldErr("")}
                   />
-                  <p className="cl-msg" id="cl-email-msg" role={fieldErr ? "alert" : undefined}>
+                  <p className="cl-msg" id="cl-email-msg" role="alert">
                     {fieldErr === "email" ? copy.block.badEmail : fieldErr === "send" ? copy.block.sendFailed : ""}
                   </p>
                 </>
               )}
+              {/* one live region in every state, so the result is spoken: unseen and empty until then,
+                  then the line in the field's place (only its words and class change). An address may
+                  break at any letter (data-addr): it starts on the first line, a long one takes two */}
+              <p className={result ? "cl-status" : "sr-only"} id="cl-status" role="status" aria-live="polite" data-addr={result === "sent" || undefined}>
+                {result === "sent" ? copy.block.sentTo.replace("{email}", sentTo) : result === "already" ? copy.block.already : result === "yours" ? copy.block.notLive : ""}
+              </p>
             </div>
             <CopyBlock
               ref={btn}
@@ -979,7 +1058,8 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
               labels={copy.block}
               load={cbLoad}
               onKeyDown={key}
-              onFocus={() => setArmed(true)}
+              onKeyUp={keyUp}
+              onFocus={() => !handing.current && setArmed(true)}
               onBlur={() => (setArmed(false), cancel())}
               onPointerEnter={hover(true)}
               onPointerLeave={(e) => {

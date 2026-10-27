@@ -22,7 +22,7 @@ export function Announcer() {
   }, [seq]);
   useEffect(() => {
     if (!errors) return;
-    const t = say("Couldn't copy. Select the prompt and copy it by hand.");
+    const t = say("Couldn't copy. Try again, or open the Appendix for the starting prompt."); // the page never shows the prompt itself
     return () => window.clearTimeout(t);
   }, [errors]);
   return (
