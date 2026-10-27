@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, type ButtonHTMLAttributes, type Ref } from "react";
 import { copyNow } from "../bootloader";
-import { useCopy, type CopySource } from "../copyStore";
+import { useCopy, type CopyPart, type CopySource } from "../copyStore";
 
 type Phase = "idle" | "copying" | "done" | "error";
 
 type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onClick" | "children"> & {
   source: CopySource;
+  /** what is copied: the file's starting prompt (default), or the whole file */
+  part?: CopyPart;
   label?: string;
   size?: "sm" | "md" | "lg";
   /** after any copy this visit the idle label reads "Copy again" (the big buttons) */
@@ -17,8 +19,8 @@ type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onClick" | "children
   ref?: Ref<HTMLButtonElement>;
 };
 
-export function CopyButton({ source, label = "Copy the prompt", size = "md", again = size === "lg", flashMs = 2600, run, className = "", ref, ...rest }: Props) {
-  const { seq, words } = useCopy();
+export function CopyButton({ source, part = "prompt", label = "Copy the starting prompt", size = "md", again = size === "lg", flashMs = 2600, run, className = "", ref, ...rest }: Props) {
+  const { seq, words, part: lastPart } = useCopy();
   const [phase, setPhase] = useState<Phase>("idle");
   const timers = useRef<number[]>([]);
   const seen = useRef(seq);
@@ -29,17 +31,18 @@ export function CopyButton({ source, label = "Copy the prompt", size = "md", aga
   };
   useEffect(() => clear, []);
 
-  // any successful copy, from any button, flashes "Copied" here too: the visitor sees it wherever they look
+  // any successful copy of the same thing, from any button, flashes "Copied" here too
   useEffect(() => {
     if (seq === seen.current) return;
     seen.current = seq;
+    if (lastPart !== part) return;
     clear();
     setPhase("done");
     later(flashMs, () => setPhase("idle"));
-  }, [seq, flashMs]);
+  }, [seq, flashMs, lastPart, part]);
 
   const onClick = () => {
-    const p = run ? run() : copyNow(source); // first, inside the click
+    const p = run ? run() : copyNow(source, { part }); // first, inside the click
     clear();
     later(300, () => setPhase((s) => (s === "idle" || s === "error" ? "copying" : s)));
     p.catch(() => {
@@ -51,7 +54,7 @@ export function CopyButton({ source, label = "Copy the prompt", size = "md", aga
 
   const text =
     phase === "done"
-      ? `Copied${words ? ` · ${words.toLocaleString()} words` : ""}`
+      ? `Copied${part === "file" && words ? ` · ${words.toLocaleString()} words` : ""}`
       : phase === "copying"
         ? "Copying…"
         : phase === "error"

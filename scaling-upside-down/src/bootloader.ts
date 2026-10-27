@@ -4,8 +4,7 @@
 // Browsers only allow a clipboard write inside the click that asked for it, and Safari counts
 // any wait before the write as leaving the click. So the file is fetched ahead of time, and
 // copyNow() calls the clipboard first, synchronously, before anything else happens.
-import type { AssistantId } from "./assistants";
-import { markCopied, markError, setCopying, setFile, type CopySource } from "./copyStore";
+import { markCopied, markError, setCopying, setFile, type CopyPart, type CopySource } from "./copyStore";
 
 const URL_ = `${import.meta.env.BASE_URL}bootloader.md`;
 let text: string | null = null;
@@ -16,6 +15,12 @@ export const wordCount = (t: string) => (t.match(/\S*[\p{L}\p{N}]\S*/gu) ?? []).
 
 /** the file, if it has loaded */
 export const peek = () => text;
+
+/** the starting prompt the file carries under "Canonical Prompt (For Users)": the one thing a visitor pastes */
+export function startingPrompt(t: string): string {
+  const m = t.match(/Canonical Prompt \(For Users\)[\s\S]*?```[^\n]*\n([\s\S]*?)```/);
+  return m ? m[1].trim() : t;
+}
 
 /** fetch the file once; rejects on a failed or empty response, and the next call tries again */
 export function ensureBootloader(priority: "low" | "high" = "low"): Promise<string> {
@@ -82,12 +87,14 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 }
 
 /**
- * Copy the whole file. Call it first thing in a click handler: nothing is awaited and nothing
- * slow runs before the clipboard call. `sync` (phones, links that open another app) tries the
- * selection copy first, because it is done before the page goes to the background.
+ * Copy the file's starting prompt (or, with part "file", the whole file). Call it first thing in a
+ * click handler: nothing is awaited and nothing slow runs before the clipboard call. `sync` tries the
+ * selection copy first, because it is done before a phone can put the page in the background.
  */
-export function copyNow(source: CopySource, o: { assistant?: AssistantId; sync?: boolean } = {}): Promise<number> {
-  const t = text;
+export function copyNow(source: CopySource, o: { part?: CopyPart; sync?: boolean } = {}): Promise<number> {
+  const part = o.part ?? "prompt";
+  const pick = (s: string) => (part === "prompt" ? startingPrompt(s) : s);
+  const t = text === null ? null : pick(text);
   const clip = typeof navigator !== "undefined" ? navigator.clipboard : undefined;
   let p: Promise<unknown>;
   try {
@@ -99,19 +106,18 @@ export function copyNow(source: CopySource, o: { assistant?: AssistantId; sync?:
         });
     } else if (typeof ClipboardItem !== "undefined" && clip?.write) {
       // Safari keeps the click's permission while the item's text is still arriving
-      p = clip.write([new ClipboardItem({ "text/plain": ensureBootloader("high").then((s) => new Blob([s], { type: "text/plain" })) })]);
+      p = clip.write([new ClipboardItem({ "text/plain": ensureBootloader("high").then((s) => new Blob([pick(s)], { type: "text/plain" })) })]);
     } else {
-      p = ensureBootloader("high").then((s) => (clip?.writeText ? clip.writeText(s) : Promise.reject(new Error("refused"))));
+      p = ensureBootloader("high").then((s) => (clip?.writeText ? clip.writeText(pick(s)) : Promise.reject(new Error("refused"))));
     }
   } catch (e) {
     p = Promise.reject(e);
   }
-  setCopying(source, o.assistant); // after the clipboard call
+  setCopying(source, part); // after the clipboard call
   return withTimeout(p, 6000).then(
     () => {
-      const w = wordCount(text ?? "");
-      markCopied(w, source, o.assistant);
-      window.dispatchEvent(new CustomEvent("susd:copied", { detail: { source, assistant: o.assistant, words: w } }));
+      const w = wordCount(pick(text ?? ""));
+      markCopied(source, part);
       return w;
     },
     (e) => {

@@ -253,15 +253,6 @@ img { display: block; max-width: 100%; }
 .dl-open { display: inline-flex; align-items: center; min-height: 44px; font: 600 15px var(--sans); text-decoration: underline; text-underline-offset: 4px; }
 .copy.is-copying .copy-label { background: linear-gradient(currentColor, currentColor) 0 100% / 30% 1px no-repeat; padding-bottom: 2px; animation: copying 1s linear infinite; }
 @keyframes copying { from { background-position: -40% 100%; } to { background-position: 140% 100%; } }
-.chips { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin-top: 20px; padding-left: 44px; }
-.chips-l { font: 500 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft); }
-.chips-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { display: inline-flex; align-items: center; height: 38px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(23, 20, 15, 0.2); background: rgba(250, 246, 239, 0.6); font: 600 14px var(--sans); letter-spacing: -0.01em; white-space: nowrap; -webkit-user-drag: none; transition: background 0.2s, border-color 0.2s, color 0.2s; }
-.chip > span[aria-hidden] { margin-left: 3px; }
-.chip:hover { border-color: var(--ink); background: var(--paper-hi); }
-.chip.is-mine { background: var(--ink); border-color: var(--ink); color: var(--paper-hi); }
-.chips-paper.is-after .chip { animation: chip-rise 420ms var(--ease) calc(620ms + var(--i) * 60ms) both; }
-@keyframes chip-rise { 50% { transform: translateY(-4px); } }
 html[data-stamp] .nav-cta .copy { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s, visibility 0s 0.3s; }
 
 /* the use notice */
@@ -424,9 +415,25 @@ html[data-stamp] .cl-hit { pointer-events: auto; } /* Quality copies only while 
 .beat-k i.tri b:nth-child(2) { background: var(--side); }
 .beat-k i.tri b:nth-child(3) { background: var(--down); }
 .cl-swap { display: inline-grid; }
-.cl-swap > span { grid-area: 1 / 1; transition: opacity 0.4s var(--ease), transform 0.4s var(--ease), visibility 0s; }
+.cl-swap > * { grid-area: 1 / 1; transition: opacity 0.4s var(--ease), transform 0.4s var(--ease), visibility 0s; }
+.cl-head { display: grid; }
+.cl-deck { margin-top: 12px; max-width: 34ch; font: italic 400 18px / 1.4 var(--serif); color: #3e372e; text-wrap: pretty; }
 .cl-swap[data-on="b"] > .a, .cl-swap[data-on="a"] > .b { opacity: 0; visibility: hidden; transform: translateY(6px); transition-delay: 0s, 0s, 0.4s; }
-.cl-copy .beat-h { font-size: clamp(40px, 4.1vw, 60px); }
+.cl-copy .beat-h { font-size: clamp(34px, 3.3vw, 48px); }
+.cl-form { margin-top: 20px; }
+.cl-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+/* the field and its one line of message keep their height in every state, so nothing moves */
+.cl-field { position: relative; width: min(100%, var(--rowsw, 100%)); height: 66px; }
+.cl-email { display: block; width: 100%; height: 46px; padding: 0 2px; border: 0; border-bottom: 1.5px solid rgba(23, 20, 15, 0.35); border-radius: 0; background: transparent; font: 500 19px var(--sans); letter-spacing: -0.01em; color: var(--ink); transition: border-color 0.2s, box-shadow 0.2s; }
+.cl-email::placeholder { color: rgba(23, 20, 15, 0.38); }
+.cl-email:hover { border-bottom-color: rgba(23, 20, 15, 0.6); }
+.cl-email:focus { outline: none; border-bottom-color: var(--ink); box-shadow: 0 1.5px 0 var(--ink); }
+.cl-field[data-state="err"] .cl-email { border-bottom-color: var(--down); box-shadow: 0 1.5px 0 var(--down); }
+.cl-msg { margin-top: 4px; min-height: 16px; font: 500 12.5px / 16px var(--sans); color: var(--down); }
+.cl-status { display: flex; align-items: center; height: 46px; border-bottom: 1.5px solid rgba(43, 90, 55, 0.5); font: 500 15px / 1.3 var(--sans); color: var(--ink); animation: cl-in 300ms var(--ease) both; }
+.cl-read { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; font: 600 14px var(--sans); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: rgba(23, 20, 15, 0.3); }
+.cl-read:hover { text-decoration-color: var(--ink); }
+.cl-lead .copy { height: 44px; }
 
 /* ---------- the COPY block: one painted block, the page stamps its words ----------
    The button is the block's outline at rest (--cbw wide). The pose is laid out at the lifted size
@@ -441,11 +448,11 @@ html[data-stamp] .cb-pose { will-change: scale; }
 .cb-body { position: absolute; inset: 0; }
 .cb-paint { transition: opacity 380ms var(--ease); }
 .cb-paint.green { opacity: 0; }
-.cb:is([data-face="done"], [data-face="again"]) .cb-paint.green { opacity: 1; }
-.cb:is([data-face="done"], [data-face="again"]) { --deb: rgba(8, 30, 14, 0.35); }
+.cb:is([data-face="sent"], [data-face="yours"]) .cb-paint.green { opacity: 1; }
+.cb:is([data-face="sent"], [data-face="yours"]) { --deb: rgba(8, 30, 14, 0.35); }
 /* until the pictures are in (or if they never come): a flat painted block, still plainly a button */
 .cb:not([data-ready="1"]) .cb-body { background: #b4483f; border-radius: 5px; box-shadow: inset 0 calc(var(--cbw, 320px) * -0.05) 0 #8e2f28, 0 18px 30px -18px rgba(23, 20, 15, 0.6); transition: background 380ms var(--ease); }
-.cb:not([data-ready="1"]):is([data-face="done"], [data-face="again"]) .cb-body { background: #3d6446; box-shadow: inset 0 calc(var(--cbw, 320px) * -0.05) 0 #284a31, 0 18px 30px -18px rgba(23, 20, 15, 0.6); }
+.cb:not([data-ready="1"]):is([data-face="sent"], [data-face="yours"]) .cb-body { background: #3d6446; box-shadow: inset 0 calc(var(--cbw, 320px) * -0.05) 0 #284a31, 0 18px 30px -18px rgba(23, 20, 15, 0.6); }
 .cb:not([data-ready="1"]) :is(.cb-paint, .cb-shd) { visibility: hidden; }
 .cb[data-ready="1"] .cb-body { animation: cb-in 200ms ease both; }
 @keyframes cb-in { from { opacity: 0.6; } }
@@ -475,14 +482,13 @@ html[data-stamp] .cb-pose { will-change: scale; }
 .cb-big { font-size: calc(var(--big, 56px) * var(--lift)); line-height: 0.9; letter-spacing: 0.01em; }
 .cb-small { font-size: calc(var(--small, 19px) * var(--lift)); line-height: 1; letter-spacing: 0.12em; }
 .cb-big > b, .cb-small > b { grid-area: 1 / 1; font-weight: 900; white-space: nowrap; opacity: 0; scale: 1.12; transition: opacity 120ms ease-out, scale 140ms cubic-bezier(0.2, 0.7, 0.2, 1); }
-.cb-big > b[data-k="done"] { font-size: 0.86em; }
 .cb-small > b { padding-left: 0.12em; } /* the tracking's trailing space, so the line sits centred */
-.cb[data-face="copy"] :is(.cb-big [data-k="copy"], .cb-small [data-k="words"]),
+.cb[data-face="copy"] :is(.cb-big [data-k="get"], .cb-small [data-k="bootloader"]),
 .cb[data-face="wait"] :is(.cb-big [data-k="wait"], .cb-small [data-k="wait"]),
 .cb[data-face="count"] :is(.cb-big [data-k="num"], .cb-small [data-k="count"]),
-.cb[data-face="done"] :is(.cb-big [data-k="done"], .cb-small [data-k="words"]),
-.cb[data-face="again"] :is(.cb-big [data-k="copy"], .cb-small [data-k="again"]),
-.cb[data-face="error"] :is(.cb-big [data-k="copy"], .cb-small [data-k="error"]) { opacity: 1; scale: 1; }
+.cb[data-face="sent"] :is(.cb-big [data-k="sent"], .cb-small [data-k="inbox"]),
+.cb[data-face="yours"] :is(.cb-big [data-k="yours"], .cb-small [data-k="words"]),
+.cb[data-face="error"] :is(.cb-big [data-k="get"], .cb-small [data-k="error"]) { opacity: 1; scale: 1; }
 .cb-num { display: inline-flex; justify-content: flex-end; }
 .cb-num i { display: inline-block; width: var(--slot, 0.683em); text-align: center; font-style: normal; }
 .cb-num i.c { width: var(--comma, 0.278em); }
@@ -500,13 +506,8 @@ html[data-stamp] .cb-pose { will-change: scale; }
 .cl-rows[data-rows="after"] .cl-files > * { animation: cl-in 300ms var(--ease) 80ms both; }
 .cl-rows .dl small { margin-left: 4px; font: 500 11px var(--mono); letter-spacing: 0.04em; color: var(--soft); text-decoration: none; }
 .cl-rows .dl.is-promoted { height: 44px; padding: 0 20px; }
-.cl-lead > .dl-open { min-height: 32px; font-size: 13px; animation: cl-in 300ms var(--ease) 80ms both; }
-.cl-lead .chips { margin: 0; padding: 0; flex-wrap: nowrap; gap: 12px; min-width: 0; }
-.cl-lead .chips-row { flex-wrap: nowrap; min-width: 0; gap: 8px; }
-.cl-lead .chips-paper.is-after .chip { animation-delay: calc(var(--i) * 60ms); }
 .cl-rows kbd { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 4px; margin: 0 1px; border-radius: 4px; background: var(--paper-hi); border: 1px solid rgba(23, 20, 15, 0.2); box-shadow: 0 1px 0 rgba(23, 20, 15, 0.2); font: 500 10px var(--mono); color: var(--ink); text-transform: none; }
 @keyframes cl-in { from { opacity: 0; translate: 0 4px; } }
-@container (max-width: 470px) { .cl-lead .chips-l { display: none; } }
 @container (max-width: 380px) { .cl-rows .fn { display: none; } }
 .cl-follow { margin-top: 14px; font: italic 400 17px / 1.4 var(--serif); color: #3e372e; visibility: hidden; opacity: 0; transition: opacity 400ms var(--ease) 200ms, visibility 0s 200ms; }
 .cl-stage[data-after] .cl-follow { visibility: visible; opacity: 1; }
@@ -559,19 +560,22 @@ html[data-stamp] .cb-pose { will-change: scale; }
 /* ---------- the copy column on phones, and on windows too short for the desk column ---------- */
 .cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-rows { margin-top: 10px; max-width: var(--rowsw, 100%); } /* as wide as the block, on its left edge */
 .cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-files { justify-content: space-between; gap: 4px 12px; }
-.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-lead .chips, .cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-lead .chips-row { flex: 1 1 auto; gap: 8px; }
-.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-lead .chip { flex: 1 1 0; min-width: 0; justify-content: center; height: 44px; padding: 0 8px; }
-.cl-copy:is([data-mode="phone"], [data-mode="land"]) :is(.cl-lead .chips-l, .cl-rows .fn) { display: none; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-rows .fn { display: none; }
 .cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-files .dl { font-size: 15px; }
 .cl-copy[data-mode="phone"] { top: auto; bottom: max(14px, env(safe-area-inset-bottom, 0px)); left: var(--gut); right: var(--gut-r); width: auto; translate: none; margin-top: 0; padding: 0; }
-.cl-copy[data-mode="phone"] .beat-h { font-size: 29px; }
+.cl-copy[data-mode="phone"] .beat-h { font-size: 27px; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-form { margin-top: 12px; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-deck { margin-top: 6px; font-size: 14.5px; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-field { height: 60px; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-email { font-size: 17px; height: 44px; }
+.cl-copy:is([data-mode="phone"], [data-mode="land"]) .cl-status { height: 44px; font-size: 14px; }
 .cl-copy[data-mode="phone"] .beat-k { margin-bottom: 10px; }
 .cl-copy[data-mode="land"] { top: 74px; bottom: auto; left: var(--gut); right: auto; width: min(380px, 42vw); translate: none; margin-top: 0; padding: 0; }
-.cl-copy[data-mode="land"] .beat-k { display: none; }
+.cl-copy[data-mode="land"] :is(.beat-k, .cl-deck) { display: none; }
 .cl-copy[data-mode="land"] .beat-h { font-size: clamp(20px, 6.2vh, 24px); }
 .cl-copy[data-mode="land"] .cl-rows { margin-top: 8px; }
 @media (max-height: 760px) {
-  .cl-copy[data-mode="phone"] .beat-k { display: none; }
+  .cl-copy[data-mode="phone"] :is(.beat-k, .cl-deck) { display: none; }
   .cl-copy[data-mode="phone"] .beat-h { font-size: 25px; }
   .cl-copy[data-mode="desk"] .beat-h { font-size: clamp(36px, 4.1vw, 48px); }
   .cl-copy[data-mode="desk"] .cl-follow { display: none; }
@@ -580,7 +584,7 @@ html[data-stamp] .cb-pose { will-change: scale; }
   .cl-copy[data-mode="phone"] .beat-h { font-size: 23px; }
 }
 /* a very short phone: the headline steps aside for the block, but stays the section's heading */
-.cl-stage[data-fit="short"] .cl-copy :is(.beat-k, .beat-h) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; margin: 0; }
+.cl-stage[data-fit="short"] .cl-copy :is(.beat-k, .cl-head) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; margin: 0; }
 
 /* ---------- the closed loop, proof and footer on phones ---------- */
 @media (max-width: 900px) {
@@ -613,13 +617,13 @@ html[data-stamp] .cb-pose { will-change: scale; }
   .cb-pose, .cl-stage .cb-pose { scale: calc(1.06 / 1.08) !important; transition: none !important; }
   .cb-big > b, .cb-small > b { scale: 1 !important; transition: opacity 150ms linear; }
   .cb-shd, .cb-paint { transition: opacity 150ms linear !important; translate: none !important; scale: 1 !important; }
-  .cl-rows *, .cl-rows .chip { animation: none !important; }
+  .cl-rows *, .cl-field * { animation: none !important; }
   .proof3-roll { display: grid; }
   .proof3-roll span { grid-area: 1 / 1; }
-  .cl-swap > span, .cl-follow, .cl-tag.callout { transition: opacity 150ms linear; translate: none !important; }
-  .cl-swap > span { transform: none !important; transition: opacity 150ms linear, visibility 0s; }
+  .cl-swap > *, .cl-follow, .cl-tag.callout { transition: opacity 150ms linear; translate: none !important; }
+  .cl-swap > * { transform: none !important; transition: opacity 150ms linear, visibility 0s; }
   .cl-swap[data-on="b"] > .a, .cl-swap[data-on="a"] > .b { transition-delay: 0s, 150ms; }
-  .chips-paper.is-after .chip, .dl.is-promoted::after { animation: none; }
+  .dl.is-promoted::after { animation: none; }
   .copy.is-copying .copy-label { animation: none; background-position: 0 100%; background-size: 100% 1px; }
 }
 

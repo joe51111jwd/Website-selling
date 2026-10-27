@@ -1,3 +1,4 @@
+import notice from "./notice.json";
 // All words on the site. Every sentence here is Michael's, taken from the manuscript
 // (line numbers in the comments), trimmed to whole sentences for the overlays.
 // `at` is the scroll window (0-1 through the story) where a beat is on screen.
@@ -23,17 +24,25 @@ export type SiteCopy = {
   closed: {
     open: { kicker: string; headline: string };
     closing: { kicker: string; headline: string; detail: string };
-    copy: { kicker: string; headline: string };
-    after: { kicker: string; question: string; line: string };
+    copy: { kicker: string; headline: string; deck: string };
+    after: { kicker: string; headline: string; line: string };
     block: {
-      copy: string;
-      copied: string;
-      again: string;
+      get: string;
+      bootloader: string;
+      sent: string;
+      inbox: string;
+      yours: string;
       words: string;
-      copying: string;
+      sending: string;
       tryAgain: string;
-      pasteInto: string;
-      names: Record<"copy" | "done" | "again" | "error" | "copyNoCount" | "doneNoCount" | "againNoCount" | "errorNoCount" | "busy", string>;
+      email: string;
+      placeholder: string;
+      badEmail: string;
+      sendFailed: string;
+      sentTo: string;
+      notLive: string;
+      appendix: string;
+      names: Record<"copy" | "sent" | "yours" | "error" | "copyNoCount" | "sentNoCount" | "yoursNoCount" | "errorNoCount" | "busy", string>;
     };
     pair: { book: string; file: string };
     book: { kicker: string; quote: string; sign: string; headline: string; soon: string; button: string };
@@ -133,32 +142,41 @@ export const COPY: SiteCopy = {
     copy: {
       kicker: "The Closed Loop", // L4551 (heading)
       headline: "This document is the closed system.", // L4525
+      deck: "The book changed how you think. This SUSD Bootloader changes how you operate.", // L4553, L4555
     },
     after: {
-      kicker: "First question",
-      question: "How many people are on your team?", // L4537
-      line: "Then talk to it normally.", // L4543
+      kicker: "How to use it",
+      headline: "Upload the file and use the starting prompt provided with it.", // L4531
+      line: "Then let the system locate you.", // L4533
     },
-    // the COPY block's stamp and its accessible name: UI labels, not sentences
+    // the opt-in: the block's stamp, the email field and their messages are UI labels, not sentences
     block: {
-      copy: "Copy",
-      copied: "Copied",
-      again: "Again",
+      get: "Get it",
+      bootloader: "The Bootloader",
+      sent: "Sent",
+      inbox: "Check inbox",
+      yours: "Yours",
       words: "words",
-      copying: "Copying",
+      sending: "Sending",
       tryAgain: "Try again",
-      pasteInto: "into",
+      email: "Email address",
+      placeholder: "you@company.com",
+      badEmail: "Enter your email address.",
+      sendFailed: "Couldn't send. Download the file below.",
+      sentTo: "Sent to {email}.",
+      notLive: "Email delivery isn't connected yet, so the file is downloading now.",
+      appendix: "Read the Appendix",
       // the button's accessible name begins with what its face says
       names: {
-        copy: "Copy {n} words: the whole prompt",
-        done: "Copied {n} words: the whole prompt",
-        again: "Copy again: the whole prompt, {n} words",
-        error: "Copy, try again: the whole prompt, {n} words",
-        copyNoCount: "Copy the prompt",
-        doneNoCount: "Copied the prompt",
-        againNoCount: "Copy again: the prompt",
-        errorNoCount: "Copy, try again: the prompt",
-        busy: "Copying the prompt",
+        copy: "Get it: the Bootloader, {n} words, by email",
+        sent: "Sent: check inbox. Download the file",
+        yours: "Yours: {n} words. Download the file again",
+        error: "Get it, try again: the Bootloader, {n} words",
+        copyNoCount: "Get it: the Bootloader, by email",
+        sentNoCount: "Sent: check inbox. Download the file",
+        yoursNoCount: "Yours: the Bootloader. Download the file again",
+        errorNoCount: "Get it, try again: the Bootloader",
+        busy: "Sending the Bootloader",
       },
     },
     pair: {
@@ -182,29 +200,7 @@ export const COPY: SiteCopy = {
     ],
     close: "The contrast wasn't the ranking. The contrast was the cost.", // L3463
   },
-  notice: {
-    title: "SUSD Bootloader Use Notice", // L4557
-    paragraphs: [
-      "Before You Load the SUSD Bootloader Into an AI System",
-      "The SUSD Bootloader is a specification designed for use with third-party artificial-intelligence systems. Please read this notice before copying, uploading, or using it with an AI platform.",
-      "## Permission to Use",
-      "You may copy, upload, and make working modifications to the SUSD Bootloader for your own personal or internal business use with AI systems.",
-      "This permission does not include the right to publish, publicly distribute, sell, sublicense, commercially redistribute, or make the Bootloader itself available as a standalone or competing product, service, prompt library, database, or software offering. No ownership or intellectual-property rights are transferred by this permission.",
-      "## AI Outputs and Limitations",
-      "Responses produced using the Bootloader are generated by third-party AI systems and are not individually authored, reviewed, or approved by the author.",
-      "AI systems can misunderstand instructions, produce inaccurate or incomplete information, behave inconsistently, and change over time. The Bootloader contains routing rules, thresholds, warnings, and other constraints intended to guide how an AI applies the SUSD framework, but there is no guarantee that any AI system will interpret, execute, or enforce them correctly.",
-      "The author and publisher do not warrant that the Bootloader will function as intended with every AI system or remain compatible with future models or platforms.",
-      "## Decision Support and Professional Advice",
-      "The SUSD Bootloader and its outputs are decision-support tools, not substitutes for your judgment or qualified professional advice.",
-      "Outputs involving hiring, staffing, employee or contractor relationships, compensation, taxes, contracts, ownership, financial allocations, or other matters with material legal or financial consequences should be independently evaluated before action is taken.",
-      "Nothing generated through the Bootloader constitutes legal, financial, tax, accounting, investment, employment, human-resources, or other professional advice. You remain responsible for the decisions you make and actions you take using the Bootloader or its outputs.",
-      "## Confidential Information and Third-Party Platforms",
-      "Using the Bootloader may involve providing information about your business, finances, employees, contractors, customers, or operations. Before submitting information to an AI platform, consider whether you have the authority to provide it and whether it is appropriate to disclose it.",
-      "AI platforms have their own terms of service, privacy practices, security practices, and policies governing submitted information. Those practices are outside the control of the author and publisher, and you are responsible for evaluating the platform you choose to use.",
-      "The Bootloader may be revised or updated over time, but the author is under no obligation to update it or maintain compatibility with any particular AI system.",
-      "To the fullest extent permitted by applicable law, the author and publisher disclaim liability for losses or damages arising from AI-generated outputs, the failure of an AI system to follow the Bootloader as intended, information submitted to third-party platforms, or decisions or actions taken in reliance on outputs generated through its use."
-    ], // L4559-4593
-  },
+  notice, // the SUSD Bootloader Use Notice, L4557 on (src/notice.json, shared with the appendix page)
   footer: {
     line: "Up. Side. Down. Repeat.", // L1713
   },

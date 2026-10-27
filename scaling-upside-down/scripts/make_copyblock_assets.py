@@ -3,7 +3,7 @@
   python3 scripts/make_copyblock_assets.py render/out/copyblock render/fonts/playfair_black.ttf
 
 Writes public/cb/ (the block in red and in green, its shadow at rest and lifted, each at two sizes,
-and the stamp font: Playfair Display Black with lining figures, cut to the letters the block uses;
+and the stamp font: Playfair Display Black with lining figures, cut to the alphabet and digits;
 every name carries a content hash, so they cache forever) and src/copyblock.json (where the face
 and the layers sit, as fractions of the block's outline). The page stamps the words itself.
 """
@@ -182,7 +182,7 @@ opts.flavor = "woff2"
 opts.layout_features = ["kern"]
 opts.name_IDs = [0, 1, 4, 6, 13, 14, 16]
 sub = subset.Subsetter(opts)
-sub.populate(text="ACDEGINOPRSTWYacdeginoprstwy0123456789,·… ")
+sub.populate(text="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789,.·…:'’!?-@ ")  # every word a block may say
 sub.subset(f)
 b = BytesIO()
 f.flavor = "woff2"

@@ -1,13 +1,14 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as RPointerEvent, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent as RPointerEvent, type ReactNode } from "react";
 import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import type { SiteCopy } from "../copy";
-import { copyNow, ensureBootloader } from "../bootloader";
+import { ensureBootloader } from "../bootloader";
 import { getCopy, useCopy } from "../copyStore";
+import { APPENDIX_URL, FILE_NAME, FILE_URL, downloadFile, optinLive, sendOptin, validEmail } from "../optin";
 import { FrameStore, fetchOk } from "../frames";
 import { LINKS } from "../links";
 import { BEATS, BOOK_P, BOOTLOADER_P, CL_VH, LIFT, T, blockFit, cb, fmtWords, frameAt, geo, hairEase, hapticPattern, modeNow, poseRect, seqRect, smooth, stampFor, truckRect, type Mode, type Rect } from "../closedloop";
-import { AssistantChips } from "./AssistantChips";
+import { CopyButton } from "./CopyButton";
 import { CopyBlock } from "./CopyBlock";
 import { openNotice } from "./NoticeDialog";
 
@@ -15,7 +16,6 @@ const BASE = import.meta.env.BASE_URL;
 const win = typeof window !== "undefined";
 const reduced = win && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const coarse = win && window.matchMedia("(pointer: coarse)").matches;
-const mac = win && /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
 const query = win ? new URLSearchParams(window.location.search) : new URLSearchParams();
 const asset = (name: string) => `${BASE}closed/${name}`;
 
@@ -54,13 +54,14 @@ const TriDot = () => (
 );
 
 export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
-  const { seq, words, bytes } = useCopy();
+  const { words, bytes } = useCopy();
   const section = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const plate = useRef<HTMLDivElement>(null);
   const hair = useRef<SVGPathElement>(null);
   const digits = useRef<HTMLSpanElement>(null);
+  const field = useRef<HTMLInputElement>(null);
   const wave = useRef<HTMLDivElement>(null);
   const beatC = useRef<HTMLDivElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
@@ -70,19 +71,24 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const cursor = useRef<HTMLDivElement>(null);
   const tag = useRef<HTMLDivElement>(null);
 
+  // ?closed=sent | yours | error opens the beat in that state (for checking the page)
   const start = query.get("closed");
-  const [ring, setRing] = useState<Ring>(start === "copied" ? "closed" : start === "error" ? "error" : "open");
+  const startDone = start === "sent" || start === "yours" || start === "copied";
+  const [ring, setRing] = useState<Ring>(startDone ? "closed" : start === "error" ? "error" : "open");
   const [armed, setArmed] = useState(false);
   const [press, setPress] = useState(false);
   const [instant, setInstant] = useState(start != null);
-  const [after, setAfter] = useState(start === "copied");
+  const [after, setAfter] = useState(startDone);
+  const [result, setResult] = useState<"sent" | "yours" | null>(startDone ? (start === "sent" ? "sent" : "yours") : null);
+  const [fieldErr, setFieldErr] = useState<"" | "email" | "send">(start === "error" ? "send" : "");
+  const [sentTo, setSentTo] = useState("");
+  const mailLive = useRef<boolean | null>(null); // is an email service connected (api/optin)
   const [cbLoad, setCbLoad] = useState<false | "hi" | "lo">(false);
   const blockW = useRef(320); // the COPY block's width, from the last layout
   const live = useRef(false); // the copy beat is up
   const now = useRef<Ring>(ring);
   const timers = useRef<number[]>([]);
   const raf = useRef(0);
-  const seen = useRef(seq);
   const inView = useRef(false);
   const pressTimer = useRef(0);
   const startXY = useRef<[number, number] | null>(null);
@@ -112,7 +118,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
 
   // the block's face (data-face) and its count are written by hand, so the ritual never re-renders.
   // Its accessible name starts with the words on its face.
-  type Face = "copy" | "wait" | "count" | "done" | "again" | "error";
+  type Face = "copy" | "wait" | "count" | "sent" | "yours" | "error";
   const faceNow = useRef<Face>("copy");
   const face = (k: Face) => {
     faceNow.current = k;
@@ -148,13 +154,13 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
     }
   };
   useLayoutEffect(() => {
-    face(start === "copied" ? "again" : start === "error" ? "error" : "copy");
+    face(startDone ? (start === "sent" ? "sent" : "yours") : start === "error" ? "error" : "copy");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // each copy gets a number; an answer that arrives after a newer copy began changes nothing
   const gen = useRef(0);
-  const inFlight = useRef<Promise<number> | null>(null);
+  const inFlight = useRef<Promise<{ emailed: boolean }> | null>(null);
 
   // the hairline closes around the ring while the count runs up to the file's real size
   const sweep = (ms: number, onDone: () => void) => {
@@ -173,35 +179,50 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
     step();
   };
 
-  // the line meets itself: the block turns green and reads Copied; the page asks the first question
-  const seal = (fresh: boolean) => {
-    face("done");
-    later(T.flash, () => face("again"));
+  // the line meets itself: the block turns green (Sent, or Yours when the file came straight down);
+  // the page says how to use it
+  const seal = (r: { emailed: boolean }, fresh: boolean) => {
+    const k = r.emailed ? "sent" : "yours";
+    face(k);
+    setResult(k);
     if (fresh)
       later(reduced ? 0 : T.swapAfterSeal, () => {
         go("closed");
         setAfter(true);
       });
   };
-  const close = (fresh: boolean, ticks: boolean) => {
-    if (reduced) return seal(fresh);
+  const close = (r: { emailed: boolean }, fresh: boolean, ticks: boolean) => {
+    if (reduced) return seal(r, fresh);
     const g = gen.current;
     face("count");
     writeCount(0);
-    if (ticks) navigator.vibrate?.(hapticPattern(false)); // the copy came late: the ticks start with the line
-    sweep(fresh ? T.hairMs : T.againMs, () => g === gen.current && seal(fresh));
+    if (ticks) navigator.vibrate?.(hapticPattern(false)); // the answer came late: the ticks start with the line
+    sweep(fresh ? T.hairMs : T.againMs, () => g === gen.current && seal(r, fresh));
   };
   const shake = () =>
     body()?.animate(
       [{ transform: "none" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(-4px)" }, { transform: "translateX(3px)" }, { transform: "none" }],
       { duration: T.shake, easing: "ease-out" },
     );
-  const fail = () => {
+  // the address is missing or wrong: no ritual, the field says so
+  const refuse = () => {
+    setFieldErr("email");
+    setPress(false);
+    if (!reduced) shake();
+    field.current?.focus({ preventScroll: true });
+  };
+  const fail = (e: unknown) => {
     clearTimers();
     navigator.vibrate?.(0);
     if (hair.current) hair.current.style.strokeDashoffset = ""; // back to the open ring's
+    if (e instanceof Error && e.message === "email") {
+      go("open");
+      face("copy");
+      return refuse();
+    }
     go("error");
     face("error");
+    setFieldErr("send");
     if (!reduced) later(T.shakeDelay, shake);
     const g = gen.current;
     later(T.errorMs, () => g === gen.current && now.current === "error" && face("copy"));
@@ -239,50 +260,37 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
     } else face("wait"); // the file is still on its way: the clipboard is waiting for it
   };
 
-  // copy again, ring already closed: a small lift and set, the line redrawn, the count run again
-  const again = (prom: Promise<number>, own: boolean) => {
+  // once the loop is closed, the block hands over the file itself: a small lift and set, the count run again
+  const again = () => {
     const g = ++gen.current;
     clearTimers();
-    if (hair.current) hair.current.style.strokeDashoffset = "0"; // the closed ring's line, whole, until the copy answers
-    prom.then(
-      () => {
-        if (g !== gen.current) return;
-        const st = stage.current;
-        st?.classList.remove("is-again");
-        void st?.offsetWidth;
-        st?.classList.add("is-again");
-        if (reduced) return seal(false);
-        body()?.animate([{ transform: "scale(1)" }, { transform: "scale(1.045)", offset: 0.45 }, { transform: "scale(1)" }], { duration: T.againLift, easing: "cubic-bezier(0.3, 0.7, 0.3, 1)" });
-        btn.current?.querySelector(".cb-shd.lift")?.animate([{ opacity: 0 }, { opacity: 0.5 }, { opacity: 0 }], { duration: T.againLift });
-        if (own) navigator.vibrate?.(10);
-        close(false, false);
-      },
-      () => {
-        if (g !== gen.current) return;
-        clearTimers();
-        face("error");
-        if (!reduced) shake();
-        later(T.errorMs, () => g === gen.current && face("again"));
-      },
-    );
+    if (hair.current) hair.current.style.strokeDashoffset = "0";
+    const st = stage.current;
+    st?.classList.remove("is-again");
+    void st?.offsetWidth;
+    st?.classList.add("is-again");
+    if (reduced) return face("yours");
+    body()?.animate([{ transform: "scale(1)" }, { transform: "scale(1.045)", offset: 0.45 }, { transform: "scale(1)" }], { duration: T.againLift, easing: "cubic-bezier(0.3, 0.7, 0.3, 1)" });
+    btn.current?.querySelector(".cb-shd.lift")?.animate([{ opacity: 0 }, { opacity: 0.5 }, { opacity: 0 }], { duration: T.againLift });
+    navigator.vibrate?.(10);
+    face("count");
+    writeCount(0);
+    sweep(T.againMs, () => g === gen.current && face("yours"));
   };
 
-  // the copy: both blocks fall into place, the ring closes, the block turns green
-  const ritual = (prom: Promise<number>, own: boolean) => {
-    const s = now.current;
+  // the opt-in: both blocks fall into place, the ring closes, the block turns green
+  const ritual = (prom: Promise<{ emailed: boolean }>, own: boolean) => {
     setPress(false);
     setArmed(false); // a mouse resting on the block does not lift it again over the payoff
     setInstant(false);
-    if (s === "dropping") return; // already on its way
-    if (s === "closed") return again(prom, own);
     const g = ++gen.current;
     const ok = () => g === gen.current;
     clearTimers();
     if (reduced) {
       face("wait");
       prom.then(
-        () => ok() && close(true, false),
-        () => ok() && fail(),
+        (r) => ok() && close(r, true, false),
+        (e) => ok() && fail(e),
       );
       return;
     }
@@ -300,37 +308,35 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
       impact(own, resolved);
     });
     Promise.all([landed, prom]).then(
-      () => ok() && later(T.hairStart - T.fall, () => ok() && close(true, own && !ticked)),
-      () => ok() && fail(),
+      ([, r]) => ok() && later(T.hairStart - T.fall, () => ok() && close(r, true, own && !ticked)),
+      (e) => ok() && fail(e),
     );
   };
 
-  const activate = () => {
-    // a copy already on its way, or already falling into place: let it land rather than copy twice
-    if (inFlight.current) return inFlight.current;
-    if (now.current === "dropping") return Promise.resolve(getCopy().words);
-    const prom = copyNow("loop"); // first, inside the click
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (inFlight.current || now.current === "dropping") return; // already on its way
+    window.clearTimeout(pressTimer.current);
+    if (now.current === "closed") {
+      downloadFile(); // from the click itself, so every browser lets it through
+      return again();
+    }
+    const email = field.current?.value ?? "";
+    if (!validEmail(email)) return refuse();
+    setFieldErr("");
+    setSentTo(email.trim());
+    let prom: Promise<{ emailed: boolean }>;
+    if (mailLive.current === false) {
+      downloadFile(); // no email service connected yet: the file itself, now, from the click
+      prom = Promise.resolve({ emailed: false });
+    } else prom = sendOptin(email, "home");
     inFlight.current = prom;
     const done = () => {
       if (inFlight.current === prom) inFlight.current = null;
     };
     prom.then(done, done);
-    window.clearTimeout(pressTimer.current);
     ritual(prom, true);
-    return prom;
   };
-
-  // a copy from anywhere else plays here only while this beat is up (a copy in the use notice, once it closes)
-  useEffect(() => {
-    if (seq === seen.current) return;
-    seen.current = seq;
-    if (getCopy().source === "loop") return;
-    const play = () => live.current && now.current !== "dropping" && ritual(Promise.resolve(getCopy().words), false);
-    const dlg = document.querySelector("dialog[open]");
-    if (dlg) dlg.addEventListener("close", play, { once: true });
-    else play();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seq]);
 
   // the press: at once for a mouse or a key, after 80ms of stillness for a finger (a scroll never presses)
   const down = (e: RPointerEvent) => {
@@ -578,6 +584,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
       if (started) return;
       started = true;
       ensureBootloader("high").catch(() => {});
+      void optinLive().then((v) => (mailLive.current = v));
       setCbLoad(LIFT * blockW.current * Math.min(window.devicePixelRatio || 1, 3) > 700 ? "hi" : "lo");
       try {
         if (!lo) {
@@ -846,7 +853,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
             ref={canvas}
             className="cl-canvas"
             role="img"
-            aria-label="Seen from above, the Up, Side and Down blocks lie face up under blocks labelled SOPs, AI tools, apps, Slack and CRM. The pile is swept off the table and twelve painted system blocks are set down in a ring around them, green for Scaling Up, ochre for Scaling Sideways, red for Scaling Down. The last block, Quality, waits above its gap; copying the prompt sets it in. Further along the same table lies the hardcover of the book."
+            aria-label="Seen from above, the Up, Side and Down blocks lie face up under blocks labelled SOPs, AI tools, apps, Slack and CRM. The pile is swept off the table and twelve painted system blocks are set down in a ring around them, green for Scaling Up, ochre for Scaling Sideways, red for Scaling Down. The last block, Quality, waits above its gap; getting the Bootloader sets it in. Further along the same table lies the hardcover of the book."
           />
           <m.div ref={plate} className="cl-plate" style={{ "--qlow": lower, opacity: plateIn, visibility: plateVis } as unknown as CSSProperties} aria-hidden="true">
             <img className="cl-shd lift" src={asset(geo.files.q_shd_lift)} alt="" style={layer("q_shd_lift")} draggable={false} />
@@ -893,7 +900,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
           <i />
         </m.div>
         <div ref={cursor} className="cl-cursor" aria-hidden="true">
-          {ring === "closed" ? "Copy again" : "Copy"}
+          {ring === "closed" ? "Download" : "Get it"}
         </div>
 
         {earlyBeats}
@@ -910,61 +917,95 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
               </span>
             </span>
           </p>
-          <h2 className="beat-h cl-h">
-            <span className="cl-swap" data-on={after ? "b" : "a"}>
-              {/* the section is named by whichever half is showing */}
-              <span className="a" id={after ? undefined : "cl-h"} aria-hidden={after}>
+          {/* before: the claim and what the file is; after: how to use it. One cell, so nothing moves.
+              The section is named by whichever headline is showing. */}
+          <div className="cl-swap cl-head" data-on={after ? "b" : "a"}>
+            <div className="a" aria-hidden={after}>
+              <h2 className="beat-h cl-h" id={after ? undefined : "cl-h"}>
                 {copy.copy.headline}
-              </span>
-              <span className="b" id={after ? "cl-h" : undefined} aria-hidden={!after}>
-                {copy.after.question}
-              </span>
-            </span>
-          </h2>
-          <CopyBlock
-            ref={btn}
-            digitsRef={digits}
-            words={words}
-            labels={copy.block}
-            load={cbLoad}
-            onClick={activate}
-            onKeyDown={key}
-            onFocus={() => setArmed(true)}
-            onBlur={() => (setArmed(false), cancel())}
-            onPointerEnter={hover(true)}
-            onPointerLeave={(e) => {
-              hover(false)();
-              if (e.pointerType === "mouse") setPress(false);
-            }}
-            {...press$}
-          />
+              </h2>
+              <p className="cl-deck">{copy.copy.deck}</p>
+            </div>
+            <div className="b" aria-hidden={!after}>
+              <h2 className="beat-h cl-h" id={after ? "cl-h" : undefined}>
+                {copy.after.headline}
+              </h2>
+            </div>
+          </div>
+          {/* the opt-in: an address, then the block. Without JavaScript the form posts to the same function. */}
+          <form className="cl-form" action={`${BASE}api/optin`} method="post" noValidate onSubmit={submit}>
+            <input type="hidden" name="source" value="home" />
+            <div className="cl-hp" aria-hidden="true">
+              <label>
+                Company <input name="company" tabIndex={-1} autoComplete="off" />
+              </label>
+            </div>
+            <div className="cl-field" data-state={result ? "done" : fieldErr ? "err" : undefined}>
+              {result ? (
+                <p className="cl-status" role="status">
+                  {result === "sent" ? copy.block.sentTo.replace("{email}", sentTo) : copy.block.notLive}
+                </p>
+              ) : (
+                <>
+                  <label className="sr-only" htmlFor="cl-email">
+                    {copy.block.email}
+                  </label>
+                  <input
+                    id="cl-email"
+                    ref={field}
+                    className="cl-email"
+                    name="email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    enterKeyHint="send"
+                    spellCheck={false}
+                    placeholder={copy.block.placeholder}
+                    aria-invalid={fieldErr === "email" || undefined}
+                    aria-describedby="cl-email-msg"
+                    onInput={() => fieldErr === "email" && setFieldErr("")}
+                  />
+                  <p className="cl-msg" id="cl-email-msg" role={fieldErr ? "alert" : undefined}>
+                    {fieldErr === "email" ? copy.block.badEmail : fieldErr === "send" ? copy.block.sendFailed : ""}
+                  </p>
+                </>
+              )}
+            </div>
+            <CopyBlock
+              ref={btn}
+              type="submit"
+              digitsRef={digits}
+              words={words}
+              labels={copy.block}
+              load={cbLoad}
+              onKeyDown={key}
+              onFocus={() => setArmed(true)}
+              onBlur={() => (setArmed(false), cancel())}
+              onPointerEnter={hover(true)}
+              onPointerLeave={(e) => {
+                hover(false)();
+                if (e.pointerType === "mouse") setPress(false);
+              }}
+              {...press$}
+            />
+          </form>
           {/* Download and the Use notice are the same two controls in every state (focus stays on them);
-              before the copy they sit under the block, after it the assistants take that row */}
+              the row above them reads the Appendix, or after the opt-in copies the starting prompt */}
           <div className="cl-rows" data-rows={rowsState}>
             <div className="cl-lead">
               {rowsState === "after" ? (
-                <AssistantChips
-                  variant="paper"
-                  lead={
-                    coarse ? undefined : (
-                      <>
-                        Paste <kbd>{mac ? "⌘" : "Ctrl"}</kbd>
-                        <kbd>V</kbd> {copy.block.pasteInto}
-                      </>
-                    )
-                  }
-                />
-              ) : rowsState === "error" ? (
-                <a className="dl-open" href={`${BASE}bootloader.txt`} target="_blank" rel="noopener">
-                  Open the file
+                <CopyButton source="loop" size="md" />
+              ) : (
+                <a className="cl-read" href={APPENDIX_URL}>
+                  {copy.block.appendix} <span aria-hidden="true">→</span>
                 </a>
-              ) : null}
+              )}
             </div>
             <div className="cl-files">
-              <a className={`dl${rowsState === "error" ? " is-promoted" : ""}`} href={`${BASE}bootloader.md`} download="SUSD-Bootloader.md">
+              <a className={`dl${rowsState === "error" ? " is-promoted" : ""}`} href={FILE_URL} download={FILE_NAME}>
                 <span aria-hidden="true">↓</span> Download
                 <small>
-                  {rowsState === "before" && <span className="fn">SUSD-Bootloader.md{kb ? " · " : ""}</span>}
+                  {rowsState !== "after" && <span className="fn">{FILE_NAME}{kb ? " · " : ""}</span>}
                   {kb}
                 </small>
               </a>

@@ -16,6 +16,39 @@
     <meta property="og:image:alt" content="Three wooden blocks stacked UP, SIDE, DOWN beside the title Scaling Up-Side-Down" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="text/markdown" href="/bootloader.md" title="The SUSD Bootloader (Markdown)" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Book",
+            "@id": "https://scaling-up-side-down.vercel.app/#book",
+            "name": "Scaling Up-Side-Down",
+            "alternateName": "Scaling Up-Side-Down: Revenue Up. Margins Down. How to Avoid the Scaling Trap.",
+            "author": { "@type": "Person", "name": "Michael Wentz" },
+            "inLanguage": "en",
+            "url": "https://scaling-up-side-down.vercel.app/",
+            "image": "https://scaling-up-side-down.vercel.app/og.jpg",
+            "description": "Revenue up. Margins down. Michael Wentz's book for bootstrapped founders, and the SUSD Bootloader: a file designed to be loaded into any AI assistant you already use.",
+            "workExample": { "@type": "TechArticle", "name": "The SUSD Bootloader", "url": "https://scaling-up-side-down.vercel.app/appendix" }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://scaling-up-side-down.vercel.app/#site",
+            "name": "Scaling Up-Side-Down",
+            "url": "https://scaling-up-side-down.vercel.app/",
+            "publisher": { "@type": "Person", "name": "Michael Wentz" }
+          }
+        ]
+      }
+    </script>
+    <style>
+      /* what the page says, for readers and crawlers that don't run JavaScript; the app replaces it */
+      .prerender { max-width: 40rem; margin: 6rem auto; padding: 0 1.5rem; font: 17px/1.55 Georgia, serif; color: #17140f; }
+      .js .prerender { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    </style>
+    <script>document.documentElement.classList.add("js");</script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400..800&family=IBM+Plex+Mono:wght@400;500&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;1,400&display=swap" />
@@ -23,7 +56,19 @@
     <link rel="preload" href="./frames/hi/manifest.json" as="fetch" crossorigin />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main class="prerender">
+        <p>Michael Wentz · For bootstrapped founders</p>
+        <h1>Scaling Up-Side-Down</h1>
+        <p>Revenue Up. Margins Down. How to Avoid the Scaling Trap.</p>
+        <p>Every hire compounds complexity before it compounds capacity.</p>
+        <p>
+          This appendix exists in two forms: the pages that follow, and a downloadable file designed to be loaded into any AI
+          assistant you already use. The pages are reference. The file is the operating system.
+        </p>
+        <p><a href="/appendix">The SUSD Bootloader, the Appendix</a> · <a href="/bootloader.md">The file (Markdown)</a></p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

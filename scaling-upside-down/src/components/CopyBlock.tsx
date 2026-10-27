@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type HTMLAttributes, type Ref } from "react";
+import { useEffect, useState, type ButtonHTMLAttributes, type CSSProperties, type Ref } from "react";
 import { cb, fmtWords } from "../closedloop";
 
 const BASE = import.meta.env.BASE_URL;
@@ -25,9 +25,9 @@ const [dx, dy] = [cb.drift[0], cb.drift[1] * cb.bodyAR];
 const dn = Math.hypot(dx, dy) || 1;
 const VARS = { "--cb-ar": cb.bodyAR, "--sx": `${((4 * dx) / dn).toFixed(2)}px`, "--sy": `${((4 * dy) / dn).toFixed(2)}px`, "--slot": `${cb.slot}em`, "--comma": `${cb.comma}em` } as CSSProperties;
 
-export type BlockLabels = { copy: string; copied: string; again: string; words: string; copying: string; tryAgain: string };
+export type BlockLabels = { get: string; bootloader: string; sent: string; inbox: string; yours: string; words: string; sending: string; tryAgain: string };
 
-type Props = Omit<HTMLAttributes<HTMLButtonElement>, "children"> & {
+type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> & {
   ref?: Ref<HTMLButtonElement>;
   digitsRef: Ref<HTMLSpanElement>;
   words: number;
@@ -37,7 +37,7 @@ type Props = Omit<HTMLAttributes<HTMLButtonElement>, "children"> & {
 };
 
 /**
- * The COPY button: a painted block from the same studio as the ring, its words stamped by the page.
+ * The opt-in's button: a painted block from the same studio as the ring, its words stamped by the page.
  * The face (data-face), the count and the accessible name are written by the closed loop's ritual,
  * never by React, so the count can run without re-rendering anything.
  */
@@ -89,18 +89,20 @@ export function CopyBlock({ ref, digitsRef, words, labels, load, ...rest }: Prop
           {set && <img className="cb-paint green" src={src("green")} alt="" draggable={false} decoding="async" style={pct(cb.block)} />}
           <span className="cb-face" style={pct(cb.face)}>
             <span className="cb-big">
-              <b data-k="copy">{labels.copy}</b>
+              <b data-k="get">{labels.get}</b>
               <b data-k="num">
                 <span className="cb-num" ref={digitsRef} />
               </b>
               <b data-k="wait">· · ·</b>
-              <b data-k="done">{labels.copied}</b>
+              <b data-k="sent">{labels.sent}</b>
+              <b data-k="yours">{labels.yours}</b>
             </span>
             <span className="cb-small">
+              <b data-k="bootloader">{labels.bootloader}</b>
               <b data-k="words">{count && `${count} ${labels.words}`}</b>
               <b data-k="count">{labels.words}</b>
-              <b data-k="wait">{labels.copying}</b>
-              <b data-k="again">{labels.again}</b>
+              <b data-k="wait">{labels.sending}</b>
+              <b data-k="inbox">{labels.inbox}</b>
               <b data-k="error">{labels.tryAgain}</b>
             </span>
           </span>

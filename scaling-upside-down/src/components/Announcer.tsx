@@ -16,13 +16,13 @@ export function Announcer() {
   };
   useEffect(() => {
     if (!seq) return;
-    const w = getCopy().words;
-    const t = say(`Prompt copied${w ? `, ${w.toLocaleString()} words` : ""}. Paste it into your AI assistant.`);
+    const { words: w, part } = getCopy();
+    const t = say(part === "prompt" ? "Starting prompt copied. Paste it after you upload the file." : `The Bootloader copied${w ? `, ${w.toLocaleString()} words` : ""}.`);
     return () => window.clearTimeout(t);
   }, [seq]);
   useEffect(() => {
     if (!errors) return;
-    const t = say("Couldn't copy. Download the file instead.");
+    const t = say("Couldn't copy. Select the prompt and copy it by hand.");
     return () => window.clearTimeout(t);
   }, [errors]);
   return (

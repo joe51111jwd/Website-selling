@@ -112,7 +112,7 @@ export function poseRect(cw: number, ch: number, mode: Mode): Rect {
   }
   if (mode === "phone") {
     // the ring's centre sits half a frame below the menu
-    const d = Math.min(0.88 * cw, (ch <= 600 ? 0.33 : ch <= 760 ? 0.36 : 0.42) * ch);
+    const d = Math.min(0.88 * cw, (ch <= 600 ? 0.3 : ch <= 760 ? 0.33 : 0.37) * ch); // leaves room below for the address and the block
     const dh = d / RING_H;
     const dw = dh * RATIO;
     return { ox: 0.5 * cw - rx * dw, oy: 56 + 0.5 * dh - ry * dh, dw, dh };

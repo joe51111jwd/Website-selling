@@ -36,8 +36,8 @@ export default function App() {
       settle = window.setTimeout(remember, 400);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    // the book prints scalingupsidedown.com/appendix, and section links can be shared; a stale #hash loses to a saved position
-    const target = window.location.pathname.replace(/\/+$/, "").endsWith("/appendix") ? "bootloader" : window.location.hash.slice(1);
+    // section links can be shared; a stale #hash loses to a saved position (/appendix is its own page now)
+    const target = window.location.hash.slice(1);
     const jump = () => {
       const el = target && !restore ? document.getElementById(target) : null;
       const y = el ? el.getBoundingClientRect().top + window.scrollY : restore ? (savedY as number) : 0;

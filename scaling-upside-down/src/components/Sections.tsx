@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useScroll, useTransform } from "motion/react";
 import * as m from "motion/react-m";
-import { CopyButton } from "./CopyButton";
+import { APPENDIX_URL } from "../optin";
+import { GetLink } from "./GetLink";
 import { openNotice } from "./NoticeDialog";
 import type { SiteCopy } from "../copy";
 import { geo } from "../closedloop";
@@ -42,14 +43,14 @@ export function Nav() {
       </a>
       <nav className="links" aria-label="Sections">
         <a href="#story">The story</a>
-        <a href="#bootloader">The bootloader</a>
+        <a href={APPENDIX_URL}>The Appendix</a>
         <a href="#book">The book</a>
       </nav>
       <div className={`nav-cta ${pastHero ? "" : "hidden"}`}>
         <a className="nav-book" href="#book">
           Book
         </a>
-        <CopyButton source="nav" size="sm" />
+        <GetLink size="sm" />
       </div>
     </header>
   );
@@ -128,7 +129,7 @@ export function Footer({ copy }: { copy: SiteCopy["footer"] }) {
   };
   return (
     <footer className="foot">
-      <a className="foot-seal" href="#bootloader" aria-label="Back to the closed loop and the prompt">
+      <a className="foot-seal" href="#bootloader" aria-label="Back to the closed loop and the Bootloader">
         <img src={asset(geo.files.seal)} alt="" width="220" height="220" loading="lazy" decoding="async" />
       </a>
       <p className="foot-line">{copy.line}</p>

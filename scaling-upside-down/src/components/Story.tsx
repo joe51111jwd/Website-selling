@@ -4,7 +4,7 @@ import * as m from "motion/react-m";
 import { FrameStore, fetchOk } from "../frames";
 import { CALLOUTS, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, frameAt, portraitFit, progressAt, sp, yearAt } from "../story";
 import type { Beat } from "../copy";
-import { CopyButton } from "./CopyButton";
+import { GetLink } from "./GetLink";
 import { ensureBootloader } from "../bootloader";
 import { LINKS, preorderHref } from "../links";
 
@@ -47,7 +47,7 @@ function BeatView({ beat, progress }: { beat: Beat; progress: MotionValue<number
       {beat.detail && <p className="beat-d">{beat.detail}</p>}
       {beat.cta && (
         <m.div className="beat-cta" style={{ visibility: ctaVis }}>
-          <CopyButton source="story" size="lg" label="Copy the AI prompt" />
+          <GetLink />
           <a className="ghost" href={preorderHref()}>
             {LINKS.preorder ? "Pre-order the book" : "The book"}
           </a>
@@ -430,7 +430,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
             {hero.detail}
           </m.p>
           <m.div className="hero-cta" style={{ visibility: heroVis }} initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 14 }} transition={{ duration: 0.8, delay: 0.55 }}>
-            <CopyButton source="hero" size="lg" label="Copy the AI prompt" />
+            <GetLink />
             <a className="ghost" href={preorderHref()}>
               {LINKS.preorder ? hero.preorder : "The book"}
             </a>
