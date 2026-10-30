@@ -1,0 +1,563 @@
+/* ---------- 03 · Your cycle ---------- */
+.cycle {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: calc(104 * var(--u)) var(--gut) calc(56 * var(--u));
+}
+/* "—— CYCLICAL GROWTH ——": the method named, as the paths section names itself. */
+.cycle-mark {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font: 600 11px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.cycle-mark::before,
+.cycle-mark::after {
+  content: '';
+  width: 40px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+}
+/* BL 1364: the bridge from "every hire" (the meter) to the cycle. */
+.cycle-lead {
+  margin: calc(22 * var(--u)) 0 calc(18 * var(--u));
+  max-width: 30em;
+  font: italic 400 calc(26 * var(--u)) / 1.3 var(--serif);
+  font-variation-settings: 'opsz' 36;
+  text-wrap: balance;
+}
+.cycle-h {
+  text-wrap: balance;
+  font: 900 calc(72 * var(--u)) / 1 var(--serif);
+  font-variation-settings: 'opsz' 144;
+  letter-spacing: -0.012em;
+  word-spacing: 0.1em;
+}
+.cycle-h:focus {
+  outline: none;
+}
+
+/* The word drum: a three-face paper prism in a window cut into the page. */
+.prism-wrap {
+  position: relative;
+  margin-top: calc(40 * var(--u));
+  width: min(calc(560 * var(--u)), 100%);
+}
+/* The window is paper underneath too: whatever a turning face leaves uncovered reads as paper, never
+   as a dark gap. */
+.prism-window {
+  position: relative;
+  width: 100%;
+  height: calc(172 * var(--u));
+  border-radius: calc(16 * var(--u));
+  background: var(--cream);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.1), 0 -1px 0 rgb(0 0 0 / 0.22);
+  overflow: hidden;
+  contain: layout paint;
+}
+.prism {
+  position: absolute;
+  inset: 0;
+  perspective: 1800px;
+}
+/* Faces 8% wider than the window, so a tilted face's far edge never pulls inside the frame. */
+.prism .face {
+  --fh: calc(172 * var(--u));
+  left: -4%;
+  right: -4%;
+  background-color: var(--cream);
+}
+.pw {
+  font: 900 calc(128 * var(--u)) / 1 var(--serif);
+  font-variation-settings: 'opsz' 144;
+  letter-spacing: -0.01em;
+  padding-top: calc(8 * var(--u));
+  transition: opacity 0.25s linear;
+}
+.pw-up {
+  color: var(--up);
+}
+.pw-side {
+  color: var(--side-ink);
+}
+.pw-down {
+  color: var(--down);
+}
+/* Paper drum shading: warm, lighter than the hero's, with crisp lips like the hero window. */
+.prism-window .shade {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(40 28 14 / 0.3) 0%, rgb(40 28 14 / 0) 22%, rgb(40 28 14 / 0) 78%, rgb(40 28 14 / 0.3) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(0 0 0 / 0.35),
+    inset 0 -1px 0 rgb(0 0 0 / 0.3),
+    inset 0 10px 18px rgb(40 28 14 / 0.18),
+    inset 0 -8px 16px rgb(40 28 14 / 0.14);
+}
+
+/* 13–14: the drum stops on a blank face, printed "UP · SIDE · DOWN" and struck through. */
+.is-blank .pw {
+  opacity: 0;
+}
+.paused {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.paused span {
+  position: relative;
+  font: 900 calc(54 * var(--u)) / 1 var(--serif);
+  font-variation-settings: 'opsz' 144;
+  letter-spacing: 0.02em;
+  word-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(28 26 23 / 0.24);
+  padding: 0 0.2em;
+}
+.paused span::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 52%;
+  height: 2px;
+  background: var(--ink);
+  animation: strike 0.3s var(--ease-out) both;
+  transform-origin: 0 50%;
+}
+@keyframes strike {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* 15–39: an oxblood strap across the window, wider than it, dropped in from the centre. */
+.strap {
+  position: absolute;
+  left: -14px;
+  right: -14px;
+  top: 50%;
+  height: 12px;
+  margin-top: -6px;
+  background: #6a1a14;
+  border-top: 1px solid #2e0907;
+  border-bottom: 1px solid #2e0907;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.14), 0 3px 8px rgb(0 0 0 / 0.4);
+  animation: strap 0.16s var(--ease-out) both;
+}
+@keyframes strap {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* 40+: out of scope. Paper stays paper; the words fade and a slate hairline frames the window. */
+.is-tot .pw {
+  opacity: 0.3;
+}
+.is-tot .prism-window {
+  box-shadow: 0 0 0 1px #8a8f96;
+}
+
+/* "Up for growth. Side for stability. Down for pruning." with the current face lit, and one underline
+   that travels (transform only) from phrase to phrase. */
+.jobs {
+  position: relative;
+  margin-top: calc(24 * var(--u));
+  font: 400 calc(30 * var(--u)) / 1.3 var(--serif);
+  font-variation-settings: 'opsz' 48;
+}
+.job-s {
+  display: inline-block;
+  padding-bottom: 0.08em;
+  opacity: 0.55;
+  transition: opacity 0.3s linear;
+}
+.job-s.is-now {
+  opacity: 1;
+}
+.job-line {
+  position: absolute;
+  left: 0;
+  top: -2px;
+  width: 1px;
+  height: 2px;
+  background: currentColor;
+  transform-origin: 0 0;
+  /* Starts as the drum passes halfway (Cycle.tsx), and lands as it settles. */
+  transition: transform 0.32s var(--ease-out);
+  will-change: transform;
+}
+
+/* The four systems for the face: three rows stacked in one cell, flipped whole like a departures board. */
+.sys {
+  display: grid;
+  margin-top: calc(16 * var(--u));
+  max-width: 100%;
+  overflow: hidden;
+  padding: 2px 4px;
+}
+.sys-row {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 0;
+}
+.sys-row.is-off {
+  visibility: hidden;
+}
+.sys-label {
+  margin-right: 1.1em;
+  font: 600 max(11px, calc(12 * var(--u))) / 1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.sys-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  font: 400 max(15px, calc(19 * var(--u))) / 1.35 var(--serif);
+  font-variation-settings: 'opsz' 24;
+}
+.sys-list li + li::before {
+  content: '·' / '';
+  margin: 0 0.7em;
+  opacity: 0.55;
+}
+.flip {
+  display: inline-block;
+  transform-origin: 50% 55%;
+  backface-visibility: hidden;
+}
+/* The old row leaves all at once (100 ms), then the new one arrives name by name: the two rows are never
+   on screen together, so no name ghosts over another. */
+.sys-row.is-out .flip {
+  animation: flap-out 100ms var(--ease-in) both;
+}
+.sys-row.is-out {
+  animation: row-out 0s linear 100ms both;
+}
+.sys-row.is-in .flip {
+  animation: flap-in 140ms var(--ease-out) both;
+  animation-delay: calc(110ms + var(--k, 0) * 30ms);
+}
+@keyframes row-out {
+  to {
+    visibility: hidden;
+  }
+}
+@keyframes flap-out {
+  to {
+    transform: perspective(260px) rotateX(90deg);
+    opacity: 0;
+  }
+}
+@keyframes flap-in {
+  from {
+    transform: perspective(260px) rotateX(-90deg);
+    opacity: 0;
+  }
+}
+
+/* The visitor's tempo, set as a line of type: "At 8 people  Up 1 month · Side 1 month · Down 1 month". */
+.tempo-block {
+  margin-top: calc(48 * var(--u));
+}
+.tempo {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.2em 0.9em;
+  font: 400 calc(28 * var(--u)) / 1.25 var(--serif);
+  font-variation-settings: 'opsz' 36;
+}
+.t-at {
+  font-style: italic;
+}
+.t-at::after {
+  content: ':';
+}
+.t-s {
+  opacity: 0.55;
+  transition: opacity 0.3s linear;
+}
+.t-s.is-now {
+  opacity: 1;
+}
+.t-s + .t-s::before {
+  content: '·' / '';
+  display: inline-block;
+  margin: 0 0.55em;
+  opacity: 0.55;
+}
+.tempo-plan {
+  margin-top: 8px;
+  font: 500 max(11px, calc(12 * var(--u))) / 1.4 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.t-k::after {
+  content: ':';
+}
+/* Then why: the clock line, which hands over to the deposit line after one full turn. */
+.clock {
+  margin-top: calc(24 * var(--u));
+  max-width: 40em;
+  font: italic 400 calc(24 * var(--u)) / 1.35 var(--serif);
+  font-variation-settings: 'opsz' 30;
+}
+.deposit {
+  margin-top: calc(10 * var(--u));
+  max-width: 40em;
+  font: italic 400 calc(24 * var(--u)) / 1.35 var(--serif);
+  font-variation-settings: 'opsz' 30;
+}
+
+.job-warn {
+  margin-top: calc(30 * var(--u));
+  max-width: 22em;
+  font: 400 calc(30 * var(--u)) / 1.25 var(--serif);
+  font-variation-settings: 'opsz' 48;
+  text-wrap: balance;
+}
+
+.exits {
+  margin-top: calc(32 * var(--u));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* One real button; the other two ways out are plain labels, not buttons. */
+.exit-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px 16px;
+}
+.exit-off {
+  font: 500 max(11px, calc(13 * var(--u))) / 1 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.exit-others {
+  display: inline-flex;
+  gap: 16px;
+  white-space: nowrap;
+}
+.exit-off + .exit-off::before {
+  content: '·' / '';
+  margin-right: 16px;
+}
+.nowaythrough {
+  margin-top: calc(26 * var(--u));
+  font: 400 calc(24 * var(--u)) / 1.35 var(--serif);
+  font-variation-settings: 'opsz' 30;
+}
+
+/* Reduced motion: the three faces as a still row, each with its job and systems. */
+.cycle-static {
+  list-style: none;
+  margin: calc(40 * var(--u)) 0 0;
+  padding: 0;
+  display: flex;
+  gap: calc(24 * var(--u));
+  justify-content: center;
+}
+.cycle-static li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: calc(300 * var(--u));
+}
+.cycle-static .tile {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: calc(140 * var(--u));
+  border-radius: 12px;
+  background: var(--cream);
+  font-size: calc(72 * var(--u));
+}
+.cycle-static .tile-job {
+  font: 400 calc(24 * var(--u)) / 1.2 var(--serif);
+}
+.tile-sys {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font: 400 max(14px, calc(16 * var(--u))) / 1.35 var(--serif);
+  opacity: 0.9;
+}
+.is-static .tempo-block {
+  margin-top: calc(40 * var(--u));
+}
+/* With no face turning, every season is lit (nothing reads as disabled). */
+.is-static .t-s {
+  opacity: 1;
+}
+
+/* 40+: the place named under the greyed drum. */
+.tot-tag {
+  margin-top: calc(28 * var(--u));
+  font: 600 max(11px, calc(13 * var(--u))) / 1.2 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .cycle {
+    padding: 72px 16px 40px;
+  }
+  .cycle-lead {
+    margin: 16px 0 14px;
+    font-size: 19px;
+    max-width: 17em;
+  }
+  .cycle-h {
+    font-size: 33px;
+  }
+  .prism-wrap {
+    width: 320px;
+    max-width: 100%;
+    margin-top: 28px;
+  }
+  .prism-window {
+    height: 116px;
+    border-radius: 12px;
+  }
+  .prism .face {
+    --fh: 116px;
+  }
+  .pw {
+    font-size: 82px;
+  }
+  .paused span {
+    font-size: 32px;
+  }
+  .strap {
+    left: -10px;
+    right: -10px;
+    height: 10px;
+    margin-top: -5px;
+  }
+  .jobs {
+    font-size: 21px;
+    margin-top: 20px;
+    max-width: 18em;
+  }
+  .job-s {
+    margin: 0 0.1em;
+  }
+  /* Phone: label on top, then a 2×2 grid split by one hairline cross (no boxes). */
+  .sys {
+    margin-top: 18px;
+    width: 100%;
+    max-width: 358px;
+  }
+  .sys-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .sys-label {
+    margin: 0;
+    font-size: 10.5px;
+  }
+  .sys-list {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    font-size: 15px;
+    line-height: 1.3;
+  }
+  .sys-list li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3.1em;
+    padding: 6px 10px;
+    box-sizing: border-box;
+  }
+  .sys-list li + li::before {
+    content: none;
+  }
+  .sys-list::before,
+  .sys-list::after {
+    content: '';
+    position: absolute;
+    background: currentColor;
+    opacity: 0.22;
+  }
+  .sys-list::before {
+    left: 50%;
+    top: 8%;
+    bottom: 8%;
+    width: 1px;
+  }
+  .sys-list::after {
+    top: 50%;
+    left: 4%;
+    right: 4%;
+    height: 1px;
+  }
+  .tempo-block {
+    margin-top: 32px;
+  }
+  .tempo {
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 17px;
+  }
+  .t-s {
+    white-space: nowrap;
+  }
+  .tempo-plan {
+    font-size: 10.5px;
+  }
+  .clock,
+  .deposit {
+    font-size: 18px;
+    margin-top: 16px;
+    max-width: 19em;
+  }
+  .job-warn {
+    font-size: 20px;
+  }
+  .nowaythrough {
+    font-size: 19px;
+  }
+  .cycle-static {
+    flex-direction: column;
+    align-items: center;
+  }
+  .cycle-static li {
+    width: 260px;
+  }
+  .cycle-static .tile {
+    height: 100px;
+    font-size: 60px;
+  }
+}

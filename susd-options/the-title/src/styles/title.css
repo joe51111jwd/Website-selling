@@ -1,0 +1,92 @@
+/* The title object. Words and hyphens are absolutely placed by titleEngine.ts. */
+.title {
+  position: relative;
+  width: 100%;
+  font-family: var(--font);
+  font-weight: 900;
+  line-height: 1;
+  user-select: none;
+  -webkit-user-select: none;
+  contain: layout style;
+  visibility: hidden;
+}
+.title.is-ready { visibility: visible; }
+.title-ink {
+  position: absolute;
+  inset: 0;
+}
+.tw {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+  line-height: 1;
+  will-change: transform;
+  contain: layout style;
+}
+.tf {
+  display: block;
+  flex: none;
+  line-height: 1;
+  font-variation-settings: "wdth" 112;
+  --edge: var(--ink-edge);
+  text-shadow:
+    calc(var(--lx) * -0.006em) calc(0.006em + var(--ly) * -0.004em) 0 var(--edge),
+    calc(var(--lx) * -0.012em) calc(0.012em + var(--ly) * -0.008em) 0 var(--edge),
+    calc(var(--lx) * -0.018em) calc(0.018em + var(--ly) * -0.012em) 0 var(--edge),
+    calc(var(--lx) * -0.05em) calc(0.06em + var(--ly) * -0.04em) 0.08em rgb(28 26 23 / .16),
+    0 0.01em 0.015em rgb(28 26 23 / .25);
+}
+.title--stack .tf { font-variation-settings: "wdth" 105; }
+.hy {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: .36em;
+  height: .13em;
+  will-change: transform;
+}
+.hyf {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: .02em;
+  background: var(--ink);
+  transform-origin: 50% 100%;
+  box-shadow:
+    calc(var(--lx) * -0.006em) calc(0.006em + var(--ly) * -0.004em) 0 var(--ink-edge),
+    calc(var(--lx) * -0.012em) calc(0.012em + var(--ly) * -0.008em) 0 var(--ink-edge),
+    calc(var(--lx) * -0.018em) calc(0.018em + var(--ly) * -0.012em) 0 var(--ink-edge),
+    calc(var(--lx) * -0.05em) calc(0.06em + var(--ly) * -0.04em) 0.08em rgb(28 26 23 / .16),
+    0 0.01em 0.015em rgb(28 26 23 / .25);
+}
+.job {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  font-size: 26px;
+  font-weight: 500;
+  font-variation-settings: "wdth" 100;
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  padding-bottom: 12px;
+}
+.job .ul {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  transform-origin: 0 0;
+  transform: scaleX(0);
+  border-radius: 1px;
+}
+.job-up .ul { background: var(--up); }
+.job-side .ul { background: var(--side); }
+.job-down .ul { background: var(--down); }
+.title--stack .job { font-size: 17px; padding-bottom: 8px; }
+.title--stack .job .ul { height: 2px; }

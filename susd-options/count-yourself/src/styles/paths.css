@@ -1,0 +1,605 @@
+/* ---------- 04 · Two paths ---------- */
+.paths {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(104 * var(--u)) var(--gut) max(72px, calc(80 * var(--u)));
+  /* Links to #paths land on the section mark, not on the breathing room above it, so the heading and
+     both cards are in view together. */
+  scroll-margin-top: calc(-80 * var(--u));
+}
+/* A section mark: the ending is its own screen. */
+.paths-mark {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: calc(20 * var(--u));
+  font: 600 11px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.paths-mark::before,
+.paths-mark::after {
+  content: '';
+  width: 40px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+}
+.paths-h {
+  max-width: 21em;
+  margin-bottom: calc(36 * var(--u));
+  text-wrap: balance;
+  font: 900 calc(52 * var(--u)) / 1.08 var(--serif);
+  font-variation-settings: 'opsz' 144;
+  letter-spacing: -0.01em;
+  word-spacing: 0.08em;
+  text-align: center;
+}
+.paths-h:focus {
+  outline: none;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 520px));
+  gap: 48px;
+  align-items: stretch;
+}
+.card {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 26px 40px 22px;
+  border-radius: 4px;
+  color: var(--ink);
+  background-color: #eee7db;
+  box-shadow: 0 2px 2px rgb(0 0 0 / 0.18), 0 24px 48px rgb(0 0 0 / 0.28);
+  --fg: var(--ink);
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--grain);
+  background-size: 192px 192px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.card > * {
+  position: relative;
+}
+.kick {
+  font: 600 11px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+/* The file */
+.file {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+}
+.file-ico {
+  width: 26px;
+  height: 31px;
+  flex: none;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.file-name {
+  font: 600 14px/1.2 var(--mono);
+  letter-spacing: 0.02em;
+}
+.fm-part {
+  display: inline-block;
+}
+.file-meta .dot {
+  margin: 0 0.5em;
+}
+.file-meta {
+  margin-top: 3px;
+  font: 500 12px/1.2 var(--mono);
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+/* 35,445 words */
+.count {
+  margin-top: 4px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 14px;
+}
+.odo {
+  --fh: 72px;
+  display: flex;
+  height: 76px;
+  overflow: hidden;
+  contain: layout paint;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 10%, #000 90%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 10%, #000 90%, transparent 100%);
+}
+.odo-slot {
+  display: flex;
+  height: 100%;
+}
+.odo-wheel {
+  width: 41px;
+  perspective: 500px;
+}
+.odo .face {
+  font: 900 64px/1 var(--serif);
+  font-variation-settings: 'opsz' 60;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--ink);
+  padding-top: 4px;
+  box-sizing: border-box;
+}
+.odo-comma {
+  align-self: center;
+  height: var(--fh);
+  width: 0.24em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 900 64px/1 var(--serif);
+  font-variation-settings: 'opsz' 60;
+  padding-top: 4px;
+  box-sizing: border-box;
+  /* Lift the comma's tail clear of the cylinder shading at the bottom of the strip. */
+  transform: translateY(-5px);
+}
+.count-label {
+  padding-bottom: 12px;
+  font: italic 400 22px/1 var(--serif);
+  font-variation-settings: 'opsz' 24;
+}
+
+.ref {
+  margin-top: 4px;
+  font: 400 22px/1.3 var(--serif);
+  font-variation-settings: 'opsz' 30;
+}
+
+/* The first question, pencilled with the visitor's number */
+.ask {
+  align-self: stretch;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(28 26 23 / 0.16);
+}
+.ask-row {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 30px;
+}
+.ask-label {
+  font: 600 12px/1.2 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.ask-q {
+  font: italic 400 21px/1.25 var(--serif);
+  font-variation-settings: 'opsz' 30;
+  text-wrap: balance;
+}
+.circled {
+  position: relative;
+  flex: none;
+  width: 56px;
+  height: 44px;
+  margin: 4px 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid rgb(28 26 23 / 0.55);
+  border-radius: 3px;
+  background: none;
+  color: inherit;
+}
+/* Until the visitor sets a number: a "?" that takes them back to the dial. */
+.circled.is-ask {
+  cursor: pointer;
+}
+.circled.is-ask:hover {
+  border-color: var(--ink);
+}
+.circled.is-ask:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+.circled-n {
+  font: 900 28px/1 var(--serif);
+  font-variation-settings: 'opsz' 72;
+  font-variant-numeric: lining-nums;
+  padding-top: 2px;
+}
+.pencil {
+  position: absolute;
+  left: -24px;
+  top: -17px;
+  width: calc(100% + 48px);
+  height: calc(100% + 34px);
+  overflow: visible;
+  pointer-events: none;
+}
+.pencil path {
+  fill: none;
+  stroke: var(--down);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.circled.on .pencil path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.5s var(--ease-out) 0.35s;
+}
+
+/* The opt-in: the email field and the key */
+.optin {
+  align-self: stretch;
+  margin-top: 12px;
+}
+.email {
+  display: block;
+  width: 100%;
+  height: 54px;
+  box-sizing: border-box;
+  padding: 0 18px;
+  border: 1.5px solid rgb(28 26 23 / 0.32);
+  border-radius: 10px;
+  background: #faf6ef;
+  color: var(--ink);
+  /* 16 px: iOS Safari zooms the page when a smaller field gets focus. */
+  font: 500 16px/1 var(--mono);
+  letter-spacing: 0.01em;
+  transition: border-color 0.2s linear;
+}
+.email::placeholder {
+  color: rgb(28 26 23 / 0.45);
+}
+.email:hover {
+  border-color: rgb(28 26 23 / 0.55);
+}
+/* One ring at a time: focus draws a 2 px ring on the field's own edge (ink, or red when the address
+   is wrong), never a second ring around a red border. */
+.email:focus-visible {
+  border-color: var(--ink);
+  outline: 2px solid var(--ink);
+  outline-offset: -1.5px;
+}
+.email[aria-invalid='true'] {
+  border-color: #b2322a;
+}
+.email[aria-invalid='true']:focus-visible {
+  outline-color: #b2322a;
+}
+.email.shake {
+  animation: shake 0.15s linear 2;
+}
+@keyframes shake {
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+.key {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 60px;
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--cream);
+  cursor: pointer;
+  overflow: hidden;
+  contain: layout;
+  box-shadow: 0 4px 0 #000, 0 12px 22px rgb(0 0 0 / 0.26);
+  transition: transform 90ms var(--ease-out), box-shadow 90ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.key::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0.45) 0%, transparent 30%, transparent 70%, rgb(0 0 0 / 0.45) 100%);
+}
+@media (hover: hover) {
+  .key:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 0 #000, 0 14px 24px rgb(0 0 0 / 0.28);
+  }
+}
+.key:active,
+.key.pressed {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 #000, 0 4px 8px rgb(0 0 0 / 0.24);
+}
+.key:disabled {
+  cursor: default;
+}
+.key:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+.key-drum {
+  position: absolute;
+  inset: 0;
+  perspective: 500px;
+}
+.key-drum .face {
+  --fh: 60px;
+  background: var(--ink);
+  color: var(--cream);
+  font: 600 18px/1 var(--mono);
+  letter-spacing: 0.16em;
+  padding-left: 0.16em;
+}
+/* A reserved row under the key, so an error never shifts the card. */
+.form-msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 22px;
+  margin: 4px 0 0;
+  font: 600 12px/1.4 var(--mono);
+  letter-spacing: 0.04em;
+  color: #9c2a23;
+}
+.form-msg:not(:empty)::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--down);
+}
+/* What you do with it, before you ask for it. */
+.howto {
+  margin-top: 12px;
+  max-width: 25em;
+  font: 400 17px/1.4 var(--serif);
+  font-variation-settings: 'opsz' 18;
+  text-wrap: balance;
+}
+.appendix {
+  margin-top: auto;
+  padding-top: 6px;
+  align-self: center;
+  font: 600 12px/1.4 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 1px;
+}
+.appendix:hover {
+  text-decoration-thickness: 2px;
+}
+/* "· Free, online": what the Appendix is, without the underline. */
+.appx-note {
+  display: inline-block;
+  font-weight: 500;
+  opacity: 0.8;
+  text-decoration: none;
+}
+.appx-note .dot {
+  margin: 0 0.55em;
+}
+
+/* The book: a typographic jacket on the card */
+.card-book {
+  align-items: center;
+  text-align: center;
+}
+
+.cover {
+  position: relative;
+  margin-top: 26px;
+  width: 268px;
+  height: 336px;
+  box-sizing: border-box;
+  padding: 26px 24px 22px 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  background: #fbf8f2;
+  border-radius: 2px 5px 5px 2px;
+  box-shadow: inset 6px 0 0 rgb(28 26 23 / 0.06), inset 7px 0 0 rgb(28 26 23 / 0.08), 0 0 0 1px rgb(28 26 23 / 0.12), 0 1px 1px rgb(0 0 0 / 0.14), 0 12px 20px rgb(0 0 0 / 0.18), 0 30px 44px -12px rgb(0 0 0 / 0.26);
+}
+.cover-scaling {
+  font: 900 22px/1 var(--serif);
+  font-variation-settings: 'opsz' 72;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.cover-w {
+  font: 900 66px/0.9 var(--serif);
+  font-variation-settings: 'opsz' 144;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+.cw-up {
+  margin-top: 22px;
+  color: var(--up);
+}
+.cw-side {
+  color: var(--side-ink);
+}
+/* The title's hyphens: short bars after UP and SIDE, in their word's ink, at the stems' weight, centred
+   on the capitals' middle. */
+.cw-hy {
+  display: inline-block;
+  width: 0.32em;
+  height: 0.09em;
+  margin-left: 0.05em;
+  vertical-align: 0.3em;
+  background: currentColor;
+}
+.cw-down {
+  color: var(--down);
+}
+.cover-author {
+  margin-top: auto;
+  font: 600 12px/1 var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.book-line {
+  margin-top: 22px;
+  max-width: 17em;
+  font: italic 400 24px/1.26 var(--serif);
+  font-variation-settings: 'opsz' 36;
+}
+.pill-ink {
+  margin-top: auto;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+.card-book .pill-ink {
+  margin-top: 20px;
+}
+/* The jacket, its line and the status sit centred in the card's height. */
+.card-book .kick {
+  margin-bottom: 18px;
+}
+.card-book .cover {
+  margin-top: auto;
+}
+.card-book > :last-child {
+  margin-bottom: auto;
+}
+/* A status, not a live button: a dashed edge and quieter ink (still 4.5:1 or more on the card), no lift. */
+.pill.is-off {
+  --h: 44px;
+  cursor: default;
+  box-shadow: none;
+  color: rgb(28 26 23 / 0.76);
+  border: 1.5px dashed rgb(28 26 23 / 0.5);
+}
+.pill.is-off:hover {
+  transform: none;
+}
+/* The book's live next step today: a solid ink button. */
+.pill-ink-solid {
+  background: var(--ink);
+  color: var(--cream);
+}
+.card-book .meanwhile {
+  --h: 48px;
+  margin-top: 10px;
+  padding: 0 22px;
+}
+
+/* ---------- Tablet ---------- */
+@media (max-width: 1100px) {
+  .cards {
+    grid-template-columns: minmax(0, 560px);
+  }
+}
+
+/* ---------- Phone ---------- */
+@media (max-width: 700px) {
+  .paths {
+    padding: 64px 16px 72px;
+    scroll-margin-top: -40px;
+  }
+  .paths-mark {
+    margin-bottom: 16px;
+  }
+  .paths-h {
+    font-size: 30px;
+    margin-bottom: 26px;
+    max-width: 12em;
+  }
+  .ask-row {
+    flex-wrap: wrap;
+  }
+  /* The file's date and its assistants on two lines, no dot. */
+  .fm-part {
+    display: block;
+  }
+  .file-meta .dot {
+    display: none;
+  }
+  .howto {
+    font-size: 16px;
+  }
+  .cards {
+    width: 100%;
+    gap: 24px;
+  }
+  .card {
+    min-height: 0;
+    padding: 26px 20px 24px;
+  }
+  .odo {
+    --fh: 62px;
+    height: 66px;
+  }
+  .odo-wheel {
+    width: 35px;
+  }
+  .odo .face,
+  .odo-comma {
+    font-size: 55px;
+  }
+
+  .count-label {
+    font-size: 19px;
+    padding-bottom: 10px;
+  }
+  .ref {
+    font-size: 21px;
+  }
+  .ask-q {
+    font-size: 19px;
+  }
+  .circled {
+    margin-right: 10px;
+  }
+  .cover {
+    width: min(260px, 100%);
+    height: 326px;
+  }
+  .cover-w {
+    font-size: 64px;
+  }
+  .card-book .meanwhile {
+    font-size: 10.5px;
+    padding: 0 14px;
+    letter-spacing: 0.06em;
+  }
+  .book-line {
+    font-size: 19px;
+    max-width: none;
+  }
+}

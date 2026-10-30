@@ -1,0 +1,31 @@
+/* Self-hosted, subset from @fontsource-variable/fraunces (the full-axes files, instanced at WONK 0 and
+   SOFT 0, keeping opsz + wght; roman and italic) and @fontsource/ibm-plex-mono (500/600; 400 is never
+   used, so it is not shipped). See scripts/subset-fonts.sh. No third-party requests. */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../fonts/fraunces-opsz-roman.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Fraunces';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../fonts/fraunces-opsz-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Plex Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../fonts/plex-mono-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Plex Mono';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/plex-mono-600.woff2') format('woff2');
+}

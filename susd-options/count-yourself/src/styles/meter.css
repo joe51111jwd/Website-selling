@@ -1,0 +1,314 @@
+/* ---------- 02 · Past twelve, the meter ---------- */
+.meter-sec {
+  position: relative;
+  height: 200vh;
+  background: var(--meter-bg);
+  color: var(--cream);
+  --fg: var(--cream);
+}
+.meter-sec::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--grain);
+  background-size: 192px 192px;
+  opacity: 0.8;
+  pointer-events: none;
+}
+.meter-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: calc(40 * var(--u)) var(--gut);
+}
+.meter-line {
+  text-wrap: balance;
+  font: 900 calc(72 * var(--u)) / 1.02 var(--serif);
+  font-variation-settings: 'opsz' 144;
+  letter-spacing: -0.012em;
+  word-spacing: 0.1em;
+  text-align: center;
+}
+.meter-line:focus {
+  outline: none;
+}
+.meter-line .block {
+  display: block;
+}
+.meter {
+  position: relative;
+  width: min(calc(1000 * var(--u)), 100%);
+  margin-top: calc(56 * var(--u));
+}
+.meter svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.bar-rise {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.bar .hit {
+  fill: transparent;
+  cursor: pointer;
+}
+/* Hover comes from real pointer movement only (MeterSection), never from a page scrolling under a resting pointer. */
+.bar.is-hover .bar-rise {
+  filter: brightness(1.12);
+}
+/* Beat two ("Every addition makes it worse."): each bar dims except the part its newest person added. */
+.bar-body {
+  transition: opacity 0.45s linear;
+  transition-delay: calc(var(--k, 0) * 14ms);
+}
+.worse .bar-body {
+  opacity: 0.14;
+}
+.rising .mlabel.hov {
+  opacity: 0.7;
+  transition: none;
+}
+.you-ring,
+.next-ring {
+  fill: none;
+  stroke: var(--cream);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+  transition: opacity 0.3s linear;
+}
+.next-ring {
+  stroke-dasharray: 3 3;
+}
+.rising .you-ring {
+  opacity: 1;
+  transition-delay: 0.5s;
+}
+.rising .next-ring.on {
+  opacity: 1;
+  transition-delay: 0.3s;
+}
+.meter .ceiling {
+  stroke: var(--cream);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.9;
+}
+.meter .base {
+  stroke: rgb(241 234 223 / 0.35);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.mlabels {
+  position: absolute;
+  inset: 0 0 auto 0;
+  aspect-ratio: 1000 / 428;
+  pointer-events: none;
+}
+.mlabel {
+  position: absolute;
+  font: 500 12px/1.2 var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.4s linear 0.2s;
+}
+.rising .mlabel {
+  opacity: 0.85;
+  transition-delay: 0.75s;
+}
+.mlabel.a-c {
+  transform: translateX(-50%);
+}
+.rising .mlabel.you {
+  opacity: 1;
+  font-weight: 600;
+}
+.rising .mlabel.you.next,
+.rising .mlabel.swapin {
+  animation: label-in 0.35s var(--ease-out) both;
+}
+.mlabel.ceil {
+  font-weight: 600;
+}
+/* A leader from a lifted label down to its bar. */
+.mleader {
+  position: absolute;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--cream);
+  opacity: 0;
+  transition: opacity 0.4s linear;
+}
+.rising .mleader {
+  opacity: 0.7;
+  transition-delay: 0.75s;
+}
+@keyframes label-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+
+/* Axis titles: pathways up the side, people along the bottom. */
+.maxis-y {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 14px);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  white-space: nowrap;
+}
+.arrow-up {
+  position: relative;
+  width: 1px;
+  height: 11px;
+  background: currentColor;
+}
+.arrow-up::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: -1px;
+  border: 3.5px solid transparent;
+  border-top: 0;
+  border-bottom: 5px solid currentColor;
+}
+.maxis {
+  position: relative;
+  height: 14px;
+  margin-top: 10px;
+}
+.maxis span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font: 500 11px/1 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  white-space: nowrap;
+}
+.maxis .maxis-end {
+  transform: none;
+}
+.maxis .maxis-ceil {
+  font-weight: 600;
+  opacity: 0.9;
+}
+/* The Graveyard named on the chart: a bracket under bars 15–39, and Michael's line for it. */
+.mspan {
+  position: relative;
+  margin-top: 10px;
+  height: 22px;
+  border-top: 1px solid #c4705f;
+  text-align: center;
+}
+.mspan::before,
+.mspan::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  width: 1px;
+  height: 6px;
+  background: #c4705f;
+}
+.mspan::before {
+  left: 0;
+}
+.mspan::after {
+  right: 0;
+}
+.mspan span {
+  display: inline-block;
+  margin-top: 8px;
+  font: 600 11px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #da8c7d;
+  white-space: nowrap;
+}
+.mspan-line {
+  margin-top: 8px;
+  font: italic 400 max(15px, calc(17 * var(--u))) / 1.35 var(--serif);
+  font-variation-settings: 'opsz' 24;
+  text-align: center;
+  color: #e8b3a8;
+}
+/* The book's thesis closes the section: set as a line, not a caption. */
+.meter-cap {
+  margin-top: calc(48 * var(--u));
+  max-width: 31em;
+  font: 400 calc(32 * var(--u)) / 1.2 var(--serif);
+  font-variation-settings: 'opsz' 72;
+  letter-spacing: -0.005em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.meter-sec.is-static {
+  height: auto;
+}
+.meter-sec.is-static .meter-stage {
+  position: relative;
+  min-height: 100svh;
+  height: auto;
+}
+
+@media (max-width: 700px) {
+  .meter-sec {
+    height: auto;
+  }
+  .meter-stage {
+    position: relative;
+    min-height: 0;
+    height: auto;
+    justify-content: flex-start;
+    padding: 72px 16px 64px;
+  }
+  .meter-sec.is-static .meter-stage {
+    min-height: 0;
+  }
+  .meter-line {
+    font-size: 34px;
+    max-width: 9em;
+  }
+  .meter {
+    width: min(358px, 100%);
+    margin-top: 64px;
+  }
+  .mlabel {
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+  }
+  .maxis span,
+  .maxis-y,
+  .mspan span {
+    font-size: 10px;
+  }
+  .mspan-line {
+    margin-top: 10px;
+    font-size: 15px;
+  }
+  .meter-cap {
+    font-size: 23px;
+    line-height: 1.25;
+    max-width: 13em;
+    margin-top: 48px;
+  }
+}
