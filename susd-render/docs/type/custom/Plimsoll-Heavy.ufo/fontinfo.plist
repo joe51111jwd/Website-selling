@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>ascender</key>
+    <integer>820</integer>
+    <key>capHeight</key>
+    <integer>700</integer>
+    <key>copyright</key>
+    <string>Copyright 2026 the Scaling Up-Side-Down homepage project.</string>
+    <key>descender</key>
+    <integer>-200</integer>
+    <key>familyName</key>
+    <string>Plimsoll</string>
+    <key>openTypeHheaAscender</key>
+    <integer>880</integer>
+    <key>openTypeHheaDescender</key>
+    <integer>-240</integer>
+    <key>openTypeHheaLineGap</key>
+    <integer>0</integer>
+    <key>openTypeNameDescription</key>
+    <string>Caps-only display face with its stress turned on its Side: one rectangular nib, thin when it travels Up, heavy when it travels Side.</string>
+    <key>openTypeNameDesigner</key>
+    <string>SUSD homepage project, drawn in code (fontTools, skia-pathops, ufo2ft)</string>
+    <key>openTypeNameLicense</key>
+    <string>Licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at: https://openfontlicense.org</string>
+    <key>openTypeNameLicenseURL</key>
+    <string>https://openfontlicense.org</string>
+    <key>openTypeNamePreferredFamilyName</key>
+    <string>Plimsoll</string>
+    <key>openTypeNamePreferredSubfamilyName</key>
+    <string>Heavy</string>
+    <key>openTypeOS2Type</key>
+    <array/>
+    <key>openTypeOS2TypoAscender</key>
+    <integer>820</integer>
+    <key>openTypeOS2TypoDescender</key>
+    <integer>-200</integer>
+    <key>openTypeOS2TypoLineGap</key>
+    <integer>200</integer>
+    <key>openTypeOS2WeightClass</key>
+    <integer>800</integer>
+    <key>openTypeOS2WinAscent</key>
+    <integer>880</integer>
+    <key>openTypeOS2WinDescent</key>
+    <integer>240</integer>
+    <key>postscriptFontName</key>
+    <string>Plimsoll-Heavy</string>
+    <key>postscriptUnderlinePosition</key>
+    <integer>-120</integer>
+    <key>postscriptUnderlineThickness</key>
+    <integer>60</integer>
+    <key>styleMapFamilyName</key>
+    <string>Plimsoll Heavy</string>
+    <key>styleMapStyleName</key>
+    <string>regular</string>
+    <key>styleName</key>
+    <string>Heavy</string>
+    <key>unitsPerEm</key>
+    <integer>1000</integer>
+    <key>versionMajor</key>
+    <integer>0</integer>
+    <key>versionMinor</key>
+    <integer>900</integer>
+    <key>xHeight</key>
+    <integer>700</integer>
+  </dict>
+</plist>

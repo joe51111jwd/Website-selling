@@ -3,3 +3,6 @@ out/
 node_modules/
 dist/
 *.blend1
+__pycache__/
+assets/polyhaven/*/
+assets/fonts/dl/
