@@ -3,7 +3,7 @@ import { COPY, UI } from '../copy';
 import { WetText, Words } from '../water/WetText';
 import { engine } from '../engine/engine';
 import { PARAMS } from '../engine/params';
-import { TideController, linesLabel, pathways, peopleLabel, zoneOf, type ZoneKey } from './tide.controller';
+import { TIDE_TRAVEL, TideController, linesLabel, pathways, peopleLabel, zoneOf, type ZoneKey } from './tide.controller';
 
 const H1_BREAKS = [3, 6]; // desktop: three lines, breaking before words 3 and 6
 const H1_PHONE = [2, 3, 4, 6, 7]; // phone: a six-line poster, one or two words a line
@@ -114,17 +114,20 @@ export function TideStage({ primary, n, flood = false, ready = false, stageRef }
           {GAUGE_TICKS.map((t) => (
             <span className={`g-tick g-zone${t === 40 ? ' g-out' : ''}`} data-tick={t} key={t} />
           ))}
-          {GAUGE_ZONES.map((s) => (
-            <span className={`g-name g-zone g-zname${s.z === 'teamOfTeams' ? ' g-out' : ''}`} data-lo={s.lo} data-hi={s.hi} data-z={s.z} key={s.z}>
-              {COPY.zones[s.z].tag}
-            </span>
-          ))}
           {PHONE_TICKS.map((t) => (
             <span className="g-tick g-num" data-tick={t} key={`p${t}`}>
               <span className="g-val">{t === 40 ? '40+' : t}</span>
             </span>
           ))}
         </WetText>
+        {/* Zone names are never split by the surface: each one flips to its wet colour as the water passes its middle. */}
+        <div className="g-names">
+          {GAUGE_ZONES.map((s) => (
+            <span className={`g-name g-zone g-zname${s.z === 'teamOfTeams' ? ' g-out' : ''}`} data-lo={s.lo} data-hi={s.hi} data-z={s.z} data-wet="0" key={s.z}>
+              {COPY.zones[s.z].tag}
+            </span>
+          ))}
+        </div>
         <span className="g-marker" data-marker="">
           <i className="g-tri" />
           <b className="g-mval" data-slot="mval">
@@ -183,7 +186,7 @@ export function Tide() {
   }, []);
 
   return (
-    <section id="tide" className="tide" ref={section} aria-labelledby="thesis">
+    <section id="tide" className="tide" ref={section} aria-labelledby="thesis" style={{ height: `${((TIDE_TRAVEL + 1) * 100).toFixed(1)}vh` }}>
       <TideStage primary n={initialN} flood={initialN >= 39} ready={PARAMS.n !== null} stageRef={stage} />
       <p className="sr-only" aria-live="polite" ref={live} />
     </section>

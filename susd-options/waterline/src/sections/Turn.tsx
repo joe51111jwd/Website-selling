@@ -42,9 +42,9 @@ class TurnController implements Controller {
   measure(scrollY: number) {
     this.box = measureBox(this.section, scrollY);
     this.h = this.line.offsetHeight;
-    this.last = '';
-    this.lastOp = '';
-    this.lastWc = '';
+    this.last = '-';
+    this.lastOp = '-';
+    this.lastWc = '-';
   }
   private e(f: Frame) {
     return easeInOutCubic(range(stickyProgress(this.box, f.scrollY, f.V), A, Z));

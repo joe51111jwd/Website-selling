@@ -64,13 +64,25 @@ function FileStack({ done }: { done: boolean }) {
         </div>
         {/* The file's real first lines (BL 1–8), the way the .md opens. */}
         <div className="file-face" aria-hidden="true">
+          {/* the file's title, then straight to its PURPOSE: what it is and what it does */}
           {P.fileFace.map((l) => (
             <p className="ff-h" key={l}>
               {l}
             </p>
           ))}
           <p className="ff-p">
-            <b>{P.fileLead}</b> {P.fileRest}
+            <b>{P.fileLead}</b>
+          </p>
+          <div className="ff-t">
+            {P.fileRows.map(([a, b]) => (
+              <p className="ff-r" key={a}>
+                <b>{a}</b>
+                <span>{b}</span>
+              </p>
+            ))}
+          </div>
+          <p className="ff-p ff-alone">
+            <b>{P.fileAlone}</b>
           </p>
         </div>
         <div className="file-foot" aria-hidden="true">
@@ -107,6 +119,9 @@ export function Paths({ reduced }: { reduced: boolean }) {
     if (done) document.documentElement.dataset.drained = '1';
   }, [done]);
 
+  const guard = useRef(0);
+  useEffect(() => () => window.clearTimeout(guard.current), []);
+
   const submit = (e: FormEvent) => {
     e.preventDefault();
     const el = input.current!;
@@ -142,8 +157,20 @@ export function Paths({ reduced }: { reduced: boolean }) {
       window.setTimeout(go, 300);
       return;
     }
+    // The drain lands inside the animation loop; a wall-clock guard still navigates if the tab is
+    // hidden or a slow device stalls it.
+    let landed = false;
+    guard.current = window.setTimeout(() => {
+      if (landed) return;
+      landed = true;
+      setDone(true);
+      go();
+    }, wait + 1500);
     window.setTimeout(() => {
       engine.drain(() => {
+        if (landed) return;
+        landed = true;
+        window.clearTimeout(guard.current);
         setDone(true);
         window.setTimeout(go, 180 + 300);
       });
@@ -162,11 +189,14 @@ export function Paths({ reduced }: { reduced: boolean }) {
       <div className="paths-grid">
         <div className="path path-file" role="group" aria-label={P.fileName}>
           <div className="path-obj">
+            <p className="path-label">{UI.theFile}</p>
             <FileStack done={done} />
           </div>
           <div className="path-note">
             <p className="path-kick">{P.worksWith}</p>
-            <p className="upload">{P.upload}</p>
+            <p className="upload">
+              {P.upload} <span className="locate">{P.locate}</span>
+            </p>
           </div>
           <div className="path-cta">
             <form className="optin" noValidate onSubmit={submit} data-bad={msg ? '1' : '0'}>
@@ -202,9 +232,13 @@ export function Paths({ reduced }: { reduced: boolean }) {
 
         <div className="path path-book" role="group" aria-label={P.bookTitle}>
           <div className="path-obj">
+            <p className="path-label">{UI.theBook}</p>
             <BookCover />
           </div>
-          <div className="path-note" />
+          <div className="path-note">
+            <p className="path-kick path-kick-ink">{UI.author}</p>
+            <p className="credential">{P.credential}</p>
+          </div>
           <div className="path-cta">
             {LINKS.preorder ? (
               <a className="btn btn-ink" href={LINKS.preorder}>

@@ -1,13 +1,14 @@
 // The cycle's scroll timeline, in screens of scroll (V). Lap 1 plays slowly enough to read every
-// caption; laps 2 and 3 are quicker because the legend (all three phases) stays on screen.
+// caption; laps 2 and 3 run at about 40% of that (their captions are two or three words), so the
+// cycle reads as a rhythm, not a lecture.
 export type Phase = 'intro' | 'up' | 'side' | 'down' | 'close' | 'oxygen';
 export type Seg = { phase: Phase; lap: number; a: number; b: number };
 
-const INTRO = 0.3;
-const LAP0 = 0.6; // per phase
-const LAPN = 0.35; // per phase, laps 2 and 3
-const CLOSE = 1.0;
-const OXYGEN = 0.6;
+const INTRO = 0.12;
+const LAP0 = 0.42; // per phase
+const LAPN = 0.17; // per phase, laps 2 and 3
+const CLOSE = 0.55;
+const OXYGEN = 0.42;
 
 const raw: Seg[] = [];
 let at = 0;
@@ -25,7 +26,7 @@ for (let k = 0; k < 3; k++) {
 push('close', 2, CLOSE);
 push('oxygen', 2, OXYGEN);
 
-/** Total scroll travel of the sticky stage: 5.8 screens, so #cycle is 680vh. */
+/** Total scroll travel of the sticky stage: 3.37 screens, so #cycle is 437vh. */
 export const CYCLE_TRAVEL = at;
 export const SEGS: Seg[] = raw.map((s) => ({ ...s, a: s.a / at, b: s.b / at }));
 

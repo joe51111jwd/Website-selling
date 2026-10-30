@@ -92,7 +92,7 @@ export class TideController implements Controller {
   h1x = [200, 720, 1240];
   pts: [number, number][] = [];
   private tickY: number[] = [];
-  private names: { y: number; els: HTMLElement[]; near: number }[] = [];
+  private names: { y: number; el: HTMLElement; wet: number }[] = [];
   private rn = -1;
   private sink = -1;
   private ready = false;
@@ -105,9 +105,10 @@ export class TideController implements Controller {
   private lastZone = '';
   private stageTop = 0;
   private flags = '';
+  private tagOk = false; // the surface tag waits until the water has settled, so it never rides through the readout
 
   constructor(private els: TideEls, private mode: Mode) {
-    if (mode.pinned !== null || mode.staticMode) this.ready = true;
+    if (mode.pinned !== null || mode.staticMode) this.ready = this.tagOk = true;
   }
 
   start() {
@@ -153,7 +154,7 @@ export class TideController implements Controller {
       el.style.transform = `translateY(${this.gaugeY(Number(el.dataset.tick), true).toFixed(1)}px)`;
     });
     // The threshold's name sits between the 13 and 14 water levels, never where the water rests.
-    const byZone = new Map<string, { y: number; els: HTMLElement[]; near: number }>();
+    this.names = [];
     for (const el of e.znames) {
       const lo = Number(el.dataset.lo);
       const hi = Number(el.dataset.hi);
@@ -161,11 +162,8 @@ export class TideController implements Controller {
       const prev = lo <= 1 ? upper : hi >= 40 ? upper : this.gaugeY(lo - 1, true);
       const y = el.dataset.z === 'threshold' ? (this.lmap(13) + this.lmap(14)) / 2 : (upper + prev) / 2;
       el.style.transform = `translateY(${y.toFixed(1)}px)`;
-      const z = el.dataset.z!;
-      if (!byZone.has(z)) byZone.set(z, { y, els: [], near: -1 });
-      byZone.get(z)!.els.push(el);
+      this.names.push({ y, el, wet: -1 });
     }
-    this.names = Array.from(byZone.values());
     const red0 = this.gaugeTop();
     const red1 = this.gaugeY(12, true);
     for (const el of e.redSegs) Object.assign(el.style, { top: `${red0.toFixed(1)}px`, height: `${Math.max(0, red1 - red0).toFixed(1)}px` });
@@ -180,6 +178,7 @@ export class TideController implements Controller {
       this.apply(n, n >= 39 ? 1 : 0, 0);
       const level = n >= 39 ? -40 : this.lmap(n);
       if (this.mode.block) this.mode.block.dataset.level = String(level);
+      for (const nm of this.names) nm.el.dataset.wet = level < nm.y ? '1' : '0';
       this.placeMarker(this.gaugeY(n));
       e.complexity.style.transform = `translate3d(-50%, ${(level + 12).toFixed(1)}px, 0)`;
       e.stage.dataset.tagv = n <= 12 ? '1' : '0';
@@ -201,7 +200,7 @@ export class TideController implements Controller {
 
   /** The gauge's top: clear of the rail (and of the two-line kicker on phones). */
   gaugeTop() {
-    return this.W <= 640 ? 0.165 * this.V : Math.max(0.15 * this.V, 140);
+    return this.W <= 640 ? 0.165 * this.V : Math.max(0.15 * this.V, 150);
   }
 
   /** The read-only tide gauge: the real water level up to 14, then the Graveyard compressed to the top. */
@@ -237,11 +236,9 @@ export class TideController implements Controller {
     if (engine.introRunning) {
       const t = f.now - engine.introAt;
       n = 1 + 7 * easeOutCubic(t / 2000);
-      // The intro is ready once the water has arrived and settled (slow devices lag the clock), so the
-      // surface tag never rides through the readout.
-      const lv = engine.model.level;
-      const settled = Math.abs(lv.value - lv.target) < 5 && Math.abs(lv.velocity) < 40;
-      if (!this.ready && ((t >= 2100 && settled) || t >= 4500)) this.ready = true;
+      // The intro is ready once the water has actually arrived (slow devices lag the clock).
+      const arrived = engine.model.level.value <= this.lmap(8) + 40;
+      if (!this.ready && ((t >= 2300 && arrived) || t >= 4500)) this.ready = true;
       if (t >= 1100 && !this.sloshed) {
         this.sloshed = true;
         engine.model.level.velocity -= 150; // the small slosh on arrival
@@ -274,29 +271,33 @@ export class TideController implements Controller {
   update(f: Frame) {
     this.stageTop = stickyTop(this.box, f.scrollY, f.V);
     if (this.stageTop + f.V < -40 && this.rn !== -1) return;
-    const { n, p } = this.state(f);
+    const { n } = this.state(f);
     const pinned = this.mode.pinned !== null;
     const flood = n >= FLOOD_N ? 1 : 0;
     this.apply(n, flood, 0);
     const e = this.els;
     const m = engine.model;
     this.placeMarker(this.gaugeY(n));
-    // Zone names fade where the surface runs through them, so the foam never slices a word.
+    // Zone names are whole words: each turns cream once the water is above its middle.
     if (!f.compact) {
       const sy = m.surfaceY(f.W - 140) - this.stageTop;
       for (const nm of this.names) {
-        const g = Math.abs(sy - nm.y);
-        const op = g >= 12 ? 1 : g <= 5 ? 0 : (g - 5) / 7;
-        if (Math.abs(op - nm.near) > 0.02 || (op !== nm.near && (op === 0 || op === 1))) {
-          nm.near = op;
-          for (const el of nm.els) el.style.opacity = op >= 1 ? '' : op.toFixed(2);
+        const wet = sy < nm.y ? 1 : 0;
+        if (wet !== nm.wet) {
+          nm.wet = wet;
+          nm.el.dataset.wet = String(wet);
         }
       }
     }
     // "complexity" rides the surface in the middle of the screen while the sentence is dry.
     const local = m.surfaceY(f.W / 2) - this.stageTop;
     e.complexity.style.transform = `translate3d(-50%, ${(local + (f.phone ? 9 : 11)).toFixed(1)}px, 0)`;
-    const tagv = this.ready && !flood && m.level.value - this.stageTop > this.B + 6;
+    if (!this.tagOk && this.ready) {
+      const lv = m.level;
+      const t = f.now - engine.introAt;
+      this.tagOk = !engine.introRunning || t >= 4500 || (Math.abs(lv.value - lv.target) < 5 && Math.abs(lv.velocity) < 40);
+    }
+    const tagv = this.tagOk && !flood && m.level.value - this.stageTop > this.B + 6;
     // The readout appears as the water reaches it (never floating on bare paper during the intro).
     const ro = this.ready || m.level.value - this.stageTop < this.roTop + 220;
     const flags = `${tagv ? 1 : 0}${ro ? 1 : 0}`;

@@ -62,11 +62,10 @@ export const COPY = {
     preorder: "Pre-orders open soon", // label
     fileName: "SUSD_Bootloader_V16.md", // label (version per BL 747)
     fileMeta: "V16 · October 2026 · 35,445 words", // label
-    fileFace: ["# THE SUSD BOOTLOADER", "## Scaling Up-Side-Down Operating System — Front Matter", "## PURPOSE"], // BL 1-6 (the file's first lines, shown on its face)
+    fileFace: ["# THE SUSD BOOTLOADER", "## PURPOSE"], // BL 1, BL 6 (the file's title and its first section, shown on its face)
     fileLead: "This document is designed to be read by both humans and AI.", // BL 8 (1st sentence)
     fileRows: [
-      ["The Book", "Creates recognition, installs inversions, earns trust through witness voice"], // BL 12 (table row)
-      ["This Bootloader", "Enables implementation, provides precision, initializes the operating system"], // BL 13 (table row)
+      ["This Bootloader", "Enables implementation, provides precision, initializes the operating system"], // BL 13 (table row: what the file does)
     ],
     fileAlone: "Neither works alone.", // BL 15
     worksWith: "Works with ChatGPT, Claude or any AI", // label

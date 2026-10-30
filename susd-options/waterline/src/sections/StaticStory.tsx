@@ -2,7 +2,10 @@ import { useEffect, useRef } from 'react';
 import { engine, type Controller } from '../engine/engine';
 import { TideController } from './tide.controller';
 import { TideStage, tideEls } from './Tide';
-import { TURN_END, TurnLine } from './Turn';
+import { TurnLine } from './Turn';
+
+// The turn's end state: the line above the water, which is only a strip at the block's foot.
+const TURN_END_STATIC = 0.84;
 import { CycleController, CycleStage, cycleEls } from './Cycle';
 import { lapEndP } from './cycle.timeline';
 import { UI } from '../copy';
@@ -37,7 +40,7 @@ function TideBlock({ n, primary, name }: { n: number; primary: boolean; name: st
 
 function TurnBlock() {
   const block = useRef<HTMLElement>(null);
-  useStatic(() => fracLevel(block.current!, TURN_END));
+  useStatic(() => fracLevel(block.current!, TURN_END_STATIC));
   return (
     <section className="block" data-block="turn" ref={block} aria-labelledby="turn-title">
       <div className="block-water" aria-hidden="true" />

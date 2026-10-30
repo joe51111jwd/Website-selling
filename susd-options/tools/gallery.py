@@ -23,6 +23,13 @@ INFO = {
 }
 
 
+# Options whose review rounds were cut short (shown with a note on the index page).
+UNFINISHED = {
+    'waterline': 'Unfinished: stopped after round 2 of 3 reviews, so the last fixes are not in yet.',
+    'corrected-edition': 'Unfinished: stopped after round 1 of 3 reviews, so the last fixes are not in yet.',
+}
+
+
 def shot(slug, name, width):
     p = W / slug / '.shots' / 'final' / f'{name}-01-first-3s.png'
     im = Image.open(p).convert('RGB')
@@ -45,7 +52,7 @@ def main(slugs):
     <header>
       <span class="n">0{i}</span>
       <h2>{html.escape(name)}</h2>
-      <p>{html.escape(idea)}</p>
+      <p>{html.escape(idea)}</p>{f'<p class="note">{html.escape(UNFINISHED[slug])}</p>' if slug in UNFINISHED else ''}
       <a class="go" href="{slug}.html">Open {html.escape(name)} &rarr;</a>
     </header>
     <a class="shots" href="{slug}.html" aria-label="Open {html.escape(name)}">
@@ -76,6 +83,7 @@ body {{ font:17px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial
 .n {{ font:600 13px/1 ui-monospace, Menlo, monospace; letter-spacing:.14em; color:var(--mute); }}
 .opt h2 {{ font:700 32px/1.1 Georgia, "Iowan Old Style", serif; margin:10px 0 12px; }}
 .opt p {{ margin:0 0 22px; color:var(--mute); }}
+.note {{ font-size:14px; color:var(--down); }}
 .go {{ display:inline-block; background:var(--ink); color:var(--paper); text-decoration:none; font-weight:600; padding:13px 22px; border-radius:999px; }}
 .go:hover, .go:focus-visible {{ background:var(--down); color:#fff; }}
 .shots {{ display:grid; grid-template-columns:1fr .289fr; gap:18px; align-items:start; }}

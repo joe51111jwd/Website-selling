@@ -1,0 +1,7 @@
+{
+  "name": "susd-options-preview",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs"
+  }
+}

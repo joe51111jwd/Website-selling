@@ -5,12 +5,15 @@ import { engine, type Controller, type Frame } from '../engine/engine';
 import { Tween } from '../motion/tween';
 import { easeInOutCubic, lerp, range, smoothstep } from '../motion/easing';
 import { measureBox, stickyProgress, stickyTop, type SectionBox } from '../hooks/useScrollProgress';
-import { OXYGEN_P, seg, segAt, type Seg } from './cycle.timeline';
+import { CYCLE_TRAVEL, OXYGEN_P, seg, segAt, type Seg } from './cycle.timeline';
 import { TURN_END } from './Turn';
 
 const STAND = COPY.cycle.standing.split(' '); // Up. Side. Down. Repeat.
 const PHASES = ['up', 'side', 'down'] as const;
 const L = COPY.cycle.labels;
+// The caption under the legend, per lap and phase. Lap 3's Side and Down share one line.
+const SUB_KEYS = COPY.cycle.subs.map((row, lap) => row.map((t, k) => (k > 0 && t === row[k - 1] ? `${lap}-${k - 1}` : `${lap}-${k}`)));
+const CLOSE_SPLIT = COPY.cycle.close.indexOf(' because ');
 
 /** "Up for growth." with its first word in the phase's ink. */
 function Phase({ text, k }: { text: string; k: number }) {
@@ -34,10 +37,11 @@ export function CycleStage({ stageRef, fixed }: { stageRef?: RefObject<HTMLDivEl
       data-labels={fixed ? '1' : '0'}
       data-static={fixed}
     >
+      <div className="cy-scene" data-scene="">
       <div className="cy-bands" aria-hidden="true">
         {[0, 1, 2].map((k) => (
           <div className="band" data-k={k} key={k}>
-            <span className="lab band-sys">{L.band}</span>
+            <span className="lab band-sys">{COPY.cycle.bandLabels[k]}</span>
           </div>
         ))}
       </div>
@@ -65,6 +69,8 @@ export function CycleStage({ stageRef, fixed }: { stageRef?: RefObject<HTMLDivEl
           <i className="ul" data-k={k} key={k} aria-hidden="true" />
         ))}
       </div>
+      <p className="breathe">{COPY.cycle.breathe}</p>
+      </div>
 
       <div className="dim" data-dim="" aria-hidden="true">
         <i className="dim-line" />
@@ -75,8 +81,6 @@ export function CycleStage({ stageRef, fixed }: { stageRef?: RefObject<HTMLDivEl
       <span className="lab lab-complexity" data-cx="" aria-hidden="true">
         {L.water}
       </span>
-      <p className="breathe">{COPY.cycle.breathe}</p>
-
       {/* The legend lives in the water: all three phases always on screen, the active one lit. */}
       <div className="cy-legend">
         <p className="cy-lap" data-lap-label="">
@@ -93,14 +97,20 @@ export function CycleStage({ stageRef, fixed }: { stageRef?: RefObject<HTMLDivEl
           ))}
         </p>
         <div className="cy-subs">
-          <p className="cy-sub" data-c="side">
-            {COPY.cycle.sideOnce}
-          </p>
-          <p className="cy-sub" data-c="down">
-            {COPY.cycle.downOnce}
-          </p>
+          {COPY.cycle.subs.map((row, lap) =>
+            row.map((t, k) =>
+              SUB_KEYS[lap][k] === `${lap}-${k}` ? (
+                <p className="cy-sub" data-key={`${lap}-${k}`} data-c={PHASES[k]} key={`${lap}-${k}`}>
+                  {t}
+                </p>
+              ) : null,
+            ),
+          )}
         </div>
-        <p className="cy-close">{COPY.cycle.close}</p>
+        <p className="cy-close">
+          <span className="cy-close-a">{COPY.cycle.close.slice(0, CLOSE_SPLIT)}</span>{' '}
+          <span className="cy-close-b">{COPY.cycle.close.slice(CLOSE_SPLIT + 1)}</span>
+        </p>
       </div>
     </div>
   );
@@ -125,6 +135,8 @@ type Els = {
   cx: HTMLElement;
   lapLabel: HTMLElement;
   breathe: HTMLElement;
+  scene: HTMLElement;
+  subs: Map<string, HTMLElement>;
 };
 
 export function cycleEls(section: HTMLElement, stage: HTMLElement): Els {
@@ -149,6 +161,8 @@ export function cycleEls(section: HTMLElement, stage: HTMLElement): Els {
     cx: q('[data-cx]'),
     lapLabel: q('[data-lap-label]'),
     breathe: q('.breathe'),
+    scene: q('[data-scene]'),
+    subs: new Map(Array.from(stage.querySelectorAll<HTMLElement>('.cy-sub')).map((el) => [el.dataset.key!, el])),
   };
 }
 
@@ -180,10 +194,19 @@ export class CycleController implements Controller {
   private ulSig = '';
   private stageTop = 0;
   private lapK = -1;
+  private subOn: HTMLElement | null = null;
+  private oxDelta = 0; // Oxygen: the group drops so its optical centre sits at 0.46V
+  private oxTw = new Tween(0, 650, easeInOutCubic);
+  private sceneY = '';
+  private enter = '';
 
   constructor(private e: Els, private fixedP: number | null = null, private block: HTMLElement | null = null) {}
 
   start() {
+    return this.box.top;
+  }
+  // The cycle overlaps the turn by a screen: it owns the water (and shows) once its stage sticks.
+  owns() {
     return this.box.top;
   }
 
@@ -232,7 +255,18 @@ export class CycleController implements Controller {
       Object.assign(b.style, { top: `${(bottom - h).toFixed(1)}px`, height: `${h.toFixed(1)}px`, left: `${this.deckL.toFixed(1)}px`, width: `${deckW.toFixed(1)}px` });
       bottom -= h;
     });
-    e.breathe.style.top = `${(this.deck0 + (phone ? 30 : 46)).toFixed(1)}px`;
+    const breatheTop = this.deck0 + (phone ? 30 : 46);
+    e.breathe.style.top = `${breatheTop.toFixed(1)}px`;
+    // Oxygen's group: the equation (lifted by all three strata) down to the breathe line.
+    const oxFs = parseFloat(e.oxRoot.style.fontSize || getComputedStyle(e.oxRoot).fontSize);
+    const oxLines = Math.max(1, Math.round(e.oxRoot.offsetHeight / (oxFs * 0.98)));
+    const lifted = this.heights.reduce((a, b) => a + b, 0);
+    const groupTop = this.y0 - lifted - (oxLines - 1) * oxFs * 0.98 - 0.72 * oxFs;
+    const groupBottom = breatheTop + e.breathe.offsetHeight;
+    this.oxDelta = Math.max(0, 0.46 * V - (groupTop + groupBottom) / 2);
+    // sentinels, so the first frame after a re-measure always writes
+    this.sceneY = '-';
+    this.enter = '-';
     e.stage.style.setProperty('--deckL', `${this.deckL.toFixed(1)}px`);
     e.stage.style.setProperty('--deckR', `${this.deckR.toFixed(1)}px`);
     this.sig = '';
@@ -266,6 +300,14 @@ export class CycleController implements Controller {
 
   update(f: Frame) {
     this.stageTop = stickyTop(this.box, f.scrollY, f.V);
+    // Hidden while it slides in under the turn; it fades in, in place, as the turn line fades out.
+    const enter = this.stageTop > 0.5 ? 0 : Math.min(1, (f.scrollY - this.box.top) / (0.07 * f.V));
+    const es = enter >= 1 ? '' : enter.toFixed(3);
+    if (es !== this.enter) {
+      this.enter = es;
+      this.e.stage.style.opacity = es;
+      this.e.stage.style.visibility = enter <= 0 ? 'hidden' : '';
+    }
     if (this.stageTop > f.V + 40 || this.stageTop + f.V < -40) return;
     this.apply(stickyProgress(this.box, f.scrollY, f.V), f, f.jump);
   }
@@ -298,6 +340,23 @@ export class CycleController implements Controller {
         this.lapK = lap;
         e.lapLabel.textContent = COPY.cycle.lapLabels[lap];
       }
+      // this lap's line for the playing phase
+      const k = phase === 'up' ? 0 : phase === 'side' ? 1 : phase === 'down' ? 2 : -1;
+      const on = k >= 0 ? e.subs.get(SUB_KEYS[lap][k]) ?? null : null;
+      if (on !== this.subOn) {
+        if (this.subOn) this.subOn.dataset.on = '0';
+        if (on) on.dataset.on = '1';
+        this.subOn = on;
+      }
+    }
+    // Oxygen: the whole group settles to the optical centre (the water has drained away).
+    this.oxTw.set(phase === 'oxygen' ? 1 : 0, now, instant);
+    const oy = this.oxTw.update(now) * this.oxDelta;
+    if (this.oxTw.busy) engine.hold(80);
+    const sy = oy > 0.05 ? `translate3d(0, ${oy.toFixed(1)}px, 0)` : '';
+    if (sy !== this.sceneY) {
+      this.sceneY = sy;
+      e.scene.style.transform = sy;
     }
     // The active phase word is underlined as its phase plays.
     const ulK = phase === 'up' ? 0 : phase === 'side' ? 1 : phase === 'down' ? 2 : -1;
@@ -319,19 +378,19 @@ export class CycleController implements Controller {
     // complexity rides the surface; margin measures the air between the surface and the deck.
     const m = engine.model;
     const phone = f.W <= 640;
-    const cxX = phone ? f.W - 16 : this.deckR + 14;
+    const narrow = f.W < 1100; // tablets take the phone placement for the labels
+    const cxX = narrow ? f.W - 16 : this.deckR + 14;
     const sY = (this.fixedP !== null ? this.levelAt(p) : m.surfaceY(cxX) - this.stageTop) + 10;
     e.cx.style.transform = `translate3d(0, ${sY.toFixed(1)}px, 0)`;
     const dx = phone ? 12 : this.deckL - 26;
-    const deckY = this.deck0 - lift;
+    // margin is the clear air only: from the lowest stratum's bottom rule down to the surface
+    const airTop = lift > 0.5 ? this.deck0 + 2 : this.deck0;
     const surf = this.fixedP !== null ? this.levelAt(p) : m.surfaceY(dx) - this.stageTop;
-    const h = Math.max(0, surf - deckY);
-    e.dim.style.transform = `translate3d(${dx.toFixed(1)}px, ${deckY.toFixed(1)}px, 0)`;
+    const h = Math.max(0, surf - airTop);
+    e.dim.style.transform = `translate3d(${dx.toFixed(1)}px, ${airTop.toFixed(1)}px, 0)`;
     e.dimLine.style.transform = `scaleY(${h.toFixed(1)})`;
     e.dimB.style.transform = `translateY(${h.toFixed(1)}px)`;
-    // Phones: the label sits level in the air under the strata; desktop: beside the line's middle.
-    const labY = phone ? (this.deck0 + 2 + surf) / 2 - deckY : h / 2;
-    e.dimLab.style.transform = `translateY(${labY.toFixed(1)}px)`;
+    e.dimLab.style.transform = `translateY(${(h / 2).toFixed(1)}px)`;
   }
 }
 
@@ -341,7 +400,7 @@ export function Cycle() {
   const stage = useRef<HTMLDivElement>(null);
   useEffect(() => engine.addController(new CycleController(cycleEls(section.current!, stage.current!))), []);
   return (
-    <section id="cycle" className="cycle" ref={section} aria-labelledby="cycle-title">
+    <section id="cycle" className="cycle" ref={section} aria-labelledby="cycle-title" style={{ height: `${((CYCLE_TRAVEL + 1) * 100).toFixed(1)}vh` }}>
       <CycleStage stageRef={stage} />
     </section>
   );

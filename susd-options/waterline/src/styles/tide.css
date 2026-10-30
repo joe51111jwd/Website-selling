@@ -1,5 +1,5 @@
 /* ---------- 01–02 · TIDE ---------- */
-.tide { position: relative; height: 462vh; }
+.tide { position: relative; height: 462vh; } /* set inline from TIDE_TRAVEL */
 
 .tide-head {
   position: absolute; left: 0; right: 0; top: 0;
@@ -110,13 +110,13 @@
   opacity: 0; transition: opacity 0.6s ease;
 }
 .tide-stage[data-ready='1'] .cue { opacity: calc(var(--fade, 1) * 1); }
-.cue-q { display: none; font: 600 15px/1.2 var(--f-display); font-stretch: 92%; letter-spacing: 0.005em; text-transform: none; color: var(--cream); margin-bottom: 4px; }
+.cue-q { display: none; white-space: nowrap; font: 600 15px/1.2 var(--f-display); font-stretch: 92%; letter-spacing: 0.005em; text-transform: none; color: var(--cream); margin-bottom: 4px; }
 .tide-stage[data-zone='threshold'] .cue, .tide-stage[data-zone='graveyard'] .cue { opacity: 0; }
 .chev { width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); animation: bob 1.8s ease-in-out infinite; }
 @keyframes bob { 50% { translate: 0 4px; } }
 
 /* the tide gauge: read-only, decorative (the readout repeats it) */
-.tide-stage { --gtop: max(15vh, 140px); }
+.tide-stage { --gtop: max(15vh, 150px); }
 .gauge { position: absolute; top: 0; bottom: 0; right: 56px; width: 320px; pointer-events: none; opacity: var(--fade, 1); }
 .gauge > .wt-dry, .gauge > .wt-wet { position: relative; height: 100%; }
 .gauge > .wt-dry { color: rgb(22 19 15 / 0.78); }
@@ -131,15 +131,18 @@
 .g-red { position: absolute; right: -0.5px; top: 0; width: 2px; height: 0; }
 .gauge > .wt-dry .g-red { background: var(--down); opacity: 0.85; }
 .gauge > .wt-wet .g-red { background: var(--down-wet); opacity: 0.9; }
-.gauge > .wt-dry .g-zname:is([data-z='threshold'], [data-z='graveyard']) { color: var(--down); }
-.gauge > .wt-wet .g-zname:is([data-z='threshold'], [data-z='graveyard']) { color: var(--down-wet); }
+.g-names { position: absolute; top: 0; bottom: 0; right: 56px; width: 320px; pointer-events: none; opacity: var(--fade, 1); }
+.g-zname { color: rgb(22 19 15 / 0.78); transition: color 0.25s ease, opacity 0.5s ease; }
+.g-zname[data-wet='1'] { color: rgb(241 234 223 / 0.84); }
+.g-zname:is([data-z='threshold'], [data-z='graveyard']) { color: var(--down); }
+.g-zname:is([data-z='threshold'], [data-z='graveyard'])[data-wet='1'] { color: var(--down-wet); }
 .gauge > .wt-dry .g-num:is([data-tick='15'], [data-tick='40']) .g-val { color: var(--down); }
 .gauge > .wt-wet .g-num:is([data-tick='15'], [data-tick='40']) .g-val { color: var(--down-wet); }
 .g-out::after { width: 7px; margin-right: 0; }
 .g-num { display: none; }
 .g-val { font: 500 9px/1 var(--f-mono); letter-spacing: 0.06em; transition: opacity 0.25s; }
 .g-num[data-hide='1'] .g-val { opacity: 0; }
-.g-head { position: absolute; right: -2px; top: calc(var(--gtop) - 40px); font: 650 16.5px/1.2 var(--f-display); font-stretch: 92%; white-space: nowrap; letter-spacing: 0.002em; transition: opacity 0.5s ease; }
+.g-head { position: absolute; right: -2px; top: calc(var(--gtop) - 36px); font: 650 16.5px/1.2 var(--f-display); font-stretch: 92%; white-space: nowrap; letter-spacing: 0.002em; transition: opacity 0.5s ease; }
 .gauge > .wt-dry .g-head { color: var(--ink); }
 .gauge > .wt-wet .g-head { color: var(--cream); }
 .tide-stage[data-flood='1'] :is(.g-zname, .g-head) { opacity: 0.35; }
@@ -153,6 +156,7 @@
 }
 @media (max-width: 1279px) {
   .gauge { right: 22px; width: 60px; }
+  .g-names { display: none; }
   .g-head, .g-zone { display: none; }
   .cue-q { display: block; }
   .g-num { display: flex; }
@@ -170,6 +174,8 @@
 /* portrait tablets: the poster fills the screen */
 @media (min-width: 641px) and (max-aspect-ratio: 4/5) {
   .h1 { font-size: 10vw; }
+  .tide-low { transform: translateY(calc(var(--B, 60vh) + 6vh + 64px)); }
+  .slot { margin-top: 4.5vh; }
   .ro-num { font-size: 7.4vw; }
   .zline { font-size: 3.1vw; }
   .cue-q { font-size: 18px; }
@@ -203,6 +209,10 @@
   .g-mval { right: 26px; font-size: 10.5px; }
   .cue { font-size: 10.5px; }
   .cue-q { font-size: 14.5px; }
+}
+/* short phones: no room for the question between the zone line and the cue */
+@media (max-width: 640px) and (max-height: 720px) {
+  .cue-q { display: none; }
 }
 @media (max-width: 380px) {
   .ro-lab { font-size: 9px; letter-spacing: 0.04em; }

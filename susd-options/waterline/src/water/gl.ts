@@ -42,10 +42,10 @@ float surf(float x) {
 float caustic(vec2 p, float t) {
   vec2 q = p + 0.55 * vec2(sin(p.y * 1.7 + t * 0.8), sin(p.x * 1.5 - t * 0.7));
   q += 0.3 * vec2(sin(q.y * 2.9 - t * 0.6), sin(q.x * 2.6 + t * 0.5));
-  float a = pow(1.0 - abs(sin(q.x * 1.6) * sin(q.y * 1.6)), 6.0);
+  float a = pow(1.0 - abs(sin(q.x * 1.6) * sin(q.y * 1.6)), 4.0);
   vec2 r = p * 1.31 + vec2(3.1, 1.7);
   r += 0.5 * vec2(sin(r.y * 1.3 - t * 0.55), sin(r.x * 1.2 + t * 0.6));
-  float b = pow(1.0 - abs(sin(r.x * 1.4 + 0.7) * sin(r.y * 1.4 - 0.4)), 6.0);
+  float b = pow(1.0 - abs(sin(r.x * 1.4 + 0.7) * sin(r.y * 1.4 - 0.4)), 4.0);
   return a * b;
 }
 
@@ -59,9 +59,12 @@ void main() {
   float depth = clamp(d / uRes.y, 0.0, 1.0);
   vec3 col = mix(TOP, DEEP, pow(depth, 0.7));
   col *= mix(0.82, 1.0, smoothstep(0.0, 14.0, d));
-  col += CREAM * caustic(px / 140.0, uCT) * 0.10 * (1.0 - depth);
-  // sub-LSB dither so the depth gradient never bands
-  col += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
+  // light near the surface only: soft, broad, gone by a third of the way down
+  col += CREAM * caustic(px / 190.0, uCT) * 0.075 * (1.0 - smoothstep(0.0, 0.38, depth));
+  // triangular dither (two hashes, about ±1 LSB) so the depth gradient never bands
+  float h1 = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
+  float h2 = fract(sin(dot(gl_FragCoord.xy, vec2(39.3468, 11.135))) * 24634.6345);
+  col += (h1 + h2 - 1.0) / 255.0;
   float a = mix(0.87, 0.97, smoothstep(0.0, 0.6, depth));
   float inside = smoothstep(-aa, aa, d);
   vec4 water = vec4(col * a, a) * inside;

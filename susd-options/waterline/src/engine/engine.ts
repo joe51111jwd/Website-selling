@@ -160,7 +160,7 @@ class Engine {
     const top = el.getBoundingClientRect().top + window.scrollY;
     const travel = el.offsetHeight - this.V;
     if (s === 'turn') return top + travel * 0.8;
-    if (s === 'oxygen') return top + travel * 0.975;
+    if (s === 'oxygen') return top + travel * 0.95;
     return top + travel * lapEndP(PARAMS.lap ?? 1);
   }
 
