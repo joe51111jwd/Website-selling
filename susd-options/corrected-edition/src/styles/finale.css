@@ -1,0 +1,998 @@
+/* ───────────────────────── Sheet 06 · The finale ───────────────────────── */
+.finale {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  padding: 5vh 0 calc(36 * var(--u));
+  scroll-snap-align: center;
+}
+.finale__stage {
+  position: relative;
+  z-index: 1;
+  width: calc(1240 * var(--u));
+  height: calc(780 * var(--u));
+}
+/* The 3D context (and the lift shadow) exist only while the playbook is being struck and lifted:
+   at rest the finale is flat paint, with no composited layers. */
+.finale.is-running .finale__stage {
+  perspective: 1600px;
+  perspective-origin: 50% 30%;
+}
+.finale.is-running .playbook__stack,
+.finale.is-running .playbook__lift {
+  transform-style: preserve-3d;
+}
+/* Rasterise the sheet while the pencil is still on it, so the lift starts on a ready layer. */
+.finale:is(.is-arming, .is-running) .playbook__lift {
+  will-change: transform;
+}
+
+/* ── The file and the book (under the playbook) ── */
+.comp {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: calc(8 * var(--u)) 0 calc(4 * var(--u));
+  color: var(--cream);
+}
+.has-playbook:not(.is-revealed) .comp {
+  visibility: hidden;
+}
+.comp__h {
+  max-width: calc(1060 * var(--u));
+  font-size: calc(46 * var(--u));
+  font-weight: 560;
+  line-height: 1.1;
+  letter-spacing: -0.012em;
+  text-align: center;
+  color: var(--cream);
+}
+.comp__line {
+  display: block;
+  text-wrap: balance;
+}
+.comp__sub {
+  margin-top: calc(14 * var(--u));
+  font-style: italic;
+  font-size: max(15px, calc(21 * var(--u)));
+  line-height: 1.35;
+  text-align: center;
+  color: rgb(243 236 223 / 0.72);
+}
+.comp__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: calc(96 * var(--u));
+  margin-top: calc(34 * var(--u));
+}
+
+/* The file stack: a typescript manuscript. */
+.filestack {
+  position: relative;
+  width: calc(420 * var(--u));
+  flex: none;
+}
+.filestack__sheet {
+  position: absolute;
+  inset: 0;
+  background-color: var(--file-sheet);
+  background-image: var(--grain, none);
+  background-size: 252px 252px;
+  border-radius: 1.5px;
+  box-shadow: 0 1px 1px rgb(0 0 0 / 0.35), 0 2px 5px rgb(0 0 0 / 0.12);
+}
+/* Soft shadows sit on unrotated boxes under the (slightly rotated) paper: the fast path. */
+.filestack::before,
+.cover-wrap::before,
+.peek::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  box-shadow:
+    0 10px 22px rgb(0 0 0 / 0.36),
+    0 30px 60px -6px rgb(0 0 0 / 0.42);
+  pointer-events: none;
+}
+.filestack::before {
+  inset: 0 calc(-8 * var(--u)) calc(-10 * var(--u)) 0;
+}
+.filestack__sheet--3 {
+  transform: translate(calc(12 * var(--u)), calc(12 * var(--u))) rotate(1.1deg);
+  background-color: #ece5d8;
+}
+.filestack__sheet--2 {
+  transform: translate(calc(6 * var(--u)), calc(6 * var(--u))) rotate(-0.7deg);
+  background-color: #f1ebdf;
+}
+.filestack__sheet--1 {
+  position: relative;
+  min-height: calc(500 * var(--u));
+  display: flex;
+  flex-direction: column;
+  padding: calc(30 * var(--u)) calc(32 * var(--u)) calc(28 * var(--u));
+  color: var(--ink);
+  text-align: left;
+  transform: rotate(-0.25deg);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.7),
+    0 1px 1px rgb(0 0 0 / 0.35),
+    0 3px 8px rgb(0 0 0 / 0.14);
+}
+.file__head {
+  padding-bottom: calc(14 * var(--u));
+  border-bottom: 1px dashed rgb(28 26 23 / 0.22);
+}
+.file__label {
+  margin-bottom: calc(6 * var(--u));
+  font-size: max(11px, calc(11.5 * var(--u)));
+  letter-spacing: 0.16em;
+  color: var(--red);
+}
+.file__name {
+  position: relative;
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: max(14px, calc(17 * var(--u)));
+  letter-spacing: 0.01em;
+  word-break: break-all;
+}
+.file__stet {
+  position: absolute;
+  margin-left: calc(12 * var(--u));
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: calc(18 * var(--u));
+  color: var(--green);
+  opacity: 0;
+  white-space: nowrap;
+}
+.is-sent .file__stet {
+  opacity: 1;
+}
+.file__meta {
+  margin-top: calc(4 * var(--u));
+  font-family: var(--mono);
+  font-size: max(13px, calc(15 * var(--u)));
+  color: rgb(28 26 23 / 0.78);
+}
+.file__ai {
+  margin-top: calc(6 * var(--u));
+  text-wrap: balance;
+  font-style: italic;
+  font-size: max(14px, calc(16 * var(--u)));
+  line-height: 1.3;
+  color: rgb(28 26 23 / 0.86);
+}
+/* The file's first headings, faint, clipped at the sheet edge; the stamp lands here. */
+.file__face {
+  position: relative;
+  min-height: calc(86 * var(--u));
+  margin: calc(14 * var(--u)) 0 calc(14 * var(--u));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: max(11px, calc(11.5 * var(--u)));
+  line-height: 1.75;
+  color: rgb(28 26 23 / 0.38);
+}
+.file__face p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  /* the typescript fades out towards the right edge, leaving clean paper for the stamp */
+  -webkit-mask-image: linear-gradient(90deg, #000 52%, transparent 78%);
+  mask-image: linear-gradient(90deg, #000 52%, transparent 78%);
+}
+.file__ref {
+  font-size: calc(23 * var(--u));
+  font-weight: 500;
+  line-height: 1.24;
+  letter-spacing: -0.005em;
+  text-shadow: var(--letterpress-soft);
+}
+.file__ref span {
+  display: block;
+}
+.file__form {
+  margin-top: calc(20 * var(--u));
+}
+.file__fields {
+  display: flex;
+  height: calc(56 * var(--u));
+  min-height: 48px;
+}
+.file__fields input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 calc(16 * var(--u));
+  border: 1.5px solid var(--ink);
+  border-right: 0;
+  border-radius: 1px 0 0 1px;
+  background: rgb(255 255 255 / 0.55);
+  font-family: var(--mono);
+  font-size: max(16px, calc(15 * var(--u)));
+  color: var(--ink);
+  outline-offset: 2px;
+}
+.file__fields input::placeholder {
+  color: rgb(28 26 23 / 0.5);
+}
+.file__fields input:disabled {
+  opacity: 0.7;
+}
+.btn--get {
+  height: 100%;
+  border-radius: 0 1px 1px 0;
+  padding: 0 calc(26 * var(--u));
+}
+.btn--get:disabled {
+  cursor: default;
+}
+.form-msg {
+  min-height: calc(22 * var(--u));
+  padding-top: calc(6 * var(--u));
+  font-size: max(13px, calc(14 * var(--u)));
+  font-style: italic;
+  color: var(--red);
+}
+.file__upload {
+  margin-top: auto;
+  padding-top: calc(8 * var(--u));
+  font-size: max(14px, calc(16 * var(--u)));
+  line-height: 1.4;
+  color: rgb(28 26 23 / 0.82);
+}
+
+/* The stamp: "Yours", in red proof ink, over the faint headings (clear of the file's sentence). */
+.stamp {
+  position: absolute;
+  right: calc(-2 * var(--u));
+  top: 50%;
+  width: calc(104 * var(--u));
+  height: calc(104 * var(--u));
+  margin-top: calc(-52 * var(--u));
+  display: grid;
+  place-items: center;
+  border: calc(3 * var(--u)) solid var(--red);
+  border-radius: 50%;
+  outline: calc(1.2 * var(--u)) solid var(--red);
+  outline-offset: calc(-8 * var(--u));
+  color: var(--red);
+  transform: rotate(-8deg);
+  mix-blend-mode: multiply;
+  opacity: 0;
+  pointer-events: none;
+}
+.stamp span {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: calc(28 * var(--u));
+  font-weight: 500;
+}
+.is-sent .stamp {
+  opacity: 1;
+}
+
+/* The book: a typographic cover. */
+.book {
+  width: calc(300 * var(--u));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: none;
+}
+.cover {
+  position: relative;
+  width: calc(252 * var(--u));
+  height: calc(360 * var(--u));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: calc(30 * var(--u)) calc(26 * var(--u)) calc(26 * var(--u));
+  background-color: var(--sheet);
+  background-image:
+    linear-gradient(90deg, rgb(0 0 0 / 0.07) 0, rgb(0 0 0 / 0) calc(10 * var(--u))),
+    linear-gradient(135deg, rgb(255 255 255 / 0.12), rgb(0 0 0 / 0.05));
+  color: var(--ink);
+  border-radius: 1px 3px 3px 1px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.6),
+    0 1px 1px rgb(0 0 0 / 0.4);
+}
+.cover-wrap {
+  position: relative;
+}
+.cover-wrap .cover {
+  transform: rotate(1.4deg);
+}
+.cover__top {
+  font-size: max(11px, calc(12 * var(--u)));
+  letter-spacing: 0.3em;
+  color: rgb(28 26 23 / 0.8);
+}
+.cover__title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: calc(14 * var(--u));
+  font-weight: 800;
+  font-size: calc(56 * var(--u));
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  text-shadow: var(--letterpress);
+}
+.cover__leg--0 {
+  color: var(--green);
+}
+.cover__leg--1 {
+  color: var(--side-ink);
+}
+.cover__leg--2 {
+  color: var(--red);
+}
+.cover__rule {
+  width: calc(36 * var(--u));
+  height: 2px;
+  margin-top: auto;
+  background: var(--ink);
+}
+.cover__author {
+  margin-top: calc(12 * var(--u));
+  font-size: max(11px, calc(11.5 * var(--u)));
+  letter-spacing: 0.16em;
+}
+.book__line {
+  margin-top: calc(28 * var(--u));
+  font-style: italic;
+  font-size: max(15px, calc(21 * var(--u)));
+  line-height: 1.35;
+  color: var(--cream);
+}
+.book__line span {
+  display: block;
+}
+.btn--cream {
+  height: calc(48 * var(--u));
+  background: transparent;
+  color: var(--cream);
+  border: 1.5px solid rgb(243 236 223 / 0.55);
+}
+.book .btn--cream {
+  margin-top: calc(18 * var(--u));
+}
+.btn--cream:hover {
+  border-color: var(--cream);
+}
+.btn--soon {
+  opacity: 0.78;
+  cursor: default;
+}
+.btn--soon:hover {
+  transform: none;
+  border-color: rgb(243 236 223 / 0.55);
+}
+
+/* ── The playbook you inherited (on top), with both paths on the desk under it ── */
+.playbook {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.playbook__stack {
+  position: relative;
+  width: calc(1040 * var(--u));
+}
+.playbook__lift {
+  position: relative;
+  z-index: 1;
+  transform-origin: 50% 100%;
+}
+.playbook__liftshadow {
+  position: absolute;
+  inset: calc(-200 / 844 * 100%) calc(-200 / 1240 * 100%);
+  background: var(--shadow-lift) center / 100% 100% no-repeat;
+  opacity: 0;
+  pointer-events: none;
+  display: none;
+}
+.finale.is-running .playbook__liftshadow {
+  display: block;
+}
+.sheet--playbook {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+}
+.sheet--playbook .sheet__inner {
+  padding: calc(100 * var(--u)) calc(104 * var(--u)) calc(52 * var(--u));
+}
+.playbook__body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.playbook__title {
+  font-size: max(12px, calc(14 * var(--u)));
+  letter-spacing: 0.24em;
+  color: rgb(28 26 23 / 0.72);
+  text-shadow: var(--letterpress-soft);
+}
+.playbook__list {
+  margin-top: calc(22 * var(--u));
+}
+/* A plain recap, in ink: holding Strike it rules through each belief in turn. */
+.playbook__list li {
+  font-style: italic;
+  font-size: calc(36 * var(--u));
+  line-height: 1.55;
+  color: var(--ink);
+  text-shadow: var(--letterpress-soft);
+}
+.playbook__list del {
+  color: var(--ink);
+}
+.playbook__del {
+  position: absolute;
+  right: calc(46 * var(--u));
+  top: calc(84 * var(--u));
+  font-style: italic;
+  font-size: calc(26 * var(--u));
+  color: var(--red);
+  opacity: 0;
+}
+
+/* The Strike it mark: a red ring around a proof strike that ends in a dele loop. */
+.strike-it {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: calc(30 * var(--u));
+}
+.strike-it__ring {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(12 * var(--u));
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--red);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.strike-it__disc {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(120 * var(--u));
+  height: calc(120 * var(--u));
+  min-width: 88px;
+  min-height: 88px;
+  border-radius: 50%;
+  border: max(2px, calc(3 * var(--u))) solid var(--red);
+  background: rgb(178 50 42 / 0.03);
+  transition: transform 0.3s var(--ease-out-cubic), background-color 0.3s var(--ease-out-cubic);
+}
+.strike-it__fill {
+  position: absolute;
+  inset: calc(-3 * var(--u));
+  border-radius: 50%;
+  background: conic-gradient(var(--red) calc(max(var(--p), var(--pmin, 0)) * 1turn), rgb(178 50 42 / 0) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 11 * var(--u)), #000 calc(100% - 10.5 * var(--u)));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 11 * var(--u)), #000 calc(100% - 10.5 * var(--u)));
+  pointer-events: none;
+}
+.strike-it__mark {
+  width: 62%;
+  height: auto;
+  overflow: visible;
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.strike-it__mark path {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 0;
+}
+/* The idle cue: the pencil redraws its stroke every 3.5 s while the sheet is on screen. */
+.strike-it.is-idle .strike-it__mark path {
+  animation: strike-idle 3.5s linear infinite;
+}
+@keyframes strike-idle {
+  0% {
+    stroke-dashoffset: 1.06;
+    opacity: 1;
+  }
+  20% {
+    stroke-dashoffset: 0;
+  }
+  80% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  92% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 1.06;
+    opacity: 0;
+  }
+}
+.strike-it__label {
+  font-size: max(13px, calc(15 * var(--u)));
+  letter-spacing: 0.16em;
+}
+.strike-it__hint {
+  margin-top: calc(5 * var(--u));
+  font-size: max(12px, calc(12 * var(--u)));
+  letter-spacing: 0.12em;
+  color: rgb(28 26 23 / 0.66);
+  font-weight: 560;
+}
+.strike-it__ring:hover .strike-it__disc,
+.strike-it__ring.is-holding .strike-it__disc {
+  transform: scale(1.04);
+  background-color: rgb(178 50 42 / 0.06);
+}
+.strike-it__ring:hover,
+.strike-it__ring:focus-visible {
+  --pmin: 0.08;
+}
+.strike-it__ring:focus-visible {
+  outline: none;
+}
+.strike-it__ring:focus-visible .strike-it__disc {
+  outline: 2px solid var(--ink);
+  outline-offset: 4px;
+}
+/* A click instead of a hold: the hint answers. */
+.strike-it.is-nudge .strike-it__hint {
+  color: var(--red);
+  animation: strike-nudge 0.5s var(--ease-out-cubic);
+}
+@keyframes strike-nudge {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translateX(3px);
+  }
+  45% {
+    transform: translateX(-3px);
+  }
+  70% {
+    transform: translateX(2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .strike-it.is-nudge .strike-it__hint {
+    animation: none;
+    text-decoration: underline;
+    text-underline-offset: 0.3em;
+  }
+}
+
+/* The file underneath: its corner shows past the playbook, filename and all. */
+.peek {
+  position: absolute;
+  z-index: 0;
+  right: calc(-34 * var(--u));
+  bottom: calc(-62 * var(--u));
+  width: calc(312 * var(--u));
+  height: calc(240 * var(--u));
+  cursor: pointer;
+}
+.peek__sheet {
+  position: absolute;
+  inset: 0;
+  background-color: var(--file-sheet);
+  background-image: var(--grain, none);
+  background-size: 252px 252px;
+  border-radius: 1.5px;
+  box-shadow: 0 1px 1px rgb(0 0 0 / 0.35);
+}
+.peek__sheet--2 {
+  transform: translate(calc(5 * var(--u)), calc(5 * var(--u))) rotate(1.2deg);
+  background-color: #ece5d8;
+}
+.peek__sheet--1 {
+  transform: rotate(0.5deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 calc(20 * var(--u)) calc(12 * var(--u));
+  font-family: var(--mono);
+  color: var(--ink);
+  text-align: left;
+}
+.peek__name {
+  font-size: max(12px, calc(14 * var(--u)));
+  line-height: 1.35;
+}
+.peek__meta {
+  font-size: max(11px, calc(12 * var(--u)));
+  line-height: 1.35;
+  color: rgb(28 26 23 / 0.66);
+}
+.peek:hover .peek__sheet--1 {
+  background-color: #fbf7ef;
+}
+
+.playbook__desk {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: calc(14 * var(--u));
+  margin-top: calc(88 * var(--u));
+}
+
+/* Reduced motion: the file is revealed; the struck playbook sits above it, small and static. */
+.mini-playbook {
+  position: relative;
+  z-index: 1;
+  width: calc(560 * var(--u));
+  margin-bottom: calc(36 * var(--u));
+  text-align: center;
+}
+.mini-playbook .sheet--mini {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  transform: rotate(-0.4deg);
+}
+.mini-playbook .sheet__inner {
+  padding: calc(30 * var(--u)) calc(30 * var(--u));
+}
+.mini-playbook .playbook__list {
+  margin-top: calc(10 * var(--u));
+}
+.mini-playbook .playbook__list li {
+  --struck: var(--ink-struck-small);
+  font-size: max(16px, calc(20 * var(--u)));
+  line-height: 1.7;
+}
+.mini-playbook .playbook__list del {
+  color: var(--struck);
+}
+.mini-playbook .playbook__title {
+  display: none;
+}
+.mini-playbook .playbook__del {
+  opacity: 1;
+  top: calc(14 * var(--u));
+  right: calc(16 * var(--u));
+  font-size: calc(18 * var(--u));
+}
+.mini-playbook figcaption {
+  margin-top: calc(16 * var(--u));
+  font-size: max(11px, calc(11 * var(--u)));
+  letter-spacing: 0.2em;
+  color: rgb(243 236 223 / 0.75);
+}
+
+/* ── Footer, on the desk ── */
+.foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  padding: calc(56 * var(--u)) 16px calc(64 * var(--u));
+  color: var(--cream);
+  text-align: center;
+  scroll-snap-align: end;
+}
+.foot__line {
+  font-style: italic;
+  font-size: calc(18 * var(--u));
+  color: rgb(243 236 223 / 0.9);
+}
+.foot__link {
+  font-size: 14px;
+  color: rgb(243 236 223 / 0.85);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+  text-decoration-color: rgb(243 236 223 / 0.4);
+  padding: 12px 6px;
+}
+
+/* ── Phone bar ── */
+.phonebar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  height: calc(44px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--desk);
+  border-top: 1px solid rgb(243 236 223 / 0.12);
+  transform: translateY(110%);
+  visibility: hidden;
+  transition:
+    transform 0.35s var(--ease-out-cubic),
+    visibility 0s linear 0.35s;
+}
+.phonebar.is-on {
+  transform: none;
+  visibility: visible;
+  transition:
+    transform 0.35s var(--ease-out-cubic),
+    visibility 0s;
+}
+.phonebar a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 12px;
+}
+.phonebar__get {
+  background: var(--red);
+  color: var(--cream);
+}
+.phonebar__book {
+  color: var(--cream);
+}
+
+/* ───────────────────────── Compact ───────────────────────── */
+@media (max-width: 900px), (orientation: portrait) and (max-width: 1100px) {
+  .finale {
+    padding: 4vh 8px calc(24 * var(--u));
+    scroll-snap-align: none;
+  }
+  .finale__stage {
+    width: 100%;
+    height: auto;
+    perspective: none;
+  }
+  .comp {
+    position: relative;
+    inset: auto;
+    padding: calc(12 * var(--u)) 0 0;
+  }
+  .has-playbook:not(.is-revealed) .comp {
+    display: none;
+  }
+  .comp__h {
+    font-size: calc(29 * var(--u));
+    max-width: calc(350 * var(--u));
+  }
+  .comp__sub {
+    max-width: calc(320 * var(--u));
+    font-size: max(15px, calc(16 * var(--u)));
+  }
+  .comp__row {
+    flex-direction: column;
+    align-items: center;
+    gap: calc(56 * var(--u));
+    margin-top: calc(28 * var(--u));
+    width: 100%;
+  }
+  .filestack {
+    width: calc(100% - 14px);
+    max-width: 520px;
+    height: auto;
+  }
+  .filestack__sheet--1 {
+    position: relative;
+    min-height: 0;
+    padding: calc(24 * var(--u)) calc(20 * var(--u)) calc(22 * var(--u));
+  }
+  /* On phones the under-sheets are offset, not turned. */
+  .filestack__sheet--2 {
+    transform: translate(calc(4 * var(--u)), calc(5 * var(--u)));
+  }
+  .filestack__sheet--3 {
+    transform: translate(calc(8 * var(--u)), calc(10 * var(--u)));
+  }
+  .file__name {
+    font-size: max(14px, calc(14.5 * var(--u)));
+  }
+  .file__meta {
+    font-size: max(13px, calc(13 * var(--u)));
+  }
+  .file__ai {
+    font-size: max(14px, calc(15 * var(--u)));
+  }
+  .file__face {
+    min-height: calc(76 * var(--u));
+  }
+  .file__ref {
+    font-size: calc(21 * var(--u));
+  }
+  .file__fields {
+    flex-direction: column;
+    height: auto;
+    gap: calc(8 * var(--u));
+  }
+  .file__fields input {
+    flex: none;
+    height: 52px;
+    border-right: 1.5px solid var(--ink);
+    border-radius: 1px;
+  }
+  .btn--get {
+    flex: none;
+    height: 52px;
+    border-radius: 1px;
+  }
+  .file__upload {
+    margin-top: calc(8 * var(--u));
+    font-size: max(14px, calc(15 * var(--u)));
+  }
+  .stamp {
+    width: calc(88 * var(--u));
+    height: calc(88 * var(--u));
+    margin-top: calc(-44 * var(--u));
+  }
+  .stamp span {
+    font-size: calc(24 * var(--u));
+  }
+  .book {
+    width: 100%;
+  }
+  .cover {
+    width: calc(220 * var(--u));
+    height: calc(316 * var(--u));
+  }
+  .cover__title {
+    font-size: calc(48 * var(--u));
+  }
+  .book__line {
+    font-size: max(16px, calc(19 * var(--u)));
+    max-width: calc(330 * var(--u));
+  }
+
+  .playbook {
+    position: relative;
+    inset: auto;
+  }
+  .finale.is-revealed .playbook {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+  .playbook__stack {
+    width: 100%;
+  }
+  .sheet--playbook .sheet__inner {
+    padding: calc(64 * var(--u)) calc(18 * var(--u)) calc(44 * var(--u));
+  }
+  .playbook__list {
+    margin-top: calc(14 * var(--u));
+  }
+  .playbook__list li {
+    --struck: var(--ink-struck-small);
+    font-size: max(18px, calc(20 * var(--u)));
+    line-height: 2;
+  }
+  .strike-it {
+    margin-top: calc(18 * var(--u));
+  }
+  .strike-it__disc {
+    width: calc(104 * var(--u));
+    height: calc(104 * var(--u));
+  }
+  .playbook__del {
+    top: calc(52 * var(--u));
+    right: calc(18 * var(--u));
+    font-size: calc(20 * var(--u));
+  }
+  .peek {
+    width: calc(250 * var(--u));
+    height: calc(160 * var(--u));
+    right: calc(-4 * var(--u));
+    bottom: calc(-50 * var(--u));
+  }
+  .peek__sheet--1 {
+    padding: 0 calc(14 * var(--u)) calc(9 * var(--u));
+  }
+  .playbook__desk {
+    flex-direction: column;
+    align-items: stretch;
+    align-self: stretch;
+    gap: calc(8 * var(--u));
+    margin-top: calc(66 * var(--u));
+    padding: 0 calc(10 * var(--u));
+  }
+  .playbook__desk .btn {
+    height: calc(50 * var(--u));
+    padding: 0 calc(14 * var(--u));
+  }
+  .mini-playbook {
+    width: 100%;
+  }
+  .foot {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Tablet: the file and the book side by side again, at tablet scale. */
+@media (min-width: 600px) and (max-width: 900px), (min-width: 600px) and (orientation: portrait) and (max-width: 1100px) {
+  .finale {
+    padding: 4vh 16px calc(28 * var(--u));
+  }
+  .comp__h {
+    font-size: calc(38 * var(--u));
+    max-width: calc(600 * var(--u));
+  }
+  .comp__line {
+    display: block;
+  }
+  .comp__sub {
+    max-width: none;
+    font-size: calc(18 * var(--u));
+  }
+  .comp__row {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: calc(24 * var(--u));
+  }
+  .filestack {
+    width: calc(340 * var(--u));
+  }
+  .book {
+    width: calc(270 * var(--u));
+  }
+  .book .btn--cream {
+    padding: 0 calc(20 * var(--u));
+  }
+  .cover {
+    width: calc(200 * var(--u));
+    height: calc(288 * var(--u));
+  }
+  .cover__title {
+    font-size: calc(44 * var(--u));
+  }
+  .book__line {
+    font-size: calc(15 * var(--u));
+    max-width: none;
+  }
+  .sheet--playbook .sheet__inner {
+    padding: calc(84 * var(--u)) calc(44 * var(--u)) calc(48 * var(--u));
+  }
+  .playbook__list li {
+    --struck: var(--ink-struck);
+    font-size: calc(30 * var(--u));
+    line-height: 1.7;
+  }
+  .playbook__desk {
+    flex-direction: row;
+    align-self: center;
+    justify-content: center;
+  }
+}

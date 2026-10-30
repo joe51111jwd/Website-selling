@@ -1,0 +1,19 @@
+/* Self-hosted from @fontsource-variable packages (latin only). No third-party requests. */
+@font-face {
+  font-family: 'Bricolage Grotesque Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  src: url('@fonts/bricolage-grotesque/files/bricolage-grotesque-latin-standard-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  /* Subset of @fontsource-variable/jetbrains-mono (latin, wght axis) to the characters the page uses; see README. */
+  src: url('../fonts/jetbrains-mono-wght-subset.woff2') format('woff2-variations');
+  unicode-range: U+0020-007E, U+00A0, U+00B7, U+2013-2014, U+2018-2019, U+201C-201D, U+2026;
+}

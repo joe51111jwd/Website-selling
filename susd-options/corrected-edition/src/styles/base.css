@@ -1,0 +1,188 @@
+/* ───────────────────────── Tokens ───────────────────────── */
+@property --p {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+:root {
+  --desk: #16130f;
+  --desk-hi: #241f19;
+  --sheet: #f3ecdf;
+  --file-sheet: #f6f1e8;
+  --ink: #1c1a17; /* 15.4:1 on sheet */
+  --ink-struck: #7d7870; /* struck text, 24 px or larger only (3.73:1) */
+  --ink-struck-small: #67625b; /* struck text under 24 px (5.1:1) */
+  --struck: var(--ink-struck); /* what struck text settles to here (read by the colour tweens) */
+  --red: #b2322a; /* proof marks, Get buttons, stamp (5.28:1) */
+  --green: #2b5a37; /* stet, "higher", "Oxygen." (6.82:1) */
+  --ochre: #d49b2c; /* strokes in the cycle rule only */
+  --side-ink: #a87414; /* the word "Side" as text, 24 px or larger */
+  --cream: #f3ecdf; /* type on the desk (15.76:1) */
+
+  --serif: 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --mono: 'Courier Prime', 'Courier New', Courier, monospace;
+
+  --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-slide: cubic-bezier(0.6, 0, 0.3, 1);
+
+  /* One design pixel. Desktop is drawn at 1440 × 900 and scales with the window. */
+  --u: min(1.12px, calc((100svh - 56px) / 844), calc((100vw - 160px) / 1240));
+  /* Cycle-label offset unit (see CycleRule): one viewBox unit on desktop. */
+  --lo: var(--u);
+  --letterpress: 0 1px 0 rgb(255 255 255 / 0.55), 0 -0.5px 0 rgb(0 0 0 / 0.12);
+  --letterpress-soft: 0 1px 0 rgb(255 255 255 / 0.45);
+}
+
+@media (max-width: 900px), (orientation: portrait) and (max-width: 1100px) {
+  :root {
+    /* Compact: drawn at 390 × 844. */
+    --u: clamp(0.82px, min(calc(100vw / 390), calc(100svh / 680)), 1.8px);
+    --lo: calc(0.85 * var(--u));
+  }
+  /* The phone bar never covers the focused control. */
+  html {
+    scroll-padding-bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+}
+/* Tablet (portrait, 600–1100 px): its own tier, drawn at about 640 × 900. */
+@media (min-width: 600px) and (max-width: 900px), (min-width: 600px) and (orientation: portrait) and (max-width: 1100px) {
+  :root {
+    --u: clamp(1px, min(calc(100vw / 640), calc(100svh / 900)), 1.6px);
+    --lo: calc(0.95 * var(--u));
+  }
+}
+
+/* ───────────────────────── Base ───────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--desk);
+  color: var(--cream);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: auto;
+  overflow-x: clip;
+}
+
+@media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
+  html:not(.no-snap) {
+    scroll-snap-type: y proximity;
+  }
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--desk);
+  font-family: var(--serif);
+  font-optical-sizing: auto;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+
+#root {
+  overflow-x: clip;
+}
+
+p,
+h1,
+h2,
+h3,
+ol,
+ul,
+figure {
+  margin: 0;
+}
+ol,
+ul {
+  padding: 0;
+  list-style: none;
+}
+del,
+ins {
+  text-decoration: none;
+}
+a {
+  color: inherit;
+}
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Small caps, built from caps: the latin subset ships without smcp, so caps are set smaller,
+   tracked and a touch heavier to match the lowercase colour. */
+.sc {
+  text-transform: uppercase;
+  letter-spacing: 0.085em;
+  font-weight: 560;
+  font-style: normal;
+  font-feature-settings: 'lnum' 1;
+}
+
+/* Focus: always visible. Ink on paper, cream on the desk. */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+.on-desk :focus-visible,
+.foot :focus-visible,
+.phonebar :focus-visible,
+.skip-file:focus-visible,
+.comp__h:focus-visible,
+.book :focus-visible,
+.playbook__desk :focus-visible {
+  outline-color: var(--cream);
+}
+
+.br-m {
+  display: none;
+}
+/* Reduced motion: state changes only, no movement. */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .rhead__r,
+  .support--eq,
+  .strike-it__disc,
+  .phonebar {
+    transition-property: color, background-color, border-color, opacity, visibility !important;
+  }
+}
+
+@media (max-width: 900px), (orientation: portrait) and (max-width: 1100px) {
+  .br-d {
+    display: none;
+  }
+  .br-m {
+    display: inline;
+  }
+}
+
+.anchor {
+  position: absolute;
+  top: 0;
+  left: 0;
+}

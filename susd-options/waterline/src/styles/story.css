@@ -1,0 +1,137 @@
+/* ---------- 03 · THE TURN ---------- */
+.turn { position: relative; height: 200vh; margin-top: -100vh; margin-top: -100svh; }
+.turn-pos { position: absolute; left: 0; right: 0; top: 0; padding: 0 var(--gut); }
+.turn-line {
+  margin: 0 auto; max-width: 17em;
+  font: 750 min(4.4vw, 7.4vh)/1.04 var(--f-display); font-stretch: 82%; font-variation-settings: 'opsz' 96;
+  letter-spacing: -0.012em; text-align: center; color: var(--ink);
+}
+.turn-line > .wt-wet { color: var(--cream); }
+@media (max-width: 640px) {
+  .turn-line { font-size: 9vw; max-width: none; line-height: 1.06; }
+}
+
+/* ---------- 04 · THE CYCLE ---------- */
+.cycle { position: relative; height: 680vh; }
+
+/* the standing type on its deck */
+.cy-lift { position: absolute; left: 0; right: 0; top: 40vh; will-change: transform; }
+.cy-type { display: grid; justify-items: center; }
+.cy-type > .standing { grid-area: 1 / 1; align-self: end; }
+.standing {
+  width: max-content; max-width: calc(100vw - 2 * var(--gut));
+  font: 800 7.2vw/0.95 var(--f-display); font-stretch: 78%; font-variation-settings: 'opsz' 96;
+  letter-spacing: -0.02em; text-align: center; white-space: nowrap; transition: opacity 0.4s ease;
+}
+.standing > .wt-dry .sw-0 { color: var(--up); }
+.standing > .wt-dry .sw-1 { color: var(--side-ink); }
+.standing > .wt-dry .sw-2 { color: var(--down); }
+.standing > .wt-dry .sw-3 { color: var(--ink); }
+.standing > .wt-wet { color: var(--cream); }
+.standing > .wt-wet .sw-0, .standing > .wt-wet .c-up { color: var(--up-wet); }
+.standing > .wt-wet .sw-1 { color: var(--side); }
+.standing > .wt-wet .sw-2 { color: var(--down-wet); }
+.standing.oxygen { opacity: 0; }
+.cycle-stage[data-phase='oxygen'] .standing.oxygen { opacity: 1; }
+.cycle-stage[data-phase='oxygen'] .standing:not(.oxygen) { opacity: 0; }
+
+.deck { position: absolute; height: 2px; background: var(--ink); box-shadow: 0 6px 14px rgb(0 0 0 / 0.18); }
+/* the active phase's underline lies on the deck (placed by the controller) */
+.ul { position: absolute; display: block; transform: scaleX(0); transform-origin: left center; border-radius: 1px; }
+.ul[data-k='0'] { background: var(--up); }
+.ul[data-k='1'] { background: var(--side-ink); }
+.ul[data-k='2'] { background: var(--down); }
+.cycle-stage[data-phase='oxygen'] .ul, .cycle-stage[data-static] .ul { display: none; }
+
+.lab { font: 500 11px/1 var(--f-mono); letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap; }
+.lab-capacity { position: absolute; left: 100%; top: 1px; transform: translate(14px, -50%); color: var(--ink); opacity: 0; transition: opacity 0.5s; }
+.cycle-stage[data-labels='1'] .lab-capacity { opacity: 1; }
+
+.cy-bands { position: absolute; inset: 0; pointer-events: none; }
+.band {
+  position: absolute; display: flex; align-items: center; justify-content: flex-end; padding: 0 14px;
+  border-bottom: 1px solid var(--ink); /* the deck is the top edge of the top stratum */
+  background: repeating-linear-gradient(45deg, rgb(22 19 15 / 0.12) 0 1px, transparent 1px 6px);
+  transform: translate3d(-120vw, 0, 0); will-change: transform;
+}
+.band .lab { font-size: 10px; background: var(--paper); padding: 3px 6px; color: rgb(22 19 15 / 0.75); }
+
+.dim { position: absolute; left: 0; top: 0; width: 1px; height: 0; opacity: 0; transition: opacity 0.4s; pointer-events: none; }
+.cycle-stage[data-dim='1'] .dim { opacity: 1; }
+.dim-line { position: absolute; left: 0; top: 0; width: 1px; height: 1px; background: var(--ink); transform-origin: top; }
+.dim-tick { position: absolute; left: -3px; top: 0; width: 7px; height: 1px; background: var(--ink); }
+.dim-lab { position: absolute; right: 12px; top: -6px; color: var(--ink); }
+.lab-complexity { position: absolute; top: 0; left: calc(var(--deckR) + 14px); color: rgb(241 234 223 / 0.85); opacity: 0; transition: opacity 0.5s; }
+.cycle-stage[data-labels='1'] .lab-complexity { opacity: 1; }
+.cycle-stage[data-phase='oxygen'] .lab-complexity { opacity: 0; }
+
+.breathe { position: absolute; left: 0; right: 0; padding: 0 var(--gut); text-align: center; font: 500 clamp(19px, 1.85vw, 26px)/1.3 var(--f-display); opacity: 0; transform: translateY(8px); transition: opacity 0.5s ease 0.2s, transform 0.6s var(--ease-out-cubic) 0.2s; text-wrap: balance; }
+.cycle-stage[data-phase='oxygen'] .breathe { opacity: 1; transform: none; }
+
+/* the legend, in the water: Up / Side / Down always readable, the playing phase lit */
+.cy-legend {
+  position: absolute; left: 0; right: 0; top: 75.5%;
+  display: grid; grid-template-rows: auto auto auto; justify-items: center; row-gap: 14px;
+  padding: 0 var(--gut); text-align: center; color: var(--cream);
+  transition: opacity 0.45s ease, visibility 0s;
+}
+.cycle-stage[data-phase='oxygen'] .cy-legend { opacity: 0; visibility: hidden; transition: opacity 0.35s ease, visibility 0s linear 0.35s; }
+.cy-legend > * { grid-column: 1; transition: opacity 0.35s ease, transform 0.5s var(--ease-out-cubic), visibility 0s; }
+.cy-lap { grid-row: 1; font: 500 11px/1 var(--f-mono); letter-spacing: 0.2em; text-transform: uppercase; color: var(--side); opacity: 0; }
+.cycle-stage:is([data-phase='up'], [data-phase='side'], [data-phase='down']) .cy-lap { opacity: 1; }
+.cy-rows { grid-row: 2; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 1.1em; font: 750 clamp(26px, 2.5vw, 36px)/1.1 var(--f-display); font-stretch: 86%; letter-spacing: -0.01em; }
+.cy-row { white-space: nowrap; opacity: 0.34; transition: opacity 0.35s ease; }
+.cycle-stage[data-phase='intro'] .cy-row { opacity: 0.62; }
+.cycle-stage[data-phase='up'] .cy-row[data-c='up'],
+.cycle-stage[data-phase='side'] .cy-row[data-c='side'],
+.cycle-stage[data-phase='down'] .cy-row[data-c='down'] { opacity: 1; }
+.ph-up { color: var(--up-wet); }
+.ph-side { color: var(--side); }
+.ph-down { color: var(--down-wet); }
+.cy-subs { grid-row: 3; display: grid; justify-items: center; min-height: 1.35em; font: 500 clamp(18px, 1.6vw, 23px)/1.3 var(--f-display); }
+.cy-sub { grid-area: 1 / 1; color: rgb(241 234 223 / 0.86); max-width: 26em; text-wrap: balance; opacity: 0; visibility: hidden; transform: translateY(6px); transition: opacity 0.35s ease, transform 0.5s var(--ease-out-cubic), visibility 0s linear 0.35s; }
+.cycle-stage[data-phase='side'] .cy-sub[data-c='side'],
+.cycle-stage[data-phase='down'] .cy-sub[data-c='down'] { opacity: 1; visibility: visible; transform: none; transition: opacity 0.35s ease, transform 0.5s var(--ease-out-cubic), visibility 0s; }
+/* Close: the cycle's conclusion takes the legend's place, in the same water */
+.cy-close { grid-row: 1 / 4; align-self: center; font: 600 clamp(19px, 1.85vw, 26px)/1.32 var(--f-display); max-width: 980px; text-wrap: balance; opacity: 0; visibility: hidden; transform: translateY(8px); }
+.cycle-stage[data-phase='close'] .cy-close { opacity: 1; visibility: visible; transform: none; }
+.cycle-stage[data-phase='close'] :is(.cy-lap, .cy-rows, .cy-subs) { opacity: 0; visibility: hidden; }
+
+@media (max-width: 1099px) {
+  .standing { font-size: 8vw; }
+}
+@media (max-width: 640px) {
+  .standing { font-size: 13vw; line-height: 0.98; white-space: normal; }
+  .standing.oxygen { font-size: 10.4vw; max-width: 8.5em; white-space: normal; text-wrap: balance; }
+  .cy-legend { top: 73.5%; row-gap: 9px; }
+  .cy-rows { flex-direction: column; align-items: center; gap: 2px; font-size: 21px; }
+  .cy-subs { font-size: 16px; }
+  .cy-sub { max-width: 19em; }
+  .cy-close { font-size: 17px; max-width: 21em; }
+  .lab { font-size: 9.5px; letter-spacing: 0.12em; }
+  /* capacity labels the deck from underneath, at its left end, clear of the type */
+  .lab-capacity { left: 0; right: auto; top: 6px; transform: none; background: var(--paper); padding: 2px 5px; }
+  .lab-complexity { left: auto; right: 16px; }
+  .band { padding: 0 6px; }
+  .band .lab { font-size: 8.5px; padding: 2px 4px; display: none; }
+  .cycle-stage[data-bands='1'] .band[data-k='0'] .lab,
+  .cycle-stage[data-bands='2'] .band[data-k='1'] .lab,
+  .cycle-stage[data-bands='3'] .band[data-k='2'] .lab { display: inline-block; }
+  .dim-lab { right: auto; left: 8px; top: -5px; }
+  .breathe { font-size: 17px; }
+}
+
+/* ---------- reduced motion: stacked static blocks ---------- */
+.is-static .block { position: relative; min-height: 100vh; min-height: 100svh; overflow: clip; }
+.is-static .stage { position: relative; }
+.block-water {
+  position: absolute; left: 0; right: 0; top: 0; height: 200%; z-index: 0; pointer-events: none;
+  background: linear-gradient(#24402e, #13231a 35%, #0b1611 70%);
+  border-top: 1.2px solid rgb(246 241 231 / 0.9);
+}
+.is-static .stage { z-index: 1; }
+.is-static [data-block='cycle-oxygen'] .block-water { display: none; }
+.turn-pos-static { top: 38%; transform: translateY(-50%); }
+/* the cycle's end state: all three phases lit, the strata built, the margin measured */
+.cycle-stage[data-static='end'] .cy-row { opacity: 1; }
+.cycle-stage[data-static='end'] .cy-lap { opacity: 1; }

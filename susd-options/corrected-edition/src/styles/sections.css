@@ -1,0 +1,1135 @@
+/* ───────────────────────── Shared type on the sheets ───────────────────────── */
+.sheet-body,
+.hero__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.inherited {
+  position: relative;
+  align-self: stretch;
+  font-style: italic;
+  font-weight: 400;
+  font-size: calc(44 * var(--u));
+  line-height: 1.2;
+  color: var(--ink-struck);
+  text-shadow: var(--letterpress-soft);
+}
+.inherited del {
+  color: var(--struck);
+}
+.inherited .w {
+  display: inline-block;
+}
+.inherited--hero {
+  font-size: calc(54 * var(--u));
+}
+
+.correction {
+  font-weight: 620;
+  font-size: calc(88 * var(--u));
+  line-height: 1;
+  letter-spacing: -0.014em;
+  color: var(--ink);
+  text-wrap: balance;
+  text-shadow: var(--letterpress);
+}
+.correction .wi {
+  display: inline-block;
+}
+.correction--hero {
+  font-size: calc(104 * var(--u));
+  line-height: 0.98;
+  letter-spacing: -0.018em;
+}
+.correction--people {
+  font-size: calc(72 * var(--u));
+  line-height: 1.04;
+}
+.up {
+  color: var(--green);
+}
+.tone-up {
+  color: var(--green);
+}
+.tone-side {
+  color: var(--side-ink);
+}
+.tone-down {
+  color: var(--red);
+}
+
+.support {
+  font-style: italic;
+  font-weight: 400;
+  font-size: calc(28 * var(--u));
+  line-height: 1.3;
+  color: rgb(28 26 23 / 0.88);
+  text-wrap: balance;
+  text-shadow: var(--letterpress-soft);
+  margin-top: calc(36 * var(--u));
+}
+
+/* ───────────────────────── Buttons ───────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  height: calc(52 * var(--u));
+  min-height: 44px;
+  padding: 0 calc(28 * var(--u));
+  font-size: max(12.5px, calc(14 * var(--u)));
+  text-decoration: none;
+  border-radius: 1px;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition:
+    transform 0.25s var(--ease-out-cubic),
+    box-shadow 0.25s var(--ease-out-cubic),
+    background-color 0.25s var(--ease-out-cubic),
+    color 0.25s var(--ease-out-cubic);
+}
+.btn--red {
+  background: var(--red);
+  color: var(--cream);
+  border: 0;
+  text-shadow: 0 -1px 0 rgb(0 0 0 / 0.18);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    0 1px 1px rgb(60 10 5 / 0.25),
+    0 6px 14px -6px rgb(60 10 5 / 0.45);
+}
+.btn--red:hover {
+  background: #a42c25;
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    0 1px 1px rgb(60 10 5 / 0.25),
+    0 10px 20px -8px rgb(60 10 5 / 0.5);
+}
+.btn--red:active {
+  transform: translateY(0);
+}
+.btn--line {
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--ink);
+  text-shadow: var(--letterpress-soft);
+}
+.btn--line:hover {
+  background: rgb(28 26 23 / 0.05);
+}
+/* A two-part label ("The book | Pre-orders open soon"), split by a hairline rule. */
+.btn--split {
+  gap: 0.9em;
+}
+.btn__rule {
+  align-self: stretch;
+  width: 1px;
+  margin: 0.95em 0;
+  background: currentColor;
+  opacity: 0.45;
+}
+
+/* ───────────────────────── Sheet 01 · Hero ───────────────────────── */
+.hero .margin {
+  top: 52%;
+}
+.hero .caret-space {
+  height: calc(48 * var(--u));
+}
+
+.cycle {
+  position: relative;
+  width: calc(640 * var(--u));
+  height: calc(64 * var(--u));
+  margin-top: calc(36 * var(--u));
+}
+.cycle svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.cycle__leg {
+  fill: none;
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cycle__leg--up {
+  stroke: var(--green);
+}
+.cycle__leg--side {
+  stroke: var(--ochre);
+}
+.cycle__leg--down {
+  stroke: var(--red);
+}
+.cycle__guide {
+  fill: none;
+  stroke: rgb(28 26 23 / 0.28);
+  stroke-width: 1;
+  stroke-dasharray: 1.5 4.5;
+  stroke-linecap: round;
+}
+.cycle__tail {
+  fill: none;
+  stroke: rgb(28 26 23 / 0.42);
+  stroke-width: 2;
+  stroke-dasharray: 0.1 6;
+  stroke-linecap: round;
+}
+.cycle__dot {
+  fill: var(--ink);
+}
+.cycle__label {
+  position: absolute;
+  font-size: max(11px, calc(11 * var(--u)));
+  letter-spacing: 0.14em;
+  line-height: 1;
+  color: rgb(28 26 23 / 0.74);
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+}
+
+.support--hero {
+  font-size: calc(30 * var(--u));
+  margin-top: calc(32 * var(--u));
+}
+
+/* The imprint: the book, its author, and who it is for (the "is this for me" line, in full ink). */
+.who {
+  margin-top: calc(30 * var(--u));
+  color: var(--ink);
+  text-shadow: var(--letterpress-soft);
+  line-height: 1.35;
+}
+.who__book {
+  font-size: max(13px, calc(15 * var(--u)));
+  color: rgb(28 26 23 / 0.8);
+}
+.who__title {
+  font-style: italic;
+  font-weight: 500;
+  font-size: max(16px, calc(19.5 * var(--u)));
+  letter-spacing: 0;
+  color: var(--ink);
+}
+.who__sep {
+  margin: 0 0.7em;
+  color: rgb(28 26 23 / 0.45);
+}
+.who__for {
+  margin-top: calc(6 * var(--u));
+  font-size: max(15px, calc(18 * var(--u)));
+  font-weight: 620;
+}
+.who__for .who__part {
+  font-weight: 620;
+  letter-spacing: 0.07em;
+}
+.who__part {
+  white-space: nowrap;
+}
+.who__part + .who__part::before {
+  content: '·';
+  display: inline-block;
+  margin: 0 0.7em;
+  color: rgb(28 26 23 / 0.45);
+}
+
+.actions {
+  display: flex;
+  gap: calc(14 * var(--u));
+  margin-top: calc(20 * var(--u));
+}
+
+/* What the Bootloader is, in the file's own typescript. */
+.file-caption {
+  margin-top: calc(14 * var(--u));
+  font-family: var(--mono);
+  font-size: max(12px, calc(13 * var(--u)));
+  line-height: 1.5;
+  color: rgb(28 26 23 / 0.74);
+}
+.file-caption__sep {
+  margin: 0 0.6em;
+  color: rgb(28 26 23 / 0.4);
+}
+
+/* Intro. Before fonts are ready the desk is empty for a moment (≤ 1.2 s). While the intro
+   plays, CSS holds every piece in its "before" state and the animations carry it in, so a
+   delayed animation can never flash its end state. */
+.hero.is-pending .sheet-wrap,
+.hero:is(.is-pending, .is-play) .inherited .w,
+.hero:is(.is-pending, .is-play) .correction .wi,
+.hero:is(.is-pending, .is-play) .cycle__label,
+.hero:is(.is-pending, .is-play) .cycle__guide,
+.hero:is(.is-pending, .is-play) .cycle__dot,
+.hero:is(.is-pending, .is-play) .cycle__tail,
+.hero:is(.is-pending, .is-play) .support,
+.hero:is(.is-pending, .is-play) .who,
+.hero:is(.is-pending, .is-play) .actions,
+.hero:is(.is-pending, .is-play) .file-caption,
+.hero:is(.is-pending, .is-play) .galley {
+  opacity: 0;
+}
+.hero:is(.is-pending, .is-play) .inherited del {
+  color: var(--ink);
+}
+.hero.is-pending .dele,
+.hero.is-pending .mk,
+.hero.is-pending .cycle__leg {
+  opacity: 0;
+}
+
+/* ───────────────────────── Proof sheets: before the marks play ───────────────────────── */
+.proof:is(.is-pending, .is-play) .inherited del,
+.proof:is(.is-pending, .is-play) .fit__list--del .fit__text {
+  color: var(--ink);
+}
+.proof:is(.is-pending, .is-play) .correction .wi,
+.proof:is(.is-pending, .is-play) .stair__in,
+.proof:is(.is-pending, .is-play) .stair__leg--guide,
+.proof:is(.is-pending, .is-play) .support,
+.proof:is(.is-pending, .is-play) .calc__row,
+.proof:is(.is-pending, .is-play) .gloss,
+.proof:is(.is-pending, .is-play) .fit__note {
+  opacity: 0;
+}
+.proof:is(.is-pending, .is-play) .stet-dots {
+  clip-path: inset(0 100% 0 0);
+}
+.proof.is-pending .dele,
+.proof.is-pending .stair__leg,
+.proof.is-pending .marks .mk,
+.proof.is-pending .calc__ul path {
+  opacity: 0;
+}
+
+/* ───────────────────────── Sheet 02 · Growth ───────────────────────── */
+.correction--growth {
+  margin-bottom: calc(4 * var(--u));
+}
+.stair {
+  /* --s: one stair viewBox unit (the stair scales on its own on tablets). */
+  --s: var(--u);
+  position: relative;
+  width: calc(960 * var(--s));
+  height: calc(180 * var(--s));
+  margin-top: calc(44 * var(--u));
+}
+.stair__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.stair__leg {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.stair__leg--base,
+.stair__leg--land {
+  stroke: rgb(28 26 23 / 0.78);
+}
+.stair__leg--up {
+  stroke: var(--green);
+}
+.stair__leg--side {
+  stroke: var(--ochre);
+}
+.stair__leg--down {
+  stroke: var(--red);
+}
+.stair__leg--guide {
+  stroke: rgb(28 26 23 / 0.3);
+  stroke-width: 1.2;
+  stroke-dasharray: 1.5 6;
+}
+.stair__list {
+  position: absolute;
+  inset: 0;
+}
+.stair__s {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  white-space: nowrap;
+  font-size: calc(28 * var(--s));
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--ink);
+  text-shadow: var(--letterpress-soft);
+}
+.stair__s--up {
+  transform: translate(-100%, -50%);
+}
+.stair__s--down {
+  transform: translate(0, -50%);
+}
+.stair__in {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(10 * var(--u));
+}
+.stair__glyph {
+  display: none;
+}
+.stair__text .lead {
+  font-weight: 640;
+}
+
+/* ───────────────────────── Sheet 03 · People ───────────────────────── */
+.proof--people .correction {
+  margin-top: calc(2 * var(--u));
+}
+/* The editor's gloss on "absorbed", in the right margin column (x = 1000 design px). */
+.gloss {
+  position: absolute;
+  left: calc(1000 * var(--u));
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: calc(200 * var(--u));
+  text-align: left;
+  font-style: italic;
+  font-size: max(14px, calc(17 * var(--u)));
+  line-height: 1.25;
+  color: var(--red);
+}
+/* The arithmetic, under the support line. */
+.calc {
+  display: flex;
+  justify-content: center;
+  gap: calc(34 * var(--u));
+  margin-top: calc(26 * var(--u));
+  font-style: italic;
+  font-size: max(15px, calc(19 * var(--u)));
+  line-height: 1.5;
+  color: var(--red);
+}
+.calc__row {
+  position: relative;
+  white-space: nowrap;
+  font-variant-numeric: oldstyle-nums;
+}
+.calc__row--key {
+  font-weight: 500;
+}
+.calc__ul {
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  bottom: 0.02em;
+  width: calc(100% + 4px);
+  height: 6px;
+  overflow: visible;
+}
+.calc__ul path {
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ───────────────────────── Sheet 04 · The equation ───────────────────────── */
+.eq-row {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+}
+.eq {
+  position: relative;
+  font-size: calc(92 * var(--u));
+  font-weight: 620;
+  line-height: 1.08;
+  letter-spacing: -0.016em;
+  white-space: nowrap;
+  text-align: center;
+  color: var(--ink);
+  text-shadow: var(--letterpress);
+}
+.eq__t {
+  display: inline-block;
+}
+.eq__op {
+  font-weight: 540;
+  color: rgb(28 26 23 / 0.72);
+  padding: 0 0.04em;
+}
+.eq__end {
+  position: relative;
+  display: inline-block;
+}
+.eq__red {
+  position: relative;
+}
+.eq__strike {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+.eq__above {
+  position: absolute;
+  left: 50%;
+  bottom: 80%;
+  transform: translate(-50%, 0) scale(0.6);
+  transform-origin: 50% 100%;
+  white-space: nowrap;
+}
+.eq__ghost {
+  position: absolute;
+  transform-origin: 0 50%;
+  color: var(--struck);
+  pointer-events: none;
+}
+.eq .eq__red {
+  transition: color 0.3s var(--ease-out-cubic);
+}
+/* The record of the edit: present in the layout from the start, shown once solved. */
+.eq-record del,
+.eq-record .dele,
+.eq-record__marks {
+  opacity: 0;
+  transition: opacity 0.2s var(--ease-out-cubic);
+}
+.proof--equation.is-solved .eq-record del,
+.proof--equation.is-solved .eq-record .dele,
+.proof--equation.is-solved .eq-record__marks {
+  opacity: 1;
+}
+/* The left margin by the equation: tr. and the Swap button under it. */
+.eq-margin {
+  position: absolute;
+  left: calc(-72 * var(--u));
+  top: 0;
+  height: calc(92 * 1.08 * var(--u));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: calc(2 * var(--u));
+}
+.eq-margin .margin__note {
+  padding-left: calc(2 * var(--u));
+}
+.tr-btn {
+  min-width: 44px;
+  min-height: 44px;
+  margin-left: calc(-6 * var(--u));
+  padding: 0 calc(6 * var(--u));
+  border: 0;
+  background: none;
+  color: var(--red);
+  font-size: max(12px, calc(12.5 * var(--u)));
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: rgb(178 50 42 / 0.4);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.45em;
+}
+.tr-btn:hover {
+  text-decoration-color: var(--red);
+}
+.support--eq {
+  margin-top: calc(36 * var(--u));
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.3s var(--ease-out-cubic),
+    transform 0.3s var(--ease-out-cubic);
+}
+.support--eq.is-on {
+  opacity: 1;
+  transform: none;
+}
+
+/* ───────────────────────── Sheet 05 · Is this you ───────────────────────── */
+.fit__h {
+  position: relative;
+  align-self: stretch;
+  font-size: calc(64 * var(--u));
+  font-weight: 620;
+  line-height: 1.04;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+  text-shadow: var(--letterpress);
+}
+.fit__h .margin {
+  top: 50%;
+}
+.fit__cols {
+  position: relative;
+  width: calc(640 * var(--u));
+  margin-top: calc(40 * var(--u));
+}
+.fit__row {
+  position: relative;
+  font-size: calc(28 * var(--u));
+  font-weight: 560;
+  line-height: 1.6;
+  color: var(--ink);
+  text-shadow: var(--letterpress-soft);
+}
+.fit__text {
+  position: relative;
+  display: inline-block;
+}
+.fit__list--del .fit__text {
+  color: var(--struck);
+}
+.stet-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.1em;
+  height: 4px;
+  background: radial-gradient(circle, var(--green) 1.25px, transparent 1.7px) 0 50% / 5px 4px repeat-x;
+}
+.fit__note {
+  position: absolute;
+  /* the right margin column: x = 1000 design px on the sheet (the column starts at 300) */
+  left: calc(100% + 60 * var(--u));
+  top: 50%;
+  transform: translateY(-50%);
+  font-style: italic;
+  font-weight: 400;
+  font-size: max(14px, calc(17 * var(--u)));
+  line-height: 1;
+  text-shadow: none;
+}
+.fit__note--stet {
+  color: var(--green);
+}
+.fit__note--del {
+  color: var(--red);
+}
+.fit__rule {
+  width: calc(120 * var(--u));
+  height: 1px;
+  border: 0;
+  margin: calc(16 * var(--u)) auto;
+  background: rgb(28 26 23 / 0.25);
+}
+
+/* Short laptop screens (1280 × 720, 1366 × 768): the type floors make the small lines relatively
+   larger, so the hero's vertical rhythm tightens to keep everything on the sheet. */
+@media (min-width: 901px) and (max-height: 800px) {
+  .hero .sheet__inner {
+    padding-top: calc(84 * var(--u));
+    padding-bottom: calc(52 * var(--u));
+  }
+  .hero .caret-space {
+    height: calc(44 * var(--u));
+  }
+  .hero .cycle {
+    margin-top: calc(28 * var(--u));
+  }
+  .support--hero {
+    margin-top: calc(24 * var(--u));
+  }
+  .who {
+    margin-top: calc(22 * var(--u));
+  }
+  .actions {
+    margin-top: calc(16 * var(--u));
+  }
+  .file-caption {
+    margin-top: calc(10 * var(--u));
+  }
+}
+
+/* ───────────────────────── Compact (phone, portrait tablet) ───────────────────────── */
+@media (max-width: 900px), (orientation: portrait) and (max-width: 1100px) {
+  .sheet-section {
+    padding: 4vh 0;
+    scroll-snap-align: none;
+  }
+  .hero.sheet-section {
+    padding: 8px;
+  }
+  .sheet {
+    width: calc(100vw - 16px);
+    min-height: 0;
+  }
+  .hero .sheet {
+    height: auto;
+    min-height: calc(100svh - 16px);
+  }
+  .sheet__inner,
+  .hero .sheet__inner {
+    padding: calc(64 * var(--u)) calc(18 * var(--u)) calc(52 * var(--u));
+  }
+  .rhead {
+    top: calc(20 * var(--u));
+    left: calc(18 * var(--u));
+    right: calc(18 * var(--u));
+    grid-template-columns: 1fr 1fr;
+    padding-bottom: calc(10 * var(--u));
+  }
+  .rhead__c {
+    display: none;
+  }
+  /* Where the phone bar carries "Get the Bootloader", the running head carries its own line. */
+  .rhead:not(.rhead--title) .rhead__r {
+    display: none;
+  }
+  .rhead:not(.rhead--title) {
+    grid-template-columns: auto 1fr;
+  }
+  .rhead:not(.rhead--title) .rhead__c {
+    display: block;
+    justify-self: end;
+    white-space: nowrap;
+    font-size: max(13px, calc(13 * var(--u)));
+  }
+  .rhead__l,
+  .rhead__r {
+    font-size: calc(10 * var(--u));
+  }
+  .galley {
+    right: calc(18 * var(--u));
+    bottom: calc(18 * var(--u));
+    font-size: calc(9 * var(--u));
+  }
+
+  .margin {
+    position: static;
+    transform: none;
+    display: inline-flex;
+    vertical-align: middle;
+    margin-right: 10px;
+  }
+  .margin__no {
+    display: none;
+  }
+  .dele {
+    width: calc(16 * var(--u));
+    height: calc(18 * var(--u));
+  }
+
+  .inherited {
+    font-size: calc(24 * var(--u));
+    line-height: 1.25;
+  }
+  .inherited--hero {
+    font-size: calc(24 * var(--u));
+  }
+  .caret-space,
+  .hero .caret-space {
+    height: calc(32 * var(--u));
+  }
+  .correction {
+    font-size: calc(40 * var(--u));
+    line-height: 1.02;
+  }
+  .correction--hero {
+    font-size: calc(46 * var(--u));
+    line-height: 1;
+  }
+  .correction--people {
+    font-size: calc(34 * var(--u));
+  }
+  .support {
+    font-size: calc(18 * var(--u));
+    line-height: 1.35;
+    margin-top: calc(24 * var(--u));
+  }
+
+  .cycle {
+    width: calc(320 * var(--u));
+    height: calc(32 * var(--u));
+    margin-top: calc(34 * var(--u));
+  }
+  .cycle__label {
+    font-size: max(10.5px, calc(9.5 * var(--u)));
+    letter-spacing: 0.1em;
+  }
+  .cycle__leg {
+    stroke-width: 4.4;
+  }
+  .support--hero {
+    font-size: calc(18 * var(--u));
+    margin-top: calc(30 * var(--u));
+    max-width: calc(300 * var(--u));
+  }
+  .who {
+    margin-top: calc(24 * var(--u));
+    max-width: calc(340 * var(--u));
+  }
+  .who__book {
+    font-size: max(12px, calc(12.5 * var(--u)));
+  }
+  .who__title {
+    display: block;
+    font-size: max(17px, calc(18 * var(--u)));
+  }
+  .who__book .who__sep {
+    display: none;
+  }
+  .who__for {
+    margin-top: calc(8 * var(--u));
+    font-size: max(13px, calc(13.5 * var(--u)));
+    line-height: 1.5;
+  }
+  .who__for .who__part {
+    display: block;
+  }
+  .who__part + .who__part::before {
+    display: none;
+  }
+  .file-caption {
+    margin-top: calc(10 * var(--u));
+    font-size: max(11px, calc(11.5 * var(--u)));
+  }
+  .file-caption span {
+    display: block;
+    text-wrap: balance;
+  }
+  .file-caption .file-caption__sep {
+    display: none;
+  }
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+    align-self: stretch;
+    gap: calc(4 * var(--u));
+    margin-top: calc(22 * var(--u));
+  }
+  .actions .btn--red {
+    height: calc(50 * var(--u));
+    font-size: max(13px, calc(13 * var(--u)));
+  }
+  .actions .btn--line {
+    height: calc(48 * var(--u));
+    padding: 0 calc(14 * var(--u));
+    font-size: max(12.5px, calc(12.5 * var(--u)));
+    border-width: 1px;
+    border-color: rgb(28 26 23 / 0.55);
+  }
+
+  /* Stair: four centred lines, each led by a mini-leg in its colour. */
+  .stair {
+    width: auto;
+    height: auto;
+    margin-top: calc(28 * var(--u));
+  }
+  .stair__svg {
+    display: none;
+  }
+  .stair__list {
+    position: static;
+    display: grid;
+    gap: calc(10 * var(--u));
+  }
+  .stair__s,
+  .stair__s--up,
+  .stair__s--down {
+    position: static;
+    transform: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(10 * var(--u));
+    font-size: calc(20 * var(--u));
+  }
+  .stair__glyph {
+    display: inline-block;
+    line-height: 0;
+  }
+  .stair__glyph svg {
+    width: calc(24 * var(--u));
+    height: calc(14 * var(--u));
+    fill: none;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    overflow: visible;
+  }
+  .stair__glyph--base svg {
+    stroke: rgb(28 26 23 / 0.7);
+  }
+  .stair__glyph--up svg {
+    stroke: var(--green);
+  }
+  .stair__glyph--side svg {
+    stroke: var(--ochre);
+  }
+  .stair__glyph--down svg {
+    stroke: var(--red);
+  }
+
+  .gloss {
+    position: static;
+    transform: none;
+    max-width: none;
+    margin-top: calc(10 * var(--u));
+    text-align: center;
+    font-size: max(14px, calc(15 * var(--u)));
+  }
+  .calc {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin-top: calc(20 * var(--u));
+    font-size: max(14px, calc(15 * var(--u)));
+    line-height: 1.6;
+  }
+
+  .eq {
+    font-size: calc(34 * var(--u));
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+  }
+  .eq-row {
+    align-items: center;
+  }
+  .eq-row {
+    flex-direction: column-reverse;
+  }
+  .eq-margin {
+    position: static;
+    height: auto;
+    align-items: center;
+    margin-top: calc(10 * var(--u));
+  }
+  .eq-margin .margin__note {
+    display: none;
+  }
+  .tr-btn {
+    margin-left: 0;
+    font-size: max(12px, calc(12 * var(--u)));
+  }
+  .support--eq {
+    margin-top: calc(18 * var(--u));
+  }
+
+  .fit__h {
+    font-size: calc(34 * var(--u));
+  }
+  .fit__h .margin {
+    display: none;
+  }
+  .fit__cols {
+    width: 100%;
+    margin-top: calc(24 * var(--u));
+  }
+  .fit__row {
+    font-size: max(18px, calc(19 * var(--u)));
+    line-height: 1.75;
+    padding: 0 calc(38 * var(--u));
+  }
+  .fit__list--del {
+    --struck: var(--ink-struck-small);
+  }
+  .fit__note {
+    left: auto;
+    right: 0;
+    margin-left: 0;
+    font-size: max(13px, calc(13 * var(--u)));
+  }
+}
+
+/* ───────────────────────── Tablet (portrait 600–1100 px) ─────────────────────────
+   Its own tier, not a stretched phone: the desktop pieces (actions row, stair, margin notes)
+   at tablet scale, on a portrait sheet. */
+@media (min-width: 600px) and (max-width: 900px), (min-width: 600px) and (orientation: portrait) and (max-width: 1100px) {
+  .hero.sheet-section {
+    padding: 16px;
+  }
+  .sheet {
+    width: calc(100vw - 32px);
+  }
+  .hero .sheet {
+    min-height: calc(100svh - 32px);
+  }
+  .sheet__inner,
+  .hero .sheet__inner {
+    padding: calc(84 * var(--u)) calc(44 * var(--u)) calc(60 * var(--u));
+  }
+  .rhead {
+    top: calc(26 * var(--u));
+    left: calc(44 * var(--u));
+    right: calc(44 * var(--u));
+    grid-template-columns: 1fr auto 1fr;
+  }
+  .rhead--title .rhead__c {
+    display: block;
+  }
+  .rhead:not(.rhead--title) {
+    grid-template-columns: 1fr auto 1fr;
+  }
+  .rhead:not(.rhead--title) .rhead__c {
+    justify-self: center;
+  }
+  .inherited,
+  .inherited--hero {
+    font-size: calc(32 * var(--u));
+  }
+  .caret-space,
+  .hero .caret-space {
+    height: calc(40 * var(--u));
+  }
+  .correction {
+    font-size: calc(56 * var(--u));
+  }
+  .correction--hero {
+    font-size: calc(66 * var(--u));
+    line-height: 0.98;
+  }
+  .correction--people {
+    font-size: calc(48 * var(--u));
+  }
+  .support {
+    font-size: calc(23 * var(--u));
+    margin-top: calc(28 * var(--u));
+  }
+  .support--hero {
+    font-size: calc(24 * var(--u));
+    max-width: none;
+  }
+  .cycle {
+    width: calc(460 * var(--u));
+    height: calc(46 * var(--u));
+  }
+  .cycle__label {
+    font-size: max(11px, calc(10.5 * var(--u)));
+  }
+  .who {
+    max-width: none;
+  }
+  .who__title {
+    display: inline;
+    font-size: calc(19 * var(--u));
+  }
+  .who__book .who__sep {
+    display: inline;
+  }
+  .who__book {
+    font-size: calc(14 * var(--u));
+  }
+  .who__for {
+    font-size: calc(16 * var(--u));
+  }
+  .who__for .who__part {
+    display: inline;
+  }
+  .who__part + .who__part::before {
+    display: inline-block;
+  }
+  .actions {
+    flex-direction: row;
+    align-self: center;
+    gap: calc(12 * var(--u));
+  }
+  .actions .btn--red,
+  .actions .btn--line {
+    height: calc(52 * var(--u));
+    padding: 0 calc(24 * var(--u));
+    font-size: calc(13 * var(--u));
+  }
+  .actions .btn--line {
+    border-width: 1.5px;
+    border-color: var(--ink);
+  }
+  .file-caption {
+    font-size: calc(12 * var(--u));
+  }
+
+  /* The desktop stair, scaled to the sheet. */
+  .stair {
+    --s: calc(0.6 * var(--u));
+    width: calc(960 * var(--s));
+    height: calc(180 * var(--s));
+    margin-top: calc(40 * var(--u));
+  }
+  .stair__svg {
+    display: block;
+  }
+  .stair__list {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+  .stair__s {
+    position: absolute;
+    display: block;
+    transform: translate(-50%, -100%);
+    font-size: calc(28 * var(--s));
+  }
+  .stair__s--up {
+    transform: translate(-100%, -50%);
+  }
+  .stair__s--down {
+    transform: translate(0, -50%);
+  }
+  .stair__glyph {
+    display: none;
+  }
+
+  .calc {
+    flex-direction: row;
+    gap: calc(26 * var(--u));
+    font-size: calc(16 * var(--u));
+  }
+  .eq {
+    font-size: calc(48 * var(--u));
+    white-space: nowrap;
+  }
+  .fit__h {
+    font-size: calc(46 * var(--u));
+  }
+  .fit__cols {
+    width: calc(420 * var(--u));
+  }
+  .fit__row {
+    font-size: calc(24 * var(--u));
+    padding: 0;
+  }
+  .fit__list--del {
+    --struck: var(--ink-struck);
+  }
+  .fit__note {
+    left: calc(100% + 28 * var(--u));
+    right: auto;
+    font-size: calc(15 * var(--u));
+  }
+}
+
+/* Short phones (375 × 667): tighter rhythm so the claim, the audience and the red button share the
+   first screen. */
+@media (max-width: 599px) and (max-height: 720px) {
+  .hero .sheet__inner {
+    padding-top: calc(56 * var(--u));
+  }
+  .hero .caret-space {
+    height: calc(26 * var(--u));
+  }
+  .correction--hero {
+    font-size: calc(43 * var(--u));
+  }
+  .hero .cycle {
+    margin-top: calc(24 * var(--u));
+  }
+  .support--hero {
+    margin-top: calc(20 * var(--u));
+  }
+  .who {
+    margin-top: calc(16 * var(--u));
+  }
+  .actions {
+    margin-top: calc(14 * var(--u));
+  }
+}

@@ -1,0 +1,210 @@
+/* ---------- 01–02 · TIDE ---------- */
+.tide { position: relative; height: 462vh; }
+
+.tide-head {
+  position: absolute; left: 0; right: 0; top: 0;
+  padding: calc(60px + 3vh) var(--gut) 0;
+  display: grid; justify-items: center;
+}
+.kicker { font: 550 14px/1.5 var(--f-mono); letter-spacing: 0.14em; text-transform: uppercase; text-align: center; }
+.kicker > .wt-dry { color: var(--down); }
+.kicker > .wt-dry .kicker-author { color: rgb(22 19 15 / 0.86); }
+.kicker > .wt-dry .kicker-sep { color: rgb(22 19 15 / 0.45); }
+.kicker > .wt-wet { color: var(--down-wet); }
+.kicker > .wt-wet .kicker-author { color: var(--cream); }
+.kicker { transition: opacity 0.5s ease; }
+.tide-stage[data-flood='1'] .kicker { opacity: 0; }
+
+.h1 {
+  margin-top: 2.4vh;
+  font-family: var(--f-display); font-weight: 800; font-stretch: 80%;
+  font-variation-settings: 'opsz' 96;
+  font-size: min(7.2vw, 11.4vh); line-height: 0.98; letter-spacing: -0.015em;
+  text-align: center; color: var(--ink);
+}
+.tide-head > .h1 { justify-self: stretch; }
+/* Under water the sentence stays cream (red on green turns muddy); only the Redline line is red. */
+.h1 > .wt-wet { color: var(--cream); }
+
+/* "complexity": a level mark riding the surface, centred over the numbers that measure it */
+.surface-tag {
+  position: absolute; top: 0; left: 50%; z-index: 1;
+  display: flex; align-items: center; gap: 12px;
+  font: 600 13px/1 var(--f-mono); letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--cream); white-space: nowrap;
+  opacity: 0; transition: opacity 0.45s ease;
+}
+.surface-tag i { display: block; width: 26px; height: 1px; background: currentColor; opacity: 0.6; }
+.tide-stage[data-tagv='1'] .surface-tag { opacity: var(--fade, 1); }
+
+/* under the waterline: the readout, the zone line, the captions */
+/* placed with a transform (measured after fonts load), so settling it is never a layout shift */
+.tide-low {
+  position: absolute; left: 0; right: 0; top: 0;
+  transform: translateY(calc(var(--B, 60vh) + 2.8vh + 64px));
+  display: grid; justify-items: center; padding: 0 var(--gut);
+}
+.tide-cell { grid-area: 1 / 1; display: grid; justify-items: center; text-align: center; transition: opacity 0.5s ease, visibility 0s linear 0.5s; }
+.tide-info { opacity: var(--fade, 1); }
+.tide-stage[data-flood='1'] .tide-info { opacity: 0; visibility: hidden; }
+
+.readout > .wt-dry, .readout > .wt-wet { display: flex; align-items: baseline; justify-content: center; gap: 0 0.55em; white-space: nowrap; }
+.readout { transform-origin: 50% 70%; transition: opacity 0.45s ease; }
+.tide-stage:not([data-ro='1']) .readout { opacity: 0; }
+.readout.pulse .ro-paths { animation: pulse 300ms var(--ease-out-cubic); }
+@keyframes pulse { 50% { transform: scale(1.06); } }
+.ro-fig { display: inline-flex; align-items: baseline; gap: 0 0.7em; }
+.ro-num {
+  display: inline-block; font-family: var(--f-display); font-weight: 700; font-stretch: 84%;
+  font-size: clamp(40px, min(6.1vw, 9.6vh), 88px); line-height: 0.9; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; transform-origin: 50% 80%;
+}
+.ro-lab { font: 500 12px/1 var(--f-mono); letter-spacing: 0.16em; text-transform: uppercase; }
+.ro-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.5; align-self: center; margin: 0 0.15em; }
+.readout > .wt-dry .ro-people { color: var(--side-ink); }
+.readout > .wt-dry { color: var(--ink); }
+.readout > .wt-dry .ro-lab { color: rgb(22 19 15 / 0.7); }
+.readout > .wt-wet { color: var(--cream); }
+.readout > .wt-wet .ro-people { color: var(--side); }
+.readout > .wt-wet .ro-lab { color: rgb(241 234 223 / 0.82); }
+
+.slot { display: grid; justify-items: center; margin-top: 3.2vh; min-height: 90px; }
+.slot-v {
+  grid-area: 1 / 1; display: grid; justify-items: center; gap: 12px;
+  opacity: 0; visibility: hidden; transform: translateY(8px); pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.5s var(--ease-out-cubic), visibility 0s linear 0.35s;
+}
+.tag { font: 500 12px/1 var(--f-mono); letter-spacing: 0.18em; text-transform: uppercase; color: var(--side-wet); }
+.zline { font: 500 clamp(19px, 1.8vw, 26px)/1.25 var(--f-display); color: var(--cream); max-width: 26em; text-wrap: balance; }
+.zline-sm { font-size: clamp(16px, 1.35vw, 19px); color: rgb(241 234 223 / 0.82); max-width: 30em; margin-top: 2px; }
+.breaks { font: 750 clamp(30px, 3.4vw, 50px)/1.04 var(--f-display); font-stretch: 86%; letter-spacing: -0.012em; color: var(--cream); text-wrap: balance; }
+.tide-stage[data-ready='1'][data-zone='solopreneur'] .zone-v[data-z='solopreneur'],
+.tide-stage[data-ready='1'][data-zone='smallTeam'] .zone-v[data-z='smallTeam'],
+.tide-stage[data-ready='1'][data-zone='valley'] .zone-v[data-z='valley'],
+.tide-stage[data-ready='1'][data-zone='team'] .zone-v[data-z='team'],
+.tide-stage[data-ready='1'][data-zone='threshold'] .zone-v[data-z='threshold'],
+.tide-stage[data-ready='1'][data-zone='graveyard'] .zone-v[data-z='graveyard'] {
+  opacity: 1; visibility: visible; transform: none;
+  transition: opacity 0.35s ease, transform 0.5s var(--ease-out-cubic), visibility 0s;
+}
+.tide-stage[data-zone='graveyard'] .zone-v .tag { color: var(--down-wet); }
+
+/* flooded: the verdict */
+.tide-red { opacity: 0; visibility: hidden; pointer-events: none; gap: 2.2vh; align-self: start; margin-top: 1vh; }
+.tide-stage[data-flood='1'] .tide-red { opacity: var(--fade, 1); visibility: visible; transition: opacity 0.7s ease 0.1s, visibility 0s; }
+.redline {
+  font: 800 min(6vw, 10vh)/0.95 var(--f-display); font-stretch: 80%; font-variation-settings: 'opsz' 96;
+  letter-spacing: -0.02em; text-wrap: balance; max-width: calc(100vw - 440px);
+}
+.redline > .wt-dry { color: var(--down); }
+.redline > .wt-wet { color: var(--down-wet); }
+.drowning { font: 500 clamp(19px, 1.95vw, 28px)/1.25 var(--f-display); max-width: 24em; text-wrap: balance; }
+.drowning > .wt-dry { color: var(--ink); }
+.drowning > .wt-wet { color: var(--cream); }
+
+/* scroll cue */
+.cue {
+  position: absolute; left: 50%; bottom: max(3.4vh, 18px); transform: translateX(-50%);
+  display: grid; justify-items: center; gap: 8px;
+  font: 500 12px/1 var(--f-mono); letter-spacing: 0.18em; text-transform: uppercase; color: rgb(241 234 223 / 0.8);
+  opacity: 0; transition: opacity 0.6s ease;
+}
+.tide-stage[data-ready='1'] .cue { opacity: calc(var(--fade, 1) * 1); }
+.cue-q { display: none; font: 600 15px/1.2 var(--f-display); font-stretch: 92%; letter-spacing: 0.005em; text-transform: none; color: var(--cream); margin-bottom: 4px; }
+.tide-stage[data-zone='threshold'] .cue, .tide-stage[data-zone='graveyard'] .cue { opacity: 0; }
+.chev { width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); animation: bob 1.8s ease-in-out infinite; }
+@keyframes bob { 50% { translate: 0 4px; } }
+
+/* the tide gauge: read-only, decorative (the readout repeats it) */
+.tide-stage { --gtop: max(15vh, 140px); }
+.gauge { position: absolute; top: 0; bottom: 0; right: 56px; width: 320px; pointer-events: none; opacity: var(--fade, 1); }
+.gauge > .wt-dry, .gauge > .wt-wet { position: relative; height: 100%; }
+.gauge > .wt-dry { color: rgb(22 19 15 / 0.78); }
+.gauge > .wt-wet { color: rgb(241 234 223 / 0.82); }
+.g-line { position: absolute; right: 0; top: var(--gtop); bottom: 4vh; width: 1px; background: currentColor; opacity: 0.45; }
+.g-tick { position: absolute; right: 0; top: 0; height: 0; display: flex; align-items: center; justify-content: flex-end; white-space: nowrap; }
+.g-tick::after { content: ''; width: 12px; height: 1px; background: currentColor; margin: 0 -4px 0 10px; }
+.g-name { font: 500 10px/1 var(--f-mono); letter-spacing: 0.13em; text-transform: uppercase; }
+.g-zname { position: absolute; right: 22px; top: -5px; white-space: nowrap; transition: opacity 0.5s ease; }
+.g-out { opacity: 0.85; }
+/* past twelve the gauge runs red: threshold and graveyard */
+.g-red { position: absolute; right: -0.5px; top: 0; width: 2px; height: 0; }
+.gauge > .wt-dry .g-red { background: var(--down); opacity: 0.85; }
+.gauge > .wt-wet .g-red { background: var(--down-wet); opacity: 0.9; }
+.gauge > .wt-dry .g-zname:is([data-z='threshold'], [data-z='graveyard']) { color: var(--down); }
+.gauge > .wt-wet .g-zname:is([data-z='threshold'], [data-z='graveyard']) { color: var(--down-wet); }
+.gauge > .wt-dry .g-num:is([data-tick='15'], [data-tick='40']) .g-val { color: var(--down); }
+.gauge > .wt-wet .g-num:is([data-tick='15'], [data-tick='40']) .g-val { color: var(--down-wet); }
+.g-out::after { width: 7px; margin-right: 0; }
+.g-num { display: none; }
+.g-val { font: 500 9px/1 var(--f-mono); letter-spacing: 0.06em; transition: opacity 0.25s; }
+.g-num[data-hide='1'] .g-val { opacity: 0; }
+.g-head { position: absolute; right: -2px; top: calc(var(--gtop) - 40px); font: 650 16.5px/1.2 var(--f-display); font-stretch: 92%; white-space: nowrap; letter-spacing: 0.002em; transition: opacity 0.5s ease; }
+.gauge > .wt-dry .g-head { color: var(--ink); }
+.gauge > .wt-wet .g-head { color: var(--cream); }
+.tide-stage[data-flood='1'] :is(.g-zname, .g-head) { opacity: 0.35; }
+.g-marker { position: absolute; top: 0; right: 42px; width: 9px; height: 0; opacity: var(--fade, 1); }
+.g-tri { position: absolute; right: 0; top: -5.5px; width: 9px; height: 11px; background: var(--side); clip-path: polygon(100% 0, 0 50%, 100% 100%); }
+.g-mval { display: none; }
+
+@media (max-width: 900px) {
+  .kicker-author { display: block; }
+  .kicker-sep { display: none; }
+}
+@media (max-width: 1279px) {
+  .gauge { right: 22px; width: 60px; }
+  .g-head, .g-zone { display: none; }
+  .cue-q { display: block; }
+  .g-num { display: flex; }
+  .g-marker { right: 9px; width: 8px; }
+  .g-tri { width: 8px; height: 10px; top: -5px; }
+  .g-mval {
+    display: block; position: absolute; right: 30px; top: 3px;
+    font: 700 11px/1 var(--f-mono); letter-spacing: 0.02em; color: var(--side); font-variant-numeric: tabular-nums;
+  }
+}
+@media (max-width: 1099px) {
+  .h1 { font-size: min(9.4vw, 10.6vh); }
+  .redline { font-size: min(8vw, 10vh); max-width: calc(100vw - 2 * 96px); }
+}
+/* portrait tablets: the poster fills the screen */
+@media (min-width: 641px) and (max-aspect-ratio: 4/5) {
+  .h1 { font-size: 10vw; }
+  .ro-num { font-size: 7.4vw; }
+  .zline { font-size: 3.1vw; }
+  .cue-q { font-size: 18px; }
+}
+@media (max-width: 640px) {
+  .tide-stage { --gtop: 16.5vh; }
+  .tide-head { padding-top: 62px; }
+  .kicker { font-size: 10.5px; letter-spacing: 0.12em; line-height: 1.6; }
+  .kicker-author { display: block; }
+  .kicker-sep { display: none; }
+  .h1 { margin-top: 12px; font-size: min(13.4vw, 6.9vh); line-height: 0.97; font-stretch: 78%; padding: 0 6px; }
+  .surface-tag { font-size: 10.5px; letter-spacing: 0.18em; gap: 9px; }
+  .surface-tag i { width: 18px; }
+  .tide-low { transform: translateY(calc(var(--B, 60vh) + 2.8vh + 46px)); }
+  .ro-num { font-size: 44px; }
+  .ro-lab { font-size: 10px; letter-spacing: 0.08em; }
+  .ro-fig { gap: 0 0.5em; }
+  .readout > .wt-dry, .readout > .wt-wet { gap: 0 0.45em; }
+  .ro-dot { width: 5px; height: 5px; }
+  .slot { margin-top: 22px; }
+  .slot-v { gap: 10px; }
+  .tag { font-size: 10.5px; }
+  .zline { font-size: 17px; max-width: 17em; }
+  .zline-sm { font-size: 15px; max-width: 19em; }
+  .breaks { font-size: 30px; max-width: 9em; }
+  .redline { font-size: 10.6vw; max-width: 9em; }
+  .drowning { font-size: 18px; max-width: 16em; }
+  .gauge { right: 12px; width: 40px; }
+  .g-marker { right: 2px; width: 7px; }
+  .g-tri { width: 7px; height: 9px; top: -4.5px; }
+  .g-mval { right: 26px; font-size: 10.5px; }
+  .cue { font-size: 10.5px; }
+  .cue-q { font-size: 14.5px; }
+}
+@media (max-width: 380px) {
+  .ro-lab { font-size: 9px; letter-spacing: 0.04em; }
+  .ro-fig { gap: 0 0.4em; }
+}
