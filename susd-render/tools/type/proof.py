@@ -7,7 +7,7 @@ img = Image.new("RGB", (W, 1500), (236, 237, 233))
 d = ImageDraw.Draw(img)
 y = 30
 for text, size in [("ABCDEFGHIJKLM", 150), ("NOPQRSTUVWXYZ", 150), ("0123456789", 150),
-                   (".,:;-–'’!?/=+<>", 150),
+                   (".,:;-–—‘’“”!?/=+<>()[]⦵", 150),
                    ("EVERY HIRE COMPOUNDS", 128), ("COMPLEXITY BEFORE IT", 128), ("COMPOUNDS CAPACITY.", 128),
                    ("SCALING UP-SIDE-DOWN", 128),
                    ("PAST TWELVE, SOMETHING BREAKS.  HOW MANY PEOPLE ARE ON YOUR TEAM?", 40),

@@ -1,0 +1,18 @@
+Every sentence of Michael's that appears in a type specimen (PNG or HTML), one per line, with its ref.
+Checked with: node ../susd-options/tools/copycheck.mjs docs/type/quotes-used.txt  (must report 0 not found)
+
+"Every hire compounds complexity before it compounds capacity."   M 696 · copy.ts:60
+"Past twelve, something breaks."   M 3509 · copy.ts:88
+"How many people are on your team?"   BL 310
+"Complexity > Capacity = Redline."   M 2997 · copy.ts:80
+"Capacity > Complexity = Oxygen."   M 2999 · copy.ts:119
+"The business is drowning. Every addition makes it worse."   BL 717
+"You were never the problem. The model you inherited was."   M 216 · copy.ts:196
+"The pages are reference. The file is the operating system."   M 4497 · copy.ts:61
+"It has weight. It can hold load."   BL 814 (quoted in 03-TYPE.md, section 3)
+"Growth (the axis everyone obsesses over)"   BL 808 (quoted in 03-TYPE.md)
+"Stabilization (the axis no one sees)"   BL 809 (quoted in 03-TYPE.md)
+"Optimization (the axis everyone fears)"   BL 810 (quoted in 03-TYPE.md)
+"Real scaling is cyclical. Up for growth. Side for stability. Down for pruning. The hyphens aren't decoration—they're the rhythm. Skip a leg, tip upside down."   BL 795 (quoted in 03-TYPE.md)
+Title (not a sentence): "Scaling Up-Side-Down"   BL 795
+Labels (not quotes): Michael Wentz · SUSD Bootloader · V16 · 35,445 words · works with Claude, ChatGPT, Gemini · Get the free Bootloader · Pre-orders open soon · band names · people · coordination pathways // label

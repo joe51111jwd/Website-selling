@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scaling Up-Side-Down</title>
+<link rel="preload" href="fonts/Plimsoll-Heavy.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="mock.css">
+<!-- Beat 9 hold, the finale (brief 6.4, id="get"): Oxygen, the words high and dry on three courses, calm water.
+     Background: out/stills/d8_final_K16.png. The dock is hidden here (the form is on screen). No cards, no panels:
+     the render is the ground. Opt-in mode: handoff (decided MVP) to the live /appendix#get. -->
+<style>
+  .lead { top: 492px; }
+  .col-book, .col-file { top: 606px; }
+</style>
+</head>
+<body>
+<main>
+<section class="stage" id="get" aria-label="The story, told by the water"> <!-- // label -->
+  <picture>
+    <img src="img/d8_final_K16.jpg" alt="The letters stand high and dry on three new courses of concrete above calm water and their old flood line." > <!-- // label -->
+  </picture>
+
+  <div class="lockup">
+    <p class="title">Scaling Up&#x2011;Side&#x2011;Down</p>
+    <p class="byline">A book by Michael Wentz</p> <!-- // label -->
+  </div>
+  <div class="topright"><a class="booklink" href="#book">The book</a></div>
+
+  <div class="lead">
+    <p class="a">In an open system, AI accelerates chaos.</p>
+    <p class="b">In a closed system, AI accelerates clarity.</p>
+  </div>
+
+  <div class="col-book" id="book">
+    <p class="head">The book changed how you think.</p>
+    <p class="booktitle">Scaling Up&#x2011;Side&#x2011;Down</p>
+    <p class="bookby">Michael Wentz</p>
+    <button class="btn-off" type="button" aria-disabled="true">Pre-orders open soon</button>
+    <p class="cred">Wentz spent nearly a decade in institutional finance before building and operating a bootstrapped business that scaled beyond 40 people.</p>
+  </div>
+
+  <div class="col-file">
+    <p class="head">This SUSD Bootloader changes how you operate.</p>
+    <div class="filegrid">
+      <div>
+        <p class="filehead"><span class="mark" aria-hidden="true">&#x29B5;</span><span class="fname">SUSD Bootloader</span></p>
+        <p class="what">The book's appendix as one file, for your AI</p> <!-- // label -->
+        <ul class="spec">
+          <li>Free file</li>
+          <li>Version 16, 35,445 words, Markdown</li>
+          <li>Works with Claude, ChatGPT and Gemini</li> <!-- // label (BL 221 names these three) -->
+        </ul>
+      </div>
+      <div>
+        <form class="form" id="get-form" action="https://scaling-up-side-down.vercel.app/appendix#get" method="get" novalidate>
+          <label for="email">Email address</label>
+          <div class="formrow">
+            <input id="email" name="email" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" placeholder="you@company.com" aria-describedby="note">
+            <button class="btn" type="submit" data-cta="finale">Get the free Bootloader</button> <!-- // label -->
+          </div>
+          <p class="note" id="note">Opens the Bootloader page, where the file is sent by email.</p> <!-- // label -->
+        </form>
+        <p class="next">Upload the file and use the starting prompt provided with it.<br>Then let the system locate you.</p>
+        <a class="appendix" href="https://scaling-up-side-down.vercel.app/appendix">Read the Appendix</a>
+      </div>
+    </div>
+  </div>
+
+</section>
+</main>
+</body>
+</html>

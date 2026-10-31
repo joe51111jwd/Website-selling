@@ -1,0 +1,222 @@
+Blender 4.5.15 LTS (hash 5afeabba6097 built 2026-10-22 01:33:47)
+RNA_float_get: NodeSocket.default_value not found.
+RNA_float_set: NodeSocket.default_value not found.
+Fra:1 Mem:44.33M (Peak 44.33M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | line0
+Fra:1 Mem:44.34M (Peak 44.34M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Bounce
+Fra:1 Mem:45.40M (Peak 45.40M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Window
+Fra:1 Mem:45.40M (Peak 45.40M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | SkylightSun
+Fra:1 Mem:46.40M (Peak 46.40M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | TankLuminaire
+Fra:1 Mem:46.40M (Peak 46.40M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | transom
+Fra:1 Mem:46.41M (Peak 46.41M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | mullion
+Fra:1 Mem:46.41M (Peak 46.41M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | lw_back
+Fra:1 Mem:46.41M (Peak 46.41M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | lw_front
+Fra:1 Mem:46.41M (Peak 46.41M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | lw_high
+Fra:1 Mem:46.41M (Peak 46.41M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | lw_low
+Fra:1 Mem:46.41M (Peak 46.41M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall
+Fra:1 Mem:46.41M (Peak 46.41M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | stand
+Fra:1 Mem:46.42M (Peak 46.42M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | water
+Fra:1 Mem:46.50M (Peak 46.50M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | line2
+Fra:1 Mem:49.44M (Peak 49.44M) | Time:00:00.01 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cylinder.003
+Fra:1 Mem:49.45M (Peak 49.45M) | Time:00:00.01 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cylinder.002
+Fra:1 Mem:49.45M (Peak 49.45M) | Time:00:00.01 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cylinder.001
+Fra:1 Mem:49.45M (Peak 49.45M) | Time:00:00.01 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cylinder
+Fra:1 Mem:49.46M (Peak 49.46M) | Time:00:00.01 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | glass_right
+Fra:1 Mem:49.47M (Peak 49.47M) | Time:00:00.01 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | glass_left
+Fra:1 Mem:49.47M (Peak 49.47M) | Time:00:00.01 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | glass_back
+Fra:1 Mem:49.48M (Peak 49.48M) | Time:00:00.01 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | glass_front
+Fra:1 Mem:49.49M (Peak 49.49M) | Time:00:00.01 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | glass_bottom
+Fra:1 Mem:49.49M (Peak 49.49M) | Time:00:00.01 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | step2
+Fra:1 Mem:49.50M (Peak 49.50M) | Time:00:00.01 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | step1
+Fra:1 Mem:49.51M (Peak 49.51M) | Time:00:00.01 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | step0
+Fra:1 Mem:57.67M (Peak 66.73M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
+Fra:1 Mem:57.67M (Peak 66.73M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
+Fra:1 Mem:57.67M (Peak 66.73M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
+Fra:1 Mem:57.67M (Peak 66.73M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
+Fra:1 Mem:57.67M (Peak 66.73M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
+Fra:1 Mem:57.76M (Peak 66.73M) | Time:00:00.08 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
+Fra:1 Mem:57.76M (Peak 66.73M) | Time:00:00.08 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
+Fra:1 Mem:57.76M (Peak 66.73M) | Time:00:00.08 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
+Fra:1 Mem:57.76M (Peak 66.73M) | Time:00:00.08 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
+Fra:1 Mem:57.76M (Peak 66.73M) | Time:00:00.08 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
+Fra:1 Mem:57.76M (Peak 66.73M) | Time:00:00.08 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
+Fra:1 Mem:57.77M (Peak 66.73M) | Time:00:00.08 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems
+Fra:1 Mem:57.77M (Peak 66.73M) | Time:00:00.08 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
+Fra:1 Mem:57.77M (Peak 66.73M) | Time:00:00.08 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Meshes
+Fra:1 Mem:57.81M (Peak 66.73M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
+Fra:1 Mem:57.81M (Peak 66.73M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Computing attributes
+Fra:1 Mem:59.09M (Peak 66.73M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
+Fra:1 Mem:59.09M (Peak 66.73M) | Time:00:00.10 | Mem:1.29M, Peak:1.29M | Scene, ViewLayer | Updating Scene BVH | Building
+Fra:1 Mem:59.09M (Peak 66.73M) | Time:00:00.10 | Mem:1.29M, Peak:1.29M | Scene, ViewLayer | Updating Scene BVH | Building BVH
+Fra:1 Mem:59.09M (Peak 66.73M) | Time:00:00.10 | Mem:6.70M, Peak:6.70M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
+Fra:1 Mem:59.09M (Peak 66.73M) | Time:00:00.14 | Mem:13.15M, Peak:18.56M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
+Fra:1 Mem:59.09M (Peak 66.73M) | Time:00:00.14 | Mem:13.15M, Peak:18.56M | Scene, ViewLayer | Updating Mesh | Computing normals
+Fra:1 Mem:64.27M (Peak 66.73M) | Time:00:00.14 | Mem:13.15M, Peak:18.56M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
+Fra:1 Mem:64.27M (Peak 66.73M) | Time:00:00.14 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Objects Flags
+Fra:1 Mem:64.27M (Peak 66.73M) | Time:00:00.14 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Primitive Offsets
+Fra:1 Mem:64.27M (Peak 66.73M) | Time:00:00.14 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Images
+Fra:1 Mem:64.27M (Peak 66.73M) | Time:00:00.14 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Images | Loading concrete_wall_004_nor_gl_2k.jpg
+Fra:1 Mem:64.27M (Peak 66.73M) | Time:00:00.14 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Images | Loading painted_plaster_wall_diff_2k.jpg
+Fra:1 Mem:64.27M (Peak 66.73M) | Time:00:00.14 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Images | Loading metal_plate_rough_2k.jpg
+Fra:1 Mem:132.29M (Peak 132.29M) | Time:00:00.36 | Mem:22.34M, Peak:22.34M | Scene, ViewLayer | Updating Images | Loading concrete_wall_004_diff_2k.jpg
+Fra:1 Mem:148.29M (Peak 148.29M) | Time:00:00.37 | Mem:38.34M, Peak:38.34M | Scene, ViewLayer | Updating Images | Loading concrete_floor_worn_001_diff_2k.jpg
+Fra:1 Mem:164.29M (Peak 164.29M) | Time:00:00.38 | Mem:54.34M, Peak:54.34M | Scene, ViewLayer | Updating Images | Loading concrete_floor_worn_001_nor_gl_2k.jpg
+Fra:1 Mem:180.29M (Peak 180.29M) | Time:00:00.39 | Mem:86.34M, Peak:86.34M | Scene, ViewLayer | Updating Images | Loading painted_plaster_wall_rough_2k.jpg
+Fra:1 Mem:184.29M (Peak 184.29M) | Time:00:00.44 | Mem:90.34M, Peak:90.34M | Scene, ViewLayer | Updating Images | Loading concrete_wall_004_rough_2k.jpg
+Fra:1 Mem:200.29M (Peak 200.29M) | Time:00:00.58 | Mem:106.34M, Peak:106.34M | Scene, ViewLayer | Updating Images | Loading concrete_floor_worn_001_rough_2k.jpg
+Fra:1 Mem:216.29M (Peak 216.29M) | Time:00:00.59 | Mem:122.34M, Peak:122.34M | Scene, ViewLayer | Updating Images | Loading painted_plaster_wall_nor_gl_2k.jpg
+Fra:1 Mem:232.29M (Peak 232.29M) | Time:00:00.70 | Mem:186.34M, Peak:186.34M | Scene, ViewLayer | Updating Camera Volume
+Fra:1 Mem:232.29M (Peak 232.29M) | Time:00:00.70 | Mem:186.34M, Peak:186.34M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:232.29M (Peak 232.29M) | Time:00:00.70 | Mem:186.42M, Peak:186.42M | Scene, ViewLayer | Updating Lights
+Fra:1 Mem:232.29M (Peak 232.29M) | Time:00:00.70 | Mem:186.42M, Peak:186.42M | Scene, ViewLayer | Updating Lights | Importance map
+Fra:1 Mem:296.32M (Peak 584.29M) | Time:00:02.96 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Updating Lights | Computing tree
+Fra:1 Mem:296.32M (Peak 584.29M) | Time:00:02.96 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Updating Integrator
+Fra:1 Mem:296.32M (Peak 584.29M) | Time:00:02.96 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Updating Film
+Fra:1 Mem:296.32M (Peak 584.29M) | Time:00:02.96 | Mem:250.39M, Peak:410.44M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:296.32M (Peak 584.29M) | Time:00:02.96 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Updating Baking
+Fra:1 Mem:296.32M (Peak 584.29M) | Time:00:02.96 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Updating Device | Writing constant memory
+Fra:1 Mem:296.33M (Peak 584.29M) | Time:00:02.96 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Loading denoising kernels (may take a few minutes the first time)
+Fra:1 Mem:296.33M (Peak 584.29M) | Time:00:02.96 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Sample 0/24
+Fra:1 Mem:319.85M (Peak 584.29M) | Time:00:03.68 | Remaining:00:16.60 | Mem:273.96M, Peak:410.44M | Scene, ViewLayer | Sample 1/24
+Fra:1 Mem:329.74M (Peak 584.29M) | Time:00:20.91 | Mem:273.96M, Peak:410.44M | Scene, ViewLayer | Sample 24/24
+Fra:1 Mem:329.74M (Peak 584.29M) | Time:00:20.91 | Mem:273.96M, Peak:410.44M | Scene, ViewLayer | Finished
+Fra:1 Mem:329.74M (Peak 584.29M) | Time:00:20.91 | Compositing
+Saved: '/home/user/Website-selling/susd-render/lookdev/a/a12_surface_ref.png'
+Time: 00:21.16 (Saving: 00:00.18)
+
+LEVEL 0.1969 TOP 0.4145 P 0.0882 EM 0.0973 CAMZ 0.5145
+RENDER_SECONDS 21.2 lookdev/a/a12_surface_ref.png
+
+Blender quit
+render_idle: waited 6.0s, cpu shared 0.0s, load before 3.19
+Blender 4.5.15 LTS (hash 5afeabba6097 built 2026-10-22 01:33:47)
+RNA_float_get: NodeSocket.default_value not found.
+RNA_float_set: NodeSocket.default_value not found.
+Fra:1 Mem:44.03M (Peak 44.03M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | line0
+Fra:1 Mem:46.10M (Peak 46.10M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | line2
+Fra:1 Mem:46.10M (Peak 46.10M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Bounce
+Fra:1 Mem:46.22M (Peak 46.22M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Window
+Fra:1 Mem:46.22M (Peak 46.22M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | SkylightSun
+Fra:1 Mem:46.22M (Peak 46.22M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | TankLuminaire
+Fra:1 Mem:46.22M (Peak 46.22M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | transom
+Fra:1 Mem:46.23M (Peak 46.23M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | mullion
+Fra:1 Mem:46.23M (Peak 46.23M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | lw_back
+Fra:1 Mem:46.23M (Peak 46.23M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | lw_front
+Fra:1 Mem:46.23M (Peak 46.23M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | lw_high
+Fra:1 Mem:46.23M (Peak 46.23M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | lw_low
+Fra:1 Mem:46.23M (Peak 46.23M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall
+Fra:1 Mem:46.23M (Peak 46.23M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | stand
+Fra:1 Mem:46.24M (Peak 46.24M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | water
+Fra:1 Mem:49.26M (Peak 49.26M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cylinder.003
+Fra:1 Mem:49.26M (Peak 49.26M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cylinder.002
+Fra:1 Mem:49.26M (Peak 49.26M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cylinder.001
+Fra:1 Mem:49.27M (Peak 49.27M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cylinder
+Fra:1 Mem:49.27M (Peak 49.27M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | glass_right
+Fra:1 Mem:49.28M (Peak 49.28M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | glass_left
+Fra:1 Mem:49.29M (Peak 49.29M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | glass_back
+Fra:1 Mem:49.30M (Peak 49.30M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | glass_front
+Fra:1 Mem:49.31M (Peak 49.31M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | glass_bottom
+Fra:1 Mem:49.31M (Peak 49.31M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | step2
+Fra:1 Mem:50.04M (Peak 50.04M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | step1
+Fra:1 Mem:50.05M (Peak 50.05M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | step0
+Fra:1 Mem:57.37M (Peak 68.86M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
+Fra:1 Mem:57.37M (Peak 68.86M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
+Fra:1 Mem:57.37M (Peak 68.86M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
+Fra:1 Mem:57.37M (Peak 68.86M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
+Fra:1 Mem:57.37M (Peak 68.86M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
+Fra:1 Mem:57.46M (Peak 68.86M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
+Fra:1 Mem:57.46M (Peak 68.86M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
+Fra:1 Mem:57.46M (Peak 68.86M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
+Fra:1 Mem:57.46M (Peak 68.86M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
+Fra:1 Mem:57.46M (Peak 68.86M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
+Fra:1 Mem:57.46M (Peak 68.86M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
+Fra:1 Mem:57.46M (Peak 68.86M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems
+Fra:1 Mem:57.46M (Peak 68.86M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
+Fra:1 Mem:57.46M (Peak 68.86M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Meshes
+Fra:1 Mem:57.51M (Peak 68.86M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
+Fra:1 Mem:57.51M (Peak 68.86M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Computing attributes
+Fra:1 Mem:58.79M (Peak 68.86M) | Time:00:00.10 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
+Fra:1 Mem:58.78M (Peak 68.86M) | Time:00:00.10 | Mem:1.29M, Peak:1.29M | Scene, ViewLayer | Updating Scene BVH | Building
+Fra:1 Mem:58.78M (Peak 68.86M) | Time:00:00.10 | Mem:1.29M, Peak:1.29M | Scene, ViewLayer | Updating Scene BVH | Building BVH
+Fra:1 Mem:58.78M (Peak 68.86M) | Time:00:00.10 | Mem:6.70M, Peak:6.70M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
+Fra:1 Mem:58.78M (Peak 68.86M) | Time:00:00.13 | Mem:13.15M, Peak:18.56M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
+Fra:1 Mem:58.78M (Peak 68.86M) | Time:00:00.13 | Mem:13.15M, Peak:18.56M | Scene, ViewLayer | Updating Mesh | Computing normals
+Fra:1 Mem:63.97M (Peak 68.86M) | Time:00:00.17 | Mem:13.15M, Peak:18.56M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
+Fra:1 Mem:63.97M (Peak 68.86M) | Time:00:00.17 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Objects Flags
+Fra:1 Mem:63.97M (Peak 68.86M) | Time:00:00.17 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Primitive Offsets
+Fra:1 Mem:63.97M (Peak 68.86M) | Time:00:00.17 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Images
+Fra:1 Mem:63.97M (Peak 68.86M) | Time:00:00.17 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Images | Loading painted_plaster_wall_nor_gl_2k.jpg
+Fra:1 Mem:63.97M (Peak 68.86M) | Time:00:00.17 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Images | Loading painted_plaster_wall_diff_2k.jpg
+Fra:1 Mem:63.97M (Peak 68.86M) | Time:00:00.17 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Images | Loading photo_studio_loft_hall_2k.hdr
+Fra:1 Mem:63.97M (Peak 68.86M) | Time:00:00.17 | Mem:18.34M, Peak:18.56M | Scene, ViewLayer | Updating Images | Loading metal_plate_rough_2k.jpg
+Fra:1 Mem:131.98M (Peak 131.98M) | Time:00:00.31 | Mem:22.34M, Peak:22.34M | Scene, ViewLayer | Updating Images | Loading concrete_wall_004_diff_2k.jpg
+Fra:1 Mem:147.98M (Peak 147.98M) | Time:00:00.41 | Mem:54.34M, Peak:54.34M | Scene, ViewLayer | Updating Images | Loading painted_plaster_wall_rough_2k.jpg
+Fra:1 Mem:147.98M (Peak 147.98M) | Time:00:00.41 | Mem:54.34M, Peak:54.34M | Scene, ViewLayer | Updating Images | Loading concrete_floor_worn_001_diff_2k.jpg
+Fra:1 Mem:167.98M (Peak 167.98M) | Time:00:00.49 | Mem:86.34M, Peak:86.34M | Scene, ViewLayer | Updating Images | Loading concrete_wall_004_rough_2k.jpg
+Fra:1 Mem:183.98M (Peak 183.98M) | Time:00:00.50 | Mem:90.34M, Peak:90.34M | Scene, ViewLayer | Updating Images | Loading concrete_floor_worn_001_nor_gl_2k.jpg
+Fra:1 Mem:199.98M (Peak 199.98M) | Time:00:00.51 | Mem:106.34M, Peak:106.34M | Scene, ViewLayer | Updating Images | Loading concrete_floor_worn_001_rough_2k.jpg
+Fra:1 Mem:215.98M (Peak 215.98M) | Time:00:00.52 | Mem:122.34M, Peak:122.34M | Scene, ViewLayer | Updating Images | Loading concrete_wall_004_nor_gl_2k.jpg
+Fra:1 Mem:231.98M (Peak 231.98M) | Time:00:00.65 | Mem:186.34M, Peak:186.34M | Scene, ViewLayer | Updating Camera Volume
+Fra:1 Mem:231.98M (Peak 231.98M) | Time:00:00.65 | Mem:186.34M, Peak:186.34M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:231.98M (Peak 231.98M) | Time:00:00.65 | Mem:186.42M, Peak:186.42M | Scene, ViewLayer | Updating Lights
+Fra:1 Mem:231.98M (Peak 231.98M) | Time:00:00.65 | Mem:186.42M, Peak:186.42M | Scene, ViewLayer | Updating Lights | Importance map
+Fra:1 Mem:296.01M (Peak 583.98M) | Time:00:02.56 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Updating Lights | Computing tree
+Fra:1 Mem:296.02M (Peak 583.98M) | Time:00:02.56 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Updating Integrator
+Fra:1 Mem:296.02M (Peak 583.98M) | Time:00:02.56 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Updating Film
+Fra:1 Mem:296.02M (Peak 583.98M) | Time:00:02.56 | Mem:250.39M, Peak:410.44M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:296.02M (Peak 583.98M) | Time:00:02.56 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Updating Baking
+Fra:1 Mem:296.02M (Peak 583.98M) | Time:00:02.56 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Updating Device | Writing constant memory
+Fra:1 Mem:296.02M (Peak 583.98M) | Time:00:02.56 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Loading denoising kernels (may take a few minutes the first time)
+Fra:1 Mem:296.02M (Peak 583.98M) | Time:00:02.56 | Mem:250.47M, Peak:410.44M | Scene, ViewLayer | Sample 0/24
+Fra:1 Mem:319.55M (Peak 583.98M) | Time:00:03.21 | Remaining:00:14.90 | Mem:273.95M, Peak:410.44M | Scene, ViewLayer | Sample 1/24
+Fra:1 Mem:329.44M (Peak 583.98M) | Time:00:19.19 | Mem:273.95M, Peak:410.44M | Scene, ViewLayer | Sample 24/24
+Fra:1 Mem:329.44M (Peak 583.98M) | Time:00:19.19 | Mem:273.95M, Peak:410.44M | Scene, ViewLayer | Finished
+Fra:1 Mem:329.44M (Peak 583.98M) | Time:00:19.19 | Compositing
+Saved: '/home/user/Website-selling/susd-render/lookdev/a/a13_mnee.png'
+Time: 00:19.40 (Saving: 00:00.14)
+
+LEVEL 0.1969 TOP 0.4145 P 0.0882 EM 0.0973 CAMZ 0.5145
+RENDER_SECONDS 19.4 lookdev/a/a13_mnee.png
+
+Blender quit
+render_idle: waited 6.0s, cpu shared 0.0s, load before 2.85
+Blender 4.5.15 LTS (hash 5afeabba6097 built 2026-10-22 01:33:47)
+Error: Unable to pack file, source path '/home/user/Website-selling/susd-render/assets/fonts/docs/type/system/Plimsoll-Heavy.otf' not found
+Error: Cannot read '/home/user/Website-selling/susd-render/assets/fonts/docs/type/system/Plimsoll-Heavy.otf': No such file or directory
+Traceback (most recent call last):
+  File "/home/user/Website-selling/susd-render/tools/type/type3d.py", line 92, in <module>
+    runpy.run_path(os.path.join(LOOKDEV, SCRIPT), run_name='__main__')
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/user/Website-selling/susd-render/lookdev/stage_c_lock.py", line 63, in <module>
+    font = L.load_font(A['font'])
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Website-selling/susd-render/lookdev/lib_lookdev.py", line 578, in load_font
+    return bpy.data.fonts.load(os.path.join(FONTS, fname), check_existing=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Error: Cannot read '/home/user/Website-selling/susd-render/assets/fonts/docs/type/system/Plimsoll-Heavy.otf': No such file or directory
+
+
+Blender quit
+render_idle: waited 6.0s, cpu shared 0.0s, load before 2.58
+Blender 4.5.15 LTS (hash 5afeabba6097 built 2026-10-22 01:33:47)
+Error: Unable to pack file, source path '/home/user/Website-selling/susd-render/assets/fonts/docs/type/system/Plimsoll-Heavy.otf' not found
+Error: Cannot read '/home/user/Website-selling/susd-render/assets/fonts/docs/type/system/Plimsoll-Heavy.otf': No such file or directory
+Traceback (most recent call last):
+  File "/home/user/Website-selling/susd-render/tools/type/type3d.py", line 92, in <module>
+    runpy.run_path(os.path.join(LOOKDEV, SCRIPT), run_name='__main__')
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/user/Website-selling/susd-render/lookdev/stage_c_lock.py", line 63, in <module>
+    font = L.load_font(A['font'])
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Website-selling/susd-render/lookdev/lib_lookdev.py", line 578, in load_font
+    return bpy.data.fonts.load(os.path.join(FONTS, fname), check_existing=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Error: Cannot read '/home/user/Website-selling/susd-render/assets/fonts/docs/type/system/Plimsoll-Heavy.otf': No such file or directory
+
+
+Blender quit
+render_idle: waited 6.0s, cpu shared 0.0s, load before 2.38
+FOLLOWUP_DONE

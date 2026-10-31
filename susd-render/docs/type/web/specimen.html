@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SUSD type system</title>
+<!--
+  Type-system proof for the Waterline (docs/03-TYPE.md, section 5). Not the site: a test that the
+  recommended files render in Chromium as webfonts, at desktop and phone width, on paper and on
+  top of a real lookdev render. Every sentence is Michael's, word for word (refs in 03-TYPE.md);
+  lines marked "// label" are UI labels. Shot by tools/type/shoot_specimen.cjs.
+-->
+<style>
+@font-face { font-family: "Plimsoll"; src: url("../system/Plimsoll-Heavy.woff2") format("woff2"); font-weight: 800; font-display: block; }
+@font-face { font-family: "Ortica Angular"; src: url("../system/Ortica-AngularBold.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "Ortica Linear"; src: url("../system/Ortica-LinearBold.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "Ortica Linear"; src: url("../system/Ortica-LinearRegular.woff2") format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "B612"; src: url("../system/B612-Regular.woff2") format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "B612"; src: url("../system/B612-Bold.woff2") format("woff2"); font-weight: 700; font-display: block; }
+:root {
+  --paper: #e3e5e2; --ink: #151718; --dim: #5d6264; --red: #a3291c;
+  --wet-ink: #eef0ec; --wet-dim: #b9c2bd;
+  --gut: clamp(16px, 4vw, 64px);
+}
+* { box-sizing: border-box; margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: "B612", sans-serif; font-size: 15px; line-height: 1.45; }
+.role { font: 400 13px/1.3 "B612", sans-serif; color: var(--dim); margin-bottom: 10px; }
+section { padding: 40px var(--gut); border-bottom: 1px solid #c9ccc8; }
+
+/* 1. title and hero: Plimsoll. The face is caps-only and maps lower case to its capitals, so the
+   source text stays in Michael's sentence case for screen readers and search. */
+.title { font: 800 clamp(40px, 6.9vw, 112px)/0.92 "Plimsoll"; letter-spacing: 0.005em; }
+.title .nb { white-space: nowrap; }  /* the title may break at its space, never at its hyphens (U+2011) */
+.byline { font: 700 15px/1.2 "B612"; margin-top: 14px; }
+.hero { font: 800 clamp(30px, 5.6vw, 82px)/0.98 "Plimsoll"; max-width: 15.5em; }
+
+/* 2. on the render */
+.wet { position: relative; padding: 0; border: 0; background: #0d1110 url("bg-lock-touch.png") center 60% / cover no-repeat; color: var(--wet-ink); }
+.wet .inner { padding: 48px var(--gut) 56px; display: grid; grid-template-columns: 1.35fr 1fr; gap: 40px 56px; align-items: end;
+  background: linear-gradient(180deg, rgba(8,11,10,.30), rgba(8,11,10,.58)); min-height: 620px; }
+.wet .role { color: var(--wet-dim); }
+.beat { font: 700 clamp(30px, 4.4vw, 64px)/1.04 "Ortica Angular"; text-wrap: balance; }
+.support { font: 400 clamp(19px, 1.9vw, 27px)/1.3 "Ortica Linear"; margin-top: 18px; color: var(--wet-ink); max-width: 30em; }
+.eq { font: 800 clamp(20px, 2.2vw, 30px)/1.1 "Plimsoll"; margin-top: 22px; color: #f0a093; letter-spacing: 0.01em; }
+.gauge { display: grid; grid-template-columns: auto 1fr; gap: 6px 28px; align-items: end; }
+.read { font: 800 clamp(64px, 8vw, 116px)/0.86 "Plimsoll"; font-variant-numeric: tabular-nums; }
+.read.red { color: #f0a093; }
+.unit { font: 400 14px/1.2 "B612"; color: var(--wet-dim); }
+.bands { grid-column: 1 / -1; list-style: none; padding: 0; margin-top: 18px; font: 400 14px/1.75 "B612"; }
+.bands li::before { content: ""; display: inline-block; width: 22px; height: 2px; background: currentColor; vertical-align: middle; margin-right: 10px; }
+.bands .on { font-weight: 700; }
+.bands .hot { color: #f0a093; }
+.q { font: 700 clamp(17px, 1.5vw, 21px)/1.3 "Ortica Linear"; margin-bottom: 8px; }
+
+/* 3. the Bootloader path */
+.boot { display: grid; grid-template-columns: auto 1fr; gap: 24px 40px; align-items: start; }
+.mark { font: 800 112px/0.8 "Plimsoll"; }
+.fname { font: 800 clamp(30px, 3.6vw, 48px)/1 "Plimsoll"; letter-spacing: 0.01em; }
+.meta { font: 400 15px/1.4 "B612"; color: var(--dim); margin-top: 10px; }
+.closed { font: 400 clamp(20px, 2vw, 28px)/1.3 "Ortica Linear"; margin-top: 18px; }
+form { display: flex; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+input { font: 400 17px/1 "B612"; padding: 15px 16px; min-width: min(380px, 100%); border: 2px solid var(--ink); background: #f2f3f1; color: var(--ink); border-radius: 0; }
+button { font: 700 17px/1 "B612"; padding: 15px 22px; border: 2px solid var(--ink); background: var(--ink); color: #f2f3f1; border-radius: 0; cursor: pointer; }
+.book { font: 400 15px/1.4 "B612"; margin-top: 14px; color: var(--dim); }
+.book b { color: var(--ink); }
+
+@media (max-width: 700px) {
+  .wet .inner { grid-template-columns: 1fr; min-height: 0; }
+  .boot { grid-template-columns: 1fr; }
+  .mark { font-size: 72px; }
+  form > * { flex: 1 1 100%; }
+}
+</style>
+</head>
+<body>
+
+<section>
+  <p class="role">Title and wordmark: Plimsoll Heavy (custom, OFL). Hyphens are flanges.</p> <!-- // label -->
+  <h1 class="title">Scaling <span class="nb">Up&#x2011;Side&#x2011;Down</span></h1>
+  <p class="byline">Michael Wentz</p> <!-- // label -->
+</section>
+
+<section>
+  <p class="role">The thesis as HTML (static fallback and screen-reader text for the 3D hero): Plimsoll Heavy</p> <!-- // label -->
+  <p class="hero">Every hire compounds complexity before it compounds capacity.</p>
+</section>
+
+<section class="wet">
+  <div class="inner">
+    <div>
+      <p class="role">Story overlays on a render: Ortica Angular Bold (beat), Ortica Linear Regular (support), Plimsoll (equation)</p> <!-- // label -->
+      <p class="beat">Past twelve, something breaks.</p>
+      <p class="support">The business is drowning. Every addition makes it worse.</p>
+      <p class="eq">Complexity &gt; Capacity = Redline.</p>
+    </div>
+    <div>
+      <p class="q">How many people are on your team?</p>
+      <div class="gauge">
+        <span class="read">13</span><span class="read red">78</span>
+        <span class="unit">people</span><span class="unit">coordination pathways</span> <!-- // label -->
+        <ul class="bands">
+          <li class="hot">Graveyard 15-39</li> <!-- // label -->
+          <li class="hot on">Threshold 13-14</li> <!-- // label -->
+          <li>Team 8-12</li> <!-- // label -->
+          <li>Valley 4-7</li> <!-- // label -->
+          <li>Small Team 2-3</li> <!-- // label -->
+          <li>Solopreneur 1</li> <!-- // label -->
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <p class="role">The Bootloader path: Plimsoll for the file's name and mark, B612 for its facts and the form, Ortica Linear for Michael's line</p> <!-- // label -->
+  <div class="boot">
+    <div class="mark" aria-hidden="true">&#x29B5;</div>
+    <div>
+      <p class="fname">SUSD Bootloader</p> <!-- // label -->
+      <p class="meta">V16 · 35,445 words · works with Claude, ChatGPT, Gemini</p> <!-- // label -->
+      <p class="closed">The pages are reference. The file is the operating system.</p>
+      <form action="https://scaling-up-side-down.vercel.app/appendix#get" onsubmit="return false">
+        <input type="email" placeholder="you@business.com" aria-label="Email"> <!-- // label -->
+        <button type="submit">Get the free Bootloader</button> <!-- // label -->
+      </form>
+      <p class="book"><b>The book</b> · Pre-orders open soon</p> <!-- // label -->
+      <p class="eq" style="color:var(--ink)">Capacity &gt; Complexity = Oxygen.</p>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

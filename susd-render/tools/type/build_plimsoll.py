@@ -22,10 +22,12 @@ import math, pathlib, shutil
 from pathops import Path, op, PathOp
 import ufoLib2
 from fontTools.pens.roundingPen import RoundingPen
+from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.misc.bezierTools import splitCubicAtT
 import ufo2ft
-from fontTools.ttLib import TTFont
+from fontTools.ttLib import TTFont, newTable
+from fontTools.ttLib.tables._k_e_r_n import KernTable_format_0
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 OUT = ROOT / "docs" / "type" / "custom"
@@ -272,6 +274,84 @@ def x_at(p0, p1, y):
     return p0[0] + (p1[0] - p0[0]) * (y - p0[1]) / (p1[1] - p0[1])
 
 
+# --- v1.0: exact diagonals. v0.9 placed braces by their centre lines, so their edges landed a few
+# units off the bars and bowls they meet (spurs on Z and 4, steps in 2 and ?). These place a brace
+# by its EDGES, so joins are flush by construction.
+def brace_from_left_edge(A, P, t=BRACE):
+    """A brace whose upper-left edge is the line A->P (A lower), t thick, lying to its right."""
+    dx, dy = P[0] - A[0], P[1] - A[1]
+    L = math.hypot(dx, dy)
+    ux, uy = dx / L, dy / L
+    nx, ny = uy, -ux                       # right-hand normal
+    c = (A[0] + nx * t / 2, A[1] + ny * t / 2)
+    return brace((c[0] - ux * 900, c[1] - uy * 900), (c[0] + ux * 900, c[1] + uy * 900), t)
+
+
+def brace_edges(A, B, t=BRACE):
+    """A brace whose upper-left edge passes through A and lower-right edge through B (A lower-left)."""
+    dx, dy = B[0] - A[0], B[1] - A[1]
+    L = math.hypot(dx, dy)
+    th = math.atan2(dy, dx) + math.asin(t / L)
+    return brace_from_left_edge(A, (A[0] + math.cos(th) * 100, A[1] + math.sin(th) * 100), t)
+
+
+def halfplane_left(P, u):
+    """Everything on the left of (above) the directed line through P with direction u."""
+    nx, ny = -u[1], u[0]
+    a = (P[0] - u[0] * BIG, P[1] - u[1] * BIG)
+    b = (P[0] + u[0] * BIG, P[1] + u[1] * BIG)
+    return poly([a, b, (b[0] + nx * BIG, b[1] + ny * BIG), (a[0] + nx * BIG, a[1] + ny * BIG)])
+
+
+def _cubic_pts(seg, k=600):
+    (x0, y0), (x1, y1), (x2, y2), (x3, y3) = seg
+    out = []
+    for i in range(k + 1):
+        s = i / k
+        a, b, c, d = (1 - s) ** 3, 3 * s * (1 - s) ** 2, 3 * s * s * (1 - s), s ** 3
+        out.append((a * x0 + b * x1 + c * x2 + d * x3, a * y0 + b * y1 + c * y2 + d * y3))
+    return out
+
+
+def tangent_brace(box, A, t=BRACE, inner=None):
+    """The Down stroke of 2 and ?: a brace whose upper-left edge passes through A and whose
+    lower-right edge is TANGENT to the outer contour of the round `box` (its lower-right quarter),
+    so the bowl runs into the diagonal without a step. Returns (brace, T, u, y_up): T is the
+    tangent point, u the direction, y_up the height where the brace's upper-left edge leaves the
+    counter `inner` on the right (ring material above it belongs to the bowl, below it to the brace)."""
+    x0, y0, x1, y1 = box
+    cx, cy, rx, ry = (x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2
+    k = (2 ** (-1 / NO) - 0.5) / 0.375
+    pts = _cubic_pts(((cx, y0), (cx + k * rx, y0), (x1, cy - k * ry), (x1, cy)))
+
+    def f(th):
+        u = (math.cos(th), math.sin(th))
+        n = (u[1], -u[0])
+        T = max(pts, key=lambda p: n[0] * p[0] + n[1] * p[1])
+        return (n[0] * T[0] + n[1] * T[1]) - t - (n[0] * A[0] + n[1] * A[1]), T, u, n
+
+    lo, hi = math.radians(3), math.radians(89)
+    for _ in range(80):
+        mid = (lo + hi) / 2
+        if f(mid)[0] > 0:
+            hi = mid
+        else:
+            lo = mid
+    _, T, u, n = f((lo + hi) / 2)
+    y_up = cy
+    if inner is not None:
+        ix0, iy0, ix1, iy1 = inner
+        icx, icy, irx, iry = (ix0 + ix1) / 2, (iy0 + iy1) / 2, (ix1 - ix0) / 2, (iy1 - iy0) / 2
+        ki = (2 ** (-1 / NI) - 0.5) / 0.375
+        ip = _cubic_pts(((icx, iy0), (icx + ki * irx, iy0), (ix1, icy - ki * iry), (ix1, icy)))
+        cA = n[0] * A[0] + n[1] * A[1]
+        below = [p for p in ip if n[0] * p[0] + n[1] * p[1] >= cA]   # counter points right of the edge
+        if below:
+            y_up = max(p[1] for p in below)
+    c = (T[0] - n[0] * t / 2, T[1] - n[1] * t / 2)
+    return brace((c[0] - u[0] * 900, c[1] - u[1] * 900), (c[0] + u[0] * 900, c[1] + u[1] * 900), t), T, u, y_up
+
+
 # ----------------------------------------------------------------- glyph table
 G = {}            # name -> (unicodes, path, lsb, rsb)
 w2, h2 = WEB / 2, FLANGE / 2
@@ -393,7 +473,7 @@ def _G():
     w = 632
     yb = 300
     o = Dif(ring(0, -OS, w, CAP + OS), rect(w * 0.80, yb + MIDF / 2, BIG, BIG))
-    return U(o, bar(w * 0.50, w, yb, MIDF))
+    return U(o, Int(bar(w * 0.50, w, yb, MIDF), se(0, -OS, w, CAP + OS, NO)))
 
 
 @glyph("D", [0x44], 62, 42)
@@ -411,7 +491,7 @@ def _P():
 def _R():
     y0 = MIDY - MIDF / 2 - 20
     b = right_bowl(0, 540, y0, CAP, 246, tb=MIDF)
-    leg = band(brace((300, y0 + MIDF / 2), (556, -10)), 0, y0 + 20)
+    leg = band(brace((300, y0 + MIDF / 2), (556, -10)), 0, y0 + 52)
     leg = Int(leg, rect(250, -BIG, 600, BIG))
     return U(stem(0), b, leg)
 
@@ -436,7 +516,7 @@ def _U():
 def _J():
     w = 480
     cy = 286
-    bowl = Int(ring(0, -OS, w, 2 * cy + OS), rect(w * 0.16, -BIG, BIG, cy))
+    bowl = Int(ring(0, -OS, w, 2 * cy + OS), rect(w * 0.22, -BIG, BIG, cy))
     return U(bowl, stem(w - WEB, cy - 1, CAP), bar(w - WEB - 160, w, TOP))
 
 
@@ -556,9 +636,13 @@ def _M():
 
 @glyph("Z", [0x5A], 28, 28)
 def _Z():
+    # v1.0: the brace is placed by its edges, so its upper-left edge lands exactly on the base
+    # flange's left end and its lower-right edge exactly on the top flange's right end (no spurs).
     w = 530
-    d = band(brace((44, BOT - 20), (w - 44, TOP + 20)), FLANGE - 2, CAP - FLANGE + 2)
-    return U(bar(6, w - 10, TOP), bar(0, w, BOT), Int(d, rect(0, -BIG, w, BIG)))
+    xt = w - 10
+    d = brace_edges((0, FLANGE), (xt, CAP - FLANGE))
+    d = Int(band(d, FLANGE - 2, CAP - FLANGE + 2), rect(0, -BIG, xt, BIG))
+    return U(bar(6, xt, TOP), bar(0, w, BOT), d)
 
 
 # ----------------------------------------------------------------- figures
@@ -589,18 +673,19 @@ def _1():
 
 @fig("two", [0x32])
 def _2():
+    # v1.0: the Down stroke is TANGENT to the bowl (no step where the curve meets the diagonal)
+    # and lands flush on the left end of the base flange.
     w = 486
     y0 = 292
     top = CAP + OS
-    outer = se(0, y0, w, top, NO)
-    inner = se(WEB, y0 + MIDF, w - WEB, top - FLANGE, NI)
-    r = Dif(outer, inner)
+    box, ibox = (0, y0, w, top), (WEB, y0 + 84, w - WEB, top - FLANGE)
+    O, C = se(*box, NO), se(*ibox, NI)
+    R = Dif(O, C)
     cx, cy = w / 2, (y0 + top) / 2
-    hook = U(Int(r, rect(w * 0.20, cy, BIG, BIG)), Int(r, rect(w - WEB - 40, cy - 90, BIG, cy + 1)))
-    d0, d1 = (66, FLANGE - 40), (w - 64, cy - 10)
-    d = band(brace(d0, d1), FLANGE - 2, top)
-    d = Int(d, U(outer, rect(-BIG, -BIG, BIG, cy - 40)))
-    d = Dif(d, inner)
+    d, T, u, y_up = tangent_brace(box, (0, FLANGE), BRACE, inner=ibox)
+    hook = U(Int(R, rect(w * 0.20, cy, BIG, BIG)), Int(R, rect(cx, y_up, BIG, cy + 1)))
+    d = Int(d, U(O, rect(-BIG, -BIG, BIG, T[1])))
+    d = Dif(band(d, FLANGE - 2, top), C)
     d = Int(d, rect(0, -BIG, w, BIG))
     return U(hook, d, bar(0, w, BOT))
 
@@ -614,9 +699,9 @@ def _3():
     cxu, cyu = (26 + w - 24) / 2, (ym - MIDF / 2 + CAP + OS) / 2
     cxl, cyl = w / 2, (-OS + ym + MIDF / 2) / 2
     up = Dif(up, rect(-BIG, -BIG, cxu, cyu))                  # lower-left quarter goes
-    up = Dif(up, rect(-BIG, cyu - 1, w * 0.20, BIG))          # upper terminal
+    up = Dif(up, rect(-BIG, cyu - 1, 26 + WEB + 14, BIG))     # upper terminal, past the side stroke
     lo = Dif(lo, rect(-BIG, cyl, cxl, BIG))                   # upper-left quarter goes
-    lo = Dif(lo, rect(-BIG, -BIG, w * 0.18, cyl + 1))         # lower terminal
+    lo = Dif(lo, rect(-BIG, -BIG, WEB + 14, cyl + 1))         # lower terminal, past the side stroke
     mid = bar(w * 0.30, cxl + 2, ym, MIDF)
     return U(up, lo, mid)
 
@@ -626,23 +711,21 @@ def _4():
     w = 510
     xs = 336
     yb = 200
-    p0, p1 = (0, yb + MIDF / 2), (xs + WEB, CAP)
-    hw = brace_hw(p0, p1)
-    d0, d1 = (p0[0] + hw, p0[1]), (p1[0] - hw, p1[1])
-    d = band(brace(d0, d1), yb, CAP)
-    d = Int(d, rect(0, -BIG, xs + WEB, BIG))
+    # v1.0: the brace's upper-left edge runs from the crossbar's left end to the top, flush
+    d = brace_from_left_edge((0, yb + MIDF / 2), (xs - 70, CAP))
+    d = Int(band(d, yb, CAP), rect(0, -BIG, xs + WEB, BIG))
     return U(stem(xs), bar(0, w, yb, MIDF), d)
 
 
 @fig("five", [0x35])
 def _5():
     w = 482
-    yt = 460
-    top = yt + MIDF / 2 + 6
-    r = ring(0, -OS, w, top, tt=MIDF)
-    cx, cy = w / 2, (-OS + top) / 2
-    bowl = U(Int(r, rect(cx, -BIG, BIG, BIG)), Int(r, rect(w * 0.18, -BIG, cx + 1, cy)))
-    return U(bowl, rect(40, top - MIDF, cx + 1, top), stem(40, top - MIDF, CAP), bar(40, w - 8, TOP))
+    bt = 446                               # top of the bowl: 94 units of air under the top flange
+    r = ring(0, -OS, w, bt, tt=MIDF)
+    cx, cy = w / 2, (-OS + bt) / 2
+    bowl = U(Int(r, rect(cx, -BIG, BIG, BIG)), Int(r, rect(WEB + 18, -BIG, cx + 1, cy)))
+    xs = 40
+    return U(bowl, rect(xs, bt - MIDF, cx + 1, bt), stem(xs, bt - MIDF, CAP), bar(xs, w - 8, TOP))
 
 
 @fig("six", [0x36])
@@ -651,10 +734,16 @@ def _6():
     yt = 474
     bowl = ring(0, -OS, w, yt, tt=MIDF)
     cyb = (-OS + yt) / 2
-    top = CAP + OS
-    # the upper stroke shares the bowl's left tangent at the bowl's centre height
-    big = ring(0, 2 * cyb - top, w * 1.02, top)
-    arc = Int(big, rect(-BIG, cyb, w * 0.80, BIG))
+    cx = w / 2
+    # the upper stroke is the upper-left of a full-height round of the same width: it leaves the
+    # bowl at the bowl's equator with the same tangent, rises thin (Up), turns heavy (Side) and
+    # ends in an upright cut like C
+    tall = ring(0, -OS, w, CAP + OS)
+    cyt = CAP / 2
+    arc = Int(tall, U(rect(-BIG, cyt, cx, BIG), rect(cx - 1, yt, w * 0.72, BIG)))
+    # both rounds are vertical at their equators, so a straight web joins them without a kink
+    web = rect(0, cyb, WEB, cyt + 8)
+    arc = Dif(U(arc, web), se(WEB, -OS + FLANGE, w - WEB, yt - MIDF, NI))
     return U(bowl, arc)
 
 
@@ -709,7 +798,7 @@ def _semicolon():
     return U(_comma(), dot(0, 450))
 
 
-@glyph("hyphen", [0x2D, 0x2010], 36, 36)
+@glyph("hyphen", [0x2D, 0x2010, 0x2011], 36, 36)
 def _hyphen():
     # the hyphen is pure Side: one flange, the joint of Up-Side-Down
     return bar(0, 290, MIDY - 6)
@@ -725,10 +814,10 @@ def _emdash():
     return bar(0, 1000, MIDY - 6, MIDF)
 
 
-@glyph("quoteright", [0x2019, 0x27], 54, 54)
+@glyph("quoteright", [0x2019], 54, 54)
 def _quoteright():
-    tail = Int(brace((DOTW - 30, CAP - 90), (DOTW - 100, CAP - 300), 92), rect(-BIG, CAP - 300, DOTW, CAP - 60))
-    return U(rect(0, CAP - FLANGE, DOTW, CAP), tail)
+    # the comma, raised to the cap line: one mark, one shape
+    return transform(_comma(), (1, 0, 0, 1, 0, CAP - FLANGE))
 
 
 @glyph("quoteleft", [0x2018], 54, 54)
@@ -747,13 +836,29 @@ def _exclam():
 
 @glyph("question", [0x3F], 34, 40)
 def _question():
+    # v1.0: hook, then a Down stroke placed by its edges: its lower-right edge leaves the bowl at a
+    # shoulder just under the equator, its upper-left edge drops into a short Up stem over the dot
     w = 446
     y0 = 300
-    r = ring(0, y0, w, CAP + OS, tb=MIDF)
-    cx, cy = w / 2, (y0 + CAP + OS) / 2
-    hook = U(Int(r, rect(w * 0.20, cy, BIG, BIG)), Int(r, rect(cx - w2, -BIG, BIG, cy + 1)))
-    s = stem(cx - w2, 250, y0 + MIDF)
-    return U(hook, s, dot(cx - DOTW / 2, 0))
+    top = CAP + OS
+    box, ibox = (0, y0, w, top), (WEB, y0 + MIDF, w - WEB, top - FLANGE)
+    O, C = se(*box, NO), se(*ibox, NI)
+    R = Dif(O, C)
+    cx, cy = w / 2, (y0 + top) / 2
+    xs = cx - w2                          # left edge of the stem: the stroke ends centred
+    ys = 316                              # where the stem turns into the brace
+    sh = cy - 24                          # the shoulder
+    t = BRACE * 0.88
+    d = brace_edges((xs, ys), (w, sh), t)
+    # the foot is cut flat exactly where the brace's lower-right edge meets the stem's right edge
+    L = math.hypot(w - xs, sh - ys)
+    th = math.atan2(sh - ys, w - xs) + math.asin(t / L)
+    yb = sh + (xs + WEB - w) * math.tan(th)
+    hook = Int(R, rect(w * 0.26, sh, BIG, BIG))
+    d = Int(d, U(O, rect(-BIG, -BIG, BIG, sh)))
+    d = Dif(Int(d, rect(xs, yb, w, BIG)), C)
+    s = rect(xs, yb, xs + WEB, ys + 1)
+    return U(hook, d, s, dot(cx - DOTW / 2, 0))
 
 
 @glyph("slash", [0x2F], 12, 12)
@@ -798,25 +903,70 @@ def _periodcentered():
     return rect(0, MIDY - 6 - FLANGE / 2, DOTW, MIDY - 6 + FLANGE / 2)
 
 
-@glyph("bracketleft", [0x5B, 0x28], 60, 20)
+@glyph("bracketleft", [0x5B], 60, 20)
 def _bracketleft():
-    # a channel section: one web, two flanges (also used for the parenthesis)
+    # a channel section: one web, two flanges
     return U(rect(0, -110, WEB, CAP + 50), rect(0, -110, 230, -110 + FLANGE), rect(0, CAP + 50 - FLANGE, 230, CAP + 50))
 
 
-@glyph("bracketright", [0x5D, 0x29], 20, 60)
+@glyph("bracketright", [0x5D], 20, 60)
 def _bracketright():
     p = _bracketleft()
     b = p.bounds
     return transform(p, (-1, 0, 0, 1, b[0] + b[2], 0))
 
 
-@glyph("quotedbl", [0x22, 0x201C, 0x201D], 54, 54)
+@glyph("quotedbl", [0x22], 54, 54)
 def _quotedbl():
+    # straight quotes are pure Up: two webs
     return U(rect(0, CAP - 230, WEB, CAP), rect(WEB + 70, CAP - 230, 2 * WEB + 70, CAP))
 
 
-@glyph("space", [0x20], 0, 0)
+@glyph("quotesingle", [0x27], 54, 54)
+def _quotesingle():
+    return rect(0, CAP - 230, WEB, CAP)
+
+
+@glyph("quotedblright", [0x201D], 54, 54)
+def _quotedblright():
+    q = _quoteright()
+    b = q.bounds
+    return U(q, transform(q, (1, 0, 0, 1, (b[2] - b[0]) + 44, 0)))
+
+
+@glyph("quotedblleft", [0x201C], 54, 54)
+def _quotedblleft():
+    q = _quoteleft()
+    b = q.bounds
+    return U(q, transform(q, (1, 0, 0, 1, (b[2] - b[0]) + 44, 0)))
+
+
+@glyph("parenleft", [0x28], 64, 34)
+def _parenleft():
+    # the left third of a tall round: thin where it travels Up, heavy where it turns Side
+    w = 400
+    return Int(ring(0, -130, w, CAP + 70), rect(-BIG, -BIG, w * 0.40, BIG))
+
+
+@glyph("parenright", [0x29], 34, 64)
+def _parenright():
+    p = _parenleft()
+    b = p.bounds
+    return transform(p, (-1, 0, 0, 1, b[0] + b[2], 0))
+
+
+@glyph("uni29B5", [0x29B5], 40, 40)
+def _plimsollmark():
+    # CIRCLE WITH HORIZONTAL BAR, the Plimsoll mark: the load line painted on a ship's hull, a disc
+    # with a line through it one and a half times its width. The water may rise to the line and no
+    # further. Same rule as the letters: thin where the disc travels Up, heavy where it travels Side.
+    d = CAP / SX                       # drawn wide so it is round after narrowing
+    L = 1.5 * d
+    off = (L - d) / 2
+    return U(ring(off, 0, off + d, CAP), bar(0, L, CAP / 2, MIDF))
+
+
+@glyph("space", [0x20, 0xA0], 0, 0)
 def _space():
     return None
 
@@ -838,6 +988,27 @@ KERN = [
 ]
 
 
+def clean(rec, tol=1.5):
+    """Drop the 1-unit segments that boolean overlaps leave behind after rounding."""
+    out = RecordingPen()
+    cur = None
+    for op, a in rec.value:
+        if op == "moveTo":
+            cur = a[0]
+            out.moveTo(cur)
+        elif op == "lineTo":
+            if math.dist(cur, a[0]) > tol:
+                out.lineTo(a[0])
+                cur = a[0]
+        elif op in ("curveTo", "qCurveTo"):
+            if max(math.dist(cur, q) for q in a if q is not None) > tol + 0.5:
+                getattr(out, op)(*a)
+                cur = a[-1]
+        else:
+            getattr(out, op)(*a)
+    return out
+
+
 def build():
     OUT.mkdir(parents=True, exist_ok=True)
     ufo = ufoLib2.Font()
@@ -849,7 +1020,7 @@ def build():
     info.openTypeNamePreferredFamilyName = "Plimsoll"
     info.openTypeNamePreferredSubfamilyName = "Heavy"
     info.openTypeOS2WeightClass = 800
-    info.versionMajor, info.versionMinor = 0, 900
+    info.versionMajor, info.versionMinor = 1, 0
     info.unitsPerEm = UPM
     info.capHeight = CAP
     info.xHeight = CAP
@@ -887,7 +1058,9 @@ def build():
             continue
         b = p.bounds
         q = transform(p, (1, 0, 0, 1, lsb - b[0], 0))
-        q.draw(RoundingPen(g.getPen()))
+        rec = RecordingPen()
+        q.draw(RoundingPen(rec))
+        clean(rec).replay(g.getPen())
         g.width = round(lsb + (b[2] - b[0]) + rsb)
 
     # caps-only: lowercase letters map to the capitals
@@ -906,6 +1079,15 @@ def build():
         shutil.rmtree(ufo_path)
     ufo.save(ufo_path)
     otf = ufo2ft.compileOTF(ufo, removeOverlaps=False, optimizeCFF=1)
+    # v1.0: also a legacy 'kern' table. Browsers kern from GPOS, but Blender's text objects kern
+    # through FreeType's FT_Get_Kerning, which reads only 'kern'; without it the 3D letters are unkerned.
+    kern = newTable("kern")
+    kern.version = 0
+    st = KernTable_format_0()
+    st.version, st.format, st.coverage, st.tupleIndex = 0, 0, 1, 0
+    st.kernTable = {(a, b): v for a, b, v in KERN if a in ufo and b in ufo and v}
+    kern.kernTables = [st]
+    otf["kern"] = kern
     otf_path = OUT / "Plimsoll-Heavy.otf"
     otf.save(otf_path)
     f = TTFont(otf_path)

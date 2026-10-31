@@ -88,6 +88,10 @@
     <string>nine.glif</string>
     <key>one</key>
     <string>one.glif</string>
+    <key>parenleft</key>
+    <string>parenleft.glif</string>
+    <key>parenright</key>
+    <string>parenright.glif</string>
     <key>period</key>
     <string>period.glif</string>
     <key>periodcentered</key>
@@ -98,10 +102,16 @@
     <string>question.glif</string>
     <key>quotedbl</key>
     <string>quotedbl.glif</string>
+    <key>quotedblleft</key>
+    <string>quotedblleft.glif</string>
+    <key>quotedblright</key>
+    <string>quotedblright.glif</string>
     <key>quoteleft</key>
     <string>quoteleft.glif</string>
     <key>quoteright</key>
     <string>quoteright.glif</string>
+    <key>quotesingle</key>
+    <string>quotesingle.glif</string>
     <key>semicolon</key>
     <string>semicolon.glif</string>
     <key>seven</key>
@@ -116,6 +126,8 @@
     <string>three.glif</string>
     <key>two</key>
     <string>two.glif</string>
+    <key>uni29B5</key>
+    <string>uni29B_5.glif</string>
     <key>zero</key>
     <string>zero.glif</string>
   </dict>

@@ -1,0 +1,161 @@
+/* Waterline (rendered): the mocks. Review round 1 (docs/06-HERO-BUILD.md, "Round 1 fixes").
+   Type system: docs/03-TYPE.md (Plimsoll for what you'd measure, Ortica for Michael's voice, B612 for the instrument).
+   Rules: docs/02-AI-TELLS.md, Part A and Part D. Every shadow and highlight on the page is rendered by Blender:
+   no CSS shadow, glow, gradient, blur, pill or card. Positions are % of the frame, placed from each still's anchors. */
+@font-face { font-family: "Plimsoll"; src: url("fonts/Plimsoll-Heavy.woff2") format("woff2"); font-weight: 800; font-display: block; }
+@font-face { font-family: "Ortica Angular"; src: url("fonts/Ortica-AngularBold-latin.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Ortica Linear"; src: url("fonts/Ortica-LinearRegular-latin.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Ortica Linear"; src: url("fonts/Ortica-LinearBold-latin.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "B612"; src: url("fonts/B612-Regular-latin.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "B612"; src: url("fonts/B612-Bold-latin.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+
+:root {
+  --cream: #EEF0EC; --dim: #B9C2BD; --ink: #151718; --deep: #0D1110; --rule: #2A2E2F;
+  /* sampled from the rendered lamps' light on the wall and water (scene/sample_lamps.py), lifted to read on dark water */
+  --redline: #FF674F; --oxygen: #5CAF7D;   /* d05 glow: hue 8.1 deg, sat 0.69; d12 glow: hue 144 deg, sat 0.48 */
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--deep); color: var(--cream); }
+body { font-family: "B612", sans-serif; -webkit-font-smoothing: antialiased; }
+p { margin: 0; }
+a { color: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* the stage: the render is the page (16:10 frame; cover) */
+.stage { position: relative; width: 100vw; height: 100svh; overflow: hidden; background: var(--deep); }
+.stage > picture, .stage > picture img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.stage > picture img { object-fit: cover; display: block; }
+
+/* ---- top band: the title lockup with the book link (left), the Bootloader dock (right, alone) ---- */
+.lockup { position: absolute; left: 40px; top: 18px; }
+.title { font-family: "Plimsoll"; font-size: 21px; line-height: 1; }
+.byline { font-size: 13px; line-height: 1.2; color: var(--dim); margin-top: 7px; }
+.booklink { display: inline-block; margin-top: 6px; font-size: 14px; line-height: 1.2; color: var(--cream);
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.dock { position: absolute; right: 40px; top: 14px; display: grid; grid-template-columns: auto auto auto; align-items: center; column-gap: 14px; }
+.mark { font-family: "Plimsoll"; line-height: 1; }
+.dock .mark { font-size: 34px; }
+.dock .name, .bar .name { font-family: "Plimsoll"; font-size: 22px; line-height: 1; display: block; margin-bottom: 6px; }
+.dock .meta { display: block; font-size: 13px; line-height: 1.35; color: var(--cream); }
+.dock .meta + .meta { color: var(--dim); }
+.meta.voice { font-family: "Ortica Linear"; font-weight: 700; font-size: 15px; }
+.btn { font-family: "B612"; font-weight: 700; font-size: 15px; height: 46px; padding: 0 18px; background: var(--cream); color: var(--ink);
+  border: 0; border-radius: 0; display: inline-flex; align-items: center; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.btn:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+
+/* ---- on the water ---- */
+.audience { position: absolute; left: 64px; width: 560px; font-family: "Ortica Linear"; font-weight: 700; font-size: 26px; line-height: 1.25; text-wrap: balance; }
+
+/* the instrument: the Bootloader's own first question, its readout, then how to answer it (scroll) */
+.instrument, .legend { position: absolute; left: 1036px; width: 364px; }
+.question { font-family: "Ortica Linear"; font-weight: 700; font-size: 18px; line-height: 1.3; }
+.tie { font-size: 13px; line-height: 1.35; color: var(--dim); margin-top: 5px; }
+.tie .mark { font-size: 15px; color: var(--cream); }
+.readout { display: grid; grid-template-columns: auto auto; column-gap: 26px; justify-content: start; margin-top: 12px; }
+.fig { font-family: "Plimsoll"; font-size: 48px; line-height: 0.9; font-variant-numeric: tabular-nums; display: block; }
+.fig.mark66 { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
+.instrument.red .fig { color: var(--redline); }
+.unit { font-size: 13px; line-height: 1.3; color: var(--dim); display: block; margin-top: 6px; }
+.cue { font-size: 14px; line-height: 1.3; color: var(--cream); margin-top: 12px; }
+.bands { list-style: none; margin: 12px 0 0; padding: 0; font-size: 14px; line-height: 19px; color: var(--dim); }
+.bands li { position: relative; padding-left: 18px; }
+.bands li.on { color: var(--cream); font-weight: 700; }
+.bands li.on::before { content: ""; position: absolute; left: 0; top: 8px; width: 10px; height: 2px; background: var(--cream); }
+.bandline { font-family: "Ortica Linear"; font-size: 15px; line-height: 1.3; color: var(--cream); margin: 3px 0 3px 18px; }
+
+/* the cycle legend (beats 6-8) */
+.legend .llead { font-family: "Ortica Linear"; font-weight: 700; font-size: 18px; line-height: 1.3; margin-bottom: 10px; }
+.legend .lap { font-size: 13px; color: var(--dim); margin: -4px 0 10px; }
+.phase { display: grid; grid-template-columns: 64px 1fr; column-gap: 10px; color: var(--dim); margin-bottom: 6px; }
+.phase .pname { font-family: "Plimsoll"; font-size: 20px; line-height: 1.1; }
+.phase .pline { font-family: "Ortica Linear"; font-size: 16px; line-height: 1.35; }
+.phase.on { color: var(--cream); }
+.phase .cell { grid-column: 2; font-size: 13px; line-height: 1.35; margin-top: 3px; }
+
+/* anchored labels: B612 13 px, cream at 85 %, sentence case, 1 px rules, never boxed; the text sits on water */
+.tag { position: absolute; font-size: 13px; line-height: 1.2; color: rgba(238, 240, 236, 0.85); white-space: nowrap; }
+.rule-h { display: inline-block; width: 36px; height: 1px; background: rgba(238, 240, 236, 0.85); vertical-align: middle; margin-right: 8px; }
+.tag-water { left: 64px; margin-top: -8px; }
+.tag-deck { margin-top: -8px; }
+.tag-deck .rule-h { margin: 0 0 0 8px; }
+.tag-mark { width: 1px; background: rgba(238, 240, 236, 0.85); }
+.tag-mark span { position: absolute; bottom: -8px; right: 8px; }
+.tag-scar span { position: absolute; bottom: 0; left: 8px; }
+.tag-scar { width: 1px; background: rgba(238, 240, 236, 0.85); }
+.tag-scar::before { content: ""; position: absolute; top: 0; left: -10px; width: 21px; height: 1px; background: rgba(238, 240, 236, 0.85); }
+.tag-margin { border-top: 1px solid rgba(238, 240, 236, 0.85); border-bottom: 1px solid rgba(238, 240, 236, 0.85); width: 11px; }
+.tag-margin::before { content: ""; position: absolute; left: 5px; top: 0; bottom: 0; width: 1px; background: rgba(238, 240, 236, 0.85); }
+.tag-margin span { position: absolute; right: 18px; top: 50%; margin-top: -8px; }
+
+/* captions: left-aligned in the quiet lower-left corner, over water (no centred stack) */
+.caption, .offer { position: absolute; left: 64px; width: 720px; }
+.caption .big { font-family: "Ortica Angular"; font-size: 40px; line-height: 1.1; text-wrap: balance; }
+.caption .big1 { font-family: "Ortica Angular"; font-size: 54px; line-height: 1.05; }
+.caption .support { font-family: "Ortica Linear"; font-size: 22px; line-height: 1.3; margin-top: 14px; }
+.caption .eqred, .caption .eqgreen { font-family: "Plimsoll"; font-size: 46px; line-height: 1; white-space: nowrap; }
+.caption .eqred { color: var(--redline); }
+.caption .eqgreen { color: var(--oxygen); }
+
+/* the mid-story offer (beat 7 hold) */
+.offer .big { font-family: "Ortica Angular"; font-size: 32px; line-height: 1.1; max-width: 640px; }
+.offerrow { display: grid; grid-template-columns: 300px 340px; column-gap: 28px; margin: 14px 0 14px; }
+.filehead { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.filehead .mark { font-size: 30px; }
+.filehead .fname { font-family: "Plimsoll"; font-size: 22px; line-height: 1; white-space: nowrap; }
+.what { font-size: 14px; line-height: 1.35; }
+.spec { font-size: 13px; line-height: 1.45; color: var(--dim); margin-top: 6px; }
+.qlabel { font-size: 13px; color: var(--dim); margin-bottom: 4px; }
+.q { font-family: "Ortica Linear"; font-weight: 700; font-size: 17px; line-height: 1.32; color: var(--cream); }
+
+/* ---- finale: the couplet as two equal lines, then book (left) and file (right, primary) ---- */
+.lead { position: absolute; left: 560px; }
+.lead p { font-family: "Ortica Angular"; font-size: 30px; line-height: 1.18; }
+.col-book { position: absolute; left: 64px; width: 300px; }
+.col-file { position: absolute; left: 560px; width: 836px; }
+.filegrid { display: grid; grid-template-columns: 330px 1fr; column-gap: 34px; }
+.head { font-family: "Ortica Linear"; font-weight: 700; font-size: 19px; line-height: 1.3; margin-bottom: 10px; }
+.booktitle { font-family: "Plimsoll"; font-size: 21px; line-height: 1; margin-bottom: 6px; }
+.bookby { font-size: 14px; color: var(--dim); }
+.soon { font-size: 14px; color: var(--cream); margin-top: 10px; }
+.cred { font-family: "Ortica Linear"; font-size: 14px; line-height: 1.4; color: var(--dim); margin-top: 12px; }
+.col-file .q { font-size: 16px; }
+.form label { display: block; font-size: 13px; color: var(--dim); margin-bottom: 6px; }
+.formrow { display: flex; }
+.formrow input { width: 250px; height: 52px; border: 0; border-radius: 0; background: var(--cream); color: var(--ink); font: 16px "B612"; padding: 0 14px; }
+.formrow .btn { height: 52px; font-size: 16px; padding: 0 18px; border-left: 1px solid var(--ink); }
+.note { font-size: 13px; color: var(--dim); margin: 7px 0 12px; }
+.next { font-family: "Ortica Linear"; font-size: 16px; line-height: 1.32; color: var(--cream); }
+.appendix { display: inline-block; margin-top: 10px; font-size: 13px; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- phone ---- */
+.bar { display: none; }
+.phoneband { display: none; }
+@media (max-aspect-ratio: 3/4) {
+  .lockup { left: 16px; top: 12px; }
+  .title { font-size: 20px; }
+  .byline { font-size: 12px; margin-top: 5px; }
+  .booklink { font-size: 13px; margin-top: 2px; padding: 10px 0; }
+  .dock { display: none; }
+  .audience { left: 20px; width: 350px; font-size: 19px; line-height: 1.3; }
+  .tag-water { left: 20px; }
+  .tag-mark { display: none; }
+  .instrument { left: 20px; width: 350px; }
+  .question { font-size: 15px; }
+  .tie { display: none; }
+  .readout { column-gap: 22px; margin-top: 6px; }
+  .fig { font-size: 34px; }
+  .unit { font-size: 12px; margin-top: 4px; }
+  .cue { font-size: 13px; margin-top: 8px; }
+  .bands { display: none; }
+  .phoneband { display: block; font-size: 13px; font-weight: 700; margin-top: 6px; }
+  .caption { left: 20px; width: 350px; }
+  .caption .big { font-size: 26px; }
+  .bar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: 10px; position: fixed; left: 0; right: 0; bottom: 0;
+    height: calc(76px + env(safe-area-inset-bottom)); padding: 0 14px env(safe-area-inset-bottom); background: rgba(21, 23, 24, 0.94); border-top: 1px solid var(--rule); }
+  .bar .mark { font-size: 26px; }
+  .bar .name { font-size: 18px; margin-bottom: 4px; }
+  .bar .meta { display: block; font-size: 12px; line-height: 1.3; color: var(--cream); }
+  .bar .meta + .meta { color: var(--dim); }
+  .bar .meta.voice { font-size: 13px; }
+  .bar .btn { height: 46px; padding: 0 14px; }
+}

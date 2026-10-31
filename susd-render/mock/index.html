@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scaling Up-Side-Down</title>
+<link rel="preload" href="fonts/Plimsoll-Heavy.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="mock.css">
+<!-- First screen mock (brief section 4; 02-AI-TELLS Part D label changes). The background is the Blender still
+     out/stills/d1_hero_K1.png (desktop) / p1_hero_K1.png (phone); HTML boxes are placed from its anchors.json. -->
+<style>
+  .audience { top: 562px; }
+  .instrument { top: 524px; }
+  @media (max-aspect-ratio: 3/4) {
+    .audience { top: 516px; }
+    .instrument { top: 586px; }
+  }
+</style>
+</head>
+<body>
+<a class="sr-only" href="#get">Skip to the Bootloader</a> <!-- // label -->
+<main>
+<section class="stage" aria-label="The story, told by the water"> <!-- // label -->
+  <picture>
+    <source media="(max-aspect-ratio: 3/4)" srcset="img/p1_hero_K1.jpg">
+    <img src="img/d1_hero_K1.jpg" alt="Heavy capital letters standing on a concrete lock wall spell the sentence above; dark water sits just below them." fetchpriority="high"> <!-- // label -->
+  </picture>
+  <h1 class="sr-only">Every hire compounds complexity before it compounds capacity.</h1>
+
+  <div class="lockup">
+    <p class="title">Scaling Up&#x2011;Side&#x2011;Down</p>
+    <p class="byline">A book by Michael Wentz</p> <!-- // label -->
+  </div>
+  <div class="topright">
+  <a class="booklink" href="#book">The book</a>
+  <div class="dock">
+    <span class="mark" aria-hidden="true">&#x29B5;</span>
+    <span><span class="name">SUSD Bootloader</span><span class="meta">Free file<br>Version 16, 35,445 words</span></span>
+    <a class="btn" href="#get" data-cta="dock" aria-label="Get the free SUSD Bootloader file">Get it free</a> <!-- // label -->
+  </div>
+  </div>
+
+  <p class="audience">For bootstrapped, self-funded founders with teams of 1&#x2013;12</p> <!-- // label (fit table, BL 4773, BL 4775) -->
+
+  <div class="instrument">
+    <p class="question">How many people are on your team?</p>
+    <div class="readout" aria-live="polite">
+      <span><span class="fig">8</span><span class="unit">people</span></span>
+      <span><span class="fig">28</span><span class="unit">coordination pathways</span></span>
+    </div>
+    <ul class="bands">
+      <li>Team of Teams 40+</li>
+      <li>Graveyard 15&#x2013;39</li>
+      <li>Threshold 13&#x2013;14</li>
+      <li class="on">Team 8&#x2013;12</li>
+      <li class="bandline">Leader + team. Still know everyone's name.</li>
+      <li>Valley 4&#x2013;7</li>
+      <li>Small Team 2&#x2013;3</li>
+      <li>Solopreneur 1</li>
+    </ul>
+    <p class="phoneband">Team 8&#x2013;12</p>
+  </div>
+
+  <p class="cue">Scroll to hire. Each step is one more person.</p> <!-- // label -->
+</section>
+</main>
+
+<div class="bar">
+  <span class="mark" aria-hidden="true">&#x29B5;</span>
+  <span><span class="name">SUSD Bootloader</span><span class="meta">Free file<br>Version 16, 35,445 words</span></span>
+  <a class="btn" href="#get" data-cta="bar" aria-label="Get the free SUSD Bootloader file">Get it free</a> <!-- // label -->
+</div>
+</body>
+</html>

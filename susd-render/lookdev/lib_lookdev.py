@@ -286,7 +286,7 @@ def pbr(name, aid, scale=1.0, tint=(1, 1, 1), rough_add=0.0, rough_mul=1.0, norm
     return m
 
 
-def add_stain(m, hw_obj, color_srgb=(0.11, 0.13, 0.08), band=0.25, rough=0.35, amount=0.85, scale=3.0):
+def add_stain(m, hw_obj, mul_srgb=(0.66, 0.68, 0.52), band=0.25, rough=0.35, amount=0.85, scale=3.0):
     """Tide staining: below the high-water empty the surface carries algae/silt, with a
     ragged upper edge. Inserted in front of the Principled base colour and roughness."""
     nt = m.node_tree
@@ -315,9 +315,10 @@ def add_stain(m, hw_obj, color_srgb=(0.11, 0.13, 0.08), band=0.25, rough=0.35, a
         link(nt, base_link, a_)
     else:
         a_.default_value = bsdf.inputs['Base Color'].default_value
-    b_.default_value = (*srgb_to_lin(color_srgb), 1)
-    # multiply darkens AND tints: scale the stain colour up so it reads as a tint, not black
-    b_.default_value = tuple(min(1.0, v * 3.2) for v in b_.default_value[:3]) + (1,)
+    # mul_srgb is what a white surface becomes under the stain (as an sRGB value), so 0.66 grey
+    # with a yellow-green cast = about one stop darker, olive. (The first version converted a dark
+    # stain colour to linear and multiplied by it: 0.12 sRGB = 0.013 linear, i.e. near-black walls.)
+    b_.default_value = (*srgb_to_lin(mul_srgb), 1)
     link(nt, r_, bsdf.inputs['Base Color'])
     if rough_link is not None:
         rm, f2, a2, b2, r2 = mix(nt, 'FLOAT')
@@ -579,7 +580,9 @@ def load_font(fname):
 
 def build_line(text, font, size, depth, bevel, name='line', align='CENTER', tracking=0.0, mat=None):
     """One line of type as a mesh standing up in the XZ plane, front face towards -Y,
-    baseline on z=0, back face on y=0 (so it can be mounted on a wall at y=0)."""
+    baseline on z=0. NOTE: the FRONT face is on y=0 and the body runs back to y=+depth, so to
+    stand letters proud of a wall at y=0 place them at y = -(standoff + depth). (Stagings a/b
+    placed them at -standoff, so their letters sit partly sunk into the plinth/wall.)"""
     cu = bpy.data.curves.new(name, type='FONT')
     cu.body = text
     cu.font = font
@@ -664,6 +667,79 @@ def water_box(name, xmin, xmax, ymin, ymax, zbot, ztop, mat, meniscus=0.003, men
     return obj_from_mesh(name, me, mat)
 
 
+def ocean_water(name, xmin, xmax, ymin, ymax, zbot, ztop, mat, spacing=0.04, spatial=10.0, resolution=12,
+                wind=3.5, scale=0.35, chop=0.6, direction_deg=90.0, align=0.4, time=1.0, seed=3,
+                scale_min=0.02, damping=0.6):
+    """Water whose surface is real geometry: a grid displaced by the Ocean modifier (Phillips
+    spectrum: small wind-driven chop), baked at `time`, then closed into a volume with VERTICAL
+    sides and a FLAT bottom built from its boundary (for the absorption shader).
+
+    Do not close it with a Solidify modifier (the first version did): Solidify extrudes along the
+    wave-tilted vertex normals, so the bottom shifts sideways by up to ~0.14 m and the side faces
+    become wavy slanted sheets. Unseen when the sides are buried in walls; through a glass window
+    they open air gaps and trap rays in total internal reflection (flat olive murk, c12/c13).
+    Boundary vertices are pinned back onto the rectangle, so chop never opens a gap at a wall or
+    a window. Rebuild per frame to animate (the ocean time is baked)."""
+    nx = max(2, int((xmax - xmin) / spacing))
+    ny = max(2, int((ymax - ymin) / spacing))
+    me = bpy.data.meshes.new(name + '_grid')
+    bm = bmesh.new()
+    bmesh.ops.create_grid(bm, x_segments=nx, y_segments=ny, size=0.5)   # spans -0.5..0.5
+    for v in bm.verts:
+        v.co.x = xmin + (v.co.x + 0.5) * (xmax - xmin)
+        v.co.y = ymin + (v.co.y + 0.5) * (ymax - ymin)
+        v.co.z = 0.0
+    bm.to_mesh(me)
+    bm.free()
+    tmp = obj_from_mesh(name + '_tmp', me)
+    oc = tmp.modifiers.new('Ocean', 'OCEAN')
+    oc.geometry_mode = 'DISPLACE'
+    oc.resolution = resolution
+    oc.spatial_size = int(spatial)
+    oc.wind_velocity = wind
+    oc.wave_scale = scale
+    oc.wave_scale_min = scale_min
+    oc.choppiness = chop
+    oc.wave_direction = math.radians(direction_deg)
+    oc.wave_alignment = align
+    oc.damping = damping
+    oc.depth = 10.0
+    oc.time = time
+    oc.random_seed = seed
+    oc.use_normals = False
+    dg = bpy.context.evaluated_depsgraph_get()
+    baked = bpy.data.meshes.new_from_object(tmp.evaluated_get(dg))
+    bpy.data.objects.remove(tmp)
+    bpy.data.meshes.remove(me)
+    bm = bmesh.new()
+    bm.from_mesh(baked)
+    eps = 1e-6
+    for v in bm.verts:            # pin the rim onto the rectangle (chop moves vertices sideways)
+        if v.is_boundary:
+            if abs(v.co.x - xmin) < spacing * 0.6 or v.co.x < xmin: v.co.x = xmin
+            if abs(v.co.x - xmax) < spacing * 0.6 or v.co.x > xmax: v.co.x = xmax
+            if abs(v.co.y - ymin) < spacing * 0.6 or v.co.y < ymin: v.co.y = ymin
+            if abs(v.co.y - ymax) < spacing * 0.6 or v.co.y > ymax: v.co.y = ymax
+    # Close it: extrude the whole surface region (keeping the original as the top) and flatten the
+    # copy into the bottom. The bottom must be a quad grid: closing it with one n-gon of ~1000
+    # collinear rim vertices (edgeloop_fill, tried in c14) triangulates into slivers that break the
+    # volume, and everything seen through the water's side face rendered black.
+    ext = bmesh.ops.extrude_face_region(bm, geom=bm.faces[:], use_keep_orig=True)
+    for g in ext['geom']:
+        if isinstance(g, bmesh.types.BMVert):
+            g.co.z = zbot - ztop
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    for f in bm.faces:
+        f.smooth = True
+    bm.to_mesh(baked)
+    bm.free()
+    _sharp_by_angle(baked, 60)       # as water_box: all smooth, rim edges sharp
+    baked.name = name
+    ob = obj_from_mesh(name, baked, mat)
+    ob.location.z = ztop
+    return ob
+
+
 def level_empty(z):
     e = bpy.data.objects.new('WaterLevel', None)
     e.location = (0, 0, z)
@@ -714,7 +790,7 @@ def sun_light(name, elev_deg, azim_deg, strength, angle_deg=0.6, kelvin=5000):
     return ob
 
 
-def gobo_caustics(light_ob, scale=14.0, sharpness=3.0, w=0.0, strength_mul=1.0):
+def gobo_caustics(light_ob, scale=14.0, sharpness=3.0, w=0.0, strength_mul=1.0, aspect=1.0):
     """Projected caustic pattern on a spot light (fake caustics, ~free to render).
     Ray direction in light space -> planar projection -> Voronoi edge web."""
     ld = light_ob.data
@@ -729,7 +805,13 @@ def gobo_caustics(light_ob, scale=14.0, sharpness=3.0, w=0.0, strength_mul=1.0):
     link(nt, sep.outputs['X'], dx.inputs[0]); link(nt, sep.outputs['Z'], dx.inputs[1])
     link(nt, sep.outputs['Y'], dy.inputs[0]); link(nt, sep.outputs['Z'], dy.inputs[1])
     comb = nt.nodes.new('ShaderNodeCombineXYZ')
-    link(nt, dx.outputs[0], comb.inputs['X']); link(nt, dy.outputs[0], comb.inputs['Y'])
+    if aspect != 1.0:   # aspect < 1 stretches the web along light-space X (wall glitter is long and flat)
+        ax = nt.nodes.new('ShaderNodeMath'); ax.operation = 'MULTIPLY'
+        link(nt, dx.outputs[0], ax.inputs[0]); ax.inputs[1].default_value = aspect
+        link(nt, ax.outputs[0], comb.inputs['X'])
+    else:
+        link(nt, dx.outputs[0], comb.inputs['X'])
+    link(nt, dy.outputs[0], comb.inputs['Y'])
     # warp, then voronoi distance-to-edge => bright web lines like pool caustics
     warp = nt.nodes.new('ShaderNodeTexNoise'); warp.noise_dimensions = '4D'
     warp.inputs['Scale'].default_value = scale * 0.25
@@ -874,6 +956,13 @@ def post(sc, grain=0.10, vignette=0.28, dispersion=0.004, glare=0.15, seed=1):
             ld.inputs['Distortion'].default_value = 0.0
         link(nt, cur, ld.inputs['Image'])
         cur = ld.outputs['Image']
+        # Dispersion with Fit leaves a dark wedge in the corners (seen in b04/b06):
+        # crop 1.2% like a lens hood would, so the corners never sample outside the frame.
+        scl = nt.nodes.new('CompositorNodeScale')
+        scl.space = 'RELATIVE'
+        scl.inputs['X'].default_value = scl.inputs['Y'].default_value = 1.012
+        link(nt, cur, scl.inputs['Image'])
+        cur = scl.outputs['Image']
     if vignette > 0:
         # optical vignette as a precomputed plate: cos^4-like falloff, no visible edge
         vi = nt.nodes.new('CompositorNodeImage')
@@ -914,6 +1003,9 @@ def render(sc, out_png, label, extra=None):
                blender=bpy.app.version_string, when=time.strftime('%Y-%m-%d %H:%M:%S'))
     if extra:
         row.update(extra)
+    if '--' in sys.argv:            # the exact options, so every logged render can be reproduced
+        row['argv'] = ' '.join(sys.argv[sys.argv.index('--') + 1:])
+    row['script'] = os.path.basename(sys.argv[sys.argv.index('-P') + 1]) if '-P' in sys.argv else ''
     with open(os.path.join(HERE, 'renders.jsonl'), 'a') as f:
         f.write(json.dumps(row) + '\n')
     print('RENDER_SECONDS', dt, out_png)

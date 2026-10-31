@@ -20,13 +20,13 @@ def role(y, text):
 # 1 title, Plimsoll
 role(40, "Title and wordmark: Plimsoll Heavy (custom)")
 d.text((60, 70), "SCALING UP-SIDE-DOWN", font=F(PL, 132), fill=ink)
-# 2 hero, Ortica Angular Bold
-role(250, "3D hero letters and the largest HTML lines: Ortica Angular Bold")
-y = 280
+# 2 hero, Plimsoll (the 3D letters and their HTML text; the face maps lower case to its capitals)
+role(250, "3D hero letters on the wall, and the same sentence as HTML: Plimsoll Heavy (custom)")
+y = 284
 for line in ["Every hire compounds", "complexity before it", "compounds capacity."]:
-    d.text((60, y), line, font=F(OA, 104), fill=ink); y += 112
+    d.text((60, y), line, font=F(PL, 100), fill=ink); y += 124
 # 3 overlays
-role(668, "Story overlays as you scroll: Ortica Angular Bold (big beats), Ortica Linear Bold / Regular (supporting lines)")
+role(668, "Story overlays as you scroll: Ortica Angular Bold (beats), Ortica Linear Bold / Regular (supporting lines)")
 d.text((60, 698), "Past twelve, something breaks.", font=F(OA, 64), fill=ink)
 d.text((60, 784), "The business is drowning. Every addition makes it worse.", font=F(OLB, 40), fill=ink)
 d.text((60, 840), "You were never the problem. The model you inherited was.", font=F(OLR, 34), fill=ink)
@@ -46,13 +46,15 @@ d.text((gx + 270, 940), "How many people are on your team?", font=F(OLB, 27), fi
 d.text((gx + 270, 990), "COMPLEXITY > CAPACITY = REDLINE.", font=F(PL, 31), fill=red)
 d.text((gx + 270, 1036), "CAPACITY > COMPLEXITY = OXYGEN.", font=F(PL, 31), fill=ink)
 # 5 Bootloader
-role(1170, "The Bootloader path: B612 Bold for the file's name, Ortica for Michael's line")
-d.text((60, 1200), "SUSD Bootloader", font=F(BB, 44), fill=ink)
+role(1170, "The Bootloader path: Plimsoll for the file's name and its mark, B612 for its facts and the form, Ortica for Michael's line")
+d.text((60, 1196), "\u29B5", font=F(PL, 50), fill=ink)
+d.text((150, 1200), "SUSD Bootloader", font=F(PL, 44), fill=ink)
 d.text((60, 1258), "V16 · 35,445 words · works with Claude, ChatGPT, Gemini", font=F(BR, 24), fill=dim)
 d.text((60, 1306), "The pages are reference. The file is the operating system.", font=F(OLR, 36), fill=ink)
 d.rectangle([(60, 1380), (700, 1450)], outline=ink, width=2)
 d.text((84, 1402), "you@business.com", font=F(BR, 24), fill=dim)
-d.text((740, 1400), "Get the file", font=F(BB, 30), fill=ink)
+d.rectangle([(720, 1380), (1130, 1450)], fill=ink)
+d.text((748, 1400), "Get the free Bootloader", font=F(BB, 28), fill=(236, 238, 235))
 d.text((60, 1490), "Labels and buttons are labels (not quotes). Every sentence above is Michael's, word for word.",
        font=F(BR, 17), fill=dim)
 img.save(OUT)
