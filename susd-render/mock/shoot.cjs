@@ -55,7 +55,7 @@ const server = http.createServer((req, res) => {
     const out = path.join(OUT, name + '.png');
     await page.screenshot({ path: out });
     // luminance of the plate under each text block: draw the <img> into a canvas at viewport size (cover) and sample
-    const zones = await page.evaluate(async () => {
+    const zones = await page.evaluate(async () => { try {
       const img = document.querySelector('.stage picture img');
       await img.decode();
       const W = innerWidth, H = innerHeight;
@@ -93,7 +93,7 @@ const server = http.createServer((req, res) => {
         res[q] = { box: [x, y, w, h], p95: +p95.toFixed(3), median: +med.toFixed(3), contrastAtP95: +((cream + 0.05) / (p95 + 0.05)).toFixed(2) };
       }
       return { res, overflow: document.documentElement.scrollWidth - innerWidth };
-    });
+    } catch (e) { return { error: String(e) }; } });
     report[name] = { file: out, errors, ...zones };
     await ctx.close();
   }
