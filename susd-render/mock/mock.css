@@ -1,7 +1,8 @@
-/* Waterline (rendered): the mocks. Review round 1 (docs/06-HERO-BUILD.md, "Round 1 fixes").
+/* Waterline (rendered): the mocks. Review round 2 (docs/06-HERO-BUILD.md, "Round 2 fixes").
    Type system: docs/03-TYPE.md (Plimsoll for what you'd measure, Ortica for Michael's voice, B612 for the instrument).
    Rules: docs/02-AI-TELLS.md, Part A and Part D. Every shadow and highlight on the page is rendered by Blender:
-   no CSS shadow, glow, gradient, blur, pill or card. Positions are % of the frame, placed from each still's anchors. */
+   no CSS shadow, glow, gradient, blur, pill or card. Positions are % of the frame, placed from each still's anchors.
+   Nothing positioned may overlap another text box or the rendered sentence (mock/shoot.cjs checks every pair). */
 @font-face { font-family: "Plimsoll"; src: url("fonts/Plimsoll-Heavy.woff2") format("woff2"); font-weight: 800; font-display: block; }
 @font-face { font-family: "Ortica Angular"; src: url("fonts/Ortica-AngularBold-latin.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 @font-face { font-family: "Ortica Linear"; src: url("fonts/Ortica-LinearRegular-latin.woff2") format("woff2"); font-weight: 400; font-display: swap; }
@@ -10,9 +11,10 @@
 @font-face { font-family: "B612"; src: url("fonts/B612-Bold-latin.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 
 :root {
-  --cream: #EEF0EC; --dim: #B9C2BD; --ink: #151718; --deep: #0D1110; --rule: #2A2E2F;
-  /* sampled from the rendered lamps' light on the wall and water (scene/sample_lamps.py), lifted to read on dark water */
-  --redline: #FF674F; --oxygen: #5CAF7D;   /* d05 glow: hue 8.1 deg, sat 0.69; d12 glow: hue 144 deg, sat 0.48 */
+  --cream: #EEF0EC; --dim: #B9C2BD; --ink: #151718; --deep: #0B1112; --rule: #2A2E2F;
+  /* the two equations only: sampled from the rendered lamps (scene/sample_lamps.py: d03 red, hue 5.1 deg, sat 0.67;
+     d08 green, hue 162 deg, sat 0.63), lifted to 7:1 on the dark water; every other figure stays cream (A09) */
+  --redline: #FF6455; --oxygen: #41AF8E;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--deep); color: var(--cream); }
@@ -32,36 +34,39 @@ a { color: inherit; }
 .byline { font-size: 13px; line-height: 1.2; color: var(--dim); margin-top: 7px; }
 .booklink { display: inline-block; margin-top: 6px; font-size: 14px; line-height: 1.2; color: var(--cream);
   text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-.dock { position: absolute; right: 40px; top: 14px; display: grid; grid-template-columns: auto auto auto; align-items: center; column-gap: 14px; }
+.dock { position: absolute; right: 40px; top: 14px; display: grid; grid-template-columns: auto 286px auto; align-items: center; column-gap: 14px; }
 .mark { font-family: "Plimsoll"; line-height: 1; }
-.dock .mark { font-size: 34px; }
+.dock .mark { font-size: 28px; color: var(--dim); }   /* a 34 px cream mark out-squinted the drowned sentence */
 .dock .name, .bar .name { font-family: "Plimsoll"; font-size: 22px; line-height: 1; display: block; margin-bottom: 6px; }
-.dock .meta { display: block; font-size: 13px; line-height: 1.35; color: var(--cream); }
-.dock .meta + .meta { color: var(--dim); }
-.meta.voice { font-family: "Ortica Linear"; font-weight: 700; font-size: 15px; }
+/* one face for the dock's lines in every beat (B612): only the words could ever change */
+.dock .meta { display: block; font-size: 13px; line-height: 1.35; color: var(--cream); text-wrap: pretty; }
+.meta.dim { color: var(--dim); margin-top: 2px; }
 .btn { font-family: "B612"; font-weight: 700; font-size: 15px; height: 46px; padding: 0 18px; background: var(--cream); color: var(--ink);
   border: 0; border-radius: 0; display: inline-flex; align-items: center; text-decoration: none; white-space: nowrap; cursor: pointer; }
 .btn:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+/* the always-on dock and phone bar carry an outlined button: a filled cream block was the brightest thing on the
+   screen under a squint (blurred 205 against the sentence's 136; art review: the words must win). The filled button
+   is kept for the offer and the form, where the action is the subject and the dock has stepped aside. */
+.dock .btn, .bar .btn { background: transparent; color: var(--cream); outline: 1.5px solid var(--cream); outline-offset: -1.5px; }
+.dock .btn:hover, .bar .btn:hover { background: var(--cream); color: var(--ink); }
+/* one button per screen: while the offer or the form is in view the dock and the bar step aside */
+body.dock-off .dock, body.dock-off .bar { display: none; }
 
 /* ---- on the water ---- */
 .audience { position: absolute; left: 64px; width: 560px; font-family: "Ortica Linear"; font-weight: 700; font-size: 26px; line-height: 1.25; text-wrap: balance; }
 
-/* the instrument: the Bootloader's own first question, its readout, then how to answer it (scroll) */
-.instrument, .legend { position: absolute; left: 1036px; width: 364px; }
+/* the instrument: the Bootloader's own first question, its readout, the band, what the question reveals */
+.instrument, .legend { position: absolute; left: 1036px; width: 330px; }
 .question { font-family: "Ortica Linear"; font-weight: 700; font-size: 18px; line-height: 1.3; }
-.tie { font-size: 13px; line-height: 1.35; color: var(--dim); margin-top: 5px; }
-.tie .mark { font-size: 15px; color: var(--cream); }
-.readout { display: grid; grid-template-columns: auto auto; column-gap: 26px; justify-content: start; margin-top: 12px; }
-.fig { font-family: "Plimsoll"; font-size: 48px; line-height: 0.9; font-variant-numeric: tabular-nums; display: block; }
-.fig.mark66 { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
-.instrument.red .fig { color: var(--redline); }
+.asks { display: block; font-family: "B612"; font-weight: 400; font-size: 13px; color: var(--dim); margin-bottom: 3px; }
+.readout { display: grid; grid-template-columns: auto auto; column-gap: 26px; justify-content: start; margin-top: 10px; }
+.fig { font-family: "Plimsoll"; font-size: 48px; line-height: 0.9; font-variant-numeric: tabular-nums; display: block; color: var(--cream); }
 .unit { font-size: 13px; line-height: 1.3; color: var(--dim); display: block; margin-top: 6px; }
-.cue { font-size: 14px; line-height: 1.3; color: var(--cream); margin-top: 12px; }
-.bands { list-style: none; margin: 12px 0 0; padding: 0; font-size: 14px; line-height: 19px; color: var(--dim); }
-.bands li { position: relative; padding-left: 18px; }
-.bands li.on { color: var(--cream); font-weight: 700; }
-.bands li.on::before { content: ""; position: absolute; left: 0; top: 8px; width: 10px; height: 2px; background: var(--cream); }
-.bandline { font-family: "Ortica Linear"; font-size: 15px; line-height: 1.3; color: var(--cream); margin: 3px 0 3px 18px; }
+.band { margin-top: 10px; font-size: 14px; font-weight: 700; line-height: 1.3; }
+.bandline { font-family: "Ortica Linear"; font-size: 15px; line-height: 1.3; color: var(--cream); text-wrap: pretty; }
+.sell { font-family: "Ortica Linear"; font-size: 15px; line-height: 1.35; color: var(--dim); margin-top: 10px; text-wrap: pretty; }
+.cue { font-size: 14px; line-height: 1.3; color: var(--cream); margin-top: 10px; }
+.instrument .qlabel { margin-top: 12px; }
 
 /* the cycle legend (beats 6-8) */
 .legend .llead { font-family: "Ortica Linear"; font-weight: 700; font-size: 18px; line-height: 1.3; margin-bottom: 10px; }
@@ -70,26 +75,26 @@ a { color: inherit; }
 .phase .pname { font-family: "Plimsoll"; font-size: 20px; line-height: 1.1; }
 .phase .pline { font-family: "Ortica Linear"; font-size: 16px; line-height: 1.35; }
 .phase.on { color: var(--cream); }
-.phase .cell { grid-column: 2; font-size: 13px; line-height: 1.35; margin-top: 3px; }
+.phase .cell { grid-column: 2; font-size: 13px; line-height: 1.35; margin-top: 3px; text-wrap: pretty; }
 
-/* anchored labels: B612 13 px, cream at 85 %, sentence case, 1 px rules, never boxed; the text sits on water */
-.tag { position: absolute; font-size: 13px; line-height: 1.2; color: rgba(238, 240, 236, 0.85); white-space: nowrap; }
+/* anchored labels: B612, cream at 85 %, sentence case, 1 px rules, never boxed; each points at a thing in the render */
+.tag { position: absolute; font-size: 13px; line-height: 16px; color: rgba(238, 240, 236, 0.88); white-space: nowrap; margin-top: -8px; }
 .rule-h { display: inline-block; width: 36px; height: 1px; background: rgba(238, 240, 236, 0.85); vertical-align: middle; margin-right: 8px; }
-.tag-water { left: 64px; margin-top: -8px; }
-.tag-deck { margin-top: -8px; }
-.tag-deck .rule-h { margin: 0 0 0 8px; }
-.tag-mark { width: 1px; background: rgba(238, 240, 236, 0.85); }
-.tag-mark span { position: absolute; bottom: -8px; right: 8px; }
-.tag-scar span { position: absolute; bottom: 0; left: 8px; }
-.tag-scar { width: 1px; background: rgba(238, 240, 236, 0.85); }
-.tag-scar::before { content: ""; position: absolute; top: 0; left: -10px; width: 21px; height: 1px; background: rgba(238, 240, 236, 0.85); }
-.tag-margin { border-top: 1px solid rgba(238, 240, 236, 0.85); border-bottom: 1px solid rgba(238, 240, 236, 0.85); width: 11px; }
+.rule-h.short { width: 14px; }
+.tag-tick .rule-h { margin: 0 0 0 8px; }
+/* complexity rides the waterline: larger than the other tags, it is what the water means */
+.tag-water { left: 64px; font-size: 15px; font-weight: 700; color: var(--cream); }
+.tag-water .rule-h { width: 64px; }
+.tag-deck .rule-h { margin: 0 0 0 6px; width: 10px; }
+.tag-margin { margin-top: 0; border-top: 1px solid rgba(238, 240, 236, 0.85); border-bottom: 1px solid rgba(238, 240, 236, 0.85); width: 11px; }
 .tag-margin::before { content: ""; position: absolute; left: 5px; top: 0; bottom: 0; width: 1px; background: rgba(238, 240, 236, 0.85); }
-.tag-margin span { position: absolute; right: 18px; top: 50%; margin-top: -8px; }
+.tag-margin span { position: absolute; left: 19px; top: 50%; margin-top: -8px; }   /* right of its line, at mid-height */
 
-/* captions: left-aligned in the quiet lower-left corner, over water (no centred stack) */
-.caption, .offer { position: absolute; left: 64px; width: 720px; }
-.caption .big { font-family: "Ortica Angular"; font-size: 40px; line-height: 1.1; text-wrap: balance; }
+/* captions: left-aligned in the quiet lower-left corner, over water (no centred stack); no widows */
+.caption, .offer { position: absolute; left: 64px; }
+.caption p { text-wrap: pretty; }
+.caption .big { font-family: "Ortica Angular"; font-size: 40px; line-height: 1.1; }
+.caption .mid { font-family: "Ortica Angular"; font-size: 32px; line-height: 1.12; }
 .caption .big1 { font-family: "Ortica Angular"; font-size: 54px; line-height: 1.05; }
 .caption .support { font-family: "Ortica Linear"; font-size: 22px; line-height: 1.3; margin-top: 14px; }
 .caption .eqred, .caption .eqgreen { font-family: "Plimsoll"; font-size: 46px; line-height: 1; white-space: nowrap; }
@@ -97,65 +102,93 @@ a { color: inherit; }
 .caption .eqgreen { color: var(--oxygen); }
 
 /* the mid-story offer (beat 7 hold) */
-.offer .big { font-family: "Ortica Angular"; font-size: 32px; line-height: 1.1; max-width: 640px; }
-.offerrow { display: grid; grid-template-columns: 300px 340px; column-gap: 28px; margin: 14px 0 14px; }
+.offer { width: 720px; }
+.offer .big { font-family: "Ortica Angular"; font-size: 32px; line-height: 1.1; max-width: 640px; text-wrap: pretty; }
+.offerrow { display: grid; grid-template-columns: 340px 340px; column-gap: 28px; margin: 14px 0 14px; }
 .filehead { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
 .filehead .mark { font-size: 30px; }
 .filehead .fname { font-family: "Plimsoll"; font-size: 22px; line-height: 1; white-space: nowrap; }
-.what { font-size: 14px; line-height: 1.35; }
-.spec { font-size: 13px; line-height: 1.45; color: var(--dim); margin-top: 6px; }
+.what { font-size: 14px; line-height: 1.35; text-wrap: pretty; }
+.spec { font-size: 13px; line-height: 1.5; color: var(--dim); margin-top: 8px; text-wrap: pretty; }
 .qlabel { font-size: 13px; color: var(--dim); margin-bottom: 4px; }
 .q { font-family: "Ortica Linear"; font-weight: 700; font-size: 17px; line-height: 1.32; color: var(--cream); }
+.gloss { font-size: 12px; line-height: 1.3; color: var(--dim); margin: 0 0 2px; }
 
-/* ---- finale: the couplet as two equal lines, then book (left) and file (right, primary) ---- */
-.lead { position: absolute; left: 560px; }
-.lead p { font-family: "Ortica Angular"; font-size: 30px; line-height: 1.18; }
-.col-book { position: absolute; left: 64px; width: 300px; }
-.col-file { position: absolute; left: 560px; width: 836px; }
-.filegrid { display: grid; grid-template-columns: 330px 1fr; column-gap: 34px; }
-.head { font-family: "Ortica Linear"; font-weight: 700; font-size: 19px; line-height: 1.3; margin-bottom: 10px; }
-.booktitle { font-family: "Plimsoll"; font-size: 21px; line-height: 1; margin-bottom: 6px; }
-.bookby { font-size: 14px; color: var(--dim); }
-.soon { font-size: 14px; color: var(--cream); margin-top: 10px; }
-.cred { font-family: "Ortica Linear"; font-size: 14px; line-height: 1.4; color: var(--dim); margin-top: 12px; }
-.col-file .q { font-size: 16px; }
+/* ---- finale: ONE cluster on the dark water (review round 2): Michael's AI couplet, the file, the form ---- */
+.cluster { position: absolute; left: 64px; width: 900px; }
+.cluster .lead p { font-family: "Ortica Angular"; font-size: 30px; line-height: 1.18; }
+.fgrid { display: grid; grid-template-columns: 340px 1fr; column-gap: 36px; margin-top: 18px; }
+.getback { font-family: "Ortica Linear"; font-weight: 700; font-size: 16px; line-height: 1.32; margin-bottom: 12px; max-width: 46ch; text-wrap: pretty; }
+.getback .qlabel { display: block; font-family: "B612"; font-weight: 400; }
 .form label { display: block; font-size: 13px; color: var(--dim); margin-bottom: 6px; }
 .formrow { display: flex; }
 .formrow input { width: 250px; height: 52px; border: 0; border-radius: 0; background: var(--cream); color: var(--ink); font: 16px "B612"; padding: 0 14px; }
 .formrow .btn { height: 52px; font-size: 16px; padding: 0 18px; border-left: 1px solid var(--ink); }
-.note { font-size: 13px; color: var(--dim); margin: 7px 0 12px; }
-.next { font-family: "Ortica Linear"; font-size: 16px; line-height: 1.32; color: var(--cream); }
-.appendix { display: inline-block; margin-top: 10px; font-size: 13px; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
+.note { font-size: 13px; color: var(--dim); margin: 7px 0 10px; }
+.next { font-family: "Ortica Linear"; font-size: 15px; line-height: 1.32; color: var(--cream); }
+.appendix { display: inline-block; margin-top: 8px; font-size: 13px; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; }
+.bookline { margin-top: 20px; font-size: 13px; color: var(--dim); }
+.booktitle { font-family: "Plimsoll"; font-size: 15px; color: var(--cream); margin-right: 6px; }
 
 /* ---- phone ---- */
 .bar { display: none; }
-.phoneband { display: none; }
 @media (max-aspect-ratio: 3/4) {
-  .lockup { left: 16px; top: 12px; }
+  /* the phone's title lockup is a solid strip, matching the bottom bar: under the water the surface's silver
+     underside fills the top band (phone frame p02 top band p95 0.23; the lockup measured 3.1:1 on it) */
+  .lockup { position: fixed; left: 0; right: 0; top: 0; height: 52px; padding: 10px 16px 0; background: rgba(13, 17, 18, 0.94);
+    border-bottom: 1px solid var(--rule); z-index: 2; }
   .title { font-size: 20px; }
   .byline { font-size: 12px; margin-top: 5px; }
-  .booklink { font-size: 13px; margin-top: 2px; padding: 10px 0; }
+  .booklink { position: fixed; right: 16px; top: 6px; font-size: 13px; margin-top: 0; padding: 12px 0; }   /* the Bootloader is in the bottom bar here */
   .dock { display: none; }
   .audience { left: 20px; width: 350px; font-size: 19px; line-height: 1.3; }
-  .tag-water { left: 20px; }
-  .tag-mark { display: none; }
+  .tag-water { left: 20px; font-size: 14px; }
+  .tag-water .rule-h { width: 28px; }
+  .tag-tick, .tag-deck, .tag-margin, .tag-scar { display: none; }
+  .tag-mark { font-size: 12px; }
+  body.beat .tag-mark { display: none; }
+  body.offerpage .tag { display: none; }   /* the phone offer sits on the hull under the words; it is the screen */   /* on the phone's story beats the caption names the line (beat 2: BL 544) */
   .instrument { left: 20px; width: 350px; }
   .question { font-size: 15px; }
-  .tie { display: none; }
+  .asks { font-size: 12px; }
   .readout { column-gap: 22px; margin-top: 6px; }
   .fig { font-size: 34px; }
   .unit { font-size: 12px; margin-top: 4px; }
+  .band { margin-top: 6px; font-size: 13px; }
+  .bandline { font-size: 14px; }
+  .sell { display: none; }
   .cue { font-size: 13px; margin-top: 8px; }
-  .bands { display: none; }
-  .phoneband { display: block; font-size: 13px; font-weight: 700; margin-top: 6px; }
-  .caption { left: 20px; width: 350px; }
+  .caption { left: 20px; width: 350px !important; }   /* the page's own style sets each beat's desktop width */
   .caption .big { font-size: 26px; }
+  .caption .mid { font-size: 22px; }
+  .caption .big1 { font-size: 34px; }
+  .caption .support { font-size: 17px; }
+  .caption .eqred, .caption .eqgreen { font-size: 21px; }   /* one line across the phone (27 px ran off its edge) */
+  .offer { left: 20px; width: 350px; }
+  .offer .big { font-size: 24px; }
+  .offerrow { grid-template-columns: 1fr; row-gap: 12px; margin: 10px 0 12px; }
+  .cluster { left: 20px; width: 350px; }
+  .cluster .lead p { font-size: 21px; }
+  .fgrid { grid-template-columns: 1fr; row-gap: 10px; margin-top: 12px; }
+  .fspec .spec { display: none; }
+  .formrow { flex-direction: column; row-gap: 0; }   /* field over button: the row was wider than the phone */
+  .formrow input { width: 100%; }
+  .formrow .btn { justify-content: center; border-left: 0; border-top: 1px solid var(--ink); }
+  .next { display: none; }
   .bar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: 10px; position: fixed; left: 0; right: 0; bottom: 0;
-    height: calc(76px + env(safe-area-inset-bottom)); padding: 0 14px env(safe-area-inset-bottom); background: rgba(21, 23, 24, 0.94); border-top: 1px solid var(--rule); }
-  .bar .mark { font-size: 26px; }
+    height: calc(76px + env(safe-area-inset-bottom)); padding: 0 14px env(safe-area-inset-bottom); background: rgba(13, 17, 18, 0.94); border-top: 1px solid var(--rule); }
+  .bar .mark { font-size: 22px; color: var(--dim); }
   .bar .name { font-size: 18px; margin-bottom: 4px; }
   .bar .meta { display: block; font-size: 12px; line-height: 1.3; color: var(--cream); }
-  .bar .meta + .meta { color: var(--dim); }
-  .bar .meta.voice { font-size: 13px; }
+  .bar .meta.dim { color: var(--dim); }
   .bar .btn { height: 46px; padding: 0 14px; }
+  /* once scrolling starts the readout docks into one line on dark water just above the bar */
+  body.beat .instrument { top: auto; bottom: 92px; left: 20px; width: auto; display: flex; align-items: baseline; column-gap: 10px; }
+  body.beat .question, body.beat .cue, body.beat .bandline, body.beat .instrument .qlabel, body.beat .instrument .q, body.beat .instrument .gloss { display: none; }
+  body.beat .readout { display: flex; column-gap: 10px; margin: 0; }
+  body.beat .readout > span { display: flex; align-items: baseline; column-gap: 4px; }
+  body.beat .fig { font-size: 15px; line-height: 1.2; }
+  body.beat .unit { font-size: 12px; margin: 0; }
+  body.beat .band { margin: 0; font-size: 12px; }
+  body.beat .legend { display: none; }
 }

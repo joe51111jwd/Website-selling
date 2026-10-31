@@ -36,34 +36,39 @@ def n_for_level(h):
 
 FLOOR_H = -0.80          # the lock floor, in H above D0
 MARK12_H = level_H(12)   # the painted load line: the 12-person level (-0.105 H)
-COURSES = [0.55, 0.45, 0.45]   # Side: each new course, in H
+COURSES = [0.85, 0.30, 0.30]   # Side: each new strake, in H (round 2: the first lifts two lines clear of the flood)
+DOWN_H = -0.75                  # Down drains to here (round 2: Up then rises 0.65 H, about 0.56 m, against the gauge)
 
 # K, story point, n (None in the cycle), water (H), deck = the words' ground (H), sun (x the default),
-# signal, wind (m/s: the chop), camera, wet rule, kelvin of the sun.
-# Review round 1 (06-HERO-BUILD, "Round 1 fixes"): K5 and K6 keep the window camera (from the open camera the
-# drowned words are squeezed into a 10 cm strip at the waterline by refraction at grazing incidence: test
-# out/test3/t1_under.png), now with the same sun as HERO and a visible, lit water volume; K0's water is a film on the floor (its top above its bottom); K16 is the Oxygen hold (camera OXYGEN) and
-# K16F the same moment pulled back for the finale (camera WIDE), which the drain (K17) also uses.
+# signal, wind (m/s: the chop), camera, wet rule.
+# Review round 2 (06-HERO-BUILD, "Round 2 fixes"): one sun for the whole story (no state solves its own
+# elevation any more: the trees' canopy is gone), so only its strength changes (a cloud at Redline); K5 and K6
+# use the UNDER camera, a camera in the water itself (the gallery and its glass are gone); every camera change is
+# a hard cut (frames() below names each frame's camera); K16 -> K16F is a sequence phase at full size.
 STATES = {
     'K0':  dict(name='intro',    n=1,    water=FLOOR_H + 0.012, deck=0.00, sun=1.00, signal='off', wind=1.6, cam='HERO'),
     'K1':  dict(name='hero',     n=8,    water=level_H(8),  deck=0.00, sun=1.00, signal='off',   wind=2.2, cam='HERO'),
     'K2':  dict(name='twelve',   n=12,   water=level_H(12), deck=0.00, sun=1.00, signal='off',   wind=2.4, cam='HERO'),
-    'K3':  dict(name='touch',    n=13,   water=level_H(13), deck=0.00, sun=0.90, signal='red',   wind=2.8, cam='HERO'),
-    'K4':  dict(name='cut',      n=14.5, water=level_H(14.5), deck=0.00, sun=0.75, signal='red', wind=3.2, cam='HERO'),
-    'K5':  dict(name='under',    n=19,   water=level_H(19), deck=0.00, sun=0.50, signal='red',   wind=3.6, cam='WINDOW'),
-    'K6':  dict(name='redline',  n=39,   water=level_H(39), deck=0.00, sun=0.18, signal='red',   wind=4.0, cam='WINDOW', cloud=1),
-    'K7':  dict(name='turn',     n=None, water=1.35,  deck=0.00, sun=1.00, signal='off',   wind=2.0, cam='CRANE'),
-    'K8':  dict(name='side1',    n=None, water=1.35,  deck=0.55, sun=1.00, signal='off',   wind=2.0, cam='CRANE', wet='deck'),
-    'K9':  dict(name='down1',    n=None, water=-0.45, deck=0.55, sun=1.00, signal='green', wind=1.8, cam='CRANE', wet='flood'),
-    'K10': dict(name='up2',      n=None, water=MARK12_H, deck=0.55, sun=1.00, signal='green', wind=1.8, cam='CRANE'),
-    'K11': dict(name='side2',    n=None, water=MARK12_H, deck=1.00, sun=1.00, signal='green', wind=1.6, cam='CRANE'),
-    'K12': dict(name='down2',    n=None, water=-0.45, deck=1.00, sun=1.00, signal='green', wind=1.6, cam='CRANE'),
-    'K13': dict(name='up3',      n=None, water=MARK12_H, deck=1.00, sun=1.00, signal='green', wind=1.4, cam='CRANE'),
-    'K14': dict(name='side3',    n=None, water=MARK12_H, deck=1.45, sun=1.00, signal='green', wind=1.4, cam='CRANE'),
-    'K15': dict(name='down3',    n=None, water=-0.45, deck=1.45, sun=1.00, signal='green', wind=1.2, cam='CRANE'),
-    'K16': dict(name='oxygen',   n=None, water=-0.505, deck=1.45, sun=1.10, signal='green', wind=0.8, cam='OXYGEN', kelvin=4300),
-    'K16F': dict(name='finale',  n=None, water=-0.505, deck=1.45, sun=1.10, signal='green', wind=0.8, cam='WIDE', kelvin=4300),
-    'K17': dict(name='drain_end', n=None, water=FLOOR_H + 0.012, deck=1.45, sun=1.10, signal='green', wind=0.0, cam='WIDE', kelvin=4300),
+    'K3':  dict(name='touch',    n=13,   water=level_H(13), deck=0.00, sun=0.95, signal='red',   wind=2.6, cam='HERO'),
+    'K4':  dict(name='cut',      n=14.5, water=level_H(14.5), deck=0.00, sun=0.85, signal='red', wind=3.0, cam='HERO'),
+    'K5':  dict(name='under',    n=19,   water=level_H(19), deck=0.00, sun=0.75, signal='red',   wind=3.6, cam='UNDER'),
+    'K6':  dict(name='redline',  n=39,   water=level_H(39), deck=0.00, sun=0.22, signal='red',   wind=4.2, cam='UNDER', cloud=1),
+    # the turn: the same camera in the water, the cloud gone, the sun back on the drowned words (round 2)
+    'K7':  dict(name='turn',     n=None, water=1.35,  deck=0.00, sun=1.00, signal='off',   wind=2.4, cam='UNDER'),
+    # Side 1: the first strake lifts the words while the flood eases a little (1.35 -> 1.10): two lines clear
+    'K8':  dict(name='side1',    n=None, water=1.10,  deck=0.85, sun=1.00, signal='off',   wind=2.2, cam='CRANE', wet='deck'),
+    'K9':  dict(name='down1',    n=None, water=DOWN_H, deck=0.85, sun=1.00, signal='green', wind=2.0, cam='CRANE', wet='flood'),
+    'K10': dict(name='up2',      n=None, water=MARK12_H, deck=0.85, sun=1.00, signal='green', wind=2.0, cam='CRANE'),
+    'K11': dict(name='side2',    n=None, water=MARK12_H, deck=1.15, sun=1.00, signal='green', wind=1.8, cam='CRANE'),
+    'K12': dict(name='down2',    n=None, water=DOWN_H, deck=1.15, sun=1.00, signal='green', wind=1.8, cam='CRANE'),
+    'K13': dict(name='up3',      n=None, water=MARK12_H, deck=1.15, sun=1.00, signal='green', wind=1.6, cam='CRANE'),
+    'K14': dict(name='side3',    n=None, water=MARK12_H, deck=1.45, sun=1.00, signal='green', wind=1.6, cam='CRANE'),
+    'K15': dict(name='down3',    n=None, water=DOWN_H, deck=1.45, sun=1.00, signal='green', wind=1.4, cam='CRANE'),
+    'K16': dict(name='oxygen',   n=None, water=-0.505, deck=1.45, sun=1.00, signal='green', wind=1.2, cam='OXYGEN'),
+    'K16F': dict(name='finale',  n=None, water=-0.505, deck=1.45, sun=1.00, signal='green', wind=1.2, cam='WIDE'),
+    # after the click: the drain drops the water 1.15 H (about 1 m) from the Oxygen level and leaves the hull it
+    # uncovered wet (round 2: the old 0.28 H drain was invisible)
+    'K17': dict(name='drain_end', n=None, water=-1.65, deck=1.45, sun=1.00, signal='green', wind=0.6, cam='WIDE', wet='drain'),
 }
 ORDER = [f'K{i}' for i in range(17)] + ['K16F', 'K17']
 ALIASES = {v['name']: k for k, v in STATES.items()}
@@ -105,7 +110,14 @@ HIST = history()
 # --------------------------------------------------------------------------------------------
 # CRANE framing (brief 7.1)
 # --------------------------------------------------------------------------------------------
-HERO_TOP, HERO_FH = 1.827, 4.425     # HERO: the sentence at 18.7-41.3 % of the frame height
+HERO_TOP, HERO_FH = 1.827, 4.425     # HERO: the sentence at 18.7 % from the top; set_hero() re-sets both from the face
+
+
+def set_hero(top, fh):
+    """Round 2: the frame is derived from the sentence's measured width (the face changed), so the scene
+    passes its HERO frame (in H) here before any CRANE framing is asked for."""
+    global HERO_TOP, HERO_FH
+    HERO_TOP, HERO_FH = top, fh
 SIDE_WORDS_TOP = 0.135               # in Side the camera rises less than the course: the words climb in the frame
 
 
@@ -149,14 +161,19 @@ def ease(t):
 # --------------------------------------------------------------------------------------------
 
 def frames(layout='desktop'):
-    """Every sequence frame as {id, a, b, t, n}: the frame is state a blended toward state b by t
-    (water follows n when n is given, so the tide is even in n; the cycle is eased in time)."""
+    """Every sequence frame as {id, a, b, t, n, cam}: the frame is state a blended toward state b by t (water
+    follows n when n is given, so the tide is even in n; the cycle is eased in time). `cam` names the camera
+    when a frame must not take it from the blend: review round 2 (technical) found the camera gliding between the
+    open view and the window over 7 frames and the gallery popping in at t = 0.5. Now the open camera holds until the
+    top line goes under (n 18.7, rendered on both cameras: the cut), every frame after it to Redline is on the UNDER
+    camera, and K6 -> K7 cuts back to the open camera at its first frame."""
     P = layout == 'phone'
     pre = 'p' if P else 'd'
     out = []
 
-    def add(a, b, t, n=None):
-        out.append(dict(id=f'{pre}{len(out):02d}', a=a, b=b, t=round(t, 4), n=None if n is None else round(n, 4)))
+    def add(a, b, t, n=None, cam=None):
+        out.append(dict(id=f'{pre}{len(out):02d}', a=a, b=b, t=round(t, 4), n=None if n is None else round(n, 4),
+                        cam=cam))
 
     # intro: n 1, 4, 6, 8 (K0 -> K1, water by n)
     for n in ([1, 8] if P else [1, 4, 6, 8]):
@@ -166,29 +183,35 @@ def frames(layout='desktop'):
     for i in range(1, 4 * per_hire + 1):
         n = 8 + i / per_hire
         add('K1', 'K2', (n - 8) / 4.0, n)
-    # thirteen: 12 -> 14.5
+    # thirteen: 12 -> 14.5 (the open camera; the last frame is K4)
     steps = 5 if P else 7
     for i in range(1, steps + 1):
         n = 12 + 2.5 * i / steps
         add(*(('K2', 'K3', n - 12) if n <= 13 else ('K3', 'K4', (n - 13) / 1.5)), n)
-    # going under: 14.5 -> 19 (3 per hire desktop, 2 phone)
+    # going under: 14.5 -> 19 (3 per hire desktop, 2 phone). The open camera watches the water climb the sentence
+    # line by line; once the top line goes under (n >= 18.7) the camera is in the water with the words (a hard cut;
+    # the first frame under is also rendered from above, so the cut can be judged both ways)
     steps = 10 if P else 15
     for i in range(1, steps + 1):
         n = 14.5 + 4.5 * i / steps
-        add('K4', 'K5', (n - 14.5) / 4.5, n)
+        if n >= 18.7 - 1e-6 and not any(f.get('cam') == 'UNDER' for f in out):
+            add('K4', 'K5', (n - 14.5) / 4.5, n, cam='HERO')
+        add('K4', 'K5', (n - 14.5) / 4.5, n, cam='UNDER' if n >= 18.7 - 1e-6 else 'HERO')
     # Redline: 19 -> 39
     steps = 3 if P else 4
     for i in range(1, steps + 1):
         n = 19 + 20 * i / steps
-        add('K5', 'K6', i / steps, n)
-    # the cycle: eased in time per phase
-    phases = [('K6', 'K7', 3 if P else 4), ('K7', 'K8', 4 if P else 6), ('K8', 'K9', 7 if P else 10)]
-    for a, b, m in [('K9', 'K10', 0), ('K10', 'K11', 0), ('K11', 'K12', 0), ('K12', 'K13', 0), ('K13', 'K14', 0), ('K14', 'K15', 0)]:
-        phases.append((a, b, 3 if P else 4))
-    phases += [('K15', 'K16', 4 if P else 6)]
-    for a, b, m in phases:
+        add('K5', 'K6', i / steps, n, cam='UNDER')
+    # the cycle: eased in time per phase; K6 -> K7 is back on the open camera from its first frame (a hard cut)
+    # the turn stays in the water (the cloud lifts); Side cuts back up to the open camera at its first frame
+    phases = [('K6', 'K7', 3 if P else 4, 'UNDER'), ('K7', 'K8', 4 if P else 6, 'CRANE'), ('K8', 'K9', 7 if P else 10, None)]
+    for a, b in [('K9', 'K10'), ('K10', 'K11'), ('K11', 'K12'), ('K12', 'K13'), ('K13', 'K14'), ('K14', 'K15')]:
+        phases.append((a, b, 3 if P else 4, None))
+    # the open cameras (CRANE, OXYGEN, WIDE) blend: that is a crane move in air, not a cut
+    phases += [('K15', 'K16', 4 if P else 6, None), ('K16', 'K16F', 4 if P else 6, None)]
+    for a, b, m, cam in phases:
         for i in range(1, m + 1):
-            add(a, b, ease(i / m))
+            add(a, b, ease(i / m), None, cam)
     return out
 
 

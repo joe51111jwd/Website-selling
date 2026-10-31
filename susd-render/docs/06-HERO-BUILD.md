@@ -1,49 +1,92 @@
 # 06 · Hero build: the Waterline scene and its key stills
 
 **Job.** Build the Waterline scene as one reproducible Blender script, render the story's key states as
-hero-quality stills, and mock the first screen, the Redline beat and the finale with the planned HTML on top,
-so James can judge the story and the conversion from screenshots. Thesis on the wall:
+hero-quality stills, and mock every beat with the planned HTML on top, so James can judge the story and the
+conversion from screenshots. Thesis on the wall:
 "Every hire compounds complexity before it compounds capacity." [M 696 · copy.ts:60]
 
 Everything is in `susd-render/`: the scene in `scene/`, the stills in `out/stills/` (gitignored, as `out/` is),
 the mocks in `mock/`, their screenshots in `out/mock/`, every render logged in `out/renders.jsonl`.
 
+**Status.** Round 4 (this pass). The round-3 stills (the canal lock) were failed by three reviewers (3.5/10,
+6/10, 5/10), and James had called the place a sewer (07-CLIENT-FEEDBACK). Round 4 moves the scene to **a ship's
+side**: Michael's sentence in welded white capitals on dark hull plating, clear harbour water rising toward it, the
+real Plimsoll load-line mark at the 12-person level. The drowned beats are seen by a camera **in the water**. Every
+blocker and major of the second review round is fixed, or was tested and answered with evidence; see **section 13,
+"Round 2 fixes"**, which is current. Sections 2 to 12 are the build record of the canal lock (rounds 2 and 3) and are
+kept as history.
+
 ## Results at a glance
 
-**Stills** (final, round 2; Cycles CPU, 32 samples, OIDN; desktop 1600×1000, phone 900×1950). Every one has a
-`.anchors.json` beside it. Contact sheet: [`out/stills/contact_sheet.png`](../out/stills/contact_sheet.png).
+**Stills** (round 4; Cycles CPU, OIDN; desktop 1600×1000 at 32 samples, phone hero and under 900×1950 at 32,
+the other phone beats 600×1300 at 24; 16-bit PNG masters). Every one has an `.anchors.json` beside it. Contact
+sheets, in story order: [`out/stills/contact_sheet.png`](../out/stills/contact_sheet.png) and
+[`out/stills/contact_sheet_phone.png`](../out/stills/contact_sheet_phone.png). Round 3 (the lock, reviewed) is in
+`out/stills/r3/`, round 2 in `r2/`, round 1 in `r1/`. Times and frame checks for every still: section 13.9.
 
-| Still | State | What it shows | Seconds |
-|---|---|---|---:|
-| [`out/stills/d1_hero_K1.png`](../out/stills/d1_hero_K1.png) | K1 hero, n = 8, 28 pathways | the first screen: dry words in the last sun, water halfway up the ledge, ⦵ and "12" painted above it, the top of the wall in the trees' shade | 207 |
-| [`out/stills/d2_touch_K3.png`](../out/stills/d2_touch_K3.png) | K3 touch, n = 13, 78 | the water at every letter's foot at once, the sentence mirrored whole, the ⦵ just under, the signal red | 209 |
-| [`out/stills/d3_under_K5.png`](../out/stills/d3_under_K5.png) | K5 under, n = 19, 171 | the window camera: the whole sentence under, green and refracted behind the gallery glass, the red lamp at the surface | 170 |
-| [`out/stills/d4_redline_K6.png`](../out/stills/d4_redline_K6.png) | K6 Redline, n = 39, 741 | deepest point under a cloud: the drowned sentence, the red lamp the only warm light, its glow on the gallery floor | 190 |
-| [`out/stills/d6_drained_K9.png`](../out/stills/d6_drained_K9.png) | K9 drained (Down 1) | the first course under the panel, the chamber drained below ⦵, the wall wet up to its new flood ring, the signal green | 206 |
-| [`out/stills/d7_raised_K11.png`](../out/stills/d7_raised_K11.png) | K11 raised (Side 2) | two courses under the panel; Up has stopped exactly at the ⦵ line; the flood ring on the wall beside the words | 188 |
-| [`out/stills/d8_final_K16.png`](../out/stills/d8_final_K16.png) | K16 final (Oxygen) | wide: the words high and dry on three courses, their feet just above their own flood ring, glassy water at the first screen's level | 198 |
-| [`out/stills/p1_hero_K1.png`](../out/stills/p1_hero_K1.png) | K1 hero, phone | six lines on a narrow panel, the ⦵ under the words' right end, the bottom of the frame water for the sticky bar | 221 |
-| [`out/stills/p3_under_K5.png`](../out/stills/p3_under_K5.png) | K5 under, phone | the six lines drowned behind the glass, the red lamp at the surface | 141 |
-| `out/stills/d5_emerge_K8.png` | K8 Side 1 (optional) | **rejected**: with the brief's crane framing the frame is 80 % black water and the near wave facets catch a pale sky blob; it neither reads nor shows Side (the course is under water). Fix if K8 is wanted: a calmer near surface and a higher camera. | 181 |
+| Still | State | Camera | Size | Samples | Seconds |
+|---|---|---|---|---:|---:|
+| [`out/stills/d01_hero_K1.png`](../out/stills/d01_hero_K1.png) | K1 hero n = 8.0 | HERO | 1600×1000 | 32 | 188.3 |
+| [`out/stills/d02_twelve_K2.png`](../out/stills/d02_twelve_K2.png) | K2 twelve n = 12.0 | HERO | 1600×1000 | 32 | 193.0 |
+| [`out/stills/d03_touch_K3.png`](../out/stills/d03_touch_K3.png) | K3 touch n = 13.0 | HERO | 1600×1000 | 32 | 197.6 |
+| [`out/stills/d04_under_K5.png`](../out/stills/d04_under_K5.png) | K5 under n = 19.0 | UNDER | 1600×1000 | 32 | 266.2 |
+| [`out/stills/d05_redline_K6.png`](../out/stills/d05_redline_K6.png) | K6 redline n = 39.0 | UNDER | 1600×1000 | 32 | 262.3 |
+| [`out/stills/d06_turn_K7.png`](../out/stills/d06_turn_K7.png) | K7 turn | UNDER | 1600×1000 | 32 | 278.5 |
+| [`out/stills/d07_side1_K8.png`](../out/stills/d07_side1_K8.png) | K8 side1 | CRANE | 1600×1000 | 32 | 212.4 |
+| [`out/stills/d08_down1_K9.png`](../out/stills/d08_down1_K9.png) | K9 down1 | CRANE | 1600×1000 | 32 | 176.2 |
+| [`out/stills/d09_up2_K10.png`](../out/stills/d09_up2_K10.png) | K10 up2 | CRANE | 1600×1000 | 32 | 179.3 |
+| [`out/stills/d10_side2_K11.png`](../out/stills/d10_side2_K11.png) | K11 side2 | CRANE | 1600×1000 | 32 | 176.2 |
+| [`out/stills/d11_up3_K13.png`](../out/stills/d11_up3_K13.png) | K13 up3 | CRANE | 1600×1000 | 32 | 174.0 |
+| [`out/stills/d12_oxygen_K16.png`](../out/stills/d12_oxygen_K16.png) | K16 oxygen | OXYGEN | 1600×1000 | 32 | 157.8 |
+| [`out/stills/d13_finale_K16F.png`](../out/stills/d13_finale_K16F.png) | K16F finale | WIDE | 1600×1000 | 32 | 183.1 |
+| [`out/stills/d14_drain_K17.png`](../out/stills/d14_drain_K17.png) | K17 drain_end | WIDE | 1600×1000 | 32 | 170.4 |
+| [`out/stills/d15_hire_n10.png`](../out/stills/d15_hire_n10.png) | K2 twelve n = 10.0 | HERO | 1600×1000 | 32 | 196.1 |
+| [`out/stills/p01_hero_K1.png`](../out/stills/p01_hero_K1.png) | K1 hero n = 8.0 | HERO | 900×1950 | 32 | 197.6 |
+| [`out/stills/p02_under_K5.png`](../out/stills/p02_under_K5.png) | K5 under n = 19.0 | UNDER | 900×1950 | 32 | 309.6 |
+| [`out/stills/p03_twelve_K2.png`](../out/stills/p03_twelve_K2.png) | K2 twelve n = 12.0 | HERO | 600×1300 | 24 | 73.3 |
+| [`out/stills/p04_touch_K3.png`](../out/stills/p04_touch_K3.png) | K3 touch n = 13.0 | HERO | 600×1300 | 24 | 74.2 |
+| [`out/stills/p05_redline_K6.png`](../out/stills/p05_redline_K6.png) | K6 redline n = 39.0 | UNDER | 600×1300 | 24 | 104.8 |
+| [`out/stills/p06_turn_K7.png`](../out/stills/p06_turn_K7.png) | K7 turn | UNDER | 600×1300 | 24 | 106.9 |
+| [`out/stills/p07_down1_K9.png`](../out/stills/p07_down1_K9.png) | K9 down1 | CRANE | 600×1300 | 24 | 64.6 |
+| [`out/stills/p08_oxygen_K16.png`](../out/stills/p08_oxygen_K16.png) | K16 oxygen | OXYGEN | 600×1300 | 24 | 67.5 |
+| [`out/stills/p09_finale_K16F.png`](../out/stills/p09_finale_K16F.png) | K16F finale | WIDE | 600×1300 | 24 | 70.5 |
 
-Round 1 is kept in `out/stills/r1/` for comparison (section 7).
+**Mocks** (`mock/*.html`, generated by `mock/build_pages.py` from the stills' anchors; self-hosted Plimsoll, Ortica,
+B612). Contact sheets: [`out/mock/contact_sheet.png`](../out/mock/contact_sheet.png) (desktop) and
+[`out/mock/contact_sheet_phone.png`](../out/mock/contact_sheet_phone.png).
 
-**Mocks** (`mock/index.html`, `mock/redline.html`, `mock/finale.html`; self-hosted Plimsoll, Ortica, B612;
-copy check 13 sentences, 0 not found):
+Every screen passes the overlap check (no text box within 12 px of another, none on the rendered sentence or the
+draught marks). The lowest-contrast text box on each, against the 95th percentile of the plate under it:
 
-| Screenshot | Viewport | Plate |
-|---|---|---|
-| [`out/mock/desktop-hero.png`](../out/mock/desktop-hero.png) | 1440×900 | d1 hero |
-| [`out/mock/phone-hero.png`](../out/mock/phone-hero.png) | 390×844 CSS px at device pixel ratio 2 (780×1688 file) | p1 hero |
-| [`out/mock/desktop-redline.png`](../out/mock/desktop-redline.png) | 1440×900 | d4 Redline |
-| [`out/mock/desktop-finale.png`](../out/mock/desktop-finale.png) | 1440×900 | d8 final |
-
-![Hero still](../out/stills/d1_hero_K1.png)
+| Screenshot | Viewport | Page | Lowest-contrast text box | Plate p95 | Cream contrast | Overlaps |
+|---|---|---|---|---:|---:|---|
+| [`out/mock/desktop-hero.png`](../out/mock/desktop-hero.png) | 1440×900 | `index.html` | `.audience` | 0.089 | 6.58:1 | none |
+| [`out/mock/phone-hero.png`](../out/mock/phone-hero.png) | 390×844 @2x | `index.html` | `.question` | 0.048 | 9.33:1 | none |
+| [`out/mock/desktop-b2-hire.png`](../out/mock/desktop-b2-hire.png) | 1440×900 | `beat-hire.html` | `.caption` | 0.101 | 6.06:1 | none |
+| [`out/mock/desktop-b2-twelve.png`](../out/mock/desktop-b2-twelve.png) | 1440×900 | `beat-twelve.html` | `.band` | 0.081 | 6.99:1 | none |
+| [`out/mock/phone-b2-twelve.png`](../out/mock/phone-b2-twelve.png) | 390×844 @2x | `beat-twelve.html` | `.caption` | 0.188 | 3.85:1 | none |
+| [`out/mock/desktop-b3-touch.png`](../out/mock/desktop-b3-touch.png) | 1440×900 | `beat-touch.html` | `.caption` | 0.075 | 7.34:1 | none |
+| [`out/mock/phone-b3-touch.png`](../out/mock/phone-b3-touch.png) | 390×844 @2x | `beat-touch.html` | `.caption` | 0.165 | 4.26:1 | none |
+| [`out/mock/desktop-b4-under.png`](../out/mock/desktop-b4-under.png) | 1440×900 | `beat-under.html` | `.dock` | 0.120 | 5.37:1 | none |
+| [`out/mock/phone-b4-under.png`](../out/mock/phone-b4-under.png) | 390×844 @2x | `beat-under.html` | `.caption` | 0.017 | 13.75:1 | none |
+| [`out/mock/desktop-b5-redline.png`](../out/mock/desktop-b5-redline.png) | 1440×900 | `beat-redline.html` | `.dock` | 0.047 | 9.43:1 | none |
+| [`out/mock/phone-b5-redline.png`](../out/mock/phone-b5-redline.png) | 390×844 @2x | `beat-redline.html` | `.caption` | 0.010 | 15.32:1 | none |
+| [`out/mock/desktop-b6-turn.png`](../out/mock/desktop-b6-turn.png) | 1440×900 | `beat-turn.html` | `.dock` | 0.116 | 5.50:1 | none |
+| [`out/mock/phone-b6-turn.png`](../out/mock/phone-b6-turn.png) | 390×844 @2x | `beat-turn.html` | `.caption` | 0.020 | 13.06:1 | none |
+| [`out/mock/desktop-b6-side.png`](../out/mock/desktop-b6-side.png) | 1440×900 | `beat-side.html` | `.lockup` | 0.083 | 6.90:1 | none |
+| [`out/mock/desktop-b7-down.png`](../out/mock/desktop-b7-down.png) | 1440×900 | `beat-down.html` | `.tag-deck` | 0.063 | 8.09:1 | none |
+| [`out/mock/desktop-b7-offer.png`](../out/mock/desktop-b7-offer.png) | 1440×900 | `beat-offer.html` | `.tag-deck` | 0.063 | 8.09:1 | none |
+| [`out/mock/phone-b7-offer.png`](../out/mock/phone-b7-offer.png) | 390×844 @2x | `beat-offer.html` | `.offer` | 0.032 | 11.11:1 | none |
+| [`out/mock/desktop-b8-cycle2.png`](../out/mock/desktop-b8-cycle2.png) | 1440×900 | `beat-cycle2.html` | `.lockup` | 0.108 | 5.81:1 | none |
+| [`out/mock/desktop-b8-repeat.png`](../out/mock/desktop-b8-repeat.png) | 1440×900 | `beat-repeat.html` | `.tag-deck` | 0.074 | 7.37:1 | none |
+| [`out/mock/desktop-b9-oxygen.png`](../out/mock/desktop-b9-oxygen.png) | 1440×900 | `beat-oxygen.html` | `.tag-deck` | 0.065 | 7.96:1 | none |
+| [`out/mock/phone-b9-oxygen.png`](../out/mock/phone-b9-oxygen.png) | 390×844 @2x | `beat-oxygen.html` | `.tag-water` | 0.022 | 12.80:1 | none |
+| [`out/mock/desktop-finale.png`](../out/mock/desktop-finale.png) | 1440×900 | `finale.html` | `.lockup` | 0.088 | 6.62:1 | none |
+| [`out/mock/phone-finale.png`](../out/mock/phone-finale.png) | 390×844 @2x | `finale.html` | `.cluster .lead` | 0.047 | 9.41:1 | none |
 
 ![First screen, desktop](../out/mock/desktop-hero.png)
 
-![The story in ten stills](../out/stills/contact_sheet.png)
-
+![The story in stills](../out/stills/contact_sheet.png)
 
 ---
 
@@ -52,34 +95,48 @@ copy check 13 sentences, 0 not found):
 From `susd-render/` (Blender 4.5.15 LTS, Cycles on the CPU, OIDN):
 
 ```bash
-# one state, desktop (16:10) or phone (portrait, six lines)
-blender -b -P scene/waterline.py -- --state hero --w 1600 --h 1000 --samples 32 --out out/stills/d1_hero_K1.png
-blender -b -P scene/waterline.py -- --state hero --camera phone --w 900 --h 1950 --samples 32 --out out/stills/p1_hero_K1.png
-# print the state table (K0..K17: n, pathways, water, deck, flood scar, sun, signal, chop, camera)
-blender -b -P scene/waterline.py -- --list
-# every still in this document (waits for a free CPU before each one; skips stills that exist)
-bash scene/render_stills.sh 32
-# quick tests at any size (one Blender at a time); contact sheets
-bash scene/test_batch.sh t11 720 450 16 hero touch redline:desktop under:phone
-python3 scene/sheet.py out/test/sheet.png 3 out/test/t11_*.png
-# the mocks: copy the stills in, screenshot at 1440x900 and 390x844, measure the plate under every text box
-python3 mock/build_img.py && node mock/shoot.cjs
+# one state (a K number, a story name or a still alias), desktop (16:10) or phone (portrait, six lines)
+blender -b -P scene/waterline.py -- --state hero --w 1600 --h 1000 --samples 32 --out out/stills/d01_hero_K1.png
+blender -b -P scene/waterline.py -- --state hero --camera phone --w 900 --h 1950 --samples 32 --out out/stills/p01_hero_K1.png
+# one sequence frame: state A blended toward B by t; the tide follows n; --frame moves the water, ripples, grain
+blender -b -P scene/waterline.py -- --between K4,K5,0.5 --n 16.75 --frame 30 --w 1440 --h 900 --samples 24 --out f.png
+python3 scene/story.py                              # the state table and the CRANE framings (no Blender)
+python3 scene/keyframes.py --write                  # scene/keyframes.json: 92 desktop, 64 phone, 2 x 12 drain frames
+python3 scene/keyframes.py --render desktop holds   # the brief 7.5 step-1 frames first; resumable, logged
+bash scene/render_stills.sh 32                      # every still in this document (one Blender at a time; skips existing)
+python3 scene/frame_checks.py out/stills/*.png      # top band, caption zone, reflection ratio, black share (brief 7.7)
+python3 scene/measure_zoom.py                       # the finish's zoom, for exact anchors (ZOOM in waterline.py)
+python3 scene/sample_lamps.py out/stills/d05_redline_K6.png out/stills/d12_oxygen_K16.png   # equation colours
+python3 scene/sheet.py out.png 4 a.png b.png ...    # a contact sheet
+python3 scene/round_report.py                       # the stills table and frame checks below, from what was rendered
+blender -b -P scene/waterline.py -- --state hero --face plimsoll --out t.png   # the sentence in Plimsoll (13.2)
+python3 mock/squint.py out/mock/desktop-hero.png    # the squint test, measured (13.9)
+# the mocks: JPEGs from the stills, pages from the anchors, screenshots at 1440x900 and 390x844 with the plate measured
+python3 mock/build_img.py && python3 mock/build_pages.py && node mock/shoot.cjs
 node /home/user/Website-selling/susd-options/tools/copycheck.mjs mock/*.html     # must print 0 not found
+# shoot.cjs exits 1 if any two text boxes come within 12 px, if text touches the rendered sentence, on console errors
 bash tools/ai_tells_scan.sh mock                                                 # must print nothing
 ```
 
-`--state` takes a K number (`K0`..`K17`), a story name (`intro`, `hero`, `twelve`, `touch`, `cut`, `under`,
-`redline`, `turn`, `side1`..`down3`, `oxygen`, `drain_end`) or one of the still aliases (`hero`, `touch`,
-`under`, `redline`, `emerge` = K8, `raised` = K11, `drained` = K9, `final` = K16). Any key of `TUNE` in the
-script overrides the state (for example `--sunel 18 --wind 1.2 --exposure 1.0 --signal 0`). Each render also
-writes `<out>.anchors.json` (section 6) and a row in `out/renders.jsonl` with its exact argv.
+Round 4: `--cam` takes HERO, UNDER (the camera in the water; WINDOW is read as UNDER), CRANE, OXYGEN or WIDE.
+`--state` takes a K number (`K0`..`K17`, and `K16F`), a story name (`intro`, `hero`, `twelve`, `touch`, `cut`,
+`under`, `redline`, `turn`, `side1`, `down1`, `up2`, `side2`, `down2`, `up3`, `side3`, `down3`, `oxygen`,
+`finale`, `drain_end`) or a still alias (`emerge` = K8, `drained` = K9, `raised` = K11, `final` = K16F,
+`drain` = K17). Every key of `TUNE` in the script overrides the state (`--wrough 0.12 --density 0.5`), and
+`--n --water --deck --sunk --sigstate --wind` set a frame's story values directly. An unknown option is an error
+(round 2 stored typos silently). `--border x0,y0,x1,y1` renders a cropped region for 100 % checks; `--depth 8`
+writes 8-bit test PNGs. Each render also writes `<out>.anchors.json` (section 6) and a row in
+`out/renders.jsonl` with its exact argv.
 
-The script imports the look-dev library (`lookdev/lib_lookdev.py`: scanned materials, the baked Ocean water,
-the water and glass shaders) unchanged, and Michael-specific pieces from the type team
-(`tools/type/blender_kern.py`). It builds everything from an empty file each run: no `.blend` is needed.
-`--save x.blend` writes the built scene if you want to open it.
+The story data (level map, K states, flood history, CRANE rule, sequence table) is `scene/story.py`, with no
+Blender in it, shared by the scene and the sequence driver. The script imports the look-dev library
+(`lookdev/lib_lookdev.py`) unchanged and the type team's kerning helper (`tools/type/blender_kern.py`). It builds
+everything from an empty file each run: no `.blend` is needed. `--save x.blend` writes the built scene.
 
 ---
+
+> **Sections 2 to 11 are the round-2 build record (the canal lock).** Section 12 lists every value round 3 changed;
+> section 13 replaces the place, the water, the light, the face and the drowned camera (round 4).
 
 ## 2. The scene, and what each thing means
 
@@ -330,3 +387,839 @@ OIDN in the look-dev ladder.
 
 Nothing was committed or pushed.
 
+---
+
+## 12. Round 1 fixes
+
+The first review round looked at the round-2 stills and mocks (now in `out/stills/r2/`). Three reviewers took
+part: an art direction review (5/10), a stranger's first-screen and conversion test as a 9-person bootstrapped
+founder (6/10), and a technical review that re-rendered and measured (6/10). All three failed it. This section
+takes every blocker and major, and every cheap, clearly right minor: what changed, the evidence, and, where a fix
+was not taken as written, why. Where the reviewers disagreed, the order of priority was: the words are read
+first, it looks photographed, a stranger gets it without clicking, the Bootloader is wanted. Test renders for
+every step are in `out/test3/` (720×450, 16 samples, sheets `sheet_t1*.png` to `sheet_t4.png`).
+
+### 12.1 The drowned beats (blockers, all three reviews)
+
+**Problem.** K5 and K6 were 51–72 % pure black. The window camera's 70° sun jumped at both cuts, and the
+gallery roof shaded the lock. Under 40 % of the frame was the gallery's own floor. K6 looked no worse than K5.
+
+**The open-camera alternative was tested and rejected.** The art review asked to drop the window and drown the
+words under the HERO camera with clearer water (Fresnel about 0.3–0.4, "the words waver below a rippled
+surface"). Rendered at K5 (`out/test3/t1_under.png`): the drowned sentence collapses into a 10 cm strip at the
+waterline. From the HERO camera the line of sight meets the water at about 6° (incidence ~84°). Refraction then
+puts the image of a point h below the surface only about 0.1 h below the waterline, so a metre of letters
+becomes a sliver. This is the look-dev's finding (05, c10/c11), confirmed with numbers. The view behind glass is
+the only way to read drowned words on a wall, so the window stays, rebuilt to the technical review's recipe.
+
+| Change | Why |
+|---|---|
+| Glass 3.2 m in front of the words (was 0.85 m) | 3 m of lit water in view. The lower frame looks along the flooded lock floor. The silver underside of the surface grows. |
+| Gallery floor level with the lock floor; the sill and gallery floor fill only the bottom ~13 % | It reads as a window (sill in frame), not as a void |
+| Gallery roof and back wall cast no shadows; light linking keeps the sun off the gallery's own floor, sill and mullions | The roof was shading the words and the ledge. Without the linking the gallery floor would sit in direct sun indoors. |
+| Same sun as HERO: elevation solved from the same shade line, azimuth 226°, the same disc; no 1.25× sky | No jump in shadow direction or length at either cut (it was 19.6° → 70° → 18.2°) |
+| The trees' shade is built for the window frames too | The top band matches across the cut (the lit top wall no longer "appears from nowhere") |
+| One water for the whole story: density 0.42, silt 0.10 (round 2: 1.6 open, 0.9 window). The phone uses the same optical depth per H (×0.68). | Drowned letters keep their shape and the depth goes green, not black. One physical water everywhere. |
+| Exposure: window +0.6 EV over the open view (a photographer behind glass). Under the Redline cloud only +0.8 more (was +1.5); the red lamp is drowned and still lit (12.5). | K6 is darker than K5, with red light in the water: an escalation, not a milkier repeat |
+
+At K6 the drowned lamp is seen only through its lens: its point lamp is hidden from camera and transmission rays
+there (10 W, lighting the water), and the lens is dimmed to 5. Seen through the glass, the lamp's blown-out disc and its mirror image in the
+silver underside sat under the title lockup (lockup plate p95 0.39, now 0.13). The lamp still lights the water red.
+A mullion's shadow fell across the words once the glass was 3 m out, so the gallery's mullions cast no shadow.
+
+**Result.** Pure black (sRGB below 8): d04 2.0 %, d05 1.9 % (was 51–72 %; the technical review's acceptance
+is under 25 %). The rest is the sill's shadow line.
+
+**Not met: per-line contrast.** Every line reads at 100 % and at page size, but the technical review's 3:1 per
+line is not reached. `scene/frame_checks.py` (each line's letters at p90 against the panel at p25) gives d04
+1.56:1 and d05 1.28:1. By the same measure the dry letters are 2.0–2.3:1 and the wet ones in d08 3.7:1. The cause
+is 3 m of silty water in front of the words. Raising it means clearer water for the whole story, which would also
+lighten the hero's water under the HTML; that is open item 12.9 (7).
+
+**The match cut holds.** The words' rectangle is the same as HERO's (anchors 0.1885, 0.1837, 0.8128, 0.4122
+against HERO's 0.1885, 0.1835, 0.8128, 0.4122).
+
+**Phone.** The phone window's eye is shallower than the desktop's (0.95 H, against 0.89 H): at 0.89 H the silver
+underside mirrored the top line onto itself, which read as garbled letters. A faint mirror band remains above
+"EVERY HIRE" (`p02`), behind the title band.
+
+### 12.2 The letters (art review blocker; B11, B07, B04)
+
+**Shadow twins.** The letters are now a 10 mm plate on 5 mm studs (were 30 mm on 3 mm). The sun's offset is
+about 17 mm, 6 % of the cap: a contact sliver that touches each letter's foot, not an offset copy. See
+`out/test3/crop_letters_r2_vs_r3.png` (round 2 above, round 3 below, 100 %).
+
+**Wear with a cause.**
+- Two painted-over through-bolts per letter (one in a narrow letter, none on the full stop), placed per letter
+  from its width (`bx`, `bz` custom properties). About two thirds of them have run rust 5–8 cm down the face.
+- The studs' rust weeps on the panel below the feet (62 % of studs, stronger).
+- The edge-wear threshold is lowered (0.70 → 0.63) and biased to the arrises that face up and left (the
+  handled, sun side), exposing red-oxide primer (0.35, 0.12, 0.07).
+- The paint is 0.80, a little yellowed.
+- At page size this reads as age, not decoration. At 100 % the bolt heads and runs are visible (crop of `d12`).
+
+**Contact with the water.** A splash zone: the 8 cm above the water is darker (×0.75, which with the 12 cm wet top
+gives 0.6 of dry) and glossy (roughness 0.15), on the letters, the panel, the ledge and the courses. It is
+applied above the water only, so drowned paint is not darkened twice.
+
+**Not taken.**
+- **Sun disc 2.5°.** At a 15 mm stand-off even 2.5° gives a 0.65 mm penumbra, which is invisible. At 14 m the
+  disc softens only the trees' shade, into the vignette-like band the same review flagged. The disc is now 0.6°
+  (the real sun is 0.53°).
+- **A 4 mm meniscus strip.** A fixed strip floats off the Ocean's moving surface by centimetres; the splash band
+  gives the contact instead.
+- **A "Plimsoll Plate" cut with 1.5 % corner radii.** This is a type-team change (03-TYPE) and is requested in
+  12.9 (1).
+
+### 12.3 The water's reflection (art review major; tech minors)
+
+**Problem.** The words' reflection was a melted, near-full-strength copy of the sentence (B24, B08).
+
+**Change.**
+- The Ocean is a 4 m patch (was 8 m) with its wind at 0.6× the state's, which moves the spectrum's peak from
+  about 3 m to about 1 m. Wave scale is 0.02 (was 0.034).
+- The ripple bump is 0.035 at scale 9 (was 0.012 at 3).
+- Surface roughness is 0.09 (was 0), with the dust-film patches to 0.16.
+- The sky is ×0.45 in glossy rays (no cold blue-white patches in the near water; K7/K8).
+
+**Measured** (8-bit p90 of the words' mirror image ÷ the dry words'; the review asks ≤ 0.45):
+
+| Still | Dry words p90 (8-bit) | Reflection p90 | Ratio |
+|---|---:|---:|---:|
+| d01_hero_K1 | 198 | 92 | 0.46 |
+| d02_twelve_K2 | 197 | 102 | 0.52 |
+| d08_down1_K9 | 174 | 56 | 0.32 |
+| d09_up2_K10 | 186 | 68 | 0.37 |
+| d10_side2_K11 | 188 | 57 | 0.30 |
+| d11_up3_K13 | 187 | 57 | 0.30 |
+| d13_finale_K16F | 191 | 53 | 0.28 |
+| d14_drain_K17 | 191 | 53 | 0.28 |
+| p01_hero_K1 | 199 | 66 | 0.33 |
+| r2 d1_hero_K1 (reviewed) | 199 | 89 | 0.45 (a legible melted copy at that brightness) |
+
+The hero sits at 0.47 against 0.45: the brightness of the smear is nearly the same, but the glyphs are gone
+at page size. The exception is **K3 (touch)**. There the water is at the letters' feet, so the reflection
+distance is zero and no surface roughness can blur it: the bottom line is mirrored, wavy. That is the beat's
+point ("the water touches every letter at once", the brief's "sentence mirrored whole"), and it is what a
+photograph of a sign at the waterline shows. It is kept. Floating leaves were not added; the dust film breaks the
+mirror enough without them.
+
+### 12.4 The Side courses and the Oxygen frame (art review major; tech minor)
+
+**Courses.**
+- They are cast from the lock wall's own concrete (`concrete_wall_007`, with its pour lines and tie holes), at
+  the wall's scale and tint. Side now reads as the lock wall rising under the words, not as a plinth.
+- Flat 18 mm chamfers (one segment, sharp arrises) replace the 12 mm round CG bevel.
+- Each block is ±6 % in tone.
+- Course 0 was laid in the flood: it is wet-dark and silted to the water that stood on it. Each course has its
+  own high-water empty (the technical review's minor); courses 1 and 2 never went under and are clean.
+- Not done: lifting pockets on top faces, extra bugholes and chipped arrises. The scan's own pores carry the
+  surface.
+
+**Oxygen gets its own frame (K16, camera OXYGEN).**
+- 50 mm. The sentence is 53 % of the frame width, its top at 22 % (anchors 0.236–0.766 × 0.217–0.411).
+- The trees' shade is pushed up to the title band, so there are about 1.3 caps of sunlit wall above the panel.
+  This is the only frame in the story with open, lit air above the words.
+- Cap: about 48 px at 1440.
+- The finale needs dark water under it (brief 6.4), so it is a second frame of the same moment, **K16F**
+  (camera WIDE, 35 mm). Its cap is 37.7 px at 1440 (brief ≥ 36), the words' top at 14 %, water at 60 %.
+  The camera stands 0.6 m left of centre, so the stack sits right of the book column.
+- On the page the camera cranes between the two over 1190–1220vh. K17 (the drain) uses the K16F framing.
+- Below 50 mm and 53 % the camera would stand behind the near wall (the chamber is 12.5 m wide). The reviewer's
+  top-at-30–38 % would leave no water for the Oxygen caption.
+
+**The stencil.** The newest course carries "⦵ SUSD Bootloader", stencilled in the load line's road paint and
+worn with it, left-aligned with the words. It exists from Side 3 on (K14–K17): the last render names the fix.
+
+### 12.5 Light, shade, signal (art review majors; tech minors)
+
+**The trees' shade.** The occluder's straight edge is replaced by a lobed crown edge (two noise octaves, about
+±0.16 m) with round gaps near the edge whose pinhole images of the sun give soft dapples. It is fixed in the
+world for every state; the phone uses half the lobe size (its title band is 0.35 m). A CC0 leaf alpha was not
+used: at 14 m with the sun's disc no single leaf resolves, only crowns and gaps, which is what this models.
+
+**The signal.**
+- The lens emission is 22 (was 60). The green is tinted toward 505 nm and desaturated.
+- The point lamp is invisible to glossy rays, so the water reflects the lit lens as one soft streak, not a
+  column of saturated blobs.
+- The indirect clamp is 3.
+- **Its height.** Round 2 put the red lamp's centre 2 cm above the Redline water, so at K6 the chop cut it into a
+  red slit. The technical review asked for it 0.25 m higher. A test at +14 cm put the lit lamp and its glow
+  under the title lockup (lockup plate p95 0.18–0.19 in K3, K5, K6; the stranger review had flagged the signal
+  entering the top band too). The brief places the signal at y 110–200, which is below the Redline water. So the
+  signal now sits there, and at K6 the lit red lamp is 16 cm under the surface, glowing red through the green:
+  the alarm itself goes under. A sealed signal lamp does this; it is never cut by the surface in a still.
+- The signal and ladder moved left (signal 0.40 m off the panel, ladder 0.85 m), clear of the courses.
+
+**The grade.** The sky's fill is +0.3 EV and 0.8 saturation, so the shadow sides go cool against the 4400 K
+sun.
+
+### 12.6 The story by scroll alone (stranger majors)
+
+- **The words climb in Side.** The round-2 pull-back rule re-centred them every time (words-top 0.1833, 0.1836,
+  0.1839). Now each Side state keeps the previous frame's height and puts the words' top at 13.5 %, a climb of
+  about 0.23 H from 18.7 % (anchors: K10 18.4 % → K11 13.2 %). In Side the shade line sits on the panel's top
+  edge, so the top band stays in shade (d10 top band 0.083).
+- **Coverage.** K2 (water at the ⦵ bar), K7 (the turn), K10 and K13 (Up stopping at the ⦵ line), K17 (the
+  drain end) and K8 (Side 1, its sky patch fixed) are rendered. There are mocks for s 160, 240, 360, 480, 560,
+  640, 740, 860 (the offer), 1020, 1150 and the finale.
+- **The flood scar** is a ring across the full wall at 1.35 H with silt below it. In the Oxygen mock it carries
+  an anchored label, "high water, 39 people" (a 1 px leader from the water to the ring and a tick at it).
+
+### 12.7 The first screen, the dock and the finale (stranger blockers; art review majors)
+
+**First screen.**
+- **Two paths, separated.** `The book` moves under the title lockup at top left. Top right holds only the
+  Bootloader.
+- **The dock** says what the file is and that it is for the visitor's AI, in two stacked labels: `The book's
+  appendix as one file, for your AI` and `Works with Claude, ChatGPT and Gemini`. The name is Plimsoll 22 px,
+  ⦵ 34 px, and there is one square `Get it free`. `Version 16, 35,445 words` moved to the offer and the finale
+  (it read as homework). The lockup title is 21 px, so neither reads as a tracked-caps label.
+- **The phone bar** is three lines: name, `Free file for your AI`, `Works with Claude, ChatGPT, Gemini`. On
+  the phone `The book` sits at top right, since the Bootloader has the bottom bar. On the phone's story beats
+  the readout docks into one line just above the bar, on dark water (brief 4.2 put it under the title, where it
+  sat on the window frames' bright surface band at 4.3:1).
+- **The question is now answered where it is asked.** Under "How many people are on your team?" [BL 310] sits
+  `⦵ The Bootloader's first question. Your AI asks the rest.` This is true: BL 310 is the Bootloader's Step 0,
+  "Ask first", and it is the visitor's first contact with the product. Then come the readout and, directly
+  under it, `Scroll to hire. Each step is one more person.`
+- **The water is labelled at rest.** `complexity` rides the waterline (a 1 px rule). `12 people: the load line`
+  hangs from the ⦵ bar on a 1 px leader. Neither depends on the intro animation.
+
+**Captions.** They sit left-aligned in the quiet lower-left corner over water on every beat, not in a centred
+stack. The Redline equation is one line of Plimsoll in the lamp's measured red, #FF674F (`sample_lamps.py`:
+hue 8°, saturation 0.69, lifted to 7:1 on the water). The Oxygen equation is in the green lamp's measured green,
+#5CAF7D (hue 144°). The functional top scrim of round 2 is gone: no frame needs it (top band ≤ 0.13 (the phone frames; desktop ≤ 0.085)).
+
+**Offer 1 and the finale give a reason to want the file.**
+- Michael's Three Questions [BL 3748]: "Where am I now?", "Where does my vehicle top out?", "Where do I actually
+  want to be?". They are in cream, 16–17 px, under the label `It starts with three questions`.
+- The next-step lines are cream 16 px (were grey 15).
+- The couplet is two equal lines, left-aligned to the file column (not an eyebrow and a headline).
+- `Pre-orders open soon` is plain text, not an outlined box (A24, A26).
+- AI is set up from the first screen (the dock), so it is no longer new in the finale.
+
+**The form (stranger major): kept, and escalated.** The decided MVP is the email field that opens
+`/appendix#get` (James's decision, in the task). I checked whether the live page could take the address with
+it: `/appendix`'s own script reads no query string (fetched 30 Oct), so prefill is not possible from our side.
+The field stays as decided. The double entry is now the first decision in 12.9: post mode (brief 6.4) or a
+three-line prefill on Michael's page. Either removes it.
+
+### 12.8 The scene script (technical majors and minors)
+
+| Item | Now |
+|---|---|
+| Sequences could not be rendered (18 K states only) | `--between A,B,t`, `--n`, `--water`, `--deck`, `--sunk`, `--sigstate`, `--wind`, `--frame`. The camera framing, shade line (so the sun), flood history and partly laid courses all interpolate. `scene/keyframes.json` comes from the brief 7.3 table, now 92 desktop frames (the window frames are part of the open sequence count), 64 phone frames and 2 × 12 drain frames. `scene/keyframes.py --render <seq> <a:b or holds>` renders them, resumable and logged. Tested on 2 frames, see `out/test3/seq/` (d40 and d41: K5→K6 at n 34 and 39, 561 and 741 pathways, frames 40 and 41, window camera; 320×200, 5 s each, logged). |
+| Frozen ripple, caustic phase and grain | The Ocean time, the water's ripple and caustic W, and `frame_current` (so the grain shift) all follow `--frame` |
+| One Blender process per frame | Still so: about 10 s of build per frame, about 0.4 h over the story. A persistent one-session loop is the next optimisation (12.9). |
+| Vertical "scribble" glitter | Off by default (`--glitter 0`), the reviewer's interim fix. The physical projector (a spot at the sun's mirror point below the water, gobo coordinates = the ray's hit on the water plane) is designed in 12.9 and not built. |
+| K0's inverted water volume | K0's water is a 12 mm film on the floor; an assertion refuses any water whose top is under its bottom |
+| Anchors ~6 px off at the frame edges | The finish's zoom was measured (`scene/measure_zoom.py`: 1.0131, against the 1.0213 first assumed). The camera renders a frame that much larger, so the finished picture lands exactly where the brief puts it, and the anchors apply the same zoom. |
+| Signal cut by the Redline chop | Mounted lower, as the brief places it: under at K6, never half-cut (12.5) |
+| Courses carrying the panel's scar | Per-course high water (12.4) |
+| Unknown options stored silently | An error that names the option; values are cast by type |
+| 8-bit masters band in the dark water | 16-bit PNG (RGB) masters; `--depth 8` for tests |
+| The window's `shadow_trick` | Known approximation, now documented: direct sun reaches drowned surfaces along the unrefracted ray through a caustic web fixed to the water, so underwater shadows fall at the in-air angle and light-path absorption is about 2× at a low sun. The water density was tuned on the camera path with that in mind. |
+| Budget (Plan A over 4.5 h) | See 12.10: Plan B |
+
+### 12.9 Open items and decisions for James
+
+1. **The opt-in mode** (brief 15). Post mode removes the second email entry and records the entry point (needs
+   James's OK, and a check that `/api/optin` accepts a post from the new origin). Alternatively Michael adds a
+   three-line prefill to `/appendix` (read `?email=`; our handoff form already sends it).
+2. **Plimsoll for the letters.** Still unseen by James and Michael. The art review asks the type team for a
+   "Plate" cut with corner radii about 1.5 % of the cap (now about 6–8 %), so the letters read as cut steel, not
+   rounded UI type. Not done here (03-TYPE owns the face).
+3. **The window camera** stays for K4–K6 (12.1). A dim practical light in the gallery is still an option if James
+   wants the sill band lighter.
+4. **The phone's silver underside** (`p02`) still shows a faint mirror of "EVERY HIRE" above the top line, behind
+   the title band (much reduced with the shallower eye). Keep it as the "we went under" cue, or make the eye
+   shallower still.
+5. **Glitter:** build the physical projector (12.8) or leave it off. The frames are clean without it.
+6. **Sequences:** port the look-dev's one-session `--seq` loop (persistent data, rebuild only the Ocean and move
+   the panel group per frame) before the full run; it saves about 0.4 h.
+7. **Clearer water.** The drowned lines are 1.56:1 (K5) and 1.28:1 (K6) by the frame check, against the
+   review's 3:1. Less silt (scatter 0.10 → 0.05) would sharpen them through the 3 m of water. The cost is one
+   re-render of every frame, and lighter, more see-through water under the first screen's HTML. Worth a
+   720×450 A/B before the sequence run.
+8. **Brief edits this round implies** (the brief's owner should make them):
+   - 4.1/4.2/6.1/6.2: the dock and bar meta become "for your AI" and "Works with…" (V16 and the word count move
+     to the offer and finale).
+   - 4.1: the instrument column adds the tie line and the cue under the readout.
+   - 5: captions left-aligned (no centred slot).
+   - 7.1/7.2: OXYGEN and K16F cameras; Side framing at 13.5 %.
+   - 7.3: the window frames share the open count.
+   - 7.4: Plan B.
+
+### 12.10 Measurements, timings, budget
+
+**Frame checks** (`scene/frame_checks.py`; relative luminance p95; the brief wants ≤ 0.15 under cream text):
+
+| Still | Top band p95 | Caption zone p95 | Words p90 | Black (< 8/255) | Words box (x0, y0, x1, y1) | Water y |
+|---|---:|---:|---:|---:|---|---:|
+| d01_hero_K1 | 0.052 | 0.112 | 0.557 | 0.3 % | 0.189, 0.183, 0.813, 0.412 | 0.549 |
+| d02_twelve_K2 | 0.051 | 0.070 | 0.555 | 0.3 % | 0.189, 0.183, 0.813, 0.412 | 0.455 |
+| d03_touch_K3 | 0.053 | 0.036 | 0.531 | 0.1 % | 0.189, 0.183, 0.813, 0.412 | 0.401 |
+| d04_under_K5 | 0.053 | 0.016 | 0.096 | 2.0 % | 0.189, 0.184, 0.813, 0.412 | 0.187 |
+| d05_redline_K6 | 0.061 | 0.011 | 0.047 | 1.9 % | 0.189, 0.184, 0.813, 0.412 | 0.110 |
+| d06_turn_K7 | 0.049 | 0.040 | 0.029 | 0.1 % | 0.189, 0.183, 0.813, 0.412 | 0.105 |
+| d07_side1_K8 | 0.085 | 0.016 | 0.247 | 0.1 % | 0.189, 0.132, 0.813, 0.360 | 0.176 |
+| d08_down1_K9 | 0.052 | 0.043 | 0.424 | 0.4 % | 0.202, 0.184, 0.800, 0.403 | 0.644 |
+| d09_up2_K10 | 0.054 | 0.064 | 0.490 | 0.2 % | 0.189, 0.184, 0.813, 0.412 | 0.584 |
+| d10_side2_K11 | 0.083 | 0.048 | 0.500 | 0.2 % | 0.189, 0.132, 0.813, 0.360 | 0.635 |
+| d11_up3_K13 | 0.050 | 0.048 | 0.496 | 0.1 % | 0.216, 0.184, 0.785, 0.392 | 0.642 |
+| d12_oxygen_K16 | 0.076 | 0.101 | 0.521 | 0.3 % | 0.235, 0.217, 0.766, 0.411 | 0.807 |
+| d13_finale_K16F | 0.059 | 0.066 | 0.519 | 0.1 % | 0.347, 0.138, 0.763, 0.290 | 0.602 |
+| d14_drain_K17 | 0.059 | 0.056 | 0.519 | 0.1 % | 0.347, 0.138, 0.763, 0.290 | 0.646 |
+| p01_hero_K1 | 0.124 | 0.057 | 0.567 | 0.2 % | 0.140, 0.098, 0.861, 0.405 | 0.581 |
+| p02_under_K5 | 0.123 | 0.014 | 0.138 | 0.0 % | 0.140, 0.098, 0.861, 0.405 | 0.101 |
+
+**Mock plates** (`node mock/shoot.cjs`: the 95th-percentile plate luminance under every text box and cream's
+contrast against it): every text box on all 14 screenshots is 4.5:1 or better against the 95th-percentile plate under it (`out/mock/measurements.json`); round 2 needed a top scrim on the Redline screen, round 3 needs none.
+
+| Screen | Lowest-contrast text box | Plate p95 | Cream contrast |
+|---|---|---:|---:|
+| desktop-hero | `.readout` | 0.113 | 5.63:1 |
+| phone-hero | `.tag-water` | 0.138 | 4.88:1 |
+| desktop-b2-twelve | `.readout` | 0.137 | 4.90:1 |
+| desktop-b3-touch | `.readout` | 0.122 | 5.31:1 |
+| desktop-b4-under | `.lockup` | 0.053 | 8.91:1 |
+| phone-b4-under | `.lockup` | 0.104 | 5.96:1 |
+| desktop-b5-redline | `.lockup` | 0.126 | 5.20:1 |
+| desktop-b6-turn | `.dock` | 0.047 | 9.46:1 |
+| desktop-b6-side | `.lockup` | 0.102 | 6.01:1 |
+| desktop-b7-down | `.caption` | 0.066 | 7.89:1 |
+| desktop-b7-offer | `.offer` | 0.065 | 7.94:1 |
+| desktop-b8-repeat | `.caption` | 0.068 | 7.78:1 |
+| desktop-b9-oxygen | `.lockup` | 0.151 | 4.55:1 |
+| desktop-finale | `.lockup` | 0.144 | 4.72:1 |
+
+**Timings** (1600×1000 or 900×1950 at 32 samples; nothing else rendering unless noted):
+
+| Still | Size | Samples | Seconds | Note |
+|---|---|---:|---:|---|
+| d01_hero_K1 | 1600×1000 | 32 | 213.4 |  |
+| d02_twelve_K2 | 1600×1000 | 32 | 220.5 |  |
+| d03_touch_K3 | 1600×1000 | 32 | 239.5 |  |
+| d04_under_K5 | 1600×1000 | 32 | 279.7 |  |
+| d05_redline_K6 | 1600×1000 | 32 | 245.6 |  |
+| d06_turn_K7 | 1600×1000 | 32 | 202.8 |  |
+| d07_side1_K8 | 1600×1000 | 32 | 206.4 |  |
+| d08_down1_K9 | 1600×1000 | 32 | 214.4 |  |
+| d09_up2_K10 | 1600×1000 | 32 | 212.0 |  |
+| d10_side2_K11 | 1600×1000 | 32 | 200.8 |  |
+| d11_up3_K13 | 1600×1000 | 32 | 195.8 |  |
+| d12_oxygen_K16 | 1600×1000 | 32 | 155.6 |  |
+| d13_finale_K16F | 1600×1000 | 32 | 191.7 |  |
+| d14_drain_K17 | 1600×1000 | 32 | 240.6 |  |
+| p01_hero_K1 | 900×1950 | 32 | 219.2 |  |
+| p02_under_K5 | 900×1950 | 32 | 277.9 |  |
+
+Scaled to the brief's sequence setting, the open view costs about 218 × 0.81 (pixels) × 0.75 (samples) ≈ 133 s, plus about 10 s of scene build per process, ≈ 143 s per 1440×900 frame at 24 samples (window frames ≈ 170 s). That is Plan B territory (brief
+7.4): sequences at 1280×800 and 540×1170, 24 samples, no retina stills. With one process per frame this is about
+4.0 h; with the one-session loop about 3.6 h. Re-measure 4 frames per camera with `scene/keyframes.py` before
+the run.
+
+### 12.11 The AI-tells checklist again (02, section 0)
+
+Answered from the round-3 stills and mock screenshots (expected answer in brackets).
+
+| # | Question | Answer |
+|---|---|---|
+| 1 | Squint: the sentence the biggest, brightest, highest-contrast thing? [yes] | Yes in every open view. In the window frames it is the largest shape and the only legible thing; in K6 the red lamp is the brightest point, which is the beat. |
+| 2 | Would it work with another product's words? [no] | No. |
+| 3 | Could a generator return this screen? [no] | No. |
+| 4 | Zero clicks: the claim, who it is for, where the Bootloader is? [yes] | Yes, and now also what the Bootloader is ("one file, for your AI"), what the water is (`complexity` on the waterline) and how to answer the question (the cue under the readout). |
+| 5 | Name the light; no HTML shadow or glow? [yes] | Late-afternoon sun from the left, under plane trees; the same sun in every frame, the window included. No CSS shadow, glow or text-shadow. |
+| 6 | Only Plimsoll, Ortica, B612? [yes] | Yes. |
+| 7 | Tracked caps, mono labels, middle-dot strings? [no] | None. `tools/ai_tells_scan.sh mock` prints nothing; the reference comments now use commas. |
+| 8 | Paper, grain overlay, gradient, glass? [no] | None. The round-2 functional top scrim is gone (no frame needs it); the phone bar is a solid strip. |
+| 9 | Cover colours as flat fills, a three-colour word, one accent word? [no] | No. Red and green appear only as the lamps' measured light, in the two equations and the readout figures. |
+| 10 | Centred eyebrow-headline-buttons stack, mirror symmetry? [no] | No. Captions sit left-aligned in the lower-left; the finale couplet is two equal left-aligned lines; the finale camera is off-centre. |
+| 11 | Cards, equal panels, mockups, drop shadows? [no] | No. |
+| 12 | Decorative hairlines, dividers, stat rows? [no] | Only the 1 px leaders of the anchored labels, each pointing at a thing in the render (waterline, load line, margin, flood ring). |
+| 13 | Pills, outline pairs, icons, chips, chevrons? [no] | No. `Pre-orders open soon` is plain text now; ⦵ is the only mark. |
+| 14 | Every sentence Michael's and cited; labels clean? [yes] | Yes: 53 sentences, 0 not found. |
+| 15 | Motion tells? [no] | Static mocks. |
+| 16 | A real place, objects of known size? [yes] | A canal lock: ladder rungs every 0.3 m (now down to the bed), an E-pattern gauge, form-tie holes, a load line, bolts. |
+| 17 | Contact shadow at every junction? [yes] | Yes; the letters' shadow is now a contact sliver (6 % of the cap). |
+| 18 | Wear with a cause on the wall and the letters? [yes] | Yes: bolt rust runs and primer chips on the letters, stud weeps on the panel, rust from every bracket and the signal's bolts, the silted first course, the flood ring. |
+| 19 | Scanned materials, fabricated letters? [yes] | Yes; the courses are now the wall's own scan. |
+| 20 | One shadow direction, no doubles or glyph copies, subtle glitter? [yes] | Yes; one sun everywhere; glitter off (12.8). |
+| 21 | A real lens? [yes] | 50 mm (HERO, CRANE, OXYGEN) and 35 mm (WIDE, window), level, from places a person could stand. |
+| 22 | Grain, wax, banding? [yes] | Fine grain; 16-bit masters now. Banding in the WebP/AVIF tiers is still to check at packing. |
+| 23 | Do the dry words read at a glance? [yes] | Yes. |
+| 24 | Boil, pop, gauge disagreement over five frames? [no] | Not testable on stills. The frame path now advances the Ocean, the ripple and caustic phase and the grain (`--frame`); seed fixed. |
+| 25 | Every image ours or a noted CC0 scan? [yes] | Yes; nothing new downloaded this round. |
+
+---
+
+## 13. Round 2 fixes
+
+The second review round looked at the round-3 stills and mocks (the canal lock, now in `out/stills/r3/`). Three
+reviewers took part:
+- an art direction review, 3.5/10;
+- a stranger's first-screen and conversion test as a 9-person bootstrapped founder, 6/10;
+- a technical review that re-ran and measured the script, 5/10.
+
+All three failed it. This section takes every blocker and major, and every cheap, clearly right minor. For each
+item it says what changed, the evidence, and, where a fix was not taken as written, why. Where the reviews pulled
+in different directions the order was the same as last time: the words are read first, it looks photographed, a
+stranger gets it without clicking, the Bootloader is wanted.
+
+Test renders for every step are in `out/test4/` (720×450, 16 samples; `sheet_t02.png` to `sheet_t05.png`,
+`sheet_t04p.png` for the phone). **Sections 2 to 12 are the record of the canal lock. This section is current
+wherever it differs.**
+
+### 13.1 The place: a ship's side, not a canal lock (blockers: art 1, technical 1; stranger minor)
+
+**Why.** James called the lock a sewer (07-CLIENT-FEEDBACK, 31 Oct 00:30). Both the art review and 07 put a ship's
+hull with its load-line mark first. 02-AI-TELLS B.0 already named draught marks, "welded steel numerals that water
+rises against", as the closest real object to our letters. A dark hull also fixes the contrast by construction:
+white letters on near-black steel, which is why ships' marks are white (B23).
+
+**What the story becomes.** The meaning maps onto a ship with no strain:
+- **The Plimsoll mark is a real load line.** The ring and bar painted at the 12-person level is the mark a ship
+  must not be loaded past. The site's "12 isn't where you're trying to get. It's the line you don't cross." [BL 544]
+  is literally what that mark means.
+- **Each hire is load.** The water climbs the hull as the ship sits deeper.
+- **Down is unloading.** The ship rises out of the water.
+- **Side is new strakes** welded in between the fixed lower hull and the upper hull that carries the words: the
+  ground the words stand on rises.
+- **Up is loading again**, only to the mark.
+
+**What is built** (`scene/waterline.py`; everything real geometry, Poly Haven scans or ours):
+
+| Part | Built as | Answers |
+|---|---|---|
+| Hull plating | Strakes 1.6 m high, plates 5.6 m long, butts staggered strake to strake (the words' strake has its butts at ±2.8 m, clear of the words). Each plate is its own part, with its own tone (±6 %) and its own offset into the scanned plate (`blue_metal_plate`, via Object Info Random). Proud weld beads (10 × 2.5 mm) at every seam and butt. Plates slightly dished between internal frames 0.7 m apart. | B04, B05: no tiling, no two plates alike |
+| Paint | Blue-black ship's paint (sRGB 0.205/0.213/0.230, linear about 0.035), roughness 0.30–0.52 from the scan, orange peel. Fender scrapes to grey primer in two bands where a ship rubs quays. A few short rust weeps, each from a real fixing: the letters' studs, the lamp's bracket bolts and two discharge outlets. | Art major (wear with a cause); 07 (no rust weeping everywhere) |
+| Antifouling | Red oxide (0.29/0.125/0.095), matte, below a crisp boot-top line at −0.42 H on the fixed lower hull. At 8 people about 9 cm shows above the water; by 12 it is all under. | A ship-read without a caption |
+| The load line | A painted ring (OD 0.15 m) and bar with "12" (Plimsoll face) on the fixed lower hull. The bar's top edge is the 12-person level. | Brief |
+| Draught marks | White numerals 0.10 m high every 0.20 m (the bottom of each at its draught, whole metres with M, as on a ship), at the right edge of the first screen (96 % of the width). | The gauge, as a real ship carries it |
+| Side | New strakes (0.85 H, then 0.30 H and 0.30 H) welded in between the fixed lower hull and the moving upper hull. Strake 0 went in during the flood and carries its film. Strakes 1 and 2 are new paint: glossier and a shade bluer, so each cycle's addition reads as new plate. | Art major (courses), stranger major (Side legible) |
+| Stencil | "⦵ SUSD BOOTLOADER" painted on the newest strake, flat on the plate (no joints or chamfers to float over). | Technical minor (stencil over joints) |
+| Water | Clear: absorption 0.50/0.10/0.06 per metre (red/green/blue), blue in-scatter 0.04, roughness 0.02 from above, Ocean chop (wave scale 0.06, wind ×0.9, ripple 0.06). A pale sand seabed (`coast_sand_01`) 6 m down; a quay behind the camera. | Art blocker, technical blocker |
+| Light | One sun at 43°, azimuth 200° (20° left of the camera axis), 5800 K, 2° disc. A clear sky (`kloofendal_43d_clear_puresky`, CC0, downloaded this round) rotated so its clamped sun stands at the lamp's azimuth (its sun found at u 0.6003, elevation 43.0°, texture azimuth 126.1°). Sky at full strength in reflections (`gloss_sky` 1.0). | Art blocker 3, technical major (HDRI and key disagreed) |
+| Colour | AgX, Medium High Contrast, no tint. Exposure 0 EV open, +0.7 EV in the water, +0.9 EV more under the Redline cloud. | Art blocker (one sepia hue) |
+
+**Removed:**
+- **The canopy.** Its lobed shadow made the wavy band over the top of the wall (art blocker 3). Nothing in the scene
+  shades the hull now; the top band is dark because the hull is dark.
+- **The ladder.** 07 asked to drop the dark steel ladder, and the art review found its two pieces did not connect. A
+  hull carries no such ladder. Scale now comes from the draught marks, the 0.15 m load-line ring, the plate seams
+  and the bolt heads.
+- **The staff gauge.** The draught marks replace it.
+- **The concrete, the silt and the biofilm.**
+
+**Not tested: the other two candidates in 07** (a pale stone harbour wall and a white tiled pool). The art review
+asked for the hull first and it passed every test at 720×450. A stone wall would need a dark panel behind white
+letters, which is the "sign on a plinth" that round 1 rejected (t01).
+
+**For James: show the hull before any sequence is rendered.** 07 and the art review both ask that James sees the new
+place small first. The sheets are `out/test4/sheet_t03.png` (touch, under, Redline), `sheet_t04a.png` (the cycle),
+`sheet_t05.png` and the finals' contact sheet.
+
+**Not taken as written:**
+- **The art review's water: absorption (0.60, 0.85, 0.80) at density 0.10–0.15, over a pale floor 1.5–2 m down.**
+  That is 0.04–0.06 per metre: optically almost vacuum. The technical review's (0.55, 0.93, 0.97), which is 0.45 /
+  0.07 / 0.03 per metre, was tested first, over sand 3.6 m down (`t01_hero.png`). The near water became a bright
+  teal pool, the biggest bright mass after the words, right under the captions and the audience line. That fails
+  the squint test and the brief's ≤ 0.15 luminance under cream text. With a little more absorption in green and
+  blue (coastal water), blue scatter and the sand 6 m down, the water stays clear (you see the antifouling and the
+  draught marks go down into it, and caustics on the hull under the surface) but dark enough for HTML
+  (`sheet_t02.png`; t02b is the final).
+- **Cycles MNEE shadow caustics (art review).** Measured in look-dev (05: everything under the water went black at the
+  same cost). The surface's caustic web is used instead, now fixed (13.6).
+
+### 13.2 The words (art review majors: letters, typeface; B07, B11, B23)
+
+**The face.**
+1. **Plimsoll proof.** I built a proof of the art review's stroke change in a scratch copy of the type team's builder
+   (`out/test4/build_plimsoll_v11_proof.py`: Side strokes 160 → 194, Up 82 → 70, middle bars 142 → 170,
+   superellipse 2.35 → 2.05). The face itself is not changed.
+2. **Proof sheet.** `out/test4/type_proof_plimsoll_v1.0_v1.1_ortica.png` shows v1.0, the proof and Ortica Angular
+   Bold, in caps and mixed case, at page size. The proof still reads as rounded techno lettering: its C, O and S
+   stay squircles.
+3. **A/B on the hull** (`out/test4/sheet_face_ab.png`): Ortica caps read as a ship's name; Plimsoll reads as a
+   1970s logo.
+4. **The decision.** The review's own rule decides it: **the rendered sentence is now Ortica Angular Bold
+   capitals**, 03-TYPE's documented 3D fallback, kerned from its GPOS pairs through `blender_kern`. Plimsoll stays
+   for what you'd measure: the title, the figures, the equations, the ⦵ mark, the "12", the draught numerals and
+   the stencil.
+5. **Why capitals.** 03-TYPE's water finding still holds: capitals put every foot on one baseline, so at 13 the
+   water reaches every letter at once.
+
+This is a decision for James (13.8). `--face plimsoll` renders the other.
+
+**The frame follows the face.** Ortica's capitals are wider for their height than Plimsoll's. The HERO frame is now
+derived from the sentence's measured width: it fills 70 % of a 16:10 frame (words at 9–79 %, centred at 44 %, as
+the art review's composition minor asked), its top at 18.3 %. Cap 0.24 m, H 0.874 m.
+
+**Contrast.** The enamel is sRGB 0.90 (230). The hull is 0.205. The squint and plate numbers are in 13.9.
+
+**Fabrication and wear:**
+- **The letter.** A 10 mm plate on two 12 mm steel studs 15 mm off the hull (the studs are modelled), with a 1.5 mm
+  edge break.
+- **Setting.** Each letter is set by hand: ±0.15°, ±2 mm in depth, a millimetre off true.
+- **Wear.** Painted-over bolt heads; edge chips through to red-oxide primer (an AO "inside" edge mask × noise); salt
+  dust on upward faces.
+- **Rust.** Weeps 3–6 cm long under about 40 % of the bolts, plus a short weep on the hull under about a third of the
+  letters.
+- **Water.** A splash zone and a wet band where the water has touched, and a stain below the flood line.
+
+**The shadow twin is gone.** With the sun 20° off the camera axis and 43° up, a letter 25 mm off the hull throws its
+shadow 26 mm, nearly straight down (11 % of the cap). On the dark hull it reads as a contact line under each stroke,
+not a copy (`out/stills/d01_hero_K1.png` at 100 %).
+
+The art review asked to "rake the light 30–40° across the face". A raking sun lengthens the offset (it was 42 mm at
+the lock's azimuth), so the light goes the other way: more frontal.
+
+**The slab margins** no longer apply: the words are welded straight to the hull, as the review's alternative said.
+
+### 13.3 The drowned beats (blocker in two reviews: art 2; stranger major)
+
+**The camera is in the water (`UNDER`).** The gallery, its glass, the sill, the floor band and the jagged column are
+gone. The water is full-bleed.
+- **Lens and position.** 20 mm at 3.9 m from the hull, as an underwater photographer works, close and wide. The eye
+  is 0.2 H under the words' top and 0.2 m under the surface at n = 19.
+- **Match cut.** The sentence keeps HERO's rectangle.
+- **The ceiling.** The surface seen from below has roughness 0.28 (`wrough_back`; 0.02 from above). The total internal
+  reflection becomes a soft silver ripple instead of a mirrored sentence. The phone's ghost of EVERY HIRE is gone
+  (`sheet_t04p.png`, `p02`).
+- **Specks.** About 900 suspended specks (1–3 mm, dim) in the lit water near the surface. The first finals had 2600
+  bright specks, which read as a starfield on the dark lower half; d04 and d05 were re-rendered (the old frames are
+  in `out/test4/superseded/`).
+- **The art review's below-surface list.** Volume bounces 2, transmission 16, transparent 32. The water runs 6 m or
+  more past every frame edge. The seabed is modelled, out of frame.
+
+**The turn is under water too (K7).** The same camera, the cloud gone, the sun back: the drowned words light up and
+read (art major: "turn is an empty dark frame"). Side cuts back up to the open camera.
+
+**Not taken: drowning the words under the open camera (art review).** It was tested again. K7 from the open camera
+(`out/test4/t04_turn.png`) squeezes the whole sentence into a 2 cm strip at the waterline, as in round 3 (§12.1).
+From 3 m up and 10 m away the line of sight meets the water at about 15°, and refraction folds a metre of depth into
+centimetres.
+
+**Not taken: a bright ceiling with light shafts (stranger review).** The ceiling sits in the top band, behind the
+title lockup. It is kept soft and dim so the lockup reads (top band p95 in 13.9). The light comes in as caustics on
+the words and the hull.
+
+**The cut (technical major).** With the camera in the water, anything above the surface is invisible (total internal
+reflection), so the open camera holds while the water climbs the sentence line by line. The cut comes when the top
+line goes under, at n = 18.7, and that frame is rendered on both cameras (13.6).
+
+### 13.4 The story by scroll alone (art major; stranger majors)
+
+| Beat | Round 3 | Now |
+|---|---|---|
+| Side 1 (K8) | Only "EVERY HIRE COMPOUNDS" cleared; the course was invisible under water | The first strake is 0.85 H and the flood eases 1.35 → 1.10 H as it goes in (the review's "partial drain first"), so two lines clear the water (`d07`) |
+| Up (K10, K13) | A 60 px change (Down to −0.45 H) | Down drains to −0.75 H. Up rises 0.645 H (0.56 m) against the draught marks and stops at the mark |
+| Drain after the click (K17) | 0.28 H (about 40 px) | 1.15 H (1.0 m), from the Oxygen level to −1.65 H. The hull it uncovers is wet: base ×0.70, roughness 0.12 (`d14`) |
+| Each cycle starts higher | Courses in concrete, no record | Strake 0 carries the flood's film, the newer strakes are fresh paint, and the upper hull carries a pale salt ring where the flood stood on it |
+
+**Side 2 and 3 are thin (0.30 H).** The first strake took most of the rise. In the frame they still read as new plate:
+the darker, glossier bands under the words in `d10` and `d12`.
+
+**The flip-book check** is the contact sheet in story order, read against the draught marks:
+`out/stills/contact_sheet.png`. Every still's `anchors.json` also records the screen height of the water for n = 1,
+4, 8, 12, 13, 15 and 19 at the gauge (`levelY`).
+
+### 13.5 The load signal (art majors; stranger major)
+
+- **Where.** On a short bracket above the words, top centre-right (frame x ≈ 0.62). It is clear of the title lockup
+  and of the dock's mark.
+- **Its reflection.** It falls between the caption column (x ≤ 0.53) and the instrument column (x ≥ 0.72), not
+  through captions or the Bootloader's facts (`d03`).
+- **The lamp.** Each is a lit disc behind a glass lens under a 9 cm hood. Its point light is hidden from glossy rays,
+  so the water reflects the lens, not a blob.
+- **Glare.** Above 1.5 only, set through the sockets.
+- **States.** Red from 13, drowned and glowing at Redline (`d05`), green once Down has drained below the mark.
+- **Phone.** None: there is no room beside the six lines. The phone carries the red in the caption's equation.
+
+### 13.6 The scene script (technical majors and minors)
+
+| Item | Now |
+|---|---|
+| Caustics never rendered (normal flipped on back-facing hits) | `clear_water()` in the scene (the look-dev library is unchanged) takes `abs(true normal z)`, so shadow rays from under the water read the surface. The caustic web now shows on the drowned letters, on the hull under the surface and on the antifouling. At 0.8 it read as a swimming-pool net (B14), so it is now 0.35 with broader, softer lines. |
+| Water bottom 2 mm above the floor (a fake mirror) | The water's bottom is 5 cm inside the seabed box (`zbot = seabed − 0.05`). Under the hull it closes into the hull and a bank, so no water-to-air face is reachable by any ray. |
+| Sky dimmed to 45 % in reflections; HDRI sun at 48° vs a 19.6° key | `gloss_sky` 1.0. A clear 43° sky under a 43° sun, rotated to agree. |
+| Water measured from the ground, not the letters | `water_z(level)` adds the 12 mm base gap to every level (Z12, the flood scars too). From level 0.93 it adds a margin, smoothly, reaching 5 cm at n = 19, so no cap pokes out of still water. An assertion keeps the UNDER eye at least 8 cm under the surface. |
+| Camera glides into the window and the gallery pops at t = 0.5 | Never blended across the surface: a frame between an open camera and UNDER takes one or the other (hard cut). `story.frames()` names each frame's camera and `keyframes.py` passes `--cam`. The open cameras (CRANE, OXYGEN, WIDE) still blend, which is a crane move in air. |
+| No K16 → K16F phase | Added: 6 desktop frames, 4 phone. `keyframes.json` now has 99 desktop and 69 phone frames. |
+| Glare: deprecated properties ignored, two RNA warnings per frame | Threshold 1.5, size 0.28 and strength 0.10 set on the sockets. No warnings. |
+| Water roughness 0.09–0.16 (satin, oily) | 0.02 base, film patches to 0.05. The chop and the ripple bump do the breakup. |
+| Shadow rays through water take the unrefracted, longer path | On shadow rays the volume's density is ×0.6 (`shadowk`). This is a known approximation, kept documented. |
+| Grain shifts every frame (shimmer on crossfades) | **Kept**: 02 B20 and checklist 22 require grain that differs each frame. Grain on the page instead would be a grain overlay (A-tell). The 50/50 crossfade dip is accepted; packing will check the file size. |
+| Sun drifts 19.65° → 14.66° → 15.58° | One sun for the whole story (43°, 200°). Only its strength changes: a cloud at Redline. |
+| K2/K3 reflections crisp | The chop raised (the K2 reflection breaks into streaks). At K3 the bottom line is still mirrored at its own feet: that is the beat ("the water touches every letter at once"), as in round 3. |
+| Phone coverage | Seven more phone stills at 600×1300, 24 samples (K2, K3, K6, K7, K9, K16, K16F), plus the two masters at 900×1950 (K1, K5). |
+| Comments drifted from the code | The script's docstrings and TUNE comments are rewritten to the round-4 values. This section and the tables below are current. |
+| Stencil over joints and chamfers | It sits on a flat steel strake, 1.2 mm off the plate. |
+
+### 13.7 The page (stranger blocker and majors; art majors and minors)
+
+All in `mock/build_pages.py`, `mock/mock.css` and `mock/shoot.cjs`.
+
+**What the file does for you (stranger blocker).** Every entry point now says what the founder gets back. The label
+paraphrases Michael's own line on the Bootloader's first question: "This single question reveals location on the
+destination map, physics that apply, and what advice will fit vs. make things worse." [BL 314]
+- **Dock:** "A free file for your AI. It finds where your team stands and which advice fits." over "Works with
+  Claude, ChatGPT and Gemini". The words never change from beat to beat and the face is B612 throughout, so the dock
+  no longer swaps to "The file is the operating system." (art minor, stranger major).
+- **Phone bar:** "Free AI file: find where your team stands".
+- **First screen:** the instrument carries Michael's line itself.
+- **Beat 3 (13 people):** the three questions [BL 3748] move up here, where the pain is.
+- **Finale:** a `What you get back` label sits above the email field.
+
+**The first screen (art major: 13 lines in four styles).** The instrument column now holds:
+- `The Bootloader asks` (a label), over the question "How many people are on your team?" [BL 310], on the phone too, so it no longer reads as a form field;
+- the 8 / 28 readout;
+- the active band with its gloss;
+- Michael's BL 314 line;
+- the scroll cue.
+
+The other bands are ticks on the rendered draught marks (Threshold 13–14 and Graveyard 15–39, at the heights the
+water will reach), not an HTML list. `complexity: 28 pathways` (15 px, bold, a 64 px rule) rides the waterline and
+is tied to the readout.
+
+**Labels never overlap (art and stranger majors).**
+- **The load-line label.** "12 people: the load line" sits left of the ⦵, right-aligned, 12 px off, on the mark's
+  line, with no leader. On the phone it sits under the mark. The instrument column starts at least 34 px below the
+  mark.
+- **The margin dimension.** "margin" is right of its dimension line at mid-height, and the line stands 26 px left of
+  the words. "capacity" is pinned to the seam the words stand on, from Side onward, opposite "complexity" on the
+  waterline, so "Capacity > Complexity = Oxygen" can be read off the picture.
+- **The check.** `node mock/shoot.cjs` now fails (exit 1) if any two positioned text boxes come within 12 px of each
+  other, if any text box touches the rendered sentence's box (from the anchors, with the same cover mapping), if the
+  console shows an error, or if the page scrolls sideways.
+- **Why `shoot.cjs` and not `build_pages.py`.** The art review asked for the check in both, but only the browser knows
+  where the boxes land.
+
+**Down does not read as layoffs (stranger major).** The support line is Michael's "Complexity pruned, margin
+recaptured, efficiency locked" [BL 863], with `complexity` pinned to the falling waterline and `capacity` and
+`margin` pinned beside it.
+
+Not taken: freezing `39 people` through Down. The Bootloader says the 15–39 Graveyard cannot be optimised through
+("There is no optimize-through at 15-39." [BL 4156]), so a 39-person company cycling would contradict the book.
+
+**One button per screen (art major).** A small IntersectionObserver hides the dock and the phone bar while the offer
+or the form is in view. The offer and finale mocks are shot in that state.
+
+**The finale is one cluster on the dark hull plate under the words (art major; stranger major), on the left.** It
+holds:
+- Michael's AI couplet [M 4523];
+- the ⦵ SUSD Bootloader with its stacked spec: "Version 16", `35,445 words for your AI to read, so you don't have to` (stranger minor) and "Works with…";
+- `What you get back`;
+- the form and its microcopy;
+- Michael's two next-step lines;
+- "Read the Appendix";
+- one book line: "Scaling Up‑Side‑Down. The book by Michael Wentz. Pre-orders open soon."
+
+The bio and "The book changed how you think." [M 4553 · copy.ts:146] are off the page. The art review asked for them to move to
+the book page, which does not exist yet; they wait in the copy deck.
+
+**"Vehicle" (stranger minor).** It gets a gloss label from the Bootloader's own vehicle matrix (BL 3564):
+`your vehicle: bicycle, car, limousine or airplane`.
+
+**Readout figures stay cream in every state (art minor; A09).** Only the two equations are coloured, sampled from the
+rendered lamp (13.9).
+
+**No widows (art minor).** `text-wrap: pretty` on captions, glosses and lines, and a pixel width per beat.
+
+**More mocks (stranger minor):**
+- desktop beat 2 mid-hire (n = 10, `+9`);
+- desktop cycle 2 ("Up. Side. Down. Repeat." [M 1713 · copy.ts:125] with "Each cycle deposits systems and margin. The next cycle withdraws from a larger account." [BL 866]);
+- phone beats 2, 3, 4, 5, 6, 7 (offer), 9 and the finale.
+
+**The squint, and what it changed.** The art review measured the blurred `Get it free` button beating the
+sentence. Measured the same way on the dark hull, a filled cream button blurred to 205 against the sentence's 136.
+- **Dock and phone bar.** They now carry an **outlined** button (cream text and a 1.5 px cream outline; it fills on
+  hover). The dock's ⦵ is 28 px in the dim cream.
+- **Offer and form.** The filled button stays there: the action is the subject and the dock has stepped aside.
+- **The phone's title lockup is a solid strip** matching the bottom bar. Under the water the surface's silver
+  underside fills the top band (p02, 0.23), and the lockup measured 3.1:1 on it.
+- **Results.** In 13.9.
+
+**The double email entry (stranger major) stays the decided MVP**: the form opens `/appendix#get` and sends
+`?email=`. The live page reads no query string (checked in round 3). Post mode writes to Michael's live list, so it
+needs James's approval: decision 1 below.
+
+### 13.8 Decisions for James
+
+1. **The setting.** A ship's side, not the canal lock he called a sewer. Show him `out/stills/contact_sheet.png` and
+   the first-screen mock before any sequence is rendered.
+2. **The rendered face.** Ortica Angular Bold capitals instead of Plimsoll for the sentence (13.2). Plimsoll stays
+   for the title, figures and mark. A/B: `out/test4/sheet_face_ab.png`; proof:
+   `out/test4/type_proof_plimsoll_v1.0_v1.1_ortica.png`. Plimsoll's builder (03-TYPE) is unchanged.
+3. **The opt-in mode.** Post mode removes the second email entry and records which entry point converted. It needs
+   James's OK and a check that `/api/optin` accepts a post from the new origin. The alternative is that Michael adds a
+   three-line prefill to `/appendix`.
+4. **The load signal** above the words (red at 13, green after Down). Drop it with `--signal 0` if it reads as extra
+   on a ship.
+5. **The book page.** The bio and "The book changed how you think." wait there (13.7).
+6. **Sequence budget** (13.9): Plan C (16 samples for in-betweens, 24 for holds, about 4.1 h) or Plan B (1280×800,
+   about 4.4 h).
+7. **The dock's outlined button.** The words won the squint, so the always-on button is outlined; the filled
+   button appears with the offer and the form (13.7). If clicks matter more than the squint, fill it and accept
+   the art review's finding.
+
+### 13.9 Measurements, timings, budget
+
+**Frame checks** (`scene/frame_checks.py`; relative luminance; the brief wants ≤ 0.15 under cream text).
+- *Line contrast* is the worst line's letters (p90) against the plate between them (p25).
+- *Refl / words* is the 8-bit p90 of the mirror image against the dry words (the review asked ≤ 0.45).
+
+Generated by `python3 scene/round_report.py`.
+
+| Still | Top band p95 | Caption zone p95 | Words p90 | Line contrast (min) | Refl / words | Black (< 8/255) | Words box | Water y |
+|---|---:|---:|---:|---:|---:|---:|---|---:|
+| d01_hero_K1 | 0.054 | 0.049 | 0.598 | 7.53 | 0.33 | 0.0 % | 0.089, 0.183, 0.789, 0.393 | 0.494 |
+| d02_twelve_K2 | 0.054 | 0.016 | 0.598 | 7.44 | 0.45 | 0.0 % | 0.089, 0.183, 0.789, 0.393 | 0.412 |
+| d03_touch_K3 | 0.052 | 0.016 | 0.586 | 7.47 | – | 0.0 % | 0.089, 0.183, 0.789, 0.393 | 0.386 |
+| d04_under_K5 | 0.132 | 0.009 | 0.336 | 5.13 | – | 0.0 % | 0.089, 0.184, 0.789, 0.393 | 0.173 |
+| d05_redline_K6 | 0.064 | 0.006 | 0.205 | 3.87 | – | 0.0 % | 0.089, 0.184, 0.789, 0.393 | 0.101 |
+| d06_turn_K7 | 0.148 | 0.012 | 0.404 | 5.47 | – | 0.0 % | 0.089, 0.184, 0.789, 0.393 | 0.101 |
+| d07_side1_K8 | 0.080 | 0.019 | 0.502 | 3.35 | – | 0.0 % | 0.089, 0.132, 0.789, 0.341 | 0.275 |
+| d08_down1_K9 | 0.061 | 0.023 | 0.508 | 7.03 | 0.21 | 0.0 % | 0.158, 0.184, 0.721, 0.353 | 0.616 |
+| d09_up2_K10 | 0.059 | 0.041 | 0.564 | 5.81 | 0.25 | 0.0 % | 0.089, 0.183, 0.789, 0.393 | 0.588 |
+| d10_side2_K11 | 0.107 | 0.029 | 0.570 | 5.69 | 0.24 | 0.0 % | 0.089, 0.132, 0.789, 0.341 | 0.598 |
+| d11_up3_K13 | 0.062 | 0.029 | 0.570 | 5.76 | 0.24 | 0.0 % | 0.115, 0.184, 0.763, 0.378 | 0.616 |
+| d12_oxygen_K16 | 0.064 | 0.024 | 0.565 | 5.82 | – | 0.0 % | 0.159, 0.237, 0.720, 0.405 | 0.726 |
+| d13_finale_K16F | 0.089 | 0.020 | 0.563 | 5.88 | 0.19 | 0.0 % | 0.178, 0.128, 0.661, 0.272 | 0.549 |
+| d14_drain_K17 | 0.088 | 0.019 | 0.563 | 5.90 | – | 0.0 % | 0.178, 0.128, 0.661, 0.272 | 0.712 |
+| d15_hire_n10 | 0.054 | 0.053 | 0.598 | 7.44 | 0.39 | 0.0 % | 0.089, 0.183, 0.789, 0.393 | 0.458 |
+| p01_hero_K1 | 0.104 | 0.041 | 0.624 | 5.68 | 0.24 | 0.0 % | 0.064, 0.097, 0.948, 0.399 | 0.548 |
+| p02_under_K5 | 0.227 | 0.007 | 0.389 | 5.79 | – | 0.0 % | 0.065, 0.097, 0.948, 0.399 | 0.088 |
+| p03_twelve_K2 | 0.104 | 0.058 | 0.618 | 5.61 | 0.44 | 0.0 % | 0.064, 0.097, 0.948, 0.399 | 0.429 |
+| p04_touch_K3 | 0.096 | 0.047 | 0.611 | 5.82 | – | 0.0 % | 0.064, 0.097, 0.948, 0.399 | 0.391 |
+| p05_redline_K6 | 0.024 | 0.004 | 0.245 | 4.09 | – | 0.0 % | 0.065, 0.097, 0.948, 0.399 | -0.016 |
+| p06_turn_K7 | 0.045 | 0.008 | 0.437 | 5.76 | – | 0.0 % | 0.065, 0.097, 0.948, 0.399 | -0.016 |
+| p07_down1_K9 | 0.121 | 0.021 | 0.521 | 4.77 | – | 0.0 % | 0.177, 0.098, 0.832, 0.321 | 0.674 |
+| p08_oxygen_K16 | 0.128 | 0.021 | 0.585 | 4.73 | 0.18 | 0.0 % | 0.244, 0.099, 0.763, 0.275 | 0.617 |
+| p09_finale_K16F | 0.127 | 0.020 | 0.583 | 4.75 | 0.15 | 0.0 % | 0.244, 0.099, 0.763, 0.275 | 0.617 |
+
+**What these numbers answer:**
+- **The drowned lines.** At K5 they are 5.13:1 and at Redline 3.87:1 (round 3: 1.56:1 and 1.28:1, against the
+  technical review's 3:1). The turn is 5.47:1.
+- **Side 1 (3.35:1).** Its worst line is the bottom line under the water, as intended; the two lines above the water
+  are 7:1 or better.
+- **Nothing is crushed black.** No frame has pixels below 8/255 (round 3: up to 2 %).
+- **The top band.** It is ≤ 0.15 on every desktop frame. The phone's underwater frame is 0.23, which is why the
+  phone's title lockup is now a solid strip (13.7).
+- **The hero's reflection** is 0.33 of the dry words.
+
+**Mock plates** (`node mock/shoot.cjs`): the lowest-contrast text box on each screen, cream against the 95th
+percentile of the plate under it. See the results table at the top. Everything is at least 4.5:1 except two phone
+captions, 3.85:1 (beat 2, 26 px bold) and 4.26:1 (beat 3, 34 px bold), which are large text, where WCAG asks for
+3:1. **The overlap check** (`shoot.cjs`) found 0 failing screens of 23, with no console errors and no sideways
+scroll.
+
+**The squint** (`python3 mock/squint.py out/mock/desktop-*.png out/mock/phone-*.png`; Gaussian σ 12 px at 1440, 8-bit
+grey of the blurred screen; the brightest blurred point inside the rendered sentence against the brightest anywhere
+else; the full output is in `out/mock/squint.txt`):
+
+| Screens | Sentence | Brightest elsewhere | Result |
+|---|---:|---:|---|
+| Desktop hero, hire, twelve, touch, Side, turn, Down, cycle 2, repeat, Oxygen | 113–138 | 103–125 | pass (round 3: the `Get it free` button at 175 beat the sentence at 147) |
+| Phone hero, twelve, touch, under, Redline, turn, Oxygen | 95–153 | 92–140 | pass |
+| Desktop under (K5) | 103 | 106 (the dock's name) | the words are drowned on purpose; within 3 levels |
+| Desktop Redline (K6) | 78 | 99 (the readout's figures) | the alarm beat: the words are deep and dark on purpose, as in round 3 |
+| Offer, finale (desktop and phone) | 116–138 | 202–239 (the filled button and the email field) | intended: the call to action is the subject of these two screens, and the dock has stepped aside |
+
+**What made the squint pass.** The always-on dock and the phone bar now carry an outlined button. The filled cream
+block blurred to 205 against the sentence's 136 on the dark hull. The dock's ⦵ is 28 px in the dim cream. The
+filled button stays where the action is the subject.
+
+**Copy and tells:**
+- `node susd-options/tools/copycheck.mjs mock/*.html`: 45 sentences, 0 not found.
+- `node susd-options/tools/copycheck.mjs briefs/copy-deck.waterline-render.ts`: 37, 0 not found.
+- The two equations are checked through the copy deck, with a raw `>` in the HTML as in round 3.
+- `bash tools/ai_tells_scan.sh mock` prints nothing.
+
+**Timings** (each still's seconds are in the results table; nothing else rendering):
+
+| Still | Size, samples | Seconds |
+|---|---|---:|
+| Open views (HERO, CRANE, OXYGEN, WIDE) | 1600×1000, 32 | 158–212 (mean ≈ 184) |
+| Camera in the water (UNDER) | 1600×1000, 32 | 262–279 |
+| Phone hero / under | 900×1950, 32 | 198 / 310 |
+| Phone checks, open / under | 600×1300, 24 | 59–74 / 105–107 |
+| Tests | 720×450, 16 | 20–32 |
+
+This scene costs about the same as the lock (open views 184 s against 213 s). The camera in the water costs about
+45 % more than the open view: volume scatter and two volume bounces.
+
+**Sequence frames, measured** (the technical review asked for this before committing; `scene/keyframes.py --render
+desktop 0:1` and `37:38`, 1440×900, 24 samples, one Blender process per frame, through `tools/render_idle.py`, CPU
+not shared; frames in `out/seq/desktop/`):
+
+| Frame | Camera | Render s | With build |
+|---|---|---:|---:|
+| d00 (n = 1) | HERO | 116.6 | ≈ 127 |
+| d01 (n = 4) | HERO | 116.0 | ≈ 127 |
+| d37 (n = 18.7, the cut) | UNDER | 166.1 | ≈ 178 |
+| d38 (n = 19) | UNDER | 168.5 | ≈ 180 |
+
+**Budget** (99 desktop frames, 10 of them in the water; 69 phone frames, 7 in the water; phone frames from the 600×1300
+stills: 68 s open, 106 s in the water, plus build; 2 × 12 drain frames):
+
+| Plan | Desktop | Phone | Drains | Total |
+|---|---:|---:|---:|---:|
+| A: 1440×900 and 600×1300, 24 samples | 3.6 h | 1.5 h | 0.2 h | **5.4 h** (over the 4–5 h budget) |
+| B (brief 7.4): 1280×800 and 540×1170, 24 samples | 2.9 h | 1.3 h | 0.2 h | **4.4 h** |
+| C: 1440×900, 24 samples for the 19 holds and 16 for the in-betweens | 2.7 h | 1.2 h | 0.2 h | **4.1 h** |
+
+**Recommendation: Plan C.** The holds keep full size and samples; the in-betweens are seen for a fraction of a
+second. The one-session `--seq` loop (12.9, item 6) would save about 0.3 h more.
+
+### 13.10 The AI-tells checklist again (02, section 0)
+
+Answered from the round-4 stills and mock screenshots (expected answer in brackets).
+
+| # | Question | Answer |
+|---|---|---|
+| 1 | Squint: the sentence the biggest, brightest, highest-contrast thing? [yes] | Yes, measured with `mock/squint.py` on every desktop screen (13.9). The art review's failure (the blurred `Get it free` button at L* 175 beat the sentence at L* 147) does not happen on the dark hull. In the drowned frames the sentence is the largest shape and the only legible one. At Redline the red lamp is the brightest point, which is the beat. |
+| 2 | Would it work with another product's words? [no] | No: the words are welded to a hull that is loaded to a load line at 12. |
+| 3 | Could a generator return this screen? [no] | No: one rendered place, a layout built around its geometry. |
+| 4 | Zero clicks: the claim, who it is for, where the Bootloader is? [yes] | Yes, and now also what the file does for you (the dock's outcome line, BL 314), what the water is (`complexity: 28 pathways`) and how to answer the question (the cue). |
+| 5 | Name the light; no HTML shadow or glow? [yes] | Mid-morning sun, 43° up from the front-left, under a clear sky; the same sun in every frame. No CSS shadow, glow or text-shadow. |
+| 6 | Only Plimsoll, Ortica, B612? [yes] | Yes (the rendered sentence is now Ortica Angular Bold; 13.2). |
+| 7 | Tracked caps, mono labels, middle-dot strings? [no] | None. `tools/ai_tells_scan.sh mock` prints nothing. |
+| 8 | Paper, grain overlay, gradient, glass? [no] | None. The phone bar is a solid strip. |
+| 9 | Cover colours as flat fills, a three-colour word, one accent word? [no] | No. The red is the hull's antifouling and the lamp. Only the two equations are coloured, sampled from the rendered lamps. The readout figures are cream in every state. |
+| 10 | Centred eyebrow-headline-buttons stack, mirror symmetry? [no] | No. The words are centred at 44 %, the gauge stands at the right edge, the lamp is off-centre, and the captions are left-aligned. |
+| 11 | Cards, equal panels, mockups, drop shadows? [no] | No. The finale is one cluster of type on the hull plate. |
+| 12 | Decorative hairlines, dividers, stat rows? [no] | Only the 1 px rules of the anchored labels, each pointing at a thing in the render (the waterline, the deck seam, the margin, the draught marks, the flood height). |
+| 13 | Pills, outline pairs, icons, chips, chevrons? [no] | No. Square controls, one button per screen; ⦵ is the only mark. |
+| 14 | Every sentence Michael's and cited; labels clean? [yes] | Yes: copycheck on the mocks and on the copy deck, 0 not found (13.9). The new labels (the outcome line, "The Bootloader asks", `What you get back`, the vehicle gloss, "35,445 words for your AI to read, so you don't have to") carry `// label` with the Bootloader line each one paraphrases. |
+| 15 | Motion tells? [no] | Static mocks. The only script hides the dock while the offer or the form is in view. |
+| 16 | A real place, objects of known size? [yes] | A ship's side: 0.10 m draught numerals every 0.20 m, a 0.15 m load-line ring, plates 5.6 m × 1.6 m with weld seams, bolt heads. |
+| 17 | Contact shadow at every junction? [yes] | Yes: the letters on studs 15 mm off the plate, the lamp on its bracket, the weld beads. |
+| 18 | Wear with a cause on the wall and the letters? [yes] | Fender scrapes at the quay heights, rust from real fixings only (studs, the lamp's bolts, discharge outlets), chipped enamel edges, salt on upward faces, the flood's salt ring and film, the wet band after the drain. |
+| 19 | Scanned materials, fabricated letters? [yes] | Yes: `blue_metal_plate` (roughness and normal, offset per plate), `metal_plate`, `rusty_metal_02`, `coast_sand_01`, `concrete_wall_008`; letters cut 10 mm with a 1.5 mm edge break. |
+| 20 | One shadow direction, no doubles or glyph copies, subtle glitter? [yes] | Yes: one sun, its HDRI sun clamped and rotated to agree. The letters' shadow is a contact line (13.2). The caustic web is softened (B14). |
+| 21 | A real lens? [yes] | 50 mm (HERO, CRANE, OXYGEN), 35 mm (WIDE) and 20 mm in the water (UNDER), all level, from places a person could stand or swim. |
+| 22 | Grain, wax, banding? [yes] | Fine grain, a new position every frame. The 100 % crop of d01's water shows crisp facets, no wax. 16-bit masters; banding is to be checked at WebP/AVIF packing. |
+| 23 | Do the dry words read at a glance? [yes] | Yes: line contrast at least 7.4:1 on the open views (13.9). |
+| 24 | Boil, pop, gauge disagreement over five frames? [no] | Not testable on stills. Hard cuts replace the camera glide and the pop; one sun replaces the drifting one. The level and the draught marks come from one table. |
+| 25 | Every image ours or a noted CC0 scan? [yes] | Yes. New this round, all CC0 from Poly Haven and logged in `assets/polyhaven/SOURCES.tsv`: `kloofendal_43d_clear_puresky`, `coast_sand_01`, `blue_metal_plate`. |
+
+### 13.11 What was not taken, in one list
+
+| Request | Review | Why not |
+|---|---|---|
+| Drown the words under the open camera | art | Refraction at grazing incidence folds them into a 2 cm strip (tested again: `t04_turn.png`). The camera goes into the water instead. |
+| Water absorption 0.04–0.06 per metre over a pale floor 1.5–2 m down | art, technical | It made a bright teal pool behind the captions and beat the sentence in the squint (`t01_hero.png`). The water stays clear but darker; the sand is 6 m down. |
+| MNEE shadow caustics | art | Measured in look-dev (05): same cost, everything under the water black. The surface's caustic web is fixed instead. |
+| A raking light 30–40° across the face | art | A raking sun lengthens the letters' shadow twin (42 mm). A frontal sun makes it a 26 mm contact line. |
+| 128+ samples for the water | art | Four times the cost of every still. At 32 samples with OIDN (accurate prefilter, albedo and normal) the 100 % crop of d01's water shows crisp facets, no wax. |
+| Bright ceiling with light shafts in the drowned frames | stranger | It sits behind the title. It is kept soft; the light arrives as caustics on the words. |
+| Hide "complexity" while "margin" shows | art | The stranger review needs all three labels to read the Oxygen equation off the picture. They are laid out so the overlap check passes. |
+| Freeze `39 people` through Down | stranger | The Bootloader says the 15–39 Graveyard cannot be optimised through [BL 4156]. Down's support line [BL 863] carries the meaning instead. |
+| Post mode for the form | stranger | It writes to Michael's live list: James's decision (13.8). |
+| A grain offset fixed across the sequence | technical | 02 B20 and checklist 22 require grain that differs each frame. Grain on the page instead would be a grain overlay. |
+| The overlap check in `build_pages.py` | art | Only the browser knows where the boxes land, so it is in `shoot.cjs`, which fails the run. |
+| Lifting anchors, bedding joints and shims on the courses | art | The courses are now welded steel strakes. The steel equivalents are there instead: staggered butts, weld beads, a scan offset per plate and fresh paint. |
+
+Nothing was committed or pushed.

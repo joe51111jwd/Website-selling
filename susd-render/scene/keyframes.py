@@ -24,7 +24,7 @@ from story import frames, drain_frames  # noqa: E402
 KF = os.path.join(HERE, 'keyframes.json')
 SIZES = {'desktop': (1440, 900), 'phone': (600, 1300), 'ddrain': (720, 450), 'pdrain': (300, 650)}
 # brief 7.5 step 1 (cuts and holds), by n or state, re-mapped onto this table's ids at write time
-HOLD_N = [1, 8, 12, 13, 14.5, 18.5, 19, 39]
+HOLD_N = [1, 8, 12, 13, 14.5, 18.7, 19, 39]   # 18.7 is rendered on both cameras (the cut)
 
 
 def table():
@@ -78,6 +78,8 @@ def main():
                '--w', str(opt['w']), '--h', str(opt['h']), '--samples', str(opt['samples']), '--label', f['id'], '--out', out]
         if f.get('n') is not None:
             cmd += ['--n', str(f['n'])]
+        if f.get('cam'):          # round 2: a frame that names its camera never blends cameras (hard cuts)
+            cmd += ['--cam', f['cam']]
         print(' '.join(cmd), flush=True)
         subprocess.run(cmd, cwd=ROOT, check=True)
 
