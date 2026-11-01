@@ -1,0 +1,264 @@
+/* Scaling Up-Side-Down: the site, v1. The reviewed mocks (mock/mock.css, review round 2) joined into one page.
+   Type system: docs/03-TYPE.md. Rules: docs/02-AI-TELLS.md. Every shadow and highlight is rendered by Blender: no
+   CSS shadow, glow, gradient, blur, pill or card. Positions are % of the frame box (the rendered 16:10 or 9:19.5
+   frame, fitted to the viewport), placed from each still's anchors (tools/build_site.py writes them per section).
+   Two modes from one DOM (docs/08-SITE-BUILD.md):
+   - html.js: a sticky stage; the beats are stacked inside it and assets/js/stage.js drives them from the scroll;
+   - no JS: the beats are plates in normal flow, one after another, each a frame with its words. */
+@font-face { font-family: "Plimsoll"; src: url("../fonts/Plimsoll-Heavy.woff2") format("woff2"); font-weight: 800; font-display: block; }
+@font-face { font-family: "Ortica Angular"; src: url("../fonts/Ortica-AngularBold-latin.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Ortica Linear"; src: url("../fonts/Ortica-LinearRegular-latin.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Ortica Linear"; src: url("../fonts/Ortica-LinearBold-latin.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "B612"; src: url("../fonts/B612-Regular-latin.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "B612"; src: url("../fonts/B612-Bold-latin.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+
+:root {
+  --cream: #EEF0EC; --dim: #B9C2BD; --ink: #151718; --deep: #0B1112; --rule: #2A2E2F;
+  --redline: #FF6455; --oxygen: #41AF8E;
+  /* the frame box: the rendered frame scaled to cover the stage, top-aligned (crop from the bottom first, brief 9.1),
+     centred on the sentence (focus x 0.44) when the viewport is narrower than 16:10. cq units resolve against the
+     stage (with JS) or the plate (without). */
+  --bw: max(100cqw, 160cqh);
+  --bh: calc(var(--bw) / 1.6);
+  --bx: clamp(calc(100cqw - var(--bw)), calc(50cqw - var(--bw) * 0.44), 0px);
+  --by: 0px;
+  --L: max(64px, calc(24px - var(--bx)));          /* left column inset, kept on screen when the box is cropped */
+}
+@media (max-aspect-ratio: 3/4) {
+  :root {
+    --bw: max(100cqw, calc(100cqh * 0.4615));
+    --bh: calc(var(--bw) / 0.4615);
+    --bx: calc((100cqw - var(--bw)) / 2);
+    /* the phone frame rides up under the title strip (its top band is behind the strip anyway): about 24 px more
+       water for the words on a 390 x 664 browser viewport */
+    --by: min(0px, calc(58px - 0.0975 * var(--bh)));
+    --L: 20px;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--deep); color: var(--cream); }
+html { -webkit-text-size-adjust: 100%; }
+body { font-family: "B612", sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+p { margin: 0; }
+a { color: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: 12px; top: -80px; z-index: 30; background: var(--cream); color: var(--ink); font-weight: 700;
+  padding: 12px 16px; text-decoration: none; }
+.skip:focus { top: 12px; }
+
+/* ---- the story ---- */
+.stage { position: relative; background: var(--deep); }
+.beat { position: relative; overflow: hidden; height: max(100svh, var(--bh)); container-type: size; background: var(--deep); }
+.fbox { position: absolute; left: var(--bx); top: var(--by); width: var(--bw); height: var(--bh); }
+.frame, .frame img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.frame img { object-fit: cover; }
+.tags, .layer { position: absolute; inset: 0; pointer-events: none; }
+.layer a, .layer button, .layer input { pointer-events: auto; }
+.frameonly, .runway, .livebox, .drainbox, .pcue { display: none; }
+
+/* with JS: one sticky stage; the plates are stacked in it and the clock sets --fo (frame) and --lo (words) */
+html.js .stage { position: sticky; top: 0; height: 100svh; overflow: hidden; container-type: size; }
+html.js .beat { position: absolute; inset: 0; height: auto; overflow: visible; background: none; container-type: normal; }
+html.js .frameonly { display: block; }
+html.js .runway { display: block; height: 1260svh; }
+html.js .frame { z-index: 1; opacity: var(--fo, 0); }
+html.js .tags { z-index: 2; opacity: var(--fo, 0); transition: opacity .2s; }
+html.js .tags.quiet { opacity: 0; }
+html.js .layer { z-index: 3; opacity: var(--lo, 0); }
+html.js .layer.off { visibility: hidden; }
+html.js .beat:not(.ld) .frame, html.js .noframe .frame, html.js .noframe .tags { display: none; }
+html.js .static, html.js .tag-water { display: none; }
+html.js .livebox { display: block; z-index: 4; pointer-events: none; }
+html.js .drainbox { display: block; z-index: 3; }
+html.js .drainbox:not(.ld) { display: none; }
+html.js .drain { opacity: 0; transition: opacity .7s ease-in; }
+html.js.draining .drain { opacity: 1; }
+html.rm .drain { transition: none; }
+
+/* ---- top band: the title lockup with the book link (left), the Bootloader dock (right, alone) ---- */
+.top { position: relative; z-index: 10; }
+.lockup { position: fixed; left: 40px; top: 18px; z-index: 10; }
+.title { font-family: "Plimsoll"; font-size: 21px; line-height: 1; }
+.byline { font-size: 13px; line-height: 1.2; color: var(--dim); margin-top: 7px; }
+.booklink { display: inline-block; margin-top: 6px; font-size: 14px; line-height: 1.2; color: var(--cream);
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; padding: 4px 0; }
+.dock { position: fixed; right: 40px; top: 14px; z-index: 10; display: grid; grid-template-columns: auto 286px auto; align-items: center; column-gap: 14px;
+  transition: opacity .15s, visibility .15s; }
+.mark { font-family: "Plimsoll"; line-height: 1; }
+.dock .mark { font-size: 28px; color: var(--dim); }
+.dock .name, .bar .name { font-family: "Plimsoll"; font-size: 22px; line-height: 1; display: block; margin-bottom: 6px; }
+.dock .meta { display: block; font-size: 13px; line-height: 1.35; color: var(--cream); text-wrap: pretty; }
+.meta.dim { color: var(--dim); margin-top: 2px; }
+.btn { font-family: "B612"; font-weight: 700; font-size: 15px; height: 46px; padding: 0 18px; background: var(--cream); color: var(--ink);
+  border: 0; border-radius: 0; display: inline-flex; align-items: center; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.btn:focus-visible, a:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+.btn[disabled] { opacity: .7; cursor: progress; }
+.dock .btn, .bar .btn { background: transparent; color: var(--cream); outline: 1.5px solid var(--cream); outline-offset: -1.5px; }
+.dock .btn:focus-visible, .bar .btn:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+.dock .btn:hover, .bar .btn:hover { background: var(--cream); color: var(--ink); }
+/* one button per screen: while the offer or the form is in view the dock and the bar step aside */
+html.dock-off .dock, html.dock-off .bar { opacity: 0; visibility: hidden; }
+@media (max-width: 1199px) and (min-aspect-ratio: 3/4) { .dock { grid-template-columns: auto 230px auto; } }
+
+/* ---- on the water ---- */
+.audience { position: absolute; left: var(--L); width: 560px; font-family: "Ortica Linear"; font-weight: 700; font-size: 26px; line-height: 1.25; text-wrap: balance; }
+
+/* the instrument: the Bootloader's own first question, its readout, the band, what the question reveals */
+.instrument, .legend { position: absolute; left: 1036px; width: 330px; }
+.question { font-family: "Ortica Linear"; font-weight: 700; font-size: 18px; line-height: 1.3; }
+.asks { display: block; font-family: "B612"; font-weight: 400; font-size: 13px; color: var(--dim); margin-bottom: 3px; }
+.readout { display: grid; grid-template-columns: auto auto; column-gap: 26px; justify-content: start; margin-top: 10px; }
+.fig { font-family: "Plimsoll"; font-size: 48px; line-height: 0.9; font-variant-numeric: tabular-nums; display: block; color: var(--cream); }
+.unit { font-size: 13px; line-height: 1.3; color: var(--dim); display: block; margin-top: 6px; }
+.band { margin-top: 10px; font-size: 14px; font-weight: 700; line-height: 1.3; }
+.bandline { font-family: "Ortica Linear"; font-size: 15px; line-height: 1.3; color: var(--cream); text-wrap: pretty; }
+.sell { font-family: "Ortica Linear"; font-size: 15px; line-height: 1.35; color: var(--dim); margin-top: 10px; text-wrap: pretty; }
+.cue { font-size: 14px; line-height: 1.3; color: var(--cream); margin-top: 10px; }
+.instrument .qlabel { margin-top: 12px; }
+
+/* the live instrument (with JS): one element, counted and moved by the clock; it starts where the first screen has it */
+.instrument.live { top: max(calc(49.45% + 24px), calc(41.19% + 34px)); left: min(calc(96.08% - 356px), calc(100cqw - var(--bx) - 354px));
+  transition: opacity .25s; }
+.instrument.live:not(.hero) .sell, .instrument.live:not(.hero) .cue { display: none; }
+.instrument.live:not(.q3on) .q3 { display: none; }
+.legend.live { opacity: 0; transition: opacity .25s; }
+.legend.live .phase:not(.on) .cell, .legend.live .phase.on.nocell .cell { display: none; }
+.wtag { left: var(--L); top: 49.45%; transition: opacity .2s; }
+
+/* the cycle legend (beats 6-8) */
+.legend .llead { font-family: "Ortica Linear"; font-weight: 700; font-size: 18px; line-height: 1.3; margin-bottom: 10px; }
+.legend .lap { font-size: 13px; color: var(--dim); margin: -4px 0 10px; }
+.phase { display: grid; grid-template-columns: 64px 1fr; column-gap: 10px; color: var(--dim); margin-bottom: 6px; }
+.phase .pname { font-family: "Plimsoll"; font-size: 20px; line-height: 1.1; }
+.phase .pline { font-family: "Ortica Linear"; font-size: 16px; line-height: 1.35; }
+.phase.on { color: var(--cream); }
+.phase .cell { grid-column: 2; font-size: 13px; line-height: 1.35; margin-top: 3px; text-wrap: pretty; }
+
+/* anchored labels: B612, cream at 85 %, sentence case, 1 px rules, never boxed; each points at a thing in the render */
+.tag { position: absolute; font-size: 13px; line-height: 16px; color: rgba(238, 240, 236, 0.88); white-space: nowrap; margin-top: -8px; }
+.rule-h { display: inline-block; width: 36px; height: 1px; background: rgba(238, 240, 236, 0.85); vertical-align: middle; margin-right: 8px; }
+.rule-h.short { width: 14px; }
+.tag-tick .rule-h { margin: 0 0 0 8px; }
+.tag-water, .wtag { left: var(--L); font-size: 15px; font-weight: 700; color: var(--cream); }
+.tag-water .rule-h, .wtag .rule-h { width: 64px; }
+.tag-deck .rule-h { margin: 0 0 0 6px; width: 10px; }
+.tag-margin { margin-top: 0; border-top: 1px solid rgba(238, 240, 236, 0.85); border-bottom: 1px solid rgba(238, 240, 236, 0.85); width: 11px; }
+.tag-margin::before { content: ""; position: absolute; left: 5px; top: 0; bottom: 0; width: 1px; background: rgba(238, 240, 236, 0.85); }
+.tag-margin span { position: absolute; left: 19px; top: 50%; margin-top: -8px; }
+
+/* captions: left-aligned in the quiet lower-left corner, over water; no widows */
+.caption, .offer { position: absolute; left: var(--L); }
+.caption p { text-wrap: pretty; }
+.caption .big { font-family: "Ortica Angular"; font-size: 40px; line-height: 1.1; }
+.caption .mid { font-family: "Ortica Angular"; font-size: 32px; line-height: 1.12; }
+.caption .big1 { font-family: "Ortica Angular"; font-size: 54px; line-height: 1.05; }
+.caption .support { font-family: "Ortica Linear"; font-size: 22px; line-height: 1.3; margin-top: 14px; }
+.caption .eqred, .caption .eqgreen { font-family: "Plimsoll"; font-size: 46px; line-height: 1; white-space: nowrap; }
+.caption .eqred { color: var(--redline); }
+.caption .eqgreen { color: var(--oxygen); }
+
+/* the mid-story offer (beat 7 hold) */
+.offer { width: 720px; }
+.offer .big { font-family: "Ortica Angular"; font-size: 32px; line-height: 1.1; max-width: 640px; text-wrap: pretty; }
+.offerrow { display: grid; grid-template-columns: 340px 340px; column-gap: 28px; margin: 14px 0 14px; }
+.filehead { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.filehead .mark { font-size: 30px; }
+.filehead .fname { font-family: "Plimsoll"; font-size: 22px; line-height: 1; white-space: nowrap; }
+.what { font-size: 14px; line-height: 1.35; text-wrap: pretty; }
+.spec { font-size: 13px; line-height: 1.5; color: var(--dim); margin-top: 8px; text-wrap: pretty; }
+.qlabel { font-size: 13px; color: var(--dim); margin-bottom: 4px; }
+.q { font-family: "Ortica Linear"; font-weight: 700; font-size: 17px; line-height: 1.32; color: var(--cream); }
+.gloss { font-size: 12px; line-height: 1.3; color: var(--dim); margin: 0 0 2px; }
+
+/* ---- the finale (#get): one cluster on the dark plate under the words; a real form ---- */
+.finale { position: relative; min-height: 100svh; container-type: inline-size; overflow: hidden; background: var(--deep); padding-bottom: 40px; }
+html.js .finale { background: transparent; }
+html.js .finale > .fbox { display: none; }      /* the stage's last frame is the ground, still stuck behind it */
+.cluster { position: relative; margin-left: var(--L); width: 900px; max-width: calc(100% - 40px); }
+.cluster .lead p { font-family: "Ortica Angular"; font-size: 30px; line-height: 1.18; }
+.fgrid { display: grid; grid-template-columns: 340px 1fr; column-gap: 36px; margin-top: 18px; }
+.getback { font-family: "Ortica Linear"; font-weight: 700; font-size: 16px; line-height: 1.32; margin-bottom: 12px; max-width: 46ch; text-wrap: pretty; }
+.getback .qlabel { display: block; font-family: "B612"; font-weight: 400; }
+.form label { display: block; font-size: 13px; color: var(--dim); margin-bottom: 6px; }
+.formrow { display: flex; }
+.formrow input { width: 250px; height: 52px; border: 0; border-radius: 0; background: var(--cream); color: var(--ink); font: 16px "B612"; padding: 0 14px; }
+.formrow input:focus { box-shadow: inset 0 0 0 2px var(--ink); }
+.formrow input[aria-invalid="true"] { box-shadow: inset 0 0 0 2px var(--redline); }
+.formrow .btn { height: 52px; font-size: 16px; padding: 0 18px; border-left: 1px solid var(--ink); }
+.note { font-size: 13px; color: var(--dim); margin: 7px 0 10px; }
+.fmsg p { font-size: 14px; line-height: 1.3; margin: 7px 0 0; color: var(--cream); }
+.fmsg .msg-bad { color: var(--redline); }
+.next { font-family: "Ortica Linear"; font-size: 15px; line-height: 1.32; color: var(--cream); }
+.appendix { display: inline-block; margin-top: 8px; font-size: 13px; color: var(--dim); text-decoration: underline; text-underline-offset: 3px; padding: 12px 0; }
+.bookline { margin-top: 12px; font-size: 13px; color: var(--dim); }
+.booktitle { font-family: "Plimsoll"; font-size: 15px; color: var(--cream); margin-right: 6px; }
+
+/* ---- phone ---- */
+.bar { display: none; }
+@media (max-aspect-ratio: 3/4) {
+  .lockup { position: fixed; left: 0; right: 0; top: 0; height: 52px; padding: 10px 16px 0; background: rgba(13, 17, 18, 0.94);
+    border-bottom: 1px solid var(--rule); z-index: 12; }
+  .title { font-size: 20px; }
+  .byline { font-size: 12px; margin-top: 5px; }
+  .booklink { position: fixed; right: 16px; top: 4px; font-size: 13px; margin-top: 0; padding: 14px 0; z-index: 13; }
+  .dock { display: none; }
+  .audience { width: 350px; max-width: calc(100cqw - 40px); font-size: 19px; line-height: 1.3; }
+  html.js .pcue { display: block; font-family: "B612"; font-weight: 400; font-size: 13px; line-height: 1.3; margin-top: 8px; }
+  .tag-water, .wtag { font-size: 14px; }
+  .tag-water .rule-h, .wtag .rule-h { width: 28px; }
+  .tag-tick, .tag-deck, .tag-margin, .tag-scar, .tag-mark { display: none; }
+  .instrument, .static { width: 350px; max-width: calc(100cqw - 40px); }
+  .instrument { left: 20px !important; }
+  .question { font-size: 15px; }
+  .asks { font-size: 12px; }
+  .readout { column-gap: 22px; margin-top: 6px; }
+  .fig { font-size: 34px; }
+  .unit { font-size: 12px; margin-top: 4px; }
+  .band { margin-top: 6px; font-size: 13px; }
+  .bandline { font-size: 14px; }
+  .sell, .instrument .cue { display: none; }
+  html:not(.js) .instrument .cue { display: block; font-size: 13px; margin-top: 8px; }
+  .instrument.live { top: calc(54.82% + 22px); }
+  .instrument.live.tight .bandline { display: none; }
+  .caption { width: 350px !important; max-width: calc(100cqw - 40px); }
+  .caption .big { font-size: 26px; }
+  .caption .mid { font-size: 22px; }
+  .caption .big1 { font-size: 34px; }
+  .caption .support { font-size: 17px; }
+  .caption .eqred, .caption .eqgreen { font-size: 21px; }
+  .offer { width: 350px; max-width: calc(100cqw - 40px); }
+  .offer .big { font-size: 24px; }
+  .offerrow { grid-template-columns: 1fr; row-gap: 12px; margin: 10px 0 12px; }
+  html.js .offer.short .spec { display: none; }
+  .cluster { width: 350px; }
+  .cluster .lead p { font-size: 21px; }
+  .fgrid { grid-template-columns: 1fr; row-gap: 10px; margin-top: 12px; }
+  .fspec .spec { display: none; }
+  .formrow { flex-direction: column; row-gap: 0; }
+  .formrow input { width: 100%; }
+  .formrow .btn { justify-content: center; border-left: 0; border-top: 1px solid var(--ink); }
+  .next { display: none; }
+  .finale { padding-bottom: 24px; }
+  .bar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 12;
+    height: calc(76px + env(safe-area-inset-bottom)); padding: 0 14px env(safe-area-inset-bottom); background: rgba(13, 17, 18, 0.94); border-top: 1px solid var(--rule);
+    transition: opacity .15s, visibility .15s; }
+  .bar .mark { font-size: 22px; color: var(--dim); }
+  .bar .name { font-size: 18px; margin-bottom: 4px; }
+  .bar .meta { display: block; font-size: 12px; line-height: 1.3; color: var(--cream); }
+  .bar .meta.dim { color: var(--dim); }
+  .bar .btn { height: 46px; padding: 0 14px; }
+  /* once scrolling starts the readout docks into one line on dark water just above the bar */
+  .instrument.live.docked { width: auto; max-width: none; display: flex; align-items: baseline; column-gap: 10px; }
+  .instrument.live.docked .question, .instrument.live.docked .bandline, .instrument.live.docked .q3 { display: none; }
+  .instrument.live.docked .readout { display: flex; column-gap: 10px; margin: 0; }
+  .instrument.live.docked .readout > span { display: flex; align-items: baseline; column-gap: 4px; }
+  .instrument.live.docked .fig { font-size: 15px; line-height: 1.2; }
+  .instrument.live.docked .unit { font-size: 12px; margin: 0; }
+  .instrument.live.docked .band { margin: 0; font-size: 12px; }
+  .legend.live { display: none; }
+  /* no JS: each plate is the whole phone frame tall, so the reviewed phone layout fits as it was shot at 390 x 844 */
+  html:not(.js) .beat { height: max(100svh, var(--bh)); }
+  html:not(.js) .beat, html:not(.js) .finale { --by: 0px; }
+  html:not(.js) .finale { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }   /* the bar stays without JS */
+}
