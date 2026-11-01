@@ -2,40 +2,71 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Waterline Render</title>
 <style>
-:root { --bg:#0E1215; --ink:#E9ECEC; --mute:#9AA4A8; --rule:rgb(233 236 236 / .14); }
+:root { --bg:#0E1316; --ink:#E6EBEC; --mute:#97A3A8; --rule:#26313A; --sea:#5FB3B8; color-scheme:dark; }
 * { box-sizing:border-box; }
 html, body { margin:0; background:var(--bg); color:var(--ink); }
 body { font:16px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
-.wrap { max-width:1240px; margin:0 auto; padding:32px 16px 72px; }
-h1 { font:700 clamp(24px, 3.4vw, 38px)/1.1 Georgia, serif; margin:0 0 8px; }
-p { color:var(--mute); margin:0 0 8px; max-width:760px; }
-section { border-top:1px solid var(--rule); padding:28px 0; margin-top:24px; }
-h2 { font:600 19px/1.3 ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; margin:0 0 6px; }
-video { display:block; width:100%; height:auto; background:#000; border-radius:6px; margin-top:14px; }
-.phone video { max-width:390px; }
+.story { position:relative; }
+.stage { position:sticky; top:0; height:100vh; height:100svh; overflow:hidden; background:#000; }
+.stage img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; will-change:opacity; }
+.stage img:first-child { opacity:1; }
+.hint { position:absolute; left:50%; bottom:max(14px, env(safe-area-inset-bottom, 0px)); transform:translateX(-50%); font-size:13px; color:var(--ink); background:rgb(0 0 0 / .55); padding:6px 12px; border-radius:4px; transition:opacity .4s; pointer-events:none; }
+.count { position:absolute; right:max(12px, env(safe-area-inset-right, 0px)); top:max(10px, env(safe-area-inset-top, 0px)); font:12px/1 ui-monospace, Menlo, monospace; color:var(--mute); background:rgb(0 0 0 / .45); padding:5px 7px; border-radius:3px; }
+.after { max-width:1180px; margin:0 auto; padding:40px max(16px, env(safe-area-inset-right, 0px)) 72px max(16px, env(safe-area-inset-left, 0px)); display:flex; flex-direction:column; gap:18px; }
+h2 { font:700 22px/1.2 Georgia, serif; margin:0; }
+p { color:var(--mute); margin:0; max-width:66ch; }
 a { color:var(--ink); }
+.after img { width:100%; height:auto; display:block; border-radius:4px; }
+ul { margin:0; padding-left:20px; color:var(--mute); }
 </style>
 </head>
 <body>
-<main class="wrap">
-  <h1>Waterline, rendered in Blender</h1>
-  <p>Round 2: the sentence in steel letters on a ship's side, clear water, daylight. These are the rendered key frames crossfaded in scroll order; the smooth scroll animation is not rendered yet.</p>
-  <section>
-    <h2>1. The page on desktop, scrolled top to bottom</h2>
-    <video src="desktop.mp4" poster="desktop-poster.jpg" controls autoplay muted loop playsinline preload="auto"></video>
-  </section>
-  <section class="phone">
-    <h2>2. The page on phone</h2>
-    <video src="phone.mp4" poster="phone-poster.jpg" controls muted loop playsinline preload="metadata"></video>
-  </section>
-  <section>
-    <h2>3. Only the renders, no text</h2>
-    <video src="renders.mp4" poster="renders-poster.jpg" controls muted loop playsinline preload="metadata"></video>
-  </section>
+<div class="story" id="story">
+  <div class="stage" id="stage">
+    <img src="d/00.jpg" alt="Waterline, first screen">
+    <div class="count" id="count"></div>
+    <div class="hint" id="hint">Scroll</div>
+  </div>
+</div>
+<section class="after">
+  <h2>Every rendered frame, no text</h2>
+  <p>The Blender renders in scroll order: hiring, the water reaching the sentence at 13, under water, Redline, the turn, then Up, Side and Down draining it, and the Bootloader.</p>
+  <img src="renders-sheet.jpg" alt="All rendered frames in scroll order">
+  <p>Videos of the same thing (these play on a computer): <a href="desktop.mp4">desktop</a>, <a href="phone.mp4">phone</a>, <a href="renders.mp4">renders only</a>.</p>
   <p><a href="/">The earlier four options</a></p>
-</main>
+</section>
+<script>
+(function () {
+  var phone = window.matchMedia('(max-aspect-ratio: 4/5)').matches;
+  var dir = phone ? 'p/' : 'd/', n = phone ? 9 : 14;
+  var story = document.getElementById('story'), stage = document.getElementById('stage');
+  var hint = document.getElementById('hint'), count = document.getElementById('count');
+  var first = stage.querySelector('img'); first.src = dir + '00.jpg';
+  var imgs = [first];
+  for (var i = 1; i < n; i++) {
+    var im = new Image(); im.alt = ''; im.decoding = 'async';
+    im.src = dir + (i < 10 ? '0' : '') + i + '.jpg';
+    stage.insertBefore(im, count); imgs.push(im);
+  }
+  story.style.height = (n * 85 + 15) + 'vh';
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function update() {
+    var r = story.getBoundingClientRect();
+    var span = story.offsetHeight - window.innerHeight;
+    var p = Math.min(1, Math.max(0, -r.top / span));
+    var f = p * (n - 1), k = Math.floor(f), t = f - k;
+    t = reduce ? (t < .5 ? 0 : 1) : Math.min(1, Math.max(0, (t - .3) / .4));
+    for (var j = 0; j < n; j++) imgs[j].style.opacity = j <= k ? 1 : (j === k + 1 ? t : 0);
+    count.textContent = (Math.min(n, k + (t > .5 ? 2 : 1))) + ' / ' + n;
+    hint.style.opacity = p > .02 ? 0 : 1;
+  }
+  window.addEventListener('scroll', function () { requestAnimationFrame(update); }, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+})();
+</script>
 </body>
 </html>
