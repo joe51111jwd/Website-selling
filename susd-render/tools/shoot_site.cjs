@@ -40,8 +40,9 @@ async function goS(page, s) {
   await settle(page);
 }
 
-// everything a visitor can read on this screen, with its box; and the rendered sentence's box
-const PROBE = () => {
+// everything a visitor can read on this screen, with its box; and the rendered sentence's box. `plate`: no-JS mode,
+// the id of the plate scrolled to the top of the viewport (its frame is the one on screen)
+const PROBE = (plate) => {
   const W = innerWidth, H = innerHeight;
   const vis = (el) => {
     let o = 1;
@@ -64,26 +65,39 @@ const PROBE = () => {
     const name = q + (el.closest('.beat') ? '#' + el.closest('.beat').id : '') + (el.classList.contains('tag') ? '.' + [...el.classList].slice(1).join('.') : '');
     boxes.push({ q: name, r: { left: r.left, right: r.right, top: r.top, bottom: r.bottom }, o: +o.toFixed(2) });
   }
-  // the frame on screen: the beat with the largest --fo; its anchors give the sentence's box
+  // the frame on screen: the beat with the largest --fo (no JS: the plate given); its anchors give the sentence's box
   let best = null, bo = -1;
   for (const b of document.querySelectorAll('.beat')) {
+    if (plate && b.id !== plate) continue;
     const fo = document.documentElement.classList.contains('js') ? (+getComputedStyle(b).getPropertyValue('--fo') || 0) : 1;
     if (fo > bo && b.querySelector('.frame')) { bo = fo; best = b; }
   }
   let words = null;
-  if (best && document.documentElement.classList.contains('js')) {
-    const a = JSON.parse(best.dataset.a);
-    const phone = matchMedia('(max-aspect-ratio: 3/4)').matches;
+  if (best) {
     const fb = best.querySelector('.fbox').getBoundingClientRect();
-    const st = document.querySelector('.stage').getBoundingClientRect();
-    const wk = phone ? (a.p && a.p.wb) : a.wb;
-    const ww = JSON.parse(best.dataset.words || 'null');
-    words = { id: best.id, wb: wk, fb: { left: fb.left, top: fb.top, w: fb.width, h: fb.height }, stTop: st.top };
+    words = { id: best.id, fb: { left: fb.left, top: fb.top, w: fb.width, h: fb.height } };
+  }
+  // the lines of words actually drawn (a Range per element: its line boxes, not the element's block box)
+  const lines = [];
+  const tsel = ['.audience', '.caption', '.offer', '.instrument.live', '.legend.live', '.wtag', '.tags .tag', '.cluster .lead', '.getback',
+    '.fspec', '.bookline', 'html:not(.js) .static'];
+  for (const q of tsel) for (const el of document.querySelectorAll(q)) {
+    if (vis(el) < 0.3) continue;
+    // text nodes only: a Range over an element also returns its child elements' whole block boxes
+    const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let t = tw.nextNode(); t; t = tw.nextNode()) {
+      if (!t.textContent.trim() || vis(t.parentElement) < 0.3) continue;
+      const rg = document.createRange(); rg.selectNodeContents(t);
+      for (const r of rg.getClientRects()) {
+        if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > H) continue;
+        lines.push({ q: q + (el.closest('.beat') ? '#' + el.closest('.beat').id : ''), t: t.textContent.trim().slice(0, 24), r: { left: r.left, right: r.right, top: r.top, bottom: r.bottom } });
+      }
+    }
   }
   const dock = document.querySelector(matchMedia('(max-aspect-ratio: 3/4)').matches ? '.bar .btn' : '.dock .btn');
   const dr = dock.getBoundingClientRect();
   const dockOn = vis(dock) > 0.5 && dr.width >= 44 && dr.height >= 44 && dr.top >= 0 && dr.bottom <= H;
-  return { boxes, words, dockOn, dockBox: [Math.round(dr.width), Math.round(dr.height)], overflow: document.documentElement.scrollWidth - innerWidth,
+  return { boxes, lines, words, dockOn, dockBox: [Math.round(dr.width), Math.round(dr.height)], overflow: document.documentElement.scrollWidth - innerWidth,
     s: window.SUSD ? +window.SUSD.clock().toFixed(1) : null, frame: best && best.id };
 };
 // the rendered sentence's box per frame, from the anchors (words[0..3] of the frame on screen)
@@ -100,10 +114,27 @@ function check(name, pr, phone) {
   }
   if (pr.words) {
     const id = pr.words.id, w = WORDS[id] && WORDS[id][phone ? 'p' : 'd'];
+    const f = pr.words.fb;
     if (w) {
-      const f = pr.words.fb;
       const wr = { left: f.left + w[0] * f.w, right: f.left + w[2] * f.w, top: f.top + w[1] * f.h, bottom: f.top + w[3] * f.h };
       for (const b of B) if (!b.q.startsWith('.bar') && !b.q.startsWith('.lockup') && hit(b.r, wr, 4)) out.push(b.q + ' x rendered sentence');
+    }
+    // the rendered load-line mark (circle and its "12") and the draught marks down the frame's right edge
+    const m = WORDS[id] && WORDS[id][phone ? 'pm' : 'dm'];
+    if (m) {
+      // extents measured on the stills: the circle, its bar and the "12" (d01: 0.050 W, -0.022/+0.021 H; p07: 0.094 W,
+      // -0.013/+0.010 H); a mark under the water seen from above it is lost in the reflections and does not count
+      const [gx, mx, my, wy, under] = m, mw = phone ? 0.094 : 0.05, up = phone ? 0.013 : 0.022, dn = phone ? 0.010 : 0.021;
+      const zones = [['rendered draught marks', { left: f.left + gx * f.w - 3, right: f.left + f.w, top: f.top + (my - 0.02) * f.h, bottom: f.top + f.h }]];
+      // (from above the water, what lies under the waterline is the mark's reflection, not the mark)
+      const mb = under ? my + dn : Math.min(my + dn, wy + 0.004);
+      if (under || my <= wy + 0.01) zones.push(['rendered load-line mark', { left: f.left + mx * f.w - 3, right: f.left + (mx + mw) * f.w, top: f.top + (my - up) * f.h, bottom: f.top + mb * f.h }]);
+      const seen = new Set();
+      for (const l of pr.lines) for (const [zn, z] of zones) {
+        if (z.left >= z.right || !hit(l.r, z, -2)) continue;       // -2: glyph boxes carry side bearings and line gap
+        const k = l.q + ' "' + l.t + '" x ' + zn;
+        if (!seen.has(k)) { seen.add(k); out.push(k); }
+      }
     }
   }
   return out;
@@ -187,7 +218,7 @@ function check(name, pr, phone) {
   }
 
   // other desktop sizes: the words and the HTML stay aligned, nothing overlaps or runs off
-  for (const [w, h] of [[1280, 720], [1920, 1080], [1440, 789]]) {
+  for (const [w, h] of [[1280, 720], [1920, 1080], [1440, 789], [1180, 820]]) {
     const lay = `desktop${w}x${h}`;
     const { ctx, page } = await mk({ viewport: { width: w, height: h } }, lay);
     await page.goto(BASE, { waitUntil: 'load' });
@@ -223,24 +254,32 @@ function check(name, pr, phone) {
     await page.screenshot({ path: path.join(OUT, 'rm-desktop-s150.png') });
     await ctx.close();
   }
-  // no JavaScript: the beats as plates, top to bottom
-  for (const [lay, opts] of [['nojs-desktop', { viewport: { width: 1440, height: 900 } }], ['nojs-phone', { ...devices['iPhone 13'] }]]) {
+  // no JavaScript: the beats as plates, top to bottom. Every plate is scrolled to the top, shot and checked like a
+  // beat (the phone viewport is the iPhone 13 screen, 390 x 844, so the whole 390 x 845 plate is on screen)
+  for (const [lay, opts, phone] of [['nojs-desktop', { viewport: { width: 1440, height: 900 } }, false],
+    ['nojs-phone', { ...devices['iPhone 13'], viewport: { width: 390, height: 844 } }, true]]) {
     const { ctx, page } = await mk({ ...opts, javaScriptEnabled: false }, lay);
     await page.goto(BASE, { waitUntil: 'load' });
     const plates = await page.evaluate(() => [...document.querySelectorAll('.beat')].filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.id));
     const ov = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     if (ov > 0) problems.push(lay + ': horizontal scroll');
-    report[lay] = { plates: plates.length, height: await page.evaluate(() => document.documentElement.scrollHeight) };
-    // three plates and the finale, scrolled to
-    for (const id of ['b-hero', 'b-redline', 'b-offer']) {
-      await page.evaluate((id) => document.getElementById(id).scrollIntoView(), id);
+    report[lay] = { plates: plates.length, height: await page.evaluate(() => document.documentElement.scrollHeight), overlaps: {} };
+    let k = 0;
+    for (const id of plates.concat(['get'])) {
+      k++;
+      await page.evaluate((id) => { const el = document.getElementById(id); window.scrollTo(0, el.getBoundingClientRect().top + scrollY); }, id === 'get' ? 'get' : id);
       await page.evaluate(() => Promise.all([...document.images].filter((i) => i.getBoundingClientRect().top < innerHeight && i.getBoundingClientRect().bottom > 0).map((i) => i.complete ? 1 : new Promise((r) => { i.onload = i.onerror = r; }))));
-      await page.waitForTimeout(250);
-      await page.screenshot({ path: path.join(OUT, `${lay}-${id}.png`) });
+      await page.waitForTimeout(150);
+      await page.screenshot({ path: path.join(OUT, `${lay}-${String(k).padStart(2, '0')}-${id.replace('b-', '')}.png`) });
+      if (id === 'get') continue;
+      const pr = await page.evaluate(PROBE, id);
+      // the fixed chrome sits over a scrolling page here: only words inside this plate are held to the rules
+      pr.boxes = pr.boxes.filter((b) => b.q.includes('#' + id));
+      pr.lines = pr.lines.filter((b) => b.q.includes('#' + id));
+      const o = check(id, pr, phone);
+      report[lay].overlaps[id] = o.length;
+      o.forEach((x) => problems.push(`${lay} ${id}: overlap ${x}`));
     }
-    await page.evaluate(() => document.getElementById('get').scrollIntoView());
-    await page.waitForTimeout(400);
-    await page.screenshot({ path: path.join(OUT, `${lay}-get.png`) });
     await ctx.close();
   }
   await browser.close();

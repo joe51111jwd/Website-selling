@@ -31,6 +31,7 @@
   var frames = secs.filter(function (s) { return s.fs !== null; });
   var layers = secs.filter(function (s) { return s.layer && (s.cin !== null || s.cout !== null); });
   var offerSec = secs.filter(function (s) { return s.el.classList.contains('offerbeat'); })[0];
+  var finFrame = frames[frames.length - 1];                  // b-fin: the ground under the form (#get)
 
   // ---- geometry ---------------------------------------------------------------------------------------------
   var G = { unit: 1, top: 0, W: 0, H: 0, phone: false, bx: 0, by: 0, bw: 0, bh: 0 };
@@ -81,6 +82,12 @@
       if (t === 1) { A = B; B = null; t = 0; } else if (t === 0) B = null;
     }
     if (B && !B.loaded) { want(B); B = null; t = 0; }
+    if (!A.loaded && A === finFrame) {
+      // the form's ground: a stand-in frame would put its sentence under the finale's words (QA round 1: "Get it
+      // free" on a fresh load printed "In an open system..." over the first frame). Dark water until it arrives.
+      want(A);
+      return { A: A, B: null, t: 0, blank: true };
+    }
     if (!A.loaded) {
       want(A);
       var i = frames.indexOf(A), alt = null;
@@ -94,7 +101,7 @@
   // ---- frames: crossfading stills now; a canvas sequence later (same A, B, t) ------------------------------
   function drawFrames(fst) {
     frames.forEach(function (f) {
-      var o = f === fst.A ? 1 : f === fst.B ? fst.t : 0;
+      var o = fst.blank ? 0 : f === fst.A ? 1 : f === fst.B ? fst.t : 0;
       if (o !== f.fo) { f.fo = o; f.el.style.setProperty('--fo', o.toFixed(3)); }
     });
   }
@@ -123,7 +130,8 @@
   // after the first screen has painted (window load waits for its frame and fonts), never before
   function start() {
     if (started) return;
-    requestAnimationFrame(function () { requestAnimationFrame(function () { started = true; pump(); }); });
+    // the finale's frame goes first: every "Get it free" lands on it, from any screen (QA round 1)
+    requestAnimationFrame(function () { requestAnimationFrame(function () { started = true; if (finFrame) want(finFrame); pump(); }); });
   }
   if (d.readyState === 'complete') start(); else window.addEventListener('load', start);
 
@@ -139,6 +147,8 @@
         if (el.classList.contains('offer')) safe = G.H - 16;          // the bar steps aside for the offer
         var minTop = G.by + (a.wb || 0) * G.bh + 12;
         var r = el.getBoundingClientRect(), top = r.top - G.sr.top, h = r.height;
+        // ... nor onto the rendered load-line mark (phone anchors carry it when it shows); below it is fine
+        if (a.m && r.right - G.sr.left > G.bx + a.m[0] * G.bw && top + h > G.by + a.m[1] * G.bh) minTop = Math.max(minTop, G.by + (a.m[1] + 0.012) * G.bh + 8);
         if (top + h > safe && G.phone && el.classList.contains('offer')) {
           el.classList.add('short'); r = el.getBoundingClientRect(); top = r.top - G.sr.top; h = r.height;
         }
@@ -150,13 +160,29 @@
         L.boxes.push({ top: top - dy, bottom: top - dy + h * k, left: r.left - G.sr.left, right: r.left - G.sr.left + r.width * k });
       });
     });
+    // phone, first screen: the audience line and its scroll cue sit between the sentence and the water tag. A short
+    // phone (iPhone SE, 360 x 640) has less room there and the cue ran onto "complexity: 28 pathways": the type steps
+    // down (17 -> 15 px) until it clears the tag; if it still cannot, the box below makes the tag step aside instead.
+    var hs = secs[0], aud = hs.layer && hs.layer.querySelector('.audience');
+    if (aud) {
+      aud.style.fontSize = '';
+      if (G.phone) {
+        var wl = G.by + (anc(hs).wy || 0) * G.bh - 8 - 10;          // the tag's top (it sits 8 px over the line), less 10
+        for (var fz = 16; fz >= 15 && aud.getBoundingClientRect().bottom - G.sr.top > wl; fz--) aud.style.fontSize = fz + 'px';
+      }
+      var ar = aud.getBoundingClientRect();
+      if (hs.boxes && ar.height) hs.boxes.push({ top: ar.top - G.sr.top, bottom: ar.bottom - G.sr.top, left: ar.left - G.sr.left, right: ar.right - G.sr.left });
+    }
     frames.forEach(function (f) {
       f.tagBoxes = [];
       if (!f.tags) return;
       [].forEach.call(f.tags.querySelectorAll('.tag'), function (el) {
+        el.style.visibility = '';
         if (getComputedStyle(el).display === 'none') return;
         var t = el.classList.contains('tag-margin') ? el.querySelector('span') : el;
         var r = t.getBoundingClientRect();
+        // a viewport narrower than 16:10 crops the frame's right side: a label the screen would cut is left out
+        if (r.right > G.sr.right - 4 || r.left < G.sr.left + 4) { el.style.visibility = 'hidden'; return; }
         f.tagBoxes.push({ top: r.top - G.sr.top, bottom: r.bottom - G.sr.top, left: r.left - G.sr.left, right: r.right - G.sr.left });
       });
     });
@@ -327,7 +353,10 @@
   [].forEach.call(d.querySelectorAll('a[href="#get"]'), function (a) {
     a.addEventListener('click', function (e) {
       e.preventDefault();
+      html.classList.add('jump'); setDockOff('form', true);     // land clean: no fades from the screen left behind
+      setTimeout(function () { html.classList.remove('jump'); }, 400);
       window.scrollTo(0, get.getBoundingClientRect().top + (window.scrollY || window.pageYOffset));
+      render();
       if (history.replaceState) history.replaceState(null, '', '#get');
       // keyboard and mouse: focus the field. Touch: no, the keyboard would cover what the file is before it is read.
       if (window.matchMedia('(pointer: fine)').matches) email.focus({ preventScroll: true });
@@ -343,6 +372,8 @@
       var v = email.value.trim();
       if (!v || !email.checkValidity()) {
         bad.hidden = false; go.hidden = true; email.setAttribute('aria-invalid', 'true'); email.focus();
+        // on a short phone the message lands under the button, below the fold: bring it up
+        requestAnimationFrame(function () { var r = bad.getBoundingClientRect(); if (r.bottom > window.innerHeight - 8) window.scrollBy(0, r.bottom - window.innerHeight + 16); });
         return;
       }
       bad.hidden = true; email.removeAttribute('aria-invalid'); go.hidden = false; btn.disabled = true;

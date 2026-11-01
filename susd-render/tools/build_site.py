@@ -13,7 +13,7 @@ marks and Michael's source refs are the ones that already passed copycheck and r
 No build step is needed to serve the site: this writes plain HTML next to hand-written CSS and JS.
 See docs/08-SITE-BUILD.md.
 """
-import json, os, sys
+import json, os, re, sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.join(ROOT, 'mock'))
 import build_pages as bp  # noqa: E402
@@ -94,6 +94,11 @@ def section_data(pg, an, pan, own_phone):
         pwy = max(pan.get('waterY', 0.58), pan['words'][3] + 0.02)
         a['p'] = {'wy': pan.get('waterY'), 'wb': pan['words'][3], 'it': [[round(pwy, 4), 22]],
                   'cx': a['cx'] if own_phone else 0}
+        # the rendered load-line mark, when it shows (above the water, or seen from under it): a caption that has to
+        # move up to clear the bar stops under it (stage.js fitLayers)
+        m = pan.get('mark12Left')
+        if m and m[0] < 1 and (pan.get('cam') == 'UNDER' or m[1] <= pan.get('waterY', 1) + 0.01):
+            a['p']['m'] = [m[0], m[1]]
     return a
 
 
@@ -125,8 +130,22 @@ def section_css(sid, pg, an, pan, own_phone):
                       f'font-size: 17px; }}')
         if not own_phone or pg.get('offer'):
             ph.append(f'{sel} .tag {{ display: none; }}')      # the held phone frame is not this beat's water
+        # the rendered draught marks stand at the right edge of the phone frames from Down on (p07-p09): the words
+        # stop 14 px short of them; the load-line mark sits in the offer's file lines on p07, so those stop short of it
+        pgx = pan.get('gaugeX', 1.1)
+        if pgx < 1:
+            ph.append(f'{sel} .caption, {sel} .offer {{ max-width: min(calc(100cqw - 40px), calc({pct(pgx)} - 34px)); }}')
+        if pg.get('offer') and pan.get('mark12Left'):
+            ph.append(f'{sel} .offer .what, {sel} .offer .filehead {{ max-width: calc({pct(pan["mark12Left"][0])} - 34px); }}')
         css.append('@media (max-aspect-ratio: 3/4) { ' + ' '.join(ph) + ' }')
     return css
+
+
+def margin_bracket(t):
+    """The margin bracket ends 12 px above the water: its foot would otherwise sit on the "complexity" label."""
+    if 'tag-margin' not in t:
+        return t
+    return re.sub(r'height:([\d.]+)%', r'height:calc(\1% - 12px)', t)
 
 
 def section_html(i, sid, name, fs, cut, cin, cout, phone):
@@ -166,7 +185,7 @@ def section_html(i, sid, name, fs, cut, cin, cout, phone):
     tags = bp.tags(pg, an)
     if tags:
         out.append('    <div class="tags">')
-        out += ['      ' + t for t in tags]
+        out += ['      ' + margin_bracket(t) for t in tags]
         out.append('    </div>')
     layer = []
     if pg.get('hero'):
@@ -261,8 +280,13 @@ def finale_html():
            '  </div>']
     out += ['  ' + x for x in fixed]
     out.append('</section>')
+    # the cluster stops 20 px short of the rendered load-line mark (at 1280 wide the get-back line ran onto it);
+    # on the phone the get-back line stops short of the draught marks at the frame's right edge
+    m12 = an['mark12Left'][0]
     css = [f'.finale .cluster {{ padding-top: calc(var(--by) + {below:.4f} * var(--bh) + 34px); }}',
-           f'@media (max-aspect-ratio: 3/4) {{ .finale .cluster {{ padding-top: calc(var(--by) + {pbelow:.4f} * var(--bh) + 24px); }} }}']
+           f'@media not all and (max-aspect-ratio: 3/4) {{ .finale .cluster {{ width: min(900px, calc(var(--bx) + {m12:.4f} * var(--bw) - var(--L) - 20px)); }} }}',
+           f'@media (max-aspect-ratio: 3/4) {{ .finale .cluster {{ padding-top: calc(var(--by) + {pbelow:.4f} * var(--bh) + 20px); }} '
+           f'.finale .getback {{ max-width: calc({pan["gaugeX"]:.4f} * var(--bw) - 34px); }} }}']
     return out, css
 
 
@@ -327,11 +351,17 @@ def main():
     html = '\n'.join(out) + '\n'
     html = html.replace('class="mark" aria-hidden="true">&#x29B5;</span>\n    <span class="dtext">', 'class="mark" aria-hidden="true">&#x29B5;</span>\n    <span class="dtext">')
     open(os.path.join(SITE, 'index.html'), 'w').write(html)
-    # the rendered sentence's box per section, for tools/shoot_site.cjs (nothing may sit on it)
+    # the rendered sentence's box per section, for tools/shoot_site.cjs (nothing may sit on it), and the rendered
+    # load-line mark and draught marks (no words may sit on them either):
+    # [gaugeX, mark12Left x, mark12 y, waterY, 1 if the camera is under the water]
+    def marks(a):
+        return [a.get('gaugeX', 1.1), (a.get('mark12Left') or [1.1, 0])[0], (a.get('mark12Left') or [0, -1])[1],
+                a.get('waterY', 1), 1 if a.get('cam') == 'UNDER' else 0]
     words = {}
     for sid, name, fs, cut, cin, cout, phone in SECTIONS:
         pg = page_of(name)
-        words['b-' + sid] = {'d': bp.anchors(pg['still']).get('words'), 'p': bp.anchors(phone).get('words')}
+        da, pa = bp.anchors(pg['still']), bp.anchors(phone)
+        words['b-' + sid] = {'d': da.get('words'), 'p': pa.get('words'), 'dm': marks(da), 'pm': marks(pa)}
     os.makedirs(os.path.join(ROOT, 'out', 'site-shots'), exist_ok=True)
     json.dump(words, open(os.path.join(ROOT, 'out', 'site-shots', '.words.json'), 'w'))
     print('wrote site/index.html', len(html), 'bytes,', len(SECTIONS), 'sections')
