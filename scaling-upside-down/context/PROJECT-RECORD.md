@@ -7,26 +7,31 @@ James go in `context/client-log.md`; when state changes, update this file too.
 ## Where things stand
 
 The site for Michael Wentz’s book *Scaling Up-Side-Down* is live at
-https://scaling-up-side-down.vercel.app and already includes his first
-round of feedback. The last release went out on Tue 27 Oct 2026.
+https://scaling-up-side-down.vercel.app. It includes both rounds of his
+feedback: the 27 Oct round (sign-up, /appendix) and the 30 Oct round (the
+book first, one sign-up, the file by email only). The last release went
+out on Sat 31 Oct 2026.
 
 | What                                        | Where                                                                                               |
 |---------------------------------------------|-----------------------------------------------------------------------------------------------------|
 | Live site                                   | https://scaling-up-side-down.vercel.app                                                             |
 | The Appendix (the Bootloader as a web page) | https://scaling-up-side-down.vercel.app/appendix                                                    |
-| The Bootloader file                         | https://scaling-up-side-down.vercel.app/bootloader.md (V16, 35,445 words, 284 KB)                   |
+| The Bootloader file                         | V16, 35,445 words, 284 KB: by email only, with the first-edition list (not served since 31 Oct)     |
 | Hosting                                     | Vercel project “scaling-up-side-down”                                                               |
 | Code                                        | GitHub joe51111jwd/Website-selling, branch claude/beautiful-cori-a7cq5v, folder scaling-upside-down |
 
-Waiting on Michael: his email platform (Kit, Mailchimp or other), the
-book’s pre-order link, and pointing scalingupsidedown.com at the site
-(the book already prints scalingupsidedown.com/appendix).
+Waiting on Michael: his email platform (Kit, Mailchimp or other; until
+then the sign-up says the list opens soon), the final cover file, what
+the first-edition list promises, the book’s pre-order link, and pointing
+scalingupsidedown.com at the site (the book already prints
+scalingupsidedown.com/appendix).
 
 ## Michael’s messages
 
-Michael has sent two things: the discovery call on Tue 21 Oct (recorded
-in Granola) and his written feedback on Tue 27 Oct. No email from him
-turned up in this Gmail.
+Michael has sent three things: the discovery call on Tue 21 Oct
+(recorded in Granola), his written feedback on Tue 27 Oct, and a second
+email on Fri 30 Oct (5:27 PM ET), which James forwarded on Sat 31 Oct.
+No email from him turned up in the connected Gmail.
 
 ## 1. Discovery call, Tue 21 Oct 2026, 2:51 PM ET (Granola notes)
 
@@ -187,7 +192,83 @@ Appendix page (“an example not necessarily direction”).
 >
 > Really great first pass! Let me know how you want to take next steps.
 
-## How each of Michael’s points has been answered
+## 3. Second email, Fri 30 Oct 2026, 5:27 PM ET (forwarded by James, Sat 31 Oct, 7:41 PM ET)
+
+> Hey James!
+>
+> First off, thanks for jumping on the initial feedback so quickly! I've spent a little more time looking at the site and thinking about where we should go next.
+>
+> I really like the direction you've taken with the blocks and animations. I think the visual storytelling is one of the strongest parts of what you've created, and I definitely want to keep that.
+>
+> My biggest concern right now is that the book itself feels a little hidden. The site almost feels like it's promoting an AI tool with a book attached, when it should really be the other way around.
+>
+> A few thoughts for the next iteration:
+>
+> 1. Make the book the main focus.
+>
+> When someone lands on the site, I want them to immediately understand that Scaling Up-Side-Down is a book, who it's written for, and why they might want to read it.
+>
+> I think the blocks and animations already help tell the story, but we need to connect that experience more directly to the book.
+>
+> I'd also like to see the actual book cover featured more prominently, especially near the beginning. The blocks are already doing a great job of telling the story, and connecting those visuals to the physical book could be really powerful.
+>
+> I'm open to your ideas on how best to accomplish this without losing what you've already created.
+>
+> 2. Make the problem recognizable to founders.
+>
+> The target audience is primarily bootstrapped founders who've had some success growing their businesses, but are discovering that growth is making things more complicated, stressful, and harder to manage.
+>
+> I want someone visiting the site to think, "That's exactly what I'm dealing with."
+>
+> The existing "Always launching. Always hiring. Always adding." language is already heading in that direction. I think we can build on it without adding a lot of copy.
+>
+> 3. Make the central idea clearer.
+>
+> The book challenges the assumption that scaling means continually growing bigger.
+>
+> The underlying idea is that scaling is cyclical. Sometimes you need to grow (Up), sometimes stabilize (Side), and sometimes simplify or prune (Down). You can't effectively do all three at the same time.
+>
+> The twelve systems help support that process, but they aren't the entire message.
+>
+> I don't think we need to explain the whole framework on the website. I'd actually prefer that we create some curiosity around the idea and give people a reason to read the book.
+>
+> 4. Keep the Bootloader secondary.
+>
+> I love that you've incorporated the Bootloader, and I think it could be a great way to introduce people to the book.
+>
+> But it's a companion to the book, not the main product.
+>
+> My thought is to have one primary email signup that does double duty: people join the list for the book's first edition and receive the Bootloader for free. That gives visitors something useful right away while helping us build an audience of interested readers.
+>
+> One clarification here: I do want the full Bootloader appendix page to remain public. That's intentional, so search engines and AI tools can discover and index the material. The downloadable file itself, however, should be delivered through the email opt-in rather than through a direct download link.
+>
+> And since some people may arrive directly at the appendix from search, we should make sure there's a clear path back to the book.
+>
+> 5. Keep things simple!
+>
+> This is probably the most important point beyond positioning.
+>
+> As I mentioned when we first spoke, I don't want to overbuild the website right away. We don't need every feature, section, or conversion detail worked out before putting something live.
+>
+> I'd rather have a simple, visually compelling site that communicates the book's message well, and then improve it over time as we learn what works.
+>
+> I suspect a lot of this next pass could be accomplished by adjusting the copy, layout, and emphasis rather than building a bunch of new things.
+>
+> We also don't need to communicate every concept from the manuscript. The website should give people enough to recognize the problem, become curious about the approach, and want to read the book.
+>
+> Anyway, those are my main thoughts for now. I really like what you've started and don't want you to feel like you need to reinvent it.
+>
+> I'd love to hear how you think we could accomplish this while keeping the visual experience you've created. And feel free to push back on anything if you have a better idea!
+>
+> Thanks again!
+> Michael
+
+How each point was answered (released Sat 31 Oct) is in `client-log.md`
+under this email: the book and its real cover up front, the problem
+first, the cycle named once, one sign-up for the first-edition list with
+the Bootloader by email only, and less on the page.
+
+## How Michael’s 27 Oct points were answered
 
 | His point                                                                                | What was done                                                                                                                                                                         | State                                            |
 |------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|
@@ -276,7 +357,8 @@ issues; all were fixed before it shipped. Newest first, US Eastern.
 
 | When                     | What it added                                                          |
 |--------------------------|------------------------------------------------------------------------|
-| Tue 27 Oct, 5:19 pm      | Fixes from the 43-point review. Live in production now                 |
+| Sat 31 Oct, evening      | The book first (his 30 Oct notes): the real hardcover in the hero, the problem first, the cycle named once, one sign-up for the first-edition list, the file by email only. Live in production now |
+| Tue 27 Oct, 5:19 pm      | Fixes from the 43-point review                                         |
 | Tue 27 Oct, 1:26 pm      | The /appendix page, the email sign-up, the Bootloader shown as a file  |
 | Mon 26 Oct, 4:16 pm      | The real SUSD Bootloader V16 (35,445 words)                            |
 | Mon 26 Oct, 12:54 am     | Fixes from the COPY block review                                       |
@@ -287,7 +369,28 @@ issues; all were fixed before it shipped. Newest first, US Eastern.
 | Sun 25 Oct, 2:16–4:30 am | The scroll story from Blender renders, two review rounds, final frames |
 | Sat 24 Oct, 2:59 pm      | Apple-style homepage (later dropped)                                   |
 
-## Draft reply to Michael (not sent yet)
+## Draft reply to his 30 Oct email (not sent yet)
+
+> Hey Michael,
+>
+> Thanks, this was really helpful, and you were right: the site was selling the Bootloader with a book attached. It's flipped now, and it's live: https://scaling-up-side-down.vercel.app
+>
+> - **The book up front.** As the blocks finish stacking, your hardcover stands beside them, with the title, who it's for, the subtitle and one button. The page also ends on the book.
+> - **The problem first.** It opens with "Always launching. Always hiring. Always adding.", then your lines about revenue growing while the bank account doesn't feel it, margins shrinking, and the founder becoming the bottleneck.
+> - **The cycle, not the framework.** One line each for Up, Side and Down, ending on "You're already doing all three." The twelve-systems detail and the extra sections are gone.
+> - **One sign-up.** "Join the first-edition list", with the Bootloader free by email. There's no direct download anywhere now. The appendix page stays fully public, with the book at the top and bottom and a way back.
+>
+> Three things from you:
+>
+> 1. **Your email platform** (Kit, Mailchimp or other). The file only comes by email now, so until it's connected the sign-up says "The list opens soon."
+> 2. **The final cover file.** The hero uses the cover from your manuscript.
+> 3. **What the first-edition list promises**, in your words: roughly when people hear from you, and anything special about the first edition.
+>
+> Push back on anything that feels off.
+>
+> James
+
+## Earlier draft reply, to his 27 Oct feedback
 
 > Hey Michael,
 >
@@ -372,15 +475,16 @@ issues; all were fixed before it shipped. Newest first, US Eastern.
 - Pointing scalingupsidedown.com at the Vercel project; then a redirect
   from the vercel.app address.
 
-**Proposed next build, once Michael agrees**
+**Waiting on Michael, since his 30 Oct email**
 
-- “Is this for me?”: open with “How many people are on your team?”
-- An Up, Side, Down section where the blocks go up, sideways, down and
-  repeat.
-- The same two choices, the book and the Bootloader, after each key
-  moment.
-- Later phases from the call: a logged-in environment that enforces the
-  spec, then a subscription.
+- The final cover file (the hero renders the cover from the manuscript).
+- What the first-edition list promises, in his words.
+- His email platform is now a blocker: with no download, the sign-up
+  is the only way to get the file.
+
+**Later phases from the call**
+
+- A logged-in environment that enforces the spec, then a subscription.
 
 ## All of James’s messages, word for word
 

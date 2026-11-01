@@ -38,7 +38,11 @@ Every piece of client context goes into this repo so the next chat has it:
 
 **Copy**
 - Every sentence on the site is word for word from Michael's manuscript (`src/copy.ts`, with line
-  numbers). Labels, buttons and status messages are the only exception.
+  numbers). The book's own covers count: the cover's subtitle and the back cover's copy (the
+  manuscript's last picture) are quoted whole. Labels, buttons and status messages are the only
+  exception.
+- The book leads, the Bootloader comes second (Michael, 30 Oct). Keep it simple: build on the
+  copy, layout and emphasis before adding anything new.
 
 **Look**
 - Its own style: no Apple look, no flat text pages, nothing that looks AI-generated. The bar is
@@ -50,13 +54,15 @@ Every piece of client context goes into this repo so the next chat has it:
 - Less text and clean on phones. Desktop comes first, but check every section at phone sizes.
 
 **The Bootloader**
-- It is a **file/spec**, not a prompt. Present it with its version and word count. People upload
-  it and then use the short starting prompt.
-- Getting it is an **email opt-in**, not "copy the prompt".
-- The single source is `public/bootloader.md`. The site, `/appendix`, word count and version are
-  all built from it, so to update, replace that file and redeploy.
-- `/appendix` must stay plain, script-free, citable HTML for AI crawlers (GEO), with llms.txt and
-  a sitemap. The book prints scalingupsidedown.com/appendix.
+- It is a **file/spec**, not a prompt, and a companion to the book, not the product.
+- There is **one sign-up**: join the book's first-edition list, and the email service sends the
+  Bootloader free. The file is **never a direct download** and is not served: no download links,
+  no public `.md`.
+- The single source is `content/bootloader.md` (not served). `/appendix`, its word count and
+  version are built from it, so to update, replace that file and redeploy. The email service's
+  welcome email must carry the same file.
+- `/appendix` must stay fully public, plain, citable HTML for AI crawlers (GEO), with llms.txt
+  and a sitemap, and a clear way back to the book. The book prints scalingupsidedown.com/appendix.
 
 **Accounts and keys**
 - Keys go in Vercel env only, never in the repo or chat. The env names are:
@@ -65,14 +71,12 @@ Every piece of client context goes into this repo so the next chat has it:
   - or OPTIN_WEBHOOK_URL
 - No domain or DNS changes without James's OK.
 
-## Waiting on Michael (as of Oct 29)
+## Waiting on Michael (as of Oct 31)
 
-- His email platform (Kit, Mailchimp or other), so the opt-in can send the file.
+- His email platform (Kit, Mailchimp or other). Until it is connected the sign-up says "The list
+  opens soon." and stores nothing, and nobody can get the file.
+- The final cover file (the hero's hardcover is rendered from the cover in the manuscript:
+  `render/book.py --solo 1`, `scripts/make_book_assets.py`).
+- What the first-edition list promises, in his words.
 - The book's pre-order link (`src/links.ts`).
 - Pointing scalingupsidedown.com at the Vercel project.
-
-## Proposed next build (once Michael agrees)
-
-- Open with "How many people are on your team?" so visitors see the book is for them.
-- An Up, Side, Down section where the blocks go up, sideways, down and repeat.
-- The same two choices, the book and the Bootloader, after each key moment.
