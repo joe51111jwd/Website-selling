@@ -1,10 +1,8 @@
 // The Appendix reads completely without this. It adds: the contents' search and current section,
-// keyboard access to tables that scroll sideways, copying the starting prompt, and sending the opt-in
-// form without leaving the page.
+// keyboard access to tables that scroll sideways, and joining the first-edition list without leaving
+// the page.
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
-  const FILE = "/bootloader.md";
-  const NAME = "SUSD-Bootloader.md";
 
   // ---------- after the web fonts arrive ----------
   // A deep link (/appendix#term-...) is scrolled to while the fallback fonts are still in use; the real
@@ -176,46 +174,7 @@
     queueSize();
   });
 
-  // ---------- copy the starting prompt ----------
-  const copyBtn = $("#copy-prompt");
-  const prompt = $("#starting-prompt");
-  const copyStatus = $("#copy-status");
-  const copyLabel = copyBtn ? copyBtn.textContent : "";
-  let copyTimer = 0;
-  copyBtn?.addEventListener("click", () => {
-    const t = prompt ? prompt.textContent : "";
-    if (copyStatus) copyStatus.textContent = "";
-    const done = (ok) => {
-      copyBtn.textContent = ok ? "Copied" : "Select the prompt above and copy it";
-      if (copyStatus) copyStatus.textContent = ok ? "Starting prompt copied." : "Couldn't copy. Select the prompt above and copy it.";
-      window.clearTimeout(copyTimer);
-      copyTimer = window.setTimeout(() => {
-        copyBtn.textContent = copyLabel;
-        if (copyStatus) copyStatus.textContent = "";
-      }, 2400);
-    };
-    const legacy = () => {
-      const ta = document.createElement("textarea");
-      ta.value = t;
-      ta.setAttribute("readonly", "");
-      ta.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:16px";
-      document.body.appendChild(ta);
-      ta.select();
-      let ok = false;
-      try {
-        ok = document.execCommand("copy");
-      } catch {
-        ok = false;
-      }
-      ta.remove();
-      copyBtn.focus();
-      return ok;
-    };
-    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(t).then(() => done(true), () => done(legacy()));
-    else done(legacy());
-  });
-
-  // ---------- the opt-in ----------
+  // ---------- the first-edition list ----------
   const form = $("#optin");
   if (!form) return;
   const field = form.elements.namedItem("email");
@@ -226,12 +185,11 @@
     if (kind) msg.dataset.kind = kind;
     else delete msg.dataset.kind;
   };
-  const fileLink = `<a href="${FILE}" download="${NAME}">Download the Bootloader (.md)</a>`;
   const invalid = (on) => {
     if (on) field.setAttribute("aria-invalid", "true");
     else field.removeAttribute("aria-invalid");
   };
-  // the field and the button go away on success, so focus moves to the message (it keeps the file's link)
+  // the field and the button go away on success, so focus moves to the message
   const settle = (html) => {
     form.dataset.state = "sent";
     say(html, "ok");
@@ -259,20 +217,12 @@
         body: JSON.stringify({ email, source: "appendix", company: trap ? trap.value : "" }),
       });
       const d = await r.json().catch(() => ({}));
-      if (r.ok && d.ok && d.already) {
-        // already signed up: the service will not email it again, so the file is here instead
-        settle(`You're already on the list. Here's the file. ${fileLink}`);
-      } else if (r.ok && d.ok && d.emailed) {
-        settle(`Sent. Check your inbox. ${fileLink}`);
-      } else if (r.ok && d.ok) {
-        settle(`Email delivery isn't connected yet, so here's the file now. ${fileLink}`);
-        // the link above is the sure way; this starts the download where the browser allows it
-        const a = document.createElement("a");
-        a.href = FILE;
-        a.download = NAME;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+      if (r.ok && d.ok && d.already) settle("You're already on the list.");
+      else if (r.ok && d.ok && d.emailed) settle("Sent. Check your inbox: the SUSD Bootloader is on its way.");
+      else if (r.ok && d.ok) {
+        // no email service connected yet: nothing was stored; the field stays for later
+        delete form.dataset.state;
+        say("The list opens soon.");
       } else if (r.status === 400 && d.error === "email") {
         delete form.dataset.state;
         invalid(true);
@@ -280,9 +230,9 @@
         field.focus();
       } else throw new Error(String(r.status));
     } catch {
-      // the field and the button stay where they were (and so does focus); the message offers the file
+      // the field and the button stay where they were (and so does focus)
       delete form.dataset.state;
-      say(`Couldn't send. Download the file instead. ${fileLink}`, "error");
+      say("Couldn't send. Try again.", "error");
     }
   });
 })();

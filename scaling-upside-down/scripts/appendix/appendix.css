@@ -99,15 +99,28 @@ main { min-width: 0; padding: 64px 0 40px; }
 .facts dd { margin: 5px 0 0; font: 500 14px var(--mono); }
 .dot { display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: var(--up); box-shadow: 0 0 0 3px rgba(43, 90, 55, 0.18); vertical-align: 1px; }
 
-/* ---------- get the Bootloader ---------- */
-.get { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 0; margin: 44px 0 0; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-hi); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 30px 60px -40px rgba(23, 20, 15, 0.35); overflow: hidden; }
-.get-mail, .get-load { padding: 30px 32px 30px; min-width: 0; }
-.get-load { border-left: 1px solid var(--line); background: rgba(241, 234, 223, 0.45); }
+/* ---------- the book: this page is its appendix (top and bottom), and the way back to it ---------- */
+.book-band { display: flex; align-items: center; gap: clamp(18px, 3vw, 36px); margin: 0 0 48px; padding: 0 0 32px; border-bottom: 1px solid var(--line); }
+.book-band-img { flex: none; width: clamp(96px, 13vw, 150px); height: auto; }
+.book-band-text { min-width: 0; }
+.book-band h2 { margin: 10px 0 0; font: 400 clamp(32px, 3.4vw, 46px) / 1 var(--display); letter-spacing: -0.02em; }
+.book-band h2 a { text-decoration: none; }
+.book-band h2 a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+.book-band-sub { max-width: 34em; margin: 10px 0 0; font: italic 400 19px / 1.4 var(--serif); color: var(--soft); }
+.book-band-by { margin: 8px 0 0; font: 500 12px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); }
+.book-band-cta { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 0; }
+.book-band-cta .btn { min-height: 46px; font-size: 15px; }
+.end-band { margin: 56px 0 0; padding: 32px 0 0; border-top: 1px solid var(--ink); border-bottom: 0; }
+
+/* ---------- the first-edition list ---------- */
+.get { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; max-width: 640px; margin: 44px 0 0; border: 1px solid var(--line); border-radius: 16px; background: var(--paper-hi); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 30px 60px -40px rgba(23, 20, 15, 0.35); overflow: hidden; }
+.get-mail { padding: 30px 32px 30px; min-width: 0; }
 .get h2 { margin: 14px 0 4px; font: 400 clamp(30px, 2.8vw, 38px) / 1.05 var(--display); letter-spacing: -0.015em; }
 .get-sub { margin: 0 0 22px; font: italic 400 18px var(--serif); color: var(--soft); }
 .get h3 { margin: 0 0 14px; font: 500 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); }
 .lbl { display: block; margin-bottom: 8px; font: 500 11px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); }
-.optin-row { display: flex; flex-direction: column; gap: 10px; }
+.optin-row { display: flex; gap: 10px; }
+.optin-row input { flex: 1; min-width: 0; }
 .optin input[type="email"] { width: 100%; height: 52px; padding: 0 16px; border: 1px solid rgba(23, 20, 15, 0.5); border-radius: 12px; background: #fff; color: var(--ink); font: 400 17px var(--sans); transition: border-color 0.2s, box-shadow 0.2s; }
 .optin input[type="email"]::placeholder { color: #a99f92; }
 .optin input[type="email"]:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px rgba(23, 20, 15, 0.08); }
@@ -129,14 +142,7 @@ main { min-width: 0; padding: 64px 0 40px; }
 .done.ok { background: rgba(43, 90, 55, 0.1); color: var(--up); }
 .done.err { background: rgba(178, 50, 42, 0.08); color: var(--down); }
 .done a { color: var(--ink); font-weight: 600; }
-.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
-.steps > li { position: relative; padding-left: 40px; counter-increment: s; }
-.steps > li + li { margin-top: 22px; }
-.steps > li::before { content: counter(s, decimal-leading-zero); position: absolute; left: 0; top: 13px; font: 500 12px var(--mono); color: var(--mute); }
-.steps p { margin: 0 0 10px; font-size: 16px; line-height: 1.55; }
-.steps .small { display: block; margin-top: 8px; font: 400 12px var(--mono); color: var(--mute); }
-.steps pre.prompt { max-height: 196px; margin: 0 0 12px; overflow: auto; font-size: 12px; }
-.fine { margin: 22px 0 0 40px; font: 500 13px var(--sans); }
+.fine { margin: 18px 0 0; font: 500 13px var(--sans); }
 
 /* ---------- the document ---------- */
 .doc { margin-top: 24px; }
@@ -222,8 +228,6 @@ pre.prompt { border-color: rgba(23, 20, 15, 0.3); background: #fffdf7; box-shado
 /* ---------- narrower screens ---------- */
 @media (max-width: 1180px) {
   .layout { grid-template-columns: 250px minmax(0, 1fr); gap: 44px; }
-  .get { grid-template-columns: 1fr; }
-  .get-load { border-left: 0; border-top: 1px solid var(--line); }
   .facts { grid-template-columns: repeat(3, auto); justify-content: start; column-gap: 40px; }
 }
 @media (max-width: 999px) {
@@ -248,11 +252,11 @@ pre.prompt { border-color: rgba(23, 20, 15, 0.3); background: #fffdf7; box-shado
   .doc-head h1 { margin: 16px 0 20px; }
   .pull { padding-left: 14px; }
   .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; }
-  .get-mail, .get-load { padding: 22px 18px; }
-  .steps > li { padding-left: 0; }
-  .steps > li::before { position: static; display: block; margin-bottom: 6px; }
-  .fine { margin-left: 0; }
-  .btn.ghost { width: 100%; }
+  .get-mail { padding: 22px 18px; }
+  .optin-row { flex-direction: column; }
+  .book-band { align-items: flex-start; }
+  .book-band-sub { font-size: 17px; }
+  .book-band-cta .btn { flex: 1 1 auto; }
   .doc h2 { margin-top: 80px; }
   .doc h3 { margin-top: 48px; }
   .part { margin-top: 96px; }
@@ -260,7 +264,6 @@ pre.prompt { border-color: rgba(23, 20, 15, 0.3); background: #fffdf7; box-shado
   .tw table.c3, .tw table.c4, .tw table.c5, .tw table.c6, .tw table.c7 { min-width: 600px; }
   .tw table { font-size: 14px; }
   pre.code { margin-left: calc(-1 * var(--gut)); margin-right: calc(-1 * var(--gut-r)); border-radius: 0; border-left: 0; border-right: 0; font-size: 12px; }
-  .get pre.code { margin-left: 0; margin-right: 0; border-radius: 10px; border: 1px solid var(--line); }
 }
 @media print {
   .nav, .toc, .get, .foot, .skip, .anchor { display: none !important; }

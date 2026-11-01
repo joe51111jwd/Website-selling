@@ -3,18 +3,15 @@ import { LazyMotion, MotionConfig, domAnimation } from "motion/react";
 import Lenis from "lenis";
 import { COPY } from "./copy";
 import { Story } from "./components/Story";
-import { Footer, Nav, Proof } from "./components/Sections";
+import { Footer, Nav } from "./components/Sections";
 import { ClosedLoop } from "./components/ClosedLoop";
-import { Announcer } from "./components/Announcer";
 import { NoticeDialog } from "./components/NoticeDialog";
-import { preloadBootloader } from "./bootloader";
 import { setLenis } from "./lenis";
 
 type Entry = { y?: number } | null;
 
 export default function App() {
   useEffect(() => {
-    preloadBootloader();
     // the page is drawn by script, so the browser can't restore the scroll position itself.
     // Each history entry remembers its own position instead (reload, Back, Forward).
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -101,11 +98,9 @@ export default function App() {
         <main>
           <Story beats={COPY.beats} hero={COPY.hero} />
           <ClosedLoop copy={COPY.closed} />
-          <Proof copy={COPY.proof} />
         </main>
         <Footer copy={COPY.footer} />
         <NoticeDialog copy={COPY.notice} />
-        <Announcer />
       </MotionConfig>
     </LazyMotion>
   );

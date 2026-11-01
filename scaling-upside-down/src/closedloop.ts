@@ -43,7 +43,6 @@ export const BEATS = {
 export const T = { fall: 240, hairStart: 260, hairMs: 1000, swapAfterSeal: 40, flash: 3400, againMs: 600, againLift: 360, wave: 420, shakeDelay: 300, shake: 320, errorMs: 4000 };
 /** the COPY block is laid out at its lifted size; every state is a scale at or below 1 of that, so it stays sharp */
 export const LIFT = 1.08;
-export const fmtWords = (n: number) => n.toLocaleString("en-US");
 
 export const smooth = (t: number) => {
   const c = Math.max(0, Math.min(1, t));
@@ -166,8 +165,8 @@ export function truckRect(p: number, cw: number, ch: number, mode: Mode): Rect {
   return mix(r1, r2, smooth((p - 0.86) / 0.06));
 }
 
-/** the widest small line ("THE BOOTLOADER"), in px per px of type, its 0.12em tracking included (measured in the stamp face) */
-const SMALL_EM = 11.5;
+/** the widest small line ("CHECK INBOX"), in px per px of type, its 0.12em tracking included (about 9.3 measured in the stamp face; a little spare) */
+const SMALL_EM = 10;
 /** the stamp's two sizes for a block W wide: the small line never wider than 90% of the face */
 export function stampFor(W: number) {
   const faceH = W * cb.faceAR;

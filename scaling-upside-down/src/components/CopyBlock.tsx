@@ -1,5 +1,5 @@
 import { useEffect, useState, type ButtonHTMLAttributes, type CSSProperties, type Ref } from "react";
-import { cb, fmtWords } from "../closedloop";
+import { cb } from "../closedloop";
 
 const BASE = import.meta.env.BASE_URL;
 const file = (name: string) => `${BASE}cb/${name}`;
@@ -23,25 +23,23 @@ function loadStamp() {
 // the block's proportions and where its shadow slides as it lifts (4px, the way the light throws it)
 const [dx, dy] = [cb.drift[0], cb.drift[1] * cb.bodyAR];
 const dn = Math.hypot(dx, dy) || 1;
-const VARS = { "--cb-ar": cb.bodyAR, "--sx": `${((4 * dx) / dn).toFixed(2)}px`, "--sy": `${((4 * dy) / dn).toFixed(2)}px`, "--slot": `${cb.slot}em`, "--comma": `${cb.comma}em` } as CSSProperties;
+const VARS = { "--cb-ar": cb.bodyAR, "--sx": `${((4 * dx) / dn).toFixed(2)}px`, "--sy": `${((4 * dy) / dn).toFixed(2)}px` } as CSSProperties;
 
-export type BlockLabels = { get: string; bootloader: string; sent: string; inbox: string; yours: string; words: string; sending: string; tryAgain: string };
+export type BlockLabels = { join: string; list: string; sent: string; inbox: string; joined: string; onList: string; sending: string; tryAgain: string };
 
 type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> & {
   ref?: Ref<HTMLButtonElement>;
-  digitsRef: Ref<HTMLSpanElement>;
-  words: number;
   labels: BlockLabels;
   /** load the pictures (the section is near); `hi` picks the larger set */
   load: false | "hi" | "lo";
 };
 
 /**
- * The opt-in's button: a painted block from the same studio as the ring, its words stamped by the page.
- * The face (data-face), the count and the accessible name are written by the closed loop's ritual,
- * never by React, so the count can run without re-rendering anything.
+ * The sign-up's button: a painted block from the same studio as the ring, its words stamped by the page.
+ * The face (data-face) and the accessible name are written by the closed loop's ritual, never by
+ * React, so the ritual never re-renders anything.
  */
-export function CopyBlock({ ref, digitsRef, words, labels, load, ...rest }: Props) {
+export function CopyBlock({ ref, labels, load, ...rest }: Props) {
   const [set, setSet] = useState<"" | "hi" | "lo">("");
   const [ready, setReady] = useState<"" | "1" | "flat">("");
   useEffect(() => {
@@ -73,7 +71,6 @@ export function CopyBlock({ ref, digitsRef, words, labels, load, ...rest }: Prop
     };
   }, [set]);
 
-  const count = words ? fmtWords(words) : "";
   const src = (k: "red" | "green") => (set ? file(cb.files[set === "hi" ? k : (`${k}_m` as const)]) : undefined);
   return (
     <button ref={ref} type="button" className="cb" data-ready={ready || undefined} style={VARS} onContextMenu={(e) => e.preventDefault()} {...rest}>
@@ -89,20 +86,16 @@ export function CopyBlock({ ref, digitsRef, words, labels, load, ...rest }: Prop
           {set && <img className="cb-paint green" src={src("green")} alt="" draggable={false} decoding="async" style={pct(cb.block)} />}
           <span className="cb-face" style={pct(cb.face)}>
             <span className="cb-big">
-              <b data-k="get">{labels.get}</b>
-              <b data-k="num">
-                <span className="cb-num" ref={digitsRef} />
-              </b>
+              <b data-k="join">{labels.join}</b>
               <b data-k="wait">· · ·</b>
               <b data-k="sent">{labels.sent}</b>
-              <b data-k="yours">{labels.yours}</b>
+              <b data-k="joined">{labels.joined}</b>
             </span>
             <span className="cb-small">
-              <b data-k="bootloader">{labels.bootloader}</b>
-              <b data-k="words">{count && `${count} ${labels.words}`}</b>
-              <b data-k="count">{labels.words}</b>
+              <b data-k="list">{labels.list}</b>
               <b data-k="wait">{labels.sending}</b>
               <b data-k="inbox">{labels.inbox}</b>
+              <b data-k="onlist">{labels.onList}</b>
               <b data-k="error">{labels.tryAgain}</b>
             </span>
           </span>

@@ -1,9 +1,7 @@
-// Getting the Bootloader: by email when an email service is connected (api/optin.js), otherwise the
-// file itself, downloaded from the click (or from the answer, when that wasn't known before it, or
-// the address had signed up before). The Bootloader is a file to upload, not text to paste.
+// The first-edition list: one sign-up, and the email service (api/optin.js) sends the SUSD Bootloader
+// with the welcome email. The file is never a direct download; until a service is connected the list
+// isn't open, and the page says so.
 const BASE = import.meta.env.BASE_URL;
-export const FILE_URL = `${BASE}bootloader.md`;
-export const FILE_NAME = "SUSD-Bootloader.md";
 export const APPENDIX_URL = `${BASE}appendix`;
 const API = `${BASE}api/optin`;
 
@@ -24,7 +22,7 @@ export function optinLive(): Promise<boolean | null> {
 
 export const validEmail = (s: string) => /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]{2,}$/.test(s.trim());
 
-/** the answer: emailed (a new sign-up, the service sends the file), or not (no service; or `already` signed up, so it won't send it again) */
+/** the answer: emailed (a new sign-up: the service sends the Bootloader), `already` on the list, or neither (no service connected) */
 export type OptinResult = { emailed: boolean; already?: boolean };
 
 /** rejects with Error("email") for an address the server won't take, Error("send") for anything else.
@@ -45,15 +43,4 @@ export async function sendOptin(email: string, source: "home" | "appendix"): Pro
   if (!r.ok) throw new Error("send");
   const d = (await r.json().catch(() => ({}))) as { emailed?: boolean; already?: boolean };
   return { emailed: !!d.emailed, already: !d.emailed && !!d.already };
-}
-
-/** start the file's download; call it inside the click, so every browser allows it */
-export function downloadFile() {
-  const a = document.createElement("a");
-  a.href = FILE_URL;
-  a.download = FILE_NAME;
-  a.rel = "noopener";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
 }

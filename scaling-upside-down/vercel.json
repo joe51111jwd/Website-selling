@@ -1,11 +1,5 @@
 {
   "cleanUrls": true,
-  "rewrites": [
-    {
-      "source": "/bootloader.txt",
-      "destination": "/bootloader.md"
-    }
-  ],
   "headers": [
     {
       "source": "/frames/(.*).bin",
@@ -22,32 +16,6 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/bootloader.md",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/markdown; charset=utf-8"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=300"
-        }
-      ]
-    },
-    {
-      "source": "/bootloader.txt",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/plain; charset=utf-8"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=300"
         }
       ]
     },
@@ -97,7 +65,16 @@
       ]
     },
     {
-      "source": "/llms(-full)?.txt",
+      "source": "/book/(.*).webp",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/llms.txt",
       "headers": [
         {
           "key": "Content-Type",
@@ -123,6 +100,21 @@
     {
       "source": "/bootloader",
       "destination": "/appendix",
+      "permanent": true
+    },
+    {
+      "source": "/bootloader.md",
+      "destination": "/appendix",
+      "permanent": true
+    },
+    {
+      "source": "/bootloader.txt",
+      "destination": "/appendix",
+      "permanent": true
+    },
+    {
+      "source": "/llms-full.txt",
+      "destination": "/llms.txt",
       "permanent": true
     }
   ]

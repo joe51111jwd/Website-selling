@@ -1,4 +1,6 @@
 # The hardcover with the three blocks beside it. Run: blender -b -P book.py -- --w 1500 --h 1500 --samples 128 --out out/book.png
+# --solo 1: the hardcover alone on a transparent background, keeping only its shadow on the table,
+# for the page's hero (blender -b -P book.py -- --solo 1 --w 1200 --h 1500 --samples 160 --out out/hero_book.png)
 import os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from scene_setup import *  # noqa: E402,F403
@@ -94,6 +96,7 @@ for o in book:
     o.parent = rig
 rig.location = (-0.9, 0.2, Hh / 2 + 0.002)
 rig.rotation_euler = (0, 0, math.radians(-26))
+solo = opt.get("solo") == "1"
 
 # the three blocks stand beside the book, as on the cover
 for ob, (x, y, z, yaw) in zip(blocks, [(1.05, -0.75, 0.5, -14), (0.99, -0.7, 1.5, -10), (1.1, -0.78, 2.5, -16)]):
@@ -101,6 +104,15 @@ for ob, (x, y, z, yaw) in zip(blocks, [(1.05, -0.75, 0.5, -14), (0.99, -0.7, 1.5
     ob.scale = (sc, sc, sc)
     ob.location = (x, y, z * sc)
     ob.rotation_euler = (0, 0, math.radians(yaw))
+if solo:
+    # the page already has the blocks: the book stands alone, turned a little less, and the
+    # table is kept only where the book's shadow falls on it
+    for ob in blocks:
+        bpy.data.objects.remove(ob, do_unlink=True)
+    rig.location = (0, 0, Hh / 2 + 0.002)
+    rig.rotation_euler = (0, 0, math.radians(-20))
+    bpy.data.objects["cyc"].is_shadow_catcher = True
+    scene.render.film_transparent = True
 
 cam_d = bpy.data.cameras.new("cam")
 cam = bpy.data.objects.new("cam", cam_d)
@@ -109,8 +121,11 @@ scene.camera = cam
 cam_d.lens = 92
 cam.location = (4.4, -13.0, 2.9)
 look = Vector((0.05, 0, 1.45))
+if solo:
+    cam.location = (2.6, -14.0, 2.4)
+    look = Vector((0.12, 0, 1.52))
 cam.rotation_euler = (look - Vector(cam.location)).to_track_quat("-Z", "Y").to_euler()
-cam_d.dof.use_dof = True
+cam_d.dof.use_dof = not solo
 cam_d.dof.focus_distance = (Vector(cam.location) - Vector((-0.5, 0, 1.5))).length
 cam_d.dof.aperture_fstop = 5.0
 area("key", (-6, -7, 7), (0, 0, 1.4), 7, 1700)

@@ -19,47 +19,51 @@ export type Beat = {
 };
 
 export type SiteCopy = {
-  hero: { kicker: string; title: string; sub: string; detail: string; preorder: string };
+  hero: { kicker: string; title: string; sub: string; detail: string; join: string; free: string; cover: string };
   beats: Beat[];
   closed: {
     open: { kicker: string; headline: string };
     closing: { kicker: string; headline: string; detail: string };
-    copy: { kicker: string; headline: string; deck: string };
-    after: { kicker: string; headline: string; line: string };
+    copy: { kicker: string; headline: string; deck: string; offer: string };
+    after: { kicker: string; headline: string };
     block: {
-      get: string;
-      bootloader: string;
+      join: string;
+      list: string;
       sent: string;
       inbox: string;
-      yours: string;
-      words: string;
+      joined: string;
+      onList: string;
       sending: string;
       tryAgain: string;
       email: string;
       placeholder: string;
       badEmail: string;
       sendFailed: string;
+      soon: string;
       sentTo: string;
-      notLive: string;
       already: string;
       appendix: string;
-      names: Record<"copy" | "file" | "sent" | "yours" | "already" | "error" | "copyNoCount" | "fileNoCount" | "sentNoCount" | "yoursNoCount" | "alreadyNoCount" | "errorNoCount" | "busy", string>;
+      // the button's accessible name begins with what its face says
+      names: Record<"join" | "sent" | "joined" | "error" | "busy", string>;
     };
     pair: { book: string; file: string };
-    book: { kicker: string; quote: string; sign: string; headline: string; soon: string; button: string };
+    book: { kicker: string; quote: string; sign: string; title: string; body: string; soon: string; button: string; join: string };
   };
-  proof: { title: string; items: { n: string; tone: "up" | "down"; label: string; title: string }[]; close: string };
   notice: { title: string; paragraphs: string[] };
   footer: { line: string };
 };
 
+// The back cover (the manuscript's last picture) is Michael's own copy for the book: its lines are
+// quoted whole, like the manuscript's, and so is the cover's subtitle.
 export const COPY: SiteCopy = {
   hero: {
-    kicker: "Michael Wentz · For bootstrapped founders",
+    kicker: "A book by Michael Wentz · For bootstrapped founders",
     title: "Scaling\nUp-Side-Down",
-    sub: "Every hire compounds complexity before it compounds capacity.", // L696
-    detail: "Half of this book is meant to be read. The other half is meant to be used. The pages are reference. The file is the operating system.", // L234, L4497
-    preorder: "Pre-order the book",
+    sub: "Revenue Up. Margins Down. How to Avoid the Scaling Trap.", // the cover's subtitle
+    detail: "This book is for the ones who felt the map was wrong but couldn't say why.", // L415 (1st sentence)
+    join: "Join the first-edition list",
+    free: "Comes with the SUSD Bootloader, free",
+    cover: "The hardcover of Scaling Up-Side-Down by Michael Wentz, with the Up, Side and Down blocks stacked on its cover. Revenue Up. Margins Down. How to Avoid the Scaling Trap.",
   },
   // One idea per scroll moment, and the picture does most of the telling. Phones show the kicker
   // and headline only; desktop adds the one detail line.
@@ -75,40 +79,31 @@ export const COPY: SiteCopy = {
     {
       id: "redline",
       at: [0.155, 0.23],
-      kicker: "The equation",
+      kicker: "Twelve to forty people", // L1070 ("somewhere between twelve and forty people")
       tone: "down",
-      headline: "Complexity > Capacity = Redline.", // L2997
-      detail: "Every addition makes it worse.", // L2997
+      headline: "Revenue was growing—sometimes faster than ever—but the bank account didn't feel it.", // L1070
+      detail: "Margins were shrinking. And the founder had become the bottleneck on everything.", // L1070
     },
     {
       id: "collapse",
-      at: [0.24, 0.305],
-      kicker: "The shape of the break", // L1120
+      at: [0.24, 0.335],
+      kicker: "That isn't scaling.", // the back cover
       tone: "down",
-      headline: "Past twelve, something breaks.", // L3509
-      detail: "We were Scaling Upside Down.", // L461
-    },
-    {
-      id: "trap",
-      at: [0.315, 0.377],
-      kicker: "12–40 people", // L3562 (the picture's tag names it: The Graveyard)
-      tone: "down",
-      headline: "Complexity that accumulated faster than the structure could hold.", // L2021
+      headline: "That's scaling upside down.", // the back cover
     },
     {
       id: "side",
       at: [0.39, 0.548],
       kicker: "Scaling Sideways", // L1716
       tone: "side",
-      headline: "Systems were what actually held the weight.", // L2408
-      detail: "Four for Scaling Up, four for Scaling Sideways, four for Scaling Down. Twelve.", // L3119
+      headline: "Sideways for stabilization.", // L3316
     },
     {
       id: "down",
       at: [0.555, 0.612],
       kicker: "Scaling Down", // L1717
       tone: "down",
-      headline: "Something needs to be cut.", // L2564
+      headline: "Down for pruning.", // L3317
       detail: "The business stops asking for more and starts asking what to keep.", // L2564
     },
     {
@@ -116,95 +111,81 @@ export const COPY: SiteCopy = {
       at: [0.62, 0.845],
       kicker: "Scaling Up", // L1715
       tone: "up",
-      headline: "Capacity > Complexity = Oxygen.", // L2999
-      detail: "The systems can carry what the business creates.", // L2999
+      headline: "Up for growth.", // L3315
     },
     {
       id: "repeat",
       at: [0.905, 0.995],
       kicker: "Up. Side. Down. Repeat.", // L1713
       tone: "ink",
-      headline: "The business held. Not just held—it grew.", // L192, L194
-      detail: "Our margins stopped shrinking.", // L3319
+      headline: "You're already doing all three.", // L1728
+      detail: "The problem is you're doing them at once—every day, no rhythm, no separation.", // L1728
     },
   ],
-  // After the story: the closed loop. Seen from above, the pile AI keeps adding is swept off the
-  // table and the twelve systems are set down around Up / Side / Down; copying the prompt closes the ring.
+  // After the story: the closed loop. Seen from above, the pile keeps growing, is swept off the table
+  // and the twelve systems are set down around Up / Side / Down; joining the list closes the ring. Then
+  // the camera travels along the table to the book.
   closed: {
     open: {
-      kicker: "Open System", // L4510 (table heading)
-      headline: "In an open system, AI accelerates chaos.", // L4523 (1st sentence)
+      kicker: "Always adding",
+      headline: "Complexity that accumulated faster than the structure could hold.", // L2021
     },
     closing: {
-      kicker: "Closed System", // L4510 (table heading)
-      headline: "In a closed system, AI accelerates clarity.", // L4523 (2nd sentence)
+      kicker: "Twelve systems",
+      headline: "Systems were what actually held the weight.", // L2408
       detail: "The twelve we'd mapped were enough.", // L2610
     },
     copy: {
-      kicker: "The Closed Loop", // L4551 (heading)
-      headline: "This document is the closed system.", // L4525
-      deck: "The book changed how you think. This SUSD Bootloader changes how you operate.", // L4553, L4555
+      kicker: "The book",
+      headline: "You were never the problem. The model you inherited was.", // L216
+      deck: "In Scaling Up-Side-Down, entrepreneur Michael Wentz reveals the hidden physics that trap most bootstrapped companies.", // the back cover
+      offer: "Join the list for the first edition · the SUSD Bootloader comes free, by email",
     },
     after: {
-      kicker: "How to use it",
-      headline: "Upload the file and use the starting prompt provided with it.", // L4531
-      line: "Then let the system locate you.", // L4533
+      kicker: "You're on the list",
+      headline: "The cycle isn't something you install. It's something you stop resisting.", // L1734
     },
-    // the opt-in: the block's stamp, the email field and their messages are UI labels, not sentences
+    // the sign-up: the block's stamp, the email field and their messages are UI labels, not sentences
     block: {
-      get: "Get it",
-      bootloader: "The Bootloader",
+      join: "Join",
+      list: "The list",
       sent: "Sent",
       inbox: "Check inbox",
-      yours: "Yours",
-      words: "words",
+      joined: "Joined",
+      onList: "On the list",
       sending: "Sending",
       tryAgain: "Try again",
       email: "Email address",
       placeholder: "you@company.com",
       badEmail: "Enter your email address.",
-      sendFailed: "Couldn't send. Download below.",
-      sentTo: "Sent to {email}.",
-      notLive: "Email isn't connected yet. The file is downloading.",
-      already: "You're already on the list. Here's the file.",
+      sendFailed: "Couldn't send. Try again.",
+      soon: "The list opens soon.",
+      sentTo: "Sent to {email}. Check your inbox.",
+      already: "You're already on the list.",
       appendix: "Read the Appendix",
-      // the button's accessible name begins with what its face says
       names: {
-        copy: "Get it: the Bootloader, {n} words, by email",
-        file: "Get it: the Bootloader, {n} words, as a file", // no email service: the click downloads it
-        sent: "Sent: check inbox. Download the file",
-        yours: "Yours: {n} words. Download the file again",
-        already: "Yours: {n} words. Already on the list. Download the file again",
-        error: "Get it, try again: the Bootloader, {n} words",
-        copyNoCount: "Get it: the Bootloader, by email",
-        fileNoCount: "Get it: the Bootloader, as a file",
-        sentNoCount: "Sent: check inbox. Download the file",
-        yoursNoCount: "Yours: the Bootloader. Download the file again",
-        alreadyNoCount: "Yours: the Bootloader. Already on the list. Download the file again",
-        errorNoCount: "Get it, try again: the Bootloader",
-        busy: "Sending the Bootloader",
+        join: "Join the list for the first edition, with the SUSD Bootloader free by email",
+        sent: "Sent: check your inbox",
+        joined: "Joined: you're already on the list",
+        error: "Join, try again",
+        busy: "Joining the list",
       },
     },
+    // under the book and the ring as the camera passes them
     pair: {
-      book: "The pages are reference.", // L4497 (1st sentence)
-      file: "The file is the operating system.", // L4497 (2nd sentence)
+      book: "The book",
+      file: "Its appendix: the SUSD Bootloader",
     },
     book: {
       kicker: "The book",
       quote: "You may be tempted to skip straight to it. I wouldn't.", // L246
       sign: "— Michael", // L4463
-      headline: "You were never the problem. The model you inherited was.", // L216
+      title: "Scaling Up-Side-Down",
+      body: "Part diagnosis, part operating system, this book offers founders a practical way to build businesses that grow without collapsing under their own weight.", // the back cover
       soon: "Pre-orders open soon",
       button: "Pre-order the book",
+      join: "Join the first-edition list",
     },
-  },
-  proof: {
-    title: "Two launches of Izabella's books",
-    items: [
-      { n: "40", tone: "down", label: "People · #1 New York Times", title: "Hashimoto's Protocol" }, // L3459; forty people, L968
-      { n: "12", tone: "up", label: "People · Publishers Weekly bestseller", title: "Adrenal Transformation Protocol" }, // L3461 (all with twelve people)
-    ],
-    close: "The contrast wasn't the ranking. The contrast was the cost.", // L3463
   },
   notice, // the SUSD Bootloader Use Notice, L4557 on (src/notice.json, shared with the appendix page)
   footer: {

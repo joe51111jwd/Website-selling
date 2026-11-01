@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { SiteCopy } from "../copy";
 import { lenis } from "../lenis";
-import { FILE_NAME, FILE_URL } from "../optin";
 
 /** open the use notice from anywhere; focus goes back to `trigger` when it closes */
 export const openNotice = (trigger?: HTMLElement | null) => window.dispatchEvent(new CustomEvent("susd:notice", { detail: trigger ?? null }));
@@ -50,16 +49,6 @@ export function NoticeDialog({ copy }: { copy: SiteCopy["notice"] }) {
             {copy.paragraphs.map((p) => (p.startsWith("## ") ? <h3 key={p}>{p.slice(3)}</h3> : <p key={p.slice(0, 40)}>{p}</p>))}
           </div>
         </div>
-        <footer className="notice-foot">
-          <a className="copy copy-md" href={FILE_URL} download={FILE_NAME}>
-            <span className="copy-icon" aria-hidden="true">
-              <svg viewBox="0 0 16 16">
-                <path d="M8 2.5v8.2M4.6 7.4 8 10.8l3.4-3.4M3 13.5h10" />
-              </svg>
-            </span>
-            <span className="copy-label">Download the Bootloader</span>
-          </a>
-        </footer>
       </div>
     </dialog>
   );

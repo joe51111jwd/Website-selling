@@ -20,7 +20,7 @@ team back on, on the systems, and the building keeps rising past where the rush 
 | `story.py` | The scroll story (340 frames), camera moves and render settings; saves `foundation.blend` |
 | `prologue.py` | The opening: the three cover blocks lie face up, seen from above, then stand up and stack while the camera cranes down to the story's hero shot (frame 28) |
 | `render.sh` | Renders `foundation.blend` into `out/seq` (motion blur on the rush and the fall only) |
-| `book.py` | The hardcover with the three blocks beside it |
+| `book.py` | The hardcover with the three blocks beside it (the link preview, `og.jpg`); with `--solo 1`, the hardcover alone on a transparent background, its shadow kept, for the hero |
 | `closed.py` | The closed loop after the story: the row buried under what AI keeps adding, swept clear, then eleven systems set down in a ring (50 frames); Quality on its own in layers (block, shadow at rest and lifted) for the copy; a wide panorama of the same table with the book further along; and the page's COPY button, a long blank block in Quality's paint (red and green) with its shadows (`--shot copyblock`) |
 | `render_closed.sh` | Renders all of `closed.py`'s shots; a stopped run picks up where it left off |
 | `anchors.py` | Exports each frame's screen position of the labelled blocks, so the site can pin labels to them |
@@ -34,7 +34,10 @@ team back on, on the systems, and the building keeps rising past where the rush 
 3. Story: `blender -b -P story.py -- --w 1600 --h 1000 --samples 18` saves `foundation.blend`, then `BLENDER=blender ./render.sh`.
    Opening: `blender -b foundation.blend -P prologue.py -- --out out/proseq/p --samples 18` (add `--proxy 1 --w 400 --h 250 --samples 6` for a quick look)
 4. Anchors: `blender -b foundation.blend -P anchors.py -- out/anchors.json` (joined to the opening in step 7)
-5. Book: `blender -b -P book.py -- --w 1500 --h 1500 --samples 128 --out out/book.png`
+5. Book: `blender -b -P book.py -- --w 1500 --h 1500 --samples 128 --out out/book.png` and
+   `blender -b -P book.py -- --solo 1 --w 1200 --h 1500 --samples 160 --out out/hero_book.png` (`tex/cover.jpg` is the front cover
+   from the manuscript), then from the project root `python3 scripts/make_book_assets.py render/out/hero_book.png`
+   (the hero's two WebP sizes in `public/book/`, `src/book.json`, and `public/og.jpg` from `out/book.png`)
 6. Closed loop: `BLENDER=blender ./render_closed.sh` (or one shot at a time, `--proxy 1` for a quick framing check:
    `blender -b foundation.blend -P closed.py -- --shot seq|layers|pano --out out/clseq|out/closed`), then from the project root
    `python3 scripts/make_closed_assets.py render/out/closed render/out/clseq render/out/seq` (Quality's layers, the panorama, the footer seal,

@@ -1,23 +1,25 @@
-// The opt-in: an email address in, the SUSD Bootloader on its way out (the email service sends it).
+// The first-edition list: one sign-up, an email address in, and the email service sends the SUSD
+// Bootloader free with its welcome email. The file is never a direct download from the site.
 //
 // Connect ONE email service in the Vercel project's environment variables, then redeploy:
 //   Kit (ConvertKit):  KIT_API_KEY, KIT_FORM_ID           KIT_FORM_ID must be a double opt-in form whose
 //                      incentive email carries the file (new addresses are created "inactive"; that email
 //                      confirms them)
 //   Mailchimp:         MAILCHIMP_API_KEY (ends in -usNN), MAILCHIMP_LIST_ID
-//                      (double opt-in: new addresses are added as "pending" until confirmed)
+//                      (double opt-in: new addresses are added as "pending" until confirmed; the
+//                      audience's final welcome email carries the file)
 //   Anything else:     OPTIN_WEBHOOK_URL                  Zapier, Make, a CRM: receives {email, source, at}
-// With none set, GET answers {live: false}, the page downloads the file instead, and nothing is stored.
+// With none set, GET answers {live: false}, the pages say the list opens soon, and nothing is stored.
 // Optional: a Vercel Firewall rate-limit rule on /api/optin (say 5 requests a minute per IP) slows
 // scripted sign-ups; the honeypot only stops bots that fill in the form.
 //
 // GET  /api/optin                      -> {live}
 // POST /api/optin  {email, source, company}   (company is a honeypot; JSON, or a plain form post)
-//   JSON: 200 {ok, emailed: true}                  a new sign-up: the service emails the file
+//   JSON: 200 {ok, emailed: true}                  a new sign-up: the service emails the Bootloader
 //         200 {ok, emailed: false}                 no service connected
 //         200 {ok, emailed: false, already: true}  signed up before: the service won't email it again
 //         400 {ok: false, error: "email"} | 502 {ok: false, error: "provider"}
-//   form: 303 to /appendix#optin-sent, #optin-file (no service), #optin-already, #optin-failed or #optin-error
+//   form: 303 to /appendix#optin-sent, #optin-soon (no service), #optin-already, #optin-failed or #optin-error
 import { createHash } from "node:crypto";
 
 const env = process.env;
@@ -54,7 +56,7 @@ async function subscribe(kind, email, source, referrer, signal) {
     const headers = { Authorization: `Basic ${Buffer.from(`susd:${env.MAILCHIMP_API_KEY}`).toString("base64")}`, "Content-Type": "application/json" };
     // on the list in any status: an update emails nothing, and their status is not ours to change
     if ((await call("mailchimp member", `${member}?fields=status`, { headers }, signal, 404)).status !== 404) return "already";
-    await call("mailchimp", member, { method: "PUT", headers, body: JSON.stringify({ email_address: email, status_if_new: "pending", tags: ["bootloader", `from-${source}`] }) }, signal);
+    await call("mailchimp", member, { method: "PUT", headers, body: JSON.stringify({ email_address: email, status_if_new: "pending", tags: ["first-edition", "bootloader", `from-${source}`] }) }, signal);
     return "sent";
   }
   // a webhook can't say whether the address is new
@@ -84,7 +86,7 @@ export default {
     // the hidden field was filled: a bot, told it worked
     if (typeof data.company === "string" && data.company.trim()) return isForm ? back("optin-sent") : json({ ok: true, emailed: true });
     if (!EMAIL.test(email)) return isForm ? back("optin-error") : json({ ok: false, error: "email" }, 400);
-    if (!kind) return isForm ? back("optin-file") : json({ ok: true, emailed: false });
+    if (!kind) return isForm ? back("optin-soon") : json({ ok: true, emailed: false });
     let result;
     try {
       result = await subscribe(kind, email, source, req.headers.get("referer"), AbortSignal.timeout(BUDGET));

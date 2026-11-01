@@ -5,3 +5,4 @@ render/tex
 render/fonts
 *.blend
 *.blend1
+render/__pycache__

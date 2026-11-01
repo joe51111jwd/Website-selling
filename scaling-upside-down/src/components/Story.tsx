@@ -1,12 +1,11 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
 import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { FrameStore, fetchOk } from "../frames";
 import { CALLOUTS, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, frameAt, portraitFit, progressAt, sp, yearAt } from "../story";
-import type { Beat } from "../copy";
-import { GetLink } from "./GetLink";
-import { ensureBootloader } from "../bootloader";
-import { LINKS, preorderHref } from "../links";
+import type { Beat, SiteCopy } from "../copy";
+import { JoinLink } from "./JoinLink";
+import { BOOK } from "../book";
 
 type Anchors = { names: string[]; frames: Record<string, [number, number]>[] };
 
@@ -47,17 +46,14 @@ function BeatView({ beat, progress }: { beat: Beat; progress: MotionValue<number
       {beat.detail && <p className="beat-d">{beat.detail}</p>}
       {beat.cta && (
         <m.div className="beat-cta" style={{ visibility: ctaVis }}>
-          <GetLink />
-          <a className="ghost" href={preorderHref()}>
-            {LINKS.preorder ? "Pre-order the book" : "The book"}
-          </a>
+          <JoinLink />
         </m.div>
       )}
     </m.article>
   );
 }
 
-export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; title: string; sub: string; detail: string; preorder: string } }) {
+export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }) {
   const section = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const callouts = useRef<(HTMLDivElement | null)[]>([]);
@@ -78,14 +74,8 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
   const cueOpacity = useTransform(scrollYProgress, [0, 0.012], [1, 0]);
   // gone once faded, so its looping animation stops too
   const cueDisplay = useTransform(cueOpacity, (o) => (o > 0 ? "" : "none"));
-  // the prompt is about to be wanted: make sure it is here, so the copy never waits on the network
-  const fetched = useRef(false);
   useMotionValueEvent(scrollYProgress, "change", (v) => {
     if (v > OPEN_P * 0.62 && !heroIn) setHeroIn(true);
-    if (v > sp(0.6) && !fetched.current) {
-      fetched.current = true;
-      ensureBootloader("high").catch(() => {});
-    }
   });
 
   useEffect(() => {
@@ -410,31 +400,35 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: { kicker: string; 
           ))}
         </div>
 
+        {/* the blocks finish stacking beside the book they come from: the hardcover, the cover's own blocks on it */}
         <m.div className="hero" style={{ opacity: heroOpacity, y: heroY, pointerEvents: heroEvents }}>
-          <m.p className="hero-k" initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 12 }} transition={{ duration: 0.7, delay: 0.05 }}>
-            {hero.kicker}
-          </m.p>
-          <h1 className="hero-t">
-            {hero.title.split("\n").map((line, n) => (
-              <span className="ln" key={line}>
-                <m.span initial={false} animate={{ y: shownHero ? "0%" : "108%" }} transition={{ duration: 1, ease: [0.2, 0.75, 0.15, 1], delay: 0.1 + n * 0.1 }}>
-                  {line}
-                </m.span>
-              </span>
-            ))}
-          </h1>
-          <m.p className="hero-s" initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 14 }} transition={{ duration: 0.8, delay: 0.35 }}>
-            {hero.sub}
-          </m.p>
-          <m.p className="hero-d" initial={false} animate={{ opacity: shownHero ? 1 : 0 }} transition={{ duration: 0.8, delay: 0.45 }}>
-            {hero.detail}
-          </m.p>
-          <m.div className="hero-cta" style={{ visibility: heroVis }} initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 14 }} transition={{ duration: 0.8, delay: 0.55 }}>
-            <GetLink />
-            <a className="ghost" href={preorderHref()}>
-              {LINKS.preorder ? hero.preorder : "The book"}
-            </a>
-          </m.div>
+          <m.figure className="hero-book" style={{ "--bx": BOOK.box[0], "--bf": BOOK.box[2] } as CSSProperties} initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 28 }} transition={{ duration: 1.1, ease: [0.2, 0.75, 0.15, 1], delay: 0.1 }}>
+            <img src={BOOK.src} srcSet={BOOK.srcSet} sizes="(max-width: 900px) 36vw, 20vw" width={BOOK.w} height={BOOK.h} alt={hero.cover} decoding="async" fetchPriority="high" draggable={false} />
+          </m.figure>
+          <div className="hero-text">
+            <m.p className="hero-k" initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 12 }} transition={{ duration: 0.7, delay: 0.05 }}>
+              {hero.kicker}
+            </m.p>
+            <h1 className="hero-t">
+              {hero.title.split("\n").map((line, n) => (
+                <span className="ln" key={line}>
+                  <m.span initial={false} animate={{ y: shownHero ? "0%" : "108%" }} transition={{ duration: 1, ease: [0.2, 0.75, 0.15, 1], delay: 0.1 + n * 0.1 }}>
+                    {line}
+                  </m.span>
+                </span>
+              ))}
+            </h1>
+            <m.p className="hero-s" initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 14 }} transition={{ duration: 0.8, delay: 0.35 }}>
+              {hero.sub}
+            </m.p>
+            <m.p className="hero-d" initial={false} animate={{ opacity: shownHero ? 1 : 0 }} transition={{ duration: 0.8, delay: 0.45 }}>
+              {hero.detail}
+            </m.p>
+            <m.div className="hero-cta" style={{ visibility: heroVis }} initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 14 }} transition={{ duration: 0.8, delay: 0.55 }}>
+              <JoinLink label={hero.join} />
+              <p className="hero-free">{hero.free}</p>
+            </m.div>
+          </div>
         </m.div>
 
         <m.div className="cue" style={{ opacity: cueOpacity, display: cueDisplay }} aria-hidden="true">
@@ -535,7 +529,7 @@ function MarginTable() {
 const CHAPTERS: [string, number, number][] = [
   ["Too fast", 0.035, 0.24],
   ["Falls over", 0.24, 0.385],
-  ["Foundation", 0.385, 1],
+  ["Up · Side · Down", 0.385, 1],
 ];
 
 function Chapters({ progress }: { progress: MotionValue<number> }) {

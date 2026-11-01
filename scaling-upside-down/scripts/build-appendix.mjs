@@ -7,8 +7,9 @@
 // (VERCEL_PROJECT_PRODUCTION_URL), else the vercel.app address. APPENDIX_OUT=<folder> writes somewhere other
 // than dist/ (for testing).
 //
-// Reads public/bootloader.md and src/notice.json; writes dist/appendix.html (served at /appendix),
-// dist/llms.txt, dist/llms-full.txt, dist/sitemap.xml and dist/robots.txt. The page's CSS and JS
+// Reads content/bootloader.md (not served: the file itself comes by email, with the first-edition
+// list), src/notice.json and src/book.json; writes dist/appendix.html (served at /appendix),
+// dist/llms.txt, dist/sitemap.xml and dist/robots.txt. The page's CSS and JS
 // (scripts/appendix/) are inlined, so it is one request. Every heading and every term in the
 // Vocabulary Lock gets a permanent anchor, so any part of the system has its own citable URL.
 import { execFileSync } from "node:child_process";
@@ -23,9 +24,10 @@ const DIST = process.env.APPENDIX_OUT || join(ROOT, "dist"); // the built site
 const SITE = siteUrl();
 const PAGE = `${SITE}/appendix`;
 const HOST = SITE.replace(/^https?:\/\//, "");
-const MD_PATH = join(ROOT, "public", "bootloader.md");
+const MD_PATH = join(ROOT, "content", "bootloader.md");
 const md = readFileSync(MD_PATH, "utf8").replace(/\r\n?/g, "\n");
 const notice = JSON.parse(readFileSync(join(ROOT, "src", "notice.json"), "utf8"));
+const book = JSON.parse(readFileSync(join(ROOT, "src", "book.json"), "utf8")); // the hardcover, as on the home page
 const css = readFileSync(join(ROOT, "scripts", "appendix", "appendix.css"), "utf8");
 const js = readFileSync(join(ROOT, "scripts", "appendix", "appendix.js"), "utf8");
 
@@ -33,7 +35,9 @@ const js = readFileSync(join(ROOT, "scripts", "appendix", "appendix.js"), "utf8"
 const TWO_FORMS = "This appendix exists in two forms: the pages that follow, and a downloadable file designed to be loaded into any AI assistant you already use."; // L4495
 const REFERENCE = "The pages are reference. The file is the operating system."; // L4497
 const SPEC = "The SUSD Bootloader is a specification designed for use with third-party artificial-intelligence systems."; // L4561 (1st sentence)
-const UPLOAD = "Upload the file and use the starting prompt provided with it."; // L4531
+// the book's own copy, from its covers (the back cover is the manuscript's last picture)
+const SUBTITLE = "Revenue Up. Margins Down. How to Avoid the Scaling Trap."; // the cover
+const ABOUT = "Part diagnosis, part operating system, this book offers founders a practical way to build businesses that grow without collapsing under their own weight."; // the back cover
 
 // ---------- facts read from the file itself, so a new version needs nothing else ----------
 const words = (md.match(/\S*[\p{L}\p{N}]\S*/gu) ?? []).length; // words, not Markdown (same count as the site)
@@ -55,7 +59,8 @@ const updatedIso = (() => {
 const modified = (() => {
   const git = (...args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
   try {
-    const [hash, day] = git("log", "-1", "--format=%H %cs", "--", "public/bootloader.md").split(" ");
+    // the last commit that changed its words (a move, such as public/ to content/, does not count)
+    const [hash, day] = git("log", "-1", "--follow", "--diff-filter=AM", "--format=%H %cs", "--", "content/bootloader.md").split(" ");
     if (hash && /^\d{4}-\d{2}-\d{2}$/.test(day ?? "")) {
       const parentless = git("rev-list", "--parents", "-n", "1", hash).split(" ").length === 1;
       if (!(parentless && git("rev-parse", "--is-shallow-repository") === "true")) return day;
@@ -65,8 +70,6 @@ const modified = (() => {
   }
   return updatedIso ? `${updatedIso}-01` : "";
 })();
-const promptMatch = md.match(/\*\*Canonical Prompt \(For Users\)\*\*[\s\S]*?```[^\n]*\n([\s\S]*?)\n```/);
-const startingPrompt = promptMatch ? promptMatch[1] : "";
 const purpose = (md.match(/## PURPOSE\s+([^\n]+)/) || [])[1] || ""; // the Bootloader's own first lines
 
 // ---------- helpers ----------
@@ -89,7 +92,7 @@ const slugify = (s) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "") || "section";
 // ids the page itself uses, so no heading can take one; then first come, first served, in document order
-const used = new Set(["top", "main", "nav", "contents", "toc-search", "toc-empty", "get", "get-h", "load-h", "optin", "optin-email", "optin-msg", "copy-prompt", "copy-status", "starting-prompt", "canonical-prompt", "bootloader", "use-notice", "use-notice-h", "cite", "cite-h", "end", "foot", "optin-sent", "optin-file", "optin-already", "optin-failed", "optin-error"]);
+const used = new Set(["top", "main", "nav", "contents", "toc-search", "toc-empty", "book", "book-h", "get", "get-h", "optin", "optin-email", "optin-msg", "canonical-prompt", "bootloader", "use-notice", "use-notice-h", "cite", "cite-h", "book-end", "book-end-h", "end", "foot", "optin-sent", "optin-soon", "optin-already", "optin-failed", "optin-error"]);
 const unique = (base) => {
   let id = base;
   for (let n = 2; used.has(id); n++) id = `${base}-${n}`;
@@ -159,7 +162,7 @@ const article = marked.parse(md);
 const label = (t) => esc(t).replace(/^(Section \d+(?: \(Continued\))?:|INVERSION #\d+:|\d+(?:\.\d+)+[a-z]?(?=\s))/, '<span class="tn">$1</span>');
 const tocList = (() => {
   let out = '<ol class="toc-l">';
-  out += '<li class="x"><a href="#get">Get the Bootloader</a></li>';
+  out += '<li class="x"><a href="#get">Join the first-edition list</a></li>';
   // sections (h2) hold their subsections (h3); an h3 holds its h4s, which stay hidden until the search finds them
   let open2 = false;
   let open3 = false;
@@ -246,7 +249,6 @@ const ld = [
     ...(modified ? { dateModified: modified } : {}),
     inLanguage: "en",
     isPartOf: { "@type": "Book", "@id": `${SITE}/#book`, name: "Scaling Up-Side-Down", url: `${SITE}/` }, // the home page's Book
-    encoding: { "@type": "MediaObject", contentUrl: `${SITE}/bootloader.md`, encodingFormat: "text/markdown", contentSize: kb, name: "SUSD-Bootloader.md" },
     articleSection: toc.filter((t) => t.depth === 2).map((t) => t.text),
     keywords: terms.slice(0, 40).map((t) => t.term).join(", "),
   },
@@ -263,7 +265,8 @@ const ldTags = ld.map((o) => `<script type="application/ld+json">${JSON.stringif
 
 // ---------- the page ----------
 const tri = '<span class="tri" aria-hidden="true"><i></i><i></i><i></i></span>';
-const dl = '<a href="/bootloader.md" download="SUSD-Bootloader.md">Download the Bootloader (.md)</a>';
+const cover = (w) => `/book/${book.files[w]}`;
+const coverImg = (cls, sizes) => `<img class="${cls}" src="${cover("960")}" srcset="${cover("480")} 480w, ${cover("960")} 960w" sizes="${sizes}" width="${book.w}" height="${book.h}" alt="The hardcover of Scaling Up-Side-Down by Michael Wentz" loading="lazy" decoding="async">`;
 const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -275,7 +278,6 @@ const html = `<!doctype html>
 <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
 <meta name="theme-color" content="#f6f0dd">
 <link rel="canonical" href="${PAGE}">
-<link rel="alternate" type="text/markdown" href="/bootloader.md" title="SUSD Bootloader ${esc(version)} (Markdown)">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Scaling Up-Side-Down">
@@ -298,10 +300,10 @@ ${ldTags}
   <a class="brand" href="/"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><span>Scaling Up-Side-Down</span></a>
   <nav class="nav-links" aria-label="Site">
     <a href="/">The story</a>
-    <a href="/appendix" aria-current="page">The appendix</a>
     <a href="/#book">The book</a>
+    <a href="/appendix" aria-current="page">The appendix</a>
   </nav>
-  <a class="nav-cta" href="#get">Get the Bootloader</a>
+  <a class="nav-cta" href="#get">Join the list</a>
 </header>
 <div class="layout">
 <details class="toc" id="contents" open>
@@ -313,6 +315,16 @@ ${ldTags}
   </div>
 </details>
 <main id="main">
+<aside class="book-band" id="book" aria-labelledby="book-h">
+  ${coverImg("book-band-img", "(max-width: 640px) 26vw, 150px")}
+  <div class="book-band-text">
+    <p class="kicker">${tri}The appendix to the book</p>
+    <h2 id="book-h"><a href="/">Scaling Up-Side-Down</a></h2>
+    <p class="book-band-sub">${esc(SUBTITLE)}</p>
+    <p class="book-band-by">Michael Wentz · For bootstrapped founders</p>
+    <p class="book-band-cta"><a class="btn" href="#get">Join the first-edition list</a><a class="btn ghost" href="/">About the book</a></p>
+  </div>
+</aside>
 <header class="doc-head">
   <p class="kicker">${tri}SUSD · Operating System · Appendix</p>
   <h1>The SUSD Bootloader</h1>
@@ -323,21 +335,21 @@ ${ldTags}
     <div><dt>Version</dt><dd>${esc(version)}</dd></div>
     <div><dt>Updated</dt><dd>${esc(updated)}</dd></div>
     <div><dt>Words</dt><dd>${words.toLocaleString("en-US")}</dd></div>
-    <div><dt>File</dt><dd>Markdown · ${kb}</dd></div>
+    <div><dt>File</dt><dd>Markdown · ${kb} · by email</dd></div>
     <div><dt>Status</dt><dd><span class="dot" aria-hidden="true"></span>Closed system</dd></div>
   </dl>
 </header>
 
 <section class="get" id="get" aria-labelledby="get-h">
   <div class="get-mail">
-    <p class="kicker">${tri}Opt in</p>
-    <h2 id="get-h">Get the Bootloader</h2>
-    <p class="get-sub">The file, by email.</p>
+    <p class="kicker">${tri}The first-edition list</p>
+    <h2 id="get-h">Join the list</h2>
+    <p class="get-sub">For the first edition of the book. The SUSD Bootloader comes free, by email.</p>
     <form id="optin" class="optin" method="post" action="/api/optin" novalidate>
       <label class="lbl" for="optin-email">Email</label>
       <div class="optin-row">
         <input id="optin-email" name="email" type="email" inputmode="email" autocomplete="email" required placeholder="you@company.com" aria-describedby="optin-msg">
-        <button type="submit" class="btn">Send me the Bootloader</button>
+        <button type="submit" class="btn">Join the list</button>
       </div>
       <div class="hp" aria-hidden="true" data-nosnippet><label>Company <input name="company" type="text" tabindex="-1" autocomplete="off"></label></div>
       <input type="hidden" name="source" value="appendix">
@@ -347,25 +359,10 @@ ${ldTags}
          unless targeted, and kept out of snippets (they are in the HTML a crawler reads), so each must read true
          on its own -->
     <div class="done ok" id="optin-sent" data-nosnippet>Sent. Check your inbox.</div>
-    <div class="done ok" id="optin-file" data-nosnippet>Here's the file. ${dl}</div>
-    <div class="done ok" id="optin-already" data-nosnippet>You're already on the list. Here's the file. ${dl}</div>
-    <div class="done err" id="optin-failed" data-nosnippet>Couldn't send. Download the file instead. ${dl}</div>
+    <div class="done ok" id="optin-soon" data-nosnippet>The list opens soon.</div>
+    <div class="done ok" id="optin-already" data-nosnippet>You're already on the list.</div>
+    <div class="done err" id="optin-failed" data-nosnippet>Couldn't send. Try again.</div>
     <div class="done err" id="optin-error" data-nosnippet>That email address didn't look right. Try again.</div>
-  </div>
-  <div class="get-load" aria-labelledby="load-h">
-    <h3 id="load-h">Load it into your AI</h3>
-    <ol class="steps">
-      <li>
-        <a class="btn ghost" href="/bootloader.md" download="SUSD-Bootloader.md"><span aria-hidden="true">↓</span> Download the Bootloader (.md)</a>
-        <span class="small">SUSD-Bootloader.md · ${kb}</span>
-      </li>
-      <li>
-        <p>${esc(UPLOAD)}</p>
-        <pre class="code prompt" id="starting-prompt"><code>${esc(startingPrompt)}</code></pre>
-        <button type="button" class="btn ghost" id="copy-prompt">Copy the starting prompt</button>
-        <span class="sr" id="copy-status" role="status"></span>
-      </li>
-    </ol>
     <p class="fine"><a href="#use-notice">Use notice</a></p>
   </div>
 </section>
@@ -381,8 +378,16 @@ ${noticeHtml}
   <h2 id="cite-h">How to cite</h2>
   <p class="cite-ref">Wentz, M. (2026). <cite>The SUSD Bootloader</cite> (${esc(version)}). <i>Scaling Up-Side-Down</i>. <a href="${PAGE}">${esc(HOST)}/appendix</a></p>
   <p class="cite-note">Cite a section or term: <a href="#term-cyclical-growth"><code>${esc(HOST)}/appendix#term-cyclical-growth</code></a></p>
-  <p class="cite-note">File: <a href="/bootloader.md"><code>${esc(HOST)}/bootloader.md</code></a></p>
 </section>
+<aside class="book-band end-band" id="book-end" aria-labelledby="book-end-h">
+  ${coverImg("book-band-img", "(max-width: 640px) 26vw, 150px")}
+  <div class="book-band-text">
+    <p class="kicker">${tri}The book</p>
+    <h2 id="book-end-h"><a href="/">Scaling Up-Side-Down</a></h2>
+    <p class="book-band-sub">${esc(ABOUT)}</p>
+    <p class="book-band-cta"><a class="btn" href="#get">Join the first-edition list</a><a class="btn ghost" href="/">About the book</a></p>
+  </div>
+</aside>
 <p class="end" id="end">End of document · SUSD Bootloader ${esc(version)} · <a href="${PAGE}">${esc(HOST)}/appendix</a></p>
 </main>
 </div>
@@ -405,22 +410,16 @@ const llms = `# Scaling Up-Side-Down
 - Author: Michael Wentz
 - Appendix: SUSD Bootloader ${version}, ${words.toLocaleString("en-US")} words
 - Page: ${PAGE}
-- File: ${SITE}/bootloader.md
+- The file: by email, with the book's first-edition list (${PAGE}#get)
 
 ## Docs
 
 - [The SUSD Bootloader (the Appendix)](${PAGE}): the complete Bootloader as one HTML page, with a permanent anchor for every section and every Vocabulary Lock term (e.g. ${PAGE}#term-cyclical-growth).
-- [SUSD Bootloader, Markdown](${SITE}/bootloader.md): the same document as the file designed to be loaded into an AI assistant.
 
 ## Optional
 
 - [Scaling Up-Side-Down](${SITE}/): the book's site.
 `;
-const llmsFull = `# SUSD Bootloader ${version} (full text)
-
-Source: ${PAGE} · Markdown: ${SITE}/bootloader.md · Author: Michael Wentz
-
-${md}`;
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>${SITE}/</loc></url>
@@ -458,7 +457,6 @@ Sitemap: ${SITE}/sitemap.xml
 for (const [name, body] of [
   ["appendix.html", html],
   ["llms.txt", llms],
-  ["llms-full.txt", llmsFull],
   ["sitemap.xml", sitemap],
   ["robots.txt", robots],
 ])
