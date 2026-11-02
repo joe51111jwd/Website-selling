@@ -30,7 +30,7 @@ import lib_lookdev as L
 A = L.args(dict(state='first', camera='desktop', w=640, h=400, samples=12, out='out/ideas/03-blackout/test.png',
                 exposure=-0.9, look='AgX - Medium High Contrast', window=160.0, world=0.35, fstop=0.0,
                 tilt=-1.0, dist=-1.0, focal=-1.0, tx=-1.0, ty=-1.0, rot=-99.0, grain=0.06, table='oak',
-                brush=-1, label='blackout', winz=0.40, winx=1.15, view='Standard', brot=28.0, ceil=0.0))
+                brush=-1, label='blackout', winz=0.40, winx=1.15, view='Standard', brot=-74.0, ceil=0.0))
 if not os.path.isabs(A['out']):
     A['out'] = os.path.join(ROOT, A['out'])
 TEX = os.path.join(HERE, 'tex')
@@ -42,8 +42,8 @@ PW, PH = LAY['page_mm']
 # camera leans back towards the reader), distance (m), lens (mm), and the page's turn on the table.
 PRESETS = {
     ('first', 'desktop'): dict(tx=63.0, ty=87.0, tilt=9.0, dist=0.63, focal=85.0, rot=-1.4, fstop=5.6),
-    ('first', 'phone'):   dict(tx=103.0, ty=136.0, tilt=7.0, dist=0.71, focal=70.0, rot=-1.4, fstop=5.6),
-    ('key', 'desktop'):   dict(tx=146.0, ty=150.0, tilt=14.0, dist=0.62, focal=85.0, rot=1.1, fstop=4.0),
+    ('first', 'phone'):   dict(tx=103.0, ty=113.0, tilt=7.0, dist=0.71, focal=70.0, rot=-1.4, fstop=5.6),
+    ('key', 'desktop'):   dict(tx=160.0, ty=150.0, tilt=14.0, dist=0.62, focal=85.0, rot=1.1, fstop=4.0),
 }
 CP = dict(PRESETS[(A['state'], A['camera'])])
 for k in ('tx', 'ty', 'tilt', 'dist', 'focal', 'rot', 'fstop'):
@@ -280,7 +280,7 @@ def bristle_mat():
     return m
 
 
-def brush_and_dish(dish_xy, brush_rot_deg, k=0.72):
+def brush_and_dish(dish_xy, brush_rot_deg, k=0.62):
     # a small porcelain mixing dish (about 74 mm across) with a pool of ink
     d = lathe('Dish', [(0.0, 0.0), (0.030, 0.0), (0.040, 0.0018), (0.048, 0.0085), (0.0505, 0.0098),
                        (0.0515, 0.0094), (0.0495, 0.0080), (0.0415, 0.0052), (0.0310, 0.0040), (0.0, 0.0040)],
@@ -294,10 +294,11 @@ def brush_and_dish(dish_xy, brush_rot_deg, k=0.72):
     # the brush: lacquered birch handle, crimped nickel ferrule, 15 mm flat of wet black bristle
     handle = lathe('Handle', [(0.0, 0.0), (0.0022, 0.0), (0.0034, 0.02), (0.0042, 0.07), (0.0044, 0.11),
                               (0.0040, 0.15), (0.0036, 0.158), (0.0, 0.158)], segs=48)
-    hm = bpy.data.materials.new('Lacquer'); hm.use_nodes = True
+    # natural birch under clear lacquer, a little grubby: the scanned oak, lightened, at small scale
+    hm = L.pbr('Lacquer', 'oak_veneer_01', scale=9.0, tint=(1.0, 0.93, 0.80), rough_add=-0.25, rough_mul=0.6,
+               normal_strength=0.3, coords='Object')
     hb = hm.node_tree.nodes['Principled BSDF']
-    hb.inputs['Base Color'].default_value = (0.42, 0.075, 0.045, 1); hb.inputs['Roughness'].default_value = 0.22
-    hb.inputs['Coat Weight'].default_value = 0.5; hb.inputs['Coat Roughness'].default_value = 0.12
+    hb.inputs['Coat Weight'].default_value = 0.6; hb.inputs['Coat Roughness'].default_value = 0.10
     handle.data.materials.append(hm)
     fer = lathe('Ferrule', [(0.0042, 0.0), (0.0046, 0.003), (0.0046, 0.022), (0.0045, 0.024), (0.0, 0.024)], segs=48)
     fm = L.paint_mat('Nickel', (0.72, 0.72, 0.70), rough=0.24, rough_var=0.12)
@@ -314,7 +315,7 @@ def brush_and_dish(dish_xy, brush_rot_deg, k=0.72):
     prof = []
     for i in range(13):
         s = i / 12
-        prof.append((0.0078 * (1 - 0.06 * s), 0.0013 * (1 - 0.92 * s ** 1.3), 0.024 + 0.019 * s))
+        prof.append((0.0078 * (1 + 0.07 * s ** 2), 0.0013 * (1 - 0.92 * s ** 1.3), 0.024 + 0.019 * s))   # splays a little at the tip
     rows = []
     for (hw, ht, z) in prof:
         ring = [bm.verts.new((-hw, -ht, z)), bm.verts.new((hw, -ht, z)), bm.verts.new((hw, ht, z)), bm.verts.new((-hw, ht, z))]
@@ -355,7 +356,7 @@ page = sheet('Page', PAGE, page_mat('Page', PAGE, wet_ok=(A['state'] == 'key')))
 
 if BRUSH:
     # the dish sits on the table beyond the page's right edge; the brush rests across it
-    rp = page_to_world(PW + 40, 150.0)
+    rp = page_to_world(PW + 41, 112.0)
     dish, brush = brush_and_dish((rp.x, rp.y), A['brot'])
 
 # light: one window, on the left, a little behind; daylight, overcast-bright

@@ -9,7 +9,7 @@
   {
    "text": "The answer is: \u201cYou\u2019re",
    "x0": 30.0,
-   "x1": 149.5263671875,
+   "x1": 160.4150390625,
    "keep": false,
    "kind": "cont",
    "base": 38.68,
@@ -17,9 +17,9 @@
    "bot": 41.592
   },
   {
-   "text": "describing when to move,",
+   "text": "describing when to",
    "x0": 30.0,
-   "x1": 170.16796875,
+   "x1": 143.6669921875,
    "keep": false,
    "kind": "cont",
    "base": 52.344,
@@ -27,9 +27,9 @@
    "bot": 55.256
   },
   {
-   "text": "not where the math",
+   "text": "move, not where the",
    "x0": 30.0,
-   "x1": 138.3759765625,
+   "x1": 149.9638671875,
    "keep": false,
    "kind": "cont",
    "base": 66.008,
@@ -37,9 +37,9 @@
    "bot": 68.92
   },
   {
-   "text": "stabilizes.\u201d",
+   "text": "math stabilizes.\u201d",
    "x0": 30.0,
-   "x1": 87.6044921875,
+   "x1": 128.2392578125,
    "keep": false,
    "kind": "cont",
    "base": 79.672,
@@ -49,7 +49,7 @@
   {
    "text": "4.2 Entry Point Routing",
    "x0": 30.0,
-   "x1": 158.46875,
+   "x1": 168.658203125,
    "keep": false,
    "kind": "head",
    "base": 93.336,
@@ -59,7 +59,7 @@
   {
    "text": "Step 0: The Locating",
    "x0": 30.0,
-   "x1": 142.50390625,
+   "x1": 151.1171875,
    "keep": false,
    "kind": "head",
    "base": 107.0,
@@ -69,7 +69,7 @@
   {
    "text": "Question (Ask First)",
    "x0": 30.0,
-   "x1": 141.1923828125,
+   "x1": 149.7421875,
    "keep": false,
    "kind": "head",
    "base": 120.66399999999999,
@@ -79,7 +79,7 @@
   {
    "text": "\u201cHow many people are",
    "x0": 43.44,
-   "x1": 165.9331640625,
+   "x1": 176.4273046875,
    "keep": true,
    "kind": "keepquote",
    "base": 134.328,
@@ -89,7 +89,7 @@
   {
    "text": "on your team?\u201d",
    "x0": 43.44,
-   "x1": 126.4194921875,
+   "x1": 133.813046875,
    "keep": true,
    "kind": "keepquote",
    "base": 147.992,
@@ -99,7 +99,7 @@
   {
    "text": "Clarification: \u201cTeam\u201d",
    "x0": 30.0,
-   "x1": 141.9638671875,
+   "x1": 152.896484375,
    "keep": false,
    "kind": "cont",
    "base": 161.656,
@@ -107,9 +107,9 @@
    "bot": 164.568
   },
   {
-   "text": "means coordination load,",
+   "text": "means coordination",
    "x0": 30.0,
-   "x1": 169.115234375,
+   "x1": 149.05859375,
    "keep": false,
    "kind": "cont",
    "base": 175.32,
@@ -117,9 +117,9 @@
    "bot": 178.232
   },
   {
-   "text": "not payroll headcount.",
+   "text": "load, not payroll",
    "x0": 30.0,
-   "x1": 154.4287109375,
+   "x1": 126.6064453125,
    "keep": false,
    "kind": "cont",
    "base": 188.984,
@@ -127,9 +127,9 @@
    "bot": 191.89600000000002
   },
   {
-   "text": "Count everyone they carry",
+   "text": "headcount. Count",
    "x0": 30.0,
-   "x1": 176.3125,
+   "x1": 135.232421875,
    "keep": false,
    "kind": "cont",
    "base": 202.648,
@@ -137,9 +137,9 @@
    "bot": 205.56
   },
   {
-   "text": "in their head \u2014 employee",
+   "text": "everyone they carry in",
    "x0": 30.0,
-   "x1": 170.1474609375,
+   "x1": 164.1962890625,
    "keep": false,
    "kind": "cont",
    "base": 216.312,
@@ -147,9 +147,9 @@
    "bot": 219.22400000000002
   },
   {
-   "text": "or contractor, anyone they",
+   "text": "their head \u2014 employee",
    "x0": 30.0,
-   "x1": 175.8427734375,
+   "x1": 165.986328125,
    "keep": false,
    "kind": "cont",
    "base": 229.976,
@@ -157,9 +157,9 @@
    "bot": 232.888
   },
   {
-   "text": "align weekly, manage",
+   "text": "or contractor, anyone",
    "x0": 30.0,
-   "x1": 145.130859375,
+   "x1": 158.412109375,
    "keep": false,
    "kind": "cont",
    "base": 243.64000000000001,
@@ -167,9 +167,9 @@
    "bot": 246.55200000000002
   },
   {
-   "text": "output for, or coordinate",
+   "text": "they align weekly,",
    "x0": 30.0,
-   "x1": 167.5869140625,
+   "x1": 134.96484375,
    "keep": false,
    "kind": "cont",
    "base": 257.304,
@@ -177,9 +177,9 @@
    "bot": 260.21599999999995
   },
   {
-   "text": "with other team members.",
+   "text": "manage output for, or",
    "x0": 30.0,
-   "x1": 175.5859375,
+   "x1": 160.849609375,
    "keep": false,
    "kind": "cont",
    "base": 270.96799999999996,

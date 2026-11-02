@@ -69,3 +69,55 @@ Both new assets were downloaded with `tools/fetch_polyhaven.py`, which logged th
 - Mugs as people, and blue as "the newest hire's cables", are our readings; check both with James.
 - The heap's over-only stacking (see above) is the most render-like thing at 100%. A real shoot fixes it for free.
 - Ortica Angular (the hero) is a sharp serif. It is the project's face for Michael's voice, but it sits nearer the "editorial" family than B612 or Plimsoll, so worth a look in James's side-by-side.
+
+## Review (art director and stranger pass, 2 Nov 2026)
+
+All three images were looked at full size, and the raw renders at 100%. Scores for James: **shows the idea 7/10, looks real 6/10.**
+
+### Real or fake
+
+It does not look AI-made: there is no smeared detail, the light has one source you can name (late-morning sun from a window on the left, cut into panes on the floor), and the plaster, oak and floor are scanned textures with real grain. It does look like a careful 3D render. The tells, worst first:
+
+1. **The mugs.** Eight (then fifteen) identical white mugs, evenly spaced, handles nearly all the same way, spotless. At page size that row is the first thing that says "CG". Real people's mugs never match.
+2. **The room is too clean.** One closed laptop and one notebook; no monitor, no bag, no paper, no jacket on the chair, no dust. It reads as an archviz set, not an office someone works in.
+3. **The coils are rigid hoops.** Cables come off the box as near-perfect rings and stay round and stiff where they land, some tilted steeply against the pile. Real dumped coils slump and spring open.
+4. **Key beat, before this pass:** cables hung off the desk as dead-straight plumb lines with a hard right-angle hook at the edge (like string or rain), and some stood up as spikes where later cables climbed onto earlier hanging ones. That was the worst single tell, so it got the one re-render (below).
+5. Smaller: every plug is the same white box; the furniture edges are machine-perfect.
+
+What already works: the light, the dark plaster wall, the sun patch on the floor, contact shadows under every cable, the scale (mugs, sockets and a chair give known sizes), a real lens from where a person could stand.
+
+### Five-second test (as a bootstrapped founder)
+
+- First screen: "A book by Michael Wentz about how hiring adds complexity faster than it adds capacity; for founders like me (1 to 12 people); there is a free file for my AI, top right." That lands. The mugs and the heap make the sentence literal, and the labels name the code (one mug per person, one cable per pair).
+- Squint test: the sentence is the biggest high-contrast block on the dark wall. The sunlit floor is as bright, but it is low and broken up, so the words still win.
+- Key beat without words: a full shelf of mugs and cables everywhere reads as "more people, far more mess". After the re-render the founder's chair is taken by coils too, which is the human beat. "Something breaks" is shown as burying, not as a break; the tidy ending, where the idea pays off and the Bootloader click lives, is still not drawn.
+- The Bootloader: the only solid button on every screen ("Get it free"), with "A free file for your AI" beside it, so it is the obvious click. On desktop it sits in the top-right corner at nav size, so it is findable rather than dramatic; on the phone the bottom bar makes it unmissable.
+
+### Copy
+
+`node susd-options/tools/copycheck.mjs` on the three mock pages: 1 + 2 + 1 = 4 sentences checked, 0 not found. No sentence was changed in this pass; the phone line break added is in a label.
+
+### What was fixed
+
+1. **Key beat re-rendered once** (`final_key_desktop.png`, 1440x900, 28 samples, 111.1 s, no CPU sharing, through `render_idle.py`). Changes in `scene.py`, all behind `--review` (default on; `--review 0` gives back the builder's heap), and only for cables 29 to 105, so the first 28 cables are byte-identical to `first` (checked by dumping both heaps with the new `--dump`):
+   - `drape()`: a cable going over a real edge (a drop of more than 10 cm) rolls over on a 2.5 to 5 cm bend, hangs with the bow and sideways wave of its coil memory, and meets the floor on a J before running on. No more plumb lines or hooks.
+   - Hanging lengths are no longer stamped into the height map as if they were a surface, which removed the spikes where later cables climbed onto them.
+   - A dropped coil's loops now slide apart a little instead of staying concentric.
+   - 5% of the later cables are dropped on the founder's chair, as smaller coils that fit the seat. The seat now carries a small pile with a blue coil on top, and cables hang off it.
+   Images 1 and 3 were not re-rendered and are unchanged.
+2. **Phone overlay** (`3-first-phone.html`, `heap.css` phone rules only): the audience line moved up under Michael's sentence, as on desktop, broken after "with" so its short second line stays clear of the mugs; before, it sat in the middle of the wall between the two counts and read as one more label. The "28 cables" label gets a leader into the heap, like desktop. Small phone text raised from 11.5 to 12.5 to 13 px (count units, byline, Bootloader line, "The book"). No overlaps (checked by `shoot.cjs`).
+3. Re-shot with `node mock/shoot.cjs`; JPEGs at quality 85. `1-first-screen-desktop.jpg` is pixel-identical to the builder's and was left as it was.
+4. Housekeeping: the first row of `lookdev/renders.jsonl` had lost its opening `{` before this pass (file dated 04:43), which made `render_idle.py` crash after each render while annotating the log. That one byte was restored; the log parses again.
+
+Render time this pass: 111 s for the one final, plus four `--dry` geometry checks (no rendering, each a few seconds, also run through the queue). Idea total: about 605 s (10 min).
+
+### Still open
+
+- Mugs as people and blue as "the newest hire's cables" still need James's (and Michael's) OK.
+- **Blue cannot work in a real locked-off shoot as drawn.** In image 1 hire 8's cables are blue; in image 2 the same cables are grey, because blue moved to hire 15. Real cables don't change colour. For the shoot, give each hire's batch a colour that stays, or mark only the newest batch with something removable (a twist tie or tape flag).
+- The mugs and the bare room (tells 1 and 2) are left: changing them in one image only would break the locked-camera match between images 1, 2 and 3.
+- The tidy ending (three trunks, the rack with one empty labelled port, the Bootloader) is not drawn.
+
+### What the real production needs
+
+A real locked-off stop-motion in a real small office, shot in one late morning: one camera on a tripod at about 35 mm and standing eye height (plus a second locked camera, or a high-resolution frame cropped, for the phone), about ten states from 8 to 15 people, then the tidy ending. Fifteen real, mismatched mugs (different shapes and colours, a chip, a tea stain) so they read as people. About 105 real Cat6 cables, long ones (5 to 10 m) coiled, or the pile will not have the volume to bury a desk; with a colour per hire that stays put. A lived-in desk (monitor, papers, a jacket on the chair). For the ending: velcro-tied trunks and a small patch panel with one empty labelled port. Roughly a day to shoot and a day to edit; the cables are the main cost (my estimate: a few hundred dollars for long Cat6, more than the 09 entry's $200).

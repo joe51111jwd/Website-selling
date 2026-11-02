@@ -165,3 +165,92 @@ waiting in the queue can see the CPU free at the same moment and start together.
   the needle back, the calm end frame with "How many people are on your team?". Each one is a re-render
   of this scene with `--n` and a needle value; the scene does not need to change.
 - The calibration and the red from 72 are ours (see "Our calls").
+
+## Review (art director and stranger pass, 2 Nov 2026)
+
+I looked at each image at full size and at 100% crops of the renders, judged them as James would and as a
+bootstrapped founder seeing the page cold, then fixed what the HTML could fix. No re-render: nothing in the
+renders stops an image from doing its job, the render budget was already spent (14.6 min against 10 to 12),
+and the realism fixes below are look-dev changes that would need test renders, not one final.
+
+### Real or fake?
+
+It does not look AI-made and it does not look flat. It does look like a careful 3D render, not a photograph.
+At page size it holds up. At 100% these give it away:
+- **The glass is not there.** No reflection of the window or the room on either dial. A real gauge under a
+  window carries a soft sheen across part of the face (unless the shoot uses a polariser).
+- **The dials are too clean.** The printing is digitally sharp and evenly lit, with no ink spread, no
+  yellowing towards the rim, and no soft needle shadow on the face.
+- **The bezels read as rubber rings.** The lip is a thick round profile, and the dry-brushed wear patches sit
+  in the same places on both gauges.
+- **Perfect geometry.** Two identical circles on one level line, plates dead centre.
+- **The light has no shape.** The notes say late-morning sun, but the 7° sun through a blocker 0.9 m away makes
+  a 10 cm soft edge, so the panel reads as an evenly lit dim room. Nothing on the panel shows a window. That
+  is checklist 5, "name the light", only half passed. It is also a dark olive frame overall; after "a sewer",
+  watch for "dingy".
+- What works: the scanned paint (the most photographic thing in the frame), the grime where the bezels meet
+  the paint, screws and plates at a believable scale, and a camera a person could stand at.
+
+### Five-second test (as a founder with a team of 8)
+
+- **First screen:** I can tell it's a book by Michael Wentz, that hiring adds complexity faster than it adds
+  capacity, and that it's for bootstrapped teams of 1 to 12. The free file is the one button. Pass.
+- **Key beat:** the needle in the red says "redline" with no words at all. "> Capacity" is carried by the words,
+  because the close-up drops the capacity gauge. That's fine for this beat.
+- **Reading risk:** at 8 people the capacity needle sits about 33° further round than the pathways needle (the
+  two scales only meet at 12). A careful reader could think "capacity is ahead at 8", which is Michael's
+  "Oxygen" state rather than the pain a founder at 8 feels. It fits the scroll story, but check it with Michael.
+- **Not shown at all:** Up, Side, Down as a cycle (the shift and the calm end frame). Michael listed it as one of
+  his three priorities.
+
+### Bootloader, type and overlaps
+
+- The Bootloader is the only button on every screen, and the outline keeps it below the line in the squint
+  test. It is clear but quiet.
+- Nothing overlaps another text box, and nothing sits on the focal point. (On desktop the readout's box now
+  sits inside the column's box beside "capacity.", with 100 px of clear space.)
+
+### What I fixed (HTML only; the three filenames are unchanged)
+
+| Image | Fix | Why |
+|---|---|---|
+| 1 desktop | The readout "8 people, 28 pathways" moved so its rule ends 10 px short of the bezel on the needle tip's line (the tip is at 756, 498) | It used to point at the bezel below the dial. Now the eye goes from the line to the reading to the needle |
+| 2 key beat | "The book: pre-orders open soon" added under the byline, as on image 1 | Two paths on every screen (TASTE 8) |
+| 3 phone | The reading "8 people, 28 pathways" set beside the COORDINATION plate | The phone had no reading, and the needle hides the 28, so the gauge was mood only |
+| 3 phone | The audience line turned from dim grey to cream | The dim grey was 2.6:1 on the sunlit paint (now 4.4:1). It's the "this is for you" line, and James reads on an iPhone |
+| 3 phone | The audience line balanced, so it breaks at "self-funded / founders" | It used to leave "of 1–12" on a line of its own |
+| 3 phone | "It finds where your team stands." added back under "A free file for your AI." (two lines, broken at the full stop) | The reason to tap was missing on the phone |
+| 3 phone | The Bootloader and book link anchored to the bottom of the stage (bottom 74 px and 34 px) instead of top 712/792 | Same picture at 844, but the build will need it: in Safari the visible height is shorter than 844 |
+
+Checks after the fixes: copycheck 0 not found on all three pages. Squint all pass: 133 vs 114, 151 vs 135,
+184 vs 163. No clipped boxes. Fonts are Plimsoll, Ortica and B612 only. No tracked caps, shadow, gradient,
+radius or `·`. JPEGs at q85: 142, 127 and 157 KB. The screenshots from before the review are kept outside the
+project (scratchpad); the renders are untouched.
+
+### Still open (for the real shoot or a later round)
+
+- The look-dev tells above: glass reflection, dial ageing and needle shadow, bezel profile and wear, and a light
+  you can name.
+- The rust streak at the top right of the phone frame runs behind the end of "before". It's soft, but the eye goes to it.
+- At 100%, faint sampling grain under the glass.
+- The key beat in the wide frame (both needles at 13) is still an option, about 85 s, if James wants
+  "> Capacity" in the picture.
+- The shift, the calm end frame and the scroll steps between beats are not shown.
+
+### Verdict for James
+
+- **Shows the idea: 7/10.** The line, the dial printed in pathways and the needle in the red make "every hire
+  costs more than the last" land in seconds. The cycle (Up, Side, Down) isn't in these three frames.
+- **Looks real: 6/10.** It doesn't look like AI or stock, and it isn't flat. It reads as a good Blender render,
+  not a photograph: clean dials, missing glass, rubbery bezels, soft light with no shape.
+- **Caption:** "A Blender stand-in for a photo of a worn engine-room panel. The left dial counts the
+  conversations a team has to keep up (28 at 8 people) and goes into the red at 13. Michael's line is on the
+  left, and the free Bootloader is the one button."
+- **What the real production needs:** two used flange-mount gauges, 150 to 200 mm ($50 to $150 each). Dial faces
+  printed from `make_dials.py` on matte stock and fitted behind the original glass. A real painted steel panel
+  or machine door with real wear. A locked tripod, 85 mm, real window light from the left, with a polariser
+  set to leave a little reflection. One frame per team size from 1 to 16, plus the shift and end frames, with
+  the needle set by hand or by a small servo so positions repeat. A portrait set-up for the phone. About a day
+  of prep, a day of shooting and a day of retouching. In the build: the readout tracks the needle tip in each
+  frame, the phone layout fits a Safari-height screen, and Michael signs off the calibration, the red from 72
+  and the shift reading.

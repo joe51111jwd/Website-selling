@@ -1,0 +1,66 @@
+/* Idea 4, Only Height: the site layer over the Blender stills of the model tower.
+   Same type system as every option (docs/03-TYPE.md) and as the Redline mocks, so the ideas are compared,
+   not the typefaces: Plimsoll for the title and the Bootloader's name, Ortica for Michael's voice, B612 for
+   labels and the button.
+   Rules (docs/02-AI-TELLS.md): no CSS shadow, glow, gradient, blur, pill or card; sentence-case labels,
+   never tracked capitals; one button per screen; the type sits where the photograph leaves room
+   (the dark studio wall, left of the window). */
+@font-face { font-family: "Plimsoll"; src: url("../../../mock/fonts/Plimsoll-Heavy.woff2") format("woff2"); font-weight: 800; font-display: block; }
+@font-face { font-family: "Ortica Angular"; src: url("../../../mock/fonts/Ortica-AngularBold-latin.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "Ortica Linear"; src: url("../../../mock/fonts/Ortica-LinearRegular-latin.woff2") format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Ortica Linear"; src: url("../../../mock/fonts/Ortica-LinearBold-latin.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "B612"; src: url("../../../mock/fonts/B612-Regular-latin.woff2") format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "B612"; src: url("../../../mock/fonts/B612-Bold-latin.woff2") format("woff2"); font-weight: 700; font-display: block; }
+
+:root { --cream: #EEF0EC; --dim: #AEB6BC; --ink: #121417; --deep: #0d0f12; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--deep); color: var(--cream); }
+body { font-family: "B612", sans-serif; -webkit-font-smoothing: antialiased; }
+p, h1, h2 { margin: 0; }
+a { color: inherit; }
+
+.stage { position: relative; width: 100vw; height: 100svh; overflow: hidden; background: var(--deep); }
+.stage > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* top left: the title lockup, the book as a quiet text link under it */
+.lockup { position: absolute; left: 56px; top: 34px; }
+.title { font-family: "Plimsoll"; font-size: 22px; line-height: 1; }
+.byline { font-size: 13px; line-height: 1.2; color: var(--dim); margin-top: 7px; }
+.booklink { display: inline-block; margin-top: 7px; font-size: 13px; line-height: 1.2; color: var(--dim);
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+/* Michael's line, the brightest thing on the screen */
+.claim { font-family: "Ortica Angular"; font-weight: 700; color: var(--cream); text-wrap: balance; }
+.support { font-family: "Ortica Linear"; font-weight: 400; color: var(--cream); text-wrap: balance; }
+.who { font-size: 16px; line-height: 1.35; color: var(--dim); }
+
+/* readout: a plain label with a 1 px rule that points at the tower */
+.readout { position: absolute; font-size: 14px; line-height: 18px; color: var(--cream); white-space: nowrap; }
+.readout .rule { display: inline-block; width: 40px; height: 1px; background: rgba(238, 240, 236, 0.75); vertical-align: middle; }
+.readout .rule.l { margin-right: 10px; }
+.readout .rule.r { margin-left: 10px; }
+.readout .dim { color: var(--dim); }
+.cue { position: absolute; font-size: 13px; line-height: 1.35; color: var(--dim); }
+
+/* the Bootloader: name, what it is, one square button */
+.boot { position: absolute; left: 56px; display: grid; grid-template-columns: auto auto; column-gap: 22px; align-items: end; }
+.boot .name { font-family: "Plimsoll"; font-size: 22px; line-height: 1; display: block; margin-bottom: 7px; }
+.boot .meta { display: block; font-size: 14px; line-height: 1.35; color: var(--cream); }
+.boot .meta.dim { color: var(--dim); }
+.btn { font-family: "B612"; font-weight: 700; font-size: 15px; height: 46px; padding: 0 20px; background: transparent; color: var(--cream);
+  outline: 1.5px solid var(--cream); outline-offset: -1.5px; border: 0; border-radius: 0; display: inline-flex; align-items: center;
+  text-decoration: none; white-space: nowrap; }
+/* drawn, not filled: a filled cream block out-squints the sentence (found on Redline). It fills on press,
+   when the action is the subject. */
+.btn:hover, .btn:active { background: var(--cream); color: var(--ink); }
+
+/* phone */
+.phone .lockup { left: 18px; top: 18px; }
+.phone .title { font-size: 18px; }
+.phone .byline { font-size: 12px; margin-top: 5px; }
+.phone .who { font-size: 14px; }
+.phone .boot { left: 18px; right: 18px; grid-template-columns: 1fr auto; column-gap: 14px; }
+.phone .boot .name { font-size: 19px; }
+.phone .boot .meta { font-size: 13px; }
+.phone .btn { height: 44px; padding: 0 16px; font-size: 15px; }
+.phone .booklink.foot { position: absolute; left: 18px; margin: 0; font-size: 13px; }

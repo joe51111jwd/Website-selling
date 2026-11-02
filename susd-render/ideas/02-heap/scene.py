@@ -24,7 +24,11 @@ import lib_lookdev as L
 
 A = L.args(dict(state='first', camera='desktop', w=640, h=400, samples=12, out='out/ideas/02-heap/test.png',
                 seed=11, exposure=-0.15, sun=24.0, window=260.0, world=0.5, fstop=4.0, label='heap',
-                grain=0.07, wall='slate', look='AgX - Medium High Contrast', dry=False, sunel=31.0, sunaz=262.0))
+                grain=0.07, wall='slate', look='AgX - Medium High Contrast', dry=False, sunel=31.0, sunaz=262.0,
+                review=True, dump=''))
+# --review 1 (default since the review pass): cables 29-105 drape over edges, loops of a dropped coil slide
+# apart, and some later cables land on the founder's chair. Cables 1-28 take the exact code path they had, so
+# `first` is unchanged. --review 0 reproduces the builder's key heap. --dump X.json writes the cable polylines.
 if not os.path.isabs(A['out']):
     A['out'] = os.path.join(ROOT, A['out'])
 
@@ -341,6 +345,11 @@ def inside(x, y):
 
 
 def stamp(P):
+    if NEWCAB[0]:                               # review: a hanging length is not a surface to lie on
+        A_ = np.array(P)
+        dz = np.abs(np.gradient(A_[:, 2])); dxy = np.hypot(np.gradient(A_[:, 0]), np.gradient(A_[:, 1]))
+        keep = ~((dz > 2.0 * dxy) & (A_[:, 2] > np.array([t_at(p[0], p[1]) for p in P]) + 0.03))
+        P = [p for p, k in zip(P, keep) if k]
     for (x, y, z) in P:
         i, j = cell(x, y)
         top = z + R_CABLE * 0.9
@@ -362,6 +371,55 @@ def slide(c, rng, steps=40):
         y -= 0.03 * gy / g + rng.normal(0, 0.006)
         x = min(max(x, HX0 + 0.3), HX1 - 0.3); y = min(max(y, HY0 + 0.3), HY1 - 0.15)
     return (x, y)
+
+
+NEWCAB = [False]                             # review: True while building a cable past the first 28
+
+
+def drape(pts, x, y, z, th, rng, ds):
+    """Review: how a patch cable goes over a real edge. It rolls over the edge on a bend of a few cm,
+    hangs with the bow and sideways wave its coil memory gives it (never a plumb line), and meets
+    the floor (or whatever is under it) on a J, then runs on. Appends to pts; returns the end."""
+    ux, uy = math.cos(th), math.sin(th)
+    vx, vy = -uy, ux
+    rb = rng.uniform(0.025, 0.05)                # bend over the edge
+    bow = rng.uniform(-0.008, 0.08)              # the hanging length bows out (coil memory)
+    la = rng.uniform(0.012, 0.06); per = rng.uniform(0.30, 0.85); ph = rng.uniform(0, 2 * math.pi)
+    rj = rng.uniform(0.06, 0.15)                 # the J at the bottom
+    x0, y0, z0 = x, y, z
+    nb = max(3, int(0.5 * math.pi * rb / ds))
+    for k in range(1, nb + 1):                   # over the edge: a quarter turn
+        a = 0.5 * math.pi * k / nb
+        pts.append((x0 + ux * rb * math.sin(a), y0 + uy * rb * math.sin(a), z0 - rb * (1 - math.cos(a))))
+    zt = z0 - rb
+    H = max(zt - t_at(x0 + ux * (rb + 0.05), y0 + uy * (rb + 0.05)), 0.05)
+    px, py, zz = pts[-1]
+    d = 0.0
+    while True:
+        d += ds
+        f = min(d / H, 1.0)
+        o = rb + bow * math.sin(math.pi * f) * (1 + 0.6 * f)
+        lat = la * (math.sin(2 * math.pi * d / per + ph) - math.sin(ph)) * min(1.0, d / 0.12)
+        qx, qy, qz = x0 + ux * o + vx * lat, y0 + uy * o + vy * lat, zt - d
+        if not inside(qx, qy):
+            break
+        if qz <= t_at(qx, qy) + R_CABLE + rj:
+            break
+        px, py, zz = qx, qy, qz
+        pts.append((px, py, zz))
+    fl = t_at(px, py) + R_CABLE
+    rje = max(min(rj, zz - fl), 0.012)
+    nj = max(3, int(0.5 * math.pi * rje / ds))
+    qx, qy, qz = px, py, zz
+    for k in range(1, nj + 1):                   # the J: from hanging to lying, along the heading
+        a = 0.5 * math.pi * k / nj
+        cx, cy = px + ux * rje * (1 - math.cos(a)), py + uy * rje * (1 - math.cos(a))
+        if not inside(cx, cy):
+            break
+        qx, qy = cx, cy
+        qz = max(zz - rje * math.sin(a), t_at(qx, qy) + R_CABLE)
+        pts.append((qx, qy, qz))
+    return qx, qy, qz
 
 
 def walk(start, heading, length, rng, ds=0.012, curl=4.0, home=None, home_r=0.5, z0=None):
@@ -391,6 +449,9 @@ def walk(start, heading, length, rng, ds=0.012, curl=4.0, home=None, home_r=0.5,
         t = t_at(nx_, ny_) + R_CABLE
         if t > z + 0.04:                        # a step up (desk, chair, a coil): cables don't climb
             th += rng.choice([-1.0, 1.0]) * rng.uniform(0.8, 1.6)
+            continue
+        if NEWCAB[0] and t < z - 0.10:           # review: a real drop (desk, chair, heap side): drape
+            x, y, z = drape(pts, x, y, z, th, rng, ds)
             continue
         if t < z - ds * 1.2:                    # an edge: hang, with a little sway
             sx, sy = 0.0, 0.0
@@ -430,6 +491,8 @@ def coil(center, rng):
     """A new cable as it comes out of the box: a loose coil of 3-7 loops, dropped, one or two loops
     sprung, both ends trailing out with their plugs."""
     R = rng.uniform(0.14, 0.21)
+    if NEWCAB[0] and math.hypot(center[0] - CHAIR['cx'], center[1] - CHAIR['cy']) < 0.16:
+        R = 0.09 + (R - 0.14) * 0.6               # review: a shorter cable's coil, small enough to stay on the seat
     loops = int(rng.integers(3, 7))
     ell = rng.uniform(0.0, 0.22)
     rot = rng.uniform(0, 2 * math.pi)
@@ -446,6 +509,9 @@ def coil(center, rng):
         sprung += 0.35 * np.exp(-((u - k0 - 0.5) / 0.32) ** 2)
     rr = R * (1 + 0.04 * np.sin(2 * phi + p2) + sprung) + dr
     lx = rr * np.cos(phi) * (1 + ell); ly = rr * np.sin(phi) * (1 - ell)
+    if NEWCAB[0]:                                # review: a dropped coil's loops slide apart, not concentric hoops
+        ao = rng.uniform(0.012, 0.045); fq = rng.uniform(0.12, 0.32); q1, q2 = rng.uniform(0, 6.28, 2)
+        lx = lx + ao * np.sin(2 * math.pi * u * fq + q1); ly = ly + ao * np.sin(2 * math.pi * u * fq + q2)
     c, s = math.cos(rot), math.sin(rot)
     X = center[0] + c * lx - s * ly; Y = center[1] + s * lx + c * ly
     if not all(inside(a, b) for a, b in zip(X, Y)):
@@ -493,6 +559,8 @@ def target(i, rng):
     if i < 28:
         return (PILE[0] + rng.normal(0, 0.21), PILE[1] + rng.normal(0, 0.15))
     r = rng.uniform()
+    if A['review'] and r < 0.05:   # review: onto the founder's chair, so in key the seat is taken
+        return (CHAIR['cx'] + rng.normal(0, 0.035), CHAIR['cy'] + rng.normal(0, 0.035))
     if r < 0.36:      # against the desk front and round the chair: the heap rises where people sit
         return (CHAIR['cx'] - 0.15 + rng.normal(0, 0.36), CHAIR['cy'] + 0.05 + rng.normal(0, 0.22))
     if r < 0.60:
@@ -507,6 +575,7 @@ def build_heap(n):
     cables = []
     for i in range(n):
         rng = np.random.default_rng(A['seed'] * 1000 + i)
+        NEWCAB[0] = bool(A['review']) and i >= 28
         kind = 'coil' if rng.uniform() < (0.86 if i < 28 else 0.74) else 'tangle'
         P = None
         for attempt in range(30):
@@ -665,6 +734,11 @@ with open(os.path.splitext(A['out'])[0] + '.anchors.json', 'w') as f:
     json.dump(dict(state=A['state'], camera=A['camera'], people=PEOPLE, cables=len(cables), anchors=anch), f, indent=1)
 print('ANCHORS', anch)
 
+if A['dump']:
+    with open(A['dump'], 'w') as f:
+        json.dump(dict(cables=[[list(map(lambda v: round(v, 4), p)) for p in P] for P in cables],
+                       hf=dict(x0=HX0, y0=HY0, g=G)), f)
+    print('DUMP', A['dump'], len(cables))
 if A['dry']:
     dg = bpy.context.evaluated_depsgraph_get()
     sun = bpy.data.objects.get('Sun')

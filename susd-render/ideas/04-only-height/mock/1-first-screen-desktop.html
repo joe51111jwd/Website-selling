@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scaling Up-Side-Down</title>
+<link rel="stylesheet" href="height.css">
+<!-- Idea 4, Only Height. First screen, desktop 1440x900. Render: out/ideas/04-only-height/height_first_desktop.png (8 people: 8 floors, 48 windows, 28 lit). -->
+<style>
+  .col { position: absolute; left: 56px; top: 160px; width: 700px; }
+  .claim { font-size: 63px; line-height: 1.04; }
+  .who { margin-top: 26px; }
+  .readout { left: 1046px; top: 482px; line-height: 20px; }
+  .readout .stack { display: inline-block; vertical-align: top; white-space: normal; width: 300px; }
+  .readout .rule { vertical-align: top; margin-top: 9px; }
+  .readout .legend { display: block; margin-top: 6px; }
+  .boot { top: 612px; }
+  .cue { left: 58px; top: 846px; width: 760px; }
+  /* review: the legend sits by the tower, where the eye goes after the line, on the dark band under the
+     sill (luminance 12 to 14); the foot keeps only the scroll cue */
+</style>
+</head>
+<body>
+<main class="stage">
+  <img src="../../../out/ideas/04-only-height/height_first_desktop.png" alt=""> <!-- // label -->
+  <div class="lockup">
+    <p class="title">Scaling Up&#x2011;Side&#x2011;Down</p>
+    <p class="byline">A book by Michael Wentz</p> <!-- // label -->
+    <a class="booklink" href="#book">The book: pre-orders open soon</a> <!-- // label -->
+  </div>
+  <div class="col">
+    <h1 class="claim">You can't build a building with only height. You need all three dimensions or it topples.</h1> <!-- BL 816 -->
+    <p class="who">For bootstrapped, self-funded founders with teams of 1&#x2013;12</p> <!-- // label (fit table, BL 4773, BL 4775) -->
+  </div>
+  <p class="readout"><span class="rule l"></span><span class="stack">8 people, 8 floors, 28 lit windows<span class="dim legend">Each floor is one person. Each lit window is one pathway between two of them.</span></span></p> <!-- // label -->
+  <div class="boot">
+    <span>
+      <span class="name">SUSD Bootloader</span>
+      <span class="meta">A free file for your AI. It tells you which building you are in.</span> <!-- // label (09 entry; outcome: BL 314) -->
+      <span class="meta dim">Version 16, 35,445 words. Works with Claude, ChatGPT and Gemini.</span> <!-- // label (BL 221) -->
+    </span>
+    <a class="btn" href="#get" aria-label="Get the free SUSD Bootloader file">Get it free</a> <!-- // label -->
+  </div>
+  <p class="cue">Scroll to hire.</p> <!-- // label -->
+</main>
+</body>
+</html>

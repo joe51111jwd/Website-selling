@@ -13,16 +13,19 @@ Why six windows a floor: pathways n(n-1)/2 and windows 6n meet at n = 13. Up to 
 dark window left for every pathway; at thirteen the last one lights and there is no room for the next.
 
 The stand-in: the 09 entry's other production route is "a physical model photographed (2 to 3 weeks and a
-model maker)". This scene is built as that model would be: charcoal mountboard strips glued floor by floor
-(each floor a separate module, set by hand, so each sits a fraction of a millimetre off the one below),
-LED-lit tracing-paper diffusers behind smoked acrylic in the lit windows, a grey card plot on a plywood
-baseboard with the maker's pencil set-out, a steel rule left on the base. The room lights are off; the one
-light idea is the blue-hour sky through the window behind the bench, plus the model's own windows.
+model maker)". This scene is built as that model would be: grey board strips glued floor by floor (each
+floor a separate module, set by hand, so each sits a fraction of a millimetre off the one below), a clear
+acrylic sheet behind the strips, and behind each window a shallow room cell of white card whose back wall
+is a tracing-paper diffuser over an LED; a grey card plot on a plywood baseboard with the maker's pencil
+set-out, a steel rule left on the base. The room lights are off; the light is the blue-hour sky through
+the window behind the bench, the model's own windows, and a white bounce card off to the camera's left.
+
+Finals (NOTES.md): --samples 28 desktop, 20 phone; every other default is the tuned value.
 
 Scene (metres; Blender Z up, bench top at z=0, camera on -Y looking +Y with true verticals):
   tower foot at TOWER_XY on the plot (top z=PLOT_TOP), turned YAW so its 4-bay front and 2-bay side both show
-  back wall 2.33 m behind the model with a four-pane window; Nishita sky with the sun 3 deg below the horizon,
-  sampled through a portal; dark rooftops outside
+  back wall 2.33 m behind the model with a two-casement window; a hand-set blue-hour sky gradient (looking
+  east, away from the sunset) sampled through a portal; dark rooftops outside
 """
 import bpy, bmesh, math, os, sys, random
 from mathutils import Vector, Matrix
@@ -33,9 +36,11 @@ sys.path.insert(0, os.path.join(ROOT, 'lookdev'))
 import lib_lookdev as lib
 
 A = lib.args(dict(state='first', camera='desktop', w=640, h=400, samples=12, out='out/ideas/04-only-height/test.png',
-                  n=0, exposure=0.0, look='AgX - Medium High Contrast', sky=1.0, sun_el=-3.0, sun_rot=90.0,
-                  pane=5.0, fill=0.0, fstop=4.0, lean=-1.0, yaw=32.0, grain=0.07, seed=7, border='', lens=85.0,
-                  dist=0.0, camz=0.0, zc=0.0, xfrac=0.0, save='', wallcol=0.32, rule=1, board=0.20))
+                  n=0, exposure=0.8, look='AgX - Medium High Contrast', sky=0.7,
+                  pane=0.5, fill=12.0, fstop=4.0, lean=-1.0, yaw=32.0, grain=0.07, seed=7, border='', lens=85.0,
+                  dist=0.0, camz=0.0, zc=0.0, xfrac=0.0, save='', wallcol=0.42, rule=1, board=0.48, k0=2400.0, k1=3400.0))
+# review: board was 0.20 sRGB, which card_mat turns into 0.033 linear (05-RENDER-PIPELINE pitfall 6), so the
+# 'grey board' rendered as black card. 0.48 is greyboard (tests/t14). The two desktop finals were rendered at 0.20.
 
 # ----------------------------------------------------------------------------- the model's dimensions
 BAY, PW, T = 0.026, 0.004, 0.0025          # bay pitch, pier width, card thickness
@@ -51,7 +56,7 @@ WALL_Y = 2.40
 
 STATE_N = {'first': 8, 'key': 13}
 N = A['n'] or STATE_N[A['state']]
-LEAN = A['lean'] if A['lean'] >= 0 else (5.0 if A['state'] == 'key' else 0.0)
+LEAN = A['lean'] if A['lean'] >= 0 else (6.5 if A['state'] == 'key' else 0.0)
 
 
 def pathways(n):
@@ -153,7 +158,7 @@ def pane_mat():
     lib.link(nt, prod, m4.inputs[0]); m4.inputs[1].default_value = A['pane']
     cx, f_, a_, b_, r_ = lib.mix(nt, 'RGBA', 'MIX')
     lib.link(nt, at['warm'], f_)
-    a_.default_value = (*lib.kelvin_rgb(2750), 1); b_.default_value = (*lib.kelvin_rgb(3600), 1)
+    a_.default_value = (*lib.kelvin_rgb(A['k0']), 1); b_.default_value = (*lib.kelvin_rgb(A['k1']), 1)
     em = nt.nodes.new('ShaderNodeEmission')
     lib.link(nt, r_, em.inputs['Color']); lib.link(nt, m4.outputs[0], em.inputs['Strength'])
     add = nt.nodes.new('ShaderNodeAddShader')
@@ -358,13 +363,13 @@ def floor_module(f, lit, rnd):
         c = x0 + (b + 1) * BAY + PW / 2
         y = y0 + CD
         on = (f, b) in lit
-        mb.quad([(a, y, zb), (c, y, zb), (c, y, zt), (a, y, zt)], PANE, float(on), rnd.uniform(0.6, 1.25), rnd.random())
+        mb.quad([(a, y, zb), (c, y, zb), (c, y, zt), (a, y, zt)], PANE, float(on), rnd.uniform(0.45, 1.2), rnd.random() ** 1.6)
     for b in range(NBS):                                            # side windows, slots 4..5
         a = y0 + b * BAY + (CD if b == 0 else PW / 2)
         c = y0 + (b + 1) * BAY + PW / 2
         x = x0 + CD
         on = (f, NBF + b) in lit
-        mb.quad([(x, c, zb), (x, a, zb), (x, a, zt), (x, c, zt)], PANE, float(on), rnd.uniform(0.6, 1.25), rnd.random())
+        mb.quad([(x, c, zb), (x, a, zb), (x, a, zt), (x, c, zt)], PANE, float(on), rnd.uniform(0.45, 1.2), rnd.random() ** 1.6)
     return mb
 
 
@@ -418,7 +423,7 @@ def build_tower(mats):
     # the pivot: the foot corner furthest right in the picture, sunk 2 mm into the plot when leaning
     corners = [base @ Vector((sx * W / 2, sy * D / 2, 0)) for sx in (-1, 1) for sy in (-1, 1)]
     pv = max(corners, key=lambda p: p.x)
-    sink = 0.0022 if LEAN > 0 else 0.0
+    sink = 0.004 if LEAN > 0 else 0.0
     lean = (Matrix.Translation((pv.x, pv.y, pv.z - sink)) @ Matrix.Rotation(math.radians(LEAN), 4, 'Y')
             @ Matrix.Translation(-pv))
     obs = []
@@ -430,8 +435,8 @@ def build_tower(mats):
     for name, mb, h in mods:
         ob = mb.obj('Tower_' + name, mats)
         # set by hand: each module sits a fraction of a millimetre off the one below
-        j = Matrix.Translation((rnd.uniform(-0.00035, 0.00035), rnd.uniform(-0.00035, 0.00035), 0)) @ \
-            rz(rnd.uniform(-0.25, 0.25)) @ Matrix.Rotation(rnd.uniform(-0.0012, 0.0012), 4, 'X')
+        j = Matrix.Translation((rnd.uniform(-0.0006, 0.0006), rnd.uniform(-0.0006, 0.0006), 0)) @ \
+            rz(rnd.uniform(-0.45, 0.45)) @ Matrix.Rotation(rnd.uniform(-0.002, 0.002), 4, 'X')
         if name == 'lobby':
             j = Matrix.Identity(4)
         ob.matrix_world = lean @ base @ Matrix.Translation((0, 0, z)) @ j
@@ -442,30 +447,35 @@ def build_tower(mats):
 
 
 def damage(pv, mats):
-    """The foot crushing into the plot: slits in the card running out from the pivot corner, two lifted flakes
-    showing the white core, and crumbs of board."""
+    """The foot crushing into the plot at the pivot corner: torn gaps in the card running out towards the
+    camera and the right, flakes of the plot card prised up around the foot (their torn edges show the
+    pale core), and crumbs of board. Nothing on the far side, which lifts clear."""
     rnd = random.Random(23)
-    for i in range(6):
-        ang = rnd.uniform(-1.3, 1.1)
-        L = rnd.uniform(0.012, 0.045)
-        w = rnd.uniform(0.0005, 0.0010)
+    for i in range(5):
+        ang = math.radians(rnd.uniform(-115, 15))                  # -90 = towards the camera
+        L = rnd.uniform(0.015, 0.050)
+        w = rnd.uniform(0.0012, 0.0024)
         mb2 = MB()
-        mb2.box(0, L, -w / 2, w / 2, -0.0018, 0.00015, 1)
-        ob = mb2.obj(f'crack{i}', [mats['card'], mats['core']])
-        ob.matrix_world = Matrix.Translation((pv.x - 0.004, pv.y + rnd.uniform(-0.01, 0.01), PLOT_TOP)) @ rz(math.degrees(ang) - 20)
-    for i in range(2):
+        mb2.box(0, L, -w / 2, w / 2, -0.0019, 0.00012, 1)          # the dark gap
+        mb2.box(0, L * 0.92, w / 2, w / 2 + 0.0004, -0.0004, 0.00025, 2)   # torn pale lips
+        mb2.box(0, L * 0.85, -w / 2 - 0.0004, -w / 2, -0.0004, 0.00025, 2)
+        ob = mb2.obj(f'crack{i}', [mats['card'], mats['core'], mats['core_white']])
+        ob.matrix_world = Matrix.Translation((pv.x - 0.002, pv.y + 0.002, PLOT_TOP)) @ rz(math.degrees(ang))
+    for i in range(5):
         mb2 = MB()
-        mb2.box(0, rnd.uniform(0.006, 0.010), 0, rnd.uniform(0.004, 0.007), 0, 0.0016, 0)
+        mb2.box(0, rnd.uniform(0.007, 0.014), -0.003, 0.003, -0.0012, 0.0004, 0)
         ob = mb2.obj(f'flake{i}', [mats['plot']])
-        ob.matrix_world = (Matrix.Translation((pv.x + rnd.uniform(-0.012, 0.004), pv.y + rnd.uniform(-0.012, 0.002), PLOT_TOP - 0.0006))
-                           @ rz(rnd.uniform(0, 360)) @ Matrix.Rotation(math.radians(rnd.uniform(12, 24)), 4, 'X'))
-    for i in range(11):
-        s = rnd.uniform(0.0008, 0.0026)
+        a = math.radians(rnd.uniform(-150, 40))
+        r = rnd.uniform(0.004, 0.010)
+        ob.matrix_world = (Matrix.Translation((pv.x + r * math.cos(a), pv.y + r * math.sin(a), PLOT_TOP))
+                           @ rz(math.degrees(a) + rnd.uniform(-25, 25)) @ Matrix.Rotation(math.radians(rnd.uniform(-34, -14)), 4, 'Y'))
+    for i in range(14):
+        s = rnd.uniform(0.0009, 0.0030)
         mb2 = MB()
-        mb2.box(-s / 2, s / 2, -s * 0.4, s * 0.4, 0, s * 0.5, 0)
+        mb2.box(-s / 2, s / 2, -s * 0.4, s * 0.4, 0, s * 0.45, 0)
         ob = mb2.obj(f'crumb{i}', [mats['card'] if i % 3 else mats['core_white']])
-        r = rnd.uniform(0.006, 0.035); a = rnd.uniform(-1.6, 1.2)
-        ob.matrix_world = Matrix.Translation((pv.x + r * math.cos(a), pv.y + r * math.sin(a) * 0.8, PLOT_TOP)) @ rz(rnd.uniform(0, 360))
+        r = rnd.uniform(0.008, 0.045); a = math.radians(rnd.uniform(-130, 30))
+        ob.matrix_world = Matrix.Translation((pv.x + r * math.cos(a), pv.y + r * math.sin(a), PLOT_TOP)) @ rz(rnd.uniform(0, 360))
 
 
 # ----------------------------------------------------------------------------- the bench and the room
@@ -496,7 +506,7 @@ def build_room(mats):
     lib.box('Ceiling', -3.1, 3.1, -4.2, WALL_Y + 0.12, 2.2, 2.3, wall)
     lib.box('Floor', -3.1, 3.1, -4.2, WALL_Y + 0.12, -0.9, -0.8, wall)
     lib.box('Back', -3.1, 3.1, -4.3, -4.2, -0.8, 2.2, wall)
-    # window: painted timber frame, a mullion and a transom, a sill
+    # window: painted timber frame, one mullion (two tall casements), a sill
     fr = mats['frame']
     fw, fd = 0.055, 0.07
     yf = WALL_Y + 0.02
@@ -506,7 +516,6 @@ def build_room(mats):
     lib.box('FrameB', wx0, wx1, yf, yf + fd, wz0, wz0 + fw, fr)
     xm = (wx0 + wx1) / 2
     lib.box('Mullion', xm - 0.022, xm + 0.022, yf + 0.01, yf + fd - 0.01, wz0, wz1, fr)
-    lib.box('Transom', wx0, wx1, yf + 0.01, yf + fd - 0.01, 1.02, 1.06, fr)
     lib.box('Sill', wx0 - 0.05, wx1 + 0.05, WALL_Y - 0.06, WALL_Y + 0.03, wz0 - 0.03, wz0, fr, bevel=0.004)
     # portal so the sky is sampled through the opening
     ld = bpy.data.lights.new('Portal', 'AREA'); ld.shape = 'RECTANGLE'
@@ -584,10 +593,10 @@ def main():
     # camera: true verticals (level, with lens shift), 85 mm, focused on the tower's front corner
     phone = A['camera'] == 'phone'
     lens = A['lens']
-    dist = A['dist'] or (2.2 if phone else 3.0)
-    camz = A['camz'] or (0.46 if phone else 0.50)
-    zc = A['zc'] or (0.36 if phone else 0.29)
-    xfrac = A['xfrac'] or (0.60 if phone else 0.665)
+    dist = A['dist'] or (2.6 if phone else 3.3)
+    camz = A['camz'] or 0.32
+    zc = A['zc'] or (0.328 if phone else 0.313)
+    xfrac = A['xfrac'] or (0.64 if phone else 0.665)
     span = dist * 36.0 / lens                                       # the frame's long side at the tower
     fw = span * (A['w'] / A['h'] if phone else 1.0)                 # frame width at the tower
     cx = TOWER_XY[0] - (xfrac - 0.5) * fw

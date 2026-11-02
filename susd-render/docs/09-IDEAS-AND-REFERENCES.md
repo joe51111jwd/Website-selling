@@ -270,3 +270,37 @@ James said he isn't fully set on the water. If we keep it, these changes would m
 ---
 
 Sources: the three scout reports and the checker's notes (1 Nov 2026); `docs/01-MEANING.md`, `docs/02-AI-TELLS.md`, `docs/06-HERO-BUILD.md` section 13, `docs/07-CLIENT-FEEDBACK.md`, `susd-options/brief/TASTE.md`. Michael's quoted lines were checked against `public_bootloader.md` and `src_copy.ts`.
+
+---
+
+## Visuals
+
+**Wave 1, 2 Nov 2026: ideas 1 to 4.** These are concept renders, not final: Blender stand-ins for the real photos each idea calls for. Each idea has three images: the first screen on desktop (1440x900), the key beat on desktop (1440x900) and the first screen on an iPhone (780x1688). On the board they sit in each card under "What it would look like", above the reference screenshots (copies in `research/board/img/idea-<NN>-<name>.jpg`). All twelve are on one contact sheet: `out/ideas/wave-1-sheet.jpg`. Scores are out of 10 from each idea's review in its `NOTES.md`: **Shows** is "shows the idea", **Real** is "looks real".
+
+### 1. Redline
+
+**Images:** `ideas/01-redline/visuals/1-first-screen-desktop.jpg` (8 people, 28 pathways), `2-key-beat-desktop.jpg` (13 people, 78 pathways, in the red), `3-first-screen-phone.jpg`.  
+**Scores:** Shows 7, Real 6.  
+**Caption:** A Blender stand-in for a photo of a worn engine-room panel. The left dial counts the conversations a team has to keep up (28 at 8 people) and goes into the red at 13. Michael's line is on the left, and the free Bootloader is the one button.  
+**To make it real:** Shoot it. Two used flange-mount gauges (150 to 200 mm, $50 to $150 each) with dial faces printed from `make_dials.py` on matte stock behind the original glass, on a real painted steel panel with real wear. Locked tripod, 85 mm, window light from the left, a polariser that leaves a little glass reflection. One frame per team size from 1 to 16, plus the shift and calm frames, needle set by hand or a small servo; a separate portrait set-up for the phone. About a day of prep, a day of shooting, a day of retouching. Michael signs off the calibration, the red band from 72 (so 13 people, 78, sits inside it; the entry above says "red from 78") and the gear-shift reading before the shoot.
+
+### 2. The Heap
+
+**Images:** `ideas/02-heap/visuals/1-first-screen-desktop.jpg` (8 mugs, 28 cables), `2-key-beat-desktop.jpg` (15 mugs, 105 cables over the desk and chair), `3-first-screen-phone.jpg` (Bootloader in a bottom bar).  
+**Scores:** Shows 7, Real 6.  
+**Caption:** A 3D mock-up of a small office, not a photo. There is one white mug on the shelf for each person and one patch cable on the floor for each pair of people. At 8 people that makes a pile of 28 cables beside the desk. At 15 people it makes 105, which cover the floor, pour off the desk and fill the founder's chair. Michael's line is on the wall and the free Bootloader button sits top right (a bottom bar on the phone).  
+**To make it real:** A locked-off stop-motion in a real small office, one late morning of window light, about 35 mm at standing eye height (a second camera or a high-resolution crop for the phone). About ten states from 8 people to 15, then the tidy ending. 15 mismatched real mugs; about 105 long (5 to 10 m) coiled Cat6 cables, each hire's batch in a colour that stays put, since real cables can't change colour between frames. The ending (velcro-tied trunks, a small patch panel with one empty labelled port) still has to be made. A day to shoot, a day to edit, a few hundred dollars of cables (more than the $200 above), about 2 days of page code. James and Michael need to OK mugs standing for people and the colour coding.
+
+### 3. Blackout
+
+**Images:** `ideas/03-blackout/visuals/1-first-screen-desktop.jpg` (a page inked down to one sentence), `2-key-beat-desktop.jpg` (the last page: only "How many people are on your team?" is left), `3-first-screen-phone.jpg` (Bootloader in a bottom bar).  
+**Scores:** Shows 7, Real 6.  
+**Caption:** A printed page of the book, painted out in black ink until only Michael's sentence is left. On the last page only the Bootloader's question "How many people are on your team?" is left, with the button on the wet ink under it. These are Blender stand-ins for a real hand-painted photo shoot.  
+**To make it real:** Print 5 or 6 manuscript pages in large type (about 32 pt). Michael, or anyone with a steady hand, paints them out with India or sumi ink and a 15 to 20 mm flat brush. Copy stand, window light, white card on the shadow side; one angled frame that catches the window in the wet ink, one with the real brush put down. About 100 frames so the scroll can play the inking stroke by stroke, phone crops at the same session. 2 to 3 days to shoot, 3 to 4 days to build, under about $100 of materials plus a photographer's day if nobody in house shoots.
+
+### 4. Only Height
+
+**Images:** `ideas/04-only-height/visuals/1-first-screen-desktop.jpg` (8 floors, 28 lit windows), `2-key-beat-desktop.jpg` (13 floors, all 78 windows lit, leaning), `3-first-screen-phone.jpg` (grey board). Extra: `ideas/04-only-height/tests/t14_review_board_sheet.png` (board copy `idea-04-only-height-board-test.jpg`), the material test: near-black card as in the desktop pair (left) against grey board as on the phone (right).  
+**Scores:** Shows 7, Real 6.  
+**Caption:** A computer mock-up of an architect's model on a workbench at dusk. Each floor is one person and each lit window is one pathway between two people. At 13 people every window is lit and the tower leans.  
+**To make it real:** A model maker for 2 to 3 weeks: greyboard floor modules (13 or more) over acrylic, an LED and a tracing-paper diffuser behind each of the 78 windows, switchable from the table. A hinged foot so the tower can lean into a crushed plot card, and a second, wider building with a core and a front door that lights (the Bootloader button). Then one blue-hour session in a real room with a real window: a locked camera, one frame per team size and rebuild step, a second portrait set for phones. If the Blender route is kept, the next round needs grey board on the desktop pair, a dirtier base and bench, a real dusk HDRI or a photographed backplate for the window, and a closer look at the crushed foot.

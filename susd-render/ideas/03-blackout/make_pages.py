@@ -203,7 +203,7 @@ def paint_page(lines, rng, wet_lines=(), extra_boxes=()):
         x0 = L['x0'] - rng.uniform(2.5, 4.5)
         x1 = L['x1'] + rng.uniform(2.0, 7.0)
         yc = (L['top'] + L['bot']) / 2 + rng.uniform(-0.6, 0.6)
-        width = EM * rng.uniform(1.50, 1.70)
+        width = EM * rng.uniform(1.66, 1.84)
         wet = i in wet_lines
         # long lines take two strokes: the brush is reloaded part way
         if x1 - x0 > 95 and rng.random() < 0.8:
@@ -261,6 +261,39 @@ def protect(acc, lines, rng, m_side=2.8, m_vert=1.8):
     return k
 
 
+def close_gaps(acc, keep, k_mm=0.5):
+    """Review fix: fill the thin white slits left INSIDE the ink where the dry outer bristles of two
+    overlapping strokes happen to line up (they rendered as rows of white dashes, which a hand going
+    back over the page would not leave). A slit is a no-ink run at most k_mm tall with ink above and
+    below, and along its row it must end in ink at both ends. The dry tails at stroke ends open onto
+    bare paper, so they are left alone; so is the cut-in island around the kept line."""
+    ink = acc['cov'] > 0.5
+    K = int(round(k_mm * P))
+    big = 10 ** 6
+    up = np.full(ink.shape, big, np.int32); dn = np.full(ink.shape, big, np.int32)
+    for d in range(K, 0, -1):          # nearest ink above / below within K px
+        up[d:][ink[:-d]] = d
+        dn[:-d][ink[d:]] = d
+    cand = ~ink & (up + dn - 1 <= K) & (keep < 0.01)
+    cols = np.arange(ink.shape[1], dtype=np.int32)[None, :]
+    stop = ~cand                                            # the first non-slit pixel either side
+    left = np.maximum.accumulate(np.where(stop, cols, -1), axis=1)
+    right = np.flip(np.minimum.accumulate(np.flip(np.where(stop, cols, big), 1), axis=1), 1)
+    rows = np.arange(ink.shape[0])[:, None]
+    l_ink = (left >= 0) & ink[rows, np.clip(left, 0, ink.shape[1] - 1)]
+    r_ink = (right < big) & ink[rows, np.clip(right, 0, ink.shape[1] - 1)]
+    fill = (cand & l_ink & r_ink).astype(np.float32)
+    fill = np.maximum(fill, np.maximum(np.roll(fill, 1, 0), np.roll(fill, -1, 0)))   # cover the soft edges
+    fill *= (keep < 0.01)
+    inkf = ink.astype(np.float32)
+    norm = box_blur(inkf, 4) + 1e-4
+    for key in ('thick', 'wet'):
+        local = box_blur(acc[key] * inkf, 4) / norm
+        acc[key] = acc[key] * (1 - fill) + np.maximum(acc[key], local) * fill
+    acc['cov'] = np.maximum(acc['cov'], fill)
+    return float(fill.mean())
+
+
 def cockle(acc, rng, wet_gain=1.0):
     """Paper height (mm) at 2 px/mm: swells where it took ink, buckles in broad horizontal ridges,
     and the corners lift a little off the table."""
@@ -274,7 +307,7 @@ def cockle(acc, rng, wet_gain=1.0):
     warp = vnoise(h, w, 50, 70, rng) * 9.0 + vnoise(h, w, 16, 30, rng) * 2.5
     lam = 24.0 * (1 + 0.15 * vnoise(h, w, 120, 120, rng))
     wave = 0.5 + 0.5 * np.sin(2 * np.pi * (yy + warp) / lam + 0.04 * xx)
-    amp = 0.95 * (0.7 + 0.3 * vnoise(h, w, 40, 40, rng))
+    amp = 0.75 * (0.7 + 0.3 * vnoise(h, w, 40, 40, rng))
     buck = broad * wave * amp
     dx = np.minimum(xx, PW - xx); dy = np.minimum(yy, PH - yy)
     d = np.minimum(dx, dy)
@@ -331,6 +364,7 @@ def book():
     rh_w = small.getlength('Scaling Up-Side-Down') / P
     acc = paint_page(lines, rng, extra_boxes=[(LEFT - 1.5, LEFT + rh_w + 3, 17.0 - 1.2, 6.5, False)])
     keep = protect(acc, lines, rng)
+    print('  book: slits closed on %.3f%% of the sheet' % (100 * close_gaps(acc, keep)))
     ck = cockle(acc, rng)
     save('book', toner, acc, ck, lines, dict(folio=[PW - 30.0, 17.0]))
     return lines
@@ -359,6 +393,7 @@ def boot():
     wet = {ki[-1] + 1, ki[-1] + 2}          # the last strokes, just under the question, still wet
     acc = paint_page(lines, rng, wet_lines=wet)
     keep = protect(acc, lines, rng)
+    print('  boot: slits closed on %.3f%% of the sheet' % (100 * close_gaps(acc, keep)))
     ck = cockle(acc, rng, wet_gain=1.6)
     save('boot', toner, acc, ck, lines, dict(folio=[PW - 30.0, 17.0], wet_lines=sorted(wet)))
     return lines

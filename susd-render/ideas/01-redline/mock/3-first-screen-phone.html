@@ -10,9 +10,14 @@
   .col { position: absolute; left: 18px; right: 14px; top: 84px; }
   .col .claim, .col .who { position: static; }
   .claim { font-size: 34px; line-height: 1.06; }
-  .who { margin-top: 14px; }
-  .boot { top: 712px; }
-  .phone .booklink.foot { position: absolute; left: 18px; top: 792px; margin: 0; font-size: 13px; }
+  /* review: the dim grey measured 2.6:1 on the sunlit paint here; cream is about 4.4:1 */
+  .who { margin-top: 14px; text-wrap: balance; }
+  .phone .who { color: var(--cream); }
+  /* review: the gauge's reading sits beside its plate (plate at 126-219, 630-657 css px in the render) */
+  .phone .readout { left: 234px; top: 627px; font-size: 13px; line-height: 17px; white-space: normal; width: 130px; }
+  /* review: anchored to the bottom, so a shorter Safari viewport keeps the Bootloader on screen */
+  .boot { top: auto; bottom: 74px; }
+  .phone .booklink.foot { position: absolute; left: 18px; top: auto; bottom: 34px; margin: 0; font-size: 13px; }
 </style>
 </head>
 <body class="phone">
@@ -26,10 +31,12 @@
     <h1 class="claim">Every hire compounds complexity before it compounds capacity.</h1> <!-- M 696, copy.ts:60 -->
     <p class="who">For bootstrapped, self-funded founders with teams of 1&#x2013;12</p> <!-- // label (fit table, BL 4773, BL 4775) -->
   </div>
+  <p class="readout">8 people,<br>28 pathways</p> <!-- // label -->
   <div class="boot">
     <span>
       <span class="name">SUSD Bootloader</span>
-      <span class="meta">A free file for your AI</span> <!-- // label -->
+      <span class="meta">A free file for your AI.</span> <!-- // label -->
+      <span class="meta">It finds where your team stands.</span> <!-- // label (outcome: BL 314; review: the reason to click, as on desktop) -->
     </span>
     <a class="btn" href="#get" aria-label="Get the free SUSD Bootloader file">Get it free</a> <!-- // label -->
   </div>
