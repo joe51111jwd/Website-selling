@@ -105,6 +105,7 @@ main { min-width: 0; padding: 64px 0 40px; }
 .book-band-text { min-width: 0; }
 .book-band h2 { margin: 10px 0 0; font: 400 clamp(32px, 3.4vw, 46px) / 1 var(--display); letter-spacing: -0.02em; }
 .book-band h2 a { text-decoration: none; }
+.nb { white-space: nowrap; } /* the title never breaks at its own hyphens */
 .book-band h2 a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
 .book-band-sub { max-width: 34em; margin: 10px 0 0; font: italic 400 19px / 1.4 var(--serif); color: var(--soft); }
 .book-band-by { margin: 8px 0 0; font: 500 12px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); }

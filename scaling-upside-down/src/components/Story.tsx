@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react
 import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { FrameStore, fetchOk } from "../frames";
-import { CALLOUTS, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, frameAt, portraitFit, progressAt, sp, yearAt } from "../story";
+import { CALLOUTS, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, frameAt, portraitFit, progressAt, setHeroCap, sp, yearAt } from "../story";
 import type { Beat, SiteCopy } from "../copy";
 import { JoinLink } from "./JoinLink";
 import { BOOK } from "../book";
@@ -131,7 +131,9 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         oy = (ch - dh) / 2;
       }
       // narrower than the screen: slide the tower right, away from the words on the left
-      const ox = dw > cw ? Math.min(0, Math.max(cw - dw, cw / 2 - focusAt(frame) * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - focusAt(frame) * dw));
+      // (a cropped frame on a landscape screen keeps the stack right of the words too; phones centre it)
+      const anchor = cw >= ch ? 0.6 : 0.5;
+      const ox = dw > cw ? Math.min(0, Math.max(cw - dw, cw * anchor - focusAt(frame) * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - focusAt(frame) * dw));
       ctx.drawImage(bmp, ox, oy, dw, dh);
       if (oy > 0) ctx.drawImage(bmp, 0, 0, bmp.width, 2, ox, 0, dw, oy + 1);
       if (oy + dh < ch) ctx.drawImage(bmp, 0, bmp.height - 2, bmp.width, 2, ox, oy + dh - 1, dw, ch - oy - dh + 1);
@@ -140,8 +142,18 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       fit = { w: dw, h: dh, ox, oy, dpr: scale };
     };
 
+    // an upright phone: the stack's top (about 15% down the picture) stays 12px under the hero's button
+    const capHero = () => {
+      const hero = cv.parentElement?.querySelector<HTMLElement>(".hero");
+      const cta = hero?.querySelector<HTMLElement>(".hero-cta");
+      const vh = cv.clientHeight;
+      if (!hero || !cta || cv.clientWidth >= vh) return setHeroCap(0.58);
+      const below = hero.offsetTop + cta.offsetTop + cta.offsetHeight; // layout, not the scroll-time shift
+      setHeroCap((vh - below - 12) / (0.85 * vh));
+    };
     const resize = () => {
       const r = cv.getBoundingClientRect();
+      capHero();
       scale = dpr();
       const w = Math.round(r.width * scale);
       const h = Math.round(r.height * scale);
@@ -161,7 +173,12 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     const ro = new ResizeObserver(resize);
     ro.observe(cv);
     resize();
-    void document.fonts?.ready.then(() => !disposed && measure());
+    void document.fonts?.ready.then(() => {
+      if (disposed) return;
+      capHero(); // the type changes the hero's height
+      lastKey = "";
+      measure();
+    });
     // moving the window between screens changes the pixel ratio without resizing the canvas
     let mq = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
     const onDpr = () => {
@@ -403,7 +420,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         {/* the blocks finish stacking beside the book they come from: the hardcover, the cover's own blocks on it */}
         <m.div className="hero" style={{ opacity: heroOpacity, y: heroY, pointerEvents: heroEvents }}>
           <m.figure className="hero-book" style={{ "--bx": BOOK.box[0], "--bf": BOOK.box[2] } as CSSProperties} initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 28 }} transition={{ duration: 1.1, ease: [0.2, 0.75, 0.15, 1], delay: 0.1 }}>
-            <img src={BOOK.src} srcSet={BOOK.srcSet} sizes="(max-width: 900px) 36vw, 20vw" width={BOOK.w} height={BOOK.h} alt={hero.cover} decoding="async" fetchPriority="high" draggable={false} />
+            <img src={BOOK.src} srcSet={BOOK.srcSet} sizes="(max-width: 900px) and (orientation: landscape) 140px, (max-width: 900px) min(38vw, 204px), (max-width: 1100px) 220px, min(24vw, 438px)" width={BOOK.w} height={BOOK.h} alt={hero.cover} decoding="async" fetchPriority="high" draggable={false} />
           </m.figure>
           <div className="hero-text">
             <m.p className="hero-k" initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 12 }} transition={{ duration: 0.7, delay: 0.05 }}>

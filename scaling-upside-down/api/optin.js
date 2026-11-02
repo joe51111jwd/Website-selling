@@ -35,28 +35,37 @@ const json = (body, status = 200) => Response.json(body, { status, headers: { "C
 async function call(what, url, init, signal, also) {
   const r = await fetch(url, { ...init, signal });
   if (!r.ok && r.status !== also) throw new Error(`${what} ${r.status} ${(await r.text().catch(() => "")).slice(0, 200)}`);
-  r.body?.cancel().catch(() => {});
+  if (!init.keep) r.body?.cancel().catch(() => {});
   return r;
 }
+const body = (r) => r.json().catch(() => ({}));
 
-/** "sent" when the service will email the file, "already" when it won't (signed up before) */
+/** "sent" when the service will email the file, "already" when the address is a confirmed member (the
+ *  file came with its welcome email); an unconfirmed one is asked to confirm again, so it is "sent" */
 async function subscribe(kind, email, source, referrer, signal) {
   if (kind === "kit") {
     const headers = { "X-Kit-Api-Key": env.KIT_API_KEY, "Content-Type": "application/json", Accept: "application/json" };
     // the subscriber must exist before it can join the form; create (an upsert) leaves an existing one's state alone
-    await call("kit subscriber", "https://api.kit.com/v4/subscribers", { method: "POST", headers, body: JSON.stringify({ email_address: email, state: "inactive" }) }, signal);
-    // 201: new to the form, so Kit sends the incentive email; 200: on the form already, and Kit won't send it again
+    const s = await body(await call("kit subscriber", "https://api.kit.com/v4/subscribers", { method: "POST", headers, keep: true, body: JSON.stringify({ email_address: email, state: "inactive" }) }, signal));
+    // 201: new to the form, so Kit sends the incentive email; 200: on the form already. Only a confirmed
+    // (active) member is "already": an unconfirmed one gets the incentive email again when re-added
     const r = await call("kit form", `https://api.kit.com/v4/forms/${encodeURIComponent(env.KIT_FORM_ID)}/subscribers`, { method: "POST", headers, body: JSON.stringify({ email_address: email, referrer: referrer || source }) }, signal);
-    return r.status === 200 ? "already" : "sent";
+    return r.status === 200 && s?.subscriber?.state === "active" ? "already" : "sent";
   }
   if (kind === "mailchimp") {
     const dc = env.MAILCHIMP_API_KEY.split("-").pop();
     const hash = createHash("md5").update(email.toLowerCase()).digest("hex");
     const member = `https://${dc}.api.mailchimp.com/3.0/lists/${encodeURIComponent(env.MAILCHIMP_LIST_ID)}/members/${hash}`;
     const headers = { Authorization: `Basic ${Buffer.from(`susd:${env.MAILCHIMP_API_KEY}`).toString("base64")}`, "Content-Type": "application/json" };
-    // on the list in any status: an update emails nothing, and their status is not ours to change
-    if ((await call("mailchimp member", `${member}?fields=status`, { headers }, signal, 404)).status !== 404) return "already";
-    await call("mailchimp", member, { method: "PUT", headers, body: JSON.stringify({ email_address: email, status_if_new: "pending", tags: ["first-edition", "bootloader", `from-${source}`] }) }, signal);
+    // a confirmed member already has the file; one who never confirmed (or left) is asked to confirm
+    // again ("pending" sends the confirmation email); a bounced address is a failure, not "already"
+    const got = await call("mailchimp member", `${member}?fields=status`, { headers, keep: true }, signal, 404);
+    const status = got.status === 404 ? "" : (await body(got)).status;
+    if (status === "subscribed") return "already";
+    if (status === "cleaned") throw new Error("mailchimp: the address bounced");
+    const tags = ["first-edition", "bootloader", `from-${source}`];
+    const next = status ? { email_address: email, status: "pending", tags } : { email_address: email, status_if_new: "pending", tags };
+    await call("mailchimp", member, { method: "PUT", headers, body: JSON.stringify(next) }, signal);
     return "sent";
   }
   // a webhook can't say whether the address is new

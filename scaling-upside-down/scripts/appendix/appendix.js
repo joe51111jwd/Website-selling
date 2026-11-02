@@ -217,7 +217,7 @@
         body: JSON.stringify({ email, source: "appendix", company: trap ? trap.value : "" }),
       });
       const d = await r.json().catch(() => ({}));
-      if (r.ok && d.ok && d.already) settle("You're already on the list.");
+      if (r.ok && d.ok && d.already) settle("You're already on the list. The SUSD Bootloader came with your welcome email.");
       else if (r.ok && d.ok && d.emailed) settle("Sent. Check your inbox: the SUSD Bootloader is on its way.");
       else if (r.ok && d.ok) {
         // no email service connected yet: nothing was stored; the field stays for later

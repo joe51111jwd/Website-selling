@@ -810,9 +810,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
           </p>
         </Win>
         <Win p={p} at={BEATS.mini} className="cl-mini phone-only">
-          <p>
-            {copy.pair.book} {copy.pair.file}
-          </p>
+          <p>{copy.pair.book}</p>
         </Win>
 
         <Win p={p} at={BEATS.book} className="cl-book">
@@ -932,7 +930,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
           <i />
         </m.div>
         <div ref={cursor} className="cl-cursor" aria-hidden="true">
-          {ring === "closed" ? "Joined" : "Join"}
+          {ring !== "closed" ? "Join" : result === "already" ? "Joined" : "Sent"}
         </div>
 
         {earlyBeats}
@@ -945,7 +943,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
                 {copy.copy.kicker}
               </span>
               <span className="b" aria-hidden={!after}>
-                {copy.after.kicker}
+                {result === "sent" ? copy.after.kickerSent : copy.after.kicker}
               </span>
             </span>
           </p>
@@ -973,7 +971,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
                 Company <input name="company" tabIndex={-1} autoComplete="off" />
               </label>
             </div>
-            <div className="cl-field" data-state={result ? "done" : fieldErr ? "err" : undefined}>
+            <div className="cl-field" data-state={result ? "done" : fieldErr === "email" || fieldErr === "send" ? "err" : undefined}>
               {!result && (
                 <>
                   <label className="cl-label" htmlFor="cl-email">
@@ -992,7 +990,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
                     placeholder={copy.block.placeholder}
                     aria-invalid={fieldErr === "email" || undefined}
                     aria-describedby="cl-email-msg"
-                    onInput={() => fieldErr === "email" && setFieldErr("")}
+                    onInput={() => (fieldErr === "email" || fieldErr === "soon") && setFieldErr("")}
                   />
                   <p className="cl-msg" id="cl-email-msg" role="alert" data-soon={fieldErr === "soon" || undefined}>
                     {fieldErr === "email" ? copy.block.badEmail : fieldErr === "send" ? copy.block.sendFailed : fieldErr === "soon" ? copy.block.soon : ""}

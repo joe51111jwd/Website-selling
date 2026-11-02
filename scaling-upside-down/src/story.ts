@@ -139,15 +139,18 @@ const smooth = (t: number) => {
   const c = Math.max(0, Math.min(1, t));
   return c * c * (3 - 2 * c);
 };
+/** on a short phone the hero's picture is held below its button (Story measures it): the largest scale it may take */
+let heroCap = 0.58;
+export const setHeroCap = (cap: number) => void (heroCap = Math.max(0.4, Math.min(0.58, cap)));
 export function portraitFit(frame: number): { scale: number; bottom: number } {
   if (frame < HERO_FRAME) {
     const c = smooth((frame - o(5)) / (o(46) - o(5))); // follows the camera down to the hero (its frames 5-46)
-    return { scale: 0.44 + c * 0.14, bottom: 0.72 + c * 0.28 };
+    return { scale: Math.min(0.44 + c * 0.14, heroCap), bottom: 0.72 + c * 0.28 };
   }
   const e = smooth((frame - f(29)) / 16); // out of the way before the first line arrives
   // as the building rises past the frame, the picture eases smaller so its top clears the menu
   const h = smooth((frame - f(250)) / 67);
-  return { scale: 0.58 + e * 0.18 - h * 0.1, bottom: 1 - e * 0.24 };
+  return { scale: Math.min(0.58, heroCap + e * 0.14) + e * 0.18 - h * 0.1, bottom: 1 - e * 0.24 };
 }
 
 /** callouts past this frame may share a phone screen (the finished building) */

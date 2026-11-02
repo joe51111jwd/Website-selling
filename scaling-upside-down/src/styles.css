@@ -140,7 +140,7 @@ img { display: block; max-width: 100%; }
    book sits in the picture) */
 .hero-book { --bw: clamp(140px, 16.5vw, 300px); flex: none; width: calc(var(--bw) / var(--bf, 0.69)); margin: 0 0 0 calc(var(--bw) / var(--bf, 0.69) * var(--bx, 0.16) * -1); }
 .hero-book img { display: block; width: 100%; height: auto; user-select: none; }
-.hero-text { display: flex; flex-direction: column; min-width: 0; }
+.hero-text { display: flex; flex-direction: column; flex-shrink: 0; } /* never narrower than the title */
 .hero-k { font: 500 12px / 1.5 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: #4f473d; margin-bottom: 18px; max-width: 34ch; }
 .hero-t { font: 400 clamp(40px, 4.7vw, 84px) / 0.92 var(--display); letter-spacing: -0.025em; white-space: nowrap; }
 .ln { display: block; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
@@ -154,6 +154,12 @@ img { display: block; max-width: 100%; }
   .hero { flex-direction: column; align-items: flex-start; justify-content: center; gap: 18px; }
   .hero-book { --bw: clamp(110px, 13vw, 150px); }
   .hero-k { margin-bottom: 12px; }
+}
+@media (min-width: 901px) and (max-width: 1100px) and (max-height: 760px) {
+  .hero { gap: 12px; }
+  .hero-book { --bw: clamp(72px, 12vh, 110px); }
+  .hero-s { margin-top: 14px; }
+  .hero-cta { margin-top: 18px; }
 }
 
 .cue { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; font: 500 11px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--soft); z-index: 3; }
@@ -301,6 +307,8 @@ html:has(dialog[open]) { overflow: hidden; }
   .beat-h { font-size: clamp(25px, 7.4vw, 34px); line-height: 1.06; }
   .beat.is-long .beat-h { font-size: clamp(21px, 6.1vw, 27px); line-height: 1.12; }
   .beat-b, .beat-d, .beat-n, .beat-stats { display: none; }
+  /* the cycle's point needs both its sentences */
+  .beat-repeat .beat-d { display: block; font-size: 16px; line-height: 1.35; margin-top: 10px; padding-top: 10px; }
   .beat-cta { flex-wrap: nowrap; gap: 8px; margin-top: 16px; }
   .beat-cta .copy-lg, .beat-cta .ghost { height: 48px; padding: 0 16px; font-size: 14.5px; }
   .hud, .chapters { display: none; }
@@ -314,7 +322,7 @@ html:has(dialog[open]) { overflow: hidden; }
 }
 
 @media (max-width: 900px) and (orientation: portrait) and (max-height: 740px) {
-  .hero { padding-top: 62px; }
+  .hero { padding-top: 70px; }
   .hero-book { --bw: clamp(78px, 22vw, 108px); }
   .hero-k { margin-bottom: 6px; }
   .hero-t { font-size: clamp(27px, 7.6vw, 42px); }
@@ -520,9 +528,9 @@ html[data-stamp] .cb-pose { will-change: scale; }
 .cl-rows { display: flex; align-items: center; gap: 4px 18px; flex-wrap: wrap; min-height: 44px; margin-top: 18px; }
 .cl-rows .notice-link { min-height: 44px; }
 .cl-copy.is-tight .cl-offer, .cl-copy.is-tighter .beat-k, .cl-copy.is-tightest .cl-deck { display: none; }
-/* a short phone: before the sign-up the offer line and the rows step aside; after it the field gives up
-   its spare line, and if need be the status is only spoken */
-.cl-copy.is-snug .cl-offer, .cl-copy.is-snug .cl-rows:not([data-rows="after"]) { display: none; }
+/* a short phone: before the sign-up the deck and the rows step aside (the offer stays: it says what
+   joining gets you); after it the field gives up its spare line, and if need be the status is only spoken */
+.cl-copy.is-snug .cl-deck, .cl-copy.is-snug .cl-rows:not([data-rows="after"]) { display: none; }
 .cl-copy:is(.is-snug, .is-bare) .cl-field[data-state="done"] { min-height: 0; }
 /* a long status on a short phone: two lines (or one, --stl), cut at the end; the underline moves to
    the field, so nothing of the next line shows in the gap above it */
@@ -544,6 +552,11 @@ html[data-stamp] .cb-pose { will-change: scale; }
 .cl-rail li:not(:last-child) b { transform: scaleX(1); }
 .cl-stage[data-instant] *, .cl-stage[data-instant] *::before, .cl-stage[data-instant] *::after { transition: none !important; }
 
+/* ---------- footer: paper, the ring as a seal ---------- */
+.foot { display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--seam); color: var(--ink); padding: 96px var(--gut-r) 28px var(--gut); }
+.foot-seal { display: block; border-radius: 50%; }
+.foot-seal img { width: 220px; height: 220px; }
+.foot-line { margin-top: 22px; font: 400 34px / 1.1 var(--display); letter-spacing: -0.01em; }
 .foot-repeat { margin-top: 6px; min-height: 44px; padding: 0 12px; font: 500 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft); }
 .foot-repeat:hover { color: var(--ink); }
 .foot-bar { align-self: stretch; display: flex; justify-content: space-between; align-items: center; gap: 12px 16px; flex-wrap: wrap; margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--line); font: 500 12px var(--mono); color: var(--soft); }
@@ -566,7 +579,7 @@ html[data-stamp] .cb-pose { will-change: scale; }
 .cl-copy[data-mode="phone"] .cl-head > .b .beat-h { font-size: 23px; line-height: 1.1; }
 .cl-copy[data-mode="phone"] .beat-k { margin-bottom: 10px; }
 .cl-copy[data-mode="land"] { top: 74px; bottom: auto; left: var(--gut); right: auto; width: min(380px, 42vw); translate: none; margin-top: 0; padding: 0; }
-.cl-copy[data-mode="land"] :is(.beat-k, .cl-deck, .cl-offer) { display: none; }
+.cl-copy[data-mode="land"] :is(.beat-k, .cl-deck) { display: none; }
 .cl-copy[data-mode="land"] .beat-h { font-size: clamp(20px, 6.2vh, 24px); }
 .cl-copy[data-mode="land"] .cl-head > .b .beat-h { font-size: clamp(17px, 5.2vh, 20px); line-height: 1.12; }
 .cl-copy[data-mode="land"] .cl-rows { margin-top: 8px; }

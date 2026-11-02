@@ -25,7 +25,7 @@ export type SiteCopy = {
     open: { kicker: string; headline: string };
     closing: { kicker: string; headline: string; detail: string };
     copy: { kicker: string; headline: string; deck: string; offer: string };
-    after: { kicker: string; headline: string };
+    after: { kicker: string; kickerSent: string; headline: string };
     block: {
       join: string;
       list: string;
@@ -66,7 +66,7 @@ export const COPY: SiteCopy = {
     cover: "The hardcover of Scaling Up-Side-Down by Michael Wentz, with the Up, Side and Down blocks stacked on its cover. Revenue Up. Margins Down. How to Avoid the Scaling Trap.",
   },
   // One idea per scroll moment, and the picture does most of the telling. Phones show the kicker
-  // and headline only; desktop adds the one detail line.
+  // and headline only (and the last beat's detail, the cycle's point); desktop adds the one detail line.
   beats: [
     {
       id: "grow",
@@ -143,6 +143,7 @@ export const COPY: SiteCopy = {
     },
     after: {
       kicker: "You're on the list",
+      kickerSent: "Check your inbox",
       headline: "The cycle isn't something you install. It's something you stop resisting.", // L1734
     },
     // the sign-up: the block's stamp, the email field and their messages are UI labels, not sentences
@@ -157,18 +158,18 @@ export const COPY: SiteCopy = {
       tryAgain: "Try again",
       email: "Email address",
       placeholder: "you@company.com",
-      badEmail: "Enter your email address.",
+      badEmail: "Enter a valid email address.",
       sendFailed: "Couldn't send. Try again.",
       soon: "The list opens soon.",
       sentTo: "Sent to {email}. Check your inbox.",
-      already: "You're already on the list.",
+      already: "You're already on the list. The SUSD Bootloader came with your welcome email.",
       appendix: "Read the Appendix",
       names: {
         join: "Join the list for the first edition, with the SUSD Bootloader free by email",
         sent: "Sent: check your inbox",
         joined: "Joined: you're already on the list",
         error: "Join, try again",
-        busy: "Joining the list",
+        busy: "Sending: joining the list",
       },
     },
     // under the book and the ring as the camera passes them

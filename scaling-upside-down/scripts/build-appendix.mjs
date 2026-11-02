@@ -319,7 +319,7 @@ ${ldTags}
   ${coverImg("book-band-img", "(max-width: 640px) 26vw, 150px")}
   <div class="book-band-text">
     <p class="kicker">${tri}The appendix to the book</p>
-    <h2 id="book-h"><a href="/">Scaling Up-Side-Down</a></h2>
+    <h2 id="book-h"><a href="/">Scaling <span class="nb">Up-Side-Down</span></a></h2>
     <p class="book-band-sub">${esc(SUBTITLE)}</p>
     <p class="book-band-by">Michael Wentz · For bootstrapped founders</p>
     <p class="book-band-cta"><a class="btn" href="#get">Join the first-edition list</a><a class="btn ghost" href="/">About the book</a></p>
@@ -344,7 +344,7 @@ ${ldTags}
   <div class="get-mail">
     <p class="kicker">${tri}The first-edition list</p>
     <h2 id="get-h">Join the list</h2>
-    <p class="get-sub">For the first edition of the book. The SUSD Bootloader comes free, by email.</p>
+    <p class="get-sub">The book's first edition · the SUSD Bootloader comes free, by email</p>
     <form id="optin" class="optin" method="post" action="/api/optin" novalidate>
       <label class="lbl" for="optin-email">Email</label>
       <div class="optin-row">
@@ -360,7 +360,7 @@ ${ldTags}
          on its own -->
     <div class="done ok" id="optin-sent" data-nosnippet>Sent. Check your inbox.</div>
     <div class="done ok" id="optin-soon" data-nosnippet>The list opens soon.</div>
-    <div class="done ok" id="optin-already" data-nosnippet>You're already on the list.</div>
+    <div class="done ok" id="optin-already" data-nosnippet>You're already on the list. The SUSD Bootloader came with your welcome email.</div>
     <div class="done err" id="optin-failed" data-nosnippet>Couldn't send. Try again.</div>
     <div class="done err" id="optin-error" data-nosnippet>That email address didn't look right. Try again.</div>
     <p class="fine"><a href="#use-notice">Use notice</a></p>
@@ -383,7 +383,7 @@ ${noticeHtml}
   ${coverImg("book-band-img", "(max-width: 640px) 26vw, 150px")}
   <div class="book-band-text">
     <p class="kicker">${tri}The book</p>
-    <h2 id="book-end-h"><a href="/">Scaling Up-Side-Down</a></h2>
+    <h2 id="book-end-h"><a href="/">Scaling <span class="nb">Up-Side-Down</span></a></h2>
     <p class="book-band-sub">${esc(ABOUT)}</p>
     <p class="book-band-cta"><a class="btn" href="#get">Join the first-edition list</a><a class="btn ghost" href="/">About the book</a></p>
   </div>
@@ -404,21 +404,19 @@ ${noticeHtml}
 // ---------- files for crawlers ----------
 const llms = `# Scaling Up-Side-Down
 
-> ${SPEC} ${purpose.replace(/^This document is designed to be read by both humans and AI\.\s*/, "")}
+> ${SUBTITLE} A book by Michael Wentz for bootstrapped founders. ${ABOUT}
 
-- Book: Scaling Up-Side-Down
+- Book: Scaling Up-Side-Down (${SUBTITLE})
 - Author: Michael Wentz
+- For: bootstrapped founders
 - Appendix: SUSD Bootloader ${version}, ${words.toLocaleString("en-US")} words
 - Page: ${PAGE}
 - The file: by email, with the book's first-edition list (${PAGE}#get)
 
 ## Docs
 
-- [The SUSD Bootloader (the Appendix)](${PAGE}): the complete Bootloader as one HTML page, with a permanent anchor for every section and every Vocabulary Lock term (e.g. ${PAGE}#term-cyclical-growth).
-
-## Optional
-
-- [Scaling Up-Side-Down](${SITE}/): the book's site.
+- [Scaling Up-Side-Down](${SITE}/): the book by Michael Wentz, and its first-edition list (the SUSD Bootloader comes free by email).
+- [The SUSD Bootloader, the book's appendix](${PAGE}): ${SPEC} The complete Bootloader as one HTML page, with a permanent anchor for every section and every Vocabulary Lock term (e.g. ${PAGE}#term-cyclical-growth).
 `;
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
