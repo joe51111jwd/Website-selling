@@ -6,3 +6,4 @@ render/fonts
 *.blend
 *.blend1
 render/__pycache__
+render/fonts_web

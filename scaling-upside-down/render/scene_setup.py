@@ -142,11 +142,11 @@ def raw_wood_material(name, label=None, seed=0.0):
     return m
 
 # ---------- geometry ----------
-def block(name, loc, rot_z, front_mat, other_mat, size=1.0, depth=1.0):
+def block(name, loc, rot_z, front_mat, other_mat, size=1.0, depth=1.0, width=None):
     bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0))
     ob = bpy.context.active_object
     ob.name = name
-    ob.scale = (size, depth, size)
+    ob.scale = (width or size, depth, size)
     bpy.ops.object.transform_apply(scale=True)
     me = ob.data
     me.materials.append(front_mat)
