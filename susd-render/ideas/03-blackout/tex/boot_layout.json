@@ -1,0 +1,198 @@
+{
+ "page_mm": [
+  210.0,
+  297.0
+ ],
+ "px_per_mm": 16.0,
+ "em_mm": 11.2,
+ "lines": [
+  {
+   "text": "The answer is: \u201cYou\u2019re",
+   "x0": 30.0,
+   "x1": 149.5263671875,
+   "keep": false,
+   "kind": "cont",
+   "base": 38.68,
+   "top": 30.0,
+   "bot": 41.592
+  },
+  {
+   "text": "describing when to move,",
+   "x0": 30.0,
+   "x1": 170.16796875,
+   "keep": false,
+   "kind": "cont",
+   "base": 52.344,
+   "top": 43.664,
+   "bot": 55.256
+  },
+  {
+   "text": "not where the math",
+   "x0": 30.0,
+   "x1": 138.3759765625,
+   "keep": false,
+   "kind": "cont",
+   "base": 66.008,
+   "top": 57.327999999999996,
+   "bot": 68.92
+  },
+  {
+   "text": "stabilizes.\u201d",
+   "x0": 30.0,
+   "x1": 87.6044921875,
+   "keep": false,
+   "kind": "cont",
+   "base": 79.672,
+   "top": 70.99199999999999,
+   "bot": 82.584
+  },
+  {
+   "text": "4.2 Entry Point Routing",
+   "x0": 30.0,
+   "x1": 158.46875,
+   "keep": false,
+   "kind": "head",
+   "base": 93.336,
+   "top": 84.656,
+   "bot": 96.248
+  },
+  {
+   "text": "Step 0: The Locating",
+   "x0": 30.0,
+   "x1": 142.50390625,
+   "keep": false,
+   "kind": "head",
+   "base": 107.0,
+   "top": 98.32,
+   "bot": 109.912
+  },
+  {
+   "text": "Question (Ask First)",
+   "x0": 30.0,
+   "x1": 141.1923828125,
+   "keep": false,
+   "kind": "head",
+   "base": 120.66399999999999,
+   "top": 111.98399999999998,
+   "bot": 123.576
+  },
+  {
+   "text": "\u201cHow many people are",
+   "x0": 43.44,
+   "x1": 165.9331640625,
+   "keep": true,
+   "kind": "keepquote",
+   "base": 134.328,
+   "top": 125.648,
+   "bot": 137.24
+  },
+  {
+   "text": "on your team?\u201d",
+   "x0": 43.44,
+   "x1": 126.4194921875,
+   "keep": true,
+   "kind": "keepquote",
+   "base": 147.992,
+   "top": 139.31199999999998,
+   "bot": 150.904
+  },
+  {
+   "text": "Clarification: \u201cTeam\u201d",
+   "x0": 30.0,
+   "x1": 141.9638671875,
+   "keep": false,
+   "kind": "cont",
+   "base": 161.656,
+   "top": 152.976,
+   "bot": 164.568
+  },
+  {
+   "text": "means coordination load,",
+   "x0": 30.0,
+   "x1": 169.115234375,
+   "keep": false,
+   "kind": "cont",
+   "base": 175.32,
+   "top": 166.64,
+   "bot": 178.232
+  },
+  {
+   "text": "not payroll headcount.",
+   "x0": 30.0,
+   "x1": 154.4287109375,
+   "keep": false,
+   "kind": "cont",
+   "base": 188.984,
+   "top": 180.304,
+   "bot": 191.89600000000002
+  },
+  {
+   "text": "Count everyone they carry",
+   "x0": 30.0,
+   "x1": 176.3125,
+   "keep": false,
+   "kind": "cont",
+   "base": 202.648,
+   "top": 193.968,
+   "bot": 205.56
+  },
+  {
+   "text": "in their head \u2014 employee",
+   "x0": 30.0,
+   "x1": 170.1474609375,
+   "keep": false,
+   "kind": "cont",
+   "base": 216.312,
+   "top": 207.632,
+   "bot": 219.22400000000002
+  },
+  {
+   "text": "or contractor, anyone they",
+   "x0": 30.0,
+   "x1": 175.8427734375,
+   "keep": false,
+   "kind": "cont",
+   "base": 229.976,
+   "top": 221.296,
+   "bot": 232.888
+  },
+  {
+   "text": "align weekly, manage",
+   "x0": 30.0,
+   "x1": 145.130859375,
+   "keep": false,
+   "kind": "cont",
+   "base": 243.64000000000001,
+   "top": 234.96,
+   "bot": 246.55200000000002
+  },
+  {
+   "text": "output for, or coordinate",
+   "x0": 30.0,
+   "x1": 167.5869140625,
+   "keep": false,
+   "kind": "cont",
+   "base": 257.304,
+   "top": 248.62399999999997,
+   "bot": 260.21599999999995
+  },
+  {
+   "text": "with other team members.",
+   "x0": 30.0,
+   "x1": 175.5859375,
+   "keep": false,
+   "kind": "cont",
+   "base": 270.96799999999996,
+   "top": 262.28799999999995,
+   "bot": 273.87999999999994
+  }
+ ],
+ "folio": [
+  180.0,
+  17.0
+ ],
+ "wet_lines": [
+  9,
+  10
+ ]
+}

@@ -1,0 +1,194 @@
+{
+ "page_mm": [
+  210.0,
+  297.0
+ ],
+ "px_per_mm": 16.0,
+ "em_mm": 11.2,
+ "lines": [
+  {
+   "text": "more people, more",
+   "x0": 30.0,
+   "x1": 140.6015625,
+   "keep": false,
+   "kind": "cont",
+   "base": 38.68,
+   "top": 30.0,
+   "bot": 41.592
+  },
+  {
+   "text": "growth. That\u2019s the only",
+   "x0": 30.0,
+   "x1": 164.3759765625,
+   "keep": false,
+   "kind": "cont",
+   "base": 52.344,
+   "top": 43.664,
+   "bot": 55.256
+  },
+  {
+   "text": "axis anyone talks about.",
+   "x0": 30.0,
+   "x1": 170.80859375,
+   "keep": false,
+   "kind": "cont",
+   "base": 66.008,
+   "top": 57.327999999999996,
+   "bot": 68.92
+  },
+  {
+   "text": "Every hire compounds",
+   "x0": 43.44,
+   "x1": 176.84234375,
+   "keep": true,
+   "kind": "keep",
+   "base": 79.672,
+   "top": 70.99199999999999,
+   "bot": 82.584
+  },
+  {
+   "text": "complexity before it",
+   "x0": 30.0,
+   "x1": 148.9248046875,
+   "keep": true,
+   "kind": "keep",
+   "base": 93.336,
+   "top": 84.656,
+   "bot": 96.248
+  },
+  {
+   "text": "compounds capacity.",
+   "x0": 30.0,
+   "x1": 154.7548828125,
+   "keep": true,
+   "kind": "keep",
+   "base": 107.0,
+   "top": 98.32,
+   "bot": 109.912
+  },
+  {
+   "text": "One-dimensional",
+   "x0": 43.44,
+   "x1": 146.0757421875,
+   "keep": false,
+   "kind": "body",
+   "base": 120.66399999999999,
+   "top": 111.98399999999998,
+   "bot": 123.576
+  },
+  {
+   "text": "scaling looks like",
+   "x0": 30.0,
+   "x1": 130.82421875,
+   "keep": false,
+   "kind": "body",
+   "base": 134.328,
+   "top": 125.648,
+   "bot": 137.24
+  },
+  {
+   "text": "progress but it\u2019s just a",
+   "x0": 30.0,
+   "x1": 161.34375,
+   "keep": false,
+   "kind": "body",
+   "base": 147.992,
+   "top": 139.31199999999998,
+   "bot": 150.904
+  },
+  {
+   "text": "line getting longer.",
+   "x0": 30.0,
+   "x1": 141.4990234375,
+   "keep": false,
+   "kind": "body",
+   "base": 161.656,
+   "top": 152.976,
+   "bot": 164.568
+  },
+  {
+   "text": "You\u2019re not building",
+   "x0": 30.0,
+   "x1": 142.1787109375,
+   "keep": false,
+   "kind": "body",
+   "base": 175.32,
+   "top": 166.64,
+   "bot": 178.232
+  },
+  {
+   "text": "volume. You\u2019re not",
+   "x0": 30.0,
+   "x1": 138.2626953125,
+   "keep": false,
+   "kind": "body",
+   "base": 188.984,
+   "top": 180.304,
+   "bot": 191.89600000000002
+  },
+  {
+   "text": "building mass. You\u2019re",
+   "x0": 30.0,
+   "x1": 156.07421875,
+   "keep": false,
+   "kind": "body",
+   "base": 202.648,
+   "top": 193.968,
+   "bot": 205.56
+  },
+  {
+   "text": "just extending in one",
+   "x0": 30.0,
+   "x1": 153.8486328125,
+   "keep": false,
+   "kind": "body",
+   "base": 216.312,
+   "top": 207.632,
+   "bot": 219.22400000000002
+  },
+  {
+   "text": "direction until you snap.",
+   "x0": 30.0,
+   "x1": 174.2998046875,
+   "keep": false,
+   "kind": "body",
+   "base": 229.976,
+   "top": 221.296,
+   "bot": 232.888
+  },
+  {
+   "text": "Three-dimensional",
+   "x0": 43.44,
+   "x1": 156.7827734375,
+   "keep": false,
+   "kind": "body",
+   "base": 243.64000000000001,
+   "top": 234.96,
+   "bot": 246.55200000000002
+  },
+  {
+   "text": "scaling builds a",
+   "x0": 30.0,
+   "x1": 122.1767578125,
+   "keep": false,
+   "kind": "body",
+   "base": 257.304,
+   "top": 248.62399999999997,
+   "bot": 260.21599999999995
+  },
+  {
+   "text": "structure. Each cycle",
+   "x0": 30.0,
+   "x1": 154.7216796875,
+   "keep": false,
+   "kind": "body",
+   "base": 270.96799999999996,
+   "top": 262.28799999999995,
+   "bot": 273.87999999999994
+  }
+ ],
+ "folio": [
+  180.0,
+  17.0
+ ]
+}

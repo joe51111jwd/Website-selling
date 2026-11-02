@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scaling Up-Side-Down</title>
+<link rel="stylesheet" href="redline.css">
+<!-- Idea 1, Redline. First screen, iPhone 390x844 at 2x. Render: out/ideas/01-redline/redline_first_phone.png (780x1688). -->
+<style>
+  .col { position: absolute; left: 18px; right: 14px; top: 84px; }
+  .col .claim, .col .who { position: static; }
+  .claim { font-size: 34px; line-height: 1.06; }
+  .who { margin-top: 14px; }
+  .boot { top: 712px; }
+  .phone .booklink.foot { position: absolute; left: 18px; top: 792px; margin: 0; font-size: 13px; }
+</style>
+</head>
+<body class="phone">
+<main class="stage">
+  <img src="../../../out/ideas/01-redline/redline_first_phone.png" alt=""> <!-- // label -->
+  <div class="lockup">
+    <p class="title">Scaling Up&#x2011;Side&#x2011;Down</p>
+    <p class="byline">A book by Michael Wentz</p> <!-- // label -->
+  </div>
+  <div class="col">
+    <h1 class="claim">Every hire compounds complexity before it compounds capacity.</h1> <!-- M 696, copy.ts:60 -->
+    <p class="who">For bootstrapped, self-funded founders with teams of 1&#x2013;12</p> <!-- // label (fit table, BL 4773, BL 4775) -->
+  </div>
+  <div class="boot">
+    <span>
+      <span class="name">SUSD Bootloader</span>
+      <span class="meta">A free file for your AI</span> <!-- // label -->
+    </span>
+    <a class="btn" href="#get" aria-label="Get the free SUSD Bootloader file">Get it free</a> <!-- // label -->
+  </div>
+  <a class="booklink foot" href="#book">The book: pre-orders open soon</a> <!-- // label -->
+</main>
+</body>
+</html>

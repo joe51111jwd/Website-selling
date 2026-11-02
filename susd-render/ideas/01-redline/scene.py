@@ -1,10 +1,14 @@
 """Idea 1, Redline: a worn engine-room instrument panel with two analogue gauges under glass.
 
   python3 tools/render_idle.py blender -b -P ideas/01-redline/scene.py -- \
-      --state first|key --camera desktop|phone --w 1440 --h 900 --samples 24 --out out/ideas/01-redline/x.png
+      --state first|key --camera desktop|close|phone --w 1440 --h 900 --samples 24 --out out/ideas/01-redline/x.png
+
+Finals: first/desktop 1440x900 s24, key/close 1440x900 s24, first/phone 780x1688 s18 (see NOTES.md).
+--border x0,x1,y0,y1 renders a crop at full size for 100% checks.
 
 Left gauge, COORDINATION: pathways n(n-1)/2 on a linear 0..120 dial, a long tick per hire, red from 72.
-Right gauge, CAPACITY: people 0..22. --state first = 8 people (28 pathways), key = 13 people (78).
+Right gauge, CAPACITY: people 0..22. --state first = 8 people (28 pathways), key = 13 people (78),
+where the left needle trembles (real motion blur; --quiver sets the swing in degrees).
 --n overrides the team size.
 
 The stand-in for the real production in the 09 entry ("buy a real used gauge, print our own dial
@@ -13,11 +17,14 @@ faces, shoot each needle position on a locked camera"): the faces are printed ar
 
 Scene (metres; Blender Z up, panel front on y=0, camera on -Y):
   painted steel panel (Poly Haven green_metal_rust, greyed), holes cut for the gauge cases
-  two flange-mounted gauges: black bezel worn to steel on the lip, glass with dust and smudges,
-  printed dial recessed 5.5 mm behind the panel, white needles 3.5 mm above the dial
+  two flange-mounted gauges: matte black wrinkle-finish bezel worn to steel on the lip, glass with
+  dust and smudges, printed dial recessed 5.5 mm behind the panel, aged white needles with black
+  counterweights 3.5 mm above the dial
   engraved laminate label plates under each gauge, slotted screws
-  one light idea: a big mullioned window to the left of the photographer (four area panes, so the
-  glass shows a real window reflection), plus a dim warehouse HDRI for fill
+  one light idea: late-morning sun through a window to the left; the window's jamb and head
+  (shadow-only blockers) keep the upper left of the panel in soft shade, where the type goes.
+  A warehouse HDRI is the room's fill and what the glass reflects. (--light window is the first
+  try: four area panes, kept for reference.)
 """
 import bpy, bmesh, math, os, sys
 from mathutils import Vector
@@ -28,8 +35,8 @@ sys.path.insert(0, os.path.join(ROOT, 'lookdev'))
 import lib_lookdev as lib
 
 A = lib.args(dict(state='first', camera='desktop', w=640, h=400, samples=12, out='out/ideas/01-redline/test.png',
-                  n=0, exposure=0.45, win=1.0, hdri=0.9, yaw=16.0, fstop=5.6, look='AgX - Medium High Contrast',
-                  grain=0.07, sat=0.55, val=0.36, seed=7, save='', quiver=-1.0, light='sun', sun=7.5, el=34.0, az=218.0,
+                  n=0, exposure=0.35, win=1.0, hdri=0.9, yaw=16.0, fstop=5.6, look='AgX - Medium High Contrast',
+                  grain=0.07, sat=0.55, val=0.36, seed=7, save='', quiver=-1.0, lipdust=0.25, bzr=0.65, light='sun', sun=7.5, el=34.0, az=218.0,
                   sunang=7.0, jamb=-0.15, lintel=0.26, hrot=290.0, framew=0.0, border='', dust=1.0))
 
 MM = 0.001
@@ -198,7 +205,7 @@ def dust_on_top(nt, base_col_socket, bsdf, amount=0.35):
     lib.link(nt, up.outputs['Result'], mul.inputs[0]); lib.link(nt, k.outputs['Result'], mul.inputs[1])
     mx, f_, a_, b_, r_ = lib.mix(nt, 'RGBA', 'MIX')
     lib.link(nt, mul.outputs[0], f_); lib.link(nt, base_col_socket, a_)
-    b_.default_value = (*lib.srgb_to_lin((0.42, 0.41, 0.38)), 1)
+    b_.default_value = (*lib.srgb_to_lin((0.30, 0.295, 0.28)), 1)
     lib.link(nt, r_, bsdf.inputs['Base Color'])
     return mul.outputs[0]
 
@@ -232,12 +239,12 @@ def bezel_mat():
     tc = nt.nodes.new('ShaderNodeTexCoord')
     lib.link(nt, tc.outputs['Object'], mp.inputs['Vector']); lib.link(nt, mp.outputs['Vector'], rm.inputs['Vector'])
     rr = node(nt, 'ShaderNodeMapRange')
-    rr.inputs['To Min'].default_value = 0.30; rr.inputs['To Max'].default_value = 0.52
+    rr.inputs['To Min'].default_value = A['bzr'] - 0.1; rr.inputs['To Max'].default_value = A['bzr'] + 0.1
     lib.link(nt, rm.outputs['Color'], rr.inputs['Value'])
     mr, f2, a2, b2, rough = lib.mix(nt, 'FLOAT')
-    lib.link(nt, wear, f2); lib.link(nt, rr.outputs['Result'], a2); b2.default_value = 0.36
+    lib.link(nt, wear, f2); lib.link(nt, rr.outputs['Result'], a2); b2.default_value = 0.5
     lib.link(nt, rough, bsdf.inputs['Roughness'])
-    dust_on_top(nt, col, bsdf, amount=0.45)
+    dust_on_top(nt, col, bsdf, amount=A['lipdust'])
     return m
 
 
@@ -349,7 +356,7 @@ def build_gauge(key, mats):
         return (u * d[0] + v * p[0], u * d[1] + v * p[1])
     blade = [at(-15.0, -1.3), at(0.0, -1.75), at(63.5, -0.38), at(64.2, 0.0), at(63.5, 0.38), at(0.0, 1.75), at(-15.0, 1.3)]
     nd = place(prism(f'Needle{key}', blade, -2.3, -1.8, mats['needle']), cx, cz)
-    cw = place(prism(f'Counter{key}', [at(-17.0 + x, z) for x, z in circle_pts(4.3, 40)], -2.3, -1.8, mats['needle']), cx, cz)
+    cw = place(prism(f'Counter{key}', [at(-17.0 + x, z) for x, z in circle_pts(4.3, 40)], -2.4, -1.75, mats['hub']), cx, cz)
     hub = place(lathe(f'Hub{key}', [(0.0, -5.5), (5.2, -5.5), (5.2, -2.6), (4.6, -1.2), (3.2, -0.6), (0.0, -0.4)], segs=64,
                       mat=mats['hub']), cx, cz)
     # three flange screws
@@ -450,7 +457,7 @@ def main():
     mats = dict(panel=panel_mat(), bezel=bezel_mat(), glass=glass_mat(),
                 dialL=dial_mat('DialL', 'dial_coordination.png'), dialR=dial_mat('DialR', 'dial_capacity.png'),
                 plateL=plate_mat('PlateL', 'plate_coordination.png'), plateR=plate_mat('PlateR', 'plate_capacity.png'),
-                needle=lib.paint_mat('NeedlePaint', (0.90, 0.885, 0.85), rough=0.48),
+                needle=lib.paint_mat('NeedlePaint', (0.83, 0.81, 0.76), rough=0.55),
                 hub=lib.paint_mat('HubPaint', (0.06, 0.06, 0.06), rough=0.32),
                 screw=steel_mat('Screw', (0.36, 0.35, 0.33), rough=0.45),
                 slot=lib.simple_mat('Slot', (0.03, 0.03, 0.03), rough=0.7))
@@ -495,7 +502,7 @@ def main():
 
     # camera: locked off, square-on verticals, yawed so the panel recedes to the left
     if A['camera'] == 'close':      # the hard cut in on the pathways gauge at the key beat
-        tx, tz, frame_w, lens = -0.093, 0.004, A['framew'] or 0.42, 85.0
+        tx, tz, frame_w, lens = -0.093, -0.012, A['framew'] or 0.42, 85.0
     elif A['camera'] == 'desktop':
         tx, tz, frame_w, lens = -0.078, 0.044, A['framew'] or 0.70, 85.0
     else:
