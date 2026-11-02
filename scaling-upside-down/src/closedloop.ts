@@ -7,17 +7,26 @@
 // .74-.92 the camera slides along the table to the book; then the book
 import geo from "./closed.json";
 import cb from "./copyblock.json";
+import { FOCUS } from "./focus";
 
 export { cb, geo };
 export const CL_VH = 480;
 export const BOOTLOADER_P = 0.53;
 export const BOOK_P = 0.955;
 
-const KEYS: [p: number, frame: number][] = [
-  [0, 0],
-  [0.1, 12],
-  [0.45, 49],
-];
+// (focus: the picture holds while each line has the screen, then moves on)
+const KEYS: [p: number, frame: number][] = FOCUS
+  ? [
+      [0, 0],
+      [0.07, 12],
+      [0.15, 12], // Complexity that accumulated faster than the structure could hold.
+      [0.36, 49],
+    ]
+  : [
+      [0, 0],
+      [0.1, 12],
+      [0.45, 49],
+    ];
 export function frameAt(p: number): number {
   if (p <= 0) return 0;
   for (let i = 0; i < KEYS.length - 1; i++) {
@@ -30,13 +39,13 @@ export function frameAt(p: number): number {
 
 // text windows [in, out]
 export const BEATS = {
-  open: [0.02, 0.19],
-  closing: [0.25, 0.44],
+  open: FOCUS ? [0.07, 0.15] : [0.02, 0.19],
+  closing: FOCUS ? [0.36, 0.44] : [0.25, 0.44],
   copy: [0.47, 0.73],
   pair: [0.795, 0.865],
   mini: [0.86, 0.915],
   book: [0.915, 1], // stays up as the stage scrolls away
-} as const;
+} as { readonly [k in "open" | "closing" | "copy" | "pair" | "mini" | "book"]: readonly [number, number] };
 
 // the copy ritual, in ms: the COPY block and Quality fall together and land on one frame (fall),
 // the line closes round the ring while the count runs (hairMs), the block turns green (seal)
@@ -88,14 +97,16 @@ export function hapticPattern(thud: boolean): number[] {
 }
 
 export type Rect = { ox: number; oy: number; dw: number; dh: number };
-/** desk: words left, ring right; phone: ring above the words; land: a phone on its side */
-export type Mode = "desk" | "phone" | "land";
+/** desk: words left, ring right; phone: ring above the words; land: a phone on its side;
+ *  focus (the focus version, any screen): the ring centred, the words over it only while the picture steps back */
+export type Mode = "desk" | "phone" | "land" | "focus";
 const RATIO = 1.6;
 const RING_H = 0.75; // the ring's outer diameter, as a share of the frame's height
 const COL = 320; // the words' column (280) and its gutters, left of the ring's line on a desk
 
 /** the layout for this window, decided the way the stylesheet's media queries decide it */
 export function modeNow(): Mode {
+  if (FOCUS) return "focus";
   if (window.innerWidth > 900) return "desk";
   return window.matchMedia("(orientation: landscape)").matches ? "land" : "phone";
 }
@@ -103,6 +114,12 @@ export function modeNow(): Mode {
 /** where frame 50 sits on screen at the copy pose */
 export function poseRect(cw: number, ch: number, mode: Mode): Rect {
   const [rx, ry] = geo.ringC;
+  if (mode === "focus") {
+    // the ring in the middle of the screen, as large as the screen's shorter side allows
+    const dh = Math.min(ch, (0.84 * Math.min(cw, ch)) / RING_H);
+    const dw = dh * RATIO;
+    return { ox: 0.5 * cw - rx * dw, oy: 0.5 * ch - ry * dh, dw, dh };
+  }
   if (mode === "land") {
     // a phone on its side: the ring right of the words, as large as the height allows, clear of the menu
     const dh = Math.min(0.86 * ch, 0.6 * cw);
@@ -150,6 +167,12 @@ export function truckRect(p: number, cw: number, ch: number, mode: Mode): Rect {
   const by = geo.book.c[1];
   // the book ends where the ring was, at the same size
   const r2 = { ox: r0.ox + (rx - bx) * r0.dw, oy: r0.oy, dw: r0.dw, dh: r0.dh };
+  if (mode === "focus") {
+    // straight along the table to the book, which ends in the middle of the screen
+    const dw = 1.15 * r0.dw;
+    const dh = dw / RATIO;
+    return mix(r0, { ox: 0.5 * cw - bx * dw, oy: 0.5 * ch - by * dh, dw, dh }, smooth((p - 0.76) / 0.11));
+  }
   if (mode === "land") return mix(r0, r2, smooth((p - 0.76) / 0.11));
   if (mode === "phone") {
     const dw = 1.21 * r0.dw;
@@ -185,7 +208,11 @@ export function blockFit(mode: Mode, colW: number, room: number, rest: number, c
   let W: number;
   let short = false;
   let gapb: number;
-  if (mode === "desk") {
+  if (mode === "focus") {
+    // the card's own width, smaller on a short screen so the whole card fits
+    gapb = ch <= 700 ? 14 : 20;
+    W = Math.max(200, Math.min(colW / LIFT, 400, (room - rest - gapb) / cb.bodyAR));
+  } else if (mode === "desk") {
     W = Math.min(colW / LIFT, Math.max(260, Math.min(ringRoom, 0.6 * ch, 460))); // never into the ring
     gapb = Math.max(40, Math.round(0.25 * stampFor(W).faceH + 6));
   } else {

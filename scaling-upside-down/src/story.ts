@@ -11,6 +11,8 @@
 // Frame numbers below are the film's own (0-based, Blender frame - 1), placed with f(); the film's
 // first 27 frames (its old drop-in intro) are replaced by the opening.
 
+import { FOCUS } from "./focus";
+
 export const OPENING = 89; // pictures in the opening; the next one is the film's frame 27, the stacked hero
 const f = (filmFrame: number) => filmFrame - 27 + OPENING;
 /** the opening's own frame numbers (1-45, in half steps) */
@@ -24,7 +26,7 @@ export const sp = (p: number) => OPEN_P + p * (1 - OPEN_P);
 /** progress through the whole story → the film's own 0-1 (0 during the opening) */
 export const filmP = (v: number) => Math.max(0, (v - OPEN_P) / (1 - OPEN_P));
 
-const FILM_KEYS: [progress: number, frame: number][] = [
+const STORY_KEYS: [progress: number, frame: number][] = [
   [0.0, 27], // the hero
   [0.03, 29],
   [0.08, 48], // the rush starts at a careful pace...
@@ -40,9 +42,41 @@ const FILM_KEYS: [progress: number, frame: number][] = [
   [0.85, 317], // Up: the team, then the building
   [1.0, 339],
 ];
+// The focus version: the film moves, then holds while one line has the screen (FOCUS_BEATS), then moves on
+const FOCUS_FILM_KEYS: [progress: number, frame: number][] = [
+  [0.0, 27],
+  [0.07, 71], // the rush, at a careful pace
+  [0.115, 71], // Always launching. Always hiring. Always adding.
+  [0.2, 105], // runs away from the thumb, crooked past twelve
+  [0.245, 105], // the bank account didn't feel it
+  [0.32, 146], // it falls over
+  [0.365, 146], // That's scaling upside down.
+  [0.46, 198], // Side: the twelve systems
+  [0.505, 198], // Sideways for stabilization.
+  [0.56, 219], // Down: the dead weight leaves
+  [0.605, 219], // Down for pruning.
+  [0.85, 317], // Up: the team, then the building
+  [0.895, 317], // Up for growth.
+  [0.945, 339],
+  [1.0, 339], // You're already doing all three.
+];
+/** the focus version's line windows (film 0-1): each sits on a hold of FOCUS_FILM_KEYS */
+export const FOCUS_BEATS: Record<string, [number, number]> = {
+  grow: [0.07, 0.115],
+  redline: [0.2, 0.245],
+  collapse: [0.32, 0.365],
+  side: [0.46, 0.505],
+  down: [0.56, 0.605],
+  up: [0.85, 0.895],
+  repeat: [0.945, 0.997],
+};
+/** the focus version's landing: the book holds the screen until here (story progress), then the blocks */
+export const FOCUS_HERO: [number, number, number] = [0, OPEN_P * 0.22, OPEN_P * 0.36];
+const FILM_KEYS = FOCUS ? FOCUS_FILM_KEYS : STORY_KEYS;
 export const FRAME_KEYS: [progress: number, frame: number][] = [
   [0, 0], // face up on the table
-  [OPEN_P * 0.82, OPENING - 1], // stood up and stacked; the hero holds while its title comes in
+  ...(FOCUS ? ([[OPEN_P * 0.36, 0]] as [number, number][]) : []), // (focus: the row waits under the book)
+  [OPEN_P * (FOCUS ? 0.95 : 0.82), OPENING - 1], // stood up and stacked; the hero holds while its title comes in
   ...FILM_KEYS.map(([p, n]) => [sp(p), f(n)] as [number, number]),
 ];
 

@@ -8,6 +8,8 @@ import { LINKS } from "../links";
 import { BEATS, BOOK_P, BOOTLOADER_P, CL_VH, LIFT, T, blockFit, cb, frameAt, geo, hairEase, hapticPattern, modeNow, poseRect, seqRect, smooth, stampFor, truckRect, type Mode, type Rect } from "../closedloop";
 import { CopyBlock } from "./CopyBlock";
 import { JoinLink } from "./JoinLink";
+import { FOCUS } from "../focus";
+import { BOOK } from "../book";
 import { openNotice } from "./NoticeDialog";
 
 const BASE = import.meta.env.BASE_URL;
@@ -28,6 +30,10 @@ const TAG = [RCX + HAIR.rx * Math.sin(Math.PI / 6), RCY - HAIR.ry * Math.cos(Mat
 type Ring = "open" | "dropping" | "closed" | "error";
 /** how the sign-up ended: a new address (the email service sends the Bootloader), or one already on the list */
 type Done = "sent" | "already";
+
+/** focus: how far the picture has stepped back behind the paper (0-1): under each line, the card and the book */
+const ramp = (v: number, [a, b]: readonly [number, number], f = Math.min(0.02, (b - a) / 4)) => (b >= 1 ? Math.max(0, Math.min(1, (v - a) / f)) : Math.max(0, Math.min(1, (v - a) / f, (b - v) / f)));
+const veilAt = (v: number) => Math.max(ramp(v, BEATS.open), ramp(v, BEATS.closing), ramp(v, BEATS.copy), ramp(v, BEATS.book));
 
 /** a block of words that fades in and out over a window of the stage's progress */
 function Win({ p, at, className = "", children, style }: { p: MotionValue<number>; at: readonly [number, number]; className?: string; children: ReactNode; style?: CSSProperties }) {
@@ -103,6 +109,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const railFill = useTransform(p, [0, 0.47], [0, 1]);
   const [narrow] = useState(() => win && window.innerWidth > 900 && window.innerWidth <= 1200);
   const scrim = useTransform(p, narrow ? [0, 0.44, 0.47] : [0, 0.42, 0.46], narrow ? [1, 1, 0] : [1, 1, 0]);
+  const veil = useTransform(p, (v) => (FOCUS ? veilAt(v) : 0));
 
   const go = (r: Ring) => {
     now.current = r;
@@ -667,6 +674,24 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
       c.classList.remove("is-tight", "is-tighter", "is-tightest", "is-snug", "is-clamp", "is-bare");
       c.style.removeProperty("--stl");
       delete st.dataset.fit; // measure with the headline showing
+      if (mode === "focus") {
+        // one card in the middle of the screen, over the ring while the picture steps back
+        l.style.display = "none";
+        const colW = Math.min(480, cw - 40);
+        c.style.width = `${colW}px`;
+        c.style.maxWidth = "";
+        const rest = () => c.offsetHeight - b.offsetHeight - (parseFloat(getComputedStyle(b).marginTop) || 0);
+        const room = ch - 72 - 16; // under the menu, above the bottom edge
+        let f = blockFit("focus", colW, room, rest(), ch);
+        put(f.W, f.gapb);
+        if (c.offsetHeight > room) {
+          c.classList.add("is-snug"); // the deck and the rows step aside; the offer stays
+          f = blockFit("focus", colW, room, rest(), ch);
+          put(f.W, f.gapb);
+        }
+        c.style.top = `${Math.max(72, Math.round((ch - c.offsetHeight) / 2))}px`;
+        return;
+      }
       if (mode !== "desk") {
         c.style.top = "";
         c.style.width = "";
@@ -814,11 +839,12 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
         </Win>
 
         <Win p={p} at={BEATS.book} className="cl-book">
+          {FOCUS && <img className="cl-book-img" src={BOOK.src} srcSet={BOOK.srcSet} sizes="(max-width: 900px) 46vw, 260px" width={BOOK.w} height={BOOK.h} alt="" loading="lazy" decoding="async" />}
           <p className="beat-k">
             <i className="dot down" />
             {book.kicker}
           </p>
-          <h2 className="beat-h">{book.title}</h2>
+          <h2 className="beat-h">{book.title.startsWith("Scaling ") ? <>Scaling <span className="nb">{book.title.slice(8)}</span></> : book.title}</h2>
           <p className="beat-b">{book.body}</p>
           <div className="beat-q">
             <img src={`${BASE}michael.jpg`} alt="" width="40" height="40" loading="lazy" decoding="async" />
@@ -925,6 +951,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
           </div>
         </m.div>
         <m.div className="cl-scrim" style={{ opacity: scrim }} aria-hidden="true" />
+        {FOCUS && <m.div className="cl-veil" style={{ opacity: veil }} aria-hidden="true" />}
         <div className="cl-scrim-m" aria-hidden="true" />
         <m.div ref={leader} className="cl-leader" style={{ opacity: cIn }} aria-hidden="true">
           <i />

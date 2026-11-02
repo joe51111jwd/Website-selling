@@ -11,6 +11,19 @@ under "All of James's messages, word for word".
 
 ---
 
+## Sat 31 Oct 2026, 9:18 PM ET: James asks for a version with one thing on screen at a time
+
+> Well, here's my issue that we have now right now you have two main focuses on the screen you're the words and then you have the blocks and I think it's difficult because then you have to scroll the one position stop. It'd be ideal if all of the information wasn't only one point at a time and making that like the main flow so that everyone can understand and see everything well only looking at one thing at a time is the most important thing that we need to optimize for so I want you to make a version of this site where you try and do that however, you need to
+
+The message was cut off. Asked what came after "you need to", James answered "Nothing more, just go",
+and chose a separate link (not replacing the live site).
+
+What it means: the eye should never split between the words and the blocks. **Done** as the focus
+version at `/focus` (same app, `src/focus.ts`): the book alone on landing; the picture alone, centred;
+at each pause the picture steps back behind the paper and one line takes the screen; the sign-up is one
+card that steps away while the ring closes, then comes back with the answer; the book alone at the end.
+The live home page is unchanged. **Waiting** on James (and Michael) to pick one.
+
 ## Sat 31 Oct 2026, 7:54 PM ET: James asks to build all of it
 
 > Implement everything and give me the link

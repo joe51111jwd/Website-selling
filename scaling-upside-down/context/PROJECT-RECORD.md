@@ -357,6 +357,7 @@ issues; all were fixed before it shipped. Newest first, US Eastern.
 
 | When                     | What it added                                                          |
 |--------------------------|------------------------------------------------------------------------|
+| Mon 2 Nov                | The focus version at /focus (one thing on screen at a time), next to the live home page; fixes from the round-3 review (the footer's styles back, the hero on wide, square and short screens, the sign-up's wording and states, an unconfirmed address asked to confirm again, llms.txt book-first) |
 | Sat 31 Oct, evening      | The book first (his 30 Oct notes): the real hardcover in the hero, the problem first, the cycle named once, one sign-up for the first-edition list, the file by email only. Live in production now |
 | Tue 27 Oct, 5:19 pm      | Fixes from the 43-point review                                         |
 | Tue 27 Oct, 1:26 pm      | The /appendix page, the email sign-up, the Bootloader shown as a file  |
@@ -481,6 +482,12 @@ issues; all were fixed before it shipped. Newest first, US Eastern.
 - What the first-edition list promises, in his words.
 - His email platform is now a blocker: with no download, the sign-up
   is the only way to get the file.
+
+**James**
+
+- Compare the live home page with the focus version (/focus) and pick one.
+- Make the GitHub repo private: it is public, so the Bootloader file and this client record can be
+  read there by anyone.
 
 **Later phases from the call**
 

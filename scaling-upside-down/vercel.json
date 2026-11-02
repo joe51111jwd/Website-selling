@@ -117,5 +117,11 @@
       "destination": "/llms.txt",
       "permanent": true
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/focus",
+      "destination": "/index.html"
+    }
   ]
 }

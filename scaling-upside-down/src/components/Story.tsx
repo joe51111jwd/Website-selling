@@ -2,7 +2,8 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react
 import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { FrameStore, fetchOk } from "../frames";
-import { CALLOUTS, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, frameAt, portraitFit, progressAt, setHeroCap, sp, yearAt } from "../story";
+import { CALLOUTS, FOCUS_BEATS, FOCUS_HERO, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, frameAt, portraitFit, progressAt, setHeroCap, sp, yearAt } from "../story";
+import { FOCUS } from "../focus";
 import type { Beat, SiteCopy } from "../copy";
 import { JoinLink } from "./JoinLink";
 import { BOOK } from "../book";
@@ -12,6 +13,14 @@ type Anchors = { names: string[]; frames: Record<string, [number, number]>[] };
 const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 // below this opacity a control is treated as gone: no clicks, no Tab stop
 const shown = (o: number) => (o > 0.05 ? "visible" : "hidden");
+
+/** focus: how far the picture has stepped back (0-1) at story progress v: under the book, then under each line */
+const ramp = (v: number, [a, b]: readonly [number, number], f = Math.min(0.014, (b - a) / 4)) => Math.max(0, Math.min(1, (v - a) / f, (b - v) / f));
+function veilAt(v: number) {
+  const hero = v <= FOCUS_HERO[1] ? 1 : Math.max(0, 1 - (v - FOCUS_HERO[1]) / (FOCUS_HERO[2] - FOCUS_HERO[1]));
+  const p = filmP(v);
+  return Math.max(hero, ...Object.values(FOCUS_BEATS).map((w) => ramp(p, w)));
+}
 
 function BeatView({ beat, progress }: { beat: Beat; progress: MotionValue<number> }) {
   const [a, b] = beat.at;
@@ -64,9 +73,12 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
   // the film's own 0-1, after the opening (the beats, the chapters and the margin panel run on it)
   const film = useTransform(scrollYProgress, filmP);
   // the page opens on the blocks alone; the title arrives as they finish stacking, and leaves as the rush starts
-  const heroOpacity = useTransform(scrollYProgress, [OPEN_P * 0.6, OPEN_P * 0.86, sp(0.02), sp(0.045)], [0, 1, 1, 0]);
-  const heroY = useTransform(scrollYProgress, [OPEN_P * 0.6, OPEN_P * 0.86, sp(0), sp(0.04)], reduced ? [0, 0, 0, 0] : [18, 0, 0, -40]);
-  const [heroIn, setHeroIn] = useState(false);
+  // (focus: the page opens on the book alone, and it leaves before the blocks stand up)
+  const heroOpacity = useTransform(scrollYProgress, FOCUS ? FOCUS_HERO : [OPEN_P * 0.6, OPEN_P * 0.86, sp(0.02), sp(0.045)], FOCUS ? [1, 1, 0] : [0, 1, 1, 0]);
+  const heroY = useTransform(scrollYProgress, FOCUS ? FOCUS_HERO : [OPEN_P * 0.6, OPEN_P * 0.86, sp(0), sp(0.04)], reduced ? (FOCUS ? [0, 0, 0] : [0, 0, 0, 0]) : FOCUS ? [0, 0, -30] : [18, 0, 0, -40]);
+  // focus: the paper that the picture steps back behind whenever words have the screen
+  const veil = useTransform(scrollYProgress, (v) => (FOCUS ? veilAt(v) : 0));
+  const [heroIn, setHeroIn] = useState(FOCUS);
   const heroVis = useTransform(heroOpacity, shown);
   const heroEvents = useTransform(heroOpacity, (o) => (o > 0.05 ? "auto" : "none"));
   const hudIn = progressAt(YEARS[0].from);
@@ -111,7 +123,12 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       let dw: number;
       let dh: number;
       let oy: number;
-      if (cw / ch < 1) {
+      if (FOCUS) {
+        // the picture centred, its subject on the screen's centre line (a phone keeps its portrait size)
+        dh = cw / ch < 1 ? ch * Math.min(0.62, portraitFit(frame).scale) : ch; // (small enough that the foundation fits a phone)
+        dw = dh * aspect;
+        oy = (ch - dh) / 2;
+      } else if (cw / ch < 1) {
         // phones: the hero fills the screen; after it the picture sits above the words, and the
         // studio backdrop continues above and below it
         const { scale, bottom } = portraitFit(frame);
@@ -133,7 +150,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       // narrower than the screen: slide the tower right, away from the words on the left
       // (a cropped frame on a landscape screen keeps the stack right of the words too; phones centre it)
       const anchor = cw >= ch ? 0.6 : 0.5;
-      const ox = dw > cw ? Math.min(0, Math.max(cw - dw, cw * anchor - focusAt(frame) * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - focusAt(frame) * dw));
+      const ox = FOCUS ? cw / 2 - focusAt(frame) * dw : dw > cw ? Math.min(0, Math.max(cw - dw, cw * anchor - focusAt(frame) * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - focusAt(frame) * dw));
       ctx.drawImage(bmp, ox, oy, dw, dh);
       if (oy > 0) ctx.drawImage(bmp, 0, 0, bmp.width, 2, ox, 0, dw, oy + 1);
       if (oy + dh < ch) ctx.drawImage(bmp, 0, bmp.height - 2, bmp.width, 2, ox, oy + dh - 1, dw, ch - oy - dh + 1);
@@ -147,7 +164,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       const hero = cv.parentElement?.querySelector<HTMLElement>(".hero");
       const cta = hero?.querySelector<HTMLElement>(".hero-cta");
       const vh = cv.clientHeight;
-      if (!hero || !cta || cv.clientWidth >= vh) return setHeroCap(0.58);
+      if (FOCUS || !hero || !cta || cv.clientWidth >= vh) return setHeroCap(0.58);
       const below = hero.offsetTop + cta.offsetTop + cta.offsetHeight; // layout, not the scroll-time shift
       setHeroCap((vh - below - 12) / (0.85 * vh));
     };
@@ -190,7 +207,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     mq.addEventListener("change", onDpr);
 
     const placeCallouts = (frame: number) => {
-      if (!anchors) return;
+      if (!anchors || FOCUS) return; // focus: no words on the picture
       const row = anchors.frames[Math.max(0, Math.min(anchors.frames.length - 1, Math.round(frame)))];
       const vw = cv.clientWidth;
       const vh = cv.clientHeight;
@@ -396,7 +413,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     };
   }, [scrollYProgress]);
 
-  const shownHero = phase !== "loading" && heroIn;
+  const shownHero = FOCUS || (phase !== "loading" && heroIn);
   return (
     <section ref={section} className={`story is-${phase}`} style={{ height: `${STORY_VH}vh` }} id="story">
       <div className="stage">
@@ -486,11 +503,13 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
           <footer>Illustration from Chapter 17</footer>
         </m.aside>
 
+        {FOCUS && <m.div className="veil" style={{ opacity: veil }} aria-hidden="true" />}
+
         <div className="beats">
-          {beats.map((b) => (
+          {(FOCUS ? beats.map((b) => ({ ...b, at: FOCUS_BEATS[b.id] ?? b.at })) : beats).map((b) => (
             <Fragment key={b.id}>
               <BeatView beat={b} progress={film} />
-              {b.id === "collapse" && <MarginTable />}
+              {b.id === "collapse" && !FOCUS && <MarginTable />}
             </Fragment>
           ))}
         </div>
