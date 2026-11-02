@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Blackout</title>
+<link rel="stylesheet" href="board.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="board.js"></script>
+</head>
+<body>
+<script>
+// Idea 3, Blackout: a real printed page painted out in black ink until only Michael's line is left.
+const PX = 300, PW = 600, TX = 336, TW = 528, ROW0 = 140, GAP = 31;
+const rnd = (i) => (Math.sin(i * 12.9898) * 43758.5453) % 1;
+
+function page(F, rot, back) {
+  if (back) {
+    // earlier pages, already inked, stacked behind
+    F.g(`rotate(${rot - 2.6} 600 420)`, () => F.r(PX - 18, 102, PW, 700, { fill: '#cfcfcb', fillStyle: 'solid', strokeWidth: 2 }));
+    F.g(`rotate(${rot - 1.3} 600 420)`, () => F.r(PX - 9, 98, PW, 700, { fill: '#d8d8d4', fillStyle: 'solid', strokeWidth: 2 }));
+  }
+  F.flat(`M${PX + 10} ${104}h${PW}v700h-${PW}z`, '#000', 0.18);
+  F.r(PX, 94, PW, 700, { fill: C.sheet, fillStyle: 'solid', strokeWidth: 2.4 });
+}
+function inkRow(F, i, y, x0 = TX - 8, x1 = TX + TW + 6) {
+  const end = (i % 5 === 4) ? x0 + (x1 - x0) * 0.6 : x1 - Math.abs(rnd(i)) * 18;
+  F.r(x0 + Math.abs(rnd(i + 3)) * 6, y - 13, end - x0, 26, { fill: C.ink, fillStyle: 'solid', roughness: 2.3, strokeWidth: 4, bowing: 2 });
+}
+function rows(n) { return Array.from({ length: n }, (_, i) => ROW0 + i * GAP); }
+
+board({
+  rank: 3,
+  title: 'Blackout',
+  sub: 'Homepage idea ranked 3 of 15 · storyboard: what you see as you scroll', // label
+  frames: [
+    {
+      label: '1. First screen: a printed page, all inked out but one line', // label
+      draw: (F) => F.g('rotate(-1.2 600 420)', () => {
+        page(F, -1.2);
+        rows(19).forEach((y, i) => { if (y < 305 || y > 455) inkRow(F, i, y); });
+      }),
+      lines: [{ text: 'Every hire compounds complexity before it compounds capacity.', x: 334, y: 318, w: 540, size: 38, style: { transform: 'rotate(-1.2deg)' } }],
+    },
+    {
+      label: '2. Scrolling: the ink goes on, page after page, down to one line', // label
+      draw: (F) => F.g('rotate(0.8 600 420)', () => {
+        page(F, 0.8, true);
+        rows(19).forEach((y, i) => {
+          if (y < 330) inkRow(F, i, y);
+          else if (y > 440 && y < 460) { inkRow(F, i, y, TX - 8, TX + 330); F.textLines(TX + 342, y, TW - 342, 1, GAP); }
+          else if (y > 460) F.textLines(TX, y, TW, 1, GAP, { seed: 40 + i });
+        });
+        // the brush, mid-stroke on the row under the line
+        F.l(TX + 330, 452, TX + 480, 300, { strokeWidth: 9, stroke: '#5b4a3a', roughness: 0.4 });
+        F.poly([[TX + 318, 464], [TX + 336, 436], [TX + 352, 448], [TX + 338, 470]], { fill: C.ink, fillStyle: 'solid' });
+        F.r(TX + 336, 424, 22, 26, { fill: '#9a9a96', fillStyle: 'solid', strokeWidth: 2 });
+      }),
+      lines: [{ text: 'Past twelve, something breaks.', x: 336, y: 336, w: 540, size: 38, style: { transform: 'rotate(0.8deg)' } }],
+    },
+    {
+      label: '3. The ask: the last page is the Bootloader, inked down to its first question', // label
+      draw: (F) => F.g('rotate(-0.6 600 420)', () => {
+        page(F, -0.6);
+        F.t(PX + PW / 2, 128, 'SUSD BOOTLOADER', { size: 14, anchor: 'middle', weight: 700, fill: C.soft, font: 'B612', ls: 2 }); // label
+        rows(19).forEach((y, i) => { if (y > 160 && (y < 250 || y > 520)) inkRow(F, i, y); });
+      }),
+      ask: { x: 340, y: 262, w: 530, q: 'How many people are on your team?', qSize: 36, facts: true },
+    },
+  ],
+});
+</script>
+</body>
+</html>

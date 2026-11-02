@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>12 Lock-Up: storyboard</title> <!-- // label -->
+<link rel="stylesheet" href="_kit-b2.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="_kit-b2.js"></script>
+</head>
+<body>
+<header class="hd">
+  <div class="rank">#12</div>
+  <div><h1>Lock-Up (letterpress)</h1><p class="gist">Homepage idea ranked 12 of 15 · storyboard: what you see as you scroll</p></div> <!-- // label -->
+</header>
+
+<section class="fr">
+  <h2>1. First screen: from above, his sentence set in metal type</h2> <!-- // label -->
+  <div class="scr" id="s1"><div class="site">
+    <p class="line" style="left:44px;top:128px;width:1030px;font-size:48px">Every hire compounds complexity before it compounds capacity.</p>
+  </div></div>
+</section>
+
+<section class="fr">
+  <h2>2. Scrolling: a line of type per hire. Lifted without locking up, it spills across the stone ("pie")</h2> <!-- // label -->
+  <div class="scr" id="s2"><div class="site">
+    <p class="line" style="left:44px;top:128px;width:1030px;font-size:56px">Past twelve, something breaks.</p>
+  </div></div>
+</section>
+
+<section class="fr">
+  <h2>3. The ask: locked up tight with wood and steel wedges. The Bootloader is the proof you pull first</h2> <!-- // label -->
+  <div class="scr ask" id="s3"><div class="site">
+    <p class="q" style="left:44px;top:128px;width:1040px;font-size:48px">How many people are on your team?</p>
+    <div style="position:absolute;left:44px;top:204px;display:flex;align-items:center;gap:26px"><span class="btn">Get it free</span><span class="sub">Pre-order the book</span></div>
+  </div></div>
+</section>
+
+<script>
+const SENT = ['EVERY HIRE COMPOUNDS', 'COMPLEXITY BEFORE IT', 'COMPOUNDS CAPACITY.'];
+function stone(p, y0) {
+  p.rect(40, y0, 1040, 700 - y0 + 20, { strokeWidth: 2.6, fill: '#8e8d88', fillStyle: 'solid' });
+  p.rect(40, y0, 1040, 700 - y0 + 20, { stroke: 'none', fill: '#7d7c77', fillStyle: 'cross-hatch', hachureGap: 16, fillWeight: 0.5 });
+}
+function chase(p, x, y, w, h) {
+  p.rect(x, y, w, h, { strokeWidth: 3, fill: '#6f6f6c', fillStyle: 'solid' });
+  p.rect(x + 16, y + 16, w - 32, h - 32, { strokeWidth: 2.4, fill: '#a3a29c', fillStyle: 'solid' });
+}
+// one metal sort, seen from above: a block with its letter mirrored
+function sort(p, cx, cy, w, h, ch, rot) {
+  const g = p.g({ transform: `translate(${cx} ${cy}) rotate(${rot || 0})` });
+  if (ch === ' ') { g.rect(-w / 2, -h / 2, w, h, { strokeWidth: 1.2, roughness: 0.4, fill: '#55554f', fillStyle: 'solid' }); return; }
+  g.rect(-w / 2, -h / 2, w, h, { strokeWidth: 1.4, roughness: 0.4, fill: '#d7d6cf', fillStyle: 'solid' });
+  g.text(0, 0, ch, { 'font-family': 'Plimsoll', 'font-size': h * 0.78, 'text-anchor': 'middle', 'dominant-baseline': 'central', transform: 'scale(-1 1)' });
+}
+// a set line: reads right to left in the forme
+function setLine(p, xRight, cy, text, w, h) {
+  [...text].forEach((ch, i) => sort(p, xRight - i * w - w / 2, cy, w, h, ch));
+}
+
+window.DRAW = {
+  s1(p) {
+    stone(p, 250);
+    chase(p, 210, 290, 700, 380);
+    SENT.forEach((t, i) => setLine(p, 560 + 10 * 26 + 13, 400 + i * 46, t, 26, 40));
+  },
+  s2(p) {
+    stone(p, 250);
+    // the chase, emptied and knocked askew
+    const c = p.g({ transform: 'rotate(-7 560 470)' });
+    chase(c, 300, 330, 520, 300);
+    setLine(c, 520 + 10 * 24, 400, SENT[0], 24, 36);
+    const R = rng(12), letters = SENT.join(' ').replace(/ /g, '');
+    for (let i = 0; i < 170; i++) {
+      const x = 70 + R() * 990, y = 270 + R() * 420;
+      if (x > 360 && x < 760 && y > 360 && y < 440) continue;
+      sort(p, x, y, 22 + R() * 8, 32 + R() * 10, letters[i % letters.length], (R() - 0.5) * 140);
+    }
+  },
+  s3(p) {
+    stone(p, 280);
+    chase(p, 90, 300, 690, 400);
+    // wooden furniture packed round the type
+    const wood = { strokeWidth: 1.8, fill: '#b98f5a', fillStyle: 'hachure', hachureGap: 5, hachureAngle: 0, fillWeight: 1 };
+    p.rect(106, 316, 658, 40, wood); p.rect(106, 356, 60, 330, wood); p.rect(686, 356, 78, 330, wood);
+    // steel wedges (quoins), tightened
+    [[700, 420], [700, 520], [700, 620]].forEach(([x, y]) => {
+      p.poly([[x, y], [x + 50, y + 8], [x + 50, y + 44], [x, y + 36]], { strokeWidth: 2, fill: '#4a4a48', fillStyle: 'solid' });
+      p.circle(x + 25, y + 22, 9, { stroke: C.chalk, strokeWidth: 1.6, roughness: 0.3 });
+    });
+    // the type: line after line, tight
+    for (let r = 0; r < 8; r++) setLine(p, 668, 378 + r * 36, (SENT[r % 3] + '  ').slice(0, 21), 24, 32);
+    // the proof, pulled beside it, printed in red
+    const pr = p.g({ transform: 'rotate(4 940 480)' });
+    pr.rect(830, 320, 220, 300, { strokeWidth: 2, fill: C.chalk, fillStyle: 'solid', roughness: 0.5 });
+    pr.text(850, 368, 'SUSD', { 'font-family': 'Plimsoll', 'font-size': 34, fill: C.red });
+    pr.text(850, 400, 'BOOTLOADER', { 'font-family': 'Plimsoll', 'font-size': 24, fill: C.red });
+    for (let i = 0; i < 9; i++) pr.line(850, 432 + i * 18, 1030 - (i % 3) * 34, 432 + i * 18, { stroke: C.red, strokeWidth: 3, roughness: 0.4 });
+  },
+};
+</script>
+</body>
+</html>

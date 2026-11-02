@@ -23,8 +23,8 @@ sys.path.insert(0, os.path.join(ROOT, 'lookdev'))
 import lib_lookdev as L
 
 A = L.args(dict(state='first', camera='desktop', w=640, h=400, samples=12, out='out/ideas/02-heap/test.png',
-                seed=11, exposure=0.0, sun=3.2, window=900.0, world=0.25, fstop=5.6, label='heap',
-                grain=0.07, wall='slate', look='AgX - Medium High Contrast'))
+                seed=11, exposure=-0.15, sun=24.0, window=260.0, world=0.5, fstop=4.0, label='heap',
+                grain=0.07, wall='slate', look='AgX - Medium High Contrast', dry=False, sunel=31.0, sunaz=262.0))
 if not os.path.isabs(A['out']):
     A['out'] = os.path.join(ROOT, A['out'])
 
@@ -38,20 +38,30 @@ L.render_setup(sc, A['w'], A['h'], A['samples'], threshold=0.03, look=A['look'],
 
 # ----------------------------------------------------------------------------- layout (metres)
 ROOM_X = (-2.4, 2.4)
-ROOM_Y = (-5.2, 0.0)
+ROOM_Y = (-5.0, 0.0)
 CEIL = 2.7
 DESK = dict(x0=0.45, x1=1.95, y0=-0.76, y1=-0.04, top=0.745, th=0.030)
 CHAIR = dict(cx=1.02, cy=-1.10, rot=-10.0, w=0.42, d=0.40, seat=0.46, back=0.86)
 SHELF = dict(x0=0.22, x1=2.30, z=1.30, d=0.19, th=0.026)
-MUG_X0, MUG_STEP = 0.32, 0.132
+MUG_X0, MUG_STEP = 0.28, 0.128
 PILE = (-0.12, -1.02)                        # the heap beside the desk
 
 
 # ----------------------------------------------------------------------------- materials
 def wall_mat():
-    tint = {'slate': (0.050, 0.060, 0.066), 'olive': (0.060, 0.064, 0.050)}[A['wall']]
-    m = L.pbr('Wall', 'painted_plaster_wall', scale=0.45, tint=tint, rough_add=0.08, normal_strength=0.6,
-              bump=0.15, coords='Object')
+    tint = {'slate': (0.085, 0.097, 0.104), 'olive': (0.095, 0.098, 0.080)}[A['wall']]
+    m = L.pbr('Wall', 'painted_plaster_wall', scale=0.45, tint=tint, rough_add=0.10, normal_strength=1.1,
+              bump=0.35, coords='Object')
+    nt = m.node_tree; b = nt.nodes['Principled BSDF']
+    src = b.inputs['Base Color'].links[0].from_socket
+    tc = nt.nodes.new('ShaderNodeTexCoord')
+    nz = nt.nodes.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 1.6
+    nz.inputs['Detail'].default_value = 6.0; nz.inputs['Roughness'].default_value = 0.55
+    L.link(nt, tc.outputs['Object'], nz.inputs['Vector'])
+    mr = nt.nodes.new('ShaderNodeMapRange'); mr.inputs['To Min'].default_value = 0.80; mr.inputs['To Max'].default_value = 1.18
+    L.link(nt, nz.outputs['Fac'], mr.inputs['Value'])
+    mx, f_, a_, b_, r_ = L.mix(nt, 'RGBA', 'MULTIPLY'); f_.default_value = 1.0
+    L.link(nt, src, a_); L.link(nt, mr.outputs['Result'], b_); L.link(nt, r_, b.inputs['Base Color'])
     return m
 
 
@@ -95,7 +105,7 @@ def plug_mat():
 MAT = {}
 MAT['wall'] = wall_mat()
 MAT['skirt'] = L.paint_mat('Skirting', (0.17, 0.19, 0.20) if A['wall'] == 'slate' else (0.19, 0.20, 0.16), rough=0.32)
-MAT['floor'] = L.pbr('Floor', 'wood_floor', scale=0.42, rough_add=0.02, normal_strength=0.8)
+MAT['floor'] = L.pbr('Floor', 'wood_floor', scale=0.42, tint=(0.78, 0.70, 0.62), rough_add=0.04, normal_strength=0.8)
 MAT['ceil'] = L.simple_mat('Ceiling', (0.80, 0.80, 0.78), rough=0.9)
 MAT['oak'] = L.pbr('Oak', 'oak_veneer_01', scale=0.9, rough_add=-0.04, normal_strength=0.5)
 MAT['oak_end'] = L.pbr('OakChair', 'oak_veneer_01', scale=1.4, tint=(0.82, 0.78, 0.72), rough_add=0.0, normal_strength=0.5)
@@ -106,6 +116,8 @@ MAT['paper'] = L.simple_mat('Paper', (0.86, 0.85, 0.82), rough=0.85)
 MAT['mug'] = ceramic('MugWhite', (0.90, 0.90, 0.88))
 MAT['mug2'] = ceramic('MugOffWhite', (0.88, 0.86, 0.80))
 MAT['plug'] = plug_mat()
+MAT['plate'] = L.simple_mat('OutletPlate', (0.86, 0.85, 0.82), rough=0.35)
+MAT['rubber'] = L.simple_mat('Rubber', (0.04, 0.04, 0.04), rough=0.55)
 # Cable colours: the older pathways in shop-floor neutrals, the newest hire's batch in patch blue.
 CAB = {
     'grey': pvc('CableGrey', (0.56, 0.57, 0.56)),
@@ -124,8 +136,9 @@ def room():
     L.box('Floor', x0 - 0.2, x1 + 0.2, ROOM_Y[0], 0.15, -0.05, 0.0, MAT['floor'])
     L.box('Ceiling', x0 - 0.2, x1 + 0.2, ROOM_Y[0], 0.15, CEIL, CEIL + 0.08, MAT['ceil'])
     L.box('RightWall', x1, x1 + 0.12, ROOM_Y[0], 0.15, 0.0, CEIL, MAT['wall'])
-    # left wall with a window opening (y -3.1..-1.0, z 0.85..2.30); the window itself is out of frame
-    wy0, wy1, wz0, wz1 = -3.1, -1.0, 0.85, 2.30
+    L.box('FrontWall', x0 - 0.2, x1 + 0.2, ROOM_Y[0] - 0.12, ROOM_Y[0], 0.0, CEIL, MAT['ceil'])
+    # left wall with a window opening (y -2.35..-0.40, z 0.85..2.30); the window itself is out of frame
+    wy0, wy1, wz0, wz1 = -2.35, -0.40, 0.85, 2.30
     lw = x0 - 0.14
     L.box('LW_back', lw, x0, wy1, 0.15, 0.0, CEIL, MAT['wall'])
     L.box('LW_front', lw, x0, ROOM_Y[0], wy0, 0.0, CEIL, MAT['wall'])
@@ -155,6 +168,29 @@ def desk():
     nb.location = (0.98, -0.47, d['top']); nb.rotation_euler.z = math.radians(11)
     pg = L.box('NotebookPages', -0.071, 0.071, -0.102, 0.102, 0.0015, 0.0115, MAT['paper'])
     pg.location = nb.location; pg.rotation_euler = nb.rotation_euler; pg.location.x += 0.002
+
+
+def socket():
+    """A duplex wall outlet by the skirting, something plugged in, the lead running off under the desk."""
+    x, z = 0.27, 0.33
+    L.box('OutletPlate', x - 0.035, x + 0.035, -0.006, 0.0, z - 0.057, z + 0.057, MAT['plate'], bevel=0.0015)
+    for dz in (-0.0195, 0.0195):
+        L.box('OutletFace', x - 0.017, x + 0.017, -0.009, -0.006, z + dz - 0.0165, z + dz + 0.0165, MAT['plate'], bevel=0.003)
+    L.box('PlugHead', x - 0.016, x + 0.016, -0.034, -0.009, z - 0.0195 - 0.020, z - 0.0195 + 0.018, MAT['rubber'], bevel=0.004)
+    pts = [Vector((x, -0.030, z - 0.04))]
+    for k in range(1, 12):                       # the lead drops in a soft curve to the floor
+        t = k / 11
+        pts.append(Vector((x + 0.03 * t, -0.030 - 0.03 * t, (z - 0.04) * (1 - t) ** 1.6 + 0.003 * t)))
+    for k in range(1, 30):                       # then along the floor, under the desk
+        t = k / 29
+        pts.append(Vector((x + 0.03 + 0.62 * t, -0.06 - 0.22 * math.sin(t * 2.4), 0.0028)))
+    cu = bpy.data.curves.new('Lead', 'CURVE'); cu.dimensions = '3D'
+    cu.bevel_mode = 'ROUND'; cu.bevel_depth = 0.0026; cu.bevel_resolution = 2
+    sp = cu.splines.new('NURBS'); sp.points.add(len(pts) - 1)
+    for i, p in enumerate(pts):
+        sp.points[i].co = (p.x, p.y, p.z, 1.0)
+    sp.order_u = 3; sp.use_endpoint_u = True; sp.use_smooth = True
+    ob = bpy.data.objects.new('Lead', cu); sc.collection.objects.link(ob); cu.materials.append(MAT['rubber'])
 
 
 def chair():
@@ -320,7 +356,7 @@ def slide(c, rng, steps=40):
         gx = (t_at(x + e, y) - t_at(x - e, y)) / (2 * e)
         gy = (t_at(x, y + e) - t_at(x, y - e)) / (2 * e)
         g = math.hypot(gx, gy)
-        if g < 0.62:
+        if g < 0.50:
             break
         x -= 0.03 * gx / g + rng.normal(0, 0.006)
         y -= 0.03 * gy / g + rng.normal(0, 0.006)
@@ -356,10 +392,12 @@ def walk(start, heading, length, rng, ds=0.012, curl=4.0, home=None, home_r=0.5,
         if t > z + 0.04:                        # a step up (desk, chair, a coil): cables don't climb
             th += rng.choice([-1.0, 1.0]) * rng.uniform(0.8, 1.6)
             continue
-        if t < z - ds * 1.2:                    # an edge: hang
+        if t < z - ds * 1.2:                    # an edge: hang, with a little sway
+            sx, sy = 0.0, 0.0
             while z - ds > t:
                 z -= ds
-                x += math.cos(th) * ds * 0.08; y += math.sin(th) * ds * 0.08
+                sx = 0.85 * sx + rng.normal(0, 0.12) * ds; sy = 0.85 * sy + rng.normal(0, 0.12) * ds
+                x += math.cos(th) * ds * 0.10 + sx; y += math.sin(th) * ds * 0.10 + sy
                 pts.append((x, y, z))
             z = t
             x, y = nx_, ny_
@@ -367,6 +405,18 @@ def walk(start, heading, length, rng, ds=0.012, curl=4.0, home=None, home_r=0.5,
             x, y, z = nx_, ny_, max(t, z - ds * 0.9)
         pts.append((x, y, z))
     return pts
+
+
+def smooth(P, it=8):
+    """Round off corners (a cable has bending stiffness), never letting it sink into what is under it."""
+    a = np.array(P, dtype=np.float64)
+    for _ in range(it):
+        a[1:-1] = 0.5 * a[1:-1] + 0.25 * (a[:-2] + a[2:])
+        for i in range(1, len(a) - 1):
+            f = t_at(a[i, 0], a[i, 1]) + R_CABLE
+            if a[i, 2] < f:
+                a[i, 2] = f
+    return [tuple(map(float, p)) for p in a]
 
 
 def relax(P, floor, it=60, g=0.00015):
@@ -401,23 +451,28 @@ def coil(center, rng):
     if not all(inside(a, b) for a, b in zip(X, Y)):
         return None
     t = np.array([t_at(a, b) for a, b in zip(X, Y)])
-    if t.max() - t.min() > 0.30:
+    if t.max() - t.min() > 0.36:
         return 'steep'
-    # rest the ring on what is under it: least-squares tilt, then up until nothing sinks
-    M = np.stack([np.ones_like(X), X - center[0], Y - center[1]], 1)
-    coef, *_ = np.linalg.lstsq(M, t, rcond=None)
-    plane = M @ coef
-    zc = plane + dz
-    off = np.max(t + R_CABLE - zc)
-    zc = zc + off
+    # rest the ring under gravity: of all tilts, the one that puts its centre lowest while no point
+    # sinks into what is under it (a rigid ring settles onto three supports)
+    dx, dy = X - center[0], Y - center[1]
+    need = t + R_CABLE - dz
+    def best(bs, cs):
+        B, C = np.meshgrid(bs, cs, indexing='ij'); B = B.ravel(); C = C.ravel()
+        a = (need[None, :] - B[:, None] * dx[None, :] - C[:, None] * dy[None, :]).max(1)
+        k = int(np.argmin(a))
+        return B[k], C[k], a[k]
+    b, c_, a0 = best(np.linspace(-0.9, 0.9, 31), np.linspace(-0.9, 0.9, 31))
+    b, c_, a0 = best(np.linspace(b - 0.06, b + 0.06, 13), np.linspace(c_ - 0.06, c_ + 0.06, 13))
+    zc = a0 + b * dx + c_ * dy + dz
     floor = np.maximum(t + R_CABLE, zc - 0.012)
     ring = relax([(a, b, z) for a, b, z in zip(X, Y, zc)], floor, it=25, g=0.0002)
     # trailing ends
     h0 = math.atan2(ring[1][1] - ring[0][1], ring[1][0] - ring[0][0]) + math.pi
     h1 = math.atan2(ring[-1][1] - ring[-2][1], ring[-1][0] - ring[-2][0])
-    tail0 = walk(ring[0][:2], h0 + rng.normal(0, 0.4), rng.uniform(0.15, 0.9), rng, z0=ring[0][2],
+    tail0 = walk(ring[0][:2], h0 + rng.normal(0, 0.4), rng.uniform(0.10, 0.55), rng, z0=ring[0][2],
                  home=center, home_r=0.75)
-    tail1 = walk(ring[-1][:2], h1 + rng.normal(0, 0.4), rng.uniform(0.25, 1.3), rng, z0=ring[-1][2],
+    tail1 = walk(ring[-1][:2], h1 + rng.normal(0, 0.4), rng.uniform(0.20, 0.85), rng, z0=ring[-1][2],
                  home=center, home_r=0.9)
     return tail0[::-1] + ring + tail1
 
@@ -436,15 +491,15 @@ def target(i, rng):
     """Where cable i is dropped. The first 28 go on the pile beside the desk; past that, people
     start dropping them wherever there is room: the chair, the desk, further out."""
     if i < 28:
-        return (PILE[0] + rng.normal(0, 0.20), PILE[1] + rng.normal(0, 0.16))
+        return (PILE[0] + rng.normal(0, 0.21), PILE[1] + rng.normal(0, 0.15))
     r = rng.uniform()
-    if r < 0.40:
-        return (PILE[0] + 0.25 + rng.normal(0, 0.38), PILE[1] - 0.05 + rng.normal(0, 0.28))
-    if r < 0.64:
+    if r < 0.36:      # against the desk front and round the chair: the heap rises where people sit
+        return (CHAIR['cx'] - 0.15 + rng.normal(0, 0.36), CHAIR['cy'] + 0.05 + rng.normal(0, 0.22))
+    if r < 0.60:
         return (rng.uniform(DESK['x0'] + 0.2, DESK['x1'] - 0.15), rng.uniform(DESK['y0'] + 0.12, DESK['y1'] - 0.12))
-    if r < 0.82:
-        return (CHAIR['cx'] + rng.normal(0, 0.12), CHAIR['cy'] + rng.normal(0, 0.10))
-    return (rng.uniform(-1.6, 1.9), rng.uniform(-1.9, -1.2))
+    if r < 0.86:
+        return (PILE[0] + 0.1 + rng.normal(0, 0.30), PILE[1] + rng.normal(0, 0.22))
+    return (rng.uniform(-1.5, 1.9), rng.uniform(-1.8, -1.2))
 
 
 def build_heap(n):
@@ -452,7 +507,7 @@ def build_heap(n):
     cables = []
     for i in range(n):
         rng = np.random.default_rng(A['seed'] * 1000 + i)
-        kind = 'coil' if rng.uniform() < (0.78 if i < 28 else 0.70) else 'tangle'
+        kind = 'coil' if rng.uniform() < (0.86 if i < 28 else 0.74) else 'tangle'
         P = None
         for attempt in range(30):
             c = slide(target(i, rng), rng)
@@ -466,6 +521,7 @@ def build_heap(n):
                 break
         if P is None or P == 'steep':
             continue
+        P = smooth(P)
         stamp(P)
         cables.append(P)
     return cables
@@ -554,6 +610,7 @@ win = room()
 desk()
 chair()
 shelf()
+socket()
 mugs(PEOPLE)
 cables = build_heap(CABLES)
 cable_objects(cables)
@@ -567,7 +624,7 @@ wy0, wy1, wz0, wz1, wx = win
 sky = L.area_light('WindowSky', (wx + 0.02, (wy0 + wy1) / 2, (wz0 + wz1) / 2), (wx + 3, (wy0 + wy1) / 2 + 0.3, 1.1),
                    wy1 - wy0, wz1 - wz0, A['window'], kelvin=7200)
 if A['sun'] > 0:
-    L.sun_light('Sun', 27.0, 243.0, A['sun'], angle_deg=1.2, kelvin=5200)
+    L.sun_light('Sun', A['sunel'], A['sunaz'], A['sun'], angle_deg=1.0, kelvin=5300)
 L.world_hdri(sc, 'kloofendal_overcast', strength=A['world'], rot_z_deg=40.0)
 
 # ----------------------------------------------------------------------------- camera
@@ -575,10 +632,50 @@ if A['camera'] == 'desktop':
     cam = L.camera((0.10, -4.35, 1.52), (0.10, 0.0, 1.52), focal=35.0, fstop=A['fstop'], focus=3.45)
     cam.data.shift_y = -0.235
 else:
-    cam = L.camera((0.36, -3.35, 1.45), (0.36, 0.0, 1.45), focal=26.0, fstop=A['fstop'], focus=2.55)
+    # a phone held level a step to the left, turned toward the desk (pan only: verticals stay true)
+    cam = L.camera((-0.50, -3.0, 1.45), (0.45, 0.0, 1.45), focal=26.0, fstop=A['fstop'], focus=2.05)
     cam.data.sensor_fit = 'AUTO'
-    cam.data.shift_y = -0.245
+    cam.data.shift_y = -0.26
 
+# anchors for the HTML layer: where things land in the frame (0..1 from the top-left)
+from bpy_extras.object_utils import world_to_camera_view
+import json
+allp = np.array([p for P in cables for p in P])
+near = allp[np.hypot(allp[:, 0] - PILE[0], allp[:, 1] - PILE[1]) < 0.55]
+htop = near[np.argmax(near[:, 2])] if len(near) else np.array([PILE[0], PILE[1], 0.2])
+lastx = MUG_X0 + MUG_STEP * (PEOPLE - 1)
+pts = {
+    'mugs_left': (MUG_X0 - 0.045, -SHELF['d'] / 2, SHELF['z'] + 0.05),
+    'mugs_right': (lastx + 0.045, -SHELF['d'] / 2, SHELF['z'] + 0.05),
+    'mugs_top': ((MUG_X0 + lastx) / 2, -SHELF['d'] / 2, SHELF['z'] + 0.097),
+    'shelf_under': (SHELF['x0'], 0.0, SHELF['z'] - 0.2),
+    'heap_top': tuple(map(float, htop)),
+    'heap_left': (PILE[0] - 0.55, PILE[1], 0.05),
+    'floor_wall_left': (-1.8, 0.0, 0.0),
+    'desk_top': (1.2, -0.4, DESK['top']),
+    'desk_left_top': (DESK['x0'], DESK['y0'], DESK['top']),
+}
+bpy.context.view_layer.update()
+anch = {}
+for k, v in pts.items():
+    co = world_to_camera_view(sc, cam, Vector(v))
+    x, y = 0.5 + (co.x - 0.5) * 1.012, 0.5 + ((1 - co.y) - 0.5) * 1.012     # post() crops 1.2 % (lens hood)
+    anch[k] = [round(x, 4), round(y, 4)]
+with open(os.path.splitext(A['out'])[0] + '.anchors.json', 'w') as f:
+    json.dump(dict(state=A['state'], camera=A['camera'], people=PEOPLE, cables=len(cables), anchors=anch), f, indent=1)
+print('ANCHORS', anch)
+
+if A['dry']:
+    dg = bpy.context.evaluated_depsgraph_get()
+    sun = bpy.data.objects.get('Sun')
+    if sun:
+        dvec = (sun.matrix_world.to_3x3() @ Vector((0, 0, -1))).normalized()
+        print('SUN travel dir', tuple(round(v, 3) for v in dvec))
+        for fx, fy in [(-0.6, -1.3), (-0.3, -1.6), (0.2, -1.4), (0.6, -1.2), (1.2, -1.6), (-0.9, -0.5)]:
+            o = Vector((fx, fy, 0.01))
+            hit, loc, nrm, idx, ob, mat = sc.ray_cast(dg, o, -dvec)
+            print('floor', fx, fy, 'toward sun hits', ob.name if hit else None, tuple(round(v, 2) for v in loc) if hit else '')
+    sys.exit(0)
 L.post(sc, grain=A['grain'], vignette=0.22, dispersion=0.003, glare=0.08, seed=A['seed'])
 L.render(sc, A['out'], A['label'], extra=dict(idea='02-heap', state=A['state'], camera=A['camera'],
                                                 people=PEOPLE, cables=len(cables)))

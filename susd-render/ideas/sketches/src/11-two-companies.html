@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Two Companies, Ten Years</title> <!-- // label: idea title -->
+<link rel="stylesheet" href="board.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="board.js"></script>
+</head>
+<body>
+<script>
+// Idea 11, Two Companies, Ten Years: two founders start the same day at the same small table.
+// A only hires. B hires, puts systems in, cuts what doesn't pay, hires again. Figurines = people, coins = margin.
+const TOP = 340;
+
+function table(F, cx, name) {
+  const w = 440, d = 80;
+  F.l(cx - w / 2 + 20, TOP + d, cx - w / 2 + 20, TOP + d + 118, { strokeWidth: 4 });
+  F.l(cx + w / 2 - 20, TOP + d, cx + w / 2 - 20, TOP + d + 118, { strokeWidth: 4 });
+  F.l(cx - w / 2 + 50, TOP + d, cx - w / 2 + 50, TOP + d + 96, { strokeWidth: 3, stroke: C.soft });
+  F.l(cx + w / 2 - 50, TOP + d, cx + w / 2 - 50, TOP + d + 96, { strokeWidth: 3, stroke: C.soft });
+  F.r(cx - w / 2, TOP + d, w, 14, { fill: C.mid, fillStyle: 'solid', strokeWidth: 2.4 });
+  F.poly([[cx - w / 2, TOP + d], [cx + w / 2, TOP + d], [cx + w / 2 - 36, TOP], [cx - w / 2 + 36, TOP]], { fill: '#d3d3ce', fillStyle: 'solid', strokeWidth: 2.4 });
+  F.t(cx, TOP + d + 160, name, { size: 24, weight: 700, anchor: 'middle' });
+}
+function coins(F, x, y, n) {
+  for (let i = 0; i < n; i++) F.e(x, y - i * 8, 52, 18, { fill: '#cfcfca', fillStyle: 'solid', strokeWidth: 1.8, roughness: 0.6 });
+  F.t(x, y - n * 8 - 14, 'margin', { size: 15, anchor: 'middle' });
+}
+function ruler(F, year) {
+  const x0 = 90, x1 = 1030, y = 620;
+  F.l(x0, y, x1, y, { strokeWidth: 3 });
+  for (let k = 0; k <= 10; k++) {
+    const x = x0 + (x1 - x0) * k / 10;
+    F.l(x, y, x, y + 14, { strokeWidth: 2 });
+    F.t(x, y + 36, String(k), { size: 18, anchor: 'middle', weight: 700 });
+  }
+  F.t(x0 - 12, y + 36, 'Year', { size: 18, anchor: 'end' });
+  const xm = x0 + (x1 - x0) * year / 10;
+  F.poly([[xm - 13, y - 24], [xm + 13, y - 24], [xm, y - 4]], { fill: C.red, fillStyle: 'solid', strokeWidth: 1.6 });
+}
+function scene(F, year) {
+  table(F, 300, 'Company A');
+  table(F, 820, 'Company B');
+  if (year === 0) {
+    F.pawn(240, TOP + 56); coins(F, 400, TOP + 60, 1);
+    F.pawn(760, TOP + 56); coins(F, 920, TOP + 60, 1);
+  } else {
+    // A: only hired. 15 people, 105 pathways, a thin stack
+    const A = [];
+    for (let r = 0; r < 3; r++) for (let j = 0; j < 5; j++) A.push([130 + j * 54 + r * 14, TOP + 24 + r * 25]);
+    for (let i = 0; i < A.length; i++) for (let j = i + 1; j < A.length; j++) F.l(A[i][0], A[i][1] - 38, A[j][0], A[j][1] - 38, { strokeWidth: 0.7, roughness: 0.4, stroke: '#2a2a2a' });
+    A.forEach(([x, y]) => F.pawn(x, y, 0.8));
+    coins(F, 440, TOP + 66, 2);
+    F.t(300, TOP - 112, '15 people · 105 pathways', { size: 20, weight: 700, anchor: 'middle' }); // label
+    // B: hired in cycles. 8 people, three systems, a tall stack
+    const B = [];
+    for (let r = 0; r < 2; r++) for (let j = 0; j < 4; j++) B.push([650 + j * 50 + r * 14, TOP + 34 + r * 32]);
+    B.forEach(([x, y]) => F.pawn(x, y, 0.8));
+    [[860, TOP + 70], [860, TOP + 46], [860, TOP + 22]].forEach(([x, y]) => F.r(x - 30, y - 22, 60, 22, { fill: '#8f908b', fillStyle: 'solid', strokeWidth: 2 }));
+    F.t(860, TOP - 12, 'systems', { size: 15, anchor: 'middle' });
+    coins(F, 960, TOP + 68, 14);
+    F.t(820, TOP - 112, '8 people · 28 pathways', { size: 20, weight: 700, anchor: 'middle' }); // label
+  }
+  ruler(F, year);
+}
+
+board({
+  rank: 11,
+  title: 'Two Companies, Ten Years', // label
+  sub: 'Homepage idea ranked 11 of 15 · storyboard: what you see as you scroll', // label
+  frames: [
+    {
+      label: '1. First screen: two founders, same day, same small table', // label
+      draw: (F) => scene(F, 0),
+      lines: [{ text: 'Every hire compounds complexity before it compounds capacity.', x: 110, y: 130, w: 900, size: 44, align: 'center' }],
+    },
+    {
+      label: '2. Scrolling: year 10. A only hired; B hired in cycles, with systems and margin', // label
+      draw: (F) => scene(F, 10),
+      lines: [{ text: 'Each cycle deposits systems and margin. The next cycle withdraws from a larger account.', x: 80, y: 112, w: 960, size: 34, align: 'center' }],
+    },
+    {
+      label: '3. The ask: put your own team on the same ruler', // label
+      draw: (F) => F.g('translate(479 76) scale(0.58)', () => scene(F, 10)),
+      lines: [{ text: 'Up. Side. Down. Repeat.', x: 540, y: 530, w: 540, size: 44, align: 'center' }],
+      ask: { x: 40, y: 230, w: 440, q: 'How many people are on your team?', qSize: 40, facts: true, book: true },
+    },
+  ],
+});
+</script>
+</body>
+</html>

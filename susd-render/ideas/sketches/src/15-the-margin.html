@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Margin</title>
+<link rel="stylesheet" href="board.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="board.js"></script>
+</head>
+<body>
+<script>
+// Idea 15, The Margin: a well-set column of Michael's lines with wide margins. Each hire is an ink dot
+// in the margin, joined to every other dot. The lines eat the margin and squeeze the column.
+function dot(F, x, y, hollow) { F.c(x, y, 22, { fill: hollow ? 'none' : C.ink, fillStyle: 'solid', strokeWidth: 2.4, roughness: 0.6 }); }
+function span(F, x0, x1, y, label) {
+  F.arrow(x0 + 40, y, x0 + 4, y, { strokeWidth: 1.6, head: 10, stroke: C.soft }); F.arrow(x1 - 40, y, x1 - 4, y, { strokeWidth: 1.6, head: 10, stroke: C.soft });
+  F.l(x0 + 40, y, x1 - 40, y, { strokeWidth: 1.6, stroke: C.soft });
+  F.t((x0 + x1) / 2, y - 10, label, { size: 15, anchor: 'middle', fill: '#4a4a48' });
+}
+function guides(F, x0, x1) { [x0, x1].forEach((x) => F.l(x, 120, x, 680, { stroke: '#a2a39e', strokeWidth: 1.4, roughness: 0.3 })); }
+
+board({
+  rank: 15,
+  title: 'The Margin',
+  sub: 'Homepage idea ranked 15 of 15 · storyboard: what you see as you scroll', // label
+  frames: [
+    {
+      label: '1. First screen: a calm column, wide margins, one ink dot (the founder)', // label
+      draw: (F) => {
+        guides(F, 260, 860);
+        F.textLines(260, 520, 600, 5, 28, { stroke: '#8a8a86', sw: 2 });
+        dot(F, 130, 330);
+        span(F, 0, 260, 660, 'margin'); span(F, 860, 1120, 660, 'margin');
+      },
+      lines: [
+        { text: 'Every hire compounds complexity before it compounds capacity.', x: 260, y: 140, w: 600, size: 44 },
+        { text: 'You were never the problem. The model you inherited was.', x: 260, y: 340, w: 600, size: 26, kind: 'body' },
+        { text: 'Up. Side. Down. Repeat.', x: 260, y: 440, w: 600, size: 26, kind: 'body' },
+      ],
+    },
+    {
+      label: '2. Scrolling: one dot per hire, each joined to all. At 13 the column is a strip', // label
+      draw: (F) => {
+        const D = [[70, 170], [220, 210], [130, 330], [330, 300], [60, 470], [250, 450], [170, 600],
+                   [820, 180], [1010, 240], [900, 350], [1060, 450], [800, 520], [960, 610]];
+        for (let i = 0; i < D.length; i++) for (let j = i + 1; j < D.length; j++) F.l(D[i][0], D[i][1], D[j][0], D[j][1], { strokeWidth: 1.3, roughness: 0.7 });
+        F.flat('M462 112H658V690H462Z', C.screen);
+        guides(F, 470, 650);
+        F.textLines(470, 520, 170, 5, 28, { stroke: '#8a8a86', sw: 2 });
+        D.forEach(([x, y]) => dot(F, x, y));
+        F.r(812, 640, 290, 40, { fill: C.red, fillStyle: 'solid', strokeWidth: 2 });
+        F.t(957, 667, '13 people · 78 pathways', { size: 19, weight: 700, anchor: 'middle', fill: C.chalk }); // label
+      },
+      lines: [
+        { text: 'Complexity > Capacity = Redline.', x: 470, y: 150, w: 180, size: 29, red: 'Redline.' },
+        { text: 'Past twelve, something breaks.', x: 470, y: 360, w: 180, size: 24, kind: 'body' },
+      ],
+    },
+    {
+      label: '3. The ask: dots gathered into channels; column and margins open again', // label
+      draw: (F) => {
+        guides(F, 260, 860);
+        const cl = (cx, cy) => [[cx - 18, cy - 12], [cx + 18, cy - 14], [cx, cy + 16]].forEach(([x, y]) => dot(F, x, y));
+        F.l(130, 250, 130, 520, { strokeWidth: 9, roughness: 0.6 });
+        F.l(990, 330, 990, 560, { strokeWidth: 9, roughness: 0.6 });
+        cl(130, 250); cl(130, 520); cl(990, 330); cl(990, 560);
+        dot(F, 990, 200, true); F.arrow(990, 182, 990, 140, { strokeWidth: 2, head: 10 });
+        span(F, 0, 260, 660, 'margin'); span(F, 860, 1120, 660, 'margin');
+      },
+      lines: [{ text: "If margins aren't widening, you're not scaling.", x: 260, y: 140, w: 600, size: 44 }],
+      ask: { x: 260, y: 326, w: 600, q: 'How many people are on your team?', qSize: 38, facts: true, book: true },
+    },
+  ],
+});
+</script>
+</body>
+</html>

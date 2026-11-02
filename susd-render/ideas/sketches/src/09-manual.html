@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Manual</title>
+<link rel="stylesheet" href="board.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="board.js"></script>
+</head>
+<body>
+<script>
+// Idea 9, The Manual: the Bootloader printed and bound as a real operating manual (about 140 pages),
+// photographed. The homepage is photos of it.
+function manual(F, x, y, w, h, small) {
+  const sp = w * 0.16;
+  F.poly([[x, y + sp * 0.5], [x + sp, y], [x + sp, y + h], [x, y + h + sp * 0.3]], { fill: '#2c2d2b', fillStyle: 'solid', strokeWidth: small ? 1.6 : 2.4 });
+  // page block peeking at the top edge
+  F.poly([[x + sp, y], [x + w, y - sp * 0.2], [x + w, y + 4], [x + sp, y + 5]], { fill: C.sheet, fillStyle: 'solid', strokeWidth: small ? 1 : 1.6 });
+  F.r(x + sp, y + 4, w - sp, h - 4, { fill: '#1b1b1b', fillStyle: 'solid', strokeWidth: small ? 1.6 : 2.6 });
+  F.r(x + sp + w * 0.08, y + h * 0.16, w - sp - w * 0.16, h * 0.24, { fill: C.chalk, fillStyle: 'solid', strokeWidth: small ? 1 : 2 });
+  if (!small) {
+    F.t(x + sp + (w - sp) / 2, y + h * 0.27, 'SUSD', { font: 'Plimsoll', size: w * 0.2, anchor: 'middle' });
+    F.t(x + sp + (w - sp) / 2, y + h * 0.36, 'BOOTLOADER', { font: 'Plimsoll', size: w * 0.085, anchor: 'middle' });
+    F.t(x + sp + w * 0.08, y + h * 0.9, 'Version 16', { size: w * 0.06, fill: C.chalk }); // label
+  }
+}
+
+board({
+  rank: 9,
+  title: 'The Manual',
+  sub: 'Homepage idea ranked 9 of 15 · storyboard: what you see as you scroll', // label
+  frames: [
+    {
+      label: '1. First screen: the printed manual stands inside the sentence', // label
+      draw: (F) => {
+        F.flat('M0 560H1120V700H0Z', '#b2b3ae');
+        F.l(0, 560, 1120, 560, { strokeWidth: 1.6, stroke: C.soft });
+      },
+      lines: [
+        { text: 'This document is the closed system.', x: 60, y: 170, w: 1000, size: 92, insert: { after: 'document', w: 86, h: 112, draw: (F) => manual(F, 4, 8, 76, 98, true) } },
+        { text: 'This bootloader is built for Rented-Scale businesses with 1-12 employees.', x: 60, y: 460, w: 1040, size: 26, kind: 'linear', style: { whiteSpace: 'nowrap' } },
+      ],
+    },
+    {
+      label: '2. Scrolling: the manual opens; each spread is one rule, set big', // label
+      draw: (F) => {
+        // page block under the spread: shows how much is in it
+        for (let i = 0; i < 5; i++) F.lin([[118 - i * 2, 652 + i * 5], [560, 644 + i * 6], [1004 + i * 2, 652 + i * 5]], { strokeWidth: 1.4 });
+        F.poly([[120, 140], [560, 118], [560, 642], [126, 650]], { fill: C.sheet, fillStyle: 'solid', strokeWidth: 2.4 });
+        F.poly([[560, 118], [1000, 140], [994, 650], [560, 642]], { fill: C.sheet, fillStyle: 'solid', strokeWidth: 2.4 });
+        for (let i = 0; i < 6; i++) F.l(548 - i * 5, 124, 548 - i * 5, 640, { stroke: '#c7c7c3', strokeWidth: 3, roughness: 0.3 });
+        F.textLines(170, 190, 330, 15, 28, { stroke: '#8a8a86', sw: 2 });
+        F.t(150, 628, '61', { size: 15, fill: C.soft }); F.t(964, 628, '62', { size: 15, fill: C.soft });
+        F.r(830, 106, 18, 120, { fill: C.red, fillStyle: 'solid', strokeWidth: 1.4 });
+      },
+      lines: [{ text: "12 isn't a goal. It's a protective limit.", x: 610, y: 250, w: 340, size: 52 }],
+    },
+    {
+      label: '3. The ask: the button gets the file version of this manual', // label
+      draw: (F) => {
+        manual(F, 70, 190, 230, 330);
+        F.arrow(330, 360, 420, 360, { strokeWidth: 3, head: 18 });
+        F.poly([[440, 270], [520, 270], [550, 300], [550, 450], [440, 450]], { fill: C.sheet, fillStyle: 'solid', strokeWidth: 2.6 });
+        F.lin([[520, 270], [520, 300], [550, 300]], { strokeWidth: 2 });
+        F.textLines(458, 330, 72, 4, 24, { stroke: '#8a8a86', sw: 2 });
+        F.t(495, 482, 'SUSD-Bootloader.md', { size: 15, anchor: 'middle', weight: 700 }); // label
+      },
+      lines: [{ text: 'The book changed how you think. This SUSD Bootloader changes how you operate.', x: 610, y: 150, w: 470, size: 40 }],
+      ask: { x: 610, y: 400, w: 470, facts: 'A file for your AI, not a printed book · v16 · 35,445 words · free, by email', book: true }, // label
+    },
+  ],
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Freestanding Height</title>
+<link rel="stylesheet" href="board.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="board.js"></script>
+</head>
+<body>
+<script>
+// Idea 13, Freestanding Height (tower crane): each scroll adds one mast section (a hire).
+// Past its safe height it sways and the cab gauge goes red. Then a collar ties it to the finished floors.
+const GROUND = 640, MX = 880, MW = 34, SEC = 30;
+
+function dawn(F, sx = 150) {
+  F.arc(sx, GROUND, 150, 150, Math.PI, Math.PI * 2, false, { stroke: C.ink, strokeWidth: 2.4, fill: '#d6d6d1', fillStyle: 'solid' });
+  [-2.6, -2.1, -1.57, -1.04, -0.54].forEach((a) => F.l(sx + Math.cos(a) * 92, GROUND + Math.sin(a) * 92, sx + Math.cos(a) * 122, GROUND + Math.sin(a) * 122, { strokeWidth: 2.2 }));
+  [[60, 560, 300], [420, 590, 560], [900, 120, 1060]].forEach(([x0, y, x1]) => F.l(x0, y, x1, y, { stroke: '#a3a49f', strokeWidth: 2.4 }));
+  F.flat(`M0 ${GROUND}H1120V700H0Z`, '#a5a6a1');
+  F.l(0, GROUND, 1120, GROUND, { strokeWidth: 3 });
+}
+function building(F, top, slabs) {
+  F.r(640, top, 180, GROUND - top, { fill: '#a9aaa5', fillStyle: 'solid', strokeWidth: 2.6 });
+  for (let y = GROUND - 40; y > top; y -= 40) F.l(slabs ? 626 : 640, y, slabs ? 834 : 820, y, { strokeWidth: slabs ? 3 : 1.6 });
+  [660, 700, 760, 800].forEach((x) => F.l(x, top, x, top - 16, { strokeWidth: 1.6 })); // rebar at the top
+}
+function crane(F, n, o = {}) {
+  const top = GROUND - n * SEC;
+  F.g(o.tilt ? `rotate(${o.tilt} ${MX + MW / 2} ${GROUND})` : '', () => {
+    F.l(MX, GROUND, MX, top, { strokeWidth: 2.6 }); F.l(MX + MW, GROUND, MX + MW, top, { strokeWidth: 2.6 });
+    for (let i = 0; i < n; i++) {
+      const y0 = GROUND - i * SEC, y1 = y0 - SEC;
+      F.l(MX, y1, MX + MW, y1, { strokeWidth: 1.6, roughness: 0.5 });
+      F.l(i % 2 ? MX : MX + MW, y0, i % 2 ? MX + MW : MX, y1, { strokeWidth: 1.4, roughness: 0.5 });
+    }
+    // jib, counter-jib, counterweight, cab, hook
+    const L = MX - 260, R = MX + MW + 150;
+    F.l(L, top, R, top, { strokeWidth: 3 }); F.l(L + 10, top + 14, MX, top + 14, { strokeWidth: 1.6 });
+    F.lin([[L, top], [MX + MW / 2, top - 48], [R, top]], { strokeWidth: 1.6 });
+    F.r(R - 44, top + 2, 40, 30, { fill: C.dark, fillStyle: 'solid', strokeWidth: 2 });
+    F.r(MX - 30, top + 4, 30, 26, { fill: C.sheet, fillStyle: 'solid', strokeWidth: 2 });
+    F.l(L + 70, top, L + 70, top + 120, { strokeWidth: 1.4 });
+    F.p(`M${L + 70} ${top + 120} q0 12 10 12 q8 0 8 -8`, { strokeWidth: 2 });
+    if (o.sway) [1, 2, 3].forEach((k) => F.arc(MX + MW / 2, GROUND, 2 * (GROUND - top) + k * 26, 2 * (GROUND - top) + k * 26, -Math.PI / 2 - 0.12, -Math.PI / 2 + 0.12, false, { strokeWidth: 2, roughness: 1 }));
+  });
+  return top;
+}
+function gauge(F, x, y, red) {
+  F.c(x, y, 110, { fill: C.sheet, fillStyle: 'solid', strokeWidth: 2.6 });
+  F.arc(x, y, 84, 84, -0.6, 0.6, false, { stroke: C.red, strokeWidth: 9 });
+  const a = red ? -0.25 : -2.2;
+  F.l(x, y, x + Math.cos(a) * 40, y + Math.sin(a) * 40, { stroke: red ? C.red : C.ink, strokeWidth: 4 });
+  F.c(x, y, 12, { fill: C.ink, fillStyle: 'solid' });
+}
+
+board({
+  rank: 13,
+  title: 'Freestanding Height (tower crane)', // label
+  sub: 'Homepage idea ranked 13 of 15 · storyboard: what you see as you scroll', // label
+  frames: [
+    {
+      label: '1. First screen: dawn, a half-built core, a crane beside it', // label
+      draw: (F) => { dawn(F); building(F, 560); crane(F, 6); F.t(MX + MW + 14, GROUND - 14, '1 section = 1 hire', { size: 16 }); }, // label
+      lines: [{ text: "You can't build a building with only height. You need all three dimensions or it topples.", x: 40, y: 130, w: 620, size: 48 }],
+    },
+    {
+      label: '2. Scrolling: 13 sections, too tall to stand alone. It sways; the cab gauge is red', // label
+      draw: (F) => {
+        dawn(F); building(F, 560);
+        const top = crane(F, 13, { tilt: 3, sway: true });
+        gauge(F, 1040, 480, true);
+        F.l(MX + MW + 18, top + 30, 1020, 428, { strokeWidth: 1.4 });
+        F.t(1040, 556, 'cab gauge', { size: 15, anchor: 'middle' }); // label
+        F.t(MX + MW + 16, GROUND - 14, '13 sections', { size: 18, weight: 700, fill: C.red });
+      },
+      lines: [{ text: 'Past twelve, something breaks.', x: 40, y: 190, w: 520, size: 60 }],
+    },
+    {
+      label: '3. The ask: tied in to a taller building, the crane climbs safely', // label
+      draw: (F) => {
+        dawn(F, 480); building(F, 280, true);
+        const top = crane(F, 14);
+        [520, 360].forEach((y) => { F.r(MX - 6, y - 8, MW + 12, 16, { fill: C.ink, fillStyle: 'solid' }); F.l(820, y - 4, MX - 6, y - 4, { strokeWidth: 5 }); F.l(820, y + 4, MX - 6, y + 4, { strokeWidth: 5 }); });
+        F.t(MX + MW + 14, 444, 'tied in', { size: 18, weight: 700 }); // label
+        gauge(F, 1040, 560, false);
+      },
+      lines: [{ text: 'Systems were what actually held the weight.', x: 40, y: 130, w: 520, size: 42 }],
+      ask: { x: 40, y: 300, w: 500, q: 'How many people are on your team?', qSize: 38, facts: true, book: true },
+    },
+  ],
+});
+</script>
+</body>
+</html>

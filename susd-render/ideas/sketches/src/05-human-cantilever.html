@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Human Cantilever</title>
+<link rel="stylesheet" href="board.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="board.js"></script>
+</head>
+<body>
+<script>
+// Idea 5, The Human Cantilever: the 1887 Forth Bridge demonstration restaged with a small team,
+// shot black-and-white in a workshop. Two seated people + struts carry the founder on a plank.
+const FLOOR = 640;
+
+function room(F) {
+  F.flat(`M0 ${FLOOR}H1120V700H0Z`, '#a9aaa5');
+  F.l(0, FLOOR, 1120, FLOOR, { strokeWidth: 3 });
+  F.r(-10, FLOOR, 1140, 80, { stroke: 'none', fill: C.soft, fillStyle: 'hachure', hachureGap: 14, hachureAngle: -20, fillWeight: 0.8 });
+  [140, 400, 720, 980].forEach((x) => F.l(x, 30, x, FLOOR, { stroke: '#a3a49f', strokeWidth: 2, roughness: 0.4 }));
+}
+function sheet(F, x, y, w, h) {
+  F.flat(`M${x + 8} ${y + 8}h${w}v${h}h-${w}z`, '#000', 0.15);
+  F.r(x, y, w, h, { fill: C.sheet, fillStyle: 'solid', strokeWidth: 2 });
+  [[x + 16, y + 14], [x + w - 16, y + 14]].forEach(([a, b]) => F.c(a, b, 10, { fill: C.red, fillStyle: 'solid', strokeWidth: 1.4 }));
+}
+function chair(F, x, seat) {
+  F.r(x - 36, seat, 72, 9, { fill: '#7a6a58', fillStyle: 'solid', strokeWidth: 2 });
+  F.l(x - 32, seat + 9, x - 34, 0, { strokeWidth: 3 }); F.l(x + 32, seat + 9, x + 34, 0, { strokeWidth: 3 });
+  F.l(x - 32, seat, x - 34, seat - 92, { strokeWidth: 3 }); F.l(x + 32, seat, x + 34, seat - 92, { strokeWidth: 3 });
+}
+function seated(F, x, seat, arms, dangle) {
+  F.c(x, seat - 135, 42, { fill: C.screen, fillStyle: 'solid', strokeWidth: 3 });
+  F.l(x, seat - 114, x, seat, { strokeWidth: 5 });
+  if (dangle) { F.l(x - 6, seat, x - 18, seat + 82, { strokeWidth: 4 }); F.l(x + 6, seat, x + 20, seat + 78, { strokeWidth: 4 }); }
+  else { F.l(x - 10, seat, x - 18, 0, { strokeWidth: 4 }); F.l(x + 10, seat, x + 18, 0, { strokeWidth: 4 }); }
+  const sh = seat - 96;
+  if (arms === 'out') F.l(x - 112, sh, x + 112, sh, { strokeWidth: 4 });
+  if (arms === 'head') { F.lin([[x, sh], [x - 32, sh - 12], [x - 12, seat - 146]], { strokeWidth: 3.5 }); F.lin([[x, sh], [x + 32, sh - 12], [x + 12, seat - 146]], { strokeWidth: 3.5 }); }
+}
+// the cantilever, drawn in local units with the floor at 0, centred on 0
+function cantilever(F) {
+  [-1, 1].forEach((k) => {
+    const x = 230 * k, seat = -140;
+    chair(F, x, seat);
+    seated(F, x, seat, 'out');
+    const d = -k; // towards the middle
+    // struts: from the chair's feet, up through the hands, out past them (a V on each chair)
+    F.l(x + 25 * d, -6, x + 128 * d, -276, { strokeWidth: 7, stroke: '#5b4a3a' });
+    F.l(x - 25 * d, -6, x - 128 * d, -276, { strokeWidth: 7, stroke: '#5b4a3a' });
+    // anchor: the outer end tied down to bricks
+    const bx = x - 200 * d;
+    F.l(x - 128 * d, -276, bx, -66, { strokeWidth: 2.4 });
+    F.r(bx - 34, -66, 68, 66, { fill: '#8c3b2b', fillStyle: 'hachure', hachureGap: 6, strokeWidth: 2 });
+    [-44, -22].forEach((yy) => F.l(bx - 34, yy, bx + 34, yy, { strokeWidth: 1.6 }));
+  });
+  // the founder, relaxed on a plank slung between the inner ends
+  F.l(-102, -276, -92, -176, { strokeWidth: 2.4 }); F.l(102, -276, 92, -176, { strokeWidth: 2.4 });
+  F.r(-104, -178, 208, 10, { fill: '#7a6a58', fillStyle: 'solid', strokeWidth: 2 });
+  seated(F, 0, -178, 'head', true);
+}
+
+board({
+  rank: 5,
+  title: 'The Human Cantilever',
+  sub: 'Homepage idea ranked 5 of 15 · storyboard: what you see as you scroll', // label
+  frames: [
+    {
+      label: '1. First screen: the team is the bridge; the founder sits relaxed', // label
+      draw: (F) => { room(F); sheet(F, 250, 104, 620, 172); F.g(`translate(560 ${FLOOR}) scale(0.95)`, () => cantilever(F)); },
+      lines: [{ text: 'The business can breathe. Systems carry what the business creates.', x: 280, y: 134, w: 560, size: 38, align: 'center' }],
+    },
+    {
+      label: '2. Scrolling: eight people, 28 lines, nobody carrying anything', // label
+      draw: (F) => {
+        room(F); sheet(F, 300, 104, 520, 168);
+        const P = [[330, 560], [455, 548], [600, 560], [740, 552], [395, 640], [520, 632], [660, 640], [790, 634]];
+        const chest = P.map(([x, y]) => [x, y - 0.78 * 100]);
+        for (let i = 0; i < 8; i++) for (let j = i + 1; j < 8; j++) {
+          F.curve([chest[i], [(chest[i][0] + chest[j][0]) / 2 + ((i * 7 + j * 3) % 5 - 2) * 14, (chest[i][1] + chest[j][1]) / 2 - 40 + ((i + j) % 3) * 30], chest[j]], { strokeWidth: 1.6, roughness: 1.4 });
+        }
+        P.forEach(([x, y], i) => F.person(x, y, 0.78, { arms: [[[-50, 10], [44, -30]], [[-30, 40], [56, 4]], [[-60, -10], [30, 46]]][i % 3] }));
+        // the struts and plank, dropped on the floor
+        F.l(130, 662, 300, 650, { strokeWidth: 7, stroke: '#5b4a3a' }); F.l(860, 650, 1010, 668, { strokeWidth: 7, stroke: '#5b4a3a' });
+        F.r(880, 676, 170, 9, { fill: '#7a6a58', fillStyle: 'solid', strokeWidth: 2 });
+        F.t(1080, 470, '8 people · 28 pathways', { size: 22, weight: 700, anchor: 'end' }); // label
+      },
+      lines: [{ text: 'Every hire compounds complexity before it compounds capacity.', x: 330, y: 132, w: 470, size: 36, align: 'center' }],
+    },
+    {
+      label: '3. The ask: the cantilever, with one more seat ready', // label
+      draw: (F) => {
+        room(F); sheet(F, 560, 112, 500, 118);
+        F.g(`translate(750 ${FLOOR}) scale(0.55)`, () => {
+          cantilever(F);
+          chair(F, 530, -140);
+          F.t(530, -270, '+1', { size: 48, weight: 700, anchor: 'middle', fill: C.red });
+        });
+      },
+      lines: [{ text: 'Systems were what actually held the weight.', x: 590, y: 134, w: 440, size: 32, align: 'center' }],
+      ask: { x: 40, y: 200, w: 470, q: 'How many people are on your team?', qSize: 40, facts: true, book: true },
+    },
+  ],
+});
+</script>
+</body>
+</html>

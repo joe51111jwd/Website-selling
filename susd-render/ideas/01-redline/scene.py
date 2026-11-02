@@ -28,8 +28,9 @@ sys.path.insert(0, os.path.join(ROOT, 'lookdev'))
 import lib_lookdev as lib
 
 A = lib.args(dict(state='first', camera='desktop', w=640, h=400, samples=12, out='out/ideas/01-redline/test.png',
-                  n=0, exposure=0.0, win=1.0, hdri=0.25, yaw=16.0, fstop=5.6, look='AgX - Base Contrast',
-                  grain=0.07, sat=0.45, val=0.62, seed=7, save=''))
+                  n=0, exposure=0.45, win=1.0, hdri=0.9, yaw=16.0, fstop=5.6, look='AgX - Medium High Contrast',
+                  grain=0.07, sat=0.55, val=0.36, seed=7, save='', quiver=-1.0, light='sun', sun=7.5, el=34.0, az=218.0,
+                  sunang=7.0, jamb=-0.15, lintel=0.26, hrot=290.0, framew=0.0, border='', dust=1.0))
 
 MM = 0.001
 GAP = 0.215                      # gauge centre to centre
@@ -147,7 +148,7 @@ def node(nt, kind, **inputs):
 def panel_mat():
     """Poly Haven green_metal_rust (CC0), greyed towards machinery grey-green, with grime in the
     corners (AO) so the bezels sit in the paint rather than on it."""
-    m = lib.pbr('Panel', 'green_metal_rust', scale=1.0, normal_strength=0.8, bump=0.25, specular=0.45)
+    m = lib.pbr('Panel', 'green_metal_rust', scale=1.0, normal_strength=0.45, bump=0.04, specular=0.5)
     nt = m.node_tree
     bsdf = nt.nodes['Principled BSDF']
     src = bsdf.inputs['Base Color'].links[0].from_socket
@@ -212,18 +213,18 @@ def bezel_mat():
     at = nt.nodes.new('ShaderNodeAttribute'); at.attribute_name = 'wear'
     geo = nt.nodes.new('ShaderNodeNewGeometry')
     nz = nt.nodes.new('ShaderNodeTexNoise')
-    nz.inputs['Scale'].default_value = 90.0; nz.inputs['Detail'].default_value = 8.0; nz.inputs['Roughness'].default_value = 0.7
+    nz.inputs['Scale'].default_value = 28.0; nz.inputs['Detail'].default_value = 10.0; nz.inputs['Roughness'].default_value = 0.72
     lib.link(nt, geo.outputs['Position'], nz.inputs['Vector'])
     mul = nt.nodes.new('ShaderNodeMath'); mul.operation = 'MULTIPLY'
     lib.link(nt, at.outputs['Fac'], mul.inputs[0]); lib.link(nt, nz.outputs['Fac'], mul.inputs[1])
     th = node(nt, 'ShaderNodeMapRange')
-    th.inputs['From Min'].default_value = 0.40; th.inputs['From Max'].default_value = 0.47
+    th.inputs['From Min'].default_value = 0.50; th.inputs['From Max'].default_value = 0.58
     lib.link(nt, mul.outputs[0], th.inputs['Value'])
     wear = th.outputs['Result']
     mc, f_, a_, b_, col = lib.mix(nt, 'RGBA', 'MIX')
     lib.link(nt, wear, f_)
     a_.default_value = (*lib.srgb_to_lin((0.075, 0.075, 0.072)), 1)
-    b_.default_value = (*lib.srgb_to_lin((0.62, 0.60, 0.56)), 1)
+    b_.default_value = (*lib.srgb_to_lin((0.42, 0.41, 0.39)), 1)
     lib.link(nt, wear, bsdf.inputs['Metallic'])
     # paint roughness from the scanned metal plate map, 0.32..0.5
     rm = lib._img(nt, lib._maps('metal_plate')['rough'], True)
@@ -234,7 +235,7 @@ def bezel_mat():
     rr.inputs['To Min'].default_value = 0.30; rr.inputs['To Max'].default_value = 0.52
     lib.link(nt, rm.outputs['Color'], rr.inputs['Value'])
     mr, f2, a2, b2, rough = lib.mix(nt, 'FLOAT')
-    lib.link(nt, wear, f2); lib.link(nt, rr.outputs['Result'], a2); b2.default_value = 0.28
+    lib.link(nt, wear, f2); lib.link(nt, rr.outputs['Result'], a2); b2.default_value = 0.36
     lib.link(nt, rough, bsdf.inputs['Roughness'])
     dust_on_top(nt, col, bsdf, amount=0.45)
     return m
@@ -266,26 +267,28 @@ def glass_mat():
     sm.inputs['Scale'].default_value = 22.0; sm.inputs['Detail'].default_value = 4.0; sm.inputs['Roughness'].default_value = 0.6
     lib.link(nt, geo.outputs['Position'], sm.inputs['Vector'])
     rr = node(nt, 'ShaderNodeMapRange')
-    rr.inputs['From Min'].default_value = 0.5; rr.inputs['From Max'].default_value = 0.75
-    rr.inputs['To Min'].default_value = 0.012; rr.inputs['To Max'].default_value = 0.10
+    rr.inputs['From Min'].default_value = 0.58; rr.inputs['From Max'].default_value = 0.78
+    rr.inputs['To Min'].default_value = 0.006; rr.inputs['To Max'].default_value = 0.05
     lib.link(nt, sm.outputs['Fac'], rr.inputs['Value'])
     lib.link(nt, rr.outputs['Result'], bsdf.inputs['Roughness'])
     # dust specks: small voronoi dots, faint
-    vo = nt.nodes.new('ShaderNodeTexVoronoi'); vo.inputs['Scale'].default_value = 900.0
+    vo = nt.nodes.new('ShaderNodeTexVoronoi'); vo.inputs['Scale'].default_value = 260.0
     lib.link(nt, geo.outputs['Position'], vo.inputs['Vector'])
     dm = node(nt, 'ShaderNodeMapRange')
-    dm.inputs['From Min'].default_value = 0.10; dm.inputs['From Max'].default_value = 0.0
+    dm.inputs['From Min'].default_value = 0.045; dm.inputs['From Max'].default_value = 0.0
     lib.link(nt, vo.outputs['Distance'], dm.inputs['Value'])
     nz = nt.nodes.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 40.0
     lib.link(nt, geo.outputs['Position'], nz.inputs['Vector'])
     gate = node(nt, 'ShaderNodeMapRange')
-    gate.inputs['From Min'].default_value = 0.5; gate.inputs['From Max'].default_value = 0.62
+    gate.inputs['From Min'].default_value = 0.56; gate.inputs['From Max'].default_value = 0.66
     lib.link(nt, nz.outputs['Fac'], gate.inputs['Value'])
     dmul = nt.nodes.new('ShaderNodeMath'); dmul.operation = 'MULTIPLY'
     lib.link(nt, dm.outputs['Result'], dmul.inputs[0]); lib.link(nt, gate.outputs['Result'], dmul.inputs[1])
     haze = nt.nodes.new('ShaderNodeMath'); haze.operation = 'MULTIPLY_ADD'
-    lib.link(nt, gate.outputs['Result'], haze.inputs[0]); haze.inputs[1].default_value = 0.04
-    lib.link(nt, dmul.outputs[0], haze.inputs[2])
+    lib.link(nt, gate.outputs['Result'], haze.inputs[0]); haze.inputs[1].default_value = 0.006
+    dsc = nt.nodes.new('ShaderNodeMath'); dsc.operation = 'MULTIPLY'
+    lib.link(nt, dmul.outputs[0], dsc.inputs[0]); dsc.inputs[1].default_value = A['dust']
+    lib.link(nt, dsc.outputs[0], haze.inputs[2])
     dif = nt.nodes.new('ShaderNodeBsdfDiffuse')
     dif.inputs['Color'].default_value = (*lib.srgb_to_lin((0.55, 0.54, 0.5)), 1)
     ms = nt.nodes.new('ShaderNodeMixShader')
@@ -357,6 +360,19 @@ def build_gauge(key, mats):
     # label plate under the gauge, two tiny screws
     py = -0.0
     plate(f'Plate{key}', cx, cz - 0.123, mats['plate' + key], mats)
+    q = A['quiver'] if A['quiver'] >= 0 else (1.1 if (key == 'L' and A['state'] == 'key') else 0.0)
+    if q > 0:                      # a needle at its limit trembles; the shutter (1/30 s) catches it
+        for ob in (nd, cw):
+            ob.rotation_mode = 'XYZ'
+            ob.rotation_euler = (0, math.radians(-q), 0); ob.keyframe_insert('rotation_euler', frame=0)
+            ob.rotation_euler = (0, math.radians(q * 0.6), 0); ob.keyframe_insert('rotation_euler', frame=2)
+            for fc in ob.animation_data.action.fcurves:
+                for kp in fc.keyframe_points:
+                    kp.interpolation = 'SINE'
+        sc = bpy.context.scene
+        sc.render.use_motion_blur = True
+        sc.render.motion_blur_shutter = 2.0
+        sc.frame_set(1)
     return bz, face, gl, nd, cw, hub
 
 
@@ -430,7 +446,7 @@ def main():
     lib.render_setup(sc, A['w'], A['h'], A['samples'], threshold=0.02, look=A['look'], exposure=A['exposure'],
                      transmission=8, diffuse=3, glossy=4, seed=A['seed'])
     sc.cycles.caustics_refractive = False
-    lib.world_hdri(sc, 'empty_warehouse_01', strength=A['hdri'], rot_z_deg=200.0)
+    lib.world_hdri(sc, 'empty_warehouse_01', strength=A['hdri'], rot_z_deg=A['hrot'])
     mats = dict(panel=panel_mat(), bezel=bezel_mat(), glass=glass_mat(),
                 dialL=dial_mat('DialL', 'dial_coordination.png'), dialR=dial_mat('DialR', 'dial_capacity.png'),
                 plateL=plate_mat('PlateL', 'plate_coordination.png'), plateR=plate_mat('PlateR', 'plate_capacity.png'),
@@ -445,32 +461,55 @@ def main():
     for k in GAUGES:
         build_gauge(k, mats)
 
-    # one light idea: a big four-pane window to the left of the photographer, a little above
-    wx, wy, wz = -1.25, -1.75, 0.55
-    look_at = (0.05, 0.0, 0.0)
-    pw, ph, gap = 0.62, 0.78, 0.07
-    for i, dx in enumerate((-(pw + gap) / 2, (pw + gap) / 2)):
-        for j, dz in enumerate((-(ph + gap) / 2, (ph + gap) / 2)):
-            # panes sit on one plane facing look_at
-            L = lib.area_light(f'Pane{i}{j}', (0, 0, 0), look_at, pw, ph, 900.0 * A['win'], kelvin=6200, spread=160)
-            base = Vector((wx, wy, wz))
-            fwd = (Vector(look_at) - base).normalized()
-            right = fwd.cross(Vector((0, 0, 1))).normalized()
-            up = right.cross(fwd).normalized()
-            L.location = base + right * dx + up * dz
-            lib.aim(L, Vector(look_at) + right * dx + up * dz)
+    # one light idea: late-morning sun through a window to the left of the panel. The window's
+    # jamb and head are out of frame; their soft shadows leave the upper left of the panel in shade
+    # (that is where the type goes) and the gauges in the sunny patch. A dim warehouse HDRI is the
+    # room's own fill and what the glass reflects.
+    if A['light'] == 'sun':
+        sun = lib.sun_light('Sun', A['el'], A['az'], A['sun'], angle_deg=A['sunang'], kelvin=5400)
+        el, az = math.radians(A['el']), math.radians(A['az'])
+        dvec = Vector((math.cos(el) * math.sin(az), math.cos(el) * math.cos(az), math.sin(el)))   # towards the sun
+        oy = -0.9                                   # occluder plane, 0.9 m in front of the panel
+        s_ = -oy / -dvec.y
+        offx, offz = s_ * dvec.x, s_ * dvec.z
+        jx, lz = A['jamb'] + offx, A['lintel'] + offz
+        occ = lib.simple_mat('Occluder', (0.05, 0.05, 0.05), rough=0.9)
+        parts = [lib.box('Jamb', -6.0, jx, oy - 0.05, oy, -4.0, 6.0, mat=occ),
+                 lib.box('Head', jx, 6.0, oy - 0.05, oy, lz, 6.0, mat=occ)]
+        for ob in parts:
+            ob.visible_camera = False; ob.visible_glossy = False; ob.visible_diffuse = False
+            ob.visible_transmission = False; ob.visible_volume_scatter = False
+    else:
+        wx, wy, wz = -1.30, -1.70, 0.62
+        look_at = (0.05, 0.0, 0.0)
+        pw, ph, gap = 0.62, 0.78, 0.07
+        for i, dx in enumerate((-(pw + gap) / 2, (pw + gap) / 2)):
+            for j, dz in enumerate((-(ph + gap) / 2, (ph + gap) / 2)):
+                L = lib.area_light(f'Pane{i}{j}', (0, 0, 0), look_at, pw, ph, 40.0 * A['win'], kelvin=6200, spread=160)
+                base = Vector((wx, wy, wz))
+                fwd = (Vector(look_at) - base).normalized()
+                right = fwd.cross(Vector((0, 0, 1))).normalized()
+                up = right.cross(fwd).normalized()
+                L.location = base + right * dx + up * dz
+                lib.aim(L, Vector(look_at) + right * dx + up * dz)
 
     # camera: locked off, square-on verticals, yawed so the panel recedes to the left
-    if A['camera'] == 'desktop':
-        tx, tz, frame_w, lens = -0.030, 0.052, 0.66, 85.0
+    if A['camera'] == 'close':      # the hard cut in on the pathways gauge at the key beat
+        tx, tz, frame_w, lens = -0.093, 0.004, A['framew'] or 0.42, 85.0
+    elif A['camera'] == 'desktop':
+        tx, tz, frame_w, lens = -0.078, 0.044, A['framew'] or 0.70, 85.0
     else:
-        tx, tz, frame_w, lens = 0.018, 0.040, 0.29, 85.0
+        tx, tz, frame_w, lens = 0.018, 0.040, A['framew'] or 0.29, 85.0
     d = frame_w * lens / 36.0
     yaw = math.radians(A['yaw'])
     cam_loc = (tx + d * math.sin(yaw), -d * math.cos(yaw), tz)
     cam = lib.camera(cam_loc, (tx, 0.0, tz), focal=lens, fstop=A['fstop'],
                      focus=(Vector(cam_loc) - Vector((0.0, -0.012, 0.0))).length)
     lib.post(sc, grain=A['grain'], vignette=0.20, dispersion=0.003, glare=0.10, seed=A['seed'])
+    if A['border']:
+        x0, x1, y0, y1 = [float(v) for v in A['border'].split(',')]
+        sc.render.use_border = True; sc.render.use_crop_to_border = True
+        sc.render.border_min_x, sc.render.border_max_x, sc.render.border_min_y, sc.render.border_max_y = x0, x1, y0, y1
     if A['save']:
         lib.save_blend(A['save'])
     lib.render(sc, A['out'], f"redline_{A['state']}_{A['camera']}", extra=dict(idea='01-redline', team=team()))

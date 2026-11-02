@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>2 The Heap: storyboard</title> <!-- // label -->
+<link rel="stylesheet" href="_kit-b2.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="_kit-b2.js"></script>
+</head>
+<body>
+<header class="hd">
+  <div class="rank">#2</div>
+  <div><h1>The Heap</h1><p class="gist">Homepage idea ranked 2 of 15 · storyboard: what you see as you scroll</p></div> <!-- // label -->
+</header>
+
+<section class="fr">
+  <h2>1. First screen: the founder, one hire, one cable between them</h2> <!-- // label -->
+  <div class="scr" id="s1"><div class="site">
+    <p class="line" style="left:44px;top:128px;width:700px;font-size:50px">Every hire compounds complexity before it compounds capacity.</p>
+    <div class="read" style="right:44px;top:120px"><div><b>2</b><span>people</span></div><div><b>1</b><span>pathway</span></div></div>
+  </div></div>
+</section>
+
+<section class="fr">
+  <h2>2. Scrolling: each hire drops its cables on the pile. At 15 people, 105 cables bury the desk</h2> <!-- // label -->
+  <div class="scr" id="s2"><div class="site">
+    <p class="line" style="left:44px;top:128px;width:640px;font-size:56px">Past twelve, something breaks.</p>
+    <div class="read red" style="right:44px;top:120px"><div><b>15</b><span>people</span></div><div><b>105</b><span>pathways</span></div></div>
+  </div></div>
+</section>
+
+<section class="fr">
+  <h2>3. The ask: the same room, tidied into a rack with one empty port</h2> <!-- // label -->
+  <div class="scr ask" id="s3"><div class="site">
+    <p class="q" style="left:44px;top:128px;width:1040px;font-size:48px">How many people are on your team?</p>
+    <div style="position:absolute;left:44px;top:204px;display:flex;align-items:center;gap:26px"><span class="btn">Get it free</span><span class="sub">Pre-order the book</span></div>
+  </div></div>
+</section>
+
+<script>
+const FLOOR = 660;
+function room(p, opt) {
+  p.line(14, FLOOR, 1106, FLOOR, { strokeWidth: 3 });
+  // door, right wall
+  p.rect(975, 410, 92, FLOOR - 410, { strokeWidth: 2.6 });
+  p.circle(990, 540, 9, { fill: C.ink, fillStyle: 'solid' });
+}
+function desk(p) {
+  p.rect(140, 546, 270, 14, { fill: C.ink, fillStyle: 'hachure', hachureGap: 4 });
+  p.line(156, 560, 156, FLOOR); p.line(394, 560, 394, FLOOR);
+  // laptop
+  p.lines([[300, 546], [318, 500], [362, 500], [348, 546]], { strokeWidth: 2.4 });
+}
+function chair(p) {
+  p.line(424, 592, 476, 592, { strokeWidth: 3 });
+  p.line(476, 520, 476, FLOOR, { strokeWidth: 3 });
+  p.line(428, 592, 428, FLOOR, { strokeWidth: 2.6 });
+}
+function founder(p) {
+  p.circle(442, 508, 24, { strokeWidth: 2.6 });
+  p.line(443, 520, 448, 588, { strokeWidth: 2.6 });
+  p.line(448, 588, 404, 591, { strokeWidth: 2.6 });
+  p.line(404, 591, 404, 655, { strokeWidth: 2.6 });
+  p.line(444, 538, 398, 550, { strokeWidth: 2.6 });
+}
+function coil(p, cx, cy, r, R, opt) {
+  const n = 6, pts = [];
+  const a0 = R() * 6.28;
+  for (let i = 0; i <= n; i++) {
+    const a = a0 + (i / n) * 6.28 + (R() - 0.5) * 0.5;
+    const rr = r * (0.55 + R() * 0.7);
+    pts.push([cx + Math.cos(a) * rr * 1.25, cy + Math.sin(a) * rr * 0.8]);
+  }
+  p.curve(pts, Object.assign({ strokeWidth: 1.7, roughness: 1.3 }, opt || {}));
+}
+
+window.DRAW = {
+  s1(p) {
+    room(p); desk(p); chair(p); founder(p);
+    p.person(586, 655, 100, { strokeWidth: 2.6 });
+    // the one cable: from the founder's hand to the hire's hand, slack on the floor
+    p.curve([[398, 551], [412, 600], [440, 650], [500, 654], [560, 640], [578, 608]], { strokeWidth: 4, roughness: 0.9 });
+  },
+  s2(p) {
+    const R = rng(22);
+    room(p); desk(p); chair(p); founder(p);
+    for (let i = 0; i < 15; i++) p.person(520 + i * 29, 655, 96, { strokeWidth: 2.2 });
+    // pile silhouette: a big mound over the desk and chair, knee-deep along the wall, up against the door
+    const top = (x) => {
+      const big = 318 * Math.exp(-Math.pow((x - 310) / 205, 2));
+      const tail = x > 60 && x < 1000 ? 44 + 8 * Math.sin(x / 37) : 0;
+      return FLOOR - Math.max(big, tail, 0) ;
+    };
+    const sil = [];
+    for (let x = 34; x <= 1000; x += 12) sil.push([x, top(x)]);
+    sil.push([1000, FLOOR], [34, FLOOR]);
+    p.poly(sil, { stroke: 'none', fill: C.screen, fillStyle: 'solid' });
+    // cables: coils packed into the mound, plus long strands
+    for (let i = 0; i < 230; i++) {
+      const x = 46 + R() * 950;
+      const t = top(x);
+      if (t > FLOOR - 16) continue;
+      const y = t + 10 + R() * (FLOOR - t - 14);
+      coil(p, x, y, 12 + R() * 22, R);
+    }
+    for (let i = 0; i < 26; i++) {
+      const x = 70 + R() * 850, pts = [];
+      for (let k = 0; k < 5; k++) { const xx = x + k * (40 + R() * 30); const t = top(xx); pts.push([xx, t + 8 + R() * (FLOOR - t - 10)]); }
+      p.curve(pts, { strokeWidth: 1.8, roughness: 1.2 });
+    }
+    // the founder's head and one arm above the pile
+    p.circle(318, 326, 26, { strokeWidth: 2.8, fill: C.screen, fillStyle: 'solid' });
+    p.line(334, 334, 372, 288, { strokeWidth: 2.8 });
+    p.line(372, 288, 364, 276, { strokeWidth: 2.4 }); p.line(372, 288, 382, 278, { strokeWidth: 2.4 });
+    coil(p, 312, 352, 22, R, { strokeWidth: 2 });
+    coil(p, 342, 356, 18, R, { strokeWidth: 2 });
+  },
+  s3(p) {
+    room(p); desk(p); chair(p); founder(p);
+    for (let i = 0; i < 11; i++) p.person(520 + i * 30, 655, 96, { strokeWidth: 2.2 });
+    // the rack, with three patch panels
+    p.rect(860, 300, 96, 340, { strokeWidth: 3, fill: C.screen, fillStyle: 'solid' });
+    p.line(860, 640, 860, FLOOR, { strokeWidth: 3 }); p.line(956, 640, 956, FLOOR, { strokeWidth: 3 });
+    const panels = [330, 420, 510];
+    panels.forEach((y) => {
+      p.rect(870, y, 76, 58, { strokeWidth: 2 });
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 5; c++) p.rect(876 + c * 14, y + 8 + r * 16, 8, 9, { strokeWidth: 1.3, roughness: 0.6, fill: C.ink, fillStyle: 'solid' });
+    });
+    // three bundled trunks, tied, running along the floor and up into the panels
+    const trunk = (pts) => {
+      for (const d of [-4, 0, 4]) p.curve(pts.map(([x, y]) => [x, y + d]), { strokeWidth: 2.2, roughness: 0.7 });
+    };
+    trunk([[400, 640], [500, 646], [700, 648], [820, 640], [846, 600], [852, 540], [870, 530]]);
+    trunk([[300, 546], [270, 600], [300, 636], [600, 634], [790, 626], [830, 470], [870, 448]]);
+    trunk([[516, 640], [640, 626], [780, 610], [820, 380], [870, 358]]);
+    [[560, 643], [660, 644], [740, 640], [452, 643], [620, 630], [720, 628], [826, 560], [832, 420], [800, 600]].forEach(([x, y]) => p.line(x, y - 10, x, y + 10, { strokeWidth: 2.6, roughness: 0.5 }));
+    // one empty, labelled port, lit
+    p.rect(918, 588, 22, 22, { stroke: C.ink, strokeWidth: 2.4, fill: C.chalk, fillStyle: 'solid', roughness: 0.6 });
+    p.rect(870, 586, 40, 26, { strokeWidth: 1.8, roughness: 0.6, fill: C.chalk, fillStyle: 'solid' });
+    p.circle(929, 599, 70, { stroke: C.chalk, strokeWidth: 4.5, roughness: 1.4 });
+  },
+};
+</script>
+</body>
+</html>

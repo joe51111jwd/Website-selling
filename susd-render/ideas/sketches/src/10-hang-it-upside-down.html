@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>10 Hang It Upside Down: storyboard</title> <!-- // label -->
+<link rel="stylesheet" href="_kit-b2.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="_kit-b2.js"></script>
+</head>
+<body>
+<header class="hd">
+  <div class="rank">#10</div>
+  <div><h1>Hang It Upside Down</h1><p class="gist">Homepage idea ranked 10 of 15 · storyboard: what you see as you scroll</p></div> <!-- // label -->
+</header>
+
+<section class="fr">
+  <h2>1. First screen: strings hang from a board in arches</h2> <!-- // label -->
+  <div class="scr dark" id="s1"><div class="site">
+    <p class="line" style="left:44px;top:128px;width:350px;font-size:42px">Every hire compounds complexity before it compounds capacity.</p>
+  </div></div>
+</section>
+
+<section class="fr">
+  <h2>2. Scrolling: each hire hangs one more weight (red) and every curve shifts. At 15 it tangles</h2> <!-- // label -->
+  <div class="scr dark" id="s2"><div class="site">
+    <p class="line" style="left:44px;top:128px;width:350px;font-size:50px">Past twelve, something breaks.</p>
+  </div></div>
+</section>
+
+<section class="fr">
+  <h2>3. The ask: the camera turns into the mirror. The net, flipped, stands as a vault</h2> <!-- // label -->
+  <div class="scr dark ask" id="s3"><div class="site">
+    <p class="line" style="left:44px;top:128px;width:370px;font-size:36px">You can't build a building with only height. You need all three dimensions or it topples.</p>
+    <div style="position:absolute;left:44px;top:480px"><span class="btn">Get it free</span><p class="sub" style="margin-top:22px">Pre-order the book</p></div>
+  </div></div>
+</section>
+
+<script>
+const BOARD = 132;
+// a hanging string from a to b with sag s (negative s stands up)
+function hang(p, a, b, s, opt) {
+  const pts = [];
+  for (let i = 0; i <= 8; i++) { const t = i / 8; pts.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t + s * 4 * t * (1 - t)]); }
+  p.curve(pts, Object.assign({ strokeWidth: 2, roughness: 0.6 }, opt || {}));
+  return pts[4];
+}
+function bag(p, x, y, red, flip) {
+  const d = flip ? -1 : 1;
+  p.line(x, y, x, y + 14 * d, { strokeWidth: 1.6, roughness: 0.3 });
+  p.ellipse(x, y + (red ? 34 : 28) * d, red ? 32 : 20, red ? 38 : 24, red ? { stroke: C.red, strokeWidth: 2, fill: C.red, fillStyle: 'solid' } : { strokeWidth: 2, fill: C.chalk, fillStyle: 'hachure', hachureGap: 4 });
+}
+function boardAndMirror(p) {
+  p.rect(430, BOARD - 22, 644, 22, { strokeWidth: 2.4, fill: C.chalk, fillStyle: 'hachure', hachureGap: 6 });
+  p.poly([[452, 628], [1052, 628], [1080, 668], [424, 668]], { strokeWidth: 2, fill: 'rgba(243,242,236,.16)', fillStyle: 'solid' });
+  p.line(560, 636, 600, 660, { strokeWidth: 2, roughness: 0.4 }); p.line(590, 634, 616, 652, { strokeWidth: 2, roughness: 0.4 });
+}
+// the calm model: four strings, four weights
+const CALM = [[[470, BOARD], [650, BOARD], 300], [[600, BOARD], [850, BOARD], 380], [[800, BOARD], [1040, BOARD], 300], [[470, BOARD], [1040, BOARD], 460]];
+
+window.DRAW = {
+  s1(p) {
+    boardAndMirror(p);
+    CALM.forEach(([a, b, s]) => { const m = hang(p, a, b, s); bag(p, m[0], m[1]); });
+  },
+  s2(p) {
+    boardAndMirror(p);
+    // where the strings were one hire ago, dashed
+    const ghost = p.g({ opacity: 0.45 });
+    CALM.forEach(([a, b, s]) => hang(ghost, a, b, s, { strokeLineDash: [7, 8], strokeWidth: 1.6 }));
+    // now: 15 weights, strings dragged into each other
+    const R = rng(10);
+    const nodes = [];
+    for (let i = 0; i < 15; i++) nodes.push([480 + R() * 560, 300 + R() * 300]);
+    nodes.forEach((n, i) => {
+      const a = [440 + R() * 620, BOARD], b = [440 + R() * 620, BOARD];
+      p.curve([a, [(a[0] + n[0]) / 2 + (R() - 0.5) * 40, (a[1] + n[1]) / 2 + 30], n], { strokeWidth: 1.8, roughness: 0.8 });
+      p.curve([n, [(b[0] + n[0]) / 2 + (R() - 0.5) * 40, (b[1] + n[1]) / 2 + 30], b], { strokeWidth: 1.8, roughness: 0.8 });
+      const m = nodes[(i * 7 + 3) % 15];
+      if (m !== n) hang(p, n, m, 40 + R() * 60, { strokeWidth: 1.6 });
+    });
+    nodes.forEach((n, i) => bag(p, n[0], n[1], i === 14));
+  },
+  s3(p) {
+    const FL = 640;
+    // the board is now the ground; the strings stand up as arches
+    p.rect(430, FL, 644, 22, { strokeWidth: 2.4, fill: C.chalk, fillStyle: 'hachure', hachureGap: 6 });
+    const arches = [[470, 650, 300], [600, 850, 380], [800, 1040, 300], [470, 1040, 460], [520, 990, 400], [700, 800, 180]];
+    arches.forEach(([x1, x2, s]) => { const m = hang(p, [x1, FL], [x2, FL], -s, { strokeWidth: 2.6 }); });
+    [[560, 340], [725, 260], [920, 340], [755, 180]].forEach(([x, y]) => bag(p, x, y, false, true));
+    // a figure for scale
+    p.person(645, FL, 70, { strokeWidth: 2 });
+  },
+};
+</script>
+</body>
+</html>

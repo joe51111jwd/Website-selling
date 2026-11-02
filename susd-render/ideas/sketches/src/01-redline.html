@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Redline</title>
+<link rel="stylesheet" href="board.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="board.js"></script>
+</head>
+<body>
+<script>
+// Idea 1, Redline: a worn engine-room panel with two dials. Left = coordination pathways
+// (scale printed at 0, 1, 3, 6, 10 ... 105, red from 78), right = capacity.
+const TRI = [0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78, 91, 105];
+const ang = (f) => (135 + 270 * f) * Math.PI / 180;
+
+function dial(F, cx, cy, R, o) {
+  F.c(cx, cy, 2 * R + 26, { fill: C.dark, fillStyle: 'solid', strokeWidth: 3 });
+  F.c(cx, cy, 2 * R, { fill: C.sheet, fillStyle: 'solid', strokeWidth: 2 });
+  if (o.red != null) F.arc(cx, cy, 2 * R - 22, 2 * R - 22, ang(o.red), ang(1), false, { stroke: C.red, strokeWidth: 14, roughness: 0.6 });
+  o.ticks.forEach((v) => {
+    const a = ang(v / o.max), major = o.labels.includes(v);
+    F.l(cx + Math.cos(a) * (R - 4), cy + Math.sin(a) * (R - 4), cx + Math.cos(a) * (R - (major ? 22 : 15)), cy + Math.sin(a) * (R - (major ? 22 : 15)), { strokeWidth: major ? 2.6 : 1.6, roughness: 0.5 });
+  });
+  o.labels.forEach((v) => {
+    const a = ang(v / o.max);
+    F.t(cx + Math.cos(a) * (R - 40), cy + Math.sin(a) * (R - 40) + 6, String(v), { size: 17, weight: 700, anchor: 'middle', fill: o.red != null && v >= o.max * o.red ? C.red : C.ink });
+  });
+  F.t(cx, cy + R * 0.74, o.name, { size: 15, anchor: 'middle', weight: 700 });
+  const a = ang(o.value / o.max), L = R - 26;
+  F.l(cx - Math.cos(a) * 18, cy - Math.sin(a) * 18, cx + Math.cos(a) * L, cy + Math.sin(a) * L, { stroke: o.needle || C.ink, strokeWidth: 5, roughness: 0.5 });
+  F.c(cx, cy, 22, { fill: C.ink, fillStyle: 'solid' });
+  if (o.shake) [0.06, 0.1, 0.14].forEach((d, i) => {
+    F.arc(cx, cy, 2 * L + 24 + i * 16, 2 * L + 24 + i * 16, a + 0.08, a + 0.08 + d * 1.6, false, { stroke: C.ink, strokeWidth: 2, roughness: 0.8 });
+  });
+}
+
+function panel(F, st) {
+  F.r(520, 112, 570, 540, { fill: '#a6a7a2', fillStyle: 'solid', strokeWidth: 3 });
+  F.r(520, 112, 570, 540, { fill: C.soft, fillStyle: 'hachure', hachureGap: 22, fillWeight: 0.6, hachureAngle: 60, stroke: 'none' });
+  [[540, 132], [1070, 132], [540, 632], [1070, 632]].forEach(([x, y]) => { F.c(x, y, 14, { fill: C.sheet, fillStyle: 'solid' }); F.l(x - 5, y + 4, x + 5, y - 4, { strokeWidth: 1.5 }); });
+  [[600, 600, 680, 610], [960, 150, 1040, 140], [560, 300, 590, 330]].forEach(([a, b, c, d]) => F.l(a, b, c, d, { strokeWidth: 1, stroke: C.soft }));
+  dial(F, 668, 330, 118, { max: 105, ticks: TRI, labels: [0, 10, 28, 66, 105], red: 78 / 105, name: 'PATHWAYS', value: st.path, needle: st.hot ? C.red : C.ink, shake: st.hot });
+  dial(F, 942, 330, 118, { max: 10, ticks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], labels: [0, 5, 10], name: 'CAPACITY', value: st.cap });
+  F.t(668, 488, 'Coordination', { size: 15, anchor: 'middle' });
+  F.t(942, 488, 'Capacity', { size: 15, anchor: 'middle' });
+  F.r(590, 520, 430, 76, { fill: C.sheet, fillStyle: 'solid', strokeWidth: 3 });
+  F.t(805, 570, st.readout, { size: 30, weight: 700, anchor: 'middle', fill: st.hot ? C.red : C.ink, font: 'B612' });
+}
+
+board({
+  rank: 1,
+  title: 'Redline',
+  sub: 'Homepage idea ranked 1 of 15 · storyboard: what you see as you scroll', // label
+  frames: [
+    {
+      label: '1. First screen: the gauges at one person', // label
+      draw: (F) => panel(F, { path: 0, cap: 0.6, readout: '1 person · 0 pathways' }), // label
+      lines: [{ text: 'Every hire compounds complexity before it compounds capacity.', x: 40, y: 220, w: 450, size: 52 }],
+    },
+    {
+      label: '2. Scrolling: one hire per step. At 13 people the needle is in the red', // label
+      draw: (F) => panel(F, { path: 80, cap: 2.4, hot: true, readout: '13 people · 78 pathways' }), // label
+      lines: [{ text: 'Complexity > Capacity = Redline.', x: 40, y: 250, w: 450, size: 64, red: 'Redline.' }],
+    },
+    {
+      label: '3. The ask: the panel at rest, the readout waiting for your number', // label
+      draw: (F) => panel(F, { path: 0, cap: 0, readout: '__ people' }),
+      lines: [{ text: 'Capacity > Complexity = Oxygen.', x: 40, y: 140, w: 450, size: 44 }],
+      ask: { x: 40, y: 300, w: 460, q: 'How many people are on your team?', facts: true, book: true },
+    },
+  ],
+});
+</script>
+</body>
+</html>

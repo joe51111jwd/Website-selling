@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>14 The Letter: storyboard</title> <!-- // label -->
+<link rel="stylesheet" href="_kit-b2.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="_kit-b2.js"></script>
+<style>
+  .lt { position: absolute; left: 446px; width: 450px; font-family: OrticaL; font-size: 38px; line-height: 1.16; transform: rotate(-0.6deg); transform-origin: 0 0; }
+  .lt.b { font-family: OrticaLB; }
+  .lt.fade { opacity: .3; }
+  .field { display: inline-block; font: 400 19px/1 B612; color: #6d6c67; border: 2px solid var(--ink); background: #fff; padding: 17px 16px; width: 250px; }
+</style>
+</head>
+<body>
+<header class="hd">
+  <div class="rank">#14</div>
+  <div><h1>The Letter</h1><p class="gist">Homepage idea ranked 14 of 15 · storyboard: what you see as you scroll</p></div> <!-- // label -->
+</header>
+
+<section class="fr">
+  <h2>1. First screen: the top of his letter, and its first line</h2> <!-- // label -->
+  <div class="scr" id="s1"><div class="site">
+    <p class="lt" style="top:268px">You were never the problem. The model you inherited was.</p>
+  </div></div>
+</section>
+
+<section class="fr">
+  <h2>2. Scrolling: down the sheet, one line per screen. Relief first, then the mechanism</h2> <!-- // label -->
+  <div class="scr" id="s2"><div class="site">
+    <p class="lt fade" style="top:96px">You were never the problem. The model you inherited was.</p>
+    <p class="lt b" style="top:300px">Every hire compounds complexity before it compounds capacity.</p>
+    <p class="lt" style="top:590px;opacity:.55">Up. Side. Down. Repeat.</p>
+  </div></div>
+</section>
+
+<section class="fr">
+  <h2>3. The ask: his signature, then the P.S. is the Bootloader, with the opt-in right under it</h2> <!-- // label -->
+  <div class="scr ask" id="s3"><div class="site">
+    <p class="lt fade" style="top:96px">Up. Side. Down. Repeat.</p>
+    <p class="lt" style="top:238px;font-size:24px">— Michael</p>
+    <p class="lt" style="top:300px;font-size:31px"><span>P.S.</span> <span>The book changed how you think. This SUSD Bootloader changes how you operate.</span></p>
+    <div style="position:absolute;left:446px;top:462px;display:flex;gap:12px;transform:rotate(-0.6deg)"><span class="field">you@company.com</span><span class="btn">Get it free</span></div>
+    <p class="sub" style="position:absolute;left:446px;top:556px">Pre-order the book</p>
+  </div></div>
+</section>
+
+<script>
+function sheet(p, top, bottom) {
+  p.rect(410, top + 12, 548, bottom - top, { stroke: 'none', fill: 'rgba(0,0,0,.22)', fillStyle: 'solid', roughness: 0.4 });
+  const g = p.g({ transform: 'rotate(-0.6 668 350)' });
+  g.rect(400, top, 548, bottom - top, { strokeWidth: 2, fill: C.chalk, fillStyle: 'solid', roughness: 0.5 });
+  return g;
+}
+
+window.DRAW = {
+  s1(p) {
+    const g = sheet(p, 118, 760);
+    g.text(674, 176, 'MICHAEL WENTZ', { 'font-family': 'Plimsoll', 'font-size': 20, 'text-anchor': 'middle' });
+    g.line(560, 194, 788, 194, { strokeWidth: 1.4, roughness: 0.3 });
+  },
+  s2(p) {
+    sheet(p, -30, 760);
+  },
+  s3(p) {
+    const g = sheet(p, -30, 640);
+    // his signature, in ink
+    g.curve([[452, 214], [470, 170], [482, 214], [492, 176], [506, 216], [520, 186], [536, 210], [552, 192], [580, 200], [620, 188], [660, 196]], { strokeWidth: 2.8, roughness: 0.9 });
+    g.line(450, 226, 640, 220, { strokeWidth: 1.8, roughness: 0.8 });
+  },
+};
+</script>
+</body>
+</html>

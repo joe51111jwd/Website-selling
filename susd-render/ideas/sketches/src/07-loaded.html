@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Loaded</title>
+<link rel="stylesheet" href="board.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="board.js"></script>
+</head>
+<body>
+<script>
+// Idea 7, Loaded (the Waterline, reworked): the ship's side, with the cause in view.
+// Each hire is a container lowered onto the deck; the ship sits deeper; the water climbs to the 12 load line.
+const LL = 450; // the load line, in hull units (before the hull sinks)
+
+function ship(F, st) {
+  F.g(`translate(0 ${st.dy})`, () => {
+    // containers on deck (kept clear of the title lockup)
+    st.boxes.forEach(([x, row], i) => F.r(x, 200 - 44 * (row + 1), 92, 44, { fill: ['#7d5a48', '#5d6b74', '#8a8a86'][i % 3], fillStyle: 'solid', strokeWidth: 2.2 }));
+    // rail
+    F.l(0, 182, 900, 197, { strokeWidth: 2 });
+    for (let x = 20; x < 900; x += 46) F.l(x, 182 + x * 0.0167, x, 200 + x * 0.0167, { strokeWidth: 1.6 });
+    // the hull, curving away to the bow on the right
+    F.poly([[-10, 200], [860, 214], [980, 240], [1060, 282], [1130, 332], [1130, 900], [-10, 900]], { fill: '#3a3b39', fillStyle: 'solid', strokeWidth: 3 });
+    [170, 350, 530, 710].forEach((x) => F.l(x, 206, x, 900, { stroke: '#555652', strokeWidth: 2, roughness: 0.6 }));
+    F.l(0, 420, 900, 432, { stroke: '#555652', strokeWidth: 2, roughness: 0.6 });
+    // draught marks and the 12 load line
+    [[12, LL], [10, LL + 50], [8, LL + 100], [6, LL + 150]].forEach(([n, y]) => F.t(990, y + 8, String(n), { size: 24, weight: 700, fill: C.chalk, anchor: 'middle' }));
+    F.c(880, LL, 56, { stroke: C.chalk, strokeWidth: 3 });
+    F.l(820, LL, 950, LL, { stroke: C.red, strokeWidth: 6 });
+    if (st.plate) {
+      F.r(760, 252, 190, 120, { fill: '#5a5b58', fillStyle: 'solid', stroke: C.chalk, strokeWidth: 2.4 });
+      [[770, 262], [940, 262], [770, 362], [940, 362]].forEach(([x, y]) => F.c(x, y, 6, { stroke: C.chalk, strokeWidth: 1.4 }));
+      F.t(855, 306, 'SUSD', { size: 34, font: 'Plimsoll', fill: C.chalk, anchor: 'middle' });
+      F.t(855, 346, 'BOOTLOADER', { size: 22, font: 'Plimsoll', fill: C.chalk, anchor: 'middle' });
+    }
+  });
+  // the crane lowering the next container
+  if (st.lower) {
+    F.l(st.lower, 30, st.lower, 120, { strokeWidth: 2.4 });
+    F.l(st.lower - 50, 120, st.lower + 50, 120, { strokeWidth: 4 });
+    F.r(st.lower - 46, 128, 92, 44, { fill: '#7d5a48', fillStyle: 'solid', strokeWidth: 2.2 });
+    F.arrow(st.lower + 70, 120, st.lower + 70, 175, { strokeWidth: 2.4, head: 12 });
+  }
+  // the water
+  const W = st.water;
+  let d = `M-10 ${W}`;
+  for (let x = -10; x <= 1130; x += 40) d += ` Q${x + 20} ${W - 7} ${x + 40} ${W}`;
+  F.flat(d + ' V700 H-10 Z', '#8d9497', 0.93);
+  F.lin(Array.from({ length: 58 }, (_, i) => [-10 + i * 20, W + (i % 2 ? -4 : 3)]), { stroke: C.chalk, strokeWidth: 2.2, roughness: 0.5 });
+  for (let y = W + 30; y < 700; y += 26) F.l(40 + (y % 90), y, 300 + (y % 90), y, { stroke: '#6f7679', strokeWidth: 1.6 }), F.l(560 + (y % 70), y, 900 + (y % 70), y, { stroke: '#6f7679', strokeWidth: 1.6 });
+  if (st.dy + LL > W) F.l(820, st.dy + LL, 950, st.dy + LL, { stroke: C.red, strokeWidth: 5, roughness: 0.6 }); // the load line, seen under water
+  if (st.count) {
+    F.r(st.countX, W - 64, 300, 46, { fill: st.hot ? C.red : C.ink, fillStyle: 'solid', strokeWidth: 2 });
+    F.t(st.countX + 150, W - 33, st.count, { size: 22, weight: 700, fill: C.chalk, anchor: 'middle' });
+  }
+}
+
+board({
+  rank: 7,
+  title: 'Loaded (the Waterline, reworked)', // label
+  sub: 'Homepage idea ranked 7 of 15 · storyboard: what you see as you scroll', // label
+  frames: [
+    {
+      label: '1. First screen: a ship, lightly loaded, riding high', // label
+      draw: (F) => ship(F, { dy: 0, water: 600, boxes: [[600, 0], [700, 0]], count: '3 people · 3 pathways', countX: 40 }), // label
+      lines: [{ text: 'Every hire compounds complexity before it compounds capacity.', x: 50, y: 250, w: 700, size: 46, color: C.chalk }],
+    },
+    {
+      label: '2. Scrolling: one container per hire. At 13 people the water is over the 12 line', // label
+      draw: (F) => ship(F, {
+        dy: 140, water: 560, lower: 470, hot: true, count: '13 people · 78 pathways', countX: 40, // label
+        boxes: [[380, 0], [480, 0], [580, 0], [680, 0], [780, 0], [580, 1], [680, 1], [780, 1], [680, 2], [780, 2], [780, 3]],
+      }),
+      lines: [{ text: "12 isn't a goal. It's a protective limit.", x: 50, y: 375, w: 720, size: 50, color: C.chalk }],
+    },
+    {
+      label: '3. The ask: unloaded, the ship rides high; the Bootloader is the newest plate', // label
+      draw: (F) => ship(F, { dy: -20, water: 640, boxes: [[640, 0], [740, 0], [740, 1]], plate: true }),
+      lines: [{ text: 'The book changed how you think. This SUSD Bootloader changes how you operate.', x: 50, y: 222, w: 660, size: 38, color: C.chalk }],
+      ask: { x: 50, y: 420, w: 680, dark: true, email: 'you@company.com', facts: true }, // label
+    },
+  ],
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>4 Only Height: storyboard</title> <!-- // label -->
+<link rel="stylesheet" href="_kit-b2.css">
+<script src="../node_modules/roughjs/bundled/rough.js"></script>
+<script src="_kit-b2.js"></script>
+</head>
+<body>
+<header class="hd">
+  <div class="rank">#4</div>
+  <div><h1>Only Height</h1><p class="gist">Homepage idea ranked 4 of 15 · storyboard: what you see as you scroll</p></div> <!-- // label -->
+</header>
+
+<section class="fr">
+  <h2>1. First screen: his line, a small tower, 6 lit windows</h2> <!-- // label -->
+  <div class="scr dark" id="s1"><div class="site">
+    <p class="line" style="left:44px;top:128px;width:680px;font-size:50px">You can't build a building with only height. You need all three dimensions or it topples.</p>
+    <div class="read amber" style="right:44px;top:120px"><div><b>4</b><span>people</span></div><div><b>6</b><span>pathways</span></div></div>
+  </div></div>
+</section>
+
+<section class="fr">
+  <h2>2. Scrolling: at 13 people the facade blazes and the tower leans under its load</h2> <!-- // label -->
+  <div class="scr dark" id="s2"><div class="site">
+    <p class="line" style="left:44px;top:128px;width:620px;font-size:56px">Past twelve, something breaks.</p>
+    <div class="read amber" style="right:44px;top:120px"><div><b>13</b><span>people</span></div><div><b>78</b><span>pathways</span></div></div>
+  </div></div>
+</section>
+
+<section class="fr">
+  <h2>3. The ask: rebuilt wide, with a core. Its dark front door is the button, and it lights up</h2> <!-- // label -->
+  <div class="scr dark ask" id="s3"><div class="site">
+    <p class="q" style="left:44px;top:128px;width:1040px;font-size:48px">How many people are on your team?</p>
+    <span class="btn amber" style="position:absolute;left:560px;top:578px;transform:translateX(-50%)">Get it free</span>
+  </div></div>
+</section>
+
+<script>
+const G = 650;
+function ground(p) {
+  p.line(14, G, 1106, G, { strokeWidth: 3 });
+  // a few low neighbours, faint
+  const q = p.g({ opacity: 0.35 });
+  q.rect(90, 590, 120, 60, { strokeWidth: 1.6 }); q.rect(230, 610, 80, 40, { strokeWidth: 1.6 });
+  q.rect(960, 600, 110, 50, { strokeWidth: 1.6 });
+}
+// a block of floors; lit(f, c) says which windows are on
+function block(p, x, yBase, floors, cols, lit, fh) {
+  fh = fh || 30;
+  const w = cols * 22 + 10;
+  p.rect(x, yBase - floors * fh, w, floors * fh, { strokeWidth: 2.6, fill: '#3a3a3d', fillStyle: 'solid' });
+  for (let f = 0; f < floors; f++) {
+    for (let c = 0; c < cols; c++) {
+      const wx = x + 10 + c * 22, wy = yBase - (f + 1) * fh + 8;
+      if (lit(f, c)) p.rect(wx, wy, 13, fh - 14, { stroke: C.amber, strokeWidth: 1, fill: C.amber, fillStyle: 'solid', roughness: 0.5 });
+      else p.rect(wx, wy, 13, fh - 14, { strokeWidth: 1, roughness: 0.5, stroke: 'rgba(243,242,236,.45)' });
+    }
+  }
+  return w;
+}
+
+window.DRAW = {
+  s1(p) {
+    ground(p);
+    const litSet = new Set(['0,0', '0,2', '1,1', '1,3', '2,0', '3,2']);
+    block(p, 800, G, 4, 4, (f, c) => litSet.has(f + ',' + c));
+    p.line(838, G - 120, 838, G - 150, { strokeWidth: 2 });
+  },
+  s2(p) {
+    ground(p);
+    const t = p.g({ transform: 'rotate(5 858 650)' });
+    // glow around the facade
+    for (let i = 0; i < 22; i++) {
+      const y = 280 + i * 17, side = i % 2 ? -1 : 1;
+      const x0 = side > 0 ? 868 : 750;
+      t.line(x0, y, x0 + side * (18 + (i * 7) % 22), y - 4, { stroke: C.amber, strokeWidth: 2, roughness: 1.3 });
+    }
+    block(t, 760, G, 13, 4, () => true);
+    t.line(798, 260, 798, 228, { strokeWidth: 2 });
+    // cracks at the foot, strain lines
+    p.lines([[742, 650], [730, 662], [738, 672], [724, 690]], { strokeWidth: 2.2 });
+    p.lines([[876, 650], [890, 664], [884, 676]], { strokeWidth: 2.2 });
+    p.curve([[900, 240], [928, 270], [934, 310]], { strokeWidth: 2.4 });
+    p.curve([[916, 226], [950, 262], [958, 306]], { strokeWidth: 2.4 });
+  },
+  s3(p) {
+    ground(p);
+    // wide base, setback, and a core: three dimensions
+    const R = rng(4);
+    const on = () => R() < 0.42;
+    block(p, 250, G, 4, 28, (f, c) => f > 0 && on(), 32);
+    block(p, 400, G - 128, 3, 14, on, 30);
+    // core
+    p.rect(548, 330, 64, 190, { stroke: 'none', fill: '#3a3a3d', fillStyle: 'solid' });
+    p.rect(548, 330, 64, 190, { strokeWidth: 2.6, fill: C.chalk, fillStyle: 'hachure', hachureGap: 9, fillWeight: 1 });
+    p.line(580, 330, 580, 300, { strokeWidth: 2 });
+    // depth: side face of the base in perspective
+    p.lines([[876, G - 128], [930, G - 158], [930, G - 22], [876, G]], { strokeWidth: 2.4 });
+    p.lines([[718, 432], [750, 414], [750, 504], [718, 522]], { strokeWidth: 2.2 });
+    // the front door: dark until the end
+    p.rect(424, 566, 272, 84, { strokeWidth: 2.6, fill: '#1c1c1e', fillStyle: 'solid' });
+    // light spilling from the door onto the ground
+    p.poly([[452, G], [668, G], [760, 696], [360, 696]], { stroke: 'none', fill: C.amber, fillStyle: 'hachure', hachureGap: 6, hachureAngle: 0, fillWeight: 1.6 });
+  },
+};
+</script>
+</body>
+</html>

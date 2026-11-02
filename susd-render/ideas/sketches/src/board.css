@@ -1,0 +1,52 @@
+/* Shared storyboard board: same board colour, frame size and type for every idea. */
+@font-face { font-family: "Plimsoll"; src: url("../../../mock/fonts/Plimsoll-Heavy.woff2") format("woff2"); font-weight: 800; font-display: block; }
+@font-face { font-family: "Ortica Angular"; src: url("../../../mock/fonts/Ortica-AngularBold-latin.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "Ortica Linear"; src: url("../../../mock/fonts/Ortica-LinearRegular-latin.woff2") format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Ortica Linear"; src: url("../../../mock/fonts/Ortica-LinearBold-latin.woff2") format("woff2"); font-weight: 700; font-display: block; }
+@font-face { font-family: "B612"; src: url("../../../mock/fonts/B612-Regular-latin.woff2") format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "B612"; src: url("../../../mock/fonts/B612-Bold-latin.woff2") format("woff2"); font-weight: 700; font-display: block; }
+
+:root {
+  --board: #80817c;   /* the mid-grey board */
+  --screen: #bebfba;  /* each frame: a desktop screen, sketched on lighter grey */
+  --ink: #161616;
+  --red: #c42a1d;
+  --chalk: #f2f2ef;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--board); }
+body { width: 1200px; padding: 34px 40px 44px; font-family: "B612", sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+header { display: flex; align-items: flex-end; gap: 20px; padding-bottom: 22px; border-bottom: 3px solid var(--ink); }
+header .rank { font: 700 84px/0.86 "B612"; }
+header h1 { font: 700 54px/1 "B612"; }
+header .sub { font: 400 22px/1.25 "B612"; margin-top: 8px; }
+
+.frame-wrap { margin-top: 30px; }
+.frame-label { font: 700 32px/1.15 "B612"; margin-bottom: 12px; }
+.frame { position: relative; width: 1120px; height: 700px; background: var(--screen); overflow: hidden; }
+.frame > svg { position: absolute; left: 0; top: 0; }
+
+/* the site layer: crisp type over the sketch, as on the real page */
+.lockup { position: absolute; left: 34px; top: 50px; }
+.lockup .t { font-family: "Plimsoll"; font-weight: 800; font-size: 27px; line-height: 1; text-transform: uppercase; letter-spacing: 0.01em; }
+.lockup .by { font: 400 16px/1 "B612"; margin-top: 7px; }
+.nav { position: absolute; right: 30px; top: 48px; font: 700 17px/1 "B612"; background: var(--ink); color: var(--chalk); padding: 13px 20px; border-radius: 3px; }
+.on-dark { color: var(--chalk); }
+.nav.on-dark { background: var(--chalk); color: var(--ink); }
+
+.line { position: absolute; font-family: "Ortica Angular"; font-weight: 700; line-height: 1.08; text-wrap: balance; }
+.line.linear { font-family: "Ortica Linear"; font-weight: 700; line-height: 1.2; }
+.line.body { font-family: "Ortica Linear"; font-weight: 400; line-height: 1.32; text-wrap: pretty; }
+.line .red { color: var(--red); }
+.line .obj { display: inline-block; vertical-align: -0.12em; margin: 0 0.12em; }
+
+.ask { position: absolute; }
+.ask .q { font: 700 34px/1.15 "Ortica Linear"; text-wrap: balance; }
+.ask .row { display: flex; align-items: center; gap: 16px; margin-top: 18px; flex-wrap: wrap; }
+.ask .btn { font: 700 24px/1 "B612"; background: var(--ink); color: var(--chalk); padding: 18px 28px; border-radius: 4px; white-space: nowrap; }
+.ask .email { font: 400 19px/1 "B612"; background: var(--chalk); color: #5a5a58; padding: 18px 18px; border: 2px solid var(--ink); border-radius: 4px; width: 250px; }
+.ask .facts { font: 400 16px/1.35 "B612"; margin-top: 12px; }
+.ask .book { font: 400 17px/1 "B612"; margin-top: 12px; text-decoration: underline; text-underline-offset: 4px; }
+.ask.on-dark .btn { background: var(--chalk); color: var(--ink); }
+.ask.on-dark .email { background: #2b2c2a; color: #b8b8b4; border-color: var(--chalk); }
