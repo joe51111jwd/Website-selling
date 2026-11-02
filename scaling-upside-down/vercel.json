@@ -121,7 +121,11 @@
   "rewrites": [
     {
       "source": "/focus",
-      "destination": "/index.html"
+      "destination": "/"
+    },
+    {
+      "source": "/focus/",
+      "destination": "/"
     }
   ]
 }
