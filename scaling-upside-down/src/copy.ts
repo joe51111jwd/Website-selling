@@ -196,12 +196,12 @@ export const COPY: SiteCopy = {
 
 // The focus version's lines (/focus): one beside the still picture at a time. The film's planks carry
 // L1993 ("Always launching. Always hiring. Always adding."), so the words start where the blocks stop.
-export type FocusLine = { kicker?: string; tone: "up" | "side" | "down" | "ink"; headline: string; detail?: string };
+export type FocusLine = { kicker?: string; tone: "up" | "side" | "down" | "ink"; headline: string; detail?: string; big?: boolean };
 export const FOCUS_COPY: Record<string, FocusLine> = {
   grow: { kicker: "Our best quarter ever", tone: "up", headline: "But inside, nothing ever settled." }, // L464, L1995
   redline: { kicker: "Twelve to forty people", tone: "down", headline: "Revenue was growing—sometimes faster than ever—but the bank account didn't feel it." }, // L1070
-  isnt: { tone: "down", headline: "That isn't scaling." }, // the back cover
-  upside: { tone: "down", headline: "That's scaling upside down." }, // the back cover
+  isnt: { tone: "down", headline: "That isn't scaling.", big: true }, // the back cover
+  upside: { tone: "down", headline: "That's scaling upside down.", big: true }, // the back cover
   side: { kicker: "Scaling Sideways", tone: "side", headline: "Sideways for stabilization." }, // L1716, L3316
   down: { kicker: "Scaling Down", tone: "down", headline: "Down for pruning." }, // L1717, L3317
   up: { kicker: "Scaling Up", tone: "up", headline: "Up for growth." }, // L1715, L3315

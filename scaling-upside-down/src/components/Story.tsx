@@ -38,7 +38,7 @@ function FocusLineView({ id, at, progress, refEl }: { id: string; at: [number, n
   const visibility = useTransform(opacity, shown);
   return (
     <div className="fl" ref={refEl}>
-      <m.article className={`fl-in tone-${line.tone}`} style={{ opacity, y, visibility }}>
+      <m.article className={`fl-in tone-${line.tone}${line.big ? " is-big" : ""}`} style={{ opacity, y, visibility }}>
         {line.kicker && (
           <p className="beat-k">
             <i />
@@ -191,12 +191,87 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       // (a cropped frame on a landscape screen keeps the stack right of the words too; phones centre it)
       const anchor = cw >= ch ? 0.6 : 0.5;
       const ox = FOCUS ? cw / 2 - focusAt(frame) * dw : dw > cw ? Math.min(0, Math.max(cw - dw, cw * anchor - focusAt(frame) * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - focusAt(frame) * dw));
+      if (FOCUS && cw < ch) {
+        // an upright screen (focus): the wall continues above the picture and the floor below it, in the
+        // colours of the frame's own edge rows with any block in them left out, and the picture fades
+        // into them, so a block cut by the edge never smears into stripes
+        const across = (c: CanvasRenderingContext2D, stops: string[]) => {
+          const g = c.createLinearGradient(ox, 0, ox + dw, 0);
+          stops.forEach((st, k) => g.addColorStop(k / (stops.length - 1), st));
+          return g;
+        };
+        const top = edgeRow(bmp, 0);
+        const bot = edgeRow(bmp, bmp.height - 2);
+        ctx.fillStyle = across(ctx, top);
+        ctx.fillRect(0, 0, cw, oy + 1);
+        ctx.fillStyle = across(ctx, bot);
+        ctx.fillRect(0, oy + dh - 1, cw, ch - oy - dh + 1);
+        ctx.drawImage(bmp, ox, oy, dw, dh);
+        const fade = Math.round(dh * 0.06);
+        for (const [stops, y, down] of [[top, oy, false], [bot, oy + dh - fade, true]] as const) {
+          if (edge.width !== cw || edge.height !== fade) {
+            edge.width = cw;
+            edge.height = fade;
+          }
+          ectx.globalCompositeOperation = "source-over";
+          ectx.fillStyle = across(ectx, [...stops]);
+          ectx.fillRect(0, 0, cw, fade);
+          const m = ectx.createLinearGradient(0, 0, 0, fade);
+          m.addColorStop(0, down ? "rgba(0,0,0,0)" : "#000");
+          m.addColorStop(1, down ? "#000" : "rgba(0,0,0,0)");
+          ectx.globalCompositeOperation = "destination-in";
+          ectx.fillStyle = m;
+          ectx.fillRect(0, 0, cw, fade);
+          ctx.drawImage(edge, 0, y);
+        }
+        fit = { w: dw, h: dh, ox, oy, dpr: scale };
+        return;
+      }
       ctx.drawImage(bmp, ox, oy, dw, dh);
       if (oy > 0) ctx.drawImage(bmp, 0, 0, bmp.width, 2, ox, 0, dw, oy + 1);
       if (oy + dh < ch) ctx.drawImage(bmp, 0, bmp.height - 2, bmp.width, 2, ox, oy + dh - 1, dw, ch - oy - dh + 1);
       if (ox > 0) ctx.drawImage(bmp, 0, 0, 2, bmp.height, 0, oy, ox + 1, dh);
       if (ox + dw < cw) ctx.drawImage(bmp, bmp.width - 2, 0, 2, bmp.height, ox + dw - 1, oy, cw - ox - dw + 1, dh);
       fit = { w: dw, h: dh, ox, oy, dpr: scale };
+    };
+
+    // focus, an upright screen: a frame's edge row (y) in 24 colours across, the blocks in it left out
+    // (strong colour or dark) and filled from the wall or floor beside them; cached per frame
+    const N = 24;
+    const probe = document.createElement("canvas");
+    probe.width = N;
+    probe.height = 1;
+    const pctx = probe.getContext("2d", { willReadFrequently: true })!;
+    const edge = document.createElement("canvas"); // the soft seam between the picture and what continues it
+    const ectx = edge.getContext("2d")!;
+    const rows = new WeakMap<ImageBitmap, Record<number, string[]>>();
+    const edgeRow = (bmp: ImageBitmap, y: number) => {
+      const seen = rows.get(bmp) ?? {};
+      if (seen[y]) return seen[y];
+      pctx.clearRect(0, 0, N, 1);
+      pctx.drawImage(bmp, 0, y, bmp.width, 2, 0, 0, N, 1);
+      const d = pctx.getImageData(0, 0, N, 1).data;
+      const px = Array.from({ length: N }, (_, k) => [d[k * 4], d[k * 4 + 1], d[k * 4 + 2]]);
+      const ok = px.map(([r, g, b]) => {
+        const hi = Math.max(r, g, b);
+        return hi > 120 && (hi - Math.min(r, g, b)) / hi < 0.22;
+      });
+      const out = px.map((c, k) => {
+        if (ok[k]) return c;
+        let l = k;
+        let r = k;
+        while (l >= 0 && !ok[l]) l--;
+        while (r < N && !ok[r]) r++;
+        if (l < 0 && r >= N) return [241, 234, 223]; // nothing but blocks: the page's paper
+        if (l < 0) return px[r];
+        if (r >= N) return px[l];
+        const t = (k - l) / (r - l);
+        return px[l].map((v, i) => v + (px[r][i] - v) * t);
+      });
+      const res = out.map(([r, g, b]) => `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`);
+      seen[y] = res;
+      rows.set(bmp, seen);
+      return res;
     };
 
     // an upright phone: the stack's top (about 15% down the picture) stays 12px under the hero's button
