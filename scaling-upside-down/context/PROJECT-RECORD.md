@@ -348,6 +348,10 @@ section.
 | Tue 27 Oct, 1:06 pm        | Michael’s feedback, mockup and video                                                                                                                                                   | Opt-in, /appendix, file wording; 43-point review, all fixed; reply drafted |
 | 3:09 and 3:27 pm           | Recommitted? Repushed on Vercel?                                                                                                                                                       | Deployed and checked live (5:19 pm)                                        |
 | Thu 29 Oct, 3:08 pm        | Asked for this record                                                                                                                                                                  | This document                                                              |
+| Sat 31 Oct, 7:41–7:54 pm   | Michael’s 30 Oct email, word for word; “Implement everything and give me the link”                                                                                                    | The book-first release (Sat 31 Oct, evening)                               |
+| 9:18 pm                    | A version with one thing on screen at a time, on a separate link                                                                                                                       | The first /focus (Mon 2 Nov)                                               |
+| Sun 1 Nov, 10:19 pm        | No full-screen text between the blocks; rethink the blocks and the animations                                                                                                          | Storyboard, then the focus film (Tue 3 Nov)                                |
+| Tue 3 Nov, 12:17–12:23 pm  | The link to the updated focus version; it must look put together                                                                                                                      | The focus film at /focus                                                   |
 
 ## Releases
 
@@ -888,3 +892,47 @@ time. Screenshots and files he attached are noted in brackets.
 **49. Tue 27 Oct, 3:27 PM ET**
 
 > Yo, did you repush on vercel
+
+**50. Thu 29 Oct, 3:08 PM ET**
+
+> yo, give me a doc with everything you have done non code wise, all of our chats, what michael said etc
+
+**51. Thu 29 Oct, 3:15 PM ET**
+
+> bro, i need it now
+
+**52. Thu 29 Oct, 3:16 PM ET**
+
+> stop the workflow and take what you have now
+
+**53. Thu 29 Oct, 3:18 PM ET**
+
+> i need it to be a downloadble doc. make sure you have all of his messsages. thats what i really care about
+
+**54. Sat 31 Oct, 7:41 PM ET**
+
+> Here's Michael's email word for word (Oct 30, 5:27 PM ET):
+>
+> \[Michael’s second email, quoted whole under “Michael’s messages”, section 3, and in `client-log.md`\]
+
+**55. Sat 31 Oct, 7:54 PM ET**
+
+> Implement everything and give me the link
+
+**56. Sat 31 Oct, 9:18 PM ET**
+
+> Well, here’s my issue that we have now right now you have two main focuses on the screen you’re the words and then you have the blocks and I think it’s difficult because then you have to scroll the one position stop. It’d be ideal if all of the information wasn’t only one point at a time and making that like the main flow so that everyone can understand and see everything well only looking at one thing at a time is the most important thing that we need to optimize for so I want you to make a version of this site where you try and do that however, you need to
+
+Asked what came after “you need to”, he answered “Nothing more, just go”, and chose a separate link.
+
+**57. Sun 1 Nov, 10:19 PM ET**
+
+> I kind of have a feeling you're going to do that. We're just going to put the text in between, covering the whole screen. I don't want that. Rethink how the blocks work. Rethink all the animations, rethink everything to make the focus version better.
+
+**58. Tue 3 Nov, 12:17 PM ET**
+
+> can i see the vercel link
+
+**59. Tue 3 Nov, 12:23 PM ET**
+
+> which is the one with the updated one focus and it dosent look not put to gether

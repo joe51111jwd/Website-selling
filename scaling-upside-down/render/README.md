@@ -53,3 +53,31 @@ team back on, on the systems, and the building keeps rising past where the rush 
 
 The physics is deterministic, so the same scripts give the same fall every time. On a 4-core
 CPU the story takes about 30 seconds a frame at these settings.
+
+## The focus version's film (`/focus`)
+
+The focus version plays its own film, made from `story.py` with the blocks carrying the words: the
+first three blocks on the stack are planks stamped ALWAYS LAUNCHING / ALWAYS HIRING / ALWAYS ADDING
+(`make_focus_labels.py` draws their labels); after the fall the cover's stack turns upside down,
+holds, and is set right; the systems slide in from the sides; the planks leave with the dead weight;
+the building rises. It opens with the same 89 pictures as the home page.
+
+| File | What it does |
+| --- | --- |
+| `focus_board.py` | The storyboard: seven key moments as stills (how the film was agreed) |
+| `focus_film.py` | The film (frames 28-332 are used), camera and render settings; saves `focus.blend` |
+| `render_focus.sh` | Renders `focus.blend` into `out/fseq`; a stopped run picks up where it left off |
+| `focus_anchors.py` | Where the subject sits in each frame, and the outline of each held moment, for the page's lines (`src/focusfilm.json`) |
+
+1. `python3 make_focus_labels.py` (the planks' labels, into `tex/`)
+2. `blender -b -P focus_film.py -- --w 1440 --h 900 --samples 14 --blend focus.blend --out out/ftest/t`
+   (add `--frames 55,106,147,163,223,245,332` and `--w 640 --h 400 --samples 8` for a quick look at the holds)
+3. `W=1440 H=900 S=14 BLENDER=blender ./render_focus.sh` (about 26 seconds a frame on 4 cores; delete any
+   empty PNG a stopped run left before running it again)
+4. `blender -b focus.blend -P focus_anchors.py -- ../src/focusfilm.json`
+5. From the project root, the opening's pictures copied byte for byte in front of the film:
+   `python3 scripts/pack_frames.py render/out/fseq-site public/frames-focus/hi --width 1600 --quality 78 --per 25 --lead public/frames/hi:89`
+   `python3 scripts/pack_frames.py render/out/fseq-site public/frames-focus/lo --width 480 --quality 60 --per 50 --lead public/frames/lo:89`
+   where `render/out/fseq-site` holds the film's frames 28-332 (`f0028.png`…`f0332.png`).
+
+If the film's timing changes, re-run step 4 and keep `FOCUS_FILM_KEYS` and `FOCUS_LINES` in `src/story.ts` in step.

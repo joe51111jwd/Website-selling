@@ -6,7 +6,7 @@ what it means for the work and its status (Open, Done or Waiting).
 
 **Every chat adds to this file.** Michael's emails and texts, call notes, Looms, and James's
 messages and screenshots all get logged here, in the same commit as the work they cause.
-James's full chat history up to Oct 29 (49 messages, word for word) is in `PROJECT-RECORD.md`,
+James's full chat history (59 messages to Nov 3, word for word) is in `PROJECT-RECORD.md`,
 under "All of James's messages, word for word".
 
 ---
