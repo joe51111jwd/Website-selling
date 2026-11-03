@@ -365,7 +365,7 @@ issues; all were fixed before it shipped. Newest first, US Eastern.
 
 | When                     | What it added                                                          |
 |--------------------------|------------------------------------------------------------------------|
-| Tue 3 Nov                | The rethought focus version at /focus (James, Sun 1 Nov: no full-screen text, rethink the blocks): its own film (`render/focus_film.py`, 1600×1000) where the first three blocks are planks stamped ALWAYS LAUNCHING / HIRING / ADDING, the cover's stack turns upside down and is set right, the systems slide in from the sides, the planks leave with the dead weight and the building rises. The film holds while each short line sits beside the blocks it is about (under the picture on an upright phone); the closed loop and the book end the same way. Fixes from an independent review of the film and the page, including a collision check over every frame |
+| Tue 3 Nov                | The rethought focus version at /focus (James, Sun 1 Nov: no full-screen text, rethink the blocks): its own film (`render/focus_film.py`, 1600×1000) where the first three blocks are planks stamped ALWAYS LAUNCHING / HIRING / ADDING, the cover's stack turns upside down and is set right, the systems slide in from the sides, the planks leave with the dead weight and the building rises. The film holds while each short line sits beside the blocks it is about (under the picture on an upright phone); the closed loop and the book end the same way. Fixes from two independent reviews of the film and the page, including a collision check over every frame. On desktop windows wider than the picture it fills the width wherever the blocks allow (eased, never a jump), and the wall and floor round the picture are painted in its own colours. One fix also reaches the home page: on a phone on its side (844×390) the sign-up keeps its headline and offer |
 | Mon 2 Nov                | The focus version at /focus (one thing on screen at a time), next to the live home page; fixes from the round-3 review (the footer's styles back, the hero on wide, square and short screens, the sign-up's wording and states, an unconfirmed address asked to confirm again, llms.txt book-first) |
 | Sat 31 Oct, evening      | The book first (his 30 Oct notes): the real hardcover in the hero, the problem first, the cycle named once, one sign-up for the first-edition list, the file by email only. Live in production now |
 | Tue 27 Oct, 5:19 pm      | Fixes from the 43-point review                                         |
@@ -495,6 +495,10 @@ issues; all were fixed before it shipped. Newest first, US Eastern.
 **James**
 
 - Compare the live home page with the focus version (/focus) and pick one.
+- Home page only (left as it is, since the home page was not to change): on the smallest phones held
+  sideways (about 750×342, an iPhone on its side) the book's card at the very end runs under the menu
+  and its button is cut at the foot. The focus version is fixed. Say if the home page should get the
+  same fix.
 - Make the GitHub repo private: it is public, so the Bootloader file and this client record can be
   read there by anyone.
 

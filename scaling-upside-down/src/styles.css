@@ -742,7 +742,7 @@ html.is-focus[data-clbook] .nav-cta .copy { opacity: 0; visibility: hidden; poin
 .is-focus .cl-stage[data-mode="focus"] .cl-beat.cl-book { top: var(--cl-book, 55vh); width: min(560px, calc(100vw - 40px)); display: flex; flex-direction: column; align-items: center; }
 .is-focus .cl-stage[data-mode="focus"] .cl-book .beat-h { font-size: clamp(30px, 3vw, 46px); }
 .is-focus .cl-stage[data-mode="focus"] .cl-book .beat-b { display: block; margin: 12px auto 0; max-width: 46ch; }
-.is-focus .cl-stage[data-mode="focus"] .cl-book .beat-q { display: none; }
+.is-focus .cl-stage:is([data-mode="focus"], [data-mode="land"]) .cl-book .beat-q { display: none; } /* (also on a short screen on its side, so the card clears the menu) */
 .is-focus .cl-stage[data-mode="focus"] .cl-book-cta { justify-content: center; }
 @media (max-width: 900px) {
   .is-focus .cl-stage[data-mode="focus"] .cl-book .beat-h { font-size: 28px; }

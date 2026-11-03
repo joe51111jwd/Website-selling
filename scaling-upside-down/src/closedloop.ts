@@ -243,8 +243,11 @@ export function blockFit(mode: Mode, colW: number, room: number, rest: number, c
     gapb = mode === "land" || ch <= 620 ? 12 : ch <= 760 ? 16 : 22;
     const max = Math.min(460, colW / LIFT);
     W = Math.min(max, (room - rest - gapb) / cb.bodyAR);
-    if (W < floor * max) {
-      W = floor * max;
+    // on a phone on its side the least size is the same whatever the column's width (a wider phone never
+    // shows less than a narrower one)
+    const least = floor * (mode === "land" ? Math.min(max, 260) : max);
+    if (W < least) {
+      W = least;
       short = true; // a very short screen: the block keeps its size, the headline steps aside
     }
   }

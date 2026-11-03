@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react
 import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { FrameStore, fetchOk } from "../frames";
-import { CALLOUTS, FOCUS_HERO, FOCUS_LINES, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, focusBox, focusHold, focusSpan, frameAt, portraitFit, progressAt, setHeroCap, sp, yearAt, type FocusSide } from "../story";
+import { CALLOUTS, FOCUS_HERO, FOCUS_LINES, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, FOCUS_SPANS, focusAt, focusBox, focusHold, focusIndex, focusSpan, frameAt, portraitFit, progressAt, setHeroCap, sp, yearAt, type FocusSide } from "../story";
 import { FOCUS } from "../focus";
 import { FOCUS_COPY, type Beat, type SiteCopy } from "../copy";
 import { JoinLink } from "./JoinLink";
@@ -155,6 +155,24 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
      *  the band its words go in. On a screen wider than the picture it is enlarged to the full width
      *  wherever its subject still fits between the menu and the screen's foot, so a block crossing the
      *  picture's edge is cut by the screen's edge, as by a camera, not faded into the wall */
+    // focus, a screen wider than the picture: the zoom each film frame may take (its subject between the
+    // menu and the foot), then limited to 1.5% a frame either way, so the picture never lurches as the
+    // subject shrinks or grows (it only ever zooms less than its subject allows); per screen size
+    let zoomKey = "";
+    let zooms: number[] = [];
+    const zoomsFor = (cw: number, ch: number, aspect: number) => {
+      const key = `${cw}x${ch}x${aspect.toFixed(4)}x${scale}`;
+      if (key === zoomKey) return zooms;
+      zoomKey = key;
+      const cover = cw / (ch * aspect);
+      const mt = Math.max(ch * 0.1, 64 * scale); // under the menu
+      const mb = ch * 0.06;
+      const z = FOCUS_SPANS.map(([t, b]) => Math.min(cover, Math.max(1, (ch - mt - mb) / (Math.max(0.01, b - t) * ch))));
+      for (let i = 1; i < z.length; i++) z[i] = Math.min(z[i], z[i - 1] * 1.015);
+      for (let i = z.length - 2; i >= 0; i--) z[i] = Math.min(z[i], z[i + 1] * 1.015);
+      zooms = z;
+      return z;
+    };
     const focusRect = (frame: number, cw: number, ch: number, aspect: number) => {
       let dh: number;
       let oy: number;
@@ -163,15 +181,14 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         dh = b.h * scale;
         oy = b.top * scale;
       } else {
-        const cover = cw / (ch * aspect);
-        const span = cover > 1 ? focusSpan(frame) : null;
+        const span = cw > ch * aspect ? focusSpan(frame) : null;
         dh = ch;
         oy = 0;
         if (span) {
           const [t, b] = span;
           const mt = Math.max(ch * 0.1, 64 * scale); // under the menu
           const mb = ch * 0.06;
-          const z = Math.min(cover, Math.max(1, (ch - mt - mb) / ((b - t) * ch)));
+          const z = zoomsFor(cw, ch, aspect)[focusIndex(frame)];
           if (z > 1) {
             dh = ch * z;
             const c = (t + b) / 2;
@@ -230,8 +247,10 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     };
 
     // focus: a frame's edge (its top or bottom row, or its first or last column) in 24 colours along it,
-    // the blocks in it left out (strong colour, dark, or a shaded face darker than the wall or floor
-    // round it) and filled from the wall or floor beside them; cached per frame
+    // the blocks in it left out (strong colour, dark, or a dip of more than 8% below the wall or floor on
+    // both sides of it, as a shaded face or a shadow is; a vignette, the horizon or a bright floor is no
+    // dip) and filled from the wall or floor beside them. `exact` is the edge itself, to meet the picture;
+    // `flat` is eased toward the edge's middle tone, for a band far from it (no long stripes). Cached per frame
     const N = 24;
     const probe = document.createElement("canvas");
     probe.width = N;
@@ -239,8 +258,9 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     const pctx = probe.getContext("2d", { willReadFrequently: true })!;
     const edge = document.createElement("canvas"); // the soft seam between the picture and what continues it
     const ectx = edge.getContext("2d")!;
-    const rows = new WeakMap<ImageBitmap, Record<string, string[]>>();
-    const edgeLine = (bmp: ImageBitmap, axis: "row" | "col", at: number) => {
+    type Edge = { exact: string[]; flat: string[] };
+    const rows = new WeakMap<ImageBitmap, Record<string, Edge>>();
+    const edgeLine = (bmp: ImageBitmap, axis: "row" | "col", at: number): Edge => {
       const id = `${axis}${at}`;
       const seen = rows.get(bmp) ?? {};
       if (seen[id]) return seen[id];
@@ -249,14 +269,22 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       else pctx.drawImage(bmp, at, 0, 2, bmp.height, 0, 0, 1, N);
       const d = pctx.getImageData(0, 0, axis === "row" ? N : 1, axis === "row" ? 1 : N).data;
       const px = Array.from({ length: N }, (_, k) => [d[k * 4], d[k * 4 + 1], d[k * 4 + 2]]);
-      const lum = ([r, g, b]: number[]) => 0.3 * r + 0.59 * g + 0.11 * b;
+      const L = px.map(([r, g, b]) => 0.3 * r + 0.59 * g + 0.11 * b);
       const plain = px.map(([r, g, b]) => {
         const hi = Math.max(r, g, b);
         return hi > 120 && (hi - Math.min(r, g, b)) / hi < 0.22;
       });
-      const ls = px.filter((_, k) => plain[k]).map(lum).sort((a, b) => a - b);
-      const mid = ls.length ? ls[ls.length >> 1] : 0;
-      const ok = px.map((c, k) => plain[k] && lum(c) >= 0.94 * mid);
+      const near = (from: number, to: number) => {
+        let m = -1;
+        for (let j = Math.max(0, from); j <= Math.min(N - 1, to); j++) if (plain[j]) m = Math.max(m, L[j]);
+        return m;
+      };
+      const ok = plain.map((p, k) => {
+        if (!p) return false;
+        const l = near(k - 5, k - 1);
+        const r = near(k + 1, k + 5);
+        return !(l > 0 && r > 0 && L[k] < 0.92 * Math.min(l, r));
+      });
       const out = px.map((c, k) => {
         if (ok[k]) return c;
         let l = k;
@@ -269,10 +297,10 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         const t = (k - l) / (r - l);
         return px[l].map((v, i) => v + (px[r][i] - v) * t);
       });
-      // eased toward the edge's middle tone, so what continues the picture reads as one wall or floor
       const okPx = out.filter((_, k) => ok[k]);
       const avg = okPx.length ? [0, 1, 2].map((i) => okPx.reduce((t, c) => t + c[i], 0) / okPx.length) : null;
-      const res = out.map((c) => (avg ? c.map((v, i) => v + (avg[i] - v) * 0.4) : c)).map(([r, g, b]) => `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`);
+      const css = (c: number[]) => `rgb(${Math.round(c[0])},${Math.round(c[1])},${Math.round(c[2])})`;
+      const res = { exact: out.map(css), flat: out.map((c) => css(avg ? c.map((v, i) => v + (avg[i] - v) * 0.4) : c)) };
       seen[id] = res;
       rows.set(bmp, seen);
       return res;
@@ -292,27 +320,9 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       const gapR = ox + dw < cw - 0.5;
       const top = gapT ? edgeLine(bmp, "row", 0) : null;
       const bot = gapB ? edgeLine(bmp, "row", bmp.height - 2) : null;
-      const left = gapL ? edgeLine(bmp, "col", 0) : null;
-      const right = gapR ? edgeLine(bmp, "col", bmp.width - 2) : null;
-      // the sides first (full height of the picture), then the top and bottom bands across the whole width
-      if (left) {
-        ctx.fillStyle = along(ctx, left, false);
-        ctx.fillRect(0, oy, Math.ceil(ox) + 1, dh);
-      }
-      if (right) {
-        ctx.fillStyle = along(ctx, right, false);
-        ctx.fillRect(Math.floor(ox + dw) - 1, oy, cw - Math.floor(ox + dw) + 1, dh);
-      }
-      if (top) {
-        ctx.fillStyle = along(ctx, top, true);
-        ctx.fillRect(0, 0, cw, Math.ceil(oy) + 1);
-      }
-      if (bot) {
-        ctx.fillStyle = along(ctx, bot, true);
-        ctx.fillRect(0, Math.floor(oy + dh) - 1, cw, ch - Math.floor(oy + dh) + 1);
-      }
-      ctx.drawImage(bmp, ox, oy, dw, dh);
-      // soft seams: the edge colours over the picture's outer strip, fading into it
+      const left = gapL ? edgeLine(bmp, "col", 0).exact : null;
+      const right = gapR ? edgeLine(bmp, "col", bmp.width - 2).exact : null;
+      // the edge colours over a strip, fading from opaque at the picture's edge to nothing (an offscreen canvas)
       const seam = (stops: string[], horiz: boolean, x: number, y: number, w: number, h: number, inward: "down" | "up" | "right" | "left") => {
         w = Math.max(1, Math.round(w));
         h = Math.max(1, Math.round(h));
@@ -334,13 +344,39 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         ectx.fillRect(0, 0, w, h);
         ctx.drawImage(edge, Math.round(x), Math.round(y));
       };
-      // each seam reaches a pixel past the picture's edge, so no sliver of the picture's own edge shows
+      // the sides (full height of the picture): the edge column itself, so the wall, the horizon and the floor
+      // run on at their own light
+      if (left) {
+        ctx.fillStyle = along(ctx, left, false);
+        ctx.fillRect(0, oy, Math.ceil(ox) + 1, dh);
+      }
+      if (right) {
+        ctx.fillStyle = along(ctx, right, false);
+        ctx.fillRect(Math.floor(ox + dw) - 1, oy, cw - Math.floor(ox + dw) + 1, dh);
+      }
+      // the top and bottom bands across the whole width: the eased edge, and the exact edge over the strip
+      // next to the picture, so the band meets the picture in its own colours and settles further away
+      const T = Math.max(48 * scale, dh * 0.12);
+      if (top) {
+        ctx.fillStyle = along(ctx, top.flat, true);
+        ctx.fillRect(0, 0, cw, Math.ceil(oy) + 1);
+        const h = Math.min(T, Math.ceil(oy) + 1);
+        seam(top.exact, true, 0, Math.ceil(oy) + 1 - h, cw, h, "up");
+      }
+      if (bot) {
+        ctx.fillStyle = along(ctx, bot.flat, true);
+        ctx.fillRect(0, Math.floor(oy + dh) - 1, cw, ch - Math.floor(oy + dh) + 1);
+        seam(bot.exact, true, 0, Math.floor(oy + dh) - 1, cw, Math.min(T, ch - Math.floor(oy + dh) + 1), "down");
+      }
+      ctx.drawImage(bmp, ox, oy, dw, dh);
+      // soft seams: the picture's outer strip fades into its own edge colours (a block cut by the frame's
+      // edge never ends in a hard line); each reaches a pixel past the edge, so no sliver of it shows
       const fy = dh * 0.08;
       const fx = dw * 0.05;
-      if (top) seam(top, true, 0, Math.floor(oy) - 1, cw, Math.ceil(fy) + 2, "down");
+      if (top) seam(top.exact, true, 0, Math.floor(oy) - 1, cw, Math.ceil(fy) + 2, "down");
       if (bot) {
         const y = Math.floor(oy + dh - fy);
-        seam(bot, true, 0, y, cw, Math.ceil(oy + dh) + 1 - y, "up");
+        seam(bot.exact, true, 0, y, cw, Math.ceil(oy + dh) + 1 - y, "up");
       }
       if (left) seam(left, false, Math.floor(ox) - 1, oy, Math.ceil(fx) + 2, dh, "right");
       if (right) {

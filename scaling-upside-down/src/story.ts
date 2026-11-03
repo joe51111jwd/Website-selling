@@ -185,10 +185,12 @@ export function focusAt(frame: number): number {
 
 /** focus: the subject's [top, bottom] in a film frame (0-1 down the picture; render/focus_anchors.py), or
  *  null in the opening */
+export const FOCUS_SPANS = film.y as [number, number][];
+/** focus: a film frame's place in FOCUS_SPANS (and film.x), or -1 in the opening */
+export const focusIndex = (frame: number) => (!FOCUS || frame < HERO_FRAME ? -1 : Math.max(0, Math.min(FOCUS_SPANS.length - 1, Math.round(frame - HERO_FRAME))));
 export function focusSpan(frame: number): [number, number] | null {
-  if (!FOCUS || frame < HERO_FRAME) return null;
-  const y = film.y;
-  return y[Math.max(0, Math.min(y.length - 1, Math.round(frame - HERO_FRAME)))] as [number, number];
+  const i = focusIndex(frame);
+  return i < 0 ? null : FOCUS_SPANS[i];
 }
 
 // on portrait screens: how big the render is, and where its bottom edge sits (fractions of the
