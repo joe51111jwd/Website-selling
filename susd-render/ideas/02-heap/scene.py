@@ -25,14 +25,21 @@ import lib_lookdev as L
 A = L.args(dict(state='first', camera='desktop', w=640, h=400, samples=12, out='out/ideas/02-heap/test.png',
                 seed=11, exposure=-0.15, sun=24.0, window=260.0, world=0.5, fstop=4.0, label='heap',
                 grain=0.07, wall='slate', look='AgX - Medium High Contrast', dry=False, sunel=31.0, sunaz=262.0,
-                review=True, dump=''))
+                review=True, dump='', people=0))
 # --review 1 (default since the review pass): cables 29-105 drape over edges, loops of a dropped coil slide
 # apart, and some later cables land on the founder's chair. Cables 1-28 take the exact code path they had, so
 # `first` is unchanged. --review 0 reproduces the builder's key heap. --dump X.json writes the cable polylines.
 if not os.path.isabs(A['out']):
     A['out'] = os.path.join(ROOT, A['out'])
 
-PEOPLE = 8 if A['state'] == 'first' else 15
+# Heap site (scroll frames): --people N (1..15) renders any team size on the same locked camera, and
+# --state tidy is the last beat: 15 mugs, the floor clear, the cables bundled into three trunks to a rack.
+TIDY = A['state'] == 'tidy'
+if A['people'] > 0:
+    PEOPLE = max(1, min(15, A['people']))
+    A['state'] = 'p%02d' % PEOPLE
+else:
+    PEOPLE = 8 if A['state'] == 'first' else 15
 CABLES = PEOPLE * (PEOPLE - 1) // 2          # 28 or 105: one cable per pair of people
 R_CABLE = 0.0034                             # Cat6 patch cable, ~6.8 mm jacket
 
@@ -674,6 +681,178 @@ def plugs(Ps, boot_mat):
         L.obj_from_mesh(nm + boot_mat.name, me, m)
 
 
+# ----------------------------------------------------------------------------- the tidy last beat
+RACK = dict(x0=-0.36, x1=0.16, z0=0.42, z1=0.72, d=0.15)     # small wall-mounted cabinet left of the socket
+PANEL = dict(rows=(0.635, 0.585), cols=10, face=-0.130)      # 2 x 10 ports, oversized a touch so they read
+EMPTY = (0, 7)                                               # (row, col) of the one empty port: top row
+TRUNK_R = 0.0173                                             # 19 strands, hex packed
+
+
+def _seg(out, q, ds):
+    p = out[-1]
+    n = max(1, int((q - p).length / ds))
+    for k in range(1, n + 1):
+        out.append(p.lerp(q, k / n))
+
+
+def corner_path(corners, r=0.07, ds=0.008):
+    """A polyline through the corner points with each corner rounded (a bundle bends on a radius)."""
+    C = [Vector(c) for c in corners]
+    out = [C[0].copy()]
+    for i in range(1, len(C) - 1):
+        a, b, c = C[i - 1], C[i], C[i + 1]
+        din = (b - a); lin = din.length; din.normalize()
+        dout = (c - b); lout = dout.length; dout.normalize()
+        rr = min(r, lin * 0.5, lout * 0.5)
+        p0 = b - din * rr; p2 = b + dout * rr
+        _seg(out, p0, ds)
+        n = max(4, int(2.2 * rr / ds))
+        for k in range(1, n + 1):
+            t = k / n
+            out.append((1 - t) ** 2 * p0 + 2 * (1 - t) * t * b + t * t * p2)
+    _seg(out, C[-1], ds)
+    return out
+
+
+def frames(P):
+    """Parallel-transport frames, so the strands keep their places round the bends (no twisting)."""
+    T = []
+    for i in range(len(P)):
+        a = P[max(i - 1, 0)]; b = P[min(i + 1, len(P) - 1)]
+        T.append((b - a).normalized())
+    ref = Vector((1, 0, 0)) if abs(T[0].x) < 0.9 else Vector((0, 0, 1))
+    n = (ref - T[0] * ref.dot(T[0])).normalized()
+    N = []
+    for i in range(len(P)):
+        if i > 0:
+            ax = T[i - 1].cross(T[i])
+            if ax.length > 1e-9:
+                n = Matrix.Rotation(T[i - 1].angle(T[i]), 3, ax.normalized()) @ n
+            n = (n - T[i] * n.dot(T[i])).normalized()
+        N.append(n.copy())
+    return T, N, [T[i].cross(N[i]) for i in range(len(P))]
+
+
+def hex19(s):
+    o = [(0.0, 0.0)]
+    for k in range(6):
+        a = math.radians(60 * k); o.append((s * math.cos(a), s * math.sin(a)))
+    for k in range(6):
+        a = math.radians(60 * k); o.append((2 * s * math.cos(a), 2 * s * math.sin(a)))
+        a = math.radians(60 * k + 30); o.append((s * math.sqrt(3) * math.cos(a), s * math.sqrt(3) * math.sin(a)))
+    return o
+
+
+def curve_obj(name, polys, mat, radius=R_CABLE, cyclic=False):
+    cu = bpy.data.curves.new(name, 'CURVE'); cu.dimensions = '3D'
+    cu.bevel_mode = 'ROUND'; cu.bevel_depth = radius; cu.bevel_resolution = 2; cu.use_fill_caps = True
+    for P in polys:
+        sp = cu.splines.new('POLY'); sp.points.add(len(P) - 1)
+        flat = []
+        for p in P:
+            flat += [p[0], p[1], p[2], 1.0]
+        sp.points.foreach_set('co', flat)
+        sp.use_smooth = True; sp.use_cyclic_u = cyclic
+    ob = bpy.data.objects.new(name, cu); sc.collection.objects.link(ob); cu.materials.append(mat)
+    return ob
+
+
+def tidy():
+    """The same room, tidied: the 105 cables gathered into three velcro-tied trunks that come out of a
+    cable tray under the desk, run along the skirting and up the wall into a small rack, where every
+    port is full except one."""
+    rnd = random.Random(21)
+    neutral = ['grey'] * 4 + ['grey2'] * 3 + ['white'] * 2 + ['black'] * 3
+    pick = lambda: 'new' if rnd.random() < 14 / 105 else rnd.choice(neutral)
+    strands = {}
+    r = RACK
+    # cabinet: dark powder-coat box, open at the front
+    L.box('RackBack', r['x0'], r['x1'], -0.012, 0.0, r['z0'], r['z1'], MAT['steel'])
+    L.box('RackTop', r['x0'], r['x1'], -r['d'], 0.0, r['z1'] - 0.012, r['z1'], MAT['steel'], bevel=0.002)
+    L.box('RackBottom', r['x0'], r['x1'], -r['d'], 0.0, r['z0'], r['z0'] + 0.012, MAT['steel'], bevel=0.002)
+    for x in (r['x0'], r['x1'] - 0.012):
+        L.box('RackSide', x, x + 0.012, -r['d'], 0.0, r['z0'], r['z1'], MAT['steel'], bevel=0.002)
+    px0, px1 = r['x0'] + 0.03, r['x1'] - 0.03
+    L.box('PatchPanel', px0, px1, PANEL['face'], PANEL['face'] + 0.006, 0.556, 0.664, MAT['panel'], bevel=0.0015)
+    L.box('CableManager', px0, px1, -0.142, -0.012, 0.470, 0.530, MAT['steel'], bevel=0.002)
+    L.box('ManagerLip', px0, px1, -0.146, -0.138, 0.470, 0.545, MAT['rubber'], bevel=0.001)
+    pitch = (px1 - px0 - 0.03) / PANEL['cols']
+    holes = bmesh.new(); bodies = bmesh.new(); boots = {}
+    def cube(bm, x0, x1, y0, y1, z0, z1):
+        vs = [bm.verts.new((x, y, z)) for x in (x0, x1) for y in (y0, y1) for z in (z0, z1)]
+        for f in [(0, 1, 3, 2), (4, 6, 7, 5), (0, 4, 5, 1), (2, 3, 7, 6), (0, 2, 6, 4), (1, 5, 7, 3)]:
+            bm.faces.new([vs[i] for i in f])
+    fy = PANEL['face']
+    port_xyz = {}
+    for ri, zr in enumerate(PANEL['rows']):
+        for ci in range(PANEL['cols']):
+            x = px0 + 0.015 + pitch * (ci + 0.5)
+            port_xyz[(ri, ci)] = (x, fy - 0.002, zr)
+            cube(holes, x - 0.0085, x + 0.0085, fy - 0.0012, fy + 0.0005, zr - 0.0072, zr + 0.0072)
+            if (ri, ci) == EMPTY:
+                continue
+            col = pick()
+            while col == 'black':                    # a black boot reads as a second empty port
+                col = pick()
+            cube(bodies, x - 0.0072, x + 0.0072, fy - 0.016, fy - 0.001, zr - 0.0058, zr + 0.0050)
+            cube(boots.setdefault(col, bmesh.new()), x - 0.0080, x + 0.0080, fy - 0.036, fy - 0.015, zr - 0.0068, zr + 0.0062)
+            # the patch lead drops from the boot into the cable manager: top row in front of the bottom row
+            out = -0.072 if ri == 0 else -0.050
+            xm = x + rnd.uniform(-0.006, 0.006)
+            P = corner_path([(x, fy - 0.034, zr - 0.001), (x, fy + out, zr - 0.006), (xm, fy + out + 0.004, 0.548),
+                             (xm, -0.11, 0.515)], r=0.03, ds=0.004)
+            strands.setdefault(col, []).append(P)
+    for bm, nm, m in [(holes, 'PortHoles', MAT['rubber']), (bodies, 'PortPlugs', MAT['plug'])] + \
+                     [(b, 'Boots_' + c, CAB[c]) for c, b in boots.items()]:
+        me = bpy.data.meshes.new(nm); bm.to_mesh(me); bm.free()
+        L.obj_from_mesh(nm, me, m)
+    # cable tray hung under the back of the desk (hidden by the desk top and apron from the camera)
+    L.box('DeskTray', 0.70, 1.80, -0.23, -0.02, 0.575, 0.585, MAT['steel'])
+    L.box('DeskTrayF', 0.70, 1.80, -0.23, -0.222, 0.575, 0.625, MAT['steel'])
+    # three trunks: up out of the tray, down behind the desk, along the skirting, up the wall into the rack
+    yw = -0.036
+    plan = [(-0.02, yw, 1.66), (-0.12, -0.152, 1.26), (-0.22, -0.198, 0.86)]   # (wall x, floor y, desk-end x)
+    offs = hex19(2 * R_CABLE * 1.02)
+    ties = []
+    trunk_mid = []
+    for k, (xw, yf, xe) in enumerate(plan):
+        zf = TRUNK_R
+        cn = [(xw, yw, r['z0'] + 0.06), (xw, yw, zf)]
+        if abs(yf - yw) > 1e-6:
+            cn.append((xw, yf, zf))
+        cn += [(xe, yf, zf), (xe, yf, 0.60)]
+        C = corner_path(cn, r=0.075, ds=0.008)
+        T, N, B = frames(C)
+        cols = [pick() for _ in offs]
+        arc = np.concatenate([[0.0], np.cumsum([(C[i] - C[i - 1]).length for i in range(1, len(C))])])
+        tw = 2 * math.pi * arc / 0.55                    # a loose lay: the strands spiral once per 55 cm
+        for (a, b), col in zip(offs, cols):
+            a += rnd.uniform(-0.0004, 0.0004); b += rnd.uniform(-0.0004, 0.0004)
+            P = []
+            for i in range(len(C)):
+                ca, sa = math.cos(tw[i]), math.sin(tw[i])
+                P.append(tuple(C[i] + N[i] * (a * ca - b * sa) + B[i] * (a * sa + b * ca)))
+            strands.setdefault(col, []).append(P)
+        # velcro ties every ~22 cm on the straight runs
+        acc = 0.0; last = -1.0
+        for i in range(1, len(C) - 1):
+            acc += (C[i] - C[i - 1]).length
+            straight = T[i - 1].dot(T[i + 1]) > 0.9995
+            if straight and acc - last > 0.22 and acc > 0.10:
+                last = acc
+                ring = [tuple(C[i] + (N[i] * math.cos(t) + B[i] * math.sin(t)) * (TRUNK_R + 0.0018))
+                        for t in np.linspace(0, 2 * math.pi, 28, endpoint=False)]
+                ties.append(ring)
+        trunk_mid.append(C[len(C) // 2])
+    for col, Ps in strands.items():
+        curve_obj('Tidy_' + col, Ps, CAB[col])
+    curve_obj('VelcroTies', ties, MAT['rubber'], radius=0.0024, cyclic=True)
+    e = port_xyz[EMPTY]
+    return dict(rack=((px0 + px1) / 2, PANEL['face'] - 0.02, (PANEL['rows'][0] + PANEL['rows'][1]) / 2),
+                rack_port=e, rack_left=(r['x0'], -r['d'], (r['z0'] + r['z1']) / 2),
+                trunks=(0.30, -0.10, TRUNK_R * 2))
+
+
 # ----------------------------------------------------------------------------- build
 win = room()
 desk()
@@ -681,8 +860,13 @@ chair()
 shelf()
 socket()
 mugs(PEOPLE)
-cables = build_heap(CABLES)
-cable_objects(cables)
+if TIDY:
+    MAT['panel'] = L.simple_mat('PanelFace', (0.74, 0.75, 0.76), rough=0.38)
+    cables = []
+    TIDY_PTS = tidy()
+else:
+    cables = build_heap(CABLES)
+    cable_objects(cables)
 print('HEAP cables', len(cables), 'max height', float(Hf.max()))
 
 # ----------------------------------------------------------------------------- light
@@ -700,6 +884,11 @@ L.world_hdri(sc, 'kloofendal_overcast', strength=A['world'], rot_z_deg=40.0)
 if A['camera'] == 'desktop':
     cam = L.camera((0.10, -4.35, 1.52), (0.10, 0.0, 1.52), focal=35.0, fstop=A['fstop'], focus=3.45)
     cam.data.shift_y = -0.235
+elif A['camera'] == 'phonesite':
+    # heap site phone frames: from further left and back, panned harder, so all 15 mugs stay in frame
+    cam = L.camera((-1.40, -3.0, 1.45), (0.75, 0.0, 1.45), focal=27.0, fstop=A['fstop'], focus=2.6)
+    cam.data.sensor_fit = 'AUTO'
+    cam.data.shift_y = -0.30
 else:
     # a phone held level a step to the left, turned toward the desk (pan only: verticals stay true)
     cam = L.camera((-0.50, -3.0, 1.45), (0.45, 0.0, 1.45), focal=26.0, fstop=A['fstop'], focus=2.05)
@@ -709,7 +898,7 @@ else:
 # anchors for the HTML layer: where things land in the frame (0..1 from the top-left)
 from bpy_extras.object_utils import world_to_camera_view
 import json
-allp = np.array([p for P in cables for p in P])
+allp = np.array([p for P in cables for p in P]).reshape(-1, 3)
 near = allp[np.hypot(allp[:, 0] - PILE[0], allp[:, 1] - PILE[1]) < 0.55]
 htop = near[np.argmax(near[:, 2])] if len(near) else np.array([PILE[0], PILE[1], 0.2])
 lastx = MUG_X0 + MUG_STEP * (PEOPLE - 1)
@@ -724,14 +913,19 @@ pts = {
     'desk_top': (1.2, -0.4, DESK['top']),
     'desk_left_top': (DESK['x0'], DESK['y0'], DESK['top']),
 }
+if TIDY:
+    pts['heap_top'] = (PILE[0], PILE[1], 0.0)                # where the pile was: bare floor now
+    pts.update(TIDY_PTS)
 bpy.context.view_layer.update()
 anch = {}
 for k, v in pts.items():
     co = world_to_camera_view(sc, cam, Vector(v))
     x, y = 0.5 + (co.x - 0.5) * 1.012, 0.5 + ((1 - co.y) - 0.5) * 1.012     # post() crops 1.2 % (lens hood)
     anch[k] = [round(x, 4), round(y, 4)]
+os.makedirs(os.path.dirname(A['out']), exist_ok=True)
 with open(os.path.splitext(A['out'])[0] + '.anchors.json', 'w') as f:
-    json.dump(dict(state=A['state'], camera=A['camera'], people=PEOPLE, cables=len(cables), anchors=anch), f, indent=1)
+    json.dump(dict(state=A['state'], camera=A['camera'], people=PEOPLE, cables=CABLES if TIDY else len(cables),
+                   anchors=anch), f, indent=1)
 print('ANCHORS', anch)
 
 if A['dump']:

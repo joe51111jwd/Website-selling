@@ -121,3 +121,39 @@ Render time this pass: 111 s for the one final, plus four `--dry` geometry check
 ### What the real production needs
 
 A real locked-off stop-motion in a real small office, shot in one late morning: one camera on a tripod at about 35 mm and standing eye height (plus a second locked camera, or a high-resolution frame cropped, for the phone), about ten states from 8 to 15 people, then the tidy ending. Fifteen real, mismatched mugs (different shapes and colours, a chip, a tea stain) so they read as people. About 105 real Cat6 cables, long ones (5 to 10 m) coiled, or the pile will not have the volume to bury a desk; with a colour per hire that stays put. A lived-in desk (monitor, papers, a jacket on the chair). For the ending: velcro-tied trunks and a small patch panel with one empty labelled port. Roughly a day to shoot and a day to edit; the cables are the main cost (my estimate: a few hundred dollars for long Cat6, more than the 09 entry's $200).
+
+## Heap site frames (3 Nov 2026, fast pass)
+
+James: "try making the heap. dont worry about good renders, just make it fast". So: one pass, 10 samples, no look iteration.
+
+**What was made.** 18 frames on two locked cameras, in `heap-site/assets/img/` (JPEG q82): `d08.jpg` ... `d15.jpg` + `d-tidy.jpg` (1440x900) and `p08.jpg` ... `p15.jpg` + `p-tidy.jpg` (600x1300), with `anchors.json` (`{"d08": {"people": 8, "cables": 28, "anchors": {...}}, ...}`). Raw PNGs and per-frame `.anchors.json` in `out/heap-site/raw/`; contact sheet `out/heap-site/frames-sheet.jpg`. Every frame has its exact pathway count (28, 36, 45, 55, 66, 78, 91, 105; no cable was dropped by the placer).
+
+**New flags in `scene.py`** (`--state first` and `--state key` are unchanged: their `--dump`s are identical to `--people 8` and `--people 15`, checked):
+- `--people N` (1..15): N mugs, N(N-1)/2 cables, the newest hire's N-1 cables blue. Cables are seeded per index, so frame n+1 is frame n plus hire n+1's batch (checked: cables 1-28 of `--people 15` equal `--people 8`). The anchors JSON gets `state: pNN`.
+- `--state tidy`: 15 mugs, floor and chair clear, and the cables in three velcro-tied trunks (19 strands each, hex packed, a loose 55 cm lay so the colours spiral; black tie every ~22 cm) that come out of a tray under the back of the desk, run along the skirting, and go up the wall into a small wall-mounted cabinet left of the socket: a light patch panel with 2 x 10 ports (oversized a touch so they read), every port plugged except one (top row, 8th from the left). Boots are never black there, so the one dark square is the empty port. Extra anchors: `rack` (panel centre), `rack_port` (the empty port), `rack_left`, `trunks` (a point on the floor run). `heap_top` in tidy is the bare floor where the pile was.
+- `--camera phonesite`: a new phone camera for the site, (-1.40, -3.0, 1.45) looking at (0.75, 0, 1.45), 27 mm, shift -0.30, focus 2.6 m, f/4. The old `phone` camera (kept as is) loses mugs 11-15 off the right edge, which breaks the count; this one keeps all 15 in frame (mugs at x 0.32-0.94) with no ceiling showing. It is not the viewpoint of `visuals/3-first-screen-phone.jpg`.
+
+**Settings.** `--samples 10`, adaptive threshold 0.03, OIDN on (already in `lib_lookdev.render_setup`: RGB+albedo+normal, accurate prefilter, high quality), same light, look and post as before. Commands (from `susd-render/`, one at a time, all through `render_idle.py`, none shared CPU):
+
+    python3 tools/render_idle.py blender -b -P ideas/02-heap/scene.py -- --people 12 --camera desktop --w 1440 --h 900 --samples 10 --label heap_site --out out/heap-site/raw/d12.png
+    python3 tools/render_idle.py blender -b -P ideas/02-heap/scene.py -- --state tidy --camera phonesite --w 600 --h 1300 --samples 10 --label heap_site --out out/heap-site/raw/p-tidy.png
+
+**Timings** (render seconds as logged; wall time adds ~4 s scene build and the 6 s idle check):
+
+| Frames | Size | Render s each | Wall s each |
+|---|---|---|---|
+| d08-d15 | 1440x900 | 34.3-39.3 | 44-50 |
+| d-tidy (x2, see below) | 1440x900 | 37.8, 36.5 | 47 |
+| p08-p15 | 600x1300 | 21.9-28.4 | 30-42 |
+| p-tidy | 600x1300 | 24.1 | 32 |
+| tidy test | 640x400 | 16.7 | |
+| **Total render** | | **593 s (~10 min)** | |
+
+**Fixes after the contact sheet** (one re-render): `d-tidy` was rendered again because black plug boots on the panel read as more empty ports; boots are now any colour but black. Nothing else was story-breaking: camera locked across all states on both cameras, no frame black or blown, no cables through the desk.
+
+**What is rough (left on purpose).**
+- 10 samples + denoiser: the plaster wall goes a little smooth and blotchy in the dark; the grain plate hides most of it at page size.
+- The blue batch still moves each step (hire n's cables go neutral when hire n+1 arrives), as in the concept images.
+- The tidy rack is schematic: 20 ports and 3 x 19 strands stand for 105 cables; the bottom-row patch leads sit behind the top-row leads; the trunks vanish under the desk into a tray you cannot see.
+- Phone: the bottom ~40% of each frame is near floor (room for the bar); at 15 people the heap runs off the bottom and left edges, and the right-wall corner shows at the right edge.
+- Mugs still identical and the room still bare (tells 1 and 2 of the review above).

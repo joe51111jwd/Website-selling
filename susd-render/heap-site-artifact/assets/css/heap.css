@@ -1,0 +1,230 @@
+/* Scaling Up-Side-Down: The Heap (idea 2), the real site. Cut down from the Waterline site (site/assets/css/site.css),
+   with the Heap mock's type and chrome (ideas/02-heap/mock/heap.css). Plimsoll for the title and what you would
+   count, Ortica for Michael's voice, B612 for labels and buttons. Every shadow and highlight is in the render: no CSS
+   shadow, glow, gradient, blur, pill or card. One button per screen.
+   Two modes from one DOM, as on Waterline:
+   - html.js: a sticky stage; the beats are stacked inside it and assets/js/heap.js drives them from the scroll;
+   - no JS: the beats are plates in normal flow, one after another, each a frame with its words and counts. */
+@font-face { font-family: "Plimsoll"; src: url("../fonts/Plimsoll-Heavy.woff2") format("woff2"); font-weight: 800; font-display: block; }
+@font-face { font-family: "Ortica Angular"; src: url("../fonts/Ortica-AngularBold-latin.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Ortica Linear"; src: url("../fonts/Ortica-LinearRegular-latin.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Ortica Linear"; src: url("../fonts/Ortica-LinearBold-latin.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "B612"; src: url("../fonts/B612-Regular-latin.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "B612"; src: url("../fonts/B612-Bold-latin.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+
+/* colours: one dark palette. The same values are repeated for a dark-scheme host and for data-theme="dark", so a host
+   page (the claude.ai artifact wrapper) that switches themes never changes this page's colours. */
+:root {
+  --cream: #EEF0EC; --dim: #B4BCB8; --ink: #151718; --deep: #101315; --rule: #2A2E2F;
+  --redline: #FF6455; --oxygen: #41AF8E; --line: rgba(238, 240, 236, 0.78);
+  --band: rgba(16, 19, 21, 0.92); --barbg: rgba(14, 17, 19, 0.95);
+  /* the frame box: the 16:10 render scaled to cover the stage, centred (the wall can lose a strip at the top and the
+     floor one at the bottom), and on a viewport narrower than 16:10 centred on x 0.42 (the words and the heap).
+     cq units resolve against the stage (with JS) or the plate (without). */
+  --bw: max(100cqw, 160cqh);
+  --bh: calc(var(--bw) / 1.6);
+  --bx: clamp(calc(100cqw - var(--bw)), calc(50cqw - var(--bw) * 0.42), 0px);
+  --by: clamp(calc(100cqh - var(--bh)), calc(50cqh - var(--bh) * 0.5), 0px);
+  --L: max(56px, calc(24px - var(--bx)));                       /* left column, kept on screen when the box is cropped */
+  --ct: calc(var(--by) + 0.218 * var(--bh));                   /* words start under the shelf line, on the calm wall */
+  --cw: min(730px, calc(var(--bx) + 0.585 * var(--bw) - var(--L)));   /* ... and stop short of the mugs' count */
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --cream: #EEF0EC; --dim: #B4BCB8; --ink: #151718; --deep: #101315; --rule: #2A2E2F;
+    --redline: #FF6455; --oxygen: #41AF8E; --line: rgba(238, 240, 236, 0.78);
+    --band: rgba(16, 19, 21, 0.92); --barbg: rgba(14, 17, 19, 0.95);
+  }
+}
+:root[data-theme="dark"] {
+  --cream: #EEF0EC; --dim: #B4BCB8; --ink: #151718; --deep: #101315; --rule: #2A2E2F;
+  --redline: #FF6455; --oxygen: #41AF8E; --line: rgba(238, 240, 236, 0.78);
+  --band: rgba(16, 19, 21, 0.92); --barbg: rgba(14, 17, 19, 0.95);
+}
+@media (max-aspect-ratio: 3/4) {
+  :root {
+    --bw: max(100cqw, calc(100cqh * 0.4615));
+    --bh: calc(var(--bw) / 0.4615);
+    --bx: calc((100cqw - var(--bw)) / 2);
+    --by: 0px;                                                  /* top-aligned: the words own the wall above the shelf */
+    --L: 16px;
+    --ct: 62px;
+    --cw: min(440px, calc(100cqw - 32px));
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--deep); color: var(--cream); }
+body { background: var(--deep); }
+html { -webkit-text-size-adjust: 100%; }
+body { font-family: "B612", sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+p, h1 { margin: 0; font-weight: inherit; }
+a { color: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: 12px; top: -80px; z-index: 30; background: var(--cream); color: var(--ink); font-weight: 700;
+  padding: 12px 16px; text-decoration: none; }
+.skip:focus { top: 12px; }
+
+/* ---- the story ---- */
+.stage { position: relative; background: var(--deep); }
+.beat { position: relative; overflow: hidden; height: max(100svh, var(--bh)); container-type: size; background: var(--deep); }
+.fbox { position: absolute; left: var(--bx); top: var(--by); width: var(--bw); height: var(--bh); }
+.frame, .frame img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.frame img { object-fit: cover; }
+.dim .frame img { filter: brightness(0.5); }                    /* the turn and the form's ground: the same room, dimmed */
+#bfin .frame img, .finale .frame img { filter: brightness(0.34); }   /* under the form: dimmer, the words cross the floor */
+.layer { position: absolute; inset: 0; pointer-events: none; }
+.layer a { pointer-events: auto; }
+.frameonly, .runway, .livebox { display: none; }
+
+/* with JS: one sticky stage; the plates are stacked in it and the clock sets --fo (frame) and --lo (words) */
+html.js .stage { position: sticky; top: 0; height: 100svh; overflow: hidden; container-type: size; }
+html.js .beat { position: absolute; inset: 0; height: auto; overflow: visible; background: none; container-type: normal; }
+html.js .frameonly { display: block; }
+html.js .runway { display: block; height: 1200svh; }
+html.js .frame { z-index: 1; opacity: var(--fo, 0); }
+html.js .layer { z-index: 3; opacity: var(--lo, 0); }
+html.js .layer.off { visibility: hidden; }
+html.js .beat:not(.ld) .frame, html.js .noframe .frame { display: none; }
+html.js .counts.static { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+html.js .livebox { display: block; z-index: 4; pointer-events: none; }
+/* "Get it free" is an instant jump: nothing from the screen left behind may fade out over the form */
+html.jump .livebox *, html.jump .dock, html.jump .bar { transition: none !important; }
+
+/* ---- top band: the title lockup with the book link (left), the Bootloader dock (right, alone) ---- */
+.lockup { position: fixed; left: 56px; top: 30px; z-index: 10; }
+.title { font-family: "Plimsoll"; font-size: 24px; line-height: 1; }
+.byline { font-size: 13px; line-height: 1.2; color: var(--dim); margin-top: 8px; }
+.booklink { display: inline-block; font-size: 13px; line-height: 1.2; color: var(--dim); margin-top: 4px; padding: 3px 0;
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.dock { position: fixed; right: 56px; top: 26px; z-index: 10; display: grid; grid-template-columns: auto auto; column-gap: 18px; align-items: center;
+  transition: opacity .15s, visibility .15s; }
+.dock .name, .bar .name { font-family: "Plimsoll"; font-size: 20px; line-height: 1; display: block; margin-bottom: 6px; }
+.dock .name, .dock .meta { text-align: right; }
+.dock .meta, .bar .meta { display: block; font-size: 13px; line-height: 1.35; color: var(--dim); }
+.btn { font-family: "B612"; font-weight: 700; font-size: 15px; height: 48px; padding: 0 20px; background: var(--cream); color: var(--ink);
+  border: 0; border-radius: 0; display: inline-flex; align-items: center; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.btn:focus-visible, a:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+.btn[disabled] { opacity: .7; cursor: progress; }
+html.dock-off .dock, html.dock-off .bar { opacity: 0; visibility: hidden; }
+.bar { display: none; }
+
+/* ---- Michael's words: the biggest, brightest thing, on the calm wall top left ---- */
+.caption { position: absolute; left: var(--L); top: var(--ct); width: var(--cw); transform-origin: 0 0; }
+.caption > * { text-wrap: pretty; }
+.line { font-family: "Ortica Angular"; font-weight: 700; font-size: min(60px, calc(var(--bw) * 0.0417)); line-height: 1.05; letter-spacing: -0.005em; }
+.who { font-family: "Ortica Linear"; font-weight: 700; font-size: 21px; line-height: 1.3; max-width: 560px; margin-top: 18px; text-wrap: balance; }
+.cue { font-size: 13px; line-height: 1.3; color: var(--dim); margin-top: 18px; }
+.band { font-size: 14px; font-weight: 700; line-height: 1.3; letter-spacing: 0.02em; margin-bottom: 10px; }
+.band::before { content: ""; display: inline-block; width: 22px; height: 1px; background: var(--line); vertical-align: middle; margin-right: 10px; }
+.big { font-family: "Ortica Angular"; font-weight: 700; font-size: min(46px, calc(var(--bw) * 0.032)); line-height: 1.1; }
+.mid { font-family: "Ortica Angular"; font-weight: 700; font-size: min(38px, calc(var(--bw) * 0.0265)); line-height: 1.12; }
+.big1 { font-family: "Ortica Angular"; font-weight: 700; font-size: min(56px, calc(var(--bw) * 0.039)); line-height: 1.05; margin-top: 16px; }
+.support { font-family: "Ortica Linear"; font-size: min(24px, calc(var(--bw) * 0.0167)); line-height: 1.3; margin-top: 14px; }
+.band + .support { margin-top: 0; }
+.eq { font-family: "Plimsoll"; font-size: min(48px, calc(var(--bw) * 0.0333)); line-height: 1; white-space: nowrap; }
+.eq.red { color: var(--redline); }
+.eq.green { color: var(--oxygen); }
+.phases { margin-top: 16px; }
+.phase { display: grid; grid-template-columns: 76px 1fr; column-gap: 10px; align-items: baseline; margin-bottom: 4px; }
+.pname { font-family: "Plimsoll"; font-size: 24px; line-height: 1.15; }
+.pline { font-family: "Ortica Linear"; font-size: 21px; line-height: 1.3; }
+
+/* ---- the counts, set at the things they count (one mug per person, one cable per pair) ---- */
+.cnt { display: grid; grid-template-columns: auto auto; column-gap: 12px; align-items: end; }
+.cnt .fig { font-family: "Plimsoll"; font-size: 54px; line-height: 0.82; font-variant-numeric: tabular-nums; }
+.cnt .unit { font-size: 14px; line-height: 1.3; color: var(--cream); padding-bottom: 2px; white-space: nowrap; }
+.cnt .unit .dim { color: var(--dim); display: block; }
+.counts.static { display: flex; flex-wrap: wrap; gap: 14px 40px; margin-top: 24px; }
+.livebox .cnt { position: absolute; transition: opacity .2s; }
+.livebox .cnt-people { left: calc(53.12% + 87px); top: calc(27.15% - 40px); }
+.livebox .cnt-cables { left: calc(50.24% - 270px); top: calc(63.61% - 96px); }
+.leader { position: absolute; border-top: 1px solid var(--line); border-right: 1px solid var(--line); transition: opacity .2s; }
+.leader.v { border-top: 0; }
+.tag { position: absolute; display: flex; align-items: center; font-size: 13px; line-height: 16px; color: var(--cream); white-space: nowrap; transition: opacity .2s; }
+.tag .rule-h { display: inline-block; width: 30px; height: 1px; background: var(--line); margin-right: 8px; }
+.rackleader { position: absolute; width: 0; border-left: 1px solid var(--line); transition: opacity .2s; }
+.tag.flip { flex-direction: row-reverse; }
+.tag.flip .rule-h { margin: 0 0 0 8px; }
+
+/* ---- the finale (#get): the tidy room, dimmed, under one cluster; a real form ---- */
+.finale { position: relative; min-height: 100svh; container-type: inline-size; overflow: hidden; background: var(--deep); padding-bottom: 48px; }
+html.js .finale { background: transparent; }
+html.js .finale > .fbox { display: none; }      /* the stage's last frame is the ground, still stuck behind it */
+.cluster { position: relative; margin-left: var(--L); padding-top: calc(var(--by) + 0.2 * var(--bh)); width: min(980px, calc(100% - var(--L) - 56px)); }
+.lead { font-family: "Ortica Angular"; font-weight: 700; font-size: 40px; line-height: 1.1; max-width: 780px; text-wrap: pretty; }
+.fgrid { display: grid; grid-template-columns: 360px minmax(0, 1fr); column-gap: 48px; margin-top: 28px; }
+.fname { font-family: "Plimsoll"; font-size: 26px; line-height: 1; }
+.what { font-size: 14px; line-height: 1.4; margin-top: 10px; text-wrap: pretty; }
+.spec { font-size: 13px; line-height: 1.55; color: var(--dim); margin-top: 8px; text-wrap: pretty; }
+.question { font-family: "Ortica Linear"; font-weight: 700; font-size: 19px; line-height: 1.3; }
+.asks { display: block; font-family: "B612"; font-weight: 400; font-size: 13px; color: var(--dim); margin-bottom: 3px; }
+.sell { font-family: "Ortica Linear"; font-size: 16px; line-height: 1.38; color: var(--dim); margin-top: 8px; max-width: 46ch; text-wrap: pretty; }
+.form { margin-top: 22px; }
+.form label { display: block; font-size: 13px; color: var(--dim); margin-bottom: 6px; }
+.formrow { display: flex; max-width: 520px; }
+.formrow input { flex: 1; min-width: 0; height: 52px; border: 0; border-radius: 0; background: var(--cream); color: var(--ink); font: 16px "B612"; padding: 0 14px; }
+.formrow input:focus { box-shadow: inset 0 0 0 2px var(--ink); }
+.formrow input[aria-invalid="true"] { box-shadow: inset 0 0 0 2px var(--redline); }
+.formrow .btn { height: 52px; font-size: 16px; padding: 0 18px; border-left: 1px solid var(--ink); }
+.note { font-size: 13px; color: var(--dim); margin: 8px 0 0; }
+.fmsg p { font-size: 14px; line-height: 1.3; margin: 8px 0 0; color: var(--cream); }
+.fmsg .msg-bad { color: var(--redline); }
+.bookline { margin-top: 36px; font-size: 13px; color: var(--dim); }
+.booktitle { font-family: "Plimsoll"; font-size: 15px; color: var(--cream); margin-right: 6px; }
+
+/* ---- phone (any viewport taller than 3:4) ---- */
+@media (max-aspect-ratio: 3/4) {
+  .lockup { left: 0; right: 0; top: 0; height: 52px; padding: 10px 16px 0; background: var(--band); border-bottom: 1px solid var(--rule); z-index: 12; }
+  .title { font-size: 19px; }
+  .byline { font-size: 12.5px; margin-top: 5px; }
+  .booklink { position: fixed; right: 16px; top: 4px; margin: 0; padding: 14px 0; z-index: 13; color: var(--cream); }
+  .bk-more { display: none; }
+  .dock { display: none; }
+  .line { font-size: min(29px, 7.45cqw); line-height: 1.08; }
+  .who { font-size: 14.5px; line-height: 1.28; margin-top: 10px; max-width: 360px; }
+  .cue { margin-top: 10px; }
+  html.js .hero .cue { position: absolute; left: 0; top: calc(var(--by) + 0.30 * var(--bh) - var(--ct)); width: 128px; margin: 0; }
+  .band { font-size: 12px; margin-bottom: 6px; }
+  .band::before { width: 14px; margin-right: 8px; }
+  .big { font-size: 24px; }
+  .mid { font-size: 21px; }
+  .big1 { font-size: 30px; margin-top: 10px; }
+  .support { font-size: 16px; margin-top: 8px; }
+  .eq { font-size: 24px; white-space: normal; }
+  .phases { margin-top: 8px; }
+  .phase { grid-template-columns: 56px 1fr; margin-bottom: 0; }
+  .pname { font-size: 17px; }
+  .pline { font-size: 15px; }
+  .cnt { column-gap: 8px; }
+  .cnt .fig { font-size: 34px; }
+  .cnt .unit { font-size: 13px; }
+  .livebox .cnt-cables { grid-template-columns: auto; row-gap: 5px; }
+  .livebox .cnt-cables .unit { white-space: normal; width: 124px; }
+  .livebox .cnt-people { left: 40.68%; top: calc(32% - 34px); }
+  .livebox .cnt-cables { left: 16px; top: calc(58.9% - 146px); }
+  .counts.static { gap: 10px 24px; margin-top: 14px; }
+  .cluster { width: calc(100% - 32px); padding-top: 68px; }
+  .lead { font-size: 24px; line-height: 1.12; }
+  .fgrid { grid-template-columns: 1fr; row-gap: 18px; margin-top: 16px; }
+  .fname { font-size: 22px; }
+  .question { font-size: 16px; }
+  .sell { font-size: 14px; }
+  .form { margin-top: 16px; }
+  #bfin .frame img, .finale .frame img { filter: brightness(0.26); }
+  .formrow { flex-direction: column; }
+  .formrow input { flex: none; width: 100%; }
+  .formrow .btn { justify-content: center; border-left: 0; border-top: 1px solid var(--ink); }
+  .bookline { margin-top: 22px; }
+  .finale { padding-bottom: 28px; }
+  html:not(.js) .finale { padding-bottom: calc(100px + env(safe-area-inset-bottom)); }   /* the bar stays without JS */
+  .bar { display: flex; align-items: center; justify-content: space-between; column-gap: 12px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 12;
+    height: calc(76px + env(safe-area-inset-bottom)); padding: 0 16px env(safe-area-inset-bottom); background: var(--barbg); border-top: 1px solid var(--rule);
+    transition: opacity .15s, visibility .15s; }
+  .bar .name { font-size: 17px; margin-bottom: 5px; }
+  .bar .meta { font-size: 12.5px; line-height: 1.3; }
+  .bar .btn { height: 48px; font-size: 15px; padding: 0 18px; flex: none; }
+}
+@media (max-aspect-ratio: 3/4) and (max-width: 359px) {
+  .bar .meta { display: none; }
+}
