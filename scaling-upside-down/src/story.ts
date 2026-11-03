@@ -183,6 +183,14 @@ export function focusAt(frame: number): number {
   return k[k.length - 1][1];
 }
 
+/** focus: the subject's [top, bottom] in a film frame (0-1 down the picture; render/focus_anchors.py), or
+ *  null in the opening */
+export function focusSpan(frame: number): [number, number] | null {
+  if (!FOCUS || frame < HERO_FRAME) return null;
+  const y = film.y;
+  return y[Math.max(0, Math.min(y.length - 1, Math.round(frame - HERO_FRAME)))] as [number, number];
+}
+
 // on portrait screens: how big the render is, and where its bottom edge sits (fractions of the
 // screen height). The opening shows the whole row, centred; the hero fills the screen; from then on
 // the picture sits above the words.

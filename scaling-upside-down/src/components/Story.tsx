@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react
 import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { FrameStore, fetchOk } from "../frames";
-import { CALLOUTS, FOCUS_HERO, FOCUS_LINES, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, focusBox, focusHold, frameAt, portraitFit, progressAt, setHeroCap, sp, yearAt, type FocusSide } from "../story";
+import { CALLOUTS, FOCUS_HERO, FOCUS_LINES, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, focusBox, focusHold, focusSpan, frameAt, portraitFit, progressAt, setHeroCap, sp, yearAt, type FocusSide } from "../story";
 import { FOCUS } from "../focus";
 import { FOCUS_COPY, type Beat, type SiteCopy } from "../copy";
 import { JoinLink } from "./JoinLink";
@@ -152,7 +152,9 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     };
     /** focus: where frame's picture sits (device px). Its subject towards the screen's centre line, but a
      *  picture wider than the screen always covers it (no gap at a side); on an upright screen it sits above
-     *  the band its words go in */
+     *  the band its words go in. On a screen wider than the picture it is enlarged to the full width
+     *  wherever its subject still fits between the menu and the screen's foot, so a block crossing the
+     *  picture's edge is cut by the screen's edge, as by a camera, not faded into the wall */
     const focusRect = (frame: number, cw: number, ch: number, aspect: number) => {
       let dh: number;
       let oy: number;
@@ -161,8 +163,23 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         dh = b.h * scale;
         oy = b.top * scale;
       } else {
+        const cover = cw / (ch * aspect);
+        const span = cover > 1 ? focusSpan(frame) : null;
         dh = ch;
         oy = 0;
+        if (span) {
+          const [t, b] = span;
+          const mt = Math.max(ch * 0.1, 64 * scale); // under the menu
+          const mb = ch * 0.06;
+          const z = Math.min(cover, Math.max(1, (ch - mt - mb) / ((b - t) * ch)));
+          if (z > 1) {
+            dh = ch * z;
+            const c = (t + b) / 2;
+            oy = c * ch - c * dh; // enlarged about the subject's middle
+            oy = Math.min(ch - mb - b * dh, Math.max(mt - t * dh, oy)); // the subject clear of the menu and the foot
+            oy = Math.min(0, Math.max(ch - dh, oy)); // and the picture still covers top to bottom
+          }
+        }
       }
       const dw = dh * aspect;
       const want = cw / 2 - focusAt(frame) * dw;
@@ -317,12 +334,19 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         ectx.fillRect(0, 0, w, h);
         ctx.drawImage(edge, Math.round(x), Math.round(y));
       };
+      // each seam reaches a pixel past the picture's edge, so no sliver of the picture's own edge shows
       const fy = dh * 0.08;
       const fx = dw * 0.05;
-      if (top) seam(top, true, 0, oy, cw, fy, "down");
-      if (bot) seam(bot, true, 0, oy + dh - fy, cw, fy, "up");
-      if (left) seam(left, false, ox, oy, fx, dh, "right");
-      if (right) seam(right, false, ox + dw - fx, oy, fx, dh, "left");
+      if (top) seam(top, true, 0, Math.floor(oy) - 1, cw, Math.ceil(fy) + 2, "down");
+      if (bot) {
+        const y = Math.floor(oy + dh - fy);
+        seam(bot, true, 0, y, cw, Math.ceil(oy + dh) + 1 - y, "up");
+      }
+      if (left) seam(left, false, Math.floor(ox) - 1, oy, Math.ceil(fx) + 2, dh, "right");
+      if (right) {
+        const x = Math.floor(ox + dw - fx);
+        seam(right, false, x, oy, Math.ceil(ox + dw) + 1 - x, dh, "left");
+      }
     };
 
     // an upright phone: the stack's top (about 15% down the picture) stays 12px under the hero's button

@@ -64,13 +64,13 @@ for n, (data, w, h) in enumerate(encoded()):
     buf += data
     if (n + 1) % per == 0 or n == total_n - 1:
         cname = f"c{chunk_i:02d}-{hashlib.sha1(buf).hexdigest()[:8]}.bin"
-        with open(os.path.join(dst, cname), "wb") as fh:
-            fh.write(buf)
+        with open(os.path.join(dst, cname), "wb") as out:
+            out.write(buf)
         chunks.append(cname)
         buf, chunk_i = bytearray(), chunk_i + 1
 
 manifest = {"count": len(frames), "width": w, "height": h, "chunks": chunks, "frames": frames}
-with open(os.path.join(dst, "manifest.json"), "w") as fh:
-    json.dump(manifest, fh, separators=(",", ":"))
+with open(os.path.join(dst, "manifest.json"), "w") as out:
+    json.dump(manifest, out, separators=(",", ":"))
 total = sum(os.path.getsize(os.path.join(dst, c)) for c in chunks)
 print(f"{len(frames)} frames, {len(chunks)} chunks, {total / 1e6:.1f} MB, {w}x{h}")
