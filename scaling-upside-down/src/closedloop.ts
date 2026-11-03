@@ -98,7 +98,7 @@ export function hapticPattern(thud: boolean): number[] {
 
 export type Rect = { ox: number; oy: number; dw: number; dh: number };
 /** desk: words left, ring right; phone: ring above the words; land: a phone on its side;
- *  focus (the focus version, any screen): the ring centred, the words over it only while the picture steps back */
+ *  focus (the focus version): the ring centred near the top, its words under it (a short landscape screen takes land) */
 export type Mode = "desk" | "phone" | "land" | "focus";
 const RATIO = 1.6;
 const RING_H = 0.75; // the ring's outer diameter, as a share of the frame's height
@@ -106,20 +106,27 @@ const COL = 320; // the words' column (280) and its gutters, left of the ring's 
 
 /** the layout for this window, decided the way the stylesheet's media queries decide it */
 export function modeNow(): Mode {
-  if (FOCUS) return "focus";
+  if (FOCUS) return window.innerWidth > window.innerHeight && window.innerHeight < 600 ? "land" : "focus";
   if (window.innerWidth > 900) return "desk";
   return window.matchMedia("(orientation: landscape)").matches ? "land" : "phone";
 }
 
+/** focus: the ring centred under the menu, its line `share` of the screen's height across (never wider than the screen) */
+function focusRing(cw: number, ch: number, share: number): Rect {
+  const [rx, ry] = geo.ringC;
+  const d = Math.min(share * ch, 0.84 * cw);
+  const dh = d / (2 * geo.hair.ry);
+  const dw = dh * RATIO;
+  return { ox: 0.5 * cw - rx * dw, oy: 72 - (ry - geo.hair.ry) * dh, dw, dh };
+}
+/** focus: where words under a picture start (CSS px): under the ring's line, or under the book */
+export const ringFoot = (r: Rect) => r.oy + (geo.ringC[1] + geo.hair.ry) * r.dh + 18;
+export const bookFoot = (r: Rect) => r.oy + geo.book.base[1] * r.dh + 18;
+
 /** where frame 50 sits on screen at the copy pose */
 export function poseRect(cw: number, ch: number, mode: Mode): Rect {
   const [rx, ry] = geo.ringC;
-  if (mode === "focus") {
-    // the ring in the middle of the screen, as large as the screen's shorter side allows
-    const dh = Math.min(ch, (0.84 * Math.min(cw, ch)) / RING_H);
-    const dw = dh * RATIO;
-    return { ox: 0.5 * cw - rx * dw, oy: 0.5 * ch - ry * dh, dw, dh };
-  }
+  if (mode === "focus") return focusRing(cw, ch, ch <= 760 ? 0.27 : ch <= 860 ? 0.32 : 0.36); // smaller, so the card fits under it
   if (mode === "land") {
     // a phone on its side: the ring right of the words, as large as the height allows, clear of the menu
     const dh = Math.min(0.86 * ch, 0.6 * cw);
@@ -155,6 +162,8 @@ const mix = (a: Rect, b: Rect, t: number): Rect => {
 /** the sequence frames' rect (upright phones ease from the open fit to the pose as the ring is set) */
 export function seqRect(frame: number, cw: number, ch: number, mode: Mode): Rect {
   const pose = poseRect(cw, ch, mode);
+  // focus: the ring is set large, its line under it, and steps back to the pose as it closes
+  if (mode === "focus") return mix(focusRing(cw, ch, 0.56), pose, smooth((frame - 38) / 11));
   if (mode !== "phone") return pose;
   return mix(openRect(cw, ch), pose, smooth((frame - 12) / 36));
 }
@@ -168,10 +177,11 @@ export function truckRect(p: number, cw: number, ch: number, mode: Mode): Rect {
   // the book ends where the ring was, at the same size
   const r2 = { ox: r0.ox + (rx - bx) * r0.dw, oy: r0.oy, dw: r0.dw, dh: r0.dh };
   if (mode === "focus") {
-    // straight along the table to the book, which ends in the middle of the screen
+    // straight along the table to the book, which ends where the ring was, its card under it
     const dw = 1.15 * r0.dw;
     const dh = dw / RATIO;
-    return mix(r0, { ox: 0.5 * cw - bx * dw, oy: 0.5 * ch - by * dh, dw, dh }, smooth((p - 0.76) / 0.11));
+    const cy = r0.oy + geo.ringC[1] * r0.dh;
+    return mix(r0, { ox: 0.5 * cw - bx * dw, oy: cy - by * dh, dw, dh }, smooth((p - 0.76) / 0.11));
   }
   if (mode === "land") return mix(r0, r2, smooth((p - 0.76) / 0.11));
   if (mode === "phone") {

@@ -5,12 +5,11 @@ import type { SiteCopy } from "../copy";
 import { APPENDIX_URL, optinLive, sendOptin, validEmail, type OptinResult } from "../optin";
 import { FrameStore, fetchOk } from "../frames";
 import { LINKS } from "../links";
-import { BEATS, BOOK_P, BOOTLOADER_P, CL_VH, LIFT, T, blockFit, cb, frameAt, geo, hairEase, hapticPattern, modeNow, poseRect, seqRect, smooth, stampFor, truckRect, type Mode, type Rect } from "../closedloop";
+import { BEATS, BOOK_P, BOOTLOADER_P, CL_VH, LIFT, T, blockFit, bookFoot, cb, frameAt, geo, hairEase, hapticPattern, modeNow, poseRect, ringFoot, seqRect, smooth, stampFor, truckRect, type Mode, type Rect } from "../closedloop";
 import { CopyBlock } from "./CopyBlock";
 import { JoinLink } from "./JoinLink";
-import { FOCUS } from "../focus";
-import { BOOK } from "../book";
 import { openNotice } from "./NoticeDialog";
+import { FOCUS } from "../focus";
 
 const BASE = import.meta.env.BASE_URL;
 const win = typeof window !== "undefined";
@@ -30,10 +29,6 @@ const TAG = [RCX + HAIR.rx * Math.sin(Math.PI / 6), RCY - HAIR.ry * Math.cos(Mat
 type Ring = "open" | "dropping" | "closed" | "error";
 /** how the sign-up ended: a new address (the email service sends the Bootloader), or one already on the list */
 type Done = "sent" | "already";
-
-/** focus: how far the picture has stepped back behind the paper (0-1): under each line, the card and the book */
-const ramp = (v: number, [a, b]: readonly [number, number], f = Math.min(0.02, (b - a) / 4)) => (b >= 1 ? Math.max(0, Math.min(1, (v - a) / f)) : Math.max(0, Math.min(1, (v - a) / f, (b - v) / f)));
-const veilAt = (v: number) => Math.max(ramp(v, BEATS.open), ramp(v, BEATS.closing), ramp(v, BEATS.copy), ramp(v, BEATS.book));
 
 /** a block of words that fades in and out over a window of the stage's progress */
 function Win({ p, at, className = "", children, style }: { p: MotionValue<number>; at: readonly [number, number]; className?: string; children: ReactNode; style?: CSSProperties }) {
@@ -104,12 +99,12 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const lower = useTransform(p, [0.45, 0.462], [0, 1]);
   const railShow = useTransform(p, [0, 0.02, 0.44, 0.47], [0, 1, 1, 0]);
   // the layers over the picture (Quality, the line, the tag) belong to the finished ring
-  const plateIn = useTransform(p, [0.445, 0.452], [0, 1]);
+  // (focus: they go with the rest of the table as the camera reaches the book)
+  const plateIn = useTransform(p, FOCUS ? [0.445, 0.452, 0.8, 0.86] : [0.445, 0.452], FOCUS ? [0, 1, 1, 0] : [0, 1]);
   const plateVis = useTransform(plateIn, (o) => (o > 0.5 ? "visible" : "hidden"));
   const railFill = useTransform(p, [0, 0.47], [0, 1]);
   const [narrow] = useState(() => win && window.innerWidth > 900 && window.innerWidth <= 1200);
   const scrim = useTransform(p, narrow ? [0, 0.44, 0.47] : [0, 0.42, 0.46], narrow ? [1, 1, 0] : [1, 1, 0]);
-  const veil = useTransform(p, (v) => (FOCUS ? veilAt(v) : 0));
 
   const go = (r: Ring) => {
     now.current = r;
@@ -477,7 +472,9 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
         const tv = reduced ? (mode !== "desk" ? (v < 0.82 ? 0.74 : 0.87) : v < 0.77 ? 0.74 : v < 0.89 ? 0.83 : 0.92) : v;
         const r = v < 0.74 ? pose : truckRect(tv, cw, ch, mode);
         const a = reduced ? (v < 0.77 ? 1 : 0) : 1 - smooth((v - 0.74) / 0.03);
-        const k = `p${r.ox.toFixed(1)}:${r.oy.toFixed(1)}:${r.dw.toFixed(1)}:${a.toFixed(3)}:${cv.width}x${cv.height}`;
+        // focus: as the camera reaches the book, the table round it goes to paper, so the book is alone
+        const ab = mode === "focus" ? (reduced ? (v < 0.82 ? 0 : 1) : smooth((v - 0.8) / 0.07)) : 0;
+        const k = `p${r.ox.toFixed(1)}:${r.oy.toFixed(1)}:${r.dw.toFixed(1)}:${a.toFixed(3)}:${ab.toFixed(3)}:${cv.width}x${cv.height}`;
         if (k !== lastKey) {
           const s = scaled(r);
           // the panorama spans frame-50 x -0.95..1.10 and y -0.25..1.25
@@ -486,6 +483,8 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
           ctx.drawImage(pano, ps.ox, ps.oy, ps.dw, ps.dh);
           paper(ps, 1);
           paper(s, a);
+          // the book and its blocks lie within frame-50 x -0.42..-0.02, y 0.06..0.94
+          paper({ ox: s.ox - 0.42 * s.dw, oy: s.oy + 0.06 * s.dh, dw: 0.4 * s.dw, dh: 0.88 * s.dh }, ab);
           lastKey = k;
         }
         placePlate(r);
@@ -675,13 +674,19 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
       c.style.removeProperty("--stl");
       delete st.dataset.fit; // measure with the headline showing
       if (mode === "focus") {
-        // one card in the middle of the screen, over the ring while the picture steps back
+        // the card under the ring, so pressing the block closes the ring in plain view above it;
+        // each line, and the book's card at the end, under its picture the same way
         l.style.display = "none";
         const colW = Math.min(480, cw - 40);
         c.style.width = `${colW}px`;
         c.style.maxWidth = "";
+        const pose = poseRect(cw, ch, "focus");
+        const top = Math.round(ringFoot(pose));
+        st.style.setProperty("--cl-open", `${Math.round(ringFoot(seqRect(0, cw, ch, "focus")))}px`);
+        st.style.setProperty("--cl-close", `${top}px`);
+        st.style.setProperty("--cl-book", `${Math.round(bookFoot(truckRect(1, cw, ch, "focus")))}px`);
         const rest = () => c.offsetHeight - b.offsetHeight - (parseFloat(getComputedStyle(b).marginTop) || 0);
-        const room = ch - 72 - 16; // under the menu, above the bottom edge
+        const room = ch - top - 16; // under the ring, above the bottom edge
         let f = blockFit("focus", colW, room, rest(), ch);
         put(f.W, f.gapb);
         if (c.offsetHeight > room) {
@@ -689,7 +694,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
           f = blockFit("focus", colW, room, rest(), ch);
           put(f.W, f.gapb);
         }
-        c.style.top = `${Math.max(72, Math.round((ch - c.offsetHeight) / 2))}px`;
+        c.style.top = `${top}px`;
         return;
       }
       if (mode !== "desk") {
@@ -804,14 +809,14 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const earlyBeats = useMemo(
     () => (
       <>
-        <Win p={p} at={BEATS.open} className="tone-down">
+        <Win p={p} at={BEATS.open} className="tone-down cl-open">
           <p className="beat-k">
             <i />
             {copy.open.kicker}
           </p>
           <h2 className="beat-h">{copy.open.headline}</h2>
         </Win>
-        <Win p={p} at={BEATS.closing} className="tone-ink">
+        <Win p={p} at={BEATS.closing} className="tone-ink cl-closing">
           <p className="beat-k">
             <TriDot />
             {copy.closing.kicker}
@@ -839,7 +844,6 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
         </Win>
 
         <Win p={p} at={BEATS.book} className="cl-book">
-          {FOCUS && <img className="cl-book-img" src={BOOK.src} srcSet={BOOK.srcSet} sizes="(max-width: 900px) 46vw, 260px" width={BOOK.w} height={BOOK.h} alt="" loading="lazy" decoding="async" />}
           <p className="beat-k">
             <i className="dot down" />
             {book.kicker}
@@ -951,7 +955,6 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
           </div>
         </m.div>
         <m.div className="cl-scrim" style={{ opacity: scrim }} aria-hidden="true" />
-        {FOCUS && <m.div className="cl-veil" style={{ opacity: veil }} aria-hidden="true" />}
         <div className="cl-scrim-m" aria-hidden="true" />
         <m.div ref={leader} className="cl-leader" style={{ opacity: cIn }} aria-hidden="true">
           <i />

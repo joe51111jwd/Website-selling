@@ -637,13 +637,12 @@ html[data-stamp] .cb-pose { will-change: scale; }
 }
 
 /* ---------- the focus version (/focus): one thing on screen at a time ----------
-   The book alone on landing; then the picture alone, its subject on the centre line; at each pause
-   the picture steps back behind the paper (.veil) and one line takes the screen. */
-.veil, .cl-veil { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: #f3ede2; }
+   The book alone on landing. Then the film: while the blocks move there are no words; when the
+   picture holds, one short line sits on the paper beside the blocks it is about (an upright phone:
+   in the band under the picture). The blocks themselves carry most of the words. */
+.veil { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: #f3ede2; }
 .is-focus :is(.scrim, .cl-scrim, .cl-scrim-m, .hud, .chapters, .callouts, .cl-rail, .cl-tagwrap, .cl-leader, .cl-cursor, .cl-pair, .cl-mini) { display: none !important; }
 .is-focus .cl-hit { pointer-events: none; }
-.is-focus .cl-beat { z-index: 3; } /* the words over the paper */
-.cl-book-img { display: none; }
 .nb { white-space: nowrap; } /* the title never breaks at its own hyphens */
 
 /* the book alone, centred, with its title, who it's for and the one button under it */
@@ -664,55 +663,49 @@ html[data-stamp] .cb-pose { will-change: scale; }
   .is-focus :is(.hero-d, .cue) { display: none; }
 }
 
-/* each line alone, in the middle of the screen */
-.is-focus .beat { left: 50%; right: auto; top: 50%; bottom: auto; width: min(860px, calc(100vw - 48px)); margin: 0; padding: 0; translate: -50% -50%; text-align: center; }
-.is-focus .beat-k { justify-content: center; }
-.is-focus .beat-h { max-width: 18ch; margin: 0 auto; font-size: clamp(34px, 5vw, 76px); line-height: 1.04; }
-.is-focus .beat.is-long .beat-h { max-width: 22ch; font-size: clamp(28px, 3.6vw, 54px); line-height: 1.1; }
-.is-focus .beat .beat-d { display: block; max-width: 40ch; margin: 20px auto 0; padding: 0; border: 0; font-size: clamp(17px, 1.6vw, 23px); line-height: 1.38; }
+/* a line beside the still picture: the story's loop sets where (data-side says which way it reads) */
+.fl { position: absolute; left: 0; top: 0; width: max-content; pointer-events: none; will-change: transform; }
+.fl-in { text-shadow: 0 0 24px rgba(243, 237, 226, 0.95), 0 0 3px rgba(243, 237, 226, 0.9); }
+.fl .beat-k { margin-bottom: 12px; }
+.fl-h { font: 400 clamp(26px, 2.5vw, 40px) / 1.08 var(--display); letter-spacing: -0.015em; text-wrap: balance; color: var(--ink); }
+.fl .tone-down .fl-h, .fl-in.tone-down .fl-h { color: #2a1411; }
+.fl-d { font: italic 400 clamp(17px, 1.3vw, 20px) / 1.38 var(--serif); color: #3b342b; margin-top: 12px; text-wrap: pretty; }
+.fl[data-side="left"] { text-align: right; }
+.fl[data-side="left"] .beat-k { justify-content: flex-end; }
+.fl:is([data-side="above"], [data-side="below"], [data-side="band"]) { text-align: center; }
+.fl:is([data-side="above"], [data-side="below"], [data-side="band"]) .beat-k { justify-content: center; }
 @media (max-width: 900px) {
-  .is-focus .hero { gap: 12px; padding-top: 64px; }
-  .is-focus .hero-book { --bw: clamp(96px, 30vw, 150px); }
-  .is-focus .hero-t { font-size: clamp(26px, 7.4vw, 40px); }
-  .is-focus .hero-s { font-size: 16px; }
-  .is-focus .beat-h { font-size: clamp(30px, 8.6vw, 46px); }
-  .is-focus .beat.is-long .beat-h { font-size: clamp(24px, 6.6vw, 34px); }
-  .is-focus .beat .beat-d { font-size: 17px; }
-}
-@media (max-width: 900px) and (orientation: landscape) {
-  .is-focus .hero { flex-direction: row; gap: 24px; padding: 56px var(--gut-r) 16px var(--gut); }
-  .is-focus .hero-book { --bw: clamp(70px, 22vh, 104px); }
-  .is-focus .hero-text { text-align: left; align-items: flex-start; }
-  .is-focus .hero-cta { align-items: flex-start; }
+  .fl-h { font-size: clamp(24px, 6.6vw, 32px); }
+  .fl-d { font-size: 16px; }
 }
 
-/* the sign-up: one card over the ring while the picture steps back. Pressing the block hands the screen
-   to the ring (Quality drops in, the line closes round it), then the card comes back with the answer */
+/* the closed loop: the ring large under the menu while its systems are set, each line under it; at the
+   sign-up it steps back so the card sits under it, and pressing the block closes the ring in plain view.
+   Then the camera slides to the book, its card under it. (The loop sets --cl-open, --cl-close, --cl-book.) */
+.is-focus .cl-beat:is(.cl-open, .cl-closing, .cl-book) { left: 50%; right: auto; bottom: auto; width: min(640px, calc(100vw - 40px)); margin: 0; padding: 0; translate: -50% 0; text-align: center; }
+.is-focus .cl-open { top: var(--cl-open, 62vh); }
+.is-focus .cl-closing { top: var(--cl-close, 50vh); }
+.is-focus .cl-beat:is(.cl-open, .cl-closing) .beat-k { justify-content: center; }
+.is-focus .cl-beat:is(.cl-open, .cl-closing) .beat-h { max-width: 24ch; margin: 0 auto; font-size: clamp(26px, 2.6vw, 40px); line-height: 1.1; }
+.is-focus .cl-beat:is(.cl-open, .cl-closing) .beat-d { display: block; max-width: 36ch; margin: 12px auto 0; padding: 0; border: 0; font-size: clamp(17px, 1.3vw, 20px); }
+
 .is-focus .cl-copy[data-mode="focus"] { left: 50%; right: auto; bottom: auto; translate: -50% 0; margin: 0; padding: 0; text-align: center; }
 .cl-copy[data-mode="focus"] .beat-k { justify-content: center; }
-.cl-copy[data-mode="focus"] .beat-h { font-size: clamp(28px, 3.1vw, 44px); }
-.cl-copy[data-mode="focus"] :is(.cl-deck, .cl-offer) { margin-left: auto; margin-right: auto; }
+.cl-copy[data-mode="focus"] .beat-h { font-size: clamp(24px, 2.4vw, 36px); }
+.cl-copy[data-mode="focus"] .cl-deck { display: none; } /* the headline and the offer say it; the book's card has the back cover */
+.cl-copy[data-mode="focus"] .cl-offer { margin-left: auto; margin-right: auto; }
 .cl-copy[data-mode="focus"] .cl-field { margin: 0 auto; width: min(100%, var(--rowsw, 100%)); }
 .cl-copy[data-mode="focus"] .cl-email { text-align: center; }
 .cl-copy[data-mode="focus"] .cl-msg, .cl-copy[data-mode="focus"] .cl-status { justify-content: center; text-align: center; }
 .cl-copy[data-mode="focus"] .cb { margin-left: auto; margin-right: auto; }
 .cl-copy[data-mode="focus"] .cl-rows { justify-content: center; }
-.is-focus .cl-veil { transition: opacity 0.35s ease; }
-.is-focus .cl-stage:is([data-ring="dropping"], [data-ring="closed"]:not([data-after])) .cl-veil { opacity: 0 !important; }
-/* the closed ring holds a moment, then the paper and the answer come back together */
-.is-focus .cl-stage[data-after] .cl-veil { transition: opacity 0.4s ease 0.35s; }
-.is-focus .cl-copy > * { transition: opacity 0.4s ease 0.35s; }
-.is-focus .cl-stage:is([data-ring="dropping"], [data-ring="closed"]:not([data-after])) .cl-copy > * { opacity: 0; transition: opacity 0.2s ease; }
 
-/* the book again at the end, alone and centred */
-.is-focus .cl-beat.cl-book { left: 50%; right: auto; top: 50%; bottom: auto; width: min(560px, calc(100vw - 48px)); margin: 0; padding: 0; translate: -50% -50%; display: flex; flex-direction: column; align-items: center; text-align: center; }
-.is-focus .cl-book .beat-h { font-size: clamp(34px, 3.4vw, 52px); }
-.is-focus .cl-book-img { display: block; width: clamp(110px, min(14vw, 20vh), 190px); height: auto; margin: 0 0 14px; }
-.is-focus .cl-book .beat-b { margin-left: auto; margin-right: auto; }
-.is-focus .cl-book .beat-q { justify-content: center; text-align: left; }
+.is-focus .cl-beat.cl-book { top: var(--cl-book, 55vh); width: min(560px, calc(100vw - 40px)); display: flex; flex-direction: column; align-items: center; }
+.is-focus .cl-book .beat-h { font-size: clamp(30px, 3vw, 46px); }
+.is-focus .cl-book .beat-b { display: block; margin: 12px auto 0; max-width: 46ch; }
+.is-focus .cl-book .beat-q { display: none; }
 .is-focus .cl-book-cta { justify-content: center; }
 @media (max-width: 900px) {
-  .is-focus .cl-book .beat-h { font-size: 30px; }
-  .is-focus .cl-book .beat-b { display: block; font-size: 16px; }
-  .is-focus .cl-book .beat-q { display: none; }
+  .is-focus .cl-book .beat-h { font-size: 28px; }
+  .is-focus .cl-book .beat-b { font-size: 15.5px; }
 }

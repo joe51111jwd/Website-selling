@@ -12,6 +12,7 @@
 // first 27 frames (its old drop-in intro) are replaced by the opening.
 
 import { FOCUS } from "./focus";
+import film from "./focusfilm.json";
 
 export const OPENING = 89; // pictures in the opening; the next one is the film's frame 27, the stacked hero
 const f = (filmFrame: number) => filmFrame - 27 + OPENING;
@@ -42,34 +43,42 @@ const STORY_KEYS: [progress: number, frame: number][] = [
   [0.85, 317], // Up: the team, then the building
   [1.0, 339],
 ];
-// The focus version: the film moves, then holds while one line has the screen (FOCUS_BEATS), then moves on
+// The focus version runs its own film (render/focus_film.py, frames from 28 like the story's): the
+// blocks carry the words. Three planks stamped ALWAYS LAUNCHING, ALWAYS HIRING, ALWAYS ADDING go on
+// first; it falls over; the cover's stack turns upside down and is set right; the systems slide in
+// from the sides; the planks leave with the dead weight; the building rises. Something moves, or one
+// short line sits beside the still picture, never both: the film holds while each line is up.
 const FOCUS_FILM_KEYS: [progress: number, frame: number][] = [
   [0.0, 27],
-  [0.07, 71], // the rush, at a careful pace
-  [0.115, 71], // Always launching. Always hiring. Always adding.
-  [0.2, 105], // runs away from the thumb, crooked past twelve
-  [0.245, 105], // the bank account didn't feel it
-  [0.32, 146], // it falls over
-  [0.365, 146], // That's scaling upside down.
-  [0.46, 198], // Side: the twelve systems
-  [0.505, 198], // Sideways for stabilization.
-  [0.56, 219], // Down: the dead weight leaves
-  [0.605, 219], // Down for pruning.
-  [0.85, 317], // Up: the team, then the building
-  [0.895, 317], // Up for growth.
-  [0.945, 339],
-  [1.0, 339], // You're already doing all three.
+  [0.08, 54], // the three planks
+  [0.135, 54], // But inside, nothing ever settled.
+  [0.22, 105], // the rush, crooked past twelve, and the strain
+  [0.275, 105], // the bank account didn't feel it
+  [0.34, 146], // it falls over
+  [0.39, 146], // That isn't scaling.
+  [0.44, 162], // the cover's stack turns upside down
+  [0.495, 162], // That's scaling upside down.
+  [0.6, 222], // set right; the systems slide in from the sides
+  [0.65, 222], // Sideways for stabilization.
+  [0.705, 244], // the planks and the dead weight leave
+  [0.755, 244], // Down for pruning.
+  [0.89, 331], // the team goes back on, then the building
+  [1.0, 331], // Up for growth. / Up. Side. Down. Repeat.
 ];
-/** the focus version's line windows (film 0-1): each sits on a hold of FOCUS_FILM_KEYS */
-export const FOCUS_BEATS: Record<string, [number, number]> = {
-  grow: [0.07, 0.115],
-  redline: [0.2, 0.245],
-  collapse: [0.32, 0.365],
-  side: [0.46, 0.505],
-  down: [0.56, 0.605],
-  up: [0.85, 0.895],
-  repeat: [0.945, 0.997],
-};
+/** the focus version's lines: when each is up (film 0-1, inside a hold), and where it sits by its blocks */
+export type FocusSide = "left" | "right" | "above" | "below";
+export const FOCUS_LINES: { id: string; at: [number, number]; box: string; side: FocusSide }[] = [
+  { id: "grow", at: [0.088, 0.127], box: "grow", side: "right" },
+  { id: "redline", at: [0.228, 0.267], box: "redline", side: "left" },
+  { id: "isnt", at: [0.347, 0.383], box: "isnt", side: "above" },
+  { id: "upside", at: [0.447, 0.488], box: "upside", side: "below" },
+  { id: "side", at: [0.607, 0.643], box: "side", side: "below" },
+  { id: "down", at: [0.712, 0.748], box: "down", side: "below" },
+  { id: "up", at: [0.897, 0.942], box: "up", side: "left" },
+  { id: "repeat", at: [0.952, 0.997], box: "up", side: "left" },
+];
+/** the outline of a line's blocks in the picture [l, t, r, b], 0-1 (render/focus_anchors.py) */
+export const focusBox = (k: string) => (film.lines as Record<string, { box: number[] }>)[k].box as [number, number, number, number];
 /** the focus version's landing: the book holds the screen until here (story progress), then the blocks */
 export const FOCUS_HERO: [number, number, number] = [0, OPEN_P * 0.22, OPEN_P * 0.36];
 const FILM_KEYS = FOCUS ? FOCUS_FILM_KEYS : STORY_KEYS;
@@ -156,6 +165,12 @@ export const FOCUS_KEYS: [frame: number, x: number][] = [
 ];
 
 export function focusAt(frame: number): number {
+  if (FOCUS) {
+    // the opening's row is centred; from the hero on, the subject of each film frame (render/focus_anchors.py)
+    const x = film.x;
+    if (frame < HERO_FRAME) return 0.5 + (x[0] - 0.5) * Math.max(0, Math.min(1, (frame - o(5)) / (HERO_FRAME - o(5))));
+    return x[Math.max(0, Math.min(x.length - 1, Math.round(frame - HERO_FRAME)))];
+  }
   const k = FOCUS_KEYS;
   if (frame <= k[0][0]) return k[0][1];
   for (let i = 0; i < k.length - 1; i++) {

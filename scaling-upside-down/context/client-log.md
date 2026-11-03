@@ -11,6 +11,38 @@ under "All of James's messages, word for word".
 
 ---
 
+## Tue 3 Nov 2026, 12:17 PM and 12:23 PM ET: James asks for the link to the new focus version
+
+> can i see the vercel link
+
+> which is the one with the updated one focus and it dosent look not put to gether
+
+What it means: none of the links had the rethought version yet (the live `/focus` was still the first
+take, with the full-screen lines). James wants the new one, and it has to look finished, not pieced
+together. **Done** in the release that followed: the new focus film (see the entry below) at `/focus`.
+
+## Sun 1 Nov 2026, 10:19 PM ET: James turns down the first focus version
+
+> I kind of have a feeling you're going to do that. We're just going to put the text in between, covering the whole screen. I don't want that. Rethink how the blocks work. Rethink all the animations, rethink everything to make the focus version better.
+
+What it means: the first `/focus` (the picture stepping back behind the paper while a line took the
+whole screen) only took turns between words and blocks. James wants the blocks themselves to do the
+telling. **Done** as a new film for `/focus` (`render/focus_film.py`), storyboarded first
+(`render/focus_board.py`):
+- the first three blocks on the stack are planks stamped ALWAYS LAUNCHING, ALWAYS HIRING, ALWAYS
+  ADDING (the manuscript's L1993), so the problem is read off the blocks, not off a caption;
+- after the fall, the cover's own stack turns upside down (DOWN on top, its letters inverted), holds,
+  and is set right: the back cover's "That's scaling upside down." made literal;
+- the twelve systems slide in from the sides (Sideways), the planks leave with the dead weight (Down),
+  and the team goes back on and the building rises (Up);
+- the film never moves while words are up: it holds, one short line sits on the paper beside the
+  blocks it is about (an upright phone: in the band under the picture), then it moves on. No veils, no
+  full-screen text;
+- the closed loop the same way: the ring large with its line under it; at the sign-up the ring steps
+  back and the card sits under it, so pressing JOIN closes the ring in plain view; then the book alone,
+  its card under it.
+The live home page is unchanged. **Waiting** on James (and Michael) to compare `/` and `/focus`.
+
 ## Sat 31 Oct 2026, 9:18 PM ET: James asks for a version with one thing on screen at a time
 
 > Well, here's my issue that we have now right now you have two main focuses on the screen you're the words and then you have the blocks and I think it's difficult because then you have to scroll the one position stop. It'd be ideal if all of the information wasn't only one point at a time and making that like the main flow so that everyone can understand and see everything well only looking at one thing at a time is the most important thing that we need to optimize for so I want you to make a version of this site where you try and do that however, you need to
@@ -18,8 +50,8 @@ under "All of James's messages, word for word".
 The message was cut off. Asked what came after "you need to", James answered "Nothing more, just go",
 and chose a separate link (not replacing the live site).
 
-What it means: the eye should never split between the words and the blocks. **Done** as the focus
-version at `/focus` (same app, `src/focus.ts`): the book alone on landing; the picture alone, centred;
+What it means: the eye should never split between the words and the blocks. **Done** (first take,
+since replaced: see Sun 1 Nov) as the focus version at `/focus` (same app, `src/focus.ts`): the book alone on landing; the picture alone, centred;
 at each pause the picture steps back behind the paper and one line takes the screen; the sign-up is one
 card that steps away while the ring closes, then comes back with the answer; the book alone at the end.
 The live home page is unchanged. **Waiting** on James (and Michael) to pick one.

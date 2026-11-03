@@ -2,24 +2,54 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react
 import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { FrameStore, fetchOk } from "../frames";
-import { CALLOUTS, FOCUS_BEATS, FOCUS_HERO, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, frameAt, portraitFit, progressAt, setHeroCap, sp, yearAt } from "../story";
+import { CALLOUTS, FOCUS_HERO, FOCUS_LINES, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, focusBox, frameAt, portraitFit, progressAt, setHeroCap, sp, yearAt, type FocusSide } from "../story";
 import { FOCUS } from "../focus";
-import type { Beat, SiteCopy } from "../copy";
+import { FOCUS_COPY, type Beat, type SiteCopy } from "../copy";
 import { JoinLink } from "./JoinLink";
 import { BOOK } from "../book";
 
 type Anchors = { names: string[]; frames: Record<string, [number, number]>[] };
 
+const STORY_ALT = "The Up, Side and Down blocks lie face up on a table, then stand up and stack. Blocks labelled with hires and tools are stacked on the Up, Side and Down blocks faster and faster until the tower falls over. Twelve painted system blocks widen the base into a three-colour foundation, the dead weight is cleared, and the same team is stacked back on it into a taller building that holds.";
+const FOCUS_ALT = "The Up, Side and Down blocks lie face up on a table, then stand up and stack. Three planks stamped Always launching, Always hiring and Always adding go on top, then more and more blocks, faster and crookeder, until the tower falls over. The Up, Side and Down stack turns upside down and is set right again. Twelve painted system blocks slide in from both sides into a three-colour foundation, the planks and the dead weight are cleared away, and the same team is stacked back on it into a taller building that holds.";
+/** the focus version plays its own film (render/focus_film.py), opening with the same 89 pictures */
+const FRAMES = FOCUS ? "frames-focus" : "frames";
 const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 // below this opacity a control is treated as gone: no clicks, no Tab stop
 const shown = (o: number) => (o > 0.05 ? "visible" : "hidden");
 
-/** focus: how far the picture has stepped back (0-1) at story progress v: under the book, then under each line */
-const ramp = (v: number, [a, b]: readonly [number, number], f = Math.min(0.014, (b - a) / 4)) => Math.max(0, Math.min(1, (v - a) / f, (b - v) / f));
-function veilAt(v: number) {
-  const hero = v <= FOCUS_HERO[1] ? 1 : Math.max(0, 1 - (v - FOCUS_HERO[1]) / (FOCUS_HERO[2] - FOCUS_HERO[1]));
-  const p = filmP(v);
-  return Math.max(hero, ...Object.values(FOCUS_BEATS).map((w) => ramp(p, w)));
+/** focus: the book has the landing to itself; the picture comes in from behind the paper as it leaves */
+const veilAt = (v: number) => (v <= FOCUS_HERO[1] ? 1 : Math.max(0, 1 - (v - FOCUS_HERO[1]) / (FOCUS_HERO[2] - FOCUS_HERO[1])));
+/** focus, an upright screen: the picture's top and height (CSS px); the words go in the band under it */
+const bandFit = (vh: number) => {
+  const h = vh * 0.56;
+  const top = Math.max(60, vh * 0.09);
+  return { top, h, band: top + h + 14 };
+};
+
+/** focus: one line beside the still picture. The loop sets where it sits (the outer box); it fades and rises inside it */
+function FocusLineView({ id, at, progress, refEl }: { id: string; at: [number, number]; progress: MotionValue<number>; refEl: (el: HTMLDivElement | null) => void }) {
+  const line = FOCUS_COPY[id];
+  const [a, b] = at;
+  const f = Math.min(0.01, (b - a) / 4);
+  const range = [a, a + f, b - f, b];
+  const opacity = useTransform(progress, range, [0, 1, 1, 0]);
+  const y = useTransform(progress, range, reduced ? [0, 0, 0, 0] : [14, 0, 0, -10]);
+  const visibility = useTransform(opacity, shown);
+  return (
+    <div className="fl" ref={refEl}>
+      <m.article className={`fl-in tone-${line.tone}`} style={{ opacity, y, visibility }}>
+        {line.kicker && (
+          <p className="beat-k">
+            <i />
+            {line.kicker}
+          </p>
+        )}
+        <h2 className="fl-h">{line.headline}</h2>
+        {line.detail && <p className="fl-d">{line.detail}</p>}
+      </m.article>
+    </div>
+  );
 }
 
 function BeatView({ beat, progress }: { beat: Beat; progress: MotionValue<number> }) {
@@ -66,6 +96,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
   const section = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const callouts = useRef<(HTMLDivElement | null)[]>([]);
+  const lines = useRef<(HTMLDivElement | null)[]>([]);
   const hud = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<"loading" | "ready">("loading");
   const [load, setLoad] = useState(0);
@@ -108,6 +139,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     let lastFrame = 0;
     let scale = 1; // the device pixel ratio the canvas was sized with
     let widths: number[] = [];
+    let placed: string[] = []; // focus: where each line was last set, by the picture's position
     let lastHud = -1;
 
     const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
@@ -115,6 +147,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     const measure = () => {
       widths = callouts.current.map((el) => (el?.lastElementChild as HTMLElement | null)?.offsetWidth ?? 0);
       lastPlaced = Number.NaN;
+      placed = [];
     };
     const draw = (bmp: ImageBitmap, frame: number) => {
       const cw = cv.width;
@@ -124,10 +157,17 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       let dh: number;
       let oy: number;
       if (FOCUS) {
-        // the picture centred, its subject on the screen's centre line (a phone keeps its portrait size)
-        dh = cw / ch < 1 ? ch * Math.min(0.62, portraitFit(frame).scale) : ch; // (small enough that the foundation fits a phone)
+        // the picture's subject on the screen's centre line; on an upright screen the picture sits above
+        // the band its words go in, the studio backdrop continuing round it
+        if (cw < ch) {
+          const b = bandFit(ch / scale);
+          dh = b.h * scale;
+          oy = b.top * scale;
+        } else {
+          dh = ch;
+          oy = 0;
+        }
         dw = dh * aspect;
-        oy = (ch - dh) / 2;
       } else if (cw / ch < 1) {
         // phones: the hero fills the screen; after it the picture sits above the words, and the
         // studio backdrop continues above and below it
@@ -255,6 +295,56 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       });
     };
 
+    // focus: the line that is up sits beside its blocks, on the paper round them (an upright screen: in the band under the picture)
+    const placeLines = () => {
+      if (!FOCUS) return;
+      const vw = cv.clientWidth;
+      const vh = cv.clientHeight;
+      const fp = filmP(scrollYProgress.get());
+      FOCUS_LINES.forEach((ln, k) => {
+        const el = lines.current[k];
+        if (!el || fp < ln.at[0] - 0.01 || fp > ln.at[1] + 0.01) return; // only the one that is up (or about to be)
+        // it is measured once per picture position and window size, not every frame
+        const key = `${fit.ox.toFixed(1)}:${fit.oy.toFixed(1)}:${fit.w.toFixed(1)}:${vw}x${vh}`;
+        if (placed[k] === key) return;
+        placed[k] = key;
+        const [bl, bt, br, bb] = focusBox(ln.box);
+        const L = (fit.ox + bl * fit.w) / fit.dpr;
+        const T = (fit.oy + bt * fit.h) / fit.dpr;
+        const R = (fit.ox + br * fit.w) / fit.dpr;
+        const B = (fit.oy + bb * fit.h) / fit.dpr;
+        const gut = vw <= 600 ? 20 : 40;
+        const set = (side: FocusSide | "band", maxW: number) => {
+          el.dataset.side = side;
+          el.style.maxWidth = `${Math.max(0, Math.round(maxW))}px`;
+          return { w: el.offsetWidth, h: el.offsetHeight };
+        };
+        const put = (x: number, y: number) => void (el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`);
+        if (vw < vh) {
+          const top = (fit.oy + fit.h) / fit.dpr + 14;
+          const { w } = set("band", Math.min(520, vw - 2 * gut));
+          return put((vw - w) / 2, top);
+        }
+        const gap = vw <= 900 ? 22 : 36;
+        const midY = (h: number) => Math.min(vh - h - 24, Math.max(84, (T + B) / 2 - h / 2));
+        const tries: FocusSide[] = ln.side === "right" ? ["right", "left", "below", "above"] : ln.side === "left" ? ["left", "right", "below", "above"] : ln.side === "above" ? ["above", "below", "right", "left"] : ["below", "above", "right", "left"];
+        for (const side of tries) {
+          if (side === "right" || side === "left") {
+            const room = side === "right" ? vw - R - gap - gut : L - gap - gut;
+            if (room < 240) continue;
+            const { w, h } = set(side, Math.min(vw <= 900 ? 300 : 440, room));
+            return put(side === "right" ? R + gap : L - gap - w, midY(h));
+          }
+          const { w, h } = set(side, Math.min(640, vw - 2 * gut));
+          const y = side === "below" ? B + 22 : T - 22 - h;
+          if (y < 80 || y + h > vh - 20) continue;
+          return put(Math.min(vw - gut - w, Math.max(gut, (L + R) / 2 - w / 2)), y);
+        }
+        const { w, h } = set("below", Math.min(640, vw - 2 * gut)); // nowhere is clear: the foot of the screen
+        put((vw - w) / 2, vh - h - 20);
+      });
+    };
+
     const updateHud = (frame: number) => {
       const f = Math.round(frame);
       if (f === lastHud || !hud.current) return;
@@ -311,6 +401,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         updateHud(cur);
         lastPlaced = cur;
       }
+      placeLines();
     };
     const start = () => {
       if (!raf && !disposed) raf = requestAnimationFrame(loop);
@@ -336,7 +427,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     io.observe(cv);
 
     const loadAnchors = () =>
-      anchors
+      anchors || FOCUS // (focus: no labels on the picture)
         ? Promise.resolve()
         : fetchOk(`${import.meta.env.BASE_URL}anchors.json`)
         .then((r) => r.json())
@@ -353,8 +444,8 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         const hiLimit = small ? 12 : 24;
         const FIRST = 20; // frames decoded before the story shows
         // the full-quality manifest is requested alongside the small set, not after it; the story runs without it if it fails
-        const hiOpen = FrameStore.open(`${import.meta.env.BASE_URL}frames/hi/`, hiLimit, decodeW, () => undefined).catch(() => null);
-        const smallSet = await FrameStore.open(`${import.meta.env.BASE_URL}frames/lo/`, loLimit, 9999, () => setLoad(smallSet.loadedChunks / smallSet.chunkCount));
+        const hiOpen = FrameStore.open(`${import.meta.env.BASE_URL}${FRAMES}/hi/`, hiLimit, decodeW, () => undefined).catch(() => null);
+        const smallSet = await FrameStore.open(`${import.meta.env.BASE_URL}${FRAMES}/lo/`, loLimit, 9999, () => setLoad(smallSet.loadedChunks / smallSet.chunkCount));
         if (disposed) return smallSet.dispose();
         // let a restored scroll position (reload, deep link) land before deciding where the story starts
         await new Promise((r) => requestAnimationFrame(r));
@@ -421,7 +512,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
           ref={canvas}
           className="frames"
           role="img"
-          aria-label="The Up, Side and Down blocks lie face up on a table, then stand up and stack. Blocks labelled with hires and tools are stacked on the Up, Side and Down blocks faster and faster until the tower falls over. Twelve painted system blocks widen the base into a three-colour foundation, the dead weight is cleared, and the same team is stacked back on it into a taller building that holds."
+          aria-label={FOCUS ? FOCUS_ALT : STORY_ALT}
         />
         <div className="scrim" aria-hidden="true" />
 
@@ -506,12 +597,14 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         {FOCUS && <m.div className="veil" style={{ opacity: veil }} aria-hidden="true" />}
 
         <div className="beats">
-          {(FOCUS ? beats.map((b) => ({ ...b, at: FOCUS_BEATS[b.id] ?? b.at })) : beats).map((b) => (
-            <Fragment key={b.id}>
-              <BeatView beat={b} progress={film} />
-              {b.id === "collapse" && !FOCUS && <MarginTable />}
-            </Fragment>
-          ))}
+          {FOCUS
+            ? FOCUS_LINES.map((ln, k) => <FocusLineView key={ln.id} id={ln.id} at={ln.at} progress={film} refEl={(el) => void (lines.current[k] = el)} />)
+            : beats.map((b) => (
+                <Fragment key={b.id}>
+                  <BeatView beat={b} progress={film} />
+                  {b.id === "collapse" && <MarginTable />}
+                </Fragment>
+              ))}
         </div>
 
         <Chapters progress={film} />

@@ -3,7 +3,10 @@
 # which keeps the file count low (artifact and CDN friendly) and requests few.
 # Chunk names carry a content hash, so they can be cached forever.
 #
-#   python3 pack_frames.py <png_dir> <out_dir> [--width 1600] [--quality 78] [--per 25]
+#   python3 pack_frames.py <png_dir> <out_dir> [--width 1600] [--quality 78] [--per 25] [--lead <packed_dir>:<n>]
+#
+# --lead puts the first n frames of an already packed set in front, byte for byte (the focus film
+# reuses the opening this way: public/frames/hi:89), so they are not compressed a second time.
 import hashlib
 import json
 import os
@@ -19,25 +22,42 @@ quality = int(opts.get("--quality", 78))
 per = int(opts.get("--per", 25))
 
 files = sorted(f for f in os.listdir(src) if f.endswith(".png"))
+lead = []  # (bytes, width, height) of frames taken from a packed set
+if "--lead" in opts:
+    ldir, ln = opts["--lead"].rsplit(":", 1)
+    lm = json.load(open(os.path.join(ldir, "manifest.json")))
+    if lm["width"] != width:
+        sys.exit(f"--lead set is {lm['width']} wide, not {width}")
+    raw = {}
+    for ci, off, size in lm["frames"][: int(ln)]:
+        if ci not in raw:
+            raw[ci] = open(os.path.join(ldir, lm["chunks"][ci]), "rb").read()
+        lead.append((raw[ci][off : off + size], lm["width"], lm["height"]))
 os.makedirs(dst, exist_ok=True)
 for f in os.listdir(dst):
     if f.endswith(".bin") or f == "manifest.json":
         os.remove(os.path.join(dst, f))
 
+
+def encoded():
+    yield from lead
+    for name in files:
+        im = Image.open(os.path.join(src, name)).convert("RGB")
+        if im.width != width:
+            im = im.resize((width, round(im.height * width / im.width)), Image.LANCZOS)
+        b = BytesIO()
+        im.save(b, "WEBP", quality=quality, method=6)
+        yield b.getvalue(), im.width, im.height
+
+
 frames, chunks = [], []
 buf, chunk_i = bytearray(), 0
 w = h = 0
-for n, name in enumerate(files):
-    im = Image.open(os.path.join(src, name)).convert("RGB")
-    if im.width != width:
-        im = im.resize((width, round(im.height * width / im.width)), Image.LANCZOS)
-    w, h = im.size
-    b = BytesIO()
-    im.save(b, "WEBP", quality=quality, method=6)
-    data = b.getvalue()
+total_n = len(lead) + len(files)
+for n, (data, w, h) in enumerate(encoded()):
     frames.append([chunk_i, len(buf), len(data)])
     buf += data
-    if (n + 1) % per == 0 or n == len(files) - 1:
+    if (n + 1) % per == 0 or n == total_n - 1:
         cname = f"c{chunk_i:02d}-{hashlib.sha1(buf).hexdigest()[:8]}.bin"
         with open(os.path.join(dst, cname), "wb") as fh:
             fh.write(buf)
