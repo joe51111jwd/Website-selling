@@ -79,6 +79,8 @@ export const FOCUS_LINES: { id: string; at: [number, number]; box: string; side:
 ];
 /** the outline of a line's blocks in the picture [l, t, r, b], 0-1 (render/focus_anchors.py) */
 export const focusBox = (k: string) => (film.lines as Record<string, { box: number[] }>)[k].box as [number, number, number, number];
+/** the page's frame that a line's picture holds on (its Blender frame, exported with the outline) */
+export const focusHold = (k: string) => f((film.lines as Record<string, { frame: number }>)[k].frame - 1);
 /** the focus version's landing: the book holds the screen until here (story progress), then the blocks */
 export const FOCUS_HERO: [number, number, number] = [0, OPEN_P * 0.22, OPEN_P * 0.36];
 const FILM_KEYS = FOCUS ? FOCUS_FILM_KEYS : STORY_KEYS;

@@ -82,8 +82,9 @@ for i, ob in enumerate(base):
     drop(ob, tuple(ob.location), base_yaw[i], 2 + i * 6)
 
 # --- what a founder piles on ---
-LAB = ["launching", "hiring", "adding", "crm", "agency", "ops", "apps", "hire12", "sops", "ai", "burn", "sku", "hire15", "meet"]
+LAB = ["adding", "hiring", "launching", "crm", "agency", "ops", "apps", "hire12", "sops", "ai", "burn", "sku", "hire15", "meet"]
 PLANKS = {"launching": "f_launching", "hiring": "f_hiring", "adding": "f_adding"}  # twice as wide: the words are the blocks
+# (they land ADDING, HIRING, LAUNCHING, so the held stack reads top-down as L1993 does: Always launching. Always hiring. Always adding.)
 random.seed(11)
 labeled, rest = [], {}
 x = 0.0
@@ -201,13 +202,14 @@ def pose_at(ob, f):
     return tuple(loc), q
 
 def set_down(ob, target, start, dur=7, lift=0.6, yaw=0.0, frm=None):
-    """lift from where it lies, carry, and lower square onto its spot"""
+    """picked up where it lies, carried at height, and lowered straight down, square, onto its spot
+    (so it never skims over what lies between)"""
     tx, ty, tz = target
     (fx, fy, fz), fq = frm if frm else pose_at(ob, start)
     up = max(fz, tz) + lift
     setkey(ob, start, (fx, fy, fz), fq)
-    setkey(ob, start + max(2, dur // 3), (fx + (tx - fx) * 0.25, fy + (ty - fy) * 0.25, up), SQUARE.slerp(fq, 0.4), "SINE", "EASE_IN_OUT")
-    setkey(ob, start + dur - 2, (tx, ty, tz + 0.12), q_yaw(yaw), "SINE", "EASE_OUT")
+    setkey(ob, start + 2, (fx + (tx - fx) * 0.1, fy + (ty - fy) * 0.1, up), SQUARE.slerp(fq, 0.4), "SINE", "EASE_IN_OUT")
+    setkey(ob, start + dur - 3, (tx, ty, up), q_yaw(yaw), "SINE", "EASE_IN_OUT")
     setkey(ob, start + dur, (tx, ty, tz), q_yaw(yaw))
 
 def slide_in(ob, target, start, dur=8, frm_dx=-6.0, yaw=0.0):
@@ -234,8 +236,8 @@ def clear_out(ob, start, dur=10, to=(0.0, -9.0, 0.0), spin=25.0):
 # 146-147 wreckage hold. 148-156 clear the footprint. 157-171 the stack flips upside down and back.
 # 173-223 SIDE: the twelve systems slide in from the sides in mirror pairs. 224-244 DOWN: the planks
 # and the dead weight leave, the rest is gathered. 245-331 UP: the same team goes back on, on top of
-# the systems, and the structure keeps rising past where the rush fell. 332-354 the finished building.
-END = 354
+# the systems, and the structure keeps rising past where the rush fell. 332: the finished building.
+END = 332
 scene.frame_end = END
 
 def world_at(anchor, dx, dz=0.0, yaw_deg=None):
@@ -262,88 +264,111 @@ for course, (anchor, keys, hexcol) in SYS.items():
         pos = (pos[0] + rnd.uniform(-0.004, 0.004), pos[1] + rnd.uniform(-0.004, 0.004), pos[2])
         systems[key] = (ob, pos, yaw + rnd.uniform(-0.5, 0.5), dx)
 
-# --- 148-156: anything that came to rest where the foundation goes is set aside, square ---
+# --- 148-164: anything that came to rest where the foundation slides in is set aside, square.
+# Each goes to its own side (never across the cover stack), behind the line of the foundation, carried
+# high enough to clear what lies on the floor; whatever lies on top moves first, one block at a time.
 others = {o.name: final[o.name][0] for o in labeled}
 def free_spot(cands, taken):
     for c in cands:
         if all(math.hypot(c[0] - p[0], c[1] - p[1]) > 1.25 for p in taken):
             return c
     return cands[-1]
-# each goes to its own side (never across the cover stack), behind the line of the foundation
-spots_r = [(5.4 + 1.3 * k, 1.8 + 0.3 * (k % 2), 0.5) for k in range(8)]
-spots_l = [(-5.4 - 1.3 * k, 1.8 + 0.3 * (k % 2), 0.5) for k in range(8)]
-plank_spots = iter([(8.2, 2.6, 0.5), (-8.2, 2.6, 0.5), (10.6, 3.4, 0.5)])
-for ob in labeled:
+spots_r = [(5.6 + 1.3 * k, 1.9 + 0.3 * (k % 2), 0.5) for k in range(8)]
+spots_l = [(-5.6 - 1.3 * k, 1.9 + 0.3 * (k % 2), 0.5) for k in range(8)]
+plank_r = iter([(8.6, 2.9, 0.5), (11.2, 3.5, 0.5)])
+plank_l = iter([(-8.6, 2.9, 0.5), (-11.2, 3.5, 0.5)])
+aside = [o for o in labeled if abs(final[o.name][0][0]) <= 5.8 and -1.8 <= final[o.name][0][1] <= 2.0]  # the bottom course slides in from x = +-4.6
+aside.sort(key=lambda o: -final[o.name][0][2])  # top first
+nth = {1: 0, -1: 0}  # each side one block at a time, the two sides together
+for ob in aside:
     (x, y, z), q = final[ob.name]
-    if ob.name in PLANKS and abs(x) <= 6.5 and -2.2 <= y <= 1.8:
-        tgt = next(plank_spots)
-        yaw = random.uniform(-6, 6)
-        set_down(ob, tgt, 148, dur=8, lift=0.4, yaw=yaw, frm=final[ob.name])
-        others[ob.name] = tgt
-        final[ob.name] = (tgt, q_yaw(yaw))
-        print("set aside (plank)", ob.name, "->", tgt)
-        continue
-    if ob.name not in PLANKS and abs(x) <= 6.2 and -1.6 <= y <= 1.2:  # the systems slide in from x = +-5.6
+    side = 1 if x >= 0 else -1
+    k = nth[side]
+    nth[side] += 1
+    if ob.name in PLANKS:
+        tgt = next(plank_r if x >= 0 else plank_l)
+    else:
         taken = [p for n, p in others.items() if n != ob.name]
         tgt = free_spot(spots_r if x >= 0 else spots_l, taken)
-        yaw = random.uniform(-6, 6)
-        set_down(ob, tgt, 148, dur=8, lift=0.4, yaw=yaw, frm=final[ob.name])
-        others[ob.name] = tgt
-        final[ob.name] = (tgt, q_yaw(yaw))
-        print("set aside", ob.name, "->", tgt)
+    yaw = random.uniform(-6, 6)
+    set_down(ob, tgt, 148 + 3 * k, dur=7, lift=1.5, yaw=yaw, frm=final[ob.name])
+    others[ob.name] = tgt
+    final[ob.name] = (tgt, q_yaw(yaw))
+    print("set aside", ob.name, "->", tgt, "at", 148 + 3 * k)
 
-# --- 157-171 the cover's stack flips upside down as one piece (157-163), holds, and is set right
-# (165-171): That's scaling upside down. It turns about the stack's middle, lifted clear of the floor
-FLIP = [(157, 0), (159, 60), (161, 120), (163, 180), (165, 180), (167, 120), (169, 60), (171, 0)]
-LIFT = {0: 0.0, 60: 0.45, 120: 0.45, 180: 0.0}
+# --- 157-171 the cover's stack turns upside down as one piece (157-163), holds, and is set right
+# (165-171): That's scaling upside down. A rigid turn about the stack's middle, keyed on every frame,
+# lifted just enough that its corners clear the floor.
 pivot = Vector((sum(final[o.name][0][0] for o in base) / 3, sum(final[o.name][0][1] for o in base) / 3, 1.5))
+def ease(t):
+    t = max(0.0, min(1.0, t))
+    return t * t * (3 - 2 * t)
+def flip_deg(f):
+    if f <= 163:
+        return 180 * ease((f - 157) / 6)
+    if f <= 165:
+        return 180.0
+    return 180 * (1 - ease((f - 165) / 6))
 for ob in base:
     p0, q0 = Vector(final[ob.name][0]), final[ob.name][1]
     prev = None
-    for f, deg in FLIP:
-        r = Quaternion((0, 1, 0), math.radians(deg))
-        p = pivot + r @ (p0 - pivot) + Vector((0, 0, LIFT[deg]))
+    for f in range(157, 172):
+        th = math.radians(flip_deg(f))
+        r = Quaternion((0, 1, 0), th)
+        p = pivot + r @ (p0 - pivot) + Vector((0, 0, 0.55 * math.sin(th)))
         q = r @ q0
         if prev is not None and prev.dot(q) < 0:
             q = -q
-        setkey(ob, f, tuple(p), q, "SINE", "EASE_IN_OUT")
+        setkey(ob, f, tuple(p), q, "LINEAR")
         prev = q
 
-# --- 173-223 SIDE: the twelve systems, in mirror pairs, inner first, bottom course first; each is
-# set down out at its side and slides in sideways to its place
+# --- 173-223 SIDE: the twelve systems, in mirror pairs, inner first, bottom course first. The bottom
+# course is set down on the floor out at its side and slides in; above it, the inner pair is set down
+# on the course below, one block out, and slides in; the outer pair is lowered onto its place.
 PAIRS = [("risk", "efficiency"), ("profit", "quality"), ("systematize", "tech"), ("roles", "fulfillment"), ("leads", "conversion"), ("content", "retention")]
+BOTTOM = {"profit", "risk", "efficiency", "quality"}
 for n, pair in enumerate(PAIRS):
     s = 173 + 8 * n
     for key in pair:
         ob, (tx, ty, tz), yaw, dx = systems[key]
-        out = 2.6 if dx > 0 else -2.6
+        if key not in BOTTOM and abs(dx) == 2:
+            lower_in(ob, (tx, ty, tz), s + 2, dur=7, height=1.6, yaw=yaw)
+            continue
+        out = (2.6 if key in BOTTOM else 1.0) * (1 if dx > 0 else -1)
         setkey(ob, 1, (tx + out, ty, tz + 80), q_yaw(yaw), "CONSTANT")
         setkey(ob, s, (tx + out, ty, tz + 1.4), q_yaw(yaw), "SINE", "EASE_OUT")
         setkey(ob, s + 3, (tx + out, ty, tz + 0.02), q_yaw(yaw), "SINE", "EASE_IN_OUT")
         setkey(ob, s + 10, (tx, ty, tz), q_yaw(yaw), "SINE", "EASE_OUT")
 
-# --- 224-244 DOWN: the planks and the dead weight leave toward the lens; what stays is gathered ---
-JUNK = [("adding", 224), ("hiring", 226), ("launching", 228), ("agency", 230), ("apps", 231), ("burn", 232), ("meet", 233), ("hire15", 234)]  # all gone by 243
-CAM_P = Vector((11.0, -20.0, 10.0))
-for name, s in JUNK:
-    ob = next(o for o in labeled if o.name == name)
-    (x, y, z), q = final[name]
-    d = Vector((CAM_P.x - x, CAM_P.y - y, 0)).normalized() * 13
+# --- 224-245 DOWN: the planks and the dead weight leave toward the lens, each out on its own side of
+# the foundation (a blocker first); then what stays is gathered in a row in front, on its own side
+JUNK = ["adding", "hiring", "launching", "agency", "apps", "burn", "meet", "hire15"]
+junk = sorted((o for o in labeled if o.name in JUNK), key=lambda o: final[o.name][0][1])  # the nearest the lens first
+for k, ob in enumerate(junk):
+    s = 224 + k
+    (x, y, z), q = final[ob.name]
+    d = Vector((0.35 if x >= 0 else -0.35, -1, 0)).normalized() * 15
     setkey(ob, s - 1, (x, y, z), q)
-    setkey(ob, s + 1, (x, y, z + 0.15), q, "QUAD", "EASE_IN")
-    setkey(ob, s + 8, (x + d.x, y + d.y, z + 0.15), q @ q_yaw(random.uniform(-30, 30)))
+    setkey(ob, s + 1, (x, y, z + 0.6), q, "QUAD", "EASE_IN")
+    setkey(ob, s + 8, (x + d.x, y + d.y, z + 0.6), q @ q_yaw(random.uniform(-30, 30)))
     # and then it is gone from the set, not lying in front of the closing shot
     for flag, f in ((False, s + 8), (True, s + 9)):
         ob.hide_render = flag
         ob.keyframe_insert("hide_render", frame=f)
+    print("down", ob.name, "from", (round(x, 2), round(y, 2)), "at", s)
 KEEP = ["crm", "ops", "hire12", "sops", "ai", "sku"]
-row = [(5.2 + 1.25 * (k % 5), -1.3 - 1.35 * (k // 5), 0.5) for k in range(9)]  # clear of the foundation's front
-for k, name in enumerate(KEEP):
+keep_l = sorted((n for n in KEEP if final[n][0][0] < 0), key=lambda n: -final[n][0][0])  # nearest the middle first
+keep_r = sorted((n for n in KEEP if final[n][0][0] >= 0), key=lambda n: final[n][0][0])
+order = []
+for side, names in ((-1, keep_l), (1, keep_r)):
+    for k, name in enumerate(names):
+        order.append((name, (side * (5.2 + 1.3 * k), -1.6, 0.5)))
+for k, (name, tgt) in enumerate(order):
     ob = next(o for o in labeled if o.name == name)
-    s = 225 + k * 2
     yaw = random.uniform(-3, 3)
-    set_down(ob, row[k], s, dur=10, lift=0.25, yaw=yaw, frm=final[name])  # all down by 245: the Down hold
-    final[name] = (row[k], q_yaw(yaw))
+    set_down(ob, tgt, 232 + k, dur=8, lift=1.5, yaw=yaw, frm=final[name])  # all down by 245: the Down hold
+    final[name] = (tgt, q_yaw(yaw))
+    print("keep", name, "->", tgt, "at", 232 + k)
 
 # --- 245-331 UP: the team goes back on, on the systems; then the structure keeps rising ---
 TOWER = [["crm", "ops", "hire12"], ["sops", "ai", "sku"]]
@@ -405,7 +430,8 @@ SHOTS = [  # frame, (camera, aim, lens), focus, fstop
     (32, ((8.8, -13.4, 3.1), (-1.25, 0, 1.3), 78), (0, 0, 1.6), 4.0),
     (38, ((9.2, -15.0, 4.0), (-0.9, 0, 3.6), 70), (0, 0, 3.6), 5.0),  # the planks: each one framed as it lands
     (45, ((9.5, -16.4, 4.8), (-1.0, 0, 4.6), 64), (0, 0, 4.6), 5.0),
-    (52, ((10.0, -18.5, 5.0), (-1.3, 0, 5.4), 60), (0.1, 0, 5.4), 5.0),
+    (52, ((10.0, -18.5, 4.2), (-1.3, 0, 3.2), 64), (0.1, 0, 3.2), 5.0),  # the three planks on the whole cover stack: the first hold
+    (56, ((10.0, -18.5, 4.2), (-1.3, 0, 3.2), 64), (0.1, 0, 3.2), 5.0),
     (66, ((11.6, -23.5, 3.4), (-2.2, 0, 5.4), 48), (0.2, 0, 5.4), 4.8),
     (80, ((13.2, -28.0, 3.5), (-2.6, 0, 7.4), 40), (0.3, 0, 7.4), 5.2),
     (92, W, (0.4, 0, 8.5), 5.6),
@@ -423,7 +449,6 @@ SHOTS = [  # frame, (camera, aim, lens), focus, fstop
     (298, ((13.4, -27.2, 5.6), (-2.3, 0, 5.4), 37), (0, 0, 5.4), 6.0),
     (314, ((13.9, -29.2, 4.4), (-2.6, 0, 7.4), 36), (0.2, 0, 7.4), 6.0),
     (332, W, (0.3, 0, 8.0), 6.0),
-    (354, W, (0.3, 0, 8.0), 6.0),
 ]
 for f, (c, a, lens), fo, fs in SHOTS:
     cam.location = c

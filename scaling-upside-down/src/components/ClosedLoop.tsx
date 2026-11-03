@@ -5,7 +5,7 @@ import type { SiteCopy } from "../copy";
 import { APPENDIX_URL, optinLive, sendOptin, validEmail, type OptinResult } from "../optin";
 import { FrameStore, fetchOk } from "../frames";
 import { LINKS } from "../links";
-import { BEATS, BOOK_P, BOOTLOADER_P, CL_VH, LIFT, T, blockFit, bookFoot, cb, frameAt, geo, hairEase, hapticPattern, modeNow, poseRect, ringFoot, seqRect, smooth, stampFor, truckRect, type Mode, type Rect } from "../closedloop";
+import { BEATS, BOOK_P, BOOTLOADER_P, CL_VH, LIFT, T, blockFit, bookAlone, bookFoot, cb, frameAt, geo, hairEase, hapticPattern, modeNow, poseRect, ringFoot, ringWindow, seqRect, setBookCard, smooth, stampFor, truckRect, type Mode, type Rect } from "../closedloop";
 import { CopyBlock } from "./CopyBlock";
 import { JoinLink } from "./JoinLink";
 import { openNotice } from "./NoticeDialog";
@@ -82,7 +82,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const [result, setResult] = useState<Done | null>(startResult);
   // the line under the field: a wrong address, a failed send, or no email service connected yet
   const [fieldErr, setFieldErr] = useState<"" | "email" | "send" | "soon">(start === "error" ? "send" : start === "soon" ? "soon" : "");
-  const [sentTo, setSentTo] = useState("");
+  const [sentTo, setSentTo] = useState(startResult === "sent" ? copy.block.placeholder : ""); // (the ?closed=sent check state shows a sample address)
   const mailLive = useRef<boolean | null>(null); // is an email service connected (api/optin)
   const [cbLoad, setCbLoad] = useState<false | "hi" | "lo">(false);
   const blockW = useRef(320); // the COPY block's width, from the last layout
@@ -99,12 +99,23 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const lower = useTransform(p, [0.45, 0.462], [0, 1]);
   const railShow = useTransform(p, [0, 0.02, 0.44, 0.47], [0, 1, 1, 0]);
   // the layers over the picture (Quality, the line, the tag) belong to the finished ring
-  // (focus: they go with the rest of the table as the camera reaches the book)
-  const plateIn = useTransform(p, FOCUS ? [0.445, 0.452, 0.8, 0.86] : [0.445, 0.452], FOCUS ? [0, 1, 1, 0] : [0, 1]);
-  const plateVis = useTransform(plateIn, (o) => (o > 0.5 ? "visible" : "hidden"));
+  // (focus: they go to paper with the rest of the ring, on the same curve, as the camera reaches the book)
+  const plateIn = useTransform(p, (v) => {
+    const fadeIn = Math.max(0, Math.min(1, (v - 0.445) / 0.007));
+    return FOCUS && modeNow() === "focus" ? Math.min(fadeIn, 1 - bookAlone(v, reduced)) : fadeIn;
+  });
+  const plateVis = useTransform(plateIn, (o) => (o > (FOCUS ? 0.02 : 0.5) ? "visible" : "hidden"));
   const railFill = useTransform(p, [0, 0.47], [0, 1]);
   const [narrow] = useState(() => win && window.innerWidth > 900 && window.innerWidth <= 1200);
   const scrim = useTransform(p, narrow ? [0, 0.44, 0.47] : [0, 0.42, 0.46], narrow ? [1, 1, 0] : [1, 1, 0]);
+
+  // focus: the book alone at the end has the one way to join, so the menu's copy steps aside there
+  useMotionValueEvent(p, "change", (v) => {
+    if (!FOCUS) return;
+    const on = v >= BEATS.book[0];
+    if (on !== document.documentElement.hasAttribute("data-clbook")) document.documentElement.toggleAttribute("data-clbook", on);
+  });
+  useEffect(() => () => document.documentElement.removeAttribute("data-clbook"), []);
 
   const go = (r: Ring) => {
     now.current = r;
@@ -402,13 +413,15 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
       ctx.fillRect(x, y, w, h);
     };
     /** paper over everything outside rect r, softened into it (blocks can sit on an edge, so no stretching) */
-    const paper = (r: Rect, alpha: number) => {
+    const paper = (r: Rect, alpha: number, kx = 0.14, ky = 0.08) => {
       if (alpha <= 0.002) return;
       const cw = cv.width;
       const ch = cv.height;
-      const { ox, oy, dw, dh } = r;
-      const fy = 0.08 * dh;
-      const fx = 0.14 * dw; // the ring sits in the middle half, so the sides can fade a long way
+      // (focus: on whole device pixels, so the solid paper and its fades never leave a hairline between them)
+      const snap = FOCUS ? { ox: Math.floor(r.ox), oy: Math.floor(r.oy), dw: Math.ceil(r.ox + r.dw) - Math.floor(r.ox), dh: Math.ceil(r.oy + r.dh) - Math.floor(r.oy) } : r;
+      const { ox, oy, dw, dh } = snap;
+      const fy = ky * dh;
+      const fx = kx * dw; // the ring sits in the middle half, so the sides can fade a long way
       ctx.fillStyle = `rgba(${seam},${alpha})`;
       if (oy > 0.5) ctx.fillRect(0, 0, cw, oy);
       if (oy + dh < ch - 0.5) ctx.fillRect(0, oy + dh, cw, ch - oy - dh);
@@ -471,9 +484,10 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
         // hides the panorama's far ends; it gives way as the camera starts to slide.
         const tv = reduced ? (mode !== "desk" ? (v < 0.82 ? 0.74 : 0.87) : v < 0.77 ? 0.74 : v < 0.89 ? 0.83 : 0.92) : v;
         const r = v < 0.74 ? pose : truckRect(tv, cw, ch, mode);
-        const a = reduced ? (v < 0.77 ? 1 : 0) : 1 - smooth((v - 0.74) / 0.03);
+        // (focus cuts straight from the ring to the book when motion is reduced, so the two never share the screen)
+        const a = reduced ? (v < (FOCUS ? 0.82 : 0.77) ? 1 : 0) : 1 - smooth((v - 0.74) / 0.03);
         // focus: as the camera reaches the book, the table round it goes to paper, so the book is alone
-        const ab = mode === "focus" ? (reduced ? (v < 0.82 ? 0 : 1) : smooth((v - 0.8) / 0.07)) : 0;
+        const ab = mode === "focus" ? bookAlone(v, reduced) : 0;
         const k = `p${r.ox.toFixed(1)}:${r.oy.toFixed(1)}:${r.dw.toFixed(1)}:${a.toFixed(3)}:${ab.toFixed(3)}:${cv.width}x${cv.height}`;
         if (k !== lastKey) {
           const s = scaled(r);
@@ -483,8 +497,10 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
           ctx.drawImage(pano, ps.ox, ps.oy, ps.dw, ps.dh);
           paper(ps, 1);
           paper(s, a);
+          // focus: the ring alone, centred, on plain paper until the camera slides (none of the panorama's far table)
+          if (mode === "focus") paper(scaled(ringWindow(r)), a, 0.25, 0.16);
           // the book and its blocks lie within frame-50 x -0.42..-0.02, y 0.06..0.94
-          paper({ ox: s.ox - 0.42 * s.dw, oy: s.oy + 0.06 * s.dh, dw: 0.4 * s.dw, dh: 0.88 * s.dh }, ab);
+          paper({ ox: s.ox - 0.42 * s.dw, oy: s.oy + 0.06 * s.dh, dw: 0.4 * s.dw, dh: 0.88 * s.dh }, ab, 0.25, 0.12);
           lastKey = k;
         }
         placePlate(r);
@@ -501,6 +517,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
           clear();
           ctx.drawImage(bmp, sr.ox, sr.oy, sr.dw, sr.dh);
           paper(sr, 1);
+          if (mode === "focus") paper(scaled(ringWindow(r)), 1, 0.25, 0.16); // the ring (or the pile) alone, centred, clear of the menu
           lastKey = k;
         }
         placePlate(pose);
@@ -656,6 +673,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
       // a desk window too short for the column takes the words the way a phone on its side does
       const mode: Mode = canvasMode === "desk" && ch < 520 ? "land" : canvasMode;
       c.dataset.mode = mode;
+      st.dataset.mode = mode; // (the focus version's finale styles apply only in its own layout, not its 'land' fallback)
       const put = (W: number, gapb: number) => {
         const { big, small } = stampFor(W);
         blockW.current = W;
@@ -682,8 +700,10 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
         c.style.maxWidth = "";
         const pose = poseRect(cw, ch, "focus");
         const top = Math.round(ringFoot(pose));
-        st.style.setProperty("--cl-open", `${Math.round(ringFoot(seqRect(0, cw, ch, "focus")))}px`);
+        const open = ringWindow(seqRect(0, cw, ch, "focus")); // the pile fills its frame: the line starts under what is shown
+        st.style.setProperty("--cl-open", `${Math.round(open.oy + open.dh + 18)}px`);
         st.style.setProperty("--cl-close", `${top}px`);
+        setBookCard(st.querySelector<HTMLElement>(".cl-book")?.offsetHeight ?? 0);
         st.style.setProperty("--cl-book", `${Math.round(bookFoot(truckRect(1, cw, ch, "focus")))}px`);
         const rest = () => c.offsetHeight - b.offsetHeight - (parseFloat(getComputedStyle(b).marginTop) || 0);
         const room = ch - top - 16; // under the ring, above the bottom edge
@@ -868,7 +888,7 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
                 {book.soon}
               </p>
             )}
-            <JoinLink size="md" label={book.join} />
+            <JoinLink size="md" label={book.join} up={FOCUS} />
           </div>
         </Win>
 

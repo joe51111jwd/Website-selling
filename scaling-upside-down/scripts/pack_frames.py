@@ -28,6 +28,8 @@ if "--lead" in opts:
     lm = json.load(open(os.path.join(ldir, "manifest.json")))
     if lm["width"] != width:
         sys.exit(f"--lead set is {lm['width']} wide, not {width}")
+    if int(ln) > lm["count"]:
+        sys.exit(f"--lead asks for {ln} frames, the set has {lm['count']}")
     raw = {}
     for ci, off, size in lm["frames"][: int(ln)]:
         if ci not in raw:
@@ -55,6 +57,9 @@ buf, chunk_i = bytearray(), 0
 w = h = 0
 total_n = len(lead) + len(files)
 for n, (data, w, h) in enumerate(encoded()):
+    if frames and (w, h) != (fw, fh):
+        sys.exit(f"frame {n} is {w}x{h}, the ones before it {fw}x{fh}: one set must be one size")
+    fw, fh = w, h
     frames.append([chunk_i, len(buf), len(data)])
     buf += data
     if (n + 1) % per == 0 or n == total_n - 1:

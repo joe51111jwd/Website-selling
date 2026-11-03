@@ -11,7 +11,7 @@ from bpy_extras.object_utils import world_to_camera_view
 scene = bpy.context.scene
 cam = scene.camera
 O = bpy.data.objects
-FIRST, LAST = 28, 354
+FIRST, LAST = 28, 332
 base = [O["down"], O["side"], O["up"]]
 planks = [O[n] for n in ("launching", "hiring", "adding")]
 labeled = [O[n] for n in ("launching", "hiring", "adding", "crm", "agency", "ops", "apps", "hire12", "sops", "ai", "burn", "sku", "hire15", "meet")]

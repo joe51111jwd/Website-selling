@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react
 import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { FrameStore, fetchOk } from "../frames";
-import { CALLOUTS, FOCUS_HERO, FOCUS_LINES, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, focusBox, frameAt, portraitFit, progressAt, setHeroCap, sp, yearAt, type FocusSide } from "../story";
+import { CALLOUTS, FOCUS_HERO, FOCUS_LINES, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, focusAt, focusBox, focusHold, frameAt, portraitFit, progressAt, setHeroCap, sp, yearAt, type FocusSide } from "../story";
 import { FOCUS } from "../focus";
 import { FOCUS_COPY, type Beat, type SiteCopy } from "../copy";
 import { JoinLink } from "./JoinLink";
@@ -11,7 +11,7 @@ import { BOOK } from "../book";
 type Anchors = { names: string[]; frames: Record<string, [number, number]>[] };
 
 const STORY_ALT = "The Up, Side and Down blocks lie face up on a table, then stand up and stack. Blocks labelled with hires and tools are stacked on the Up, Side and Down blocks faster and faster until the tower falls over. Twelve painted system blocks widen the base into a three-colour foundation, the dead weight is cleared, and the same team is stacked back on it into a taller building that holds.";
-const FOCUS_ALT = "The Up, Side and Down blocks lie face up on a table, then stand up and stack. Three planks stamped Always launching, Always hiring and Always adding go on top, then more and more blocks, faster and crookeder, until the tower falls over. The Up, Side and Down stack turns upside down and is set right again. Twelve painted system blocks slide in from both sides into a three-colour foundation, the planks and the dead weight are cleared away, and the same team is stacked back on it into a taller building that holds.";
+const FOCUS_ALT = "The Up, Side and Down blocks lie face up on a table, then stand up and stack. Three planks go on top, reading from the top Always launching, Always hiring, Always adding; then more and more blocks, faster and crookeder, until the tower falls over. The Up, Side and Down stack turns upside down and is set right again. Twelve painted system blocks are set in from both sides into a three-colour foundation, the planks and the dead weight are cleared away, the six blocks that stayed go back on it, and new plain blocks rise from them into a taller building that holds.";
 /** the focus version plays its own film (render/focus_film.py), opening with the same 89 pictures */
 const FRAMES = FOCUS ? "frames-focus" : "frames";
 const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -35,17 +35,17 @@ function FocusLineView({ id, at, progress, refEl }: { id: string; at: [number, n
   const range = [a, a + f, b - f, b];
   const opacity = useTransform(progress, range, [0, 1, 1, 0]);
   const y = useTransform(progress, range, reduced ? [0, 0, 0, 0] : [14, 0, 0, -10]);
-  const visibility = useTransform(opacity, shown);
+  // (no visibility: a line holds no controls, and every line stays in the reading order for screen readers)
   return (
     <div className="fl" ref={refEl}>
-      <m.article className={`fl-in tone-${line.tone}${line.big ? " is-big" : ""}`} style={{ opacity, y, visibility }}>
+      <m.article className={`fl-in tone-${line.tone}${line.big ? " is-big" : ""}`} style={{ opacity, y }}>
         {line.kicker && (
           <p className="beat-k">
             <i />
             {line.kicker}
           </p>
         )}
-        <h2 className="fl-h">{line.headline}</h2>
+        <h2 className="fl-h">{line.headline.replace(/—/g, "\u2060—")}</h2>
         {line.detail && <p className="fl-d">{line.detail}</p>}
       </m.article>
     </div>
@@ -97,6 +97,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
   const canvas = useRef<HTMLCanvasElement>(null);
   const callouts = useRef<(HTMLDivElement | null)[]>([]);
   const lines = useRef<(HTMLDivElement | null)[]>([]);
+  const linesBox = useRef<HTMLDivElement>(null);
   const hud = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<"loading" | "ready">("loading");
   const [load, setLoad] = useState(0);
@@ -149,6 +150,25 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       lastPlaced = Number.NaN;
       placed = [];
     };
+    /** focus: where frame's picture sits (device px). Its subject towards the screen's centre line, but a
+     *  picture wider than the screen always covers it (no gap at a side); on an upright screen it sits above
+     *  the band its words go in */
+    const focusRect = (frame: number, cw: number, ch: number, aspect: number) => {
+      let dh: number;
+      let oy: number;
+      if (cw < ch) {
+        const b = bandFit(ch / scale);
+        dh = b.h * scale;
+        oy = b.top * scale;
+      } else {
+        dh = ch;
+        oy = 0;
+      }
+      const dw = dh * aspect;
+      const want = cw / 2 - focusAt(frame) * dw;
+      const ox = dw >= cw ? Math.min(0, Math.max(cw - dw, want)) : Math.min(cw - dw, Math.max(0, want));
+      return { ox, oy, dw, dh };
+    };
     const draw = (bmp: ImageBitmap, frame: number) => {
       const cw = cv.width;
       const ch = cv.height;
@@ -157,17 +177,10 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       let dh: number;
       let oy: number;
       if (FOCUS) {
-        // the picture's subject on the screen's centre line; on an upright screen the picture sits above
-        // the band its words go in, the studio backdrop continuing round it
-        if (cw < ch) {
-          const b = bandFit(ch / scale);
-          dh = b.h * scale;
-          oy = b.top * scale;
-        } else {
-          dh = ch;
-          oy = 0;
-        }
-        dw = dh * aspect;
+        const r = focusRect(frame, cw, ch, aspect);
+        paintFocus(bmp, r.ox, r.oy, r.dw, r.dh, cw, ch);
+        fit = { w: r.dw, h: r.dh, ox: r.ox, oy: r.oy, dpr: scale };
+        return;
       } else if (cw / ch < 1) {
         // phones: the hero fills the screen; after it the picture sits above the words, and the
         // studio backdrop continues above and below it
@@ -190,43 +203,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       // narrower than the screen: slide the tower right, away from the words on the left
       // (a cropped frame on a landscape screen keeps the stack right of the words too; phones centre it)
       const anchor = cw >= ch ? 0.6 : 0.5;
-      const ox = FOCUS ? cw / 2 - focusAt(frame) * dw : dw > cw ? Math.min(0, Math.max(cw - dw, cw * anchor - focusAt(frame) * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - focusAt(frame) * dw));
-      if (FOCUS && cw < ch) {
-        // an upright screen (focus): the wall continues above the picture and the floor below it, in the
-        // colours of the frame's own edge rows with any block in them left out, and the picture fades
-        // into them, so a block cut by the edge never smears into stripes
-        const across = (c: CanvasRenderingContext2D, stops: string[]) => {
-          const g = c.createLinearGradient(ox, 0, ox + dw, 0);
-          stops.forEach((st, k) => g.addColorStop(k / (stops.length - 1), st));
-          return g;
-        };
-        const top = edgeRow(bmp, 0);
-        const bot = edgeRow(bmp, bmp.height - 2);
-        ctx.fillStyle = across(ctx, top);
-        ctx.fillRect(0, 0, cw, oy + 1);
-        ctx.fillStyle = across(ctx, bot);
-        ctx.fillRect(0, oy + dh - 1, cw, ch - oy - dh + 1);
-        ctx.drawImage(bmp, ox, oy, dw, dh);
-        const fade = Math.round(dh * 0.06);
-        for (const [stops, y, down] of [[top, oy, false], [bot, oy + dh - fade, true]] as const) {
-          if (edge.width !== cw || edge.height !== fade) {
-            edge.width = cw;
-            edge.height = fade;
-          }
-          ectx.globalCompositeOperation = "source-over";
-          ectx.fillStyle = across(ectx, [...stops]);
-          ectx.fillRect(0, 0, cw, fade);
-          const m = ectx.createLinearGradient(0, 0, 0, fade);
-          m.addColorStop(0, down ? "rgba(0,0,0,0)" : "#000");
-          m.addColorStop(1, down ? "#000" : "rgba(0,0,0,0)");
-          ectx.globalCompositeOperation = "destination-in";
-          ectx.fillStyle = m;
-          ectx.fillRect(0, 0, cw, fade);
-          ctx.drawImage(edge, 0, y);
-        }
-        fit = { w: dw, h: dh, ox, oy, dpr: scale };
-        return;
-      }
+      const ox = dw > cw ? Math.min(0, Math.max(cw - dw, cw * anchor - focusAt(frame) * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - focusAt(frame) * dw));
       ctx.drawImage(bmp, ox, oy, dw, dh);
       if (oy > 0) ctx.drawImage(bmp, 0, 0, bmp.width, 2, ox, 0, dw, oy + 1);
       if (oy + dh < ch) ctx.drawImage(bmp, 0, bmp.height - 2, bmp.width, 2, ox, oy + dh - 1, dw, ch - oy - dh + 1);
@@ -235,27 +212,34 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       fit = { w: dw, h: dh, ox, oy, dpr: scale };
     };
 
-    // focus, an upright screen: a frame's edge row (y) in 24 colours across, the blocks in it left out
-    // (strong colour or dark) and filled from the wall or floor beside them; cached per frame
+    // focus: a frame's edge (its top or bottom row, or its first or last column) in 24 colours along it,
+    // the blocks in it left out (strong colour, dark, or a shaded face darker than the wall or floor
+    // round it) and filled from the wall or floor beside them; cached per frame
     const N = 24;
     const probe = document.createElement("canvas");
     probe.width = N;
-    probe.height = 1;
+    probe.height = N;
     const pctx = probe.getContext("2d", { willReadFrequently: true })!;
     const edge = document.createElement("canvas"); // the soft seam between the picture and what continues it
     const ectx = edge.getContext("2d")!;
-    const rows = new WeakMap<ImageBitmap, Record<number, string[]>>();
-    const edgeRow = (bmp: ImageBitmap, y: number) => {
+    const rows = new WeakMap<ImageBitmap, Record<string, string[]>>();
+    const edgeLine = (bmp: ImageBitmap, axis: "row" | "col", at: number) => {
+      const id = `${axis}${at}`;
       const seen = rows.get(bmp) ?? {};
-      if (seen[y]) return seen[y];
-      pctx.clearRect(0, 0, N, 1);
-      pctx.drawImage(bmp, 0, y, bmp.width, 2, 0, 0, N, 1);
-      const d = pctx.getImageData(0, 0, N, 1).data;
+      if (seen[id]) return seen[id];
+      pctx.clearRect(0, 0, N, N);
+      if (axis === "row") pctx.drawImage(bmp, 0, at, bmp.width, 2, 0, 0, N, 1);
+      else pctx.drawImage(bmp, at, 0, 2, bmp.height, 0, 0, 1, N);
+      const d = pctx.getImageData(0, 0, axis === "row" ? N : 1, axis === "row" ? 1 : N).data;
       const px = Array.from({ length: N }, (_, k) => [d[k * 4], d[k * 4 + 1], d[k * 4 + 2]]);
-      const ok = px.map(([r, g, b]) => {
+      const lum = ([r, g, b]: number[]) => 0.3 * r + 0.59 * g + 0.11 * b;
+      const plain = px.map(([r, g, b]) => {
         const hi = Math.max(r, g, b);
         return hi > 120 && (hi - Math.min(r, g, b)) / hi < 0.22;
       });
+      const ls = px.filter((_, k) => plain[k]).map(lum).sort((a, b) => a - b);
+      const mid = ls.length ? ls[ls.length >> 1] : 0;
+      const ok = px.map((c, k) => plain[k] && lum(c) >= 0.94 * mid);
       const out = px.map((c, k) => {
         if (ok[k]) return c;
         let l = k;
@@ -268,10 +252,77 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         const t = (k - l) / (r - l);
         return px[l].map((v, i) => v + (px[r][i] - v) * t);
       });
-      const res = out.map(([r, g, b]) => `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`);
-      seen[y] = res;
+      // eased toward the edge's middle tone, so what continues the picture reads as one wall or floor
+      const okPx = out.filter((_, k) => ok[k]);
+      const avg = okPx.length ? [0, 1, 2].map((i) => okPx.reduce((t, c) => t + c[i], 0) / okPx.length) : null;
+      const res = out.map((c) => (avg ? c.map((v, i) => v + (avg[i] - v) * 0.4) : c)).map(([r, g, b]) => `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`);
+      seen[id] = res;
       rows.set(bmp, seen);
       return res;
+    };
+    /** focus: the picture, and round it the wall and floor it shows, continued in its own edge colours, the
+     *  picture fading into them wherever the screen is larger than it (so a block cut by the frame's edge
+     *  never smears into stripes) */
+    const paintFocus = (bmp: ImageBitmap, ox: number, oy: number, dw: number, dh: number, cw: number, ch: number) => {
+      const along = (c: CanvasRenderingContext2D, stops: string[], horiz: boolean) => {
+        const g = horiz ? c.createLinearGradient(ox, 0, ox + dw, 0) : c.createLinearGradient(0, oy, 0, oy + dh);
+        stops.forEach((st, k) => g.addColorStop(k / (stops.length - 1), st));
+        return g;
+      };
+      const gapT = oy > 0.5;
+      const gapB = oy + dh < ch - 0.5;
+      const gapL = ox > 0.5;
+      const gapR = ox + dw < cw - 0.5;
+      const top = gapT ? edgeLine(bmp, "row", 0) : null;
+      const bot = gapB ? edgeLine(bmp, "row", bmp.height - 2) : null;
+      const left = gapL ? edgeLine(bmp, "col", 0) : null;
+      const right = gapR ? edgeLine(bmp, "col", bmp.width - 2) : null;
+      // the sides first (full height of the picture), then the top and bottom bands across the whole width
+      if (left) {
+        ctx.fillStyle = along(ctx, left, false);
+        ctx.fillRect(0, oy, Math.ceil(ox) + 1, dh);
+      }
+      if (right) {
+        ctx.fillStyle = along(ctx, right, false);
+        ctx.fillRect(Math.floor(ox + dw) - 1, oy, cw - Math.floor(ox + dw) + 1, dh);
+      }
+      if (top) {
+        ctx.fillStyle = along(ctx, top, true);
+        ctx.fillRect(0, 0, cw, Math.ceil(oy) + 1);
+      }
+      if (bot) {
+        ctx.fillStyle = along(ctx, bot, true);
+        ctx.fillRect(0, Math.floor(oy + dh) - 1, cw, ch - Math.floor(oy + dh) + 1);
+      }
+      ctx.drawImage(bmp, ox, oy, dw, dh);
+      // soft seams: the edge colours over the picture's outer strip, fading into it
+      const seam = (stops: string[], horiz: boolean, x: number, y: number, w: number, h: number, inward: "down" | "up" | "right" | "left") => {
+        w = Math.max(1, Math.round(w));
+        h = Math.max(1, Math.round(h));
+        if (edge.width !== w || edge.height !== h) {
+          edge.width = w;
+          edge.height = h;
+        }
+        ectx.globalCompositeOperation = "source-over";
+        const g = horiz ? ectx.createLinearGradient(ox - x, 0, ox - x + dw, 0) : ectx.createLinearGradient(0, oy - y, 0, oy - y + dh);
+        stops.forEach((st, k) => g.addColorStop(k / (stops.length - 1), st));
+        ectx.fillStyle = g;
+        ectx.fillRect(0, 0, w, h);
+        const m = inward === "down" || inward === "up" ? ectx.createLinearGradient(0, 0, 0, h) : ectx.createLinearGradient(0, 0, w, 0);
+        const solidFirst = inward === "down" || inward === "right"; // the opaque end is at the picture's edge
+        m.addColorStop(0, solidFirst ? "#000" : "rgba(0,0,0,0)");
+        m.addColorStop(1, solidFirst ? "rgba(0,0,0,0)" : "#000");
+        ectx.globalCompositeOperation = "destination-in";
+        ectx.fillStyle = m;
+        ectx.fillRect(0, 0, w, h);
+        ctx.drawImage(edge, Math.round(x), Math.round(y));
+      };
+      const fy = dh * 0.08;
+      const fx = dw * 0.05;
+      if (top) seam(top, true, 0, oy, cw, fy, "down");
+      if (bot) seam(bot, true, 0, oy + dh - fy, cw, fy, "up");
+      if (left) seam(left, false, ox, oy, fx, dh, "right");
+      if (right) seam(right, false, ox + dw - fx, oy, fx, dh, "left");
     };
 
     // an upright phone: the stack's top (about 15% down the picture) stays 12px under the hero's button
@@ -376,18 +427,21 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       const vw = cv.clientWidth;
       const vh = cv.clientHeight;
       const fp = filmP(scrollYProgress.get());
+      const m = (store ?? lo)?.m;
+      if (!m) return;
       FOCUS_LINES.forEach((ln, k) => {
         const el = lines.current[k];
         if (!el || fp < ln.at[0] - 0.01 || fp > ln.at[1] + 0.01) return; // only the one that is up (or about to be)
-        // it is measured once per picture position and window size, not every frame
-        const key = `${fit.ox.toFixed(1)}:${fit.oy.toFixed(1)}:${fit.w.toFixed(1)}:${vw}x${vh}`;
+        // set from its own held frame's picture (not the moving one), once per window size
+        const key = `${cv.width}x${cv.height}`;
         if (placed[k] === key) return;
         placed[k] = key;
+        const r = focusRect(focusHold(ln.box), cv.width, cv.height, m.width / m.height);
         const [bl, bt, br, bb] = focusBox(ln.box);
-        const L = (fit.ox + bl * fit.w) / fit.dpr;
-        const T = (fit.oy + bt * fit.h) / fit.dpr;
-        const R = (fit.ox + br * fit.w) / fit.dpr;
-        const B = (fit.oy + bb * fit.h) / fit.dpr;
+        const L = (r.ox + bl * r.dw) / scale;
+        const T = (r.oy + bt * r.dh) / scale;
+        const R = (r.ox + br * r.dw) / scale;
+        const B = (r.oy + bb * r.dh) / scale;
         const gut = vw <= 600 ? 20 : 40;
         const set = (side: FocusSide | "band", maxW: number) => {
           el.dataset.side = side;
@@ -396,31 +450,40 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         };
         const put = (x: number, y: number) => void (el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`);
         if (vw < vh) {
-          const top = (fit.oy + fit.h) / fit.dpr + 14;
+          const top = (r.oy + r.dh) / scale + 14;
           const { w } = set("band", Math.min(520, vw - 2 * gut));
           return put((vw - w) / 2, top);
         }
         const gap = vw <= 900 ? 22 : 36;
         const midY = (h: number) => Math.min(vh - h - 24, Math.max(84, (T + B) / 2 - h / 2));
         const tries: FocusSide[] = ln.side === "right" ? ["right", "left", "below", "above"] : ln.side === "left" ? ["left", "right", "below", "above"] : ln.side === "above" ? ["above", "below", "right", "left"] : ["below", "above", "right", "left"];
+        const roomR = vw - R - gap - gut;
+        const roomL = L - gap - gut;
+        const minSide = vh < 450 ? 160 : 240; // a phone on its side has little height, but paper at the sides
+        const beside = (side: "left" | "right", room: number) => {
+          const { w, h } = set(side, Math.min(vw <= 900 ? 300 : 440, room));
+          put(side === "right" ? R + gap : L - gap - w, midY(h));
+        };
         for (const side of tries) {
           if (side === "right" || side === "left") {
-            const room = side === "right" ? vw - R - gap - gut : L - gap - gut;
-            if (room < 240) continue;
-            const { w, h } = set(side, Math.min(vw <= 900 ? 300 : 440, room));
-            return put(side === "right" ? R + gap : L - gap - w, midY(h));
+            const room = side === "right" ? roomR : roomL;
+            if (room < minSide) continue;
+            return beside(side, room);
           }
           const { w, h } = set(side, Math.min(640, vw - 2 * gut));
           const y = side === "below" ? B + 22 : T - 22 - h;
           if (y < 80 || y + h > vh - 20) continue;
           return put(Math.min(vw - gut - w, Math.max(gut, (L + R) / 2 - w / 2)), y);
         }
-        const { w, h } = set("below", Math.min(640, vw - 2 * gut)); // nowhere is clear: the foot of the screen
+        // nowhere is quite clear: the wider side, else the foot of the screen
+        if (Math.max(roomL, roomR) >= 120) return beside(roomR >= roomL ? "right" : "left", Math.max(roomL, roomR));
+        const { w, h } = set("below", Math.min(640, vw - 2 * gut));
         put((vw - w) / 2, vh - h - 20);
       });
     };
 
     const updateHud = (frame: number) => {
+      if (FOCUS) return; // (no HUD in the focus version)
       const f = Math.round(frame);
       if (f === lastHud || !hud.current) return;
       lastHud = f;
@@ -477,6 +540,12 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         lastPlaced = cur;
       }
       placeLines();
+      // focus: words only on a still picture; while the picture is still catching up with a fast scroll, they wait
+      const box = linesBox.current;
+      if (FOCUS && box) {
+        const moving = Math.abs(target - cur) > 0.5;
+        if (moving !== box.hasAttribute("data-moving")) box.toggleAttribute("data-moving", moving);
+      }
     };
     const start = () => {
       if (!raf && !disposed) raf = requestAnimationFrame(loop);
@@ -671,7 +740,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
 
         {FOCUS && <m.div className="veil" style={{ opacity: veil }} aria-hidden="true" />}
 
-        <div className="beats">
+        <div className="beats" ref={linesBox}>
           {FOCUS
             ? FOCUS_LINES.map((ln, k) => <FocusLineView key={ln.id} id={ln.id} at={ln.at} progress={film} refEl={(el) => void (lines.current[k] = el)} />)
             : beats.map((b) => (

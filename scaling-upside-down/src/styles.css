@@ -662,10 +662,25 @@ html[data-stamp] .cb-pose { will-change: scale; }
   .is-focus .hero-book { --bw: clamp(96px, 17vh, 200px); }
   .is-focus :is(.hero-d, .cue) { display: none; }
 }
+@media (max-width: 900px) {
+  .is-focus .hero { gap: 12px; padding-top: 64px; }
+  .is-focus .hero-book { --bw: clamp(96px, 30vw, 150px); }
+  .is-focus .hero-t { font-size: clamp(26px, 7.4vw, 40px); }
+  .is-focus .hero-s { font-size: 16px; }
+}
+/* a short screen on its side (the same threshold as the closed loop's 'land' layout): the book beside its words */
+@media (orientation: landscape) and (max-height: 599px) {
+  .is-focus .hero { flex-direction: row; gap: 24px; padding: 56px var(--gut-r) 16px var(--gut); }
+  .is-focus .hero-book { --bw: clamp(70px, 22vh, 104px); }
+  .is-focus .hero-text { text-align: left; align-items: flex-start; }
+  .is-focus .hero-cta { align-items: flex-start; }
+  .is-focus :is(.hero-d, .cue) { display: none; }
+}
 
 /* a line beside the still picture: the story's loop sets where (data-side says which way it reads) */
 .fl { position: absolute; left: 0; top: 0; width: max-content; pointer-events: none; will-change: transform; }
-.fl-in { text-shadow: 0 0 24px rgba(243, 237, 226, 0.95), 0 0 3px rgba(243, 237, 226, 0.9); }
+.fl-in { text-shadow: 0 0 24px rgba(243, 237, 226, 0.95), 0 0 3px rgba(243, 237, 226, 0.9); transition: opacity 0.15s ease; }
+.is-focus .beats[data-moving] .fl-in { opacity: 0 !important; } /* words only on a still picture */
 .fl .beat-k { margin-bottom: 12px; }
 .fl-h { font: 400 clamp(26px, 2.5vw, 40px) / 1.08 var(--display); letter-spacing: -0.015em; text-wrap: balance; color: var(--ink); }
 .fl .tone-down .fl-h, .fl-in.tone-down .fl-h { color: #2a1411; }
@@ -680,34 +695,56 @@ html[data-stamp] .cb-pose { will-change: scale; }
   .fl-in.is-big .fl-h { font-size: clamp(30px, 8.4vw, 40px); }
   .fl-d { font-size: 16px; }
 }
+@media (orientation: landscape) and (max-height: 450px) {
+  .fl-h { font-size: 21px; }
+  .fl-in.is-big .fl-h { font-size: 25px; }
+  .fl .beat-k { margin-bottom: 6px; }
+  .fl-d { font-size: 14.5px; margin-top: 6px; }
+}
 
 /* the closed loop: the ring large under the menu while its systems are set, each line under it; at the
    sign-up it steps back so the card sits under it, and pressing the block closes the ring in plain view.
-   Then the camera slides to the book, its card under it. (The loop sets --cl-open, --cl-close, --cl-book.) */
-.is-focus .cl-beat:is(.cl-open, .cl-closing, .cl-book) { left: 50%; right: auto; bottom: auto; width: min(640px, calc(100vw - 40px)); margin: 0; padding: 0; translate: -50% 0; text-align: center; }
-.is-focus .cl-open { top: var(--cl-open, 62vh); }
-.is-focus .cl-closing { top: var(--cl-close, 50vh); }
-.is-focus .cl-beat:is(.cl-open, .cl-closing) .beat-k { justify-content: center; }
-.is-focus .cl-beat:is(.cl-open, .cl-closing) .beat-h { max-width: 24ch; margin: 0 auto; font-size: clamp(26px, 2.6vw, 40px); line-height: 1.1; }
-.is-focus .cl-beat:is(.cl-open, .cl-closing) .beat-d { display: block; max-width: 36ch; margin: 12px auto 0; padding: 0; border: 0; font-size: clamp(17px, 1.3vw, 20px); }
+   Then the camera slides to the book, which ends centred with its card under it. (The loop sets --cl-open,
+   --cl-close, --cl-book. Only in the focus layout: a short screen on its side takes the home page's 'land'.) */
+.is-focus .cl-stage[data-mode="focus"] .cl-beat:is(.cl-open, .cl-closing, .cl-book) { left: 50%; right: auto; bottom: auto; width: min(640px, calc(100vw - 40px)); margin: 0; padding: 0; translate: -50% 0; text-align: center; }
+.is-focus .cl-stage[data-mode="focus"] .cl-open { top: var(--cl-open, 62vh); }
+.is-focus .cl-stage[data-mode="focus"] .cl-closing { top: var(--cl-close, 50vh); }
+.is-focus .cl-stage[data-mode="focus"] .cl-beat:is(.cl-open, .cl-closing) .beat-k { justify-content: center; }
+.is-focus .cl-stage[data-mode="focus"] .cl-beat:is(.cl-open, .cl-closing) .beat-h { max-width: 24ch; margin: 0 auto; font-size: clamp(26px, 2.6vw, 40px); line-height: 1.1; }
+.is-focus .cl-stage[data-mode="focus"] .cl-beat:is(.cl-open, .cl-closing) .beat-d { display: block; max-width: 36ch; margin: 12px auto 0; padding: 0; border: 0; font-size: clamp(17px, 1.3vw, 20px); }
 
 .is-focus .cl-copy[data-mode="focus"] { left: 50%; right: auto; bottom: auto; translate: -50% 0; margin: 0; padding: 0; text-align: center; }
 .cl-copy[data-mode="focus"] .beat-k { justify-content: center; }
+/* the kicker's two labels share one cell: only the one showing sizes it, so the mark sits beside its word */
+.cl-copy[data-mode="focus"] .beat-k .cl-swap { position: relative; }
+.cl-copy[data-mode="focus"] .beat-k .cl-swap[data-on="a"] > .b, .cl-copy[data-mode="focus"] .beat-k .cl-swap[data-on="b"] > .a { position: absolute; left: 50%; top: 0; translate: -50% 0; white-space: nowrap; }
 .cl-copy[data-mode="focus"] .beat-h { font-size: clamp(24px, 2.4vw, 36px); }
 .cl-copy[data-mode="focus"] .cl-deck { display: none; } /* the headline and the offer say it; the book's card has the back cover */
-.cl-copy[data-mode="focus"] .cl-offer { margin-left: auto; margin-right: auto; }
+.cl-copy[data-mode="focus"] .cl-offer { margin-left: auto; margin-right: auto; text-wrap: balance; }
 .cl-copy[data-mode="focus"] .cl-field { margin: 0 auto; width: min(100%, var(--rowsw, 100%)); }
 .cl-copy[data-mode="focus"] .cl-email { text-align: center; }
 .cl-copy[data-mode="focus"] .cl-msg, .cl-copy[data-mode="focus"] .cl-status { justify-content: center; text-align: center; }
 .cl-copy[data-mode="focus"] .cb { margin-left: auto; margin-right: auto; }
 .cl-copy[data-mode="focus"] .cl-rows { justify-content: center; }
+/* Quality and its shadows show only inside the window round the ring that the picture keeps (src/closedloop.ts
+   RING_WIN, frame-50 x 0.30-0.98, y 0.04-0.96), so the lifted block's soft shadow never lies on the paper beside it */
+.is-focus .cl-stage[data-mode="focus"] .cl-plate {
+  -webkit-mask-image: linear-gradient(to right, transparent 24%, #000 36%, #000 95%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 24%, #000 36%, #000 95%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  mask-composite: intersect;
+}
+/* the sign-up is the block under the ring: the ring's own Quality block is not a second button */
+html.is-focus .cl-hit, html.is-focus[data-stamp] .cl-hit { pointer-events: none; }
+/* the book alone at the end: one way to join, on its card (the menu's copy steps aside, as it does at the sign-up) */
+html.is-focus[data-clbook] .nav-cta .copy { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s, visibility 0s 0.3s; }
 
-.is-focus .cl-beat.cl-book { top: var(--cl-book, 55vh); width: min(560px, calc(100vw - 40px)); display: flex; flex-direction: column; align-items: center; }
-.is-focus .cl-book .beat-h { font-size: clamp(30px, 3vw, 46px); }
-.is-focus .cl-book .beat-b { display: block; margin: 12px auto 0; max-width: 46ch; }
-.is-focus .cl-book .beat-q { display: none; }
-.is-focus .cl-book-cta { justify-content: center; }
+.is-focus .cl-stage[data-mode="focus"] .cl-beat.cl-book { top: var(--cl-book, 55vh); width: min(560px, calc(100vw - 40px)); display: flex; flex-direction: column; align-items: center; }
+.is-focus .cl-stage[data-mode="focus"] .cl-book .beat-h { font-size: clamp(30px, 3vw, 46px); }
+.is-focus .cl-stage[data-mode="focus"] .cl-book .beat-b { display: block; margin: 12px auto 0; max-width: 46ch; }
+.is-focus .cl-stage[data-mode="focus"] .cl-book .beat-q { display: none; }
+.is-focus .cl-stage[data-mode="focus"] .cl-book-cta { justify-content: center; }
 @media (max-width: 900px) {
-  .is-focus .cl-book .beat-h { font-size: 28px; }
-  .is-focus .cl-book .beat-b { font-size: 15.5px; }
+  .is-focus .cl-stage[data-mode="focus"] .cl-book .beat-h { font-size: 28px; }
+  .is-focus .cl-stage[data-mode="focus"] .cl-book .beat-b { font-size: 15.5px; }
 }

@@ -71,7 +71,7 @@ export const COPY: SiteCopy = {
     {
       id: "grow",
       at: [0.05, 0.145],
-      kicker: "Our best quarter ever", // L464
+      kicker: "Our best quarter ever", // L968 (the chapter's title, L464)
       tone: "up",
       headline: "Always launching. Always hiring. Always adding.", // L1993
       detail: "But inside, nothing ever settled.", // L1995
@@ -79,7 +79,7 @@ export const COPY: SiteCopy = {
     {
       id: "redline",
       at: [0.155, 0.23],
-      kicker: "Twelve to forty people", // L1070 ("somewhere between twelve and forty people")
+      kicker: "Twelve to forty people", // L3562
       tone: "down",
       headline: "Revenue was growing—sometimes faster than ever—but the bank account didn't feel it.", // L1070
       detail: "Margins were shrinking. And the founder had become the bottleneck on everything.", // L1070
@@ -198,8 +198,8 @@ export const COPY: SiteCopy = {
 // L1993 ("Always launching. Always hiring. Always adding."), so the words start where the blocks stop.
 export type FocusLine = { kicker?: string; tone: "up" | "side" | "down" | "ink"; headline: string; detail?: string; big?: boolean };
 export const FOCUS_COPY: Record<string, FocusLine> = {
-  grow: { kicker: "Our best quarter ever", tone: "up", headline: "But inside, nothing ever settled." }, // L464, L1995
-  redline: { kicker: "Twelve to forty people", tone: "down", headline: "Revenue was growing—sometimes faster than ever—but the bank account didn't feel it." }, // L1070
+  grow: { kicker: "Our best quarter ever", tone: "up", headline: "But inside, nothing ever settled." }, // L968 (kicker), L1995
+  redline: { kicker: "Twelve to forty people", tone: "down", headline: "Revenue was growing—sometimes faster than ever—but the bank account didn't feel it." }, // L3562 (kicker), L1070
   isnt: { tone: "down", headline: "That isn't scaling.", big: true }, // the back cover
   upside: { tone: "down", headline: "That's scaling upside down.", big: true }, // the back cover
   side: { kicker: "Scaling Sideways", tone: "side", headline: "Sideways for stabilization." }, // L1716, L3316

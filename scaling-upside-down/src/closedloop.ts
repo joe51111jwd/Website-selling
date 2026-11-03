@@ -39,8 +39,8 @@ export function frameAt(p: number): number {
 
 // text windows [in, out]
 export const BEATS = {
-  open: FOCUS ? [0.07, 0.15] : [0.02, 0.19],
-  closing: FOCUS ? [0.36, 0.44] : [0.25, 0.44],
+  open: FOCUS ? [0.08, 0.15] : [0.02, 0.19], // (focus: a little after each hold begins, so the picture has settled)
+  closing: FOCUS ? [0.37, 0.44] : [0.25, 0.44],
   copy: [0.47, 0.73],
   pair: [0.795, 0.865],
   mini: [0.86, 0.915],
@@ -122,11 +122,24 @@ function focusRing(cw: number, ch: number, share: number): Rect {
 /** focus: where words under a picture start (CSS px): under the ring's line, or under the book */
 export const ringFoot = (r: Rect) => r.oy + (geo.ringC[1] + geo.hair.ry) * r.dh + 18;
 export const bookFoot = (r: Rect) => r.oy + geo.book.base[1] * r.dh + 18;
+/** focus: the part of the picture that is shown, centred on the ring (frame-50 fractions [l, t, r, b]); the
+ *  rest goes to paper, so the ring sits alone and centred, and nothing runs behind the menu */
+export const RING_WIN = [geo.ringC[0] - 0.34, 0.04, geo.ringC[0] + 0.34, 0.96] as const;
+export function ringWindow(r: Rect): Rect {
+  const top = Math.max(r.oy + RING_WIN[1] * r.dh, 60);
+  return { ox: r.ox + RING_WIN[0] * r.dw, oy: top, dw: (RING_WIN[2] - RING_WIN[0]) * r.dw, dh: r.oy + RING_WIN[3] * r.dh - top };
+}
+/** focus: how far the table round the book has gone to paper as the camera reaches it (0-1) */
+export const bookAlone = (v: number, reduced: boolean) => (reduced ? (v < 0.82 ? 0 : 1) : smooth((v - 0.8) / 0.07));
+/** focus: the book's card height (the page measures it), so the book and its card end centred together */
+let bookCard = 260;
+export const setBookCard = (h: number) => void (bookCard = h > 0 ? h : 260);
+const BOOK_TOP = 2 * geo.book.c[1] - geo.book.base[1]; // the cover's top edge, frame-50 y
 
 /** where frame 50 sits on screen at the copy pose */
 export function poseRect(cw: number, ch: number, mode: Mode): Rect {
   const [rx, ry] = geo.ringC;
-  if (mode === "focus") return focusRing(cw, ch, ch <= 760 ? 0.27 : ch <= 860 ? 0.32 : 0.36); // smaller, so the card fits under it
+  if (mode === "focus") return focusRing(cw, ch, ch <= 600 ? 0.22 : ch <= 760 ? 0.27 : ch <= 860 ? 0.32 : 0.36); // smaller, so the card fits under it
   if (mode === "land") {
     // a phone on its side: the ring right of the words, as large as the height allows, clear of the menu
     const dh = Math.min(0.86 * ch, 0.6 * cw);
@@ -177,11 +190,12 @@ export function truckRect(p: number, cw: number, ch: number, mode: Mode): Rect {
   // the book ends where the ring was, at the same size
   const r2 = { ox: r0.ox + (rx - bx) * r0.dw, oy: r0.oy, dw: r0.dw, dh: r0.dh };
   if (mode === "focus") {
-    // straight along the table to the book, which ends where the ring was, its card under it
+    // straight along the table to the book, which ends centred on the screen with its card under it
     const dw = 1.15 * r0.dw;
     const dh = dw / RATIO;
-    const cy = r0.oy + geo.ringC[1] * r0.dh;
-    return mix(r0, { ox: 0.5 * cw - bx * dw, oy: cy - by * dh, dw, dh }, smooth((p - 0.76) / 0.11));
+    const group = (geo.book.base[1] - BOOK_TOP) * dh + 18 + bookCard;
+    const top = Math.max(96, 72 + (ch - 24 - 72 - group) / 2);
+    return mix(r0, { ox: 0.5 * cw - bx * dw, oy: top - BOOK_TOP * dh, dw, dh }, smooth((p - 0.76) / 0.11));
   }
   if (mode === "land") return mix(r0, r2, smooth((p - 0.76) / 0.11));
   if (mode === "phone") {
