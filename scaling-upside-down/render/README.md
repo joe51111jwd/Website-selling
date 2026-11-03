@@ -72,8 +72,8 @@ the building rises. It opens with the same 89 pictures as the home page.
 1. `python3 make_focus_labels.py` (the planks' labels, into `tex/`)
 2. `blender -b -P focus_film.py -- --w 1440 --h 900 --samples 14 --blend focus.blend --out out/ftest/t`
    (add `--frames 55,106,147,163,223,245,332` and `--w 640 --h 400 --samples 8` for a quick look at the holds)
-3. `W=1440 H=900 S=14 BLENDER=blender ./render_focus.sh` (about 26 seconds a frame on 4 cores; delete any
-   empty PNG a stopped run left before running it again)
+3. `W=1600 H=1000 S=12 BLENDER=blender ./render_focus.sh` (frames 28-146 with motion blur, then 147-332 without;
+   about 27-37 seconds a frame on 4 cores; delete any empty PNG a stopped run left before running it again)
 4. `blender -b focus.blend -P focus_anchors.py -- ../src/focusfilm.json`
 5. From the project root, the opening's pictures copied byte for byte in front of the film:
    `python3 scripts/pack_frames.py render/out/fseq-site public/frames-focus/hi --width 1600 --quality 78 --per 25 --lead public/frames/hi:89`

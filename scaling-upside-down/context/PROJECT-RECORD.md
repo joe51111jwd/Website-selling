@@ -9,12 +9,16 @@ James go in `context/client-log.md`; when state changes, update this file too.
 The site for Michael Wentz’s book *Scaling Up-Side-Down* is live at
 https://scaling-up-side-down.vercel.app. It includes both rounds of his
 feedback: the 27 Oct round (sign-up, /appendix) and the 30 Oct round (the
-book first, one sign-up, the file by email only). The last release went
-out on Sat 31 Oct 2026.
+book first, one sign-up, the file by email only). The home page's last
+release went out on Sat 31 Oct 2026. Next to it, at /focus, is the focus
+version James asked for (one thing on screen at a time): its own Blender
+film where the blocks carry the words, released Tue 3 Nov 2026. Nobody has
+picked between the two yet.
 
 | What                                        | Where                                                                                               |
 |---------------------------------------------|-----------------------------------------------------------------------------------------------------|
 | Live site                                   | https://scaling-up-side-down.vercel.app                                                             |
+| The focus version                           | https://scaling-up-side-down.vercel.app/focus                                                       |
 | The Appendix (the Bootloader as a web page) | https://scaling-up-side-down.vercel.app/appendix                                                    |
 | The Bootloader file                         | V16, 35,445 words, 284 KB: by email only, with the first-edition list (not served since 31 Oct)     |
 | Hosting                                     | Vercel project “scaling-up-side-down”                                                               |
@@ -361,6 +365,7 @@ issues; all were fixed before it shipped. Newest first, US Eastern.
 
 | When                     | What it added                                                          |
 |--------------------------|------------------------------------------------------------------------|
+| Tue 3 Nov                | The rethought focus version at /focus (James, Sun 1 Nov: no full-screen text, rethink the blocks): its own film (`render/focus_film.py`, 1600×1000) where the first three blocks are planks stamped ALWAYS LAUNCHING / HIRING / ADDING, the cover's stack turns upside down and is set right, the systems slide in from the sides, the planks leave with the dead weight and the building rises. The film holds while each short line sits beside the blocks it is about (under the picture on an upright phone); the closed loop and the book end the same way. Fixes from an independent review of the film and the page, including a collision check over every frame |
 | Mon 2 Nov                | The focus version at /focus (one thing on screen at a time), next to the live home page; fixes from the round-3 review (the footer's styles back, the hero on wide, square and short screens, the sign-up's wording and states, an unconfirmed address asked to confirm again, llms.txt book-first) |
 | Sat 31 Oct, evening      | The book first (his 30 Oct notes): the real hardcover in the hero, the problem first, the cycle named once, one sign-up for the first-edition list, the file by email only. Live in production now |
 | Tue 27 Oct, 5:19 pm      | Fixes from the 43-point review                                         |
