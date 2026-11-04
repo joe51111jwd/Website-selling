@@ -584,7 +584,9 @@ for c in range(CYCLES):
     an = block(f"bolt{c}", (0.5, 0.34, 0.3), (ax, ay, az), bevel=0.006, parent=piv)
     an.scale = (1, 1, 0.001)
     fa = up0 + 2 * du
-    show(an, f_on=fa)
+    # it first renders two frames after its growth starts: at fa it is a paper-thin plate floating
+    # over a storey that has not reached it yet, which renders as a black sheet with a hard shadow
+    show(an, f_on=fa + 2)
     tint(an, "tu", fa, TMAX)
     key(an, fa, scale=(1, 1, 0.001))
     key(an, fa + du, scale=(1, 1, 1))
@@ -625,7 +627,7 @@ for c in range(CYCLES):
     key(an, d0 + 1, loc=(ax, ay, az))
     key(an, d0 + 4, loc=(ax, ay - 0.14, az))
     key(an, d0 + 4 + dd, loc=(ax, ay - 0.14, PT - 0.5 - base))
-    show(an, f_on=fa, f_off=d0 + 5 + dd)
+    show(an, f_on=fa + 2, f_off=d0 + 5 + dd)
     f = d0 + 4 + dd + round(6 * fast)
     TL[f"down{c}"] = (d0, d0 + 4 + dd)
     towers.append((piv, storeys, core, walls, an))

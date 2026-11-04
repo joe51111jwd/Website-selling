@@ -22,7 +22,8 @@ const smooth = (t: number) => {
   return c * c * (3 - 2 * c);
 };
 /** the same words, typeset: a typewriter apostrophe becomes a real one */
-const set = (s: string) => s.replace(/'/g, "’");
+// (a word joiner before each em dash, so a line never starts with one: "at once—" / "every day")
+const set = (s: string) => s.replace(/'/g, "’").replace(/—/g, "\u2060—");
 
 // the film section's own scroll, 0-1: the book; its hand-over; the film (frames 0-385, with a few still
 // beats); the picture gives way to the words, which hold until the section scrolls on
@@ -83,7 +84,8 @@ function FocusNav() {
       const p = filmProgress(film);
       const past = p > HERO_OUT[1] || (film ? film.getBoundingClientRect().bottom < window.innerHeight : false);
       setShow(past && !atJoin);
-      setSolid(film ? film.getBoundingClientRect().bottom < 72 : false);
+      // solid as soon as the words can move (the film's end), so they slide under the bar, never under the brand
+      setSolid(film ? film.getBoundingClientRect().bottom < window.innerHeight + 1 : false);
     };
     const join = document.getElementById("join");
     const io = new IntersectionObserver(
@@ -331,7 +333,7 @@ function Film() {
               <h1 className="fp-title">
                 Scaling
                 <br />
-                {"Up‑Side‑Down"}
+                <span className="fp-nowrap">Up-Side-Down</span>
               </h1>
               <p className="fp-sub">{h.sub}</p>
               <a className="fp-btn" href="#join">

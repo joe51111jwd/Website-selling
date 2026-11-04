@@ -33,6 +33,7 @@
 .fp-book { margin: 0; }
 .fp-book img { width: 100%; height: auto; }
 .fp-hero-text { display: grid; justify-items: start; gap: 0; }
+.fp-nowrap { white-space: nowrap; }
 .fp-title { margin-top: 18px; font: 400 clamp(46px, 5.6vw, 86px)/0.98 var(--display); letter-spacing: -0.012em; }
 .fp-sub { margin-top: 20px; font: italic 400 clamp(18px, 1.6vw, 22px)/1.4 var(--serif); color: var(--soft); max-width: 28ch; }
 .fp-hero-text .fp-btn { margin-top: 32px; }
@@ -109,6 +110,15 @@
 @media (max-width: 360px) {
   .fp-brand { font-size: 13px; gap: 8px; }
   .fp-btn-sm { padding: 0 12px; }
+}
+/* short upright phones (an SE with Safari's bars, small Androids): the hero smaller, so its button and note fit */
+@media (max-width: 760px) and (max-height: 620px) and (orientation: portrait) {
+  .fp-hero { padding: 64px var(--fp-gut) 20px; }
+  .fp-hero-in { gap: 14px; }
+  .fp-book { width: min(40vw, 25svh); }
+  .fp-title { font-size: clamp(32px, 9.5vw, 42px); }
+  .fp-sub { margin-top: 8px; font-size: 15px; }
+  .fp-hero-text .fp-btn { margin-top: 14px; }
 }
 /* short screens on their side: the hero in a row, smaller */
 @media (max-height: 560px) and (orientation: landscape) {
