@@ -1,0 +1,177 @@
+/* Scaling Up-Side-Down: The Heap v2, clean. One pale studio sweep, objects only; the words are few and set quiet.
+   Ortica Linear for Michael's voice, B612 for labels and buttons. No CSS shadow, glow, gradient, pill or card: every
+   shadow and highlight is in the 3D scene.
+   Two modes from one DOM:
+   - html.gl: a fixed full-screen canvas; #story is the scroll runway and the words (.cap) sit on a fixed layer;
+   - otherwise (no WebGL or no JS): .plates, a stack of stills with their sentences, then the same form. */
+@font-face { font-family: "Ortica Linear"; src: url("../fonts/Ortica-LinearRegular-latin.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "B612"; src: url("../fonts/B612-Regular-latin.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "B612"; src: url("../fonts/B612-Bold-latin.woff2") format("woff2"); font-weight: 700; font-display: swap; }
+
+/* colours: one light palette, repeated for a dark-scheme host and data-theme="dark" so it never changes */
+:root {
+  --paper: #c6c0b6; --ink: #1c1d1e; --ink2: #3c3d3d; --ink3: #57564f; --rule: rgba(28, 29, 30, 0.22);
+  --btn: #1c1d1e; --btnink: #f1eee8; --field: #f2efe9; --bad: #a3352a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #c6c0b6; --ink: #1c1d1e; --ink2: #3c3d3d; --ink3: #57564f; --rule: rgba(28, 29, 30, 0.22);
+    --btn: #1c1d1e; --btnink: #f1eee8; --field: #f2efe9; --bad: #a3352a;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #c6c0b6; --ink: #1c1d1e; --ink2: #3c3d3d; --ink3: #57564f; --rule: rgba(28, 29, 30, 0.22);
+  --btn: #1c1d1e; --btnink: #f1eee8; --field: #f2efe9; --bad: #a3352a;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: auto; }
+html, body { margin: 0; background: var(--paper); color: var(--ink); }
+body { font-family: "B612", sans-serif; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+p, h1, figure, ul { margin: 0; padding: 0; font-weight: inherit; }
+a { color: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: 12px; top: -80px; z-index: 40; background: var(--ink); color: var(--btnink); font-weight: 700; padding: 12px 16px; text-decoration: none; }
+.skip:focus { top: 12px; }
+
+/* ---- chrome: a small title, one small button ---- */
+.top { position: fixed; z-index: 20; left: 0; right: 0; top: 0; display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 32px; pointer-events: none; }
+.top > * { pointer-events: auto; }
+.title { font: 700 12px/1 "B612", sans-serif; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink); }
+.getit { display: inline-block; font: 700 12px/1 "B612", sans-serif; letter-spacing: 0.06em; text-decoration: none;
+  color: var(--btnink); background: var(--btn); padding: 12px 16px; min-height: 40px; transition: opacity 0.25s, visibility 0.25s; }
+.getit:hover, .cta:hover, .btn:hover { background: #000; }
+.getit:focus-visible, .cta:focus-visible, .btn:focus-visible, input:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.dock-off .getit, .dock-off .bar { opacity: 0; visibility: hidden; }
+.bar { display: none; }
+
+/* ---- the scene ---- */
+#scene { display: none; }
+.grain { display: none; }
+.gl #scene { display: block; position: fixed; left: 0; top: 0; width: 100%; height: 100%; z-index: 0; }   /* the viewport's box, like .caps */
+.gl .grain { display: block; position: fixed; inset: -50%; z-index: 1; pointer-events: none; opacity: 0.06; mix-blend-mode: overlay;
+  background-image: url("../img/grain.png"); background-size: 160px 160px; }
+
+/* ---- the story runway and its words ---- */
+.story { display: none; }
+.gl .story { display: block; position: relative; z-index: 2; height: 1700vh; height: 1700svh; }
+.gl .plates { display: none; }
+.caps { position: fixed; inset: 0; pointer-events: none; z-index: 3; }
+.cap { position: absolute; left: 0; right: 0; opacity: 0; visibility: hidden; text-align: center; padding: 0 32px; will-change: opacity, transform; }
+.cap p { font-family: "Ortica Linear", Georgia, serif; font-weight: 400; color: var(--ink); text-wrap: balance; margin: 0 auto; }
+.cap.hero { top: auto; bottom: 11vh; bottom: 11svh; }
+/* the byline under the cable title: what this is (a book, and whose), set as a label, not a sentence */
+.cap .by, .plate .by { font: 700 clamp(11px, 0.85vw, 13px)/1 "B612", sans-serif; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink2); margin: 0 auto 18px; }
+.plate .by { margin-bottom: 20px; }
+.cap.hero .line { font-size: clamp(24px, 2.35vw, 40px); line-height: 1.16; max-width: 26ch; letter-spacing: -0.005em; }
+.cta { display: inline-flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 28px; pointer-events: auto; text-decoration: none;
+  background: var(--btn); color: var(--btnink); padding: 15px 24px 13px; }
+.cta-name { font: 700 14px/1 "B612", sans-serif; letter-spacing: 0.04em; }
+.cta-meta { font: 400 11px/1.2 "B612", sans-serif; opacity: 0.72; letter-spacing: 0.02em; }
+.cap.big { top: 13vh; top: 13svh; }
+.cap.big p { font-size: clamp(34px, 4.2vw, 72px); line-height: 1.04; max-width: 21ch; letter-spacing: -0.012em; }
+/* the line's second sentence lands a beat later, on a line of its own */
+.cap .punch { display: block; margin-top: 0.12em; will-change: opacity, transform; }
+.rm .cap .punch { will-change: auto; }
+.cap.long { top: 11vh; top: 11svh; }
+.cap.long p { font-size: clamp(22px, 2.3vw, 38px); line-height: 1.18; max-width: 30ch; }
+.cap.long .ph { display: none; }
+.cap.mid { top: 12vh; top: 12svh; }
+.cap.mid p { font-size: clamp(30px, 3.6vw, 60px); line-height: 1.06; }
+.cap.quiet { top: 13vh; top: 13svh; }
+.cap.quiet p { font-size: clamp(22px, 2.2vw, 34px); line-height: 1.1; color: var(--ink2); }
+
+/* ---- fallback stills (no WebGL / no JS) ---- */
+.plates { display: block; padding-top: 64px; }
+.plate { position: relative; margin: 0 0 8px; }
+.plate img { display: block; width: 100%; height: auto; }
+.plate figcaption { padding: 28px 24px 56px; text-align: center; }
+.plate figcaption p { font-family: "Ortica Linear", Georgia, serif; font-size: clamp(22px, 2.4vw, 38px); line-height: 1.15; max-width: 28ch; margin: 0 auto; text-wrap: balance; }
+.plate figcaption .big { font-size: clamp(30px, 3.8vw, 60px); max-width: 16ch; }
+.plate .phases { margin-top: 14px; font-size: clamp(18px, 1.7vw, 26px); color: var(--ink2); }
+.plate .phases span { display: inline-block; margin: 0 0.5em; }
+/* the first still is cropped to the title, so the byline, the line and the button are on the first screen too */
+.plate.hero img { height: 64vh; height: 64svh; object-fit: cover; object-position: 50% 40%; }
+.plate.hero figcaption { padding-top: 22px; }
+.plate.hero .ptitle { font: 700 13px/1 "B612", sans-serif; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 18px; }
+
+/* ---- the offer ---- */
+.finale { position: relative; z-index: 4; min-height: 100vh; min-height: 100svh; display: flex; align-items: center; justify-content: center; padding: 96px 32px 72px; }
+.fin { width: min(900px, 100%); }
+.lead { font-family: "Ortica Linear", Georgia, serif; font-size: clamp(28px, 3.1vw, 50px); line-height: 1.08; text-align: center; max-width: 22ch; margin: 0 auto 52px; text-wrap: balance; }
+.card { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 34px 0; }
+.fname { font: 700 15px/1 "B612", sans-serif; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 14px; }
+.what { font: 400 15px/1.45 "B612", sans-serif; color: var(--ink2); margin-bottom: 20px; max-width: 36ch; }
+.facts { list-style: none; font: 400 13px/1.4 "B612", sans-serif; }
+.facts li { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 7px 0; border-top: 1px solid var(--rule); }
+.facts .k { color: var(--ink3); }
+.question { font-family: "Ortica Linear", Georgia, serif; font-size: clamp(22px, 2vw, 30px); line-height: 1.15; margin-bottom: 22px; }
+.asks { display: block; font: 400 11px/1 "B612", sans-serif; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink3); margin-bottom: 10px; }
+.form label { display: block; font: 400 12px/1 "B612", sans-serif; color: var(--ink2); margin-bottom: 8px; }
+.formrow { display: flex; gap: 0; }
+.formrow input { flex: 1 1 auto; min-width: 0; font: 400 16px/1 "B612", sans-serif; padding: 0 14px; height: 50px; border: 1px solid var(--ink); border-right: 0; border-radius: 0;
+  background: var(--field); color: var(--ink); -webkit-appearance: none; appearance: none; }
+.formrow input[aria-invalid="true"] { border-color: var(--bad); }
+.btn { font: 700 13px/1 "B612", sans-serif; letter-spacing: 0.04em; height: 50px; padding: 0 20px; border: 1px solid var(--btn); border-radius: 0; background: var(--btn); color: var(--btnink); cursor: pointer; }
+.btn:disabled { opacity: 0.6; cursor: default; }
+.fmsg { min-height: 22px; margin-top: 8px; font: 400 13px/1.3 "B612", sans-serif; }
+.msg-bad { color: var(--bad); }
+.msg-blocked a { font-weight: 700; color: var(--ink); text-underline-offset: 3px; }
+.note { font: 400 12px/1.4 "B612", sans-serif; color: var(--ink3); }
+.bookline { margin-top: 30px; text-align: center; font: 400 13px/1.5 "B612", sans-serif; color: var(--ink2); }
+.booktitle { font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-right: 0.6em; color: var(--ink); }
+
+/* ---- phone ---- */
+@media (max-width: 720px), (max-aspect-ratio: 4/5) {
+  .top { padding: 16px 16px; }
+  .title { font-size: 11px; }
+  .top .getit { display: none; }
+  /* the phone's one button, bottom right where the thumb is: no band, no label */
+  .bar { display: block; position: fixed; z-index: 20; right: 16px; bottom: calc(14px + env(safe-area-inset-bottom)); pointer-events: none; transition: opacity 0.25s, visibility 0.25s; }
+  .bar .getit { pointer-events: auto; padding: 11px 18px; min-height: 44px; display: inline-flex; align-items: center; }
+  .cap { padding: 0 20px; }
+  .cap.hero { bottom: calc(76px + 6svh); }
+  /* the byline under the cable title: what this is (a book, and whose), set as a label, not a sentence */
+.cap .by, .plate .by { font: 700 clamp(11px, 0.85vw, 13px)/1 "B612", sans-serif; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink2); margin: 0 auto 18px; }
+.plate .by { margin-bottom: 20px; }
+.cap.hero .line { font-size: clamp(22px, 6.4vw, 30px); max-width: 17ch; }
+  .cta { margin-top: 20px; padding: 14px 20px 12px; }
+  .cap.big { top: 11svh; }
+  .cap.big p { font-size: clamp(30px, 9.4vw, 44px); max-width: 11ch; }
+  .cap.long .desk { display: none; }
+  .cap.long .ph { display: block; font-size: clamp(26px, 7.6vw, 36px); max-width: 13ch; }
+  .cap.mid p { font-size: clamp(30px, 8.6vw, 40px); max-width: 11ch; }
+  .cap.quiet p { font-size: clamp(24px, 6.6vw, 30px); }
+  /* tight enough that the jump lands with the whole form, button included, on a 390x664 / 375x667 screen */
+  .finale { padding: 60px 16px 110px; align-items: flex-start; }
+  .lead { margin-bottom: 22px; font-size: clamp(26px, 7.4vw, 34px); }
+  .card { grid-template-columns: 1fr; gap: 22px; padding: 20px 0; }
+  .what { margin-bottom: 14px; }
+  .facts li { padding: 6px 0; }
+  .question { margin-bottom: 16px; }
+  .formrow { flex-direction: column; gap: 10px; }
+  .formrow input { border-right: 1px solid var(--ink); }
+  .btn { width: 100%; }
+  .plates { padding-top: 52px; }
+  .plate.hero img { height: 50vh; height: 50svh; object-position: 50% 32%; }   /* the line and the button above the bar */
+}
+/* ---- short landscape (a phone on its side): the same page, set smaller so the title keeps its room ---- */
+@media (max-height: 500px) and (min-width: 721px) {
+  .top { padding: 12px 20px; }
+  .getit { padding: 10px 14px; min-height: 36px; }
+  .cap.hero { bottom: 5svh; }
+  .cap.hero .line { font-size: 19px; max-width: 34ch; }
+  .cap .by { margin-bottom: 10px; }
+  .cta { margin-top: 12px; padding: 11px 20px 10px; }
+  .cap.big, .cap.long, .cap.mid, .cap.quiet { top: calc(50px + 2svh); }   /* clear of the chrome row */
+  .cap.big p { font-size: 28px; max-width: 30ch; }
+  .cap.long p { font-size: 18px; max-width: 58ch; }
+  .cap.mid p { font-size: 28px; }
+  .cap.quiet p { font-size: 21px; }
+  .finale { padding: 64px 24px 40px; }
+  .lead { font-size: 26px; margin-bottom: 24px; }
+  .card { gap: 32px; padding: 22px 0; }
+  .plate.hero img { height: 60vh; height: 60svh; object-position: 50% 38%; }
+}
+@media (prefers-reduced-motion: reduce) { .getit, .bar { transition: none; } }
