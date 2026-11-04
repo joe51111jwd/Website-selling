@@ -18,7 +18,7 @@ This is the site for Michael Wentz's book *Scaling Up-Side-Down* (SUSD), built b
    - every release
    - the unsent draft reply
    - open items
-   - all of James's messages, word for word (59 as of Nov 3)
+   - all of James's messages, word for word (60 as of Nov 3)
 
    The original `.docx` is in `context/source/`.
 3. `README.md`: how the site is built and how to update the Bootloader, links and copy.

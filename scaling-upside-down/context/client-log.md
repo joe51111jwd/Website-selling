@@ -6,10 +6,20 @@ what it means for the work and its status (Open, Done or Waiting).
 
 **Every chat adds to this file.** Michael's emails and texts, call notes, Looms, and James's
 messages and screenshots all get logged here, in the same commit as the work they cause.
-James's full chat history (59 messages to Nov 3, word for word) is in `PROJECT-RECORD.md`,
+James's full chat history (60 messages to Nov 3, word for word) is in `PROJECT-RECORD.md`,
 under "All of James's messages, word for word".
 
 ---
+
+## Tue 3 Nov 2026, about 11:15 PM ET: James wants a more professional look, and no words popping up
+
+> Idk, I want a less playful more professional look. Come up with a new thing for the blocks or something else entirely and render and create. Rn there is still text popping up. It shouldn't be there if it's not the focus. And if it's not the focus then it shouldn't be vital for people to understand
+
+What it means: the wooden toy blocks read as playful; James wants a more professional visual, either a new
+take on the blocks or a different idea, rendered in Blender and built. The lines that appear beside the
+held picture still split the eye: words should only be on screen when they are the one thing to look at,
+and the picture must make sense without them. **Open**: a new film and page for `/focus` (the home page
+is unchanged).
 
 ## Tue 3 Nov 2026, 12:17 PM and 12:23 PM ET: James asks for the link to the new focus version
 

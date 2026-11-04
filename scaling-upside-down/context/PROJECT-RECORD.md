@@ -356,6 +356,7 @@ section.
 | 9:18 pm                    | A version with one thing on screen at a time, on a separate link                                                                                                                       | The first /focus (Mon 2 Nov)                                               |
 | Sun 1 Nov, 10:19 pm        | No full-screen text between the blocks; rethink the blocks and the animations                                                                                                          | Storyboard, then the focus film (Tue 3 Nov)                                |
 | Tue 3 Nov, 12:17–12:23 pm  | The link to the updated focus version; it must look put together                                                                                                                      | The focus film at /focus                                                   |
+| Tue 3 Nov, evening         | A less playful, more professional look (a new idea for the blocks, or something else); no words popping up unless they are the focus, and nothing vital left to them | A new film and page for /focus (in progress)                               |
 
 ## Releases
 
@@ -945,3 +946,7 @@ Asked what came after “you need to”, he answered “Nothing more, just go”
 **59. Tue 3 Nov, 12:23 PM ET**
 
 > which is the one with the updated one focus and it dosent look not put to gether
+
+**60. Tue 3 Nov, about 11:15 PM ET**
+
+> Idk, I want a less playful more professional look. Come up with a new thing for the blocks or something else entirely and render and create. Rn there is still text popping up. It shouldn't be there if it's not the focus. And if it's not the focus then it shouldn't be vital for people to understand
