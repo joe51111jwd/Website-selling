@@ -1,11 +1,13 @@
 // The focus film's picture on any screen (src/components/FocusPage.tsx).
 // The film is 1600x1000. On a screen narrower than it (an upright phone) it covers the height, its subject
 // on the centre line, and is made smaller only where the subject is wider than the screen (the rubble).
-// On a screen wider than it, it is enlarged to the full width wherever its subject still fits between the
-// menu and the foot. The zoom is eased (never more than 1.5% a frame), and so is how far the picture sits down
-// the screen (never more than 1.5% of the screen's height a frame); wherever the picture does not reach an edge,
-// the wall and floor round it are painted in its own edge colours.
+// On a screen wider than it, it is centred, and enlarged to the full width wherever its subject still fits
+// between the menu and the foot. The zoom is eased (never more than 1.5% a frame), and so is how far the picture
+// sits down the screen (never more than 1.5% of the screen's height a frame); through the film's still beats
+// (src/lpkeys.ts) both hold. Wherever the picture does not reach an edge, the wall and floor round it are painted
+// in its own edge colours.
 import film from "./lpfilm.json";
+import { STILLS } from "./lpkeys";
 
 const XS = film.x as number[];
 const SPANS = film.y as [number, number][];
@@ -24,6 +26,21 @@ type Edge = { exact: string[]; flat: string[]; even: string };
 // by the picture's top cannot be brought into view by it, so it runs off the screen's top instead
 const room = (t: number) => Math.min(1, Math.max(0, t / 0.04));
 
+// eases a per-frame series in place, only ever lowering it: no frame ends up more than `up` of the frames either
+// side of it allows. Through a still beat every frame takes the lowest of them, so the picture holds still there
+const ease = (v: number[], up: (x: number) => number) => {
+  for (let pass = 0; pass < 6; pass++) {
+    for (let n = 1; n < v.length; n++) v[n] = Math.min(v[n], up(v[n - 1]));
+    for (let n = v.length - 2; n >= 0; n--) v[n] = Math.min(v[n], up(v[n + 1]));
+    let held = true;
+    for (const [a, b] of STILLS) {
+      const m = Math.min(...v.slice(a, b + 1));
+      for (let n = a; n <= b; n++) if (v[n] > m) (v[n] = m), (held = false);
+    }
+    if (held) return;
+  }
+};
+
 export class FilmPainter {
   private probe = document.createElement("canvas");
   private pctx: CanvasRenderingContext2D;
@@ -34,6 +51,7 @@ export class FilmPainter {
   private zooms: number[] = [];
   private oyKey = "";
   private oys: number[] = [];
+  private raws: number[] = []; // (each frame's own zoom, before it is eased for its neighbours)
 
   constructor(private ctx: CanvasRenderingContext2D) {
     this.probe.width = NC;
@@ -56,13 +74,12 @@ export class FilmPainter {
     const key = `${cw}x${ch}x${aspect.toFixed(4)}x${scale}`;
     if (key === this.oyKey) return this.oys;
     this.oyKey = key;
-    const o = Array.from({ length: FILM_FRAMES }, (_, n) => this.place(n, cw, ch, aspect, scale).oy);
-    const d = ch * STEP;
     const s = cw > ch * aspect ? -1 : 1; // (the wide picture's place is eased the other way)
-    for (let n = 1; n < o.length; n++) o[n] = s * Math.min(s * o[n], s * o[n - 1] + d);
-    for (let n = o.length - 2; n >= 0; n--) o[n] = s * Math.min(s * o[n], s * o[n + 1] + d);
-    this.oys = o;
-    return o;
+    const o = Array.from({ length: FILM_FRAMES }, (_, n) => s * this.place(n, cw, ch, aspect, scale).oy);
+    const d = ch * STEP;
+    ease(o, (v) => v + d);
+    this.oys = o.map((v) => s * v);
+    return this.oys;
   }
 
   // frame k's picture before its place down the screen is eased
@@ -84,15 +101,19 @@ export class FilmPainter {
     } else if (z >= 1) {
       oy = clear; // the picture covers the screen's height
     } else {
-      // smaller: between the menu and the foot (on a landscape screen, flush with the top while the subject runs
-      // off it, so a block dropping in enters from the screen's edge). Never higher than `clear`, which it meets at
-      // a zoom of 1, so the picture does not hop where the zoom crosses it
+      // smaller: between the menu and the foot. Flush with the top while the subject runs off it: a core climbing
+      // out of the picture's top runs off the screen's top, and on a landscape screen a block dropping in enters
+      // from the screen's edge. On a landscape screen also while it is held smaller than its own frame needs (for
+      // the pieces still to come), so it is not centred and then pulled back up as the zoom pushes in. Never higher
+      // than `clear`, which it meets at a zoom of 1, so the picture does not hop where the zoom crosses it
       const mid = Math.max(0, Math.min(ch - dh, Math.max(mt - top * dh, (mt + ch - mb) / 2 - c * dh)));
-      oy = Math.max(cw > ch ? mid * room(t) : mid, clear);
+      const held = cw > ch && z < this.raws[k] - 1e-4;
+      oy = held ? clear : Math.max(mid * (cw > ch ? room(t) : t < 0 ? 0 : 1), clear);
     }
     const dw = dh * aspect;
     const want = cw / 2 - XS[k] * dw;
-    const ox = dw >= cw ? Math.min(0, Math.max(cw - dw, want)) : Math.min(cw - dw, Math.max(0, want));
+    // (a wide screen shows the whole picture, so it stays centred: following the subject there only sways it)
+    const ox = wide ? (cw - dw) / 2 : dw >= cw ? Math.min(0, Math.max(cw - dw, want)) : Math.min(cw - dw, Math.max(0, want));
     return { ox, oy, dw, dh };
   }
 
@@ -107,10 +128,11 @@ export class FilmPainter {
     return landscape ? { mt: Math.max(ch * 0.035, 14 * scale), mb: ch * 0.025 } : { mt: Math.max(ch * 0.1, 64 * scale) + 12 * scale, mb: ch * 0.05 };
   }
 
-  // the zoom each frame may take on this screen, limited to 1.5% a frame either way. A subject cut by the picture's
-  // top keeps no room for the menu and is measured from the picture's top (it cannot be brought into view). On a
-  // screen not wider than the picture each frame takes the smallest zoom within 15 frames of it, so the picture eases
-  // out once for the pieces flying in and holds, instead of following each one in and out
+  // the zoom each frame may take on this screen, limited to 1.5% a frame either way (and held through a still beat).
+  // A subject cut by the picture's top keeps no room for the menu and is measured from the picture's top (it cannot
+  // be brought into view). On a screen not wider than the picture each frame takes the smallest zoom within 15
+  // frames of it, so the picture eases out once for the pieces flying in and holds, instead of following each one
+  // in and out
   private zoomsFor(cw: number, ch: number, aspect: number, scale: number) {
     const key = `${cw}x${ch}x${aspect.toFixed(4)}x${scale}`;
     if (key === this.zoomKey) return this.zooms;
@@ -126,6 +148,7 @@ export class FilmPainter {
             const up = (ch - mt * room(t) - mb) / (Math.max(0.01, b - Math.max(0, t)) * ch); // (no room is kept for the menu over a subject cut by the top)
             return Math.min(1, Math.max(0.5, Math.min(across, up)));
           });
+    this.raws = z.slice();
     if (cover <= 1) {
       const raw = z.slice();
       for (let n = 0; n < z.length; n++) {
@@ -134,17 +157,16 @@ export class FilmPainter {
         for (let j = Math.max(lo, n - 15); j <= Math.min(hi, n + 15); j++) z[n] = Math.min(z[n], raw[j]);
       }
     }
-    for (let n = 1; n < z.length; n++) z[n] = Math.min(z[n], z[n - 1] * (1 + STEP));
-    for (let n = z.length - 2; n >= 0; n--) z[n] = Math.min(z[n], z[n + 1] * (1 + STEP));
+    ease(z, (v) => v * (1 + STEP));
     this.zooms = z;
     return z;
   }
 
   // a frame's edge in 24 colours (96 down a side): blocks and shadows (strong colour, dark, or a dip below the wall
   // or floor on both sides: of more than 8% along the top and foot, 12% down a side, where the board's top is a
-  // surface up to 11% darker than the wall above it and the lit board front below; on the top edge, anything off
-  // the wall's tone) left out and filled from beside them. `exact` meets the picture, `flat` (eased toward the
-  // edge's middle tone) settles a band far from it, `even` is that middle tone
+  // surface up to 11% darker than the wall above it and the lit board front below, two or more samples tall; on the
+  // top edge, anything off the wall's tone) left out and filled from beside them. `exact` meets the picture, `flat`
+  // (eased toward the edge's middle tone) settles a band far from it, `even` is that middle tone (the floor band)
   private edgeLine(bmp: ImageBitmap, axis: "row" | "col", at: number): Edge {
     const id = `${axis}${at}`;
     const seen = this.rows.get(bmp) ?? {};
@@ -168,12 +190,20 @@ export class FilmPainter {
       return m;
     };
     const dip = axis === "row" ? 0.92 : 0.88;
-    const ok = plain.map((isPlain, k) => {
-      if (!isPlain) return false;
+    const ref = (k: number) => {
       const l = near(k - W, k - 1);
       const r = near(k + 1, k + W);
-      return !(l > 0 && r > 0 && L[k] < dip * Math.min(l, r));
-    });
+      return l > 0 && r > 0 ? Math.min(l, r) : -1;
+    };
+    const ok = plain.map((isPlain, k) => isPlain && !(ref(k) > 0 && L[k] < dip * ref(k)));
+    // down a side, a dip of 8-12% is kept only as a surface two or more samples tall (the board's top): a single
+    // sample that dark is a shadow crossing the edge, and is left out like a deeper one (or it streaks the band)
+    if (axis === "col") {
+      const soft = ok.map((o, k) => o && ref(k) > 0 && L[k] < 0.92 * ref(k));
+      soft.forEach((sf, k) => {
+        if (sf && !soft[k - 1] && !soft[k + 1]) ok[k] = false;
+      });
+    }
     // the picture's top edge is wall from end to end, as even as this to within a point or two: anything more than
     // 1.5% off its middle tone is something crossing the edge (the core climbing out, a block dropping in)
     if (axis === "row" && at === 0) {
@@ -255,23 +285,27 @@ export class FilmPainter {
       seam(top.exact, true, 0, Math.ceil(oy) + 1 - h, cw, h, "up");
     }
     if (bot) {
-      // the floor below the picture settles to one tone (where an edge of the board crosses the picture's foot, its
-      // two tones would otherwise run straight down the band as a soft-edged block)
+      // the floor below the picture is one tone, and the picture's foot fades into it: where an edge of the board,
+      // or a block, crosses the foot, its tones would otherwise run down the band as a soft-edged ghost
       ctx.fillStyle = bot.even;
       ctx.fillRect(0, Math.floor(oy + dh) - 1, cw, ch - Math.floor(oy + dh) + 1);
-      seam(bot.exact, true, 0, Math.floor(oy + dh) - 1, cw, Math.min(T, ch - Math.floor(oy + dh) + 1), "down");
     }
     ctx.drawImage(bmp, ox, oy, dw, dh);
-    const fy = dh * 0.08;
-    const fx = dw * 0.05;
-    if (top) seam(top.exact, true, 0, Math.floor(oy) - 1, cw, Math.ceil(fy) + 2, "down");
+    // the picture's own edges fade into the band beside them, over 8% of its height (5% of its width), or over
+    // four times the band's own size where it is narrower (a band of a few px needs no long fade)
+    const fade = (most: number, gap: number) => Math.min(most, 4 * gap);
+    const fT = fade(dh * 0.08, oy);
+    const fB = fade(dh * 0.08, ch - oy - dh);
+    const fL = fade(dw * 0.05, ox);
+    const fR = fade(dw * 0.05, cw - ox - dw);
+    if (top) seam(top.exact, true, 0, Math.floor(oy) - 1, cw, Math.ceil(fT) + 2, "down");
     if (bot) {
-      const y = Math.floor(oy + dh - fy);
-      seam(bot.exact, true, 0, y, cw, Math.ceil(oy + dh) + 1 - y, "up");
+      const y = Math.floor(oy + dh - fB);
+      seam([bot.even, bot.even], true, 0, y, cw, Math.ceil(oy + dh) + 1 - y, "up");
     }
-    if (left) seam(left, false, Math.floor(ox) - 1, oy, Math.ceil(fx) + 2, dh, "right");
+    if (left) seam(left, false, Math.floor(ox) - 1, oy, Math.ceil(fL) + 2, dh, "right");
     if (right) {
-      const x = Math.floor(ox + dw - fx);
+      const x = Math.floor(ox + dw - fR);
       seam(right, false, x, oy, Math.ceil(ox + dw) + 1 - x, dh, "left");
     }
   }

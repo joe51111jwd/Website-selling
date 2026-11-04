@@ -7,7 +7,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { COPY } from "../copy";
 import { BOOK } from "../book";
 import { FrameStore } from "../frames";
-import { FilmPainter, FILM_FRAMES } from "../fit";
+import { FilmPainter } from "../fit";
+import { frameAt } from "../lpkeys";
 import { APPENDIX_URL, optinLive, sendOptin, validEmail } from "../optin";
 import { openNotice } from "./NoticeDialog";
 import { lenis } from "../lenis";
@@ -21,35 +22,20 @@ const smooth = (t: number) => {
   const c = clamp(t);
   return c * c * (3 - 2 * c);
 };
-/** the same words, typeset: a typewriter apostrophe becomes a real one */
-// (a word joiner before each em dash, so a line never starts with one: "at once—" / "every day")
-const set = (s: string) => s.replace(/'/g, "’").replace(/—/g, "\u2060—");
+/** the same words, typeset: a typewriter apostrophe becomes a real one, and a word and the em dash after it stay
+ *  on one line, so a line never starts with one ("at once—" / "every day"), with no hidden character in the text */
+const set = (s: string) =>
+  s
+    .replace(/'/g, "’")
+    .split(/(\S+—)/)
+    .map((part, i) => (i % 2 ? <span key={i} className="fp-nowrap">{part}</span> : part));
 
 // the film section's own scroll, 0-1: the book; its hand-over; the film (frames 0-385, with a few still
-// beats); the picture gives way to the words, which hold until the section scrolls on
+// beats: src/lpkeys.ts); the picture gives way to the words, which hold until the section scrolls on
 const HERO_OUT: [number, number] = [0.03, 0.065];
 const FILM_IN: [number, number] = [0.06, 0.09];
 const FILM_OUT: [number, number] = [0.905, 0.93];
 const WORDS_IN: [number, number] = [0.93, 0.955];
-const KEYS: [number, number][] = [
-  [0.09, 0],
-  [0.11, 0], // the small white building, still
-  [0.265, 83], // everything piled on at once, to the brink
-  [0.285, 86], // a held breath at the tipping point
-  [0.37, 140], // it falls
-  [0.39, 146], // the wreckage, still
-  [0.88, FILM_FRAMES - 1], // cleared; the core; three rounds of up, side and down
-  [1, FILM_FRAMES - 1], // the finished tower, still
-];
-const frameAt = (p: number) => {
-  if (p <= KEYS[0][0]) return KEYS[0][1];
-  for (let k = 0; k < KEYS.length - 1; k++) {
-    const [p0, f0] = KEYS[k];
-    const [p1, f1] = KEYS[k + 1];
-    if (p <= p1) return f0 + ((p - p0) / (p1 - p0)) * (f1 - f0);
-  }
-  return KEYS[KEYS.length - 1][1];
-};
 /** how far through the film section the page is, 0-1 */
 const filmProgress = (sec: Element | null) => {
   if (!sec) return 0;

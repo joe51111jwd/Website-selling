@@ -2,7 +2,8 @@
 #   x  for every frame: where the subject is across the picture (0-1), so the page keeps it on the
 #      screen's centre line when the picture is wider than the screen (an upright phone)
 #   y  for every frame: the subject's [top, bottom] (0-1 down the picture), so on a screen wider than the
-#      picture the page can enlarge it to the full width wherever the subject still fits
+#      picture the page can enlarge it to the full width wherever the subject still fits (a top below 0 is a
+#      subject cut by the picture's top, and is only ever below 0 in the frames where it is)
 #   w  for every frame: the subject's [left, right], so on an upright screen the page can make the picture
 #      smaller where the subject is wide (the rubble), and keep all of it in view (the raft counts only until
 #      the core rises: after that it is the ground the tower stands on, and may run off a phone's sides)
@@ -90,6 +91,14 @@ sy = []
 for i in range(len(env)):
     w = env[max(0, i - 4): i + 5]
     sy.append([round(sum(t for t, _ in w) / len(w), 4), round(sum(b for _, b in w) / len(w), 4)])
+# a subject cut by the picture's top (a core climbing out of it, t < 0) is cut only in the frames where it is: the
+# smoothing above reaches 10 frames either side, so within twice that of a cut every frame still in the picture
+# takes its own top (or the page would treat it as cut too, keeping no room for the menu while its top is in plain
+# view, or as higher than it is where the smoothing still reaches the frames where it comes back into view)
+CUT = [i for i, (t, _) in enumerate(ys) if t < 0]
+for i in range(len(sy)):
+    if ys[i][0] >= 0 and any(abs(i - j) <= 20 for j in CUT):
+        sy[i][0] = round(ys[i][0], 4)
 # the subject's [left, right] the same way (so an upright screen can keep all of it in view)
 envw = []
 for i in range(len(ws)):
