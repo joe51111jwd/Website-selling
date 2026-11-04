@@ -54,7 +54,39 @@ team back on, on the systems, and the building keeps rising past where the rush 
 The physics is deterministic, so the same scripts give the same fall every time. On a 4-core
 CPU the story takes about 30 seconds a frame at these settings.
 
-## The focus version's film (`/focus`)
+## The focus version's film (`/focus`): "Load Path"
+
+Since 4 Nov the focus version plays `loadpath.py`, which has no words and no labels. It is an architect's
+massing model on a stone site board, shot like model photography in low raking sun.
+- **Act one:** a small white building (the cover's three tiers) is grown by doing everything at once.
+  Volumes are dropped on top, annexes slide in from the sides, and one is pulled away again. It goes
+  top-heavy, leans, racks and falls. The wreckage is cleared into the board.
+- **Act two:** a concrete raft and core go in first. Then the tower is built one move at a time, each
+  with one colour and one direction:
+  - green storeys grow up out of its top, swaying a little;
+  - ochre wings slide in level from both sides and lock it plumb;
+  - the red annex that came up with the growth is lowered away into the ground.
+- **Colour:** it marks only the work being done. A piece settles to white once it is in place, so the
+  finished building is all plaster and stone.
+- **The end:** three rounds, each cycle stepped back a little. The third climbs out through the exact
+  frame the first tower fell in.
+
+| File | What it does |
+| --- | --- |
+| `loadpath.py` | The scene, the animation (act one's fall is a hinge, then baked rigid-body physics), camera and render settings; saves `loadpath.blend` |
+| `render_loadpath.sh` | Renders every frame of `loadpath.blend` into `out/lseq`; a stopped run picks up where it left off |
+| `loadpath_anchors.py` | Each frame's subject: x, [top, bottom] and [left, right] in the picture, for the page's framing (`src/lpfilm.json`) |
+
+1. `blender -b -P loadpath.py -- --blend loadpath.blend` (add `--frames 1,86,140,205 --w 960 --h 600 --samples 16 --out out/lpb/b` for stills)
+2. `W=1600 H=1000 S=12 BLENDER=blender ./render_loadpath.sh` (386 frames, about 30 seconds each on 4 cores)
+3. `blender -b loadpath.blend -P loadpath_anchors.py -- ../src/lpfilm.json`
+4. From the project root:
+   `python3 scripts/pack_frames.py render/out/lseq public/frames-lp/hi --width 1600 --quality 78 --per 25`
+   `python3 scripts/pack_frames.py render/out/lseq public/frames-lp/lo --width 480 --quality 60 --per 50`
+
+If the timing changes, re-run step 3 and check `KEYS` in `src/components/FocusPage.tsx` (the scroll's still beats).
+
+## The earlier focus film (retired 4 Nov)
 
 The focus version plays its own film, made from `story.py` with the blocks carrying the words: the
 first three blocks on the stack are planks stamped ALWAYS LAUNCHING / ALWAYS HIRING / ALWAYS ADDING
