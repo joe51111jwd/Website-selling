@@ -4,7 +4,8 @@
 #   y  for every frame: the subject's [top, bottom] (0-1 down the picture), so on a screen wider than the
 #      picture the page can enlarge it to the full width wherever the subject still fits
 #   w  for every frame: the subject's [left, right], so on an upright screen the page can make the picture
-#      smaller where the subject is wide (the rubble), and keep all of it in view
+#      smaller where the subject is wide (the rubble), and keep all of it in view (the raft counts only until
+#      the core rises: after that it is the ground the tower stands on, and may run off a phone's sides)
 # The subject: the pile (and, as it falls, what is in the picture); then the raft, the core and the tower
 # (the walls once they are close, the annex while it is on the tower).
 # Run: blender -b loadpath.blend -P loadpath_anchors.py -- ../src/lpfilm.json
@@ -50,28 +51,33 @@ walls = [o for o in O if o.name.startswith("wall") and o.type == "MESH"]
 bolts = [o for o in O if o.name.startswith("bolt") and o.type == "MESH"]
 
 raw = []
+across = []  # the subject's [left, right] box (the raft leaves it once the core rises: it is the ground, not the work)
 for f in range(1, END + 1):
     scene.frame_set(f)
     # (a piece that slid off the board, far out of the picture, is not part of what is seen)
     a = [o for o in act1 if shown(o) and -0.08 < world_to_camera_view(scene, cam, o.matrix_world.translation).x < 1.08]
     if a:
         obs, clamp = a, True
+        wide = obs
     else:
         obs = [o for o in tower if shown(o)]
         obs += [w for w in walls if shown(w) and abs(w.matrix_world.translation.x) < 1.6]
         obs += [b for b in bolts if shown(b) and b.matrix_world.translation.z > PT + 0.3]
         clamp = False
+        wide = [o for o in obs if not o.name.startswith("raft")] or obs
     b = box(obs, clamp) if obs else None
     raw.append(b)
+    across.append(box(wide, clamp) if wide else None)
 # frames with nothing standing (the site just cleared) take the nearest frame that has something
-for i, b in enumerate(raw):
-    if b is None:
-        j = next((k for k in range(i + 1, len(raw)) if raw[k]), None)
-        raw[i] = raw[j] if j is not None else raw[i - 1]
+for seq in (raw, across):
+    for i, b in enumerate(seq):
+        if b is None:
+            j = next((k for k in range(i + 1, len(seq)) if seq[k]), None)
+            seq[i] = seq[j] if j is not None else seq[i - 1]
 
-xs = [(b[0] + b[2]) / 2 for b in raw]
+xs = [(b[0] + b[2]) / 2 for b in across]
 ys = [(b[1], b[3]) for b in raw]
-ws = [(b[0], b[2]) for b in raw]
+ws = [(b[0], b[2]) for b in across]
 sx = []
 for i in range(len(xs)):
     w = xs[max(0, i - 6): i + 7]

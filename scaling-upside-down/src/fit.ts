@@ -14,6 +14,11 @@ export const FILM_FRAMES = XS.length;
 const N = 24; // colours sampled along an edge
 type Edge = { exact: string[]; flat: string[] };
 
+// how far a picture that covers the screen may be moved down off its top, by how far below the picture's top the
+// subject starts (t, 0-1 down the picture): all the way from 4% down, none once it reaches the top. A subject cut
+// by the picture's top cannot be brought into view by it, so it runs off the screen's top instead
+const room = (t: number) => Math.min(1, Math.max(0, t / 0.04));
+
 export class FilmPainter {
   private probe = document.createElement("canvas");
   private pctx: CanvasRenderingContext2D;
@@ -35,7 +40,7 @@ export class FilmPainter {
     const k = Math.max(0, Math.min(FILM_FRAMES - 1, Math.round(i)));
     const [t, b] = SPANS[k];
     const wide = cw > ch * aspect;
-    const { mt, mb } = this.margins(wide, ch, scale);
+    const { mt, mb } = this.margins(cw > ch, ch, scale);
     const z = this.zoomsFor(cw, ch, aspect, scale)[k];
     const dh = ch * z;
     const c = (t + b) / 2;
@@ -46,10 +51,11 @@ export class FilmPainter {
       oy = Math.min(ch - mb - b * dh, Math.max(mt - t * dh, oy));
       oy = Math.min(0, Math.max(ch - dh, oy));
     } else if (z >= 1) {
-      // an upright screen: the picture covers it, moved down only as far as keeps the subject clear of the menu
-      oy = Math.max(0, Math.min(ch * 0.12, mt - top * dh, ch - mb - b * dh));
+      // the picture covers the screen's height, moved down only as far as keeps the subject clear of the menu
+      oy = Math.max(0, Math.min(ch * 0.12, mt - top * dh, ch - mb - b * dh)) * room(t);
     } else {
-      oy = Math.max(0, Math.min(ch - dh, Math.max(mt - top * dh, (mt + ch - mb) / 2 - c * dh))); // smaller: between the menu and the foot
+      // smaller: between the menu and the foot
+      oy = Math.max(0, Math.min(ch - dh, Math.max(mt - top * dh, (mt + ch - mb) / 2 - c * dh)));
     }
     const dw = dh * aspect;
     const want = cw / 2 - XS[k] * dw;
@@ -62,10 +68,10 @@ export class FilmPainter {
     this.paint(bmp, r.ox, r.oy, r.dw, r.dh, cw, ch, scale);
   }
 
-  // how close to the top and the foot the subject may come. On a screen wider than the picture the menu sits in
-  // its corners and the subject is centred, so it may come close; on an upright one the menu spans the top
-  private margins(wide: boolean, ch: number, scale: number) {
-    return wide ? { mt: Math.max(ch * 0.035, 14 * scale), mb: ch * 0.025 } : { mt: Math.max(ch * 0.1, 64 * scale) + 12 * scale, mb: ch * 0.05 };
+  // how close to the top and the foot the subject may come. On a landscape screen the menu sits in its corners and
+  // the subject is centred, so it may come close; on an upright one the menu spans the top
+  private margins(landscape: boolean, ch: number, scale: number) {
+    return landscape ? { mt: Math.max(ch * 0.035, 14 * scale), mb: ch * 0.025 } : { mt: Math.max(ch * 0.1, 64 * scale) + 12 * scale, mb: ch * 0.05 };
   }
 
   // the zoom each frame may take on this screen, limited to 1.5% a frame either way
@@ -74,14 +80,14 @@ export class FilmPainter {
     if (key === this.zoomKey) return this.zooms;
     this.zoomKey = key;
     const cover = cw / (ch * aspect);
-    const { mt, mb } = this.margins(cover > 1, ch, scale);
+    const { mt, mb } = this.margins(cw > ch, ch, scale);
     const z =
       cover > 1
         ? SPANS.map(([t, b]) => Math.min(cover, Math.max(1, (ch - mt - mb) / (Math.max(0.01, b - t) * ch))))
         : WIDTHS.map(([l, r], k) => {
             const [t, b] = SPANS[k];
             const across = (cw * 0.92) / (Math.max(0.01, r - l) * ch * aspect);
-            const up = (ch - mt - mb) / (Math.max(0.01, b - Math.max(0, t)) * ch);
+            const up = (ch - mt * room(t) - mb) / (Math.max(0.01, b - Math.max(0, t)) * ch); // (no room is kept for the menu over a subject cut by the top)
             return Math.min(1, Math.max(0.5, Math.min(across, up)));
           });
     for (let n = 1; n < z.length; n++) z[n] = Math.min(z[n], z[n - 1] * 1.015);
@@ -91,7 +97,8 @@ export class FilmPainter {
   }
 
   // a frame's edge in 24 colours: blocks and shadows (strong colour, dark, or a dip of more than 8% below
-  // the wall or floor on both sides) left out and filled from beside them; `exact` meets the picture,
+  // the wall or floor on both sides; on the top edge, anything off the wall's tone) left out and filled from
+  // beside them; `exact` meets the picture,
   // `flat` (eased toward the edge's middle tone) settles a band far from it
   private edgeLine(bmp: ImageBitmap, axis: "row" | "col", at: number): Edge {
     const id = `${axis}${at}`;
@@ -119,6 +126,13 @@ export class FilmPainter {
       const r = near(k + 1, k + 5);
       return !(l > 0 && r > 0 && L[k] < 0.92 * Math.min(l, r));
     });
+    // the picture's top edge is wall from end to end, as even as this to within a point or two: anything more than
+    // 1.5% off its middle tone is something crossing the edge (the core climbing out, a block dropping in)
+    if (axis === "row" && at === 0) {
+      const ls = L.filter((_, k) => ok[k]).sort((a, b) => a - b);
+      const med = ls.length ? ls[ls.length >> 1] : 0;
+      ok.forEach((o, k) => (ok[k] = o && Math.abs(L[k] - med) <= 0.015 * med));
+    }
     const out = px.map((c, k) => {
       if (ok[k]) return c;
       let l = k;
