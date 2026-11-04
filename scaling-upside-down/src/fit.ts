@@ -26,9 +26,11 @@ type Edge = { exact: string[]; flat: string[]; even: string };
 // by the picture's top cannot be brought into view by it, so it runs off the screen's top instead
 const room = (t: number) => Math.min(1, Math.max(0, t / 0.04));
 
-// eases a per-frame series in place, only ever lowering it: no frame ends up more than `up` of the frames either
-// side of it allows. Through a still beat every frame takes the lowest of them, so the picture holds still there
-const ease = (v: number[], up: (x: number) => number) => {
+// eases a per-frame series in place, only ever lowering it: no frame ends up more than `d` (added, or a factor of
+// 1 + d with `mul`) past the frames either side of it. Through a still beat every frame takes the lowest of them, so
+// the picture holds still there, and it glides into the beat over the 8 frames before it (evenly, not in a step)
+const ease = (v: number[], d: number, mul = false) => {
+  const up = (x: number) => (mul ? x * (1 + d) : x + d);
   for (let pass = 0; pass < 6; pass++) {
     for (let n = 1; n < v.length; n++) v[n] = Math.min(v[n], up(v[n - 1]));
     for (let n = v.length - 2; n >= 0; n--) v[n] = Math.min(v[n], up(v[n + 1]));
@@ -37,7 +39,17 @@ const ease = (v: number[], up: (x: number) => number) => {
       const m = Math.min(...v.slice(a, b + 1));
       for (let n = a; n <= b; n++) if (v[n] > m) (v[n] = m), (held = false);
     }
-    if (held) return;
+    if (held) break;
+  }
+  const R = 8;
+  for (const [a] of STILLS) {
+    if (a < R) continue;
+    const h = v[a];
+    const s0 = v[a - R];
+    for (let n = a - R + 1; n < a; n++) {
+      const f = (a - n) / R;
+      v[n] = Math.min(v[n], mul && h > 0 && s0 > 0 ? h * (s0 / h) ** f : h + (s0 - h) * f);
+    }
   }
 };
 
@@ -46,18 +58,20 @@ export class FilmPainter {
   private pctx: CanvasRenderingContext2D;
   private edge = document.createElement("canvas");
   private ectx: CanvasRenderingContext2D;
+  private tall = document.createElement("canvas"); // (a side column, row by row)
+  private tctx: CanvasRenderingContext2D;
   private rows = new WeakMap<ImageBitmap, Record<string, Edge>>();
   private zoomKey = "";
   private zooms: number[] = [];
   private oyKey = "";
   private oys: number[] = [];
-  private raws: number[] = []; // (each frame's own zoom, before it is eased for its neighbours)
 
   constructor(private ctx: CanvasRenderingContext2D) {
     this.probe.width = NC;
     this.probe.height = NC;
     this.pctx = this.probe.getContext("2d", { willReadFrequently: true })!;
     this.ectx = this.edge.getContext("2d")!;
+    this.tctx = this.tall.getContext("2d", { willReadFrequently: true })!;
   }
 
   /** where frame i's picture sits on a cw x ch canvas (device px; scale is the device pixel ratio) */
@@ -76,8 +90,10 @@ export class FilmPainter {
     this.oyKey = key;
     const s = cw > ch * aspect ? -1 : 1; // (the wide picture's place is eased the other way)
     const o = Array.from({ length: FILM_FRAMES }, (_, n) => s * this.place(n, cw, ch, aspect, scale).oy);
-    const d = ch * STEP;
-    ease(o, (v) => v + d);
+    ease(o, ch * STEP);
+    // (on a landscape screen not wider than the picture, a place only one frame wants, past both its neighbours,
+    // is not taken: the picture would bob for that frame)
+    if (cw > ch && s > 0) for (let n = 1; n < o.length - 1; n++) o[n] = Math.min(o[n], Math.max(o[n - 1], o[n + 1]));
     this.oys = o.map((v) => s * v);
     return this.oys;
   }
@@ -91,8 +107,13 @@ export class FilmPainter {
     const dh = ch * z;
     const c = (t + b) / 2;
     const top = Math.max(0, t); // (a subject climbing out of the picture's top is cut by the picture, not the screen)
-    // moved down only as far as keeps the subject clear of the menu
-    const clear = Math.max(0, Math.min(ch * 0.12, mt - top * dh, ch - mb - b * dh)) * room(t);
+    // moved down only as far as keeps the subject clear of the menu (on a landscape screen only the margin is
+    // ramped in as the subject's top comes into the picture, as on a wide one, so the picture does not dip and rise
+    // for the frames where it does)
+    const clear =
+      cw > ch
+        ? Math.max(0, Math.min(ch * 0.12, mt * room(t) - top * dh, ch - mb - b * dh))
+        : Math.max(0, Math.min(ch * 0.12, mt - top * dh, ch - mb - b * dh)) * room(t);
     let oy: number;
     if (wide) {
       oy = c * ch - c * dh; // enlarged about the subject's middle
@@ -101,14 +122,14 @@ export class FilmPainter {
     } else if (z >= 1) {
       oy = clear; // the picture covers the screen's height
     } else {
-      // smaller: between the menu and the foot. Flush with the top while the subject runs off it: a core climbing
-      // out of the picture's top runs off the screen's top, and on a landscape screen a block dropping in enters
-      // from the screen's edge. On a landscape screen also while it is held smaller than its own frame needs (for
-      // the pieces still to come), so it is not centred and then pulled back up as the zoom pushes in. Never higher
-      // than `clear`, which it meets at a zoom of 1, so the picture does not hop where the zoom crosses it
+      // smaller. On a landscape screen it sits flush with the top, moved down only to clear the menu: it is smaller
+      // for the pieces still to come or for a subject running off its top, so it is not centred and then pulled
+      // back up as the zoom pushes in, and a block dropping in enters from the screen's edge. On an upright one it
+      // sits between the menu and the foot, and flush with the top while the subject runs off it (a core climbing
+      // out of the picture's top runs off the screen's top). Never higher than `clear`, which it meets at a zoom of
+      // 1, so the picture does not hop where the zoom crosses it
       const mid = Math.max(0, Math.min(ch - dh, Math.max(mt - top * dh, (mt + ch - mb) / 2 - c * dh)));
-      const held = cw > ch && z < this.raws[k] - 1e-4;
-      oy = held ? clear : Math.max(mid * (cw > ch ? room(t) : t < 0 ? 0 : 1), clear);
+      oy = cw > ch ? clear : Math.max(t < 0 ? 0 : mid, clear);
     }
     const dw = dh * aspect;
     const want = cw / 2 - XS[k] * dw;
@@ -119,7 +140,10 @@ export class FilmPainter {
 
   draw(bmp: ImageBitmap, i: number, cw: number, ch: number, scale: number) {
     const r = this.rect(i, cw, ch, bmp.width / bmp.height, scale);
-    this.paint(bmp, r.ox, r.oy, r.dw, r.dh, cw, ch, scale);
+    const k = Math.max(0, Math.min(FILM_FRAMES - 1, Math.round(i)));
+    // a core coming back into view after running off the picture's top: the top fade stops short of it
+    const back = SPANS[k][0] > 0 && SPANS.slice(Math.max(0, k - 6), k).some(([t]) => t < 0);
+    this.paint(bmp, r.ox, r.oy, r.dw, r.dh, cw, ch, scale, back ? SPANS[k][0] * r.dh : Infinity);
   }
 
   // how close to the top and the foot the subject may come. On a landscape screen the menu sits in its corners and
@@ -148,7 +172,6 @@ export class FilmPainter {
             const up = (ch - mt * room(t) - mb) / (Math.max(0.01, b - Math.max(0, t)) * ch); // (no room is kept for the menu over a subject cut by the top)
             return Math.min(1, Math.max(0.5, Math.min(across, up)));
           });
-    this.raws = z.slice();
     if (cover <= 1) {
       const raw = z.slice();
       for (let n = 0; n < z.length; n++) {
@@ -157,7 +180,7 @@ export class FilmPainter {
         for (let j = Math.max(lo, n - 15); j <= Math.min(hi, n + 15); j++) z[n] = Math.min(z[n], raw[j]);
       }
     }
-    ease(z, (v) => v * (1 + STEP));
+    ease(z, STEP, true);
     this.zooms = z;
     return z;
   }
@@ -174,16 +197,52 @@ export class FilmPainter {
     const N = axis === "row" ? NR : NC;
     const W = Math.round((5 * N) / NR); // how far either side a dip is compared with
     const p = this.pctx;
-    p.clearRect(0, 0, NC, NC);
-    if (axis === "row") p.drawImage(bmp, 0, at, bmp.width, 2, 0, 0, N, 1);
-    else p.drawImage(bmp, at, 0, 2, bmp.height, 0, 0, 1, N);
-    const d = p.getImageData(0, 0, axis === "row" ? N : 1, axis === "row" ? 1 : N).data;
-    const px = Array.from({ length: N }, (_, k) => [d[k * 4], d[k * 4 + 1], d[k * 4 + 2]]);
-    const L = px.map(([r, g, b]) => 0.3 * r + 0.59 * g + 0.11 * b);
-    const plain = px.map(([r, g, b]) => {
+    const isPlain = (r: number, g: number, b: number) => {
       const hi = Math.max(r, g, b);
       return hi > 120 && (hi - Math.min(r, g, b)) / hi < 0.22;
-    });
+    };
+    let d: ArrayLike<number>;
+    let rowsPlain: boolean[] | null = null; // (down a side: every row of the sample is plain wall or floor)
+    let Lmin: number[] | null = null; // (down a side: the sample's darkest row)
+    if (axis === "row") {
+      p.clearRect(0, 0, NC, NC);
+      p.drawImage(bmp, 0, at, bmp.width, 2, 0, 0, N, 1);
+      d = p.getImageData(0, 0, N, 1).data;
+    } else {
+      // down a side each sample is the mean of all its rows, so an edge crossing it moves its tone smoothly (read
+      // from a few rows only, the floor's line in the band would jump a whole sample at a time as the camera moves)
+      const H = bmp.height;
+      if (this.tall.width !== 1 || this.tall.height !== H) {
+        this.tall.width = 1;
+        this.tall.height = H;
+      }
+      this.tctx.clearRect(0, 0, 1, H);
+      this.tctx.drawImage(bmp, at, 0, 2, H, 0, 0, 1, H);
+      const c = this.tctx.getImageData(0, 0, 1, H).data;
+      const sum = new Float64Array(N * 4);
+      rowsPlain = [];
+      Lmin = [];
+      for (let k = 0; k < N; k++) {
+        const y0 = Math.floor((k * H) / N);
+        const y1 = Math.max(y0 + 1, Math.floor(((k + 1) * H) / N));
+        let all = true;
+        let lo = 999;
+        for (let y = y0; y < y1; y++) {
+          const [r, g, b] = [c[y * 4], c[y * 4 + 1], c[y * 4 + 2]];
+          if (!isPlain(r, g, b)) all = false;
+          lo = Math.min(lo, 0.3 * r + 0.59 * g + 0.11 * b);
+          for (let n = 0; n < 3; n++) sum[k * 4 + n] += c[y * 4 + n] / (y1 - y0);
+        }
+        rowsPlain.push(all);
+        Lmin.push(lo);
+      }
+      d = sum;
+    }
+    const px = Array.from({ length: N }, (_, k) => [d[k * 4], d[k * 4 + 1], d[k * 4 + 2]]);
+    const L = px.map(([r, g, b]) => 0.3 * r + 0.59 * g + 0.11 * b);
+    // (down a side a sample is plain only if every one of its rows is, or a block's edge blends into a pale tint)
+    const plain = px.map(([r, g, b], k) => isPlain(r, g, b) && (!rowsPlain || rowsPlain[k]));
+    const Ld = Lmin ?? L; // (a dip is judged by the sample's darkest row: a shadow over part of it still counts)
     const near = (from: number, to: number) => {
       let m = -1;
       for (let j = Math.max(0, from); j <= Math.min(N - 1, to); j++) if (plain[j]) m = Math.max(m, L[j]);
@@ -195,7 +254,7 @@ export class FilmPainter {
       const r = near(k + 1, k + W);
       return l > 0 && r > 0 ? Math.min(l, r) : -1;
     };
-    const ok = plain.map((isPlain, k) => isPlain && !(ref(k) > 0 && L[k] < dip * ref(k)));
+    const ok = plain.map((pl, k) => pl && !(ref(k) > 0 && Ld[k] < dip * ref(k)));
     // down a side, a dip of 8-12% is kept only as a surface two or more samples tall (the board's top): a single
     // sample that dark is a shadow crossing the edge, and is left out like a deeper one (or it streaks the band)
     if (axis === "col") {
@@ -232,7 +291,7 @@ export class FilmPainter {
     return res;
   }
 
-  private paint(bmp: ImageBitmap, ox: number, oy: number, dw: number, dh: number, cw: number, ch: number, scale: number) {
+  private paint(bmp: ImageBitmap, ox: number, oy: number, dw: number, dh: number, cw: number, ch: number, scale: number, keep = Infinity) {
     const ctx = this.ctx;
     const ectx = this.ectx;
     const edge = this.edge;
@@ -294,7 +353,7 @@ export class FilmPainter {
     // the picture's own edges fade into the band beside them, over 8% of its height (5% of its width), or over
     // four times the band's own size where it is narrower (a band of a few px needs no long fade)
     const fade = (most: number, gap: number) => Math.min(most, 4 * gap);
-    const fT = fade(dh * 0.08, oy);
+    const fT = Math.min(fade(dh * 0.08, oy), Math.max(2 * scale, keep - 2 * scale));
     const fB = fade(dh * 0.08, ch - oy - dh);
     const fL = fade(dw * 0.05, ox);
     const fR = fade(dw * 0.05, cw - ox - dw);

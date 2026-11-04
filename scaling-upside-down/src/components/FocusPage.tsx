@@ -61,6 +61,7 @@ function FocusNav() {
   // the one call to action shows only once the book (which has its own) has gone, and steps aside at the sign-up
   const [show, setShow] = useState(false);
   const [solid, setSolid] = useState(false);
+  const [paper, setPaper] = useState(false);
   const btn = useRef<HTMLAnchorElement>(null);
   const brand = useRef<HTMLAnchorElement>(null);
   useEffect(() => {
@@ -70,7 +71,9 @@ function FocusNav() {
       const p = filmProgress(film);
       const past = p > HERO_OUT[1] || (film ? film.getBoundingClientRect().bottom < window.innerHeight : false);
       setShow(past && !atJoin);
-      // solid as soon as the words can move (the film's end), so they slide under the bar, never under the brand
+      // paper behind the menu once the words are in and still (paper on paper there, so it is not seen), so a hard
+      // flick never carries them under a clear bar; the hairline only once they can move (the film's end)
+      setPaper(p >= WORDS_IN[1]);
       setSolid(film ? film.getBoundingClientRect().bottom < window.innerHeight + 1 : false);
     };
     const join = document.getElementById("join");
@@ -96,7 +99,7 @@ function FocusNav() {
     if (!show && document.activeElement === btn.current) brand.current?.focus({ preventScroll: true });
   }, [show]);
   return (
-    <header className={`fp-nav${solid ? " is-solid" : ""}`}>
+    <header className={`fp-nav${paper ? " is-paper" : ""}${solid ? " is-solid" : ""}`}>
       <a className="fp-brand" href="#top" ref={brand} aria-label="Scaling Up-Side-Down, back to top">
         <Mark />
         <span>Scaling Up-Side-Down</span>
