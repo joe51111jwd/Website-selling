@@ -195,6 +195,20 @@ def tint(ob, prop, f, v, interp="LINEAR"):
                 if kp.co[0] == f:
                     kp.interpolation = interp
 
+def widen(ob, f_on, f_off, by=1.012):
+    """ob's footprint `by` wider from f_on to f_off (its x and y scale, stepped, not eased)"""
+    for fc in list(ob.animation_data.action.fcurves):
+        if fc.data_path == "scale" and fc.array_index in (0, 1):
+            ob.animation_data.action.fcurves.remove(fc)
+    for fr, v in ((f_on, by), (f_off, 1.0)):
+        for i in (0, 1):
+            ob.scale[i] = v
+            ob.keyframe_insert("scale", index=i, frame=fr)
+    for fc in ob.animation_data.action.fcurves:
+        if fc.data_path == "scale" and fc.array_index in (0, 1):
+            for kp in fc.keyframe_points:
+                kp.interpolation = "CONSTANT"
+
 def show(ob, f_on=None, f_off=None):
     """hidden before f_on and from f_off on"""
     if f_on is not None:
@@ -556,6 +570,10 @@ for c in range(CYCLES):
         key(st, f + du, scale=(1, 1, 1))
         storeys.append(st)
         f += du
+    # the core below stands 0.22 up into this one's foot. Until the first storey hides the joint this one is
+    # a hair wider, or their side faces meet and shade each other black
+    if c:
+        widen(core, f_on=up0 - dc - 1, f_off=up0 + du + 1)
     # the phase's growth stays green until the phase is done, then settles to white together
     for st in storeys:
         tint(st, "tu", f + 1, TMAX)
