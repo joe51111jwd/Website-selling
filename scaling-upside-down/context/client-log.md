@@ -18,8 +18,17 @@ under "All of James's messages, word for word".
 What it means: the wooden toy blocks read as playful; James wants a more professional visual, either a new
 take on the blocks or a different idea, rendered in Blender and built. The lines that appear beside the
 held picture still split the eye: words should only be on screen when they are the one thing to look at,
-and the picture must make sense without them. **Open**: a new film and page for `/focus` (the home page
-is unchanged).
+and the picture must make sense without them. **Done** in the release that followed: a new film and
+page for `/focus`, with the home page unchanged.
+- The film: three concepts were rendered and judged, and the winner is an architect's white massing
+  model ("Load Path", `render/loadpath.py`). It is grown by doing everything at once and falls. It is
+  then rebuilt on a raft and core, one move at a time: green storeys grow up, ochre wings slide in
+  from the sides, the red annex is lowered away. After three rounds it stands far taller. There are
+  no words in it.
+- The page (`src/components/FocusPage.tsx`) runs one thing at a time: the book alone, then the film
+  alone, then the words alone ("Up. Side. Down. Repeat.") once the picture has gone, then the book
+  and its sign-up.
+**Waiting** on James (and Michael) to compare `/` and `/focus`.
 
 ## Tue 3 Nov 2026, 12:17 PM and 12:23 PM ET: James asks for the link to the new focus version
 

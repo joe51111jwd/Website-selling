@@ -11,9 +11,10 @@ https://scaling-up-side-down.vercel.app. It includes both rounds of his
 feedback: the 27 Oct round (sign-up, /appendix) and the 30 Oct round (the
 book first, one sign-up, the file by email only). The home page's last
 release went out on Sat 31 Oct 2026. Next to it, at /focus, is the focus
-version James asked for (one thing on screen at a time): its own Blender
-film where the blocks carry the words, released Tue 3 Nov 2026. Nobody has
-picked between the two yet.
+version James asked for (one thing on screen at a time). Since Wed 4 Nov it
+plays its own wordless Blender film, an architect's white model that falls
+and is rebuilt in separate Up, Side and Down moves, and words appear only on
+their own, after the picture. Nobody has picked between the two yet.
 
 | What                                        | Where                                                                                               |
 |---------------------------------------------|-----------------------------------------------------------------------------------------------------|
@@ -311,7 +312,16 @@ are the only exception.
 - **Built for AI readers too.** /appendix is plain, citable HTML with
   llms.txt and a sitemap.
 
-**Tried and dropped:** the first reflection, pyramid and flip ideas; an
+- **The focus version (/focus), since 4 Nov.** Words are on screen only when they are the one thing to
+  look at, and the picture makes sense without them (James, 3 Nov). The film is a professional
+  architect's massing model, "Load Path" (`render/loadpath.py`); a panel of three concepts was judged,
+  and the toy blocks were dropped. The film has no words and no labels; its three phases are told by
+  colour and direction alone (green up, ochre in from the sides, red lowered away), one move at a
+  time. The book comes first, the words after the film, then the book and its sign-up.
+
+**Tried and dropped:** the first focus film (the toy blocks carrying the words, with lines beside
+the held picture; 2-3 Nov), retired as too playful and still splitting the eye; the first reflection,
+pyramid and flip ideas; an
 Apple-style homepage; ten design directions (Index, Ink, Curve,
 Wireframe, Stencil, 97, Constellation, Manifesto and others) that looked
 good but weren’t about the book; a second round (Read and Use, Blocks,
@@ -366,6 +376,7 @@ issues; all were fixed before it shipped. Newest first, US Eastern.
 
 | When                     | What it added                                                          |
 |--------------------------|------------------------------------------------------------------------|
+| Wed 4 Nov                | A more professional /focus (James, 3 Nov: less playful; no words unless they are the focus). A new wordless film, "Load Path" (`render/loadpath.py`, 386 frames at 1600×1000): an architect's white massing model is grown by doing everything at once and falls; it is rebuilt on a raft and core one move at a time, three rounds, far taller. The page shows the book alone, then the film alone, then the words alone, then the book and its sign-up. Picked from three rendered concepts by two judges; the page went through an independent review on devices and in code, and every confirmed finding was fixed. The home page is unchanged, except that on a phone held sideways its sign-up keeps its headline |
 | Tue 3 Nov                | The rethought focus version at /focus (James, Sun 1 Nov: no full-screen text, rethink the blocks): its own film (`render/focus_film.py`, 1600×1000) where the first three blocks are planks stamped ALWAYS LAUNCHING / HIRING / ADDING, the cover's stack turns upside down and is set right, the systems slide in from the sides, the planks leave with the dead weight and the building rises. The film holds while each short line sits beside the blocks it is about (under the picture on an upright phone); the closed loop and the book end the same way. Fixes from two independent reviews of the film and the page, including a collision check over every frame. On desktop windows wider than the picture it fills the width wherever the blocks allow (eased, never a jump), and the wall and floor round the picture are painted in its own colours. One fix also reaches the home page: on a phone on its side (844×390) the sign-up keeps its headline and offer |
 | Mon 2 Nov                | The focus version at /focus (one thing on screen at a time), next to the live home page; fixes from the round-3 review (the footer's styles back, the hero on wide, square and short screens, the sign-up's wording and states, an unconfirmed address asked to confirm again, llms.txt book-first) |
 | Sat 31 Oct, evening      | The book first (his 30 Oct notes): the real hardcover in the hero, the problem first, the cycle named once, one sign-up for the first-edition list, the file by email only. Live in production now |
