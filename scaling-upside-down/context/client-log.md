@@ -28,6 +28,10 @@ page for `/focus`, with the home page unchanged.
 - The page (`src/components/FocusPage.tsx`) runs one thing at a time: the book alone, then the film
   alone, then the words alone ("Up. Side. Down. Repeat.") once the picture has gone, then the book
   and its sign-up.
+- Before it went out (Wed 4 Nov) the page went through five rounds of independent review on phones,
+  tablets, 4:3, near-square, 16:10 and wide screens, and every confirmed finding was fixed: the picture
+  never jumps or bobs, holds still through the film's still beats, never fades the climbing core into a
+  painted band, and the hero fits every phone size, upright and on its side.
 **Waiting** on James (and Michael) to compare `/` and `/focus`.
 
 ## Tue 3 Nov 2026, 12:17 PM and 12:23 PM ET: James asks for the link to the new focus version
