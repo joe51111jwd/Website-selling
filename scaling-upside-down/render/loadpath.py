@@ -652,8 +652,9 @@ A = dict(dist=11.6, tz=1.55, tx=0.35)       # act one's lock-off: the pile at it
 shot(1, dist=7.4, tz=0.62, tx=0.0)          # the opening block alone
 shot(14, dist=7.4, tz=0.62, tx=0.0)
 shot(60, **A)                                # craning out as it is piled higher
-shot(HANDOFF + 40, **A)                      # (the fall, locked off)
-shot(CLEAR, dist=12.5, tz=1.0, tx=0.5)       # the wreckage, wide
+shot(HANDOFF, **A)                           # to the brink, locked off
+shot(HANDOFF + 14, dist=13.2, tz=1.05, tx=1.55)  # it falls to the right: the camera follows it down and out
+shot(CLEAR, dist=13.2, tz=0.95, tx=1.6)      # the wreckage, whole and centred
 shot(F_RAFT, dist=9.0, tz=0.75, tx=0.0)      # the cleared site and the raft
 c1 = TL["up0"][0]
 shot(c1 - 6, dist=8.6, tz=1.05, tx=0.0)      # cycle one, locked off

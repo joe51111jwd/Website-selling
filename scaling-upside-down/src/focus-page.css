@@ -4,15 +4,18 @@
 .fp { --fp-gut: max(24px, env(safe-area-inset-left, 0px)); --fp-wall: #e9e1d4; background: var(--paper); color: var(--ink); }
 
 /* the menu: the name, and the one call to action once the book has made way */
-.fp-nav { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px var(--fp-gut); pointer-events: none; }
+.fp-nav { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px var(--fp-gut); pointer-events: none; transition: background-color 0.3s, box-shadow 0.3s, backdrop-filter 0.3s; }
 .fp-nav > * { pointer-events: auto; }
-.fp-brand { display: inline-flex; align-items: center; gap: 10px; font: 600 14px/1 var(--sans); letter-spacing: 0.01em; padding: 9px 2px; }
-.fp-mark { display: grid; gap: 2px; width: 14px; }
-.fp-mark i { display: block; height: 3px; border-radius: 1px; }
-.fp-mark .up { background: var(--up); }
-.fp-mark .side { background: var(--side); }
+/* once the film is done, the menu sits on paper, so it never prints over the words or the form */
+.fp-nav.is-solid { background: color-mix(in srgb, var(--paper) 92%, transparent); box-shadow: 0 1px 0 var(--line); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.fp-brand { display: inline-flex; align-items: center; gap: 10px; font: 600 14px/1 var(--sans); letter-spacing: 0.01em; padding: 11px 2px; white-space: nowrap; }
+/* the cover's three blocks, stacked */
+.fp-mark { display: grid; gap: 1.5px; justify-items: center; width: 12px; }
+.fp-mark i { display: block; width: 8px; height: 6px; border-radius: 1px; }
+.fp-mark .up { background: var(--up); translate: 1px 0; }
+.fp-mark .side { background: var(--side); translate: -0.5px 0; }
 .fp-mark .down { background: var(--down); }
-.fp-btn-sm.is-away { opacity: 0; transform: translateY(-6px); pointer-events: none; }
+.fp-btn-sm.is-away { position: absolute; right: var(--fp-gut); opacity: 0; visibility: hidden; transform: translateY(-6px); pointer-events: none; transition: opacity 0.3s var(--ease), transform 0.3s var(--ease), visibility 0s 0.3s; }
 
 .fp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 24px; border-radius: 6px; background: var(--ink); color: var(--paper-hi); font: 500 15px/1 var(--sans); letter-spacing: 0.01em; white-space: nowrap; transition: background 0.2s, opacity 0.35s var(--ease), transform 0.35s var(--ease); }
 .fp-btn:hover { background: #2b261e; }
@@ -22,25 +25,27 @@
 .fp-kicker { font: 500 11px/1.4 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); }
 
 /* the film: the book alone, then the model alone */
-.fp-film { position: relative; height: 1050vh; height: 1050svh; }
+.fp-film { position: relative; height: 1100vh; height: 1100svh; }
 .fp-stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; background: var(--fp-wall); }
 .fp-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; }
-.fp-hero { position: absolute; inset: 0; z-index: 2; display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 520px); justify-content: center; align-items: center; gap: clamp(40px, 6vw, 96px); padding: 96px var(--fp-gut) 72px; background: var(--paper); will-change: opacity, transform; }
+.fp-hero { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: 96px var(--fp-gut) 72px; background: var(--paper); will-change: opacity; }
+.fp-hero-in { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 520px); justify-content: center; align-items: center; gap: clamp(40px, 6vw, 96px); width: 100%; will-change: transform; }
 .fp-book { margin: 0; }
 .fp-book img { width: 100%; height: auto; }
 .fp-hero-text { display: grid; justify-items: start; gap: 0; }
 .fp-title { margin-top: 18px; font: 400 clamp(46px, 5.6vw, 86px)/0.98 var(--display); letter-spacing: -0.012em; }
 .fp-sub { margin-top: 20px; font: italic 400 clamp(18px, 1.6vw, 22px)/1.4 var(--serif); color: var(--soft); max-width: 28ch; }
 .fp-hero-text .fp-btn { margin-top: 32px; }
-.fp-free { margin-top: 12px; font: 400 12px/1.4 var(--mono); color: var(--soft); letter-spacing: 0.02em; }
+.fp-free { margin-top: 12px; font: 400 13px/1.4 var(--sans); color: var(--soft); }
+.fp-kicker { text-wrap: balance; }
 .fp-cue { position: absolute; z-index: 3; left: 50%; bottom: 22px; translate: -50% 0; display: grid; justify-items: center; gap: 8px; font: 500 10px/1 var(--mono); letter-spacing: 0.18em; text-transform: uppercase; color: var(--soft); pointer-events: none; }
 .fp-cue i { display: block; width: 1px; height: 34px; background: linear-gradient(var(--soft), transparent); transform-origin: top; animation: fp-cue 2.2s var(--ease) infinite; }
 @keyframes fp-cue { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
 
-/* the words, once the film is done */
-.fp-thesis { min-height: 100vh; min-height: 100svh; display: grid; place-content: center; justify-items: center; text-align: center; gap: 0; padding: 120px var(--fp-gut); }
-.fp-thesis-h { margin-top: 22px; font: 400 clamp(38px, 5.2vw, 76px)/1.02 var(--display); letter-spacing: -0.01em; max-width: 18ch; text-wrap: balance; }
-.fp-thesis-d { margin-top: 26px; font: italic 400 clamp(18px, 1.7vw, 23px)/1.45 var(--serif); color: var(--soft); max-width: 34ch; }
+/* the words, once the film is done: on the same screen, after the picture has gone */
+.fp-words { position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; justify-items: center; text-align: center; padding: 96px var(--fp-gut) 72px; opacity: 0; pointer-events: none; will-change: opacity, transform; }
+.fp-words-h { margin-top: 22px; font: 400 clamp(38px, 5.2vw, 76px)/1.02 var(--display); letter-spacing: -0.01em; max-width: 18ch; text-wrap: balance; }
+.fp-words-d { margin-top: 26px; font: italic 400 clamp(18px, 1.7vw, 23px)/1.45 var(--serif); color: var(--soft); max-width: 34ch; text-wrap: balance; }
 
 /* the book and its sign-up */
 .fp-close { min-height: 100vh; min-height: 100svh; display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 500px); justify-content: center; align-items: center; gap: clamp(40px, 6vw, 96px); padding: 120px var(--fp-gut); border-top: 1px solid var(--line); scroll-margin-top: 0; }
@@ -48,7 +53,7 @@
 .fp-close-book img { width: 100%; height: auto; }
 .fp-close-h { margin-top: 18px; font: 400 clamp(30px, 3.2vw, 46px)/1.08 var(--display); letter-spacing: -0.005em; text-wrap: balance; }
 .fp-close-b { margin-top: 18px; font: 400 17px/1.55 var(--serif); color: var(--soft); max-width: 44ch; }
-.fp-offer { margin-top: 30px; font: 500 12px/1.5 var(--mono); letter-spacing: 0.04em; color: var(--ink); max-width: 46ch; }
+.fp-offer { margin-top: 30px; font: 500 14px/1.5 var(--sans); color: var(--ink); max-width: 46ch; }
 .fp-form { margin-top: 14px; }
 .fp-label { display: block; font: 500 11px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft); }
 .fp-row { margin-top: 10px; display: flex; gap: 12px; align-items: stretch; }
@@ -56,7 +61,10 @@
 .fp-input::placeholder { color: #9a9083; }
 .fp-input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
 .fp-input[aria-invalid] { border-color: var(--down); box-shadow: 0 0 0 1px var(--down); }
-.fp-input:disabled { color: var(--soft); background: transparent; }
+.fp-input[aria-disabled] { color: var(--soft); background: transparent; }
+.fp-row .fp-btn { min-width: 9.5em; }
+.fp-btn[aria-disabled] { cursor: default; }
+.fp-form.is-busy .fp-btn { background: #4a4337; }
 .fp-msg { min-height: 1.5em; margin-top: 10px; font: 400 14px/1.5 var(--sans); color: var(--soft); }
 .fp-form.is-bad .fp-msg, .fp-form.is-failed .fp-msg { color: var(--down); }
 .fp-form.is-sent .fp-msg, .fp-form.is-already .fp-msg { color: var(--up); }
@@ -76,23 +84,36 @@
 
 /* phones and narrow windows: one column */
 @media (max-width: 760px) {
-  .fp-hero { grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: center; gap: 26px; padding: 84px var(--fp-gut) 64px; text-align: center; }
+  .fp-hero { padding: 76px var(--fp-gut) 56px; }
+  .fp-hero-in { grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: center; gap: 22px; text-align: center; }
   .fp-book { width: min(44vw, 190px); }
   .fp-hero-text { justify-items: center; }
   .fp-title { margin-top: 12px; font-size: clamp(38px, 11vw, 52px); }
   .fp-sub { margin-top: 14px; font-size: 17px; }
   .fp-hero-text .fp-btn { margin-top: 22px; }
-  .fp-close { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 32px; padding: 96px var(--fp-gut); text-align: center; }
-  .fp-close-book { width: min(46vw, 200px); }
+  /* the book is on the first screen already: here the words and the form lead, so a tap on Join lands on the field */
+  .fp-close { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 0; padding: 92px var(--fp-gut) 72px; text-align: center; }
+  .fp-close-book { display: none; }
   .fp-close-text { display: grid; justify-items: center; }
+  .fp-close-h { margin-top: 14px; }
+  .fp-close-b { order: 6; margin-top: 30px; font-size: 16px; }
+  .fp-offer span { display: block; }
+  .fp-offer .fp-dot { display: none; }
+  .fp-offer { margin-top: 22px; }
+  .fp-msg { min-height: 3em; }
   .fp-row { flex-direction: column; width: min(100%, 420px); }
   .fp-form { width: min(100%, 420px); }
   .fp-links { justify-content: center; }
   .fp-foot-bar { justify-content: center; }
 }
+@media (max-width: 360px) {
+  .fp-brand { font-size: 13px; gap: 8px; }
+  .fp-btn-sm { padding: 0 12px; }
+}
 /* short screens on their side: the hero in a row, smaller */
 @media (max-height: 560px) and (orientation: landscape) {
-  .fp-hero { grid-template-columns: minmax(0, 150px) minmax(0, 440px); gap: 32px; padding: 64px var(--fp-gut) 28px; text-align: left; }
+  .fp-hero { padding: 60px var(--fp-gut) 24px; }
+  .fp-hero-in { grid-template-columns: minmax(0, 150px) minmax(0, 440px); gap: 32px; text-align: left; justify-items: stretch; }
   .fp-book { width: auto; }
   .fp-hero-text { justify-items: start; }
   .fp-title { margin-top: 8px; font-size: clamp(30px, 8vh, 44px); }
@@ -100,9 +121,18 @@
   .fp-hero-text .fp-btn { margin-top: 14px; min-height: 44px; }
   .fp-free { display: none; }
   .fp-cue { display: none; }
-  .fp-close { grid-template-columns: minmax(0, 150px) minmax(0, 460px); padding: 72px var(--fp-gut); text-align: left; }
-  .fp-close-text { justify-items: start; }
-  .fp-row { flex-direction: row; }
+  .fp-close { grid-template-columns: minmax(0, 520px); padding: 76px var(--fp-gut) 40px; text-align: left; }
+  .fp-close-book { display: none; }
+  .fp-close-text { display: grid; justify-items: start; }
+  .fp-close-b { order: 6; }
+  .fp-offer span { display: inline; }
+  .fp-offer .fp-dot { display: inline; }
+  .fp-row { flex-direction: row; width: 100%; }
+  .fp-form { width: 100%; }
+  .fp-links { justify-content: flex-start; }
+  .fp-words { padding: 60px var(--fp-gut) 24px; }
+  .fp-words-h { font-size: clamp(28px, 9vh, 44px); }
+  .fp-words-d { font-size: 16px; margin-top: 14px; }
 }
 @media (max-height: 760px) and (max-width: 760px) { .fp-cue { display: none; } }
 @media (prefers-reduced-motion: reduce) {

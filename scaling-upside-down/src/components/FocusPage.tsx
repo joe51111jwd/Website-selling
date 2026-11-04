@@ -1,6 +1,6 @@
 // The focus version (/focus): one thing on screen at a time, and the picture needs no words.
-//   the book alone → the book makes way for the model → the film (no words at all) → the words, alone,
-//   once the film is done → the book and its sign-up
+//   the book alone → the book makes way for the model → the film (no words at all) → the film makes way
+//   for the words, alone, on the same screen → the book and its sign-up
 // The film is render/loadpath.py: an architect's model grown by doing everything at once, which falls;
 // then rebuilt one move at a time (green up, ochre side, red down), again and again, far taller.
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -21,21 +21,24 @@ const smooth = (t: number) => {
   const c = clamp(t);
   return c * c * (3 - 2 * c);
 };
+/** the same words, typeset: a typewriter apostrophe becomes a real one */
+const set = (s: string) => s.replace(/'/g, "’");
 
-// the film section's own scroll, 0-1: the book, its hand-over, then the film (frames 0-385, with a few
-// still beats), then the picture gives way to the paper
-const HERO_OUT: [number, number] = [0.035, 0.075];
-const FILM_IN: [number, number] = [0.07, 0.1];
-const FILM_OUT: [number, number] = [0.965, 0.995];
+// the film section's own scroll, 0-1: the book; its hand-over; the film (frames 0-385, with a few still
+// beats); the picture gives way to the words, which hold until the section scrolls on
+const HERO_OUT: [number, number] = [0.03, 0.065];
+const FILM_IN: [number, number] = [0.06, 0.09];
+const FILM_OUT: [number, number] = [0.905, 0.93];
+const WORDS_IN: [number, number] = [0.93, 0.955];
 const KEYS: [number, number][] = [
-  [0.1, 0],
-  [0.12, 0], // the small white building, still
-  [0.29, 83], // everything piled on at once, to the brink
-  [0.31, 86], // a held breath at the tipping point
-  [0.4, 140], // it falls
-  [0.42, 146], // the wreckage, still
-  [0.95, FILM_FRAMES - 1], // cleared; the core; three rounds of up, side and down
-  [1, FILM_FRAMES - 1],
+  [0.09, 0],
+  [0.11, 0], // the small white building, still
+  [0.265, 83], // everything piled on at once, to the brink
+  [0.285, 86], // a held breath at the tipping point
+  [0.37, 140], // it falls
+  [0.39, 146], // the wreckage, still
+  [0.88, FILM_FRAMES - 1], // cleared; the core; three rounds of up, side and down
+  [1, FILM_FRAMES - 1], // the finished tower, still
 ];
 const frameAt = (p: number) => {
   if (p <= KEYS[0][0]) return KEYS[0][1];
@@ -46,29 +49,71 @@ const frameAt = (p: number) => {
   }
   return KEYS[KEYS.length - 1][1];
 };
+/** how far through the film section the page is, 0-1 */
+const filmProgress = (sec: Element | null) => {
+  if (!sec) return 0;
+  const r = sec.getBoundingClientRect();
+  return clamp(-r.top / Math.max(1, r.height - window.innerHeight));
+};
 
 const FILM_ALT =
   "A white architectural model on a stone site board. It is grown by piling volumes on top and bolting wings onto its sides all at once, until it leans and falls. The site is cleared, a concrete raft and core go in first, and the tower is rebuilt one move at a time: storeys grow up, walls slide in from the sides and hold it straight, and a wing that came up with the growth is lowered away. After three rounds it stands far taller than the one that fell.";
 
+function Mark() {
+  // the cover's three blocks, stacked
+  return (
+    <span className="fp-mark" aria-hidden="true">
+      <i className="up" />
+      <i className="side" />
+      <i className="down" />
+    </span>
+  );
+}
+
 function FocusNav() {
-  const [past, setPast] = useState(false);
+  // the one call to action shows only once the book (which has its own) has gone, and steps aside at the sign-up
+  const [show, setShow] = useState(false);
+  const [solid, setSolid] = useState(false);
+  const btn = useRef<HTMLAnchorElement>(null);
+  const brand = useRef<HTMLAnchorElement>(null);
   useEffect(() => {
-    const on = () => setPast(window.scrollY > window.innerHeight * 0.5);
+    let atJoin = false;
+    const on = () => {
+      const film = document.querySelector(".fp-film");
+      const p = filmProgress(film);
+      const past = p > HERO_OUT[1] || (film ? film.getBoundingClientRect().bottom < window.innerHeight : false);
+      setShow(past && !atJoin);
+      setSolid(film ? film.getBoundingClientRect().bottom < 72 : false);
+    };
+    const join = document.getElementById("join");
+    const io = new IntersectionObserver(
+      ([e]) => {
+        atJoin = e.isIntersecting;
+        on();
+      },
+      { threshold: 0.15 },
+    );
+    if (join) io.observe(join);
     on();
     window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
+    window.addEventListener("resize", on);
+    return () => {
+      io.disconnect();
+      window.removeEventListener("scroll", on);
+      window.removeEventListener("resize", on);
+    };
   }, []);
+  useEffect(() => {
+    // a hidden control never keeps the focus
+    if (!show && document.activeElement === btn.current) brand.current?.focus({ preventScroll: true });
+  }, [show]);
   return (
-    <header className="fp-nav">
-      <a className="fp-brand" href="#top" aria-label="Scaling Up-Side-Down, back to top">
-        <span className="fp-mark" aria-hidden="true">
-          <i className="up" />
-          <i className="side" />
-          <i className="down" />
-        </span>
+    <header className={`fp-nav${solid ? " is-solid" : ""}`}>
+      <a className="fp-brand" href="#top" ref={brand} aria-label="Scaling Up-Side-Down, back to top">
+        <Mark />
         <span>Scaling Up-Side-Down</span>
       </a>
-      <a className={`fp-btn fp-btn-sm${past ? "" : " is-away"}`} href="#join" tabIndex={past ? undefined : -1} aria-hidden={past ? undefined : true}>
+      <a ref={btn} className={`fp-btn fp-btn-sm${show ? "" : " is-away"}`} href="#join" tabIndex={show ? undefined : -1} aria-hidden={show ? undefined : true}>
         Join the list
       </a>
     </header>
@@ -77,8 +122,11 @@ function FocusNav() {
 
 function Film() {
   const section = useRef<HTMLElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const hero = useRef<HTMLDivElement>(null);
+  const heroIn = useRef<HTMLDivElement>(null);
+  const words = useRef<HTMLDivElement>(null);
   const cue = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
 
@@ -92,16 +140,13 @@ function Film() {
     let hi: FrameStore | null = null;
     let raf = 0;
     let cur = 0;
+    let lastP = 0;
     let lastKey = "";
     let lastBmp: ImageBitmap | null = null;
     let scale = 1;
     let disposed = false;
     let onScreen = true;
     const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
-    const progress = () => {
-      const r = sec.getBoundingClientRect();
-      return clamp(-r.top / Math.max(1, r.height - window.innerHeight));
-    };
     const resize = () => {
       const r = cv.getBoundingClientRect();
       scale = dpr();
@@ -113,52 +158,95 @@ function Film() {
         ctx.imageSmoothingQuality = "high";
         ctx.fillStyle = "#e9e1d4";
         ctx.fillRect(0, 0, w, h);
-        if (lastBmp) painter.draw(lastBmp, Math.round(cur), w, h, scale);
+        if (lastBmp && lastBmp.width) painter.draw(lastBmp, Math.round(cur), w, h, scale); // (a released picture has no width)
       }
       lastKey = "";
+      start();
     };
     const ro = new ResizeObserver(resize);
-    ro.observe(cv);
-    resize();
+    // a move to a screen with another pixel density changes no CSS size: watch for it too
+    let mq = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+    const onDpr = () => {
+      mq.removeEventListener("change", onDpr);
+      mq = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+      mq.addEventListener("change", onDpr);
+      resize();
+    };
+    // a phone turned on its side keeps its place in the film
+    let lastW = window.innerWidth;
+    let turn = 0;
+    const onTurn = () => {
+      if (window.innerWidth === lastW) return;
+      lastW = window.innerWidth;
+      window.clearTimeout(turn);
+      const p = lastP;
+      turn = window.setTimeout(() => {
+        const r = sec.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > window.innerHeight || p <= 0 || p >= 1) return;
+        const y = sec.offsetTop + p * (sec.offsetHeight - window.innerHeight);
+        lenis?.resize();
+        if (lenis) lenis.scrollTo(y, { immediate: true });
+        else window.scrollTo(0, y);
+      }, 140);
+    };
 
     const loop = () => {
       raf = 0;
       if (disposed) return;
-      const p = progress();
-      // the book, then the model: never both at once
+      const p = filmProgress(sec);
+      lastP = p;
+      // the book, then the model, then the words: never two at once
       const out = smooth((p - HERO_OUT[0]) / (HERO_OUT[1] - HERO_OUT[0]));
       if (hero.current) {
         hero.current.style.opacity = String(1 - out);
-        hero.current.style.transform = reduced ? "" : `translate3d(0, ${(-40 * out).toFixed(1)}px, 0)`;
         hero.current.style.visibility = out >= 1 ? "hidden" : "";
       }
+      if (heroIn.current) heroIn.current.style.transform = reduced ? "" : `translate3d(0, ${(-36 * out).toFixed(1)}px, 0)`;
       if (cue.current) cue.current.style.opacity = String(clamp(1 - p / 0.02));
-      const film = smooth((p - FILM_IN[0]) / (FILM_IN[1] - FILM_IN[0])) * (1 - smooth((p - FILM_OUT[0]) / (FILM_OUT[1] - FILM_OUT[0])));
-      cv.style.opacity = String(film);
-      if (!lo) return void (raf = requestAnimationFrame(loop));
+      const gone = smooth((p - FILM_OUT[0]) / (FILM_OUT[1] - FILM_OUT[0]));
+      cv.style.opacity = String(smooth((p - FILM_IN[0]) / (FILM_IN[1] - FILM_IN[0])) * (1 - gone));
+      if (stage.current) stage.current.style.backgroundColor = gone > 0 ? `rgb(${Math.round(233 + 8 * gone)},${Math.round(225 + 9 * gone)},${Math.round(212 + 11 * gone)})` : "";
+      if (words.current) {
+        const w = smooth((p - WORDS_IN[0]) / (WORDS_IN[1] - WORDS_IN[0]));
+        words.current.style.opacity = String(w);
+        words.current.style.transform = reduced ? "" : `translate3d(0, ${(18 * (1 - w)).toFixed(1)}px, 0)`;
+      }
+      const store = lo ?? hi;
+      if (!store) {
+        if (onScreen) raf = requestAnimationFrame(loop);
+        return;
+      }
       const target = frameAt(p);
       if (!onScreen && Math.abs(target - cur) < 0.01 && lastKey) return;
       raf = requestAnimationFrame(loop);
       const diff = target - cur;
       cur = reduced || !onScreen ? target : Math.abs(diff) < 0.02 ? target : cur + diff * 0.2;
-      const i = Math.max(0, Math.min(lo.m.count - 1, Math.round(cur)));
+      const i = Math.max(0, Math.min(store.m.count - 1, Math.round(cur)));
       const dir = Math.sign(diff) || 1;
+      // the chunk with the frame on screen goes first (after a jump, not wherever the queue had got to)
+      if (hi && !hi.blobs[i]) void hi.loadChunk(hi.chunkOf(i)).catch(() => undefined);
+      if (lo && !lo.blobs[i]) void lo.loadChunk(lo.chunkOf(i)).catch(() => undefined);
       const hiHas = !!hi?.blobs[i];
       const sharp = hi?.get(i) ?? null;
       hi?.prefetch(i, dir, small ? 6 : 10);
-      const bmp = sharp ?? (hiHas ? hi!.nearest(i, dir, 2) : null) ?? lo.peek(i) ?? lo.get(i) ?? lo.nearest(i, dir) ?? hi?.nearest(i, dir) ?? null;
-      if (!hiHas) lo.prefetch(i, dir, 6);
-      const exact = !!(sharp || lo.peek(i));
+      const bmp = sharp ?? (hiHas ? hi!.nearest(i, dir, 2) : null) ?? lo?.peek(i) ?? lo?.get(i) ?? lo?.nearest(i, dir) ?? hi?.nearest(i, dir) ?? null;
+      if (!hiHas) lo?.prefetch(i, dir, 6);
+      const exact = !!(sharp || lo?.peek(i));
       const key = `${i}:${cv.width}x${cv.height}`;
-      if (bmp && (key !== lastKey || bmp !== lastBmp)) {
+      if (bmp && bmp.width && (key !== lastKey || bmp !== lastBmp)) {
         painter.draw(bmp, i, cv.width, cv.height, scale);
         lastBmp = bmp;
         lastKey = exact ? key : "";
       }
     };
-    const start = () => {
+    function start() {
       if (!raf && !disposed) raf = requestAnimationFrame(loop);
-    };
+    }
+    // (watching starts here, once the loop exists)
+    ro.observe(cv);
+    mq.addEventListener("change", onDpr);
+    window.addEventListener("resize", onTurn);
+    resize();
     const onScroll = () => start();
     window.addEventListener("scroll", onScroll, { passive: true });
     let sleep = 0;
@@ -171,6 +259,7 @@ function Film() {
           sleep = window.setTimeout(() => {
             lo?.release();
             hi?.release();
+            lastBmp = null;
           }, 2000);
         start();
       },
@@ -180,40 +269,45 @@ function Film() {
     start();
 
     (async () => {
-      try {
-        const decodeW = Math.min(1600, Math.round(Math.max(window.innerWidth, window.innerHeight * 1.6) * dpr()));
-        const hiOpen = FrameStore.open(`${FRAMES}hi/`, small ? 12 : 24, decodeW, () => undefined).catch(() => null);
-        const set = await FrameStore.open(`${FRAMES}lo/`, 24, 9999, () => undefined);
-        if (disposed) return set.dispose();
-        await new Promise((r) => requestAnimationFrame(r));
-        const at = Math.round(frameAt(progress()));
-        await set.loadChunk(set.chunkOf(at)).catch(() => undefined);
+      const decodeW = small ? Math.min(1600, Math.round(Math.max(window.innerWidth, window.innerHeight * 1.6) * dpr())) : 1600;
+      const hiOpen = FrameStore.open(`${FRAMES}hi/`, small ? 12 : 24, decodeW, () => undefined).catch(() => null);
+      const loOpen = FrameStore.open(`${FRAMES}lo/`, 24, 9999, () => undefined).catch(() => null);
+      await new Promise((r) => requestAnimationFrame(r));
+      const at = Math.round(frameAt(filmProgress(sec)));
+      const small1 = await loOpen;
+      if (disposed) return small1?.dispose();
+      if (small1) {
+        await small1.loadChunk(small1.chunkOf(at)).catch(() => undefined);
         if (disposed) return;
-        void set.loadAll([set.chunkOf(at)], 2);
-        set.aim(at);
-        await Promise.all(Array.from({ length: 8 }, (_, n) => set.decode(Math.min(set.m.count - 1, at + n))));
+        void small1.loadAll([small1.chunkOf(at)], 2);
+        small1.aim(at);
+        await Promise.all(Array.from({ length: 8 }, (_, n) => small1.decode(Math.min(small1.m.count - 1, at + n))));
         if (disposed) return;
-        lo = set;
+        lo = small1;
         cur = at;
         setReady(true);
         start();
-        const store = await hiOpen;
-        if (disposed) return store?.dispose();
-        if (store) {
-          hi = store;
-          store.aim(at);
-          await store.loadAll([store.chunkOf(at)], 2);
-        }
-      } catch {
-        if (!disposed) setReady(true);
       }
+      const store = await hiOpen;
+      if (disposed) return store?.dispose();
+      if (store) {
+        hi = store; // (if the small set failed, the film runs on this one alone)
+        store.aim(at);
+        if (!lo) cur = at;
+        setReady(true);
+        start();
+        await store.loadAll([store.chunkOf(at)], 2);
+      } else if (!lo) setReady(true);
     })();
 
     return () => {
       disposed = true;
       cancelAnimationFrame(raf);
       window.clearTimeout(sleep);
+      window.clearTimeout(turn);
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onTurn);
+      mq.removeEventListener("change", onDpr);
       ro.disconnect();
       io.disconnect();
       lo?.dispose();
@@ -222,47 +316,42 @@ function Film() {
   }, []);
 
   const h = COPY.hero;
+  const r = COPY.beats.find((b) => b.id === "repeat")!;
   return (
     <section ref={section} className={`fp-film${ready ? " is-ready" : ""}`} id="top">
-      <div className="fp-stage">
+      <div className="fp-stage" ref={stage}>
         <canvas ref={canvas} className="fp-canvas" role="img" aria-label={FILM_ALT} />
         <div className="fp-hero" ref={hero}>
-          <figure className="fp-book">
-            <img src={BOOK.src} srcSet={BOOK.srcSet} sizes="(max-width: 700px) 56vw, (max-width: 1100px) 300px, 340px" width={BOOK.w} height={BOOK.h} alt={h.cover} decoding="async" fetchPriority="high" draggable={false} />
-          </figure>
-          <div className="fp-hero-text">
-            <p className="fp-kicker">{h.kicker}</p>
-            <h1 className="fp-title">
-              Scaling
-              <br />
-              {"Up\u2011Side\u2011Down"}
-            </h1>
-            <p className="fp-sub">{h.sub}</p>
-            <a className="fp-btn" href="#join">
-              {h.join}
-            </a>
-            <p className="fp-free">{h.free}</p>
+          <div className="fp-hero-in" ref={heroIn}>
+            <figure className="fp-book">
+              <img src={BOOK.src} srcSet={BOOK.srcSet} sizes="(max-width: 760px) 190px, (max-height: 560px) 150px, 340px" width={BOOK.w} height={BOOK.h} alt={h.cover} decoding="async" fetchPriority="high" draggable={false} />
+            </figure>
+            <div className="fp-hero-text">
+              <p className="fp-kicker">{h.kicker}</p>
+              <h1 className="fp-title">
+                Scaling
+                <br />
+                {"Up‑Side‑Down"}
+              </h1>
+              <p className="fp-sub">{h.sub}</p>
+              <a className="fp-btn" href="#join">
+                {h.join}
+              </a>
+              <p className="fp-free">{h.free}</p>
+            </div>
           </div>
+        </div>
+        {/* the words, once the film is done: what it showed, named (on the same screen, after the picture) */}
+        <div className="fp-words" ref={words}>
+          <p className="fp-kicker">{r.kicker}</p>
+          <h2 className="fp-words-h">{set(r.headline)}</h2>
+          <p className="fp-words-d">{set(r.detail ?? "")}</p>
         </div>
         <div className="fp-cue" ref={cue} aria-hidden="true">
           <span>Scroll</span>
           <i />
         </div>
       </div>
-    </section>
-  );
-}
-
-/** the words, once the film is done: what it showed, named */
-function Thesis() {
-  const r = COPY.beats.find((b) => b.id === "repeat")!;
-  return (
-    <section className="fp-thesis" aria-labelledby="fp-thesis-h">
-      <p className="fp-kicker">{r.kicker}</p>
-      <h2 className="fp-thesis-h" id="fp-thesis-h">
-        {r.headline}
-      </h2>
-      <p className="fp-thesis-d">{r.detail}</p>
     </section>
   );
 }
@@ -279,9 +368,11 @@ function SignUp() {
   useEffect(() => {
     void optinLive().then((v) => (live.current = v));
   }, []);
+  const done = state === "sent" || state === "already";
+  // the same two controls in every state (never disabled), so the keyboard's place is never lost
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (state === "busy") return;
+    if (state === "busy" || done) return;
     if (!validEmail(email)) {
       setState("bad");
       field.current?.focus();
@@ -298,8 +389,10 @@ function SignUp() {
       setState(err instanceof Error && err.message === "email" ? "bad" : "failed");
     }
   };
-  const done = state === "sent" || state === "already";
   const msg = state === "bad" ? b.badEmail : state === "failed" ? b.sendFailed : state === "soon" ? b.soon : state === "sent" ? b.sentTo.replace("{email}", sentTo) : state === "already" ? b.already : "";
+  const face = state === "busy" ? b.sending : state === "sent" ? b.sent : state === "already" ? b.joined : state === "failed" ? b.tryAgain : "Join the list";
+  // the accessible name always begins with what the face says
+  const name = state === "busy" ? b.names.busy : state === "sent" ? b.names.sent : state === "already" ? b.names.joined : state === "failed" ? undefined : b.names.join;
   return (
     <form className={`fp-form is-${state}`} onSubmit={submit} noValidate>
       <label className="fp-label" htmlFor="fp-email">
@@ -315,7 +408,8 @@ function SignUp() {
           autoComplete="email"
           placeholder={b.placeholder}
           value={email}
-          disabled={done}
+          readOnly={done}
+          aria-disabled={done || undefined}
           aria-invalid={state === "bad" || undefined}
           aria-describedby="fp-msg"
           onChange={(e) => {
@@ -323,8 +417,8 @@ function SignUp() {
             if (state === "bad" || state === "soon" || state === "failed") setState("idle");
           }}
         />
-        <button className="fp-btn" type="submit" disabled={state === "busy" || done} aria-label={done ? (state === "already" ? b.names.joined : b.names.sent) : state === "busy" ? b.names.busy : b.names.join}>
-          {state === "busy" ? b.sending : state === "sent" ? b.sent : state === "already" ? b.joined : state === "failed" ? b.tryAgain : "Join the list"}
+        <button className="fp-btn" type="submit" aria-disabled={state === "busy" || done || undefined} aria-label={name}>
+          {face}
         </button>
       </div>
       <p className="fp-msg" id="fp-msg" role={state === "bad" || state === "failed" ? "alert" : "status"}>
@@ -336,18 +430,29 @@ function SignUp() {
 
 function Close() {
   const c = COPY.closed;
+  const [first, second] = c.copy.offer.split(" · ");
   return (
     <section className="fp-close" id="join" aria-labelledby="fp-close-h">
       <figure className="fp-close-book">
-        <img src={BOOK.src} srcSet={BOOK.srcSet} sizes="(max-width: 700px) 46vw, 300px" width={BOOK.w} height={BOOK.h} alt="" loading="lazy" decoding="async" draggable={false} />
+        <img src={BOOK.src} srcSet={BOOK.srcSet} sizes="300px" width={BOOK.w} height={BOOK.h} alt="" loading="lazy" decoding="async" draggable={false} />
       </figure>
       <div className="fp-close-text">
         <p className="fp-kicker">{c.copy.kicker}</p>
         <h2 className="fp-close-h" id="fp-close-h">
-          {c.copy.headline}
+          {set(c.copy.headline)}
         </h2>
         <p className="fp-close-b">{c.book.body}</p>
-        <p className="fp-offer">{c.copy.offer}</p>
+        <p className="fp-offer">
+          <span>{first}</span>
+          {second && (
+            <>
+              <span className="fp-dot" aria-hidden="true">
+                {" · "}
+              </span>
+              <span>{second}</span>
+            </>
+          )}
+        </p>
         <SignUp />
         <p className="fp-links">
           <span className="fp-soon">{c.book.soon}</span>
@@ -387,7 +492,6 @@ export function FocusPage() {
       <FocusNav />
       <main>
         <Film />
-        <Thesis />
         <Close />
       </main>
       <FocusFooter />

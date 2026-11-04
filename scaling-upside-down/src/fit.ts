@@ -34,18 +34,22 @@ export class FilmPainter {
   rect(i: number, cw: number, ch: number, aspect: number, scale: number) {
     const k = Math.max(0, Math.min(FILM_FRAMES - 1, Math.round(i)));
     const [t, b] = SPANS[k];
-    const mt = Math.max(ch * 0.1, 64 * scale); // under the menu
-    const mb = ch * 0.05;
+    const wide = cw > ch * aspect;
+    const { mt, mb } = this.margins(wide, ch, scale);
     const z = this.zoomsFor(cw, ch, aspect, scale)[k];
     const dh = ch * z;
     const c = (t + b) / 2;
+    const top = Math.max(0, t); // (a subject climbing out of the picture's top is cut by the picture, not the screen)
     let oy: number;
-    if (z >= 1) {
+    if (wide) {
       oy = c * ch - c * dh; // enlarged about the subject's middle
       oy = Math.min(ch - mb - b * dh, Math.max(mt - t * dh, oy));
       oy = Math.min(0, Math.max(ch - dh, oy));
+    } else if (z >= 1) {
+      // an upright screen: the picture covers it, moved down only as far as keeps the subject clear of the menu
+      oy = Math.max(0, Math.min(ch * 0.12, mt - top * dh, ch - mb - b * dh));
     } else {
-      oy = Math.max(0, Math.min(ch - dh, (mt + ch - mb) / 2 - c * dh)); // smaller: the subject between the menu and the foot
+      oy = Math.max(0, Math.min(ch - dh, Math.max(mt - top * dh, (mt + ch - mb) / 2 - c * dh))); // smaller: between the menu and the foot
     }
     const dw = dh * aspect;
     const want = cw / 2 - XS[k] * dw;
@@ -58,18 +62,28 @@ export class FilmPainter {
     this.paint(bmp, r.ox, r.oy, r.dw, r.dh, cw, ch, scale);
   }
 
+  // how close to the top and the foot the subject may come. On a screen wider than the picture the menu sits in
+  // its corners and the subject is centred, so it may come close; on an upright one the menu spans the top
+  private margins(wide: boolean, ch: number, scale: number) {
+    return wide ? { mt: Math.max(ch * 0.035, 14 * scale), mb: ch * 0.025 } : { mt: Math.max(ch * 0.1, 64 * scale) + 12 * scale, mb: ch * 0.05 };
+  }
+
   // the zoom each frame may take on this screen, limited to 1.5% a frame either way
   private zoomsFor(cw: number, ch: number, aspect: number, scale: number) {
     const key = `${cw}x${ch}x${aspect.toFixed(4)}x${scale}`;
     if (key === this.zoomKey) return this.zooms;
     this.zoomKey = key;
     const cover = cw / (ch * aspect);
-    const mt = Math.max(ch * 0.1, 64 * scale);
-    const mb = ch * 0.05;
+    const { mt, mb } = this.margins(cover > 1, ch, scale);
     const z =
       cover > 1
         ? SPANS.map(([t, b]) => Math.min(cover, Math.max(1, (ch - mt - mb) / (Math.max(0.01, b - t) * ch))))
-        : WIDTHS.map(([l, r]) => Math.min(1, Math.max(0.5, (cw * 0.92) / (Math.max(0.01, r - l) * ch * aspect))));
+        : WIDTHS.map(([l, r], k) => {
+            const [t, b] = SPANS[k];
+            const across = (cw * 0.92) / (Math.max(0.01, r - l) * ch * aspect);
+            const up = (ch - mt - mb) / (Math.max(0.01, b - Math.max(0, t)) * ch);
+            return Math.min(1, Math.max(0.5, Math.min(across, up)));
+          });
     for (let n = 1; n < z.length; n++) z[n] = Math.min(z[n], z[n - 1] * 1.015);
     for (let n = z.length - 2; n >= 0; n--) z[n] = Math.min(z[n], z[n + 1] * 1.015);
     this.zooms = z;

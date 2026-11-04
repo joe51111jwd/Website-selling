@@ -52,7 +52,8 @@ bolts = [o for o in O if o.name.startswith("bolt") and o.type == "MESH"]
 raw = []
 for f in range(1, END + 1):
     scene.frame_set(f)
-    a = [o for o in act1 if shown(o)]
+    # (a piece that slid off the board, far out of the picture, is not part of what is seen)
+    a = [o for o in act1 if shown(o) and -0.08 < world_to_camera_view(scene, cam, o.matrix_world.translation).x < 1.08]
     if a:
         obs, clamp = a, True
     else:
