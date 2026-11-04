@@ -7,6 +7,8 @@ import { Footer, Nav } from "./components/Sections";
 import { ClosedLoop } from "./components/ClosedLoop";
 import { NoticeDialog } from "./components/NoticeDialog";
 import { setLenis } from "./lenis";
+import { FOCUS } from "./focus";
+import { FocusPage } from "./components/FocusPage";
 
 type Entry = { y?: number } | null;
 
@@ -91,6 +93,13 @@ export default function App() {
     };
   }, []);
 
+  if (FOCUS)
+    return (
+      <>
+        <FocusPage />
+        <NoticeDialog copy={COPY.notice} />
+      </>
+    );
   return (
     <LazyMotion features={domAnimation} strict>
       <MotionConfig reducedMotion="user">
