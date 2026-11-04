@@ -64,6 +64,7 @@ function FocusNav() {
   const [paper, setPaper] = useState(false);
   const btn = useRef<HTMLAnchorElement>(null);
   const brand = useRef<HTMLAnchorElement>(null);
+  const nav = useRef<HTMLElement>(null);
   useEffect(() => {
     let atJoin = false;
     const on = () => {
@@ -73,6 +74,8 @@ function FocusNav() {
       setShow(past && !atJoin);
       // paper behind the menu once the words are in and still (paper on paper there, so it is not seen), so a hard
       // flick never carries them under a clear bar; the hairline only once they can move (the film's end)
+      // (set on the bar in this same scroll event too: React's commit comes a frame later)
+      nav.current?.classList.toggle("is-paper", p >= WORDS_IN[1]);
       setPaper(p >= WORDS_IN[1]);
       setSolid(film ? film.getBoundingClientRect().bottom < window.innerHeight + 1 : false);
     };
@@ -99,7 +102,7 @@ function FocusNav() {
     if (!show && document.activeElement === btn.current) brand.current?.focus({ preventScroll: true });
   }, [show]);
   return (
-    <header className={`fp-nav${paper ? " is-paper" : ""}${solid ? " is-solid" : ""}`}>
+    <header ref={nav} className={`fp-nav${paper ? " is-paper" : ""}${solid ? " is-solid" : ""}`}>
       <a className="fp-brand" href="#top" ref={brand} aria-label="Scaling Up-Side-Down, back to top">
         <Mark />
         <span>Scaling Up-Side-Down</span>

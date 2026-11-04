@@ -28,7 +28,8 @@ const room = (t: number) => Math.min(1, Math.max(0, t / 0.04));
 
 // eases a per-frame series in place, only ever lowering it: no frame ends up more than `d` (added, or a factor of
 // 1 + d with `mul`) past the frames either side of it. Through a still beat every frame takes the lowest of them, so
-// the picture holds still there, and it glides into the beat over the 8 frames before it (evenly, not in a step)
+// the picture holds still there; over the 15 frames before it, it never rises past the beat's value (so it does not
+// push past it and come back), and it glides into the beat over the last 8 of them (evenly, not in a step)
 const ease = (v: number[], d: number, mul = false) => {
   const up = (x: number) => (mul ? x * (1 + d) : x + d);
   for (let pass = 0; pass < 6; pass++) {
@@ -41,6 +42,7 @@ const ease = (v: number[], d: number, mul = false) => {
     }
     if (held) break;
   }
+  for (const [a] of STILLS) for (let n = Math.max(1, a - 15); n < a; n++) v[n] = Math.min(v[n], Math.max(v[a], v[n - 1]));
   const R = 8;
   for (const [a] of STILLS) {
     if (a < R) continue;
@@ -107,12 +109,14 @@ export class FilmPainter {
     const dh = ch * z;
     const c = (t + b) / 2;
     const top = Math.max(0, t); // (a subject climbing out of the picture's top is cut by the picture, not the screen)
-    // moved down only as far as keeps the subject clear of the menu (on a landscape screen only the margin is
-    // ramped in as the subject's top comes into the picture, as on a wide one, so the picture does not dip and rise
-    // for the frames where it does)
+    // moved down only as far as keeps the subject clear of the menu (on a landscape screen, where the menu sits in
+    // the corners, not until the subject's top is 4% into the picture, so the picture does not dip and rise for the
+    // frames where it comes in)
     const clear =
       cw > ch
-        ? Math.max(0, Math.min(ch * 0.12, mt * room(t) - top * dh, ch - mb - b * dh))
+        ? t < 0.04
+          ? 0
+          : Math.max(0, Math.min(ch * 0.12, mt - top * dh, ch - mb - b * dh))
         : Math.max(0, Math.min(ch * 0.12, mt - top * dh, ch - mb - b * dh)) * room(t);
     let oy: number;
     if (wide) {

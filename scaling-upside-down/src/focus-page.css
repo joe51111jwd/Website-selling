@@ -132,6 +132,10 @@
   .fp-sub { margin-top: 8px; font-size: 15px; }
   .fp-hero-text .fp-btn { margin-top: 14px; }
 }
+/* (and just narrower, 380-399px: only the bottom padding the hidden scroll cue kept, so the hero balances) */
+@media (min-width: 380px) and (max-width: 399.98px) and (min-height: 620.5px) and (max-height: 636px) {
+  .fp-hero { padding: 68px var(--fp-gut) 20px; }
+}
 /* very short upright screens (an older small iPhone with Safari's bars) */
 @media (max-width: 760px) and (max-height: 500px) and (orientation: portrait) {
   .fp-hero { padding: 58px var(--fp-gut) 12px; }
@@ -170,6 +174,10 @@
   .fp-sub { margin-top: 6px; }
   .fp-hero-text .fp-btn { margin-top: 10px; min-height: 40px; }
   .fp-free { margin-top: 4px; }
+}
+/* (where the kicker fits on one line, the hero keeps its top padding, clear of the brand) */
+@media (max-height: 300px) and (orientation: landscape) and (min-width: 660px) {
+  .fp-hero { padding-top: 60px; }
 }
 @media (max-height: 760px) and (max-width: 760px) { .fp-cue { display: none; } }
 @media (prefers-reduced-motion: reduce) {
