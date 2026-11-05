@@ -1,5 +1,0 @@
-# Search and AI answer engines are welcome.
-User-agent: *
-Allow: /
-
-Sitemap: https://jennifergbates.com/sitemap.xml
