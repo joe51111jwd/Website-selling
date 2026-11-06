@@ -11,6 +11,26 @@ under "All of James's messages, word for word".
 
 ---
 
+## Fri 6 Nov 2026: James on the live /focus film: "wtf is this", "it mainly just makes no sense", "rework from the ground up"
+
+> wtf is this
+
+(with a screenshot of the film's first act at its peak, f59-f64: the stack of white slabs leaning, with pieces
+jutting out sideways)
+
+> it mainly just makes no sense
+
+> rework from the ground up
+
+Asked how to fix the first act, he picked "Rebuild the fall", then said the film as a whole makes no sense and
+to rework it from the ground up.
+
+What it means: the "Load Path" massing-model film does not read. The white slabs and stubs look like a broken
+render, and the story (piled on at once, falls, rebuilt one move at a time) does not come across without words.
+The new film starts over from the book's own model and pictures, not from the old one. **Open**: new concepts,
+grounded in the manuscript's diagrams, are being drawn up with rendered stills for James to pick from before
+anything is built.
+
 ## Tue 3 Nov 2026, about 11:15 PM ET: James wants a more professional look, and no words popping up
 
 > Idk, I want a less playful more professional look. Come up with a new thing for the blocks or something else entirely and render and create. Rn there is still text popping up. It shouldn't be there if it's not the focus. And if it's not the focus then it shouldn't be vital for people to understand
