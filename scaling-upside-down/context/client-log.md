@@ -27,9 +27,12 @@ to rework it from the ground up.
 
 What it means: the "Load Path" massing-model film does not read. The white slabs and stubs look like a broken
 render, and the story (piled on at once, falls, rebuilt one move at a time) does not come across without words.
-The new film starts over from the book's own model and pictures, not from the old one. **Open**: new concepts,
-grounded in the manuscript's diagrams, are being drawn up with rendered stills for James to pick from before
-anything is built.
+The new film starts over from the book's own model and pictures, not from the old one. Two concept rounds were
+rendered and tested on cold viewers (people shown only the book cover and four stills). Round one (a jack
+machine, a ring of pegs and threads) scored 3-4/10 for clarity and was dropped. Round two, built on the growth
+line (Up, Side and Down are directions), scored 6-7/10, and every viewer read the story right: all three at once
+spikes and crashes; up, sideways, a small step down, repeat, climbs past the old peak. **Waiting** on James to
+pick: the chart drawn in ink (recommended) or the cover's blocks becoming the chart.
 
 ## Tue 3 Nov 2026, about 11:15 PM ET: James wants a more professional look, and no words popping up
 
