@@ -1,6 +1,7 @@
 import { Shell } from "@/components/Shell";
 import { store } from "@/lib/store";
 import { ago } from "@/lib/view";
+import { EmailFrame } from "@/components/EmailFrame";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,7 @@ export default async function Emails({ searchParams }: { searchParams: Promise<{
               </li>
             ))}
           </ol>
-          {open && <iframe title={open.subject} srcDoc={open.html} sandbox="" />}
+          {open && <EmailFrame key={open.id} title={open.subject} html={open.html} />}
         </div>
       ) : (
         <div className="list"><p className="empty">No emails yet.</p></div>

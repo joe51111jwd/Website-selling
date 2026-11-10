@@ -53,7 +53,7 @@ export function ThresholdsForm({ t }: { t: Thresholds }) {
   return (
     <form action={act} className="form">
       <div className="f2">
-        <label>More than usual, at least (%)<input name="minPct" type="number" min="0" step="5" defaultValue={t.minPct} /></label>
+        <label>More than usual, at least (%) <small>150 means 2.5×</small><input name="minPct" type="number" min="0" step="5" defaultValue={t.minPct} /></label>
         <label>Days that make up “usual”<input name="window" type="number" min="3" max="28" defaultValue={t.window} /></label>
       </div>
       <fieldset>

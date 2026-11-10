@@ -12,7 +12,8 @@ export default async function Tracks({ searchParams }: { searchParams: Promise<{
   const { artist } = await searchParams;
   const s = store();
   const [tracks, artists] = await Promise.all([s.tracks(), s.artists()]);
-  const shown = tracks.filter((t) => !artist || t.artistId === artist).sort((a, b) => a.artistId.localeCompare(b.artistId) || (a.year ?? 0) - (b.year ?? 0));
+  const order = (id: string) => artists.findIndex((a) => a.id === id);
+  const shown = tracks.filter((t) => !artist || t.artistId === artist).sort((a, b) => order(a.artistId) - order(b.artistId) || (a.year ?? 0) - (b.year ?? 0));
   const name = (id: string) => artists.find((a) => a.id === id)?.name ?? id;
   return (
     <Shell here="/tracks">
@@ -24,9 +25,11 @@ export default async function Tracks({ searchParams }: { searchParams: Promise<{
         <a href="#add" className="btn">Add track</a>
       </header>
 
-      <section className="hero" id="add">
+      <section className="hero">
         <h2>Add a song to watch.</h2>
-        <p style={{ marginBottom: 20 }}>Paste its ISRC or Spotify link. Older songs are the point: the check reads every one each morning, however old.</p>
+        <p>Paste its ISRC or Spotify link. Older songs are the point: the check reads every one each morning, however old.</p>
+      </section>
+      <section className="card" id="add" style={{ marginTop: 12 }}>
         <AddTrack artists={artists} simulated={provider().simulated} />
       </section>
 

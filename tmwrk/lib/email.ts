@@ -4,7 +4,8 @@
 //   Change: +950 creations / +1,900% | Action: Review sound
 // Sent through Resend (RESEND_API_KEY). Without a key it lands in the outbox, viewable in the dashboard.
 
-import type { Alert, Artist, Platform, Track } from "./types";
+import type { Alert, Artist, Platform, Thresholds, Track } from "./types";
+import { otherLine as describeOther } from "./view";
 import { PLATFORM_LABEL } from "./types";
 import { store } from "./store";
 
@@ -23,19 +24,14 @@ export type Other = { platform: Platform; level: number; baseline: number };
 const x = (level: number, base: number) => (base > 0 ? (level / base >= 10 ? `${Math.round(level / base)}×` : `${(level / base).toFixed(1)}×`) : "new");
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-export function compose(a: Alert, t: Track, artist: Artist, other?: Other, appUrl = process.env.APP_URL ?? "") {
+export function compose(a: Alert, rules: Thresholds, t: Track, artist: Artist, other?: Other, appUrl = process.env.APP_URL ?? "") {
   const P = PLATFORM_LABEL[a.platform];
   const demo = a.simulated ? "[Demo] " : "";
   const mult = x(a.level, a.baseline);
   const subject = `${demo}${P} alert: ${artist.name}, “${t.title}” at ${mult} its usual`;
   const what = a.platform === "tiktok" ? "new TikTok videos used the sound" : "Spotify streams";
   const day = new Date(a.date + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
-  let otherLine = "";
-  if (other) {
-    const moved = other.baseline > 0 && Math.abs(other.level / other.baseline - 1) > 0.25;
-    const OP = PLATFORM_LABEL[other.platform], ou = other.platform === "tiktok" ? "new videos" : "streams";
-    otherLine = moved ? `${OP} is moving too: ${n(other.level)} ${ou}, ${x(other.level, other.baseline)} its usual.` : `${OP} hasn't moved: ${n(other.level)} ${ou}, against a usual ${n(other.baseline)}.`;
-  }
+  const otherLine = other ? describeOther(PLATFORM_LABEL[other.platform], other.level, other.baseline, other.platform === "tiktok" ? "new videos" : "streams") : "";
   // the brief's alert lines, kept word for word in the plain-text part
   const brief = [
     `MUSIC ACTIVITY ALERT | ${artist.name} | ${t.title}`,
@@ -44,7 +40,7 @@ export function compose(a: Alert, t: Track, artist: Artist, other?: Other, appUr
   ];
   const text = [
     `${t.title} by ${artist.name} is at ${mult} its usual on ${P}.`, "",
-    `${n(a.level)} ${what} in the last 24 hours. It usually gets about ${n(a.baseline)} a day.`,
+    `${n(a.level)} ${what} on ${day}. It usually gets about ${n(a.baseline)} a day.`,
     otherLine, "",
     ...brief, "",
     `${a.platform === "tiktok" ? "Open the sound" : "Open on Spotify"}: ${link(t, a.platform)}`,
@@ -61,19 +57,19 @@ export function compose(a: Alert, t: Track, artist: Artist, other?: Other, appUr
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;background:#ffffff;border:1px solid #ececea;border-radius:14px"><tr><td style="padding:28px 28px 26px">
     <p style="margin:0 0 10px;font-size:13px;color:#57574f"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${a.platform === "tiktok" ? "#fe2c55" : "#1db954"};margin-right:6px;vertical-align:1px"></span>${P} alert · ${day}</p>
     <h1 style="margin:0 0 14px;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-weight:400;font-size:30px;line-height:1.15;color:#1d1d1b"><i>${esc(t.title)}</i> by ${esc(artist.name)} is at ${mult} its usual on ${P}.</h1>
-    <p style="margin:0 0 6px;font-size:15px;line-height:1.55;color:#57574f"><b style="color:#1d1d1b">${n(a.level)}</b> ${what} in the last 24 hours. It usually gets about <b style="color:#1d1d1b">${n(a.baseline)}</b> a day.</p>
+    <p style="margin:0 0 6px;font-size:15px;line-height:1.55;color:#57574f"><b style="color:#1d1d1b">${n(a.level)}</b> ${what} on ${day}. It usually gets about <b style="color:#1d1d1b">${n(a.baseline)}</b> a day.</p>
     ${otherLine ? `<p style="margin:0;font-size:15px;line-height:1.55;color:#57574f">${otherLine}</p>` : ""}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:22px 0 24px">
-      ${row("Last 24 hours", `${n(a.level)} ${a.platform === "tiktok" ? "new videos" : "streams"}`, true)}
-      ${row("Usual (last 7 days)", `${n(a.baseline)} a day`)}
-      ${row("Change", `+${n(a.change)} · +${n(a.pct)}% · ${mult}`)}
+      ${row("That day", `${n(a.level)} ${a.platform === "tiktok" ? "new videos" : "streams"}`, true)}
+      ${row(`Usual (last ${rules.window} days)`, `${n(a.baseline)} a day`)}
+      ${row("Change", `+${n(a.change)} a day · ${mult} its usual`)}
       ${other ? row(`${PLATFORM_LABEL[other.platform]} same day`, `${n(other.level)} · usual ${n(other.baseline)}`) : ""}
     </table>
     <a href="${link(t, a.platform)}" style="display:inline-block;padding:11px 18px;background:#2a2a28;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600">${a.platform === "tiktok" ? "Open the sound on TikTok" : "Open on Spotify"}</a>
     ${appUrl ? `<a href="${appUrl}/track/${t.id}" style="display:inline-block;margin-left:8px;padding:10px 16px;border:1px solid #e1e1de;color:#1d1d1b;text-decoration:none;border-radius:8px;font-size:14px;font-weight:500">See the last 30 days</a>` : ""}
   </td></tr></table>
-  ${a.simulated ? `<p style="margin:14px 4px 0;font-size:12.5px;color:#3d2468"><span style="background:#ecdcff;padding:2px 7px;border-radius:5px">Demo data</span> No data provider is connected yet, so these numbers are made up.</p>` : ""}
-  <p style="margin:12px 4px 0;font-size:12.5px;line-height:1.5;color:#8c8c84">You get one email per track and platform per day. A spike that holds at the same level won't email again for 3 days unless it grows.</p>
+  ${a.simulated ? `<p style="margin:14px 4px 0;font-size:12.5px;line-height:1.6;color:#3d2468"><span style="background:#ecdcff;padding:1px 7px;border-radius:5px;margin-right:6px">Demo data</span>These numbers are made up until a data provider is connected.</p>` : ""}
+  <p style="margin:12px 4px 0;font-size:12.5px;line-height:1.5;color:#8c8c84">You get at most one email per track and platform per day. A spike that holds at the same level won't email again for ${rules.cooldownDays} days unless it grows another ${rules.escalatePct}%.</p>
 </td></tr></table></body></html>`;
   return { subject, text, html };
 }

@@ -77,3 +77,16 @@ describe("the brief's success test (simulated)", () => {
     expect(Math.abs(spotify.pct)).toBeLessThan(25);
   });
 });
+
+describe("usual after a spike", () => {
+  it("doesn't let a spike and its fade become the new usual", () => {
+    const quiet = Array(20).fill(40);
+    const r = latest(cum("tiktok", [...quiet, 2600, 1430, 787, 433, 60, 42, 40, 41, 39]), "tiktok", T)!;
+    expect(Math.round(r.baseline)).toBeLessThan(60); // the plain 7-day mean would be ~400
+    expect(r.level / r.baseline).toBeGreaterThan(0.8);
+  });
+  it("still catches a second spike right after the first one fades", () => {
+    const r = latest(cum("tiktok", [...Array(20).fill(40), 2600, 1430, 787, 433, 60, 42, 1200]), "tiktok", T)!;
+    expect(r.spike).toBe(true);
+  });
+});

@@ -43,7 +43,12 @@ export function judge(days: Day[], i: number, platform: Platform, t: Thresholds)
   const d = days[i];
   const prior = days.slice(Math.max(0, i - t.window), i);
   const ready = prior.length >= Math.min(t.window, 4);
-  const raw = prior.length ? prior.reduce((a, b) => a + b.rate, 0) / prior.length : 0;
+  const mean = prior.length ? prior.reduce((a, b) => a + b.rate, 0) / prior.length : 0;
+  // with enough history, a spike and its fade shouldn't become the new "usual": take the lower of the
+  // 7-day mean and the 28-day median
+  const long = days.slice(Math.max(0, i - 28), i).map((d) => d.rate).sort((a, b) => a - b);
+  const median = long.length ? long[Math.floor(long.length / 2)] : 0;
+  const raw = long.length >= 14 ? Math.min(mean, median) : mean;
   const baseline = Math.max(raw, t.baselineFloor[platform]);
   const change = d.rate - raw;
   const pct = (d.rate / baseline - 1) * 100;

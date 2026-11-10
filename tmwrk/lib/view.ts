@@ -5,7 +5,7 @@ import { provider } from "./providers";
 import { store } from "./store";
 import { PLATFORMS, type Alert, type Artist, type Platform, type Thresholds, type Track } from "./types";
 
-export type Status = "spike" | "rising" | "quiet" | "cooling" | "waiting";
+export type Status = "spike" | "held" | "rising" | "quiet" | "cooling" | "waiting";
 
 export type Signal = {
   platform: Platform;
@@ -21,12 +21,19 @@ export type Row = { track: Track; artist: Artist; signals: Record<Platform, Sign
 function signal(days: Day[], platform: Platform, t: Thresholds, alerts: Alert[]): Signal {
   if (days.length < 2) return { platform, days, level: 0, baseline: 0, pct: 0, status: "waiting" };
   const r = judge(days, days.length - 1, platform, t);
-  const recent = alerts.find((a) => a.platform === platform && (Date.parse(days[days.length - 1].date) - Date.parse(a.date)) / 86_400_000 <= 4);
-  const status: Status = !r.ready ? "waiting" : r.spike ? "spike" : r.pct >= t.minPct * 0.35 ? "rising" : recent ? "cooling" : "quiet";
+  const recent = alerts.find((a) => a.platform === platform && (Date.parse(r.date) - Date.parse(a.date)) / 86_400_000 <= t.cooldownDays + 1);
+  const sentToday = alerts.some((a) => a.platform === platform && a.date === r.date);
+  const line = Math.max(Math.max(r.baseline, t.baselineFloor[platform]) * (1 + t.minPct / 100), r.baseline + t.minAbs[platform]);
+  const progress = line > r.baseline ? (r.level - r.baseline) / (line - r.baseline) : 0;
+  const status: Status = !r.ready ? "waiting"
+    : r.spike ? (sentToday ? "spike" : "held")
+    : progress >= 0.4 ? "rising"
+    : recent && r.level > Math.max(r.baseline, t.baselineFloor[platform]) * 1.25 ? "cooling"
+    : "quiet";
   return { platform, days: days.slice(-30), level: r.level, baseline: r.baseline, pct: r.pct, status };
 }
 
-const rank: Record<Status, number> = { spike: 0, rising: 1, cooling: 2, quiet: 3, waiting: 4 };
+const rank: Record<Status, number> = { spike: 0, held: 1, rising: 2, cooling: 3, quiet: 4, waiting: 5 };
 
 export async function dashboard() {
   const s = store();
@@ -78,6 +85,7 @@ export function ago(iso: string) {
 
 export const STATUS_LABEL: Record<Status, string> = {
   spike: "Alert",
+  held: "Still high",
   rising: "Rising",
   cooling: "Easing off",
   quiet: "Normal",
@@ -121,4 +129,19 @@ export function daysOver(s: Signal, t: Thresholds) {
 export function alertLine(s: Signal, t: Thresholds) {
   const base = Math.max(s.baseline, t.baselineFloor[s.platform]);
   return Math.ceil(Math.max(base * (1 + t.minPct / 100), s.baseline + t.minAbs[s.platform]));
+}
+
+/** how far a reading has come from its usual toward the alert line, 0..1+ */
+export function progress(s: Signal, t: Thresholds) {
+  const line = alertLine(s, t);
+  return line > s.baseline ? (s.level - s.baseline) / (line - s.baseline) : 0;
+}
+
+/** one sentence on what the other platform did, in plain words */
+export function otherLine(platform: string, level: number, baseline: number, unit: string) {
+  const r = baseline > 0 ? level / baseline : 1;
+  const n = (x: number) => Math.round(x).toLocaleString("en-US");
+  if (r > 1.25) return `${platform} is up too: ${n(level)} ${unit}, ${times(level, baseline)} its usual.`;
+  if (r < 0.75) return `${platform} is down: ${n(level)} ${unit}, against a usual ${n(baseline)}.`;
+  return `${platform} is steady: ${n(level)} ${unit}, against a usual ${n(baseline)}.`;
 }

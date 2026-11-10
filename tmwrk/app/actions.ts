@@ -104,7 +104,7 @@ export async function sendTestAlert() {
   const a: Alert = { id: `test:${Date.now()}`, trackId: track.id, platform: "tiktok", date: r.date, level: r.level, baseline: r.baseline,
     change: r.change, pct: r.pct, sentAt: new Date().toISOString(), delivered: "outbox", simulated: true };
   const sp = latest(sim.snapshots.filter((x) => x.trackId === track.id), "spotify", DEFAULT_THRESHOLDS);
-  await send(compose(a, track, sim.artists[0], sp ? { platform: "spotify", level: sp.level, baseline: sp.baseline } : undefined), a.id);
+  await send(compose(a, DEFAULT_THRESHOLDS, track, sim.artists[0], sp ? { platform: "spotify", level: sp.level, baseline: sp.baseline } : undefined), a.id);
   revalidatePath("/outbox");
   redirect("/outbox");
 }

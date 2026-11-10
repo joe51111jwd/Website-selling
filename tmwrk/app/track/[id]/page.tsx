@@ -42,7 +42,7 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
                 <span className={`status status--${s.status}`}><i className={`dot dot--${s.status}`} />{STATUS_LABEL[s.status]}</span>
               </div>
               <div className="figs" style={{ marginBottom: 18 }}>
-                <div className="fig"><b>{per(s.level)}</b><span>Last 24 hours</span></div>
+                <div className="fig"><b>{per(s.level)}</b><span>{s.days.length ? shortDate(s.days[s.days.length - 1].date) : "Latest"}</span></div>
                 <div className="fig"><b>{per(s.baseline)}</b><span>Usual ({d.thresholds.window}-day average)</span></div>
                 <div className="fig"><b>{times(s.level, s.baseline)}</b><span>Of usual</span></div>
                 <div className="fig"><b>{per(alertLine(s, d.thresholds))}</b><span>Alert line</span></div>
@@ -60,7 +60,7 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
             <span className="arow__when">{shortDate(a.date, d.latestDay)}</span>
             <span className="arow__what">
               <b>{PLATFORM_LABEL[a.platform]}</b>
-              <span>{per(a.level)} in a day, usually {per(a.baseline)}. Emailed {a.delivered === "email" ? "to the team" : "to the outbox"}{a.simulated ? " (demo data)" : ""}.</span>
+              <span>{per(a.level)} that day, usually {per(a.baseline)}. {a.delivered === "email" ? "Emailed to the team." : "Kept under Emails until email is connected."}</span>
             </span>
             <span className="arow__x">{times(a.level, a.baseline)}</span>
           </div>
