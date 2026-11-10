@@ -84,7 +84,7 @@ app/                        dashboard, track, tracks, alerts sent, settings, log
 
 ```bash
 npm install
-npm run dev            # http://localhost:5210, password "demo" when DASHBOARD_PASSWORD is unset
+npm run dev            # http://localhost:5210, password "demo" while DASHBOARD_PASSWORD is unset and the data is simulated
 npm test
 npm run collect        # one daily run from the command line
 ```

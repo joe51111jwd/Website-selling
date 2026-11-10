@@ -30,7 +30,10 @@ export async function valid(token: string | undefined) {
 }
 
 export function passwordOk(input: string) {
-  const want = process.env.DASHBOARD_PASSWORD ?? (process.env.NODE_ENV === "production" ? null : "demo");
+  // With no password set, the password is "demo" while the data is simulated (nothing real to protect, so a
+  // preview deploy just works). Once Soundcharts keys are in, DASHBOARD_PASSWORD is required.
+  const live = Boolean(process.env.SOUNDCHARTS_APP_ID && process.env.SOUNDCHARTS_API_KEY);
+  const want = process.env.DASHBOARD_PASSWORD || (live ? null : "demo");
   if (!want) return false;
   if (want.length !== input.length) return false;
   let d = 0;
