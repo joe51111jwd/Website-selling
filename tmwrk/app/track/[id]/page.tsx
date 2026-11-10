@@ -43,7 +43,7 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
               </div>
               <div className="figs" style={{ marginBottom: 18 }}>
                 <div className="fig"><b>{per(s.level)}</b><span>{s.days.length ? shortDate(s.days[s.days.length - 1].date) : "Latest"}</span></div>
-                <div className="fig"><b>{per(s.baseline)}</b><span>Usual ({d.thresholds.window}-day average)</span></div>
+                <div className="fig"><b>{per(s.baseline)}</b><span>Usual</span></div>
                 <div className="fig"><b>{times(s.level, s.baseline)}</b><span>Of usual</span></div>
                 <div className="fig"><b>{per(alertLine(s, d.thresholds))}</b><span>Alert line</span></div>
               </div>

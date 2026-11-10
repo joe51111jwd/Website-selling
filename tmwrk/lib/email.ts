@@ -54,9 +54,9 @@ export function compose(a: Alert, rules: Thresholds, t: Track, artist: Artist, o
   const html = `<!doctype html><html><body style="margin:0;padding:28px 12px;background:#f6f6f4;${sans};color:#1d1d1b">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;border-collapse:collapse"><tr><td>
   <p style="margin:0 0 14px 4px;font-size:15px;font-weight:700;letter-spacing:.01em">TMWRK</p>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;background:#ffffff;border:1px solid #ececea;border-radius:14px"><tr><td style="padding:28px 28px 26px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;background:#ffffff;border-radius:24px"><tr><td style="padding:28px 28px 26px">
     <p style="margin:0 0 10px;font-size:13px;color:#57574f"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${a.platform === "tiktok" ? "#fe2c55" : "#1db954"};margin-right:6px;vertical-align:1px"></span>${P} alert · ${day}</p>
-    <h1 style="margin:0 0 14px;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-weight:400;font-size:30px;line-height:1.15;color:#1d1d1b"><i>${esc(t.title)}</i> by ${esc(artist.name)} is at ${mult} its usual on ${P}.</h1>
+    <h1 style="margin:0 0 14px;font-weight:600;font-size:24px;line-height:1.2;letter-spacing:-0.01em;color:#141317">${esc(t.title)} by ${esc(artist.name)} is at ${mult} its usual on ${P}.</h1>
     <p style="margin:0 0 6px;font-size:15px;line-height:1.55;color:#57574f"><b style="color:#1d1d1b">${n(a.level)}</b> ${what} on ${day}. It usually gets about <b style="color:#1d1d1b">${n(a.baseline)}</b> a day.</p>
     ${otherLine ? `<p style="margin:0;font-size:15px;line-height:1.55;color:#57574f">${otherLine}</p>` : ""}
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:22px 0 24px">
@@ -65,10 +65,10 @@ export function compose(a: Alert, rules: Thresholds, t: Track, artist: Artist, o
       ${row("Change", `+${n(a.change)} a day · ${mult} its usual`)}
       ${other ? row(`${PLATFORM_LABEL[other.platform]} same day`, `${n(other.level)} · usual ${n(other.baseline)}`) : ""}
     </table>
-    <a href="${link(t, a.platform)}" style="display:inline-block;padding:11px 18px;background:#2a2a28;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600">${a.platform === "tiktok" ? "Open the sound on TikTok" : "Open on Spotify"}</a>
-    ${appUrl ? `<a href="${appUrl}/track/${t.id}" style="display:inline-block;margin-left:8px;padding:10px 16px;border:1px solid #e1e1de;color:#1d1d1b;text-decoration:none;border-radius:8px;font-size:14px;font-weight:500">See the last 30 days</a>` : ""}
+    <a href="${link(t, a.platform)}" style="display:inline-block;padding:11px 18px;background:#3358eb;color:#ffffff;text-decoration:none;border-radius:999px;font-size:14px;font-weight:600">${a.platform === "tiktok" ? "Open the sound on TikTok" : "Open on Spotify"}</a>
+    ${appUrl ? `<a href="${appUrl}/track/${t.id}" style="display:inline-block;margin-left:8px;padding:10px 16px;border:1px solid #e1e1de;color:#1d1d1b;text-decoration:none;border-radius:999px;font-size:14px;font-weight:500">See the last 30 days</a>` : ""}
   </td></tr></table>
-  ${a.simulated ? `<p style="margin:14px 4px 0;font-size:12.5px;line-height:1.6;color:#3d2468"><span style="background:#ecdcff;padding:1px 7px;border-radius:5px;margin-right:6px">Demo data</span>These numbers are made up until a data provider is connected.</p>` : ""}
+  ${a.simulated ? `<p style="margin:14px 4px 0;font-size:12.5px;line-height:1.6;color:#1f3aa8"><span style="background:#c9d4ff;padding:1px 7px;border-radius:5px;margin-right:6px">Demo data</span>These numbers are made up until a data provider is connected.</p>` : ""}
   <p style="margin:12px 4px 0;font-size:12.5px;line-height:1.5;color:#8c8c84">You get at most one email per track and platform per day. A spike that holds at the same level won't email again for ${rules.cooldownDays} days unless it grows another ${rules.escalatePct}%.</p>
 </td></tr></table></body></html>`;
   return { subject, text, html };
