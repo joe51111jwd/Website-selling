@@ -1,4 +1,4 @@
-// The alert email, matching the brief's example:
+// The alert email. The plain-text part keeps the brief's example lines:
 //   MUSIC ACTIVITY ALERT | DRAMA | [Track Name]
 //   TikTok: 1,000 new creations in 24 hours | Baseline: 50/day
 //   Change: +950 creations / +1,900% | Action: Review sound
@@ -17,40 +17,64 @@ export function link(t: Track, p: Platform) {
   return t.spotifyId ? `https://open.spotify.com/track/${t.spotifyId}` : `https://open.spotify.com/search/${encodeURIComponent(t.title)}`;
 }
 
-export function compose(a: Alert, t: Track, artist: Artist, appUrl = process.env.APP_URL ?? "") {
+/** what the other platform did the same day, for one line of context */
+export type Other = { platform: Platform; level: number; baseline: number };
+
+const x = (level: number, base: number) => (base > 0 ? (level / base >= 10 ? `${Math.round(level / base)}×` : `${(level / base).toFixed(1)}×`) : "new");
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+export function compose(a: Alert, t: Track, artist: Artist, other?: Other, appUrl = process.env.APP_URL ?? "") {
   const P = PLATFORM_LABEL[a.platform];
-  const sim = a.simulated ? "[SIMULATED] " : "";
-  const subject = `${sim}MUSIC ACTIVITY ALERT | ${artist.name} | ${t.title}`;
-  const lines = [
+  const demo = a.simulated ? "[Demo] " : "";
+  const mult = x(a.level, a.baseline);
+  const subject = `${demo}${P} alert: ${artist.name}, “${t.title}” at ${mult} its usual`;
+  const what = a.platform === "tiktok" ? "new TikTok videos used the sound" : "Spotify streams";
+  const day = new Date(a.date + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
+  let otherLine = "";
+  if (other) {
+    const moved = other.baseline > 0 && Math.abs(other.level / other.baseline - 1) > 0.25;
+    const OP = PLATFORM_LABEL[other.platform], ou = other.platform === "tiktok" ? "new videos" : "streams";
+    otherLine = moved ? `${OP} is moving too: ${n(other.level)} ${ou}, ${x(other.level, other.baseline)} its usual.` : `${OP} hasn't moved: ${n(other.level)} ${ou}, against a usual ${n(other.baseline)}.`;
+  }
+  // the brief's alert lines, kept word for word in the plain-text part
+  const brief = [
+    `MUSIC ACTIVITY ALERT | ${artist.name} | ${t.title}`,
     `${P}: ${n(a.level)} new ${unitShort[a.platform]} in 24 hours | Baseline: ${n(a.baseline)}/day`,
     `Change: +${n(a.change)} ${unitShort[a.platform]} / +${n(a.pct)}% | Action: ${action[a.platform]}`,
   ];
   const text = [
-    subject, "", ...lines, "",
-    `Artist: ${artist.name}`, `Track: ${t.title}${t.year ? ` (${t.year})` : ""}`, `Platform: ${P}`, `Day: ${a.date}`,
-    `${P} link: ${link(t, a.platform)}`, appUrl ? `Dashboard: ${appUrl}` : "",
-    a.simulated ? "\nThese numbers are simulated: no data provider is connected yet." : "",
-  ].filter(Boolean).join("\n");
-  const accent = a.platform === "tiktok" ? "#ff2d55" : "#1ed760";
-  const html = `<!doctype html><html><body style="margin:0;background:#0d0d0f;padding:24px 12px;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#f2f0ea">
-  <table role="presentation" width="100%" style="max-width:560px;margin:0 auto;border-collapse:collapse"><tr><td>
-    ${a.simulated ? `<p style="margin:0 0 12px;padding:8px 12px;background:#3a3000;color:#ffd84a;font-size:12px;letter-spacing:.08em">SIMULATED DATA · no provider connected</p>` : ""}
-    <p style="margin:0 0 6px;font-size:11px;letter-spacing:.16em;color:#8a877e">MUSIC ACTIVITY ALERT · ${artist.name.toUpperCase()}</p>
-    <h1 style="margin:0 0 18px;font-size:30px;line-height:1.1;font-weight:700">${t.title}${t.year ? ` <span style="color:#8a877e;font-weight:400">(${t.year})</span>` : ""}</h1>
-    <table role="presentation" width="100%" style="border-collapse:collapse;background:#17171b;border-left:4px solid ${accent}">
-      <tr><td style="padding:18px 20px">
-        <p style="margin:0;font-size:12px;letter-spacing:.12em;color:${accent}">${P.toUpperCase()}</p>
-        <p style="margin:6px 0 2px;font-size:40px;font-weight:700;line-height:1">${n(a.level)}</p>
-        <p style="margin:0;color:#b9b5aa">new ${unitShort[a.platform]} in 24 hours</p>
-      </td><td style="padding:18px 20px;text-align:right;vertical-align:bottom">
-        <p style="margin:0;font-size:28px;font-weight:700;color:${accent}">+${n(a.pct)}%</p>
-        <p style="margin:2px 0 0;color:#b9b5aa">+${n(a.change)} vs ${n(a.baseline)}/day</p>
-      </td></tr></table>
-    <p style="margin:18px 0;color:#d6d2c6;line-height:1.5">${lines.join("<br>")}</p>
-    <a href="${link(t, a.platform)}" style="display:inline-block;padding:12px 18px;background:${accent};color:#0d0d0f;text-decoration:none;font-weight:700">${action[a.platform]} →</a>
-    ${appUrl ? `<a href="${appUrl}" style="display:inline-block;margin-left:12px;color:#b9b5aa">Open dashboard</a>` : ""}
-    <p style="margin:28px 0 0;font-size:11px;color:#6a675f">TMWRK Roster Intelligence · ${a.date} · one email per event, no repeats while it holds.</p>
-  </td></tr></table></body></html>`;
+    `${t.title} by ${artist.name} is at ${mult} its usual on ${P}.`, "",
+    `${n(a.level)} ${what} in the last 24 hours. It usually gets about ${n(a.baseline)} a day.`,
+    otherLine, "",
+    ...brief, "",
+    `${a.platform === "tiktok" ? "Open the sound" : "Open on Spotify"}: ${link(t, a.platform)}`,
+    appUrl ? `Last 30 days: ${appUrl}/track/${t.id}` : "",
+    a.simulated ? "\nDemo data: no data provider is connected yet, so these numbers are made up." : "",
+  ].filter((l, i, arr) => l !== "" || arr[i - 1] !== "").join("\n");
+
+  const row = (k: string, v: string, strong = false) =>
+    `<tr><td style="padding:11px 0;border-top:1px solid #ececea;color:#8c8c84;font-size:14px;width:44%">${k}</td><td style="padding:11px 0;border-top:1px solid #ececea;font-size:14px;color:#1d1d1b;${strong ? "font-weight:600" : ""}">${v}</td></tr>`;
+  const sans = "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+  const html = `<!doctype html><html><body style="margin:0;padding:28px 12px;background:#f6f6f4;${sans};color:#1d1d1b">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;border-collapse:collapse"><tr><td>
+  <p style="margin:0 0 14px 4px;font-size:15px;font-weight:700;letter-spacing:.01em">TMWRK</p>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;background:#ffffff;border:1px solid #ececea;border-radius:14px"><tr><td style="padding:28px 28px 26px">
+    <p style="margin:0 0 10px;font-size:13px;color:#57574f"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${a.platform === "tiktok" ? "#fe2c55" : "#1db954"};margin-right:6px;vertical-align:1px"></span>${P} alert · ${day}</p>
+    <h1 style="margin:0 0 14px;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-weight:400;font-size:30px;line-height:1.15;color:#1d1d1b"><i>${esc(t.title)}</i> by ${esc(artist.name)} is at ${mult} its usual on ${P}.</h1>
+    <p style="margin:0 0 6px;font-size:15px;line-height:1.55;color:#57574f"><b style="color:#1d1d1b">${n(a.level)}</b> ${what} in the last 24 hours. It usually gets about <b style="color:#1d1d1b">${n(a.baseline)}</b> a day.</p>
+    ${otherLine ? `<p style="margin:0;font-size:15px;line-height:1.55;color:#57574f">${otherLine}</p>` : ""}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:22px 0 24px">
+      ${row("Last 24 hours", `${n(a.level)} ${a.platform === "tiktok" ? "new videos" : "streams"}`, true)}
+      ${row("Usual (last 7 days)", `${n(a.baseline)} a day`)}
+      ${row("Change", `+${n(a.change)} · +${n(a.pct)}% · ${mult}`)}
+      ${other ? row(`${PLATFORM_LABEL[other.platform]} same day`, `${n(other.level)} · usual ${n(other.baseline)}`) : ""}
+    </table>
+    <a href="${link(t, a.platform)}" style="display:inline-block;padding:11px 18px;background:#2a2a28;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600">${a.platform === "tiktok" ? "Open the sound on TikTok" : "Open on Spotify"}</a>
+    ${appUrl ? `<a href="${appUrl}/track/${t.id}" style="display:inline-block;margin-left:8px;padding:10px 16px;border:1px solid #e1e1de;color:#1d1d1b;text-decoration:none;border-radius:8px;font-size:14px;font-weight:500">See the last 30 days</a>` : ""}
+  </td></tr></table>
+  ${a.simulated ? `<p style="margin:14px 4px 0;font-size:12.5px;color:#3d2468"><span style="background:#ecdcff;padding:2px 7px;border-radius:5px">Demo data</span> No data provider is connected yet, so these numbers are made up.</p>` : ""}
+  <p style="margin:12px 4px 0;font-size:12.5px;line-height:1.5;color:#8c8c84">You get one email per track and platform per day. A spike that holds at the same level won't email again for 3 days unless it grows.</p>
+</td></tr></table></body></html>`;
   return { subject, text, html };
 }
 

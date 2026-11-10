@@ -73,3 +73,52 @@ export function ago(iso: string) {
   if (h < 36) return `${h} h ago`;
   return `${Math.round(h / 24)} days ago`;
 }
+
+// ----- small helpers for the screens -----
+
+export const STATUS_LABEL: Record<Status, string> = {
+  spike: "Alert",
+  rising: "Rising",
+  cooling: "Easing off",
+  quiet: "Normal",
+  waiting: "Collecting data",
+};
+
+/** how many times its usual a reading is (1 decimal under 10, whole above) */
+export function times(level: number, baseline: number) {
+  if (baseline <= 0) return level > 0 ? "new" : "–";
+  const x = level / baseline;
+  return x >= 10 ? `${Math.round(x)}×` : `${x.toFixed(1)}×`;
+}
+
+export const per = (n: number) => Math.round(n).toLocaleString("en-US");
+
+export function shortDate(iso: string, today?: string) {
+  if (today && iso === today) return "Today";
+  return new Date(iso + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+}
+
+export function longDate(iso: string) {
+  return new Date(iso + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "UTC" });
+}
+
+export function clock(iso: string) {
+  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "UTC" }) + " UTC";
+}
+
+/** days in a row the newest readings have stayed over the alert line */
+export function daysOver(s: Signal, t: Thresholds) {
+  let n = 0;
+  for (let i = s.days.length - 1; i >= 0; i--) {
+    const r = judge(s.days, i, s.platform, t);
+    if (!r.spike) break;
+    n++;
+  }
+  return n;
+}
+
+/** the daily level that would trigger an alert, from the same rules the detector uses (rounded up) */
+export function alertLine(s: Signal, t: Thresholds) {
+  const base = Math.max(s.baseline, t.baselineFloor[s.platform]);
+  return Math.ceil(Math.max(base * (1 + t.minPct / 100), s.baseline + t.minAbs[s.platform]));
+}

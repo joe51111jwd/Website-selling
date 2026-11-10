@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Bars } from "@/components/Bars";
+import { Icon } from "@/components/Icon";
 import { Shell } from "@/components/Shell";
-import { Area } from "@/components/Spark";
 import { link } from "@/lib/email";
-import { PLATFORM_LABEL, UNIT, type Platform } from "@/lib/types";
-import { dashboard, full, pctFmt } from "@/lib/view";
+import { PLATFORM_LABEL, type Platform } from "@/lib/types";
+import { STATUS_LABEL, alertLine, dashboard, per, shortDate, times } from "@/lib/view";
 
 export const dynamic = "force-dynamic";
-const COLOR: Record<Platform, string> = { spotify: "#1ed760", tiktok: "#ff2d55" };
+
+const COLOR: Record<Platform, string> = { spotify: "#1db954", tiktok: "#fe2c55" };
+const UNIT: Record<Platform, string> = { spotify: "Spotify streams a day", tiktok: "New TikTok videos a day" };
 
 export default async function TrackPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -17,36 +20,53 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
   const alerts = d.alerts.filter((a) => a.trackId === id);
   return (
     <Shell here="">
-      <p className="crumbs"><Link href="/">Dashboard</Link> / {r.artist.name}</p>
-      <h1 className="page-title">{r.track.title} {r.track.year && <small>({r.track.year})</small>}</h1>
-      <p className="lede">{r.artist.name}{r.track.isrc && <> · ISRC {r.track.isrc}</>}</p>
-      {(["tiktok", "spotify"] as Platform[]).map((pl) => {
-        const s = r.signals[pl];
-        return (
-          <section key={pl} className={`panel panel--${pl}`}>
-            <header>
-              <h2>{PLATFORM_LABEL[pl]} <span>{UNIT[pl]} per day, last 30 days</span></h2>
-              <div className="panel__nums">
-                <span><b>{full(s.level)}</b> today</span>
-                <span><b>{full(s.baseline)}</b> {d.thresholds.window}-day average</span>
-                <span className={s.pct >= 0 ? "up" : "down"}><b>{pctFmt(s.pct)}</b></span>
-                <a href={link(r.track, pl)} target="_blank" rel="noopener" className="btn btn--ghost">Open on {PLATFORM_LABEL[pl]} ↗</a>
+      <Link href="/" className="back"><Icon name="back" size={16} />Home</Link>
+      <header className="head">
+        <div>
+          <h1>{r.track.title}</h1>
+          <p className="head__sub">{r.artist.name}{r.track.year ? ` · ${r.track.year}` : ""}{r.track.isrc ? ` · ISRC ${r.track.isrc}` : ""}</p>
+        </div>
+        <div className="btns">
+          <a className="btn btn--soft btn--sm" href={link(r.track, "tiktok")} target="_blank" rel="noopener">TikTok <Icon name="ext" size={14} /></a>
+          <a className="btn btn--soft btn--sm" href={link(r.track, "spotify")} target="_blank" rel="noopener">Spotify <Icon name="ext" size={14} /></a>
+        </div>
+      </header>
+
+      <div className="cards">
+        {(["tiktok", "spotify"] as Platform[]).map((p) => {
+          const s = r.signals[p];
+          return (
+            <section key={p} className="card">
+              <div className="card__top">
+                <h2 className="card__title"><i className={`dot dot--${p}`} />{UNIT[p]}</h2>
+                <span className={`status status--${s.status}`}><i className={`dot dot--${s.status}`} />{STATUS_LABEL[s.status]}</span>
               </div>
-            </header>
-            <Area days={s.days} color={COLOR[pl]} alerts={alerts.filter((a) => a.platform === pl).map((a) => a.date)} label={`${PLATFORM_LABEL[pl]} daily activity`} />
-          </section>
-        );
-      })}
-      <section className="panel">
-        <h2>Alerts for this track</h2>
-        {alerts.length ? (
-          <ol className="list">
-            {alerts.map((a) => (
-              <li key={a.id}><b>{a.date}</b> {PLATFORM_LABEL[a.platform]}: {full(a.level)} in 24h vs {full(a.baseline)}/day ({pctFmt(a.pct)}){a.simulated && " · simulated"}</li>
-            ))}
-          </ol>
-        ) : <p className="muted">None yet.</p>}
-      </section>
+              <div className="figs" style={{ marginBottom: 18 }}>
+                <div className="fig"><b>{per(s.level)}</b><span>Last 24 hours</span></div>
+                <div className="fig"><b>{per(s.baseline)}</b><span>Usual ({d.thresholds.window}-day average)</span></div>
+                <div className="fig"><b>{times(s.level, s.baseline)}</b><span>Of usual</span></div>
+                <div className="fig"><b>{per(alertLine(s, d.thresholds))}</b><span>Alert line</span></div>
+              </div>
+              <Bars days={s.days} usual={s.baseline} color={COLOR[p]} alerts={alerts.filter((a) => a.platform === p).map((a) => a.date)} label={`${UNIT[p]}, last 30 days`} />
+            </section>
+          );
+        })}
+      </div>
+
+      <h2 className="label">Alerts for this track</h2>
+      <div className="list">
+        {alerts.map((a) => (
+          <div key={a.id} className="arow">
+            <span className="arow__when">{shortDate(a.date, d.latestDay)}</span>
+            <span className="arow__what">
+              <b>{PLATFORM_LABEL[a.platform]}</b>
+              <span>{per(a.level)} in a day, usually {per(a.baseline)}. Emailed {a.delivered === "email" ? "to the team" : "to the outbox"}{a.simulated ? " (demo data)" : ""}.</span>
+            </span>
+            <span className="arow__x">{times(a.level, a.baseline)}</span>
+          </div>
+        ))}
+        {!alerts.length && <p className="empty">This track hasn&apos;t sent an alert yet.</p>}
+      </div>
     </Shell>
   );
 }

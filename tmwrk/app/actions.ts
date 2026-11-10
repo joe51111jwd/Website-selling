@@ -13,7 +13,7 @@ import { store } from "@/lib/store";
 import { DEFAULT_THRESHOLDS, type Alert, type Thresholds } from "@/lib/types";
 
 export async function login(_: unknown, form: FormData) {
-  if (!passwordOk(String(form.get("password") ?? ""))) return { error: "That's not it." };
+  if (!passwordOk(String(form.get("password") ?? ""))) return { error: "That password didn't work." };
   const c = await issue();
   (await cookies()).set(COOKIE, c.value, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", maxAge: c.maxAge, path: "/" });
   const next = String(form.get("next") || "/");
@@ -51,9 +51,9 @@ export async function addTrack(_: unknown, form: FormData) {
     artistId = slug(newArtist);
     await s.upsertArtist({ id: artistId, name: newArtist });
   }
-  if (!title || !artistId) return { error: "A title and an artist, please." };
+  if (!title || !artistId) return { error: "Add a title and pick an artist." };
   const tracks = await s.tracks();
-  if (tracks.length >= 20) return { error: "The MVP watches up to 20 tracks. Remove one first." };
+  if (tracks.length >= 20) return { error: "You can watch up to 20 tracks. Remove one first." };
   const id = parseId(String(form.get("id") ?? ""));
   if (!id) return { error: "Paste an ISRC (e.g. USUM71703861) or a Spotify track link." };
   const p = provider();
@@ -68,7 +68,7 @@ export async function addTrack(_: unknown, form: FormData) {
   const tiktok = String(form.get("tiktok") ?? "").trim() || undefined;
   await s.upsertTrack({ id: `${artistId}-${slug(title)}`, artistId, title, year, ...id, tiktokSoundUrl: tiktok, providerId: found.providerId, addedAt: new Date().toISOString() });
   revalidatePath("/", "layout");
-  return { ok: `Watching “${title}”. It fills in on the next run.` };
+  return { ok: `Added “${title}”. Its numbers fill in at the next check.` };
 }
 
 export async function removeTrack(form: FormData) {
@@ -92,7 +92,7 @@ export async function saveThresholds(_: unknown, form: FormData) {
   };
   await store().setThresholds(t);
   revalidatePath("/", "layout");
-  return { ok: "Saved. The next run uses these." };
+  return { ok: "Saved. The next check uses these rules." };
 }
 
 /** The brief's success test, on demand: the simulated DRAMA TikTok spike, emailed for real. */
@@ -103,7 +103,8 @@ export async function sendTestAlert() {
   const r = latest(sim.snapshots.filter((x) => x.trackId === track.id), "tiktok", DEFAULT_THRESHOLDS)!;
   const a: Alert = { id: `test:${Date.now()}`, trackId: track.id, platform: "tiktok", date: r.date, level: r.level, baseline: r.baseline,
     change: r.change, pct: r.pct, sentAt: new Date().toISOString(), delivered: "outbox", simulated: true };
-  await send(compose(a, track, sim.artists[0]), a.id);
+  const sp = latest(sim.snapshots.filter((x) => x.trackId === track.id), "spotify", DEFAULT_THRESHOLDS);
+  await send(compose(a, track, sim.artists[0], sp ? { platform: "spotify", level: sp.level, baseline: sp.baseline } : undefined), a.id);
   revalidatePath("/outbox");
   redirect("/outbox");
 }

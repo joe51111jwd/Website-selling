@@ -1,20 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Inter_Tight, JetBrains_Mono } from "next/font/google";
+import { EB_Garamond, Figtree } from "next/font/google";
 import "./globals.css";
 
-const sans = Inter_Tight({ subsets: ["latin"], variable: "--f-sans", weight: ["400", "500", "600", "700", "800"] });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--f-mono", weight: ["400", "500", "700"] });
+const sans = Figtree({ subsets: ["latin"], variable: "--f-sans", weight: ["400", "500", "600", "700"] });
+const serif = EB_Garamond({ subsets: ["latin"], variable: "--f-serif", weight: ["400", "500"], style: ["normal", "italic"] });
 
 export const metadata: Metadata = {
-  title: "TMWRK — Roster Intelligence",
-  description: "Watches the catalog on Spotify and TikTok and tells the team when a track deserves attention.",
+  title: "TMWRK",
+  description: "Daily Spotify and TikTok alerts for the TMWRK catalog.",
   robots: { index: false, follow: false },
 };
-export const viewport: Viewport = { themeColor: "#0d0d0f", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#f6f6f4", width: "device-width", initialScale: 1 };
 
 export default function Root({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="en" className={`${sans.variable} ${serif.variable}`}>
       <body>{children}</body>
     </html>
   );

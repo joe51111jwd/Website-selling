@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Shell } from "@/components/Shell";
 import { AddTrack } from "@/components/Forms";
 import { Submit } from "@/components/Submit";
@@ -7,37 +8,48 @@ import { store } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
-export default async function Tracks() {
+export default async function Tracks({ searchParams }: { searchParams: Promise<{ artist?: string }> }) {
+  const { artist } = await searchParams;
   const s = store();
   const [tracks, artists] = await Promise.all([s.tracks(), s.artists()]);
-  const byArtist = artists.map((a) => ({ a, ts: tracks.filter((t) => t.artistId === a.id).sort((x, y) => (x.year ?? 0) - (y.year ?? 0)) })).filter((x) => x.ts.length);
+  const shown = tracks.filter((t) => !artist || t.artistId === artist).sort((a, b) => a.artistId.localeCompare(b.artistId) || (a.year ?? 0) - (b.year ?? 0));
+  const name = (id: string) => artists.find((a) => a.id === id)?.name ?? id;
   return (
     <Shell here="/tracks">
-      <h1 className="page-title">Tracks <small>{tracks.length} / 20</small></h1>
-      <div className="two">
-        <section className="panel">
-          <h2>Watching</h2>
-          {byArtist.map(({ a, ts }) => (
-            <div key={a.id} className="artist">
-              <h3>{a.name}</h3>
-              <ul className="tracklist">
-                {ts.map((t) => (
-                  <li key={t.id}>
-                    <span><b>{t.title}</b> <span className="muted">{t.year ?? ""}{t.isrc ? ` · ${t.isrc}` : t.spotifyId ? " · Spotify" : ""}</span></span>
-                    <form action={removeTrack}><input type="hidden" name="id" value={t.id} /><Submit className="btn btn--text" pending="Removing…">Remove</Submit></form>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-          {!tracks.length && <p className="muted">Nothing yet.</p>}
-        </section>
-        <section className="panel">
-          <h2>Add a track</h2>
-          <p className="muted">Back catalog welcome: older songs are the ones this is for.</p>
-          <AddTrack artists={artists} simulated={provider().simulated} />
-        </section>
-      </div>
+      <header className="head">
+        <div>
+          <h1>Tracks</h1>
+          <p className="head__sub">{tracks.length} of 20 watched</p>
+        </div>
+        <a href="#add" className="btn">Add track</a>
+      </header>
+
+      <section className="hero" id="add">
+        <h2>Add a song to watch.</h2>
+        <p style={{ marginBottom: 20 }}>Paste its ISRC or Spotify link. Older songs are the point: the check reads every one each morning, however old.</p>
+        <AddTrack artists={artists} simulated={provider().simulated} />
+      </section>
+
+      <nav className="tabs" style={{ marginTop: 36 }} aria-label="Filter by artist">
+        <Link href="/tracks" aria-current={!artist ? "page" : undefined}>All</Link>
+        {artists.map((a) => (
+          <Link key={a.id} href={`/tracks?artist=${a.id}`} aria-current={artist === a.id ? "page" : undefined}>{a.name}</Link>
+        ))}
+      </nav>
+      <ul className="list tlist">
+        {shown.map((t) => (
+          <li key={t.id}>
+            <Link href={`/track/${t.id}`}>
+              <b>{t.title}</b> <span>{name(t.artistId)}{t.year ? ` · ${t.year}` : ""}{t.isrc ? ` · ${t.isrc}` : t.spotifyId ? " · Spotify link" : ""}</span>
+            </Link>
+            <form action={removeTrack}>
+              <input type="hidden" name="id" value={t.id} />
+              <Submit className="btn btn--text" pending="Removing…">Remove</Submit>
+            </form>
+          </li>
+        ))}
+        {!shown.length && <li className="empty">No tracks here yet.</li>}
+      </ul>
     </Shell>
   );
 }

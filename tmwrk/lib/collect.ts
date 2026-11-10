@@ -36,7 +36,9 @@ export async function collect(opts: { today?: string } = {}): Promise<RunLog> {
             level: r.level, baseline: r.baseline, change: r.change, pct: r.pct,
             sentAt: new Date().toISOString(), delivered: "outbox", simulated: p.simulated,
           };
-          a.delivered = await send(compose(a, track, artist), a.id);
+          const op = platform === "tiktok" ? "spotify" : "tiktok";
+          const or = latest((await s.snapshots({ trackId: track.id, since: start })).filter((x) => x.platform === op), op, t);
+          a.delivered = await send(compose(a, track, artist, or ? { platform: op, level: or.level, baseline: or.baseline } : undefined), a.id);
           await s.putAlert(a);
           run.alerts++;
         } catch (e) {

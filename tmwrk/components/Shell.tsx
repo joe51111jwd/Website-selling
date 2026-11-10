@@ -1,43 +1,49 @@
 import Link from "next/link";
-import { logout, runNow } from "@/app/actions";
+import { logout } from "@/app/actions";
 import { provider } from "@/lib/providers";
-import { store } from "@/lib/store";
-import { ago } from "@/lib/view";
-import { Submit } from "./Submit";
+import { Icon, Mark } from "./Icon";
 
-export async function Shell({ children, here }: { children: React.ReactNode; here: string }) {
-  const p = provider();
-  const runs = await store().runs(5);
-  const ok = runs.find((r) => r.ok);
-  const nav = [["/", "Dashboard"], ["/tracks", "Tracks"], ["/outbox", "Alerts sent"], ["/settings", "Settings"]];
+const NAV = [
+  { href: "/", label: "Home", icon: "home" },
+  { href: "/tracks", label: "Tracks", icon: "tracks" },
+  { href: "/outbox", label: "Emails", icon: "mail" },
+  { href: "/settings", label: "Alert rules", icon: "rules" },
+];
+
+export function Shell({ children, here }: { children: React.ReactNode; here: string }) {
+  const sim = provider().simulated;
   return (
-    <div className="shell">
-      <header className="top">
-        <Link href="/" className="brand" aria-label="TMWRK Roster Intelligence">
+    <div className="app">
+      <aside className="side">
+        <Link href="/" className="logo">
+          <Mark />
           <b>TMWRK</b>
-          <span>Roster Intelligence</span>
+          {sim && <span className="badge">Demo data</span>}
         </Link>
-        <nav className="nav">
-          {nav.map(([href, label]) => (
-            <Link key={href} href={href} aria-current={here === href ? "page" : undefined}>{label}</Link>
+        <nav className="nav" aria-label="Main">
+          {NAV.map((n) => (
+            <Link key={n.href} href={n.href} className="nav__item" aria-current={here === n.href ? "page" : undefined}>
+              <Icon name={n.icon} />
+              {n.label}
+            </Link>
           ))}
         </nav>
-        <div className="status">
-          <span className={`source ${p.simulated ? "source--sim" : "source--live"}`} title={p.simulated ? "No data provider connected: these numbers are made up to show the alert logic." : `Live data from ${p.name}`}>
-            <i />{p.simulated ? "Simulated data" : p.name}
-          </span>
-          <span className="updated">{ok ? <>Updated {ago(ok.at)}</> : "No run yet"}</span>
-          <form action={runNow}><Submit className="btn btn--ghost" pending="Running…">Run now</Submit></form>
-          <form action={logout}><button className="btn btn--text">Log out</button></form>
+        <div className="side__foot">
+          {sim && (
+            <div className="note">
+              <b>Demo data</b>
+              <p>The numbers are simulated until a data provider is connected.</p>
+              <Link href="/settings#setup" className="btn btn--soft btn--sm">How to connect</Link>
+            </div>
+          )}
+          <form action={logout}>
+            <button className="nav__item nav__item--btn"><Icon name="out" />Sign out</button>
+          </form>
         </div>
-      </header>
-      {p.simulated && (
-        <p className="simbar">
-          <b>Simulated.</b> No music-data provider is connected, so every number here is made up to show how alerts work.
-          Add Soundcharts credentials to go live.
-        </p>
-      )}
-      <main className="main">{children}</main>
+      </aside>
+      <main className="panel">
+        <div className="content">{children}</div>
+      </main>
     </div>
   );
 }
