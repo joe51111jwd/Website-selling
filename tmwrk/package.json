@@ -1,0 +1,28 @@
+{
+  "name": "tmwrk-roster-intelligence",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 5210",
+    "build": "next build",
+    "start": "next start -p 5210",
+    "test": "vitest run",
+    "collect": "tsx scripts/collect.ts",
+    "success-test": "tsx scripts/success-test.ts"
+  },
+  "dependencies": {
+    "next": "^16.4.6",
+    "postgres": "^4.1.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
