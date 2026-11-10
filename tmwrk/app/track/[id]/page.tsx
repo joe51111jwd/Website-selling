@@ -9,7 +9,7 @@ import { STATUS_LABEL, alertLine, dashboard, per, shortDate, times } from "@/lib
 
 export const dynamic = "force-dynamic";
 
-const COLOR: Record<Platform, string> = { spotify: "#1db954", tiktok: "#fe2c55" };
+const COLOR: Record<Platform, string> = { spotify: "#000000", tiktok: "#000000" };
 const UNIT: Record<Platform, string> = { spotify: "Spotify streams a day", tiktok: "New TikTok videos a day" };
 
 export default async function TrackPage({ params }: { params: Promise<{ id: string }> }) {
@@ -20,7 +20,7 @@ export default async function TrackPage({ params }: { params: Promise<{ id: stri
   const alerts = d.alerts.filter((a) => a.trackId === id);
   return (
     <Shell here="">
-      <Link href="/" className="back"><Icon name="back" size={16} />Home</Link>
+      <Link href="/" className="back">← Today</Link>
       <header className="head">
         <div>
           <h1>{r.track.title}</h1>

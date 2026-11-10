@@ -14,10 +14,10 @@ export function Bars({ days, usual, color, alerts, label }: { days: Day[]; usual
         {days.map((d, i) => {
           const h = Math.max(2, H - y(d.rate));
           const last = i === days.length - 1;
-          const fill = alerts.includes(d.date) ? color : last ? "#2a2a28" : "#e6e6e2";
-          return <rect key={d.date} x={i * (bw + gap)} y={H - h} width={bw} height={h} rx={2} fill={fill} />;
+          const fill = alerts.includes(d.date) ? color : last ? "#000000" : "#dcdcdc";
+          return <rect key={d.date} x={i * (bw + gap)} y={H - h} width={bw} height={h} fill={fill} />;
         })}
-        <line x1="0" x2={W} y1={y(usual)} y2={y(usual)} stroke="#8c8c84" strokeWidth="1" strokeDasharray="3 4" vectorEffect="non-scaling-stroke" />
+        <line x1="0" x2={W} y1={y(usual)} y2={y(usual)} stroke="#000000" strokeWidth="1" strokeDasharray="2 3" vectorEffect="non-scaling-stroke" />
       </svg>
       <figcaption className="bars__axis">
         <span>{fmt(days[0].date)}</span>

@@ -1,192 +1,173 @@
 import Link from "next/link";
 import { Shell } from "@/components/Shell";
-import { Icon } from "@/components/Icon";
 import { collect } from "@/lib/collect";
 import { link } from "@/lib/email";
 import { provider } from "@/lib/providers";
 import { store } from "@/lib/store";
 import { PLATFORM_LABEL, type Alert, type Platform, type Thresholds } from "@/lib/types";
-import { STATUS_LABEL, alertLine, clock, dashboard, daysOver, longDate, otherLine, per, progress, shortDate, times, type Row } from "@/lib/view";
+import { STATUS_LABEL, alertLine, clock, dashboard, daysOver, per, progress, times, type Row } from "@/lib/view";
 
 export const dynamic = "force-dynamic";
 
-const UNIT: Record<Platform, string> = { spotify: "streams", tiktok: "new videos" };
+const UNIT: Record<Platform, string> = { spotify: "streams", tiktok: "creations" };
 const other = (p: Platform): Platform => (p === "tiktok" ? "spotify" : "tiktok");
+const day = (iso: string) => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).toUpperCase();
+const ddmm = (iso: string) => new Date(iso + "T12:00:00Z").toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "UTC" }).toUpperCase();
 
-export default async function Home({ searchParams }: { searchParams: Promise<{ artist?: string }> }) {
-  const { artist } = await searchParams;
-  // first visit with no provider: load the demo roster so there is something to look at
+export default async function Home() {
   if (provider().simulated && (await store().isEmpty())) await collect();
   const d = await dashboard();
+  const t = d.thresholds;
   const today = d.latestDay;
   const todays = d.alerts.filter((a) => a.date === today).sort((a, b) => b.pct - a.pct);
   const watching = d.rows.filter((r) => r.status === "rising" || r.status === "held");
-  const artists = [...new Map(d.rows.map((r) => [r.artist.id, r.artist])).values()];
-  const rows = artist ? d.rows.filter((r) => r.artist.id === artist) : d.rows;
+  const byArtist = [...new Map(d.rows.map((r) => [r.artist.id, r.artist])).values()].map((a) => ({ a, rows: d.rows.filter((r) => r.artist.id === a.id) }));
+  let n = 0;
+  const sec = () => String(++n).padStart(2, "0");
 
   return (
     <Shell here="/">
-      <header className="head">
-        <div>
-          <h1>{today ? longDate(today) : "Today"}</h1>
-          <p className="head__sub">{d.lastOk ? `Checked at ${clock(d.lastOk.at)}` : "Waiting for the first check"}</p>
-        </div>
-        <div className="stats" aria-label="Today">
-          <span><b>{d.rows.length}</b> tracks</span>
-          <span><b>{todays.length}</b> {todays.length === 1 ? "alert" : "alerts"} today</span>
-          <span><b>{watching.length}</b> worth watching</span>
-        </div>
-      </header>
+      <div className="meta">
+        <span>{today ? day(today) : "No data yet"}</span>
+        <span>{d.lastOk ? `Checked ${clock(d.lastOk.at)}` : "Not checked yet"}</span>
+        <span>{d.rows.length} tracks | {byArtist.length} artists</span>
+        <span>{todays.length} {todays.length === 1 ? "alert" : "alerts"} today</span>
+      </div>
 
-      {todays.length ? (
-        todays.slice(0, 3).map((a) => {
+      <section className="sec">
+        <h2 className="sec__h">{sec()} / Today</h2>
+        {todays.length ? todays.map((a) => {
           const r = d.rows.find((x) => x.track.id === a.trackId);
-          return r ? <AlertCard key={a.id} a={a} r={r} t={d.thresholds} /> : null;
-        })
-      ) : (
-        <Quiet rows={d.rows} t={d.thresholds} />
-      )}
+          return r ? <AlertBlock key={a.id} a={a} r={r} t={t} /> : null;
+        }) : <Quiet rows={d.rows} t={t} />}
+      </section>
 
       {watching.length > 0 && (
-        <>
-          <h2 className="label">Worth watching</h2>
-          <div className="list">
+        <section className="sec">
+          <h2 className="sec__h">{sec()} / Watching</h2>
+          <ul className="lines">
             {watching.map((r) => {
-              const pl = (["tiktok", "spotify"] as Platform[]).find((p) => r.signals[p].status === r.status)!;
-              const s = r.signals[pl];
+              const p = (["tiktok", "spotify"] as Platform[]).find((x) => r.signals[x].status === r.status)!;
+              const s = r.signals[p];
               return (
-                <Link key={r.track.id} href={`/track/${r.track.id}`} className="arow">
-                  <span className="arow__when"><span className={`status status--${r.status}`}><i className={`dot dot--${r.status}`} />{STATUS_LABEL[r.status]}</span></span>
-                  <span className="arow__what">
-                    <b>{r.track.title}</b> · {r.artist.name}
-                    <span>
-                      {PLATFORM_LABEL[pl]}: {per(s.level)} {UNIT[pl]} a day, usually {per(s.baseline)}.{" "}
-                      {r.status === "held" ? "Still over the line; already emailed, so no repeat today." : `An alert goes out at ${per(alertLine(s, d.thresholds))}.`}
+                <li key={r.track.id}>
+                  <Link href={`/track/${r.track.id}`} className="line">
+                    <span className="line__who"><b>{r.artist.name}</b> | {r.track.title}</span>
+                    <span className="line__what">
+                      {PLATFORM_LABEL[p]}: {per(s.level)} {UNIT[p]} | Usual {per(s.baseline)}/day | {r.status === "held" ? "Still over the line, already emailed" : `Alerts at ${per(alertLine(s, t))}`}
                     </span>
-                  </span>
-                  <span className="arow__x">{times(s.level, s.baseline)}</span>
-                </Link>
+                    <span className="line__x">{times(s.level, s.baseline)}</span>
+                  </Link>
+                </li>
               );
             })}
-          </div>
-        </>
+          </ul>
+        </section>
       )}
 
-      <h2 className="label">Recent alerts <Link href="/outbox">See the emails</Link></h2>
-      <div className="list">
-        {d.alerts.slice(0, 8).map((a) => {
-          const r = d.rows.find((x) => x.track.id === a.trackId);
-          return (
-            <Link key={a.id} href={`/track/${a.trackId}`} className="arow">
-              <span className="arow__when">{shortDate(a.date, today)}</span>
-              <span className="arow__what">
-                <b>{r?.track.title ?? a.trackId}</b>{r && <> · {r.artist.name}</>}
-                <span>
-                  <i className={`dot dot--${a.platform}`} /> {PLATFORM_LABEL[a.platform]}: {per(a.level)} {UNIT[a.platform]} in a day, usually {per(a.baseline)}
-                </span>
-              </span>
-              <span className="arow__x">{times(a.level, a.baseline)}</span>
-            </Link>
-          );
-        })}
-        {!d.alerts.length && <p className="empty">No alerts yet. When a track crosses the line, it shows up here and the team gets an email.</p>}
-      </div>
-
-      <h2 className="label">Tracks</h2>
-      <nav className="tabs" aria-label="Filter by artist">
-        <Link href="/" aria-current={!artist ? "page" : undefined}>All</Link>
-        {artists.map((a) => (
-          <Link key={a.id} href={`/?artist=${a.id}`} aria-current={artist === a.id ? "page" : undefined}>{a.name}</Link>
-        ))}
-      </nav>
-      <div className="list">
-        <div className="trow trow--head" aria-hidden="true">
-          <span>Track</span><span>Spotify streams a day</span><span>TikTok new videos a day</span><span>Status</span>
+      <section className="sec">
+        <h2 className="sec__h">{sec()} / Roster</h2>
+        <div className="roster">
+          <div className="roster__head" aria-hidden="true">
+            <span>Track</span><span>Spotify / day</span><span /><span>TikTok / day</span><span /><span>Status</span>
+          </div>
+          {byArtist.map(({ a, rows }) => (
+            <div key={a.id} className="artist">
+              <h3 className="artist__name">{a.name}</h3>
+              {rows.map((r) => <TrackRow key={r.track.id} r={r} />)}
+            </div>
+          ))}
+          {!d.rows.length && <p className="none">No tracks yet. <Link href="/tracks">Add the first one.</Link></p>}
         </div>
-        {rows.map((r) => <TrackRow key={r.track.id} r={r} />)}
-        {!rows.length && <p className="empty">No tracks yet. <Link href="/tracks" className="btn--text">Add one</Link></p>}
-      </div>
+      </section>
+
+      <section className="sec">
+        <h2 className="sec__h">{sec()} / Alert log <Link href="/outbox">Emails</Link></h2>
+        <div className="log">
+          <div className="log__row log__head" aria-hidden="true"><span>Date</span><span>Artist | Track</span><span>Platform</span><span>Activity</span><span>Baseline</span><span>Change</span></div>
+          {d.alerts.slice(0, 10).map((a) => {
+            const r = d.rows.find((x) => x.track.id === a.trackId);
+            return (
+              <Link key={a.id} href={`/track/${a.trackId}`} className="log__row">
+                <span>{ddmm(a.date)}</span>
+                <span><b>{r?.artist.name}</b> | {r?.track.title ?? a.trackId}</span>
+                <span>{PLATFORM_LABEL[a.platform]}</span>
+                <span>{per(a.level)}</span>
+                <span>{per(a.baseline)}/day</span>
+                <span><b>+{per(a.pct)}%</b></span>
+              </Link>
+            );
+          })}
+          {!d.alerts.length && <p className="none">Nothing yet. The first alert lands here and in the team&apos;s inbox.</p>}
+        </div>
+      </section>
     </Shell>
   );
 }
 
-function AlertCard({ a, r, t }: { a: Alert; r: Row; t: Thresholds }) {
+function AlertBlock({ a, r, t }: { a: Alert; r: Row; t: Thresholds }) {
   const s = r.signals[a.platform];
   const o = r.signals[other(a.platform)];
-  const n = daysOver(s, t);
+  const k = daysOver(s, t);
+  const oRatio = o.baseline > 0 ? o.level / o.baseline : 1;
+  const oWord = oRatio > 1.25 ? "also up" : oRatio < 0.75 ? "down" : "flat";
   return (
-    <section className="hero">
-      <p className="hero__meta">
-        <i className={`dot dot--${a.platform}`} />
-        {PLATFORM_LABEL[a.platform]} alert · {n <= 1 ? "first day over the line" : `${n} days over the line`}
-      </p>
-      <h2>
-        <em>{r.track.title}</em> by {r.artist.name} is at {times(a.level, a.baseline)} its usual on {PLATFORM_LABEL[a.platform]}.
-      </h2>
-      <p>
-        <b>{per(a.level)}</b> {a.platform === "tiktok" ? "new TikTok videos used the sound" : "Spotify streams"} on {shortDate(a.date)}. It usually gets about <b>{per(a.baseline)}</b> a day.{" "}
-        {otherLine(PLATFORM_LABEL[o.platform], o.level, o.baseline, UNIT[o.platform])}
-      </p>
-      <div className="btns">
-        <a className="btn" href={link(r.track, a.platform)} target="_blank" rel="noopener">
-          {a.platform === "tiktok" ? "Open the sound on TikTok" : "Open on Spotify"} <Icon name="ext" size={15} />
-        </a>
-        <Link className="btn btn--soft" href={`/track/${r.track.id}`}>See the last 30 days</Link>
+    <article className="alert">
+      <p className="alert__kicker">Music activity alert | {r.artist.name} | {r.track.title}{r.track.year ? ` (${r.track.year})` : ""}</p>
+      <div className="alert__grid">
+        <p className="alert__x">{times(a.level, a.baseline)}</p>
+        <dl className="alert__facts">
+          <div><dt>{PLATFORM_LABEL[a.platform]}</dt><dd>{per(a.level)} new {UNIT[a.platform]} in 24 hours</dd></div>
+          <div><dt>Baseline</dt><dd>{per(a.baseline)}/day</dd></div>
+          <div><dt>Change</dt><dd>+{per(a.change)} {UNIT[a.platform]} / +{per(a.pct)}%</dd></div>
+          <div><dt>{PLATFORM_LABEL[o.platform]}</dt><dd>{per(o.level)} {o.platform === "tiktok" ? "creations" : "streams"} | {oWord}</dd></div>
+          <div><dt>Over the line</dt><dd>{k <= 1 ? "Day 1" : `Day ${k}`}</dd></div>
+        </dl>
       </div>
-    </section>
+      <div className="alert__act">
+        <a href={link(r.track, a.platform)} target="_blank" rel="noopener" className="act">Action: {a.platform === "tiktok" ? "Review sound" : "Review track"} ↗</a>
+        <Link href={`/track/${r.track.id}`} className="act act--ghost">30 days →</Link>
+      </div>
+    </article>
   );
 }
 
 function Quiet({ rows, t }: { rows: Row[]; t: Thresholds }) {
-  if (!rows.length) {
-    return (
-      <section className="hero hero--quiet">
-        <h2>Add the songs you want watched.</h2>
-        <p>Paste an ISRC or a Spotify link for up to 20 tracks. Each morning the check reads their Spotify streams and new TikTok videos, and emails the team when one jumps.</p>
-        <div className="btns"><Link className="btn" href="/tracks">Add a track</Link></div>
-      </section>
-    );
-  }
+  if (!rows.length) return <p className="quiet">No tracks yet. <Link href="/tracks">Add up to 20 songs</Link> and the morning check starts watching them.</p>;
   const held = rows.find((r) => r.status === "held");
   const close = rows
     .flatMap((r) => (["tiktok", "spotify"] as Platform[]).filter((p) => r.signals[p].status !== "held").map((p) => ({ r, p, x: progress(r.signals[p], t) })))
     .sort((a, b) => b.x - a.x)[0];
-  const cs = close && close.r.signals[close.p];
+  const cs = close?.r.signals[close.p];
   return (
-    <section className="hero hero--quiet">
-      <h2>{held ? "No new alerts today." : "Nothing crossed the line today."}</h2>
+    <div className="quiet">
+      <p className="quiet__big">{held ? "No new alerts." : "Nothing crossed the line."}</p>
       <p>
-        {held ? (
-          <><b>{held.track.title}</b> by {held.artist.name} is still over the line, but it was already emailed, so it won&apos;t send again unless it grows.</>
-        ) : (
-          "No alert went out this morning."
-        )}
-        {close && cs && close.x > 0.3 && <> The closest to an alert is <b>{close.r.track.title}</b> by {close.r.artist.name} on {PLATFORM_LABEL[close.p]}: {per(cs.level)} {UNIT[close.p]}, with an alert at {per(alertLine(cs, t))}.</>}
+        {held ? `${held.artist.name} | ${held.track.title} is still over the line and was already emailed.` : "No email went out this morning."}
+        {close && cs && close.x > 0.3 && ` Closest: ${close.r.artist.name} | ${close.r.track.title} on ${PLATFORM_LABEL[close.p]}, ${per(cs.level)} against an alert line of ${per(alertLine(cs, t))}.`}
       </p>
-    </section>
+    </div>
   );
 }
 
 function TrackRow({ r }: { r: Row }) {
+  const cell = (p: Platform) => {
+    const s = r.signals[p];
+    const hot = s.status === "spike" || s.status === "held" || s.status === "rising";
+    const off = s.baseline > 0 && Math.abs(s.level / s.baseline - 1) >= 0.25;
+    return (
+      <>
+        <span className={`num ${hot ? "num--hot" : ""}`}><em className="m">{PLATFORM_LABEL[p]}</em>{s.status === "waiting" ? "–" : per(s.level)}</span>
+        <span className={`x ${hot ? "x--hot" : ""}`}>{s.status !== "waiting" && (hot || off) ? times(s.level, s.baseline) : ""}</span>
+      </>
+    );
+  };
   return (
-    <Link href={`/track/${r.track.id}`} className="trow">
-      <span className="trow__name">
-        <b>{r.track.title}</b>
-        <span>{r.artist.name}{r.track.year ? ` · ${r.track.year}` : ""}</span>
-      </span>
-      {(["spotify", "tiktok"] as Platform[]).map((p) => {
-        const s = r.signals[p];
-        const hot = s.status === "spike" || s.status === "held" || s.status === "rising";
-        const off = s.baseline > 0 && Math.abs(s.level / s.baseline - 1) >= 0.25;
-        return (
-          <span key={p} className={`num ${hot ? "num--hot" : ""}`}>
-            <span className="mob">{PLATFORM_LABEL[p]}</span>
-            <b>{s.status === "waiting" ? "–" : per(s.level)}</b>
-            {s.status !== "waiting" && (hot || off) && <i>{times(s.level, s.baseline)}</i>}
-          </span>
-        );
-      })}
-      <span className={`status status--${r.status}`}><i className={`dot dot--${r.status}`} />{STATUS_LABEL[r.status]}</span>
+    <Link href={`/track/${r.track.id}`} className={`trk trk--${r.status}`}>
+      <span className="trk__name">{r.track.title}{r.track.year ? <i> {r.track.year}</i> : null}</span>
+      {cell("spotify")}
+      {cell("tiktok")}
+      <span className={`tag tag--${r.status}`}>{STATUS_LABEL[r.status]}</span>
     </Link>
   );
 }

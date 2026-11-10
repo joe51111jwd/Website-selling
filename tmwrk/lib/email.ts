@@ -28,7 +28,7 @@ export function compose(a: Alert, rules: Thresholds, t: Track, artist: Artist, o
   const P = PLATFORM_LABEL[a.platform];
   const demo = a.simulated ? "[Demo] " : "";
   const mult = x(a.level, a.baseline);
-  const subject = `${demo}${P} alert: ${artist.name}, “${t.title}” at ${mult} its usual`;
+  const subject = `${demo}MUSIC ACTIVITY ALERT | ${artist.name} | ${t.title} | ${P} ${mult}`;
   const what = a.platform === "tiktok" ? "new TikTok videos used the sound" : "Spotify streams";
   const day = new Date(a.date + "T12:00:00Z").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
   const otherLine = other ? describeOther(PLATFORM_LABEL[other.platform], other.level, other.baseline, other.platform === "tiktok" ? "new videos" : "streams") : "";
@@ -48,28 +48,31 @@ export function compose(a: Alert, rules: Thresholds, t: Track, artist: Artist, o
     a.simulated ? "\nDemo data: no data provider is connected yet, so these numbers are made up." : "",
   ].filter((l, i, arr) => l !== "" || arr[i - 1] !== "").join("\n");
 
-  const row = (k: string, v: string, strong = false) =>
-    `<tr><td style="padding:11px 0;border-top:1px solid #ececea;color:#8c8c84;font-size:14px;width:44%">${k}</td><td style="padding:11px 0;border-top:1px solid #ececea;font-size:14px;color:#1d1d1b;${strong ? "font-weight:600" : ""}">${v}</td></tr>`;
-  const sans = "font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
-  const html = `<!doctype html><html><body style="margin:0;padding:28px 12px;background:#f6f6f4;${sans};color:#1d1d1b">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;border-collapse:collapse"><tr><td>
-  <p style="margin:0 0 14px 4px;font-size:15px;font-weight:700;letter-spacing:.01em">TMWRK</p>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;background:#ffffff;border:1px solid #ececea;border-radius:14px"><tr><td style="padding:28px 28px 26px">
-    <p style="margin:0 0 10px;font-size:13px;color:#57574f"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${a.platform === "tiktok" ? "#fe2c55" : "#1db954"};margin-right:6px;vertical-align:1px"></span>${P} alert · ${day}</p>
-    <h1 style="margin:0 0 14px;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-weight:400;font-size:30px;line-height:1.15;color:#1d1d1b"><i>${esc(t.title)}</i> by ${esc(artist.name)} is at ${mult} its usual on ${P}.</h1>
-    <p style="margin:0 0 6px;font-size:15px;line-height:1.55;color:#57574f"><b style="color:#1d1d1b">${n(a.level)}</b> ${what} on ${day}. It usually gets about <b style="color:#1d1d1b">${n(a.baseline)}</b> a day.</p>
-    ${otherLine ? `<p style="margin:0;font-size:15px;line-height:1.55;color:#57574f">${otherLine}</p>` : ""}
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:22px 0 24px">
-      ${row("That day", `${n(a.level)} ${a.platform === "tiktok" ? "new videos" : "streams"}`, true)}
-      ${row(`Usual (last ${rules.window} days)`, `${n(a.baseline)} a day`)}
-      ${row("Change", `+${n(a.change)} a day · ${mult} its usual`)}
-      ${other ? row(`${PLATFORM_LABEL[other.platform]} same day`, `${n(other.level)} · usual ${n(other.baseline)}`) : ""}
+  const F = "font-family:Arial,'Helvetica Neue',Helvetica,sans-serif";
+  const cap = "font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase";
+  const unit = a.platform === "tiktok" ? "creations" : "streams";
+  const row = (k: string, v: string) =>
+    `<tr><td style="padding:9px 0;border-bottom:1px solid #3a3a3a;color:#a8a8a8;${cap};width:38%">${k}</td><td style="padding:9px 0;border-bottom:1px solid #3a3a3a;font-size:15px;font-weight:700;color:#ffffff">${v}</td></tr>`;
+  const html = `<!doctype html><html><body style="margin:0;padding:28px 12px;background:#ffffff;${F};color:#000000">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:580px;margin:0 auto;border-collapse:collapse"><tr><td>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-bottom:2px solid #000000"><tr>
+    <td style="padding:0 0 10px;font-size:20px;font-weight:800;text-transform:uppercase">TMWRK</td>
+    <td style="padding:0 0 10px;text-align:right;${cap};color:#4a4a4a">Roster Intelligence | ${day}</td>
+  </tr></table>
+  ${a.simulated ? `<p style="margin:0;padding:8px 0;border-bottom:1px solid #e3e3e3;${cap};color:#8a8a8a">Demo data | No data provider connected | These numbers are simulated</p>` : ""}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:18px;background:#000000"><tr><td style="padding:24px 24px 22px;color:#ffffff">
+    <p style="margin:0;font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase">Music activity alert | ${esc(artist.name)} | ${esc(t.title)}</p>
+    <p style="margin:16px 0 14px;font-size:84px;line-height:.85;font-weight:800;letter-spacing:-4px">${mult}</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-top:1px solid #ffffff">
+      ${row(P, `${n(a.level)} new ${unit} in 24 hours`)}
+      ${row("Baseline", `${n(a.baseline)}/day (last ${rules.window} days)`)}
+      ${row("Change", `+${n(a.change)} ${unit} / +${n(a.pct)}%`)}
+      ${other ? row(PLATFORM_LABEL[other.platform], `${n(other.level)} ${other.platform === "tiktok" ? "creations" : "streams"} | usual ${n(other.baseline)}`) : ""}
     </table>
-    <a href="${link(t, a.platform)}" style="display:inline-block;padding:11px 18px;background:#2a2a28;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600">${a.platform === "tiktok" ? "Open the sound on TikTok" : "Open on Spotify"}</a>
-    ${appUrl ? `<a href="${appUrl}/track/${t.id}" style="display:inline-block;margin-left:8px;padding:10px 16px;border:1px solid #e1e1de;color:#1d1d1b;text-decoration:none;border-radius:8px;font-size:14px;font-weight:500">See the last 30 days</a>` : ""}
+    <p style="margin:20px 0 0"><a href="${link(t, a.platform)}" style="display:inline-block;padding:12px 16px;background:#ffffff;color:#000000;text-decoration:none;${cap};font-size:12.5px;font-weight:800">Action: ${action[a.platform]} &rarr;</a>${appUrl ? ` <a href="${appUrl}/track/${t.id}" style="display:inline-block;margin-left:6px;padding:11px 15px;border:1px solid #ffffff;color:#ffffff;text-decoration:none;${cap};font-size:12.5px;font-weight:800">30 days &rarr;</a>` : ""}</p>
   </td></tr></table>
-  ${a.simulated ? `<p style="margin:14px 4px 0;font-size:12.5px;line-height:1.6;color:#3d2468"><span style="background:#ecdcff;padding:1px 7px;border-radius:5px;margin-right:6px">Demo data</span>These numbers are made up until a data provider is connected.</p>` : ""}
-  <p style="margin:12px 4px 0;font-size:12.5px;line-height:1.5;color:#8c8c84">You get at most one email per track and platform per day. A spike that holds at the same level won't email again for ${rules.cooldownDays} days unless it grows another ${rules.escalatePct}%.</p>
+  ${otherLine ? `<p style="margin:16px 0 0;font-size:14px;line-height:1.5;color:#4a4a4a">${otherLine}</p>` : ""}
+  <p style="margin:18px 0 0;padding-top:10px;border-top:1px solid #000000;${cap};color:#4a4a4a">One email per track and platform per day | No repeat for ${rules.cooldownDays} days unless it grows ${rules.escalatePct}% | Never miss a moment.</p>
 </td></tr></table></body></html>`;
   return { subject, text, html };
 }
