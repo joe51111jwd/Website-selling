@@ -3,3 +3,4 @@ blender/previews/
 blender/blend/
 site/node_modules/
 site/dist/
+__pycache__/
