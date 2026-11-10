@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>chainmail fx — test bench (not linked from the site)</title>
+<meta name="robots" content="noindex" />
+<style>
+  :root { --ink:#0B0B0F; --bone:#EFEBE3; --cobalt:#2B3BFF; --chrome:#C9CCD3; --volt:#D8FF3C; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--ink); color: var(--bone);
+    font-family: "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  button, input, select { font: inherit; }
+  .mono { font-family: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  section { position: relative; overflow: hidden; }
+  .hero { height: 100vh; min-height: 560px; display: grid; place-items: center; text-align: center; }
+  .hero canvas, .spirits canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero .stage { position: relative; z-index: 1; display: grid; justify-items: center; gap: 18px; pointer-events: none; padding: 0 20px; }
+  .hero h1 { margin: 0; font-weight: 800; font-size: clamp(34px, 6vw, 92px); letter-spacing: -0.035em; line-height: .95; font-stretch: 120%; }
+  .hero h1 span { color: var(--cobalt); display: block; }
+  .hero p { margin: 0; opacity: .8; font-size: clamp(14px, 1.2vw, 18px); }
+  .hero img { width: min(52vw, 720px); height: auto; aspect-ratio: 4/3; object-fit: contain; filter: drop-shadow(0 30px 40px rgba(0,0,0,.5)); }
+  .hero img.missing { visibility: hidden; }
+  .tag { position: absolute; z-index: 2; left: 50%; transform: translateX(-50%); bottom: 22px; font-size: 12px; letter-spacing: .08em; opacity: .7; }
+  .seq { background: var(--bone); color: var(--ink); padding: 80px 20px; display: grid; justify-items: center; gap: 20px; }
+  .seq canvas { width: min(90vw, 960px); aspect-ratio: 4/3; height: auto; }
+  .seq input { width: min(90vw, 560px); accent-color: var(--cobalt); }
+  .spirits { height: 90vh; display: grid; place-items: center; text-align: center; }
+  .spirits h2 { position: relative; z-index: 1; font-size: clamp(28px, 4vw, 64px); letter-spacing: -0.03em; font-weight: 800; margin: 0; }
+  .bone { background: var(--bone); color: var(--ink); height: 70vh; }
+  .bone canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .bone h2 { position: absolute; z-index: 1; right: 6vw; bottom: 8vh; margin: 0; font-size: clamp(28px, 4vw, 64px); letter-spacing: -0.03em; font-weight: 800; text-align: right; }
+  #stats { position: fixed; z-index: 2147483001; top: 10px; right: 10px; font-size: 11px; background: rgba(11,11,15,.7); color: var(--volt); padding: 6px 8px; border-radius: 6px; }
+</style>
+</head>
+<body>
+  <div id="stats" class="mono">fx</div>
+
+  <section class="hero" data-theme="ink">
+    <canvas data-fx="chrome"></canvas>
+    <div class="stage">
+      <h1>your brand is the feature,<span>we're the service.</span></h1>
+      <p>High-end promotional gift kits, built around your product.</p>
+      <img src="/renders/kit/hero-open.webp" width="2400" height="1800" alt=""
+           onerror="this.classList.add('missing')" />
+    </div>
+    <div class="tag mono">↓ watch a kit get made</div>
+  </section>
+
+  <section class="seq">
+    <div class="mono">sequence · <span id="seqinfo">loading</span></div>
+    <canvas data-fx="sequence" data-manifest="/renders/sequence/manifest.json" data-fit="contain"></canvas>
+    <input id="scrub" type="range" min="0" max="1" step="0.001" value="0" aria-label="progress" />
+  </section>
+
+  <section class="spirits" data-theme="ink">
+    <canvas data-fx="caustics"></canvas>
+    <h2>add a premium spirit</h2>
+  </section>
+
+  <section class="bone" id="bone">
+    <canvas data-fx="chrome" data-fx-density="1.2" data-theme="bone"></canvas>
+    <h2>chrome, themed bone<br /><span class="mono" style="font-size:14px">fx.setTheme(el, 'bone')</span></h2>
+  </section>
+
+  <script type="module">
+    import { initFX } from './index.js';
+    const params = new URLSearchParams(location.search);
+    if (params.get('manifest')) document.querySelector('[data-fx="sequence"]').dataset.manifest = params.get('manifest');
+    const fx = (window.fx = initFX({
+      reducedMotion: params.has('still') ? true : undefined,
+    }));
+    fx.setTheme(document.getElementById('bone'), 'bone');
+    if (params.get('density')) { const c = fx.get(document.querySelector('[data-fx="chrome"]')); c.density = +params.get('density'); }
+
+    const seqEl = document.querySelector('[data-fx="sequence"]');
+    const seq = fx.get(seqEl);
+    const info = document.getElementById('seqinfo');
+    seq.ready.then((s) => (info.textContent = `${s.mode} · ${s.frameCount} frame(s)`));
+    document.getElementById('scrub').addEventListener('input', (e) => seq.setProgress(+e.target.value));
+
+    // rough frame meter
+    const stats = document.getElementById('stats');
+    let n = 0, t0 = performance.now(), worst = 0, prev = t0;
+    window.__frames = [];
+    (function meter(now) {
+      const dt = now - prev; prev = now; n++;
+      window.__frames.push(dt);
+      worst = Math.max(worst, dt);
+      if (now - t0 > 1000) {
+        const chrome = fx.get(document.querySelector('[data-fx="chrome"]'));
+        stats.textContent = `${Math.round((n * 1000) / (now - t0))} fps · worst ${worst.toFixed(1)}ms · q ${chrome?.quality?.toFixed(2) ?? '-'} · ${chrome?.w}×${chrome?.h}`;
+        n = 0; t0 = now; worst = 0;
+      }
+      requestAnimationFrame(meter);
+    })(prev);
+  </script>
+</body>
+</html>

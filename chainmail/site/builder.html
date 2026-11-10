@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>build a kit — chainmail</title>
+  <meta name="description" content="Build a chainmail kit in six steps: quantity, your product, the goods, a spirit, the note, and a review that goes straight to Luis.">
+  <meta name="theme-color" content="#EFEBE3">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <script>document.documentElement.classList.replace('no-js','js');</script>
+  <script type="module" src="/src/builder.js"></script>
+</head>
+<body class="page-builder" data-theme="bone">
+  <a class="skip" href="#main">skip to the builder</a>
+
+  <header class="nav nav--builder is-scrolled" data-nav data-theme="bone">
+    <div class="nav__inner">
+      <a class="nav__logo" href="/" aria-label="chainmail home"><span data-logo data-logo-decorative></span></a>
+      <p class="nav__title mono" aria-hidden="true">kit builder</p>
+      <div class="nav__actions">
+        <a class="nav__help" href="mailto:luis@chainmail.store?subject=Help%20with%20a%20kit">stuck? email luis</a>
+        <a class="btn btn--ghost btn--sm" href="/"><span class="btn__arrow" aria-hidden="true">←</span><span class="btn__label">back to site</span></a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="b" tabindex="-1">
+    <header class="b__head wrap">
+      <p class="eyebrow">kit builder</p>
+      <h1 class="display b__title">build a kit</h1>
+      <p class="b__lede">Six steps, about two minutes. Nothing gets charged here — Luis checks every kit and sends a proof within 48 hours.</p>
+    </header>
+
+    <nav class="b__steps" aria-label="builder steps">
+      <ol data-steps>
+        <li><button type="button" data-goto="0"><span class="mono">01</span><span>quantity</span></button></li>
+        <li><button type="button" data-goto="1"><span class="mono">02</span><span>your product</span></button></li>
+        <li><button type="button" data-goto="2"><span class="mono">03</span><span>the goods</span></button></li>
+        <li><button type="button" data-goto="3"><span class="mono">04</span><span>spirit</span></button></li>
+        <li><button type="button" data-goto="4"><span class="mono">05</span><span>the note</span></button></li>
+        <li><button type="button" data-goto="5"><span class="mono">06</span><span>review</span></button></li>
+      </ol>
+    </nav>
+
+    <div class="b__panels wrap" data-panels>
+
+      <!-- 01 quantity -->
+      <section class="b__panel" data-panel="0" id="step-1" aria-labelledby="p1-title">
+        <header class="b__ph">
+          <p class="b__pn mono">01 / 06</p>
+          <h2 class="display b__pt" id="p1-title">how many kits?</h2>
+          <p class="b__ps">Every kit is numbered as an edition. Minimum is 24.</p>
+        </header>
+        <div class="seg seg--xl" role="radiogroup" aria-label="number of kits" data-b-qty>
+          <span class="seg__thumb" aria-hidden="true"></span>
+          <button type="button" role="radio" aria-checked="false" data-value="24">24</button>
+          <button type="button" role="radio" aria-checked="true" data-value="48">48</button>
+          <button type="button" role="radio" aria-checked="false" data-value="72">72</button>
+          <button type="button" role="radio" aria-checked="false" data-value="96">96</button>
+          <button type="button" role="radio" aria-checked="false" data-value="120">120+</button>
+        </div>
+        <div class="b__qtyvis">
+          <div class="b__qtyimg">
+            <picture class="media media--contain" data-media>
+              <source media="(max-width: 760px)" srcset="/renders/kit/stack@half.webp" type="image/webp">
+              <img src="/renders/kit/stack.webp" width="1800" height="1800" decoding="async" alt="A stack of closed, numbered chainmail boxes.">
+            </picture>
+          </div>
+          <p class="b__qtycap mono" data-b-qtycap>numbered 01 to 48</p>
+        </div>
+        <div class="b__notice" data-b-120 hidden>
+          <p><b>120 or more?</b> Luis handles big runs directly, with volume pricing and a call to plan it.</p>
+          <a class="btn btn--primary" href="mailto:luis@chainmail.store?subject=120%2B%20kits" data-b-120-link><span class="btn__label">email luis about 120+ kits</span><span class="btn__arrow" aria-hidden="true">→</span></a>
+        </div>
+      </section>
+
+      <!-- 02 your product -->
+      <section class="b__panel" data-panel="1" id="step-2" aria-labelledby="p2-title" hidden>
+        <header class="b__ph">
+          <p class="b__pn mono">02 / 06</p>
+          <h2 class="display b__pt" id="p2-title">your product goes in first.</h2>
+          <p class="b__ps">Your brand or product should be the feature. Ship it to us and we pack one in every kit.</p>
+        </header>
+        <div class="b__split">
+          <div class="b__splitimg">
+            <picture class="media media--contain" data-media>
+              <source media="(max-width: 760px)" srcset="/renders/kit/product@half.webp" type="image/webp">
+              <img src="/renders/kit/product.webp" width="1200" height="1200" decoding="async" alt="A stand-in for the client’s product: two slim cans in a branded sleeve.">
+            </picture>
+          </div>
+          <div class="b__splitbody">
+            <div class="seg seg--two" role="radiogroup" aria-label="pack your product in" data-b-sendin>
+              <span class="seg__thumb" aria-hidden="true"></span>
+              <button type="button" role="radio" aria-checked="true" data-value="yes">yes, pack it · $1</button>
+              <button type="button" role="radio" aria-checked="false" data-value="no">no thanks</button>
+            </div>
+            <ul class="b__rules">
+              <li><span class="mono">01</span>Smaller than 12 × 12 × 8 in</li>
+              <li><span class="mono">02</span>Under 4 lb</li>
+              <li><span class="mono">03</span>Not on the <a class="link" href="https://chainmail.store/prohibited-and-restricted-shipping-items-policy/" target="_blank" rel="noopener">prohibited or restricted list</a></li>
+            </ul>
+            <p class="b__fine">Ship one per kit to our Miami studio. We’ll send the address with your proof.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 the goods -->
+      <section class="b__panel" data-panel="2" id="step-3" aria-labelledby="p3-title" hidden>
+        <header class="b__ph">
+          <p class="b__pn mono">03 / 06</p>
+          <h2 class="display b__pt" id="p3-title">the goods</h2>
+          <p class="b__ps">Pick what goes in. Your logo goes on all of it. Sizes come from your recipient list, not from here.</p>
+        </header>
+        <div class="b__goods" data-b-goods></div>
+      </section>
+
+      <!-- 04 spirit -->
+      <section class="b__panel" data-panel="3" id="step-4" aria-labelledby="p4-title" hidden>
+        <header class="b__ph">
+          <p class="b__pn mono">04 / 06</p>
+          <h2 class="display b__pt" id="p4-title">a premium spirit? <span class="accent">(or don’t)</span></h2>
+          <p class="b__ps">750 ml, one per kit. Recipients must be 21+.</p>
+        </header>
+        <div class="b__spirits" role="radiogroup" aria-label="spirit" data-b-spirits></div>
+        <p class="b__fine b__fine--c">Spirits are sold and shipped by a TTB-licensed partner and paid through a separate licensed processor. Adult signature and ID at the door. Not every state allows it; recipients there get the kit without the bottle.</p>
+      </section>
+
+      <!-- 05 note -->
+      <section class="b__panel" data-panel="4" id="step-5" aria-labelledby="p5-title" hidden>
+        <header class="b__ph">
+          <p class="b__pn mono">05 / 06</p>
+          <h2 class="display b__pt" id="p5-title">say something nice.</h2>
+          <p class="b__ps">We print it on a 5 × 7 in card, last thing in the box. Included with every kit.</p>
+        </header>
+        <div class="b__note">
+          <div class="b__notefield">
+            <label class="b__label mono" for="note">your note</label>
+            <textarea id="note" maxlength="280" rows="7" placeholder="Thanks for a great year. This one’s on us." data-b-note aria-describedby="note-count"></textarea>
+            <p class="b__count mono" id="note-count" data-b-count>0 / 280</p>
+          </div>
+          <figure class="b__card" aria-label="card preview">
+            <div class="b__cardimg">
+              <picture class="media media--contain" data-media>
+                <source media="(max-width: 760px)" srcset="/renders/kit/note-card@half.webp" type="image/webp">
+                <img src="/renders/kit/note-card.webp" width="1200" height="1200" decoding="async" alt="">
+              </picture>
+              <div class="b__cardtext" data-b-preview aria-live="polite"></div>
+            </div>
+            <figcaption class="mono">live preview · printed card, 5 × 7 in</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <!-- 06 review -->
+      <section class="b__panel" data-panel="5" id="step-6" aria-labelledby="p6-title" hidden>
+        <header class="b__ph">
+          <p class="b__pn mono">06 / 06</p>
+          <h2 class="display b__pt" id="p6-title">take a look.</h2>
+          <p class="b__ps">There’s no checkout here. Send it to Luis and he’ll reply with a proof within 48 hours.</p>
+        </header>
+        <div class="b__review">
+          <table class="b__receipt">
+            <caption class="sr-only">your kit, per kit prices</caption>
+            <thead><tr><th scope="col">item</th><th scope="col" class="r">per kit</th><th scope="col"><span class="sr-only">edit</span></th></tr></thead>
+            <tbody data-b-lines></tbody>
+            <tfoot>
+              <tr class="b__sub"><th scope="row">per kit</th><td class="r mono" data-b-rper></td><td></td></tr>
+              <tr class="b__sub"><th scope="row">kits</th><td class="r mono" data-b-rqty></td><td></td></tr>
+              <tr class="b__tot"><th scope="row">estimated total</th><td class="r mono" data-b-rtot></td><td></td></tr>
+            </tfoot>
+          </table>
+          <div class="b__send">
+            <p class="b__sendlbl mono">estimated total</p>
+            <p class="b__sendtot mono" data-b-stot></p>
+            <p class="b__sendmath mono" data-b-smath></p>
+            <a class="btn btn--primary btn--lg" href="#" data-b-mailto data-magnetic><span class="btn__label">send it to Luis</span><span class="btn__arrow" aria-hidden="true">→</span></a>
+            <div class="b__sendalt">
+              <button type="button" class="link-arrow" data-b-copy>copy the summary</button>
+              <button type="button" class="link-arrow b__reset" data-b-reset>start over</button>
+            </div>
+            <p class="b__fine b__fine--c" data-b-copied aria-live="polite"></p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- sticky price bar -->
+  <div class="b__bar" data-theme="ink" role="region" aria-label="kit total">
+    <div class="b__barin">
+      <div class="b__barnums">
+        <p class="b__barcell"><span class="mono b__barlbl">per kit</span><span class="mono b__barnum" data-b-per>$1</span></p>
+        <p class="b__barcell b__barx mono" aria-hidden="true">×</p>
+        <p class="b__barcell"><span class="mono b__barlbl">kits</span><span class="mono b__barnum" data-b-qtyout>48</span></p>
+        <p class="b__barcell b__barx mono" aria-hidden="true">=</p>
+        <p class="b__barcell b__bartot"><span class="mono b__barlbl">total</span><span class="mono b__barnum" data-b-total>$48</span></p>
+      </div>
+      <div class="b__barbtns">
+        <button type="button" class="round" data-b-prev aria-label="previous step">←</button>
+        <button type="button" class="btn btn--primary" data-b-next><span class="btn__label">next: your product</span><span class="btn__arrow" aria-hidden="true">→</span></button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
