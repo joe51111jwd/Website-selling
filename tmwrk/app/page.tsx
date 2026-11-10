@@ -23,7 +23,7 @@ export default async function Home() {
   const watching = d.rows.filter((r) => r.status === "rising" || r.status === "held");
   const byArtist = [...new Map(d.rows.map((r) => [r.artist.id, r.artist])).values()].map((a) => ({ a, rows: d.rows.filter((r) => r.artist.id === a.id) }));
   let n = 0;
-  const sec = () => String(++n).padStart(2, "0");
+  const sec = () => <i className="sec__n">{String(++n).padStart(2, "0")}</i>;
 
   return (
     <Shell here="/">
@@ -35,7 +35,7 @@ export default async function Home() {
       </div>
 
       <section className="sec">
-        <h2 className="sec__h">{sec()} / Today</h2>
+        <h2 className="sec__h"><span>{sec()}Today</span></h2>
         {todays.length ? todays.map((a) => {
           const r = d.rows.find((x) => x.track.id === a.trackId);
           return r ? <AlertBlock key={a.id} a={a} r={r} t={t} /> : null;
@@ -44,7 +44,7 @@ export default async function Home() {
 
       {watching.length > 0 && (
         <section className="sec">
-          <h2 className="sec__h">{sec()} / Watching</h2>
+          <h2 className="sec__h"><span>{sec()}Watching</span></h2>
           <ul className="lines">
             {watching.map((r) => {
               const p = (["tiktok", "spotify"] as Platform[]).find((x) => r.signals[x].status === r.status)!;
@@ -66,7 +66,7 @@ export default async function Home() {
       )}
 
       <section className="sec">
-        <h2 className="sec__h">{sec()} / Roster</h2>
+        <h2 className="sec__h"><span>{sec()}Roster</span></h2>
         <div className="roster">
           <div className="roster__head" aria-hidden="true">
             <span>Track</span><span>Spotify / day</span><span /><span>TikTok / day</span><span /><span>Status</span>
@@ -82,7 +82,7 @@ export default async function Home() {
       </section>
 
       <section className="sec">
-        <h2 className="sec__h">{sec()} / Alert log <Link href="/outbox">Emails</Link></h2>
+        <h2 className="sec__h"><span>{sec()}Alert log</span> <Link href="/outbox">Emails</Link></h2>
         <div className="log">
           <div className="log__row log__head" aria-hidden="true"><span>Date</span><span>Artist | Track</span><span>Platform</span><span>Activity</span><span>Baseline</span><span>Change</span></div>
           {d.alerts.slice(0, 10).map((a) => {

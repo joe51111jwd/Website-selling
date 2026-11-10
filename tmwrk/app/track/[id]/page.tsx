@@ -9,7 +9,7 @@ import { STATUS_LABEL, alertLine, dashboard, per, shortDate, times } from "@/lib
 
 export const dynamic = "force-dynamic";
 
-const COLOR: Record<Platform, string> = { spotify: "#000000", tiktok: "#000000" };
+const COLOR: Record<Platform, string> = { spotify: "#3358eb", tiktok: "#3358eb" };
 const UNIT: Record<Platform, string> = { spotify: "Spotify streams a day", tiktok: "New TikTok videos a day" };
 
 export default async function TrackPage({ params }: { params: Promise<{ id: string }> }) {
