@@ -4,3 +4,4 @@ blender/blend/
 site/node_modules/
 site/dist/
 __pycache__/
+blender/lib_frozen_seq/

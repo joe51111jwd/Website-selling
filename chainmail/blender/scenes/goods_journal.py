@@ -28,8 +28,8 @@ J = acc.JOURNAL
 step_z = J["Tp"] + 2 * J["tc"] + J["el_t"] + 0.0002
 pivot = Vector((-J["Wc"] / 2 + 0.012, -J["Lc"] / 2 + 0.010, 0))
 books = []
-for i, (col, ang, rl) in enumerate((("Blue", -21.0, 0.034), ("Purple", -8.5, 0.026), ("Red", 4.0, 0.030),
-                                    ("Black", 15.0, 0.032))):
+for i, (col, ang, rl) in enumerate((("Blue", -21.0, 0.034), ("Purple", -8.5, 0.040), ("Red", 4.0, 0.050),
+                                    ("Black", 15.0, 0.060))):
     j = acc.journal(col, ribbon_len=rl)
     bpy.context.view_layer.update()
     R = Matrix.Rotation(math.radians(ang), 4, "Z")
@@ -39,6 +39,7 @@ for i, (col, ang, rl) in enumerate((("Blue", -21.0, 0.034), ("Purple", -8.5, 0.0
     j.location.z = loc.z + i * step_z
     books.append(j)
 bpy.context.view_layer.update()
+acc.drape_ribbons(books)                 # ribbon tails fall onto the cover below / the floor
 
 AZ, EL = 20.0, 42.0
 
@@ -49,10 +50,37 @@ def foil_card(cam, book, energy=float(os.environ.get("CARDE", "0.05"))):
     (rough lobe) only picks up a faint sheen."""
     J = acc.JOURNAL
     Tt = J["Tp"] + 2 * J["tc"]
-    logo = book.matrix_world @ Vector((0.006 + 0.029, 0.012, Tt))
+    # aim at the middle of the word (x_logo = 0.006 is the word centre; aiming at its right end left
+    # the 'y' outside the card's reflection -> one dead grey letter)
+    logo = book.matrix_world @ Vector((0.006 + float(os.environ.get("CARDDX", "0.006")), 0.012, Tt))
     v = (logo - cam.location).normalized()
     r = Vector((v.x, v.y, -v.z))
-    card = area_light("FoilCard", logo + r * 0.9, logo, size=0.20, size_y=0.07, energy=energy)
+    # a graded emissive card (mesh light) instead of a flat area light: the mirror foil picks up a
+    # soft dark-to-bright sweep across the word, so it reads as polished chrome, not white print
+    W_, H_ = float(os.environ.get("CARDW", "0.40")), 0.08
+    bpy.ops.mesh.primitive_plane_add(size=1.0)
+    card = bpy.context.active_object; card.name = "FoilCard"
+    card.scale = (W_, H_, 1.0)
+    card.location = logo + r * 0.9
+    look_at(card, logo)
+    m = bpy.data.materials.new("FoilCardEmit"); m.use_nodes = True
+    nt = m.node_tree; nt.nodes.clear()
+    o_ = nt.nodes.new("ShaderNodeOutputMaterial"); em = nt.nodes.new("ShaderNodeEmission")
+    tc = nt.nodes.new("ShaderNodeTexCoord"); sx = nt.nodes.new("ShaderNodeSeparateXYZ")
+    mr = nt.nodes.new("ShaderNodeMapRange")
+    flip = os.environ.get("CARDFLIP", "1") == "1"
+    mr.inputs["To Min"].default_value = 1.15 if flip else 0.25
+    mr.inputs["To Max"].default_value = 0.25 if flip else 1.15
+    mr.interpolation_type = "SMOOTHSTEP"
+    nt.links.new(tc.outputs["Generated"], sx.inputs["Vector"]); nt.links.new(sx.outputs["X"], mr.inputs["Value"])
+    mul = nt.nodes.new("ShaderNodeMath"); mul.operation = "MULTIPLY"
+    mul.inputs[1].default_value = energy / 0.05 * float(os.environ.get("CARDK", "1.3"))
+    nt.links.new(mr.outputs["Result"], mul.inputs[0]); nt.links.new(mul.outputs[0], em.inputs["Strength"])
+    em.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+    nt.links.new(em.outputs["Emission"], o_.inputs["Surface"])
+    card.data.materials.append(m)
+    for attr in ("visible_diffuse", "visible_transmission", "visible_volume_scatter", "visible_shadow"):
+        setattr(card, attr, False)
     card.visible_camera = False
     # linked to the foil decals ONLY: the satin leather never sees the card (no greyed covers)
     foils = [o for o in bpy.data.objects if o.name.startswith("JournalFoil")]

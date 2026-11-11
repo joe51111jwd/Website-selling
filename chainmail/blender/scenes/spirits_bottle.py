@@ -15,28 +15,49 @@ FLAGS = argv_flags()
 CLOSE = "--close" in FLAGS
 LABEL = "--label" in FLAGS
 ID = FLAGS[FLAGS.index("--id") + 1] if "--id" in FLAGS else "all"
+# QA only: --crop x0,y0,x1,y1 renders that region of the FINAL frame at full resolution (fractions,
+# origin bottom-left) into previews/spirits/<id>_crop.png; --spp N overrides the sample count
+CROP = [float(v) for v in FLAGS[FLAGS.index("--crop") + 1].split(",")] if "--crop" in FLAGS else None
+SPP = int(FLAGS[FLAGS.index("--spp") + 1]) if "--spp" in FLAGS else None
+CLAMP = float(FLAGS[FLAGS.index("--clamp") + 1]) if "--clamp" in FLAGS else None
 IDS = list(vessels.BOTTLES) if ID == "all" else ID.split(",")
 
-CAM_AZ, CAM_EL = math.radians(22), math.radians(11)
+# 18 deg elevation: a touch lower than the 30-38 deg goods camera on purpose (spirits genre: the
+# bottle reads tall and the shoulders/neck aren't foreshortened) but high enough to read the
+# liquid surface and the closure tops. Fixed camera + fixed scale for all seven (site row layout).
+CAM_AZ, CAM_EL = math.radians(22), math.radians(18)
 CAM_TGT, CAM_DIST, CAM_LENS = (0.0, 0.0, 0.170), 0.95, 85
 
 
+# indirect clamp: 12 left unconverged caustic speckle + red-orange fireflies in the thick heels
+# (round 2); 5 keeps the strip-line highlights (transmission-seen emitters, strength 6) intact
+# after the PBR Neutral roll-off while killing the rare high-energy TIR paths
+GLASS_CLAMP_INDIRECT = 5.0
+GLASS_FILTER_GLOSSY = 0.8
+
+
 def glass_render_settings(samples=512, time_limit=0):
-    setup_render(800, 1600, samples=samples)
+    setup_render(800, 1600, samples=SPP or samples, preview=False if CROP else None)
     s = bpy.context.scene
     c = s.cycles
-    c.max_bounces = 32
-    c.transmission_bounces = 32
+    c.max_bounces = 24
+    c.transmission_bounces = 24      # ~10 glass/liquid interfaces front-to-back; 24 leaves TIR headroom
     c.glossy_bounces = 8
     c.diffuse_bounces = 3
     c.transparent_max_bounces = 32
     c.volume_bounces = 2
-    c.sample_clamp_indirect = 12.0
+    c.sample_clamp_indirect = CLAMP if CLAMP is not None else GLASS_CLAMP_INDIRECT
+    c.blur_glossy = GLASS_FILTER_GLOSSY
     c.film_transparent_glass = True
     c.film_transparent_roughness = 0.1
     if not PREVIEW:
         c.adaptive_threshold = 0.01
         c.time_limit = time_limit or 0
+    if CROP:
+        s.render.use_border = True
+        s.render.use_crop_to_border = True
+        s.render.border_min_x, s.render.border_min_y, s.render.border_max_x, s.render.border_max_y = CROP
+        s.render.image_settings.color_depth = "8"
     return s
 
 
@@ -97,7 +118,7 @@ def backlight_card(center, az, width=0.60, height=0.76, dist=0.18, strength=1.6,
 #   * coloured spirits (scotch / bourbon / irish): a brighter card so the liquid colour reads; the square
 #     scotch gets a lobed wrap card instead (see wrap_card / SCOTCH_LOBES) and is turned (SPIN).
 BACKLIGHT = {"kettle-one": (0.0, 40, 0.0), "manojo": (0.30, 16, 0.0), "johnnie-black": (1.9, 2, 1),
-             "jameson": (1.4, 10, 0.0), "four-roses": (1.1, 10, 0.0), "casamigos": (0.0, 30, 0.0),
+             "jameson": (1.05, 6, 0.0), "four-roses": (1.1, 10, 0.0), "casamigos": (0.0, 30, 0.0),
              "maestro-dobel": (0.0, 40, 0.0)}
 # per-bottle turn about Z (deg) in the single shots. The square scotch is turned so the camera sees
 # its front and side faces at ~45 deg each: at the shared 22 deg camera azimuth the side face is hit
@@ -218,6 +239,24 @@ def wrap_card(center, az, lobes, radius=0.20, height=0.70, strength=1.6, name="W
 SCOTCH_LOBES = [((0.0, 1.0), 2.0, 1.0), ((-1.0, 0.0), 30.0, 0.9), ((1.0, 0.0), 30.0, 0.9)]
 
 
+KEY_LEFT_DEG, KEY_EL_DEG = 26.0, 64.0
+
+
+def aim_key(target, view_az, scale, left_deg=KEY_LEFT_DEG, el_deg=KEY_EL_DEG):
+    """Re-seat the studio key: still upper-left of the lens, but only ~26 deg off the view axis and
+    ~64 deg up (studio() puts it ~70 deg left, ~43 deg up). A 0.3 m bottle then throws its shadow
+    mostly straight back (hidden behind the glass, foreshortened) instead of 0.3 m sideways out of
+    the narrow 800 px frame."""
+    k = bpy.data.objects["Key"]
+    t = Vector(target)
+    d = (k.location - t).length
+    a = (view_az - math.pi / 2) - math.radians(left_deg)      # camera sits at angle view_az - 90 deg
+    el = math.radians(el_deg)
+    k.location = t + Vector((math.cos(a) * math.cos(el), math.sin(a) * math.cos(el), math.sin(el))) * d
+    look_at(k, t)
+    return k
+
+
 def bottle_lights(kind, target=(0, 0, 0.16), az=None, scale=0.72):
     """House rig (key upper-left, rim back-right) + dark-field glass lights: a transmission-only
     back card (dim for clear spirits, brighter for coloured ones) and two glossy/transmission-only
@@ -225,6 +264,7 @@ def bottle_lights(kind, target=(0, 0, 0.16), az=None, scale=0.72):
     az = CAM_AZ if az is None else az
     studio("soft", key=1.0, hdri_strength=0.30, scale=scale, target=target)
     bpy.data.objects["Rim"].data.use_shadow = False   # house rule: rim lights edges, no smudge
+    aim_key(target, az, scale)
     st, px, side = BACKLIGHT.get(kind, (1.2, 10, 0.0))
     if side > 0:
         # square scotch: a wrap card instead of the flat back card (see wrap_card)
@@ -234,12 +274,20 @@ def bottle_lights(kind, target=(0, 0, 0.16), az=None, scale=0.72):
     edge_strips((0, 0), az)
 
 
+# no time cap (round 2: the 1500 s ceiling stopped the thick heels short of 512 spp -> speckle)
+FINAL_TIME_LIMIT = 0
+
+
 def build_scene(kind, lineup=False):
     reset()
-    glass_render_settings()
+    glass_render_settings(time_limit=FINAL_TIME_LIMIT)
     bottle_lights(kind)
     sc = shadow_catcher()
     sc.visible_transmission = False     # refracted rays pass under to the back card
+    # glossy rays skip the catcher too: at 18 deg every vertical chrome facet / glass wall mirrors the
+    # floor, and a lit bone catcher turned the polished caps into flat white "plastic". They now
+    # mirror the dark studio below the horizon (what the cutout sits on in the ink section).
+    sc.visible_glossy = False
     b = vessels.bottle(kind)
     b.rotation_euler.z = math.radians(SPIN.get(kind, 0.0))
     vessels.contact_occluder(b, kind)
@@ -264,7 +312,14 @@ def main():
                tgt[2] + dist * math.sin(el))
         camera(loc=loc, target=tgt, lens=lens)
         suffix = "_close" if CLOSE else ("_label" if LABEL else "")
-        render_to(f"spirits/{kind}{suffix}.png")
+        if CROP:
+            import common
+            common.PREVIEW = True          # QA crops never land in the published out/ folder
+            suffix = "_crop"
+        out = render_to(f"spirits/{kind}{suffix}.png")
+        if not (CLOSE or LABEL or CROP):
+            # tall narrow frame: wide side bands, thin top/bottom bands (bases sit ~7 % above the edge)
+            vessels.fade_alpha_edges(out, margin=(0.16, 0.045), edge=(0.01, 0.004))
 
 
 if __name__ == "__main__":

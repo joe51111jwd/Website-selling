@@ -6,9 +6,31 @@ from common import *
 from mathutils import Vector
 import kit
 
+# --crop12 (QA only): box 12 at FULL final resolution via a render border, few samples
+CROP12 = "--crop12" in argv_flags()
+_a = argv_flags()
+# box 12's glint card: its mirror path runs back-left into the LEFT TOWER, so beyond ~0.45 m
+# the tower occludes the card for the right half of the wordmark ('nmail' went unlit grey).
+# Keep it at 0.4 m (in front of the tower); a 0.6 m card at moderate strength lets the
+# wordmark span ~40% of the gradient ramp -> a visible chrome sweep, every glyph bright.
+GLINT12 = float(_a[_a.index("--glint12") + 1]) if "--glint12" in _a else 0.4
+GLINT12_W = float(_a[_a.index("--glint12w") + 1]) if "--glint12w" in _a else 0.6
+GLINT12_S = float(_a[_a.index("--glint12s") + 1]) if "--glint12s" in _a else 1.6
+# photographic flag: keep the grazing rim off the seals (same as closed.png) so the
+# cobalt print stays out of the highlight compression (no violet cast)
+SEAL_RIM = float(_a[_a.index("--seal-rim") + 1]) if "--seal-rim" in _a else 0.5
+SEAL_FLAG = tuple(f for f in (_a[_a.index("--flag") + 1] if "--flag" in _a else "Rim").split(",") if f)
 reset()
 setup_render(1800, 1800, samples=256)
 kit.kit_render_budget(samples=256, threshold=0.01)
+if CROP12:
+    _s = bpy.context.scene
+    _s.render.resolution_percentage = 100
+    _s.cycles.samples = 96
+    _s.render.use_border = True
+    _s.render.use_crop_to_border = True
+    _s.render.border_min_x, _s.render.border_max_x = 0.15, 0.56
+    _s.render.border_min_y, _s.render.border_max_y = 0.09, 0.37
 kit.kit_lighting(scale=2.6, target=(0, 0, 0.45), key=0.85, fill=1.4, hdri_strength=0.2, foil=0.0, top=0.8)
 cat = shadow_catcher(size=40)
 # the bone floor must not mirror in the soft-touch faces: box 12 would print a dark
@@ -70,8 +92,9 @@ for num, x, y, r, z in boxes:
     tops[(round(x, 1), round(y, 1))] = (num, x, y, z)
 for i, (num, x, y, z) in enumerate(tops.values()):
     p = (x, y, z + kit.CLOSED_H)
-    kit.foil_glint(loc, p, dist=0.3 if num == 12 else 1.0, size=(0.9, 0.3) if num == 12 else (0.6, 0.3),
-                   strength=2.6, name=f"FoilGlint_{num:02d}")
+    kit.foil_glint(loc, p, dist=GLINT12 if num == 12 else 1.0,
+                   size=(GLINT12_W, 0.3) if num == 12 else (0.6, 0.3),
+                   strength=GLINT12_S if num == 12 else 2.6, name=f"FoilGlint_{num:02d}")
 kit.wrap_sheen(loc, (0.0, 0.0, 0.5), dist=6.0, size=(4.0, 2.4), energy=110)
 # stand-in for the bone floor's glossy bounce (the real one is off, see above): a big soft
 # card on the mirror path of the towers' front faces, wraps only, shadowless
@@ -94,6 +117,17 @@ for nm, l_loc, energy in (("FrontBounce", (fx + 0.05, fy - 1.6, 0.12), 28.0),
     lb.visible_camera = False
     lb.light_linking.receiver_collection = fb_col
     lb.light_linking.blocker_collection = fb_col
-kit.link_kit_lights(shadowless=("Fill", "WrapSheen_floor", "WrapSheen_right"))
-kit.cutout_edge_fade()
-render_to("kit/stack.png")
+kit.link_kit_lights(shadowless=("Fill", "WrapSheen_floor", "WrapSheen_right"), flag_seals=SEAL_FLAG)
+# ...but a fully flagged seal goes a touch deep: give the seals back half the rim through a
+# seal-only copy of it (net seal irradiance ~1.0 -> the print reads at its true #2B3BFF)
+if "Rim" in SEAL_FLAG and SEAL_RIM > 0:
+    rim = bpy.data.objects["Rim"]
+    sr = rim.copy(); sr.data = rim.data.copy(); sr.name = "SealRim"
+    bpy.context.scene.collection.objects.link(sr)
+    sr.data.energy = rim.data.energy * SEAL_RIM
+    seals = [o for o in bpy.data.objects if o.name.startswith("Seal_")]
+    sr.light_linking.receiver_collection = kit._collection("kit_seals_only", seals, "INCLUDE")
+    sr.light_linking.blocker_collection = None
+if not CROP12:
+    kit.cutout_edge_fade(inner=0.78, outer=0.94)
+render_to("kit/stack_crop12.png" if CROP12 else "kit/stack.png")

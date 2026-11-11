@@ -25,6 +25,12 @@ Public API
   contact_occluder(root, kind=None, ...)         render helper: shadow-only disc just above the
                                                  floor inside a bottle/tumbler footprint, so a shadow
                                                  catcher records a tight contact crease under glass
+  soft_contact_occluder(root, r_in, r_out, peak=0.9, z=0.0004, power=1.0)
+                                                 render helper: shadow-only disc whose opacity feathers
+                                                 from `peak` (r <= r_in) to 0 (r_out) -> graded contact
+                                                 shadow with no hard ring (used by goods/tumbler)
+  fade_alpha_edges(png_path, margin=0.10)        render post-step: alpha x smooth border falloff so
+                                                 soft catcher shadows reach 0 alpha before the edges
   GLASS_SHADOW                                   fraction of light glass passes for shadow rays
 """
 import bpy, bmesh, math, os, sys, json, shutil, subprocess
@@ -444,6 +450,9 @@ def _radial_tangent(nt):
     t.axis = "Z"
     return t
 
+STIPPLE_SCALE, STIPPLE_AMP = 420.0, 0.0   # heel stipple bump (off: any bump texture refracted through
+                                          # 5-8 mm of glass aliased into salt-and-pepper grain, round 2)
+HEEL_ROUGH = 0.14                         # frosted bearing ring roughness at the very bottom of the heel
 GLASS_SHADOW = 0.62   # fraction of light glass lets through for shadow rays (fake caustic fill)
 
 def _shadow_mix(nt, out, shader_out, tint=(1, 1, 1), strength=None):
@@ -476,16 +485,26 @@ def mat_vessel_glass(key="flint", absorb=None, density=0.0, rough=0.0, ior=1.52,
         wav = _noise(nt, co.outputs["Object"], 38.0, 2.0, 0.4)
         h = _math(nt, "MULTIPLY", wav.outputs["Fac"], 1.0)
         if stipple:
+            # frosted bearing ring: real heels are scuffed/sand-textured where they stand. As a sub-pixel
+            # microfacet roughness (not a bump texture) it reads as soft frosted refraction at 1:1
+            sepz = nt.nodes.new("ShaderNodeSeparateXYZ")
+            nt.links.new(co.outputs["Object"], sepz.inputs["Vector"])
+            hr = _maprange(nt, sepz.outputs["Z"], stipple * 0.45, stipple, HEEL_ROUGH, rough)
+            nt.links.new(hr.outputs["Result"], b.inputs["Roughness"])
+        if stipple and STIPPLE_AMP > 0:
             # stippled/knurled band at the heel: tiny dimples near the base (z < stipple)
+            # round 2: F1 cones at scale 900 (~1.1 mm, ~4 px) refracted through 5-8 mm of glass read as
+            # salt-and-pepper grain at 1:1; smooth dimples at ~2.4 mm read as a moulded stipple
             v = nt.nodes.new("ShaderNodeTexVoronoi")
-            v.feature = "F1"
-            v.inputs["Scale"].default_value = 900.0
+            v.feature = "SMOOTH_F1"
+            v.inputs["Smoothness"].default_value = 0.6
+            v.inputs["Scale"].default_value = STIPPLE_SCALE
             nt.links.new(co.outputs["Object"], v.inputs["Vector"])
             sep = nt.nodes.new("ShaderNodeSeparateXYZ")
             nt.links.new(co.outputs["Object"], sep.inputs["Vector"])
             band = _maprange(nt, sep.outputs["Z"], stipple * 0.55, stipple, 1.0, 0.0)
             dm = _math(nt, "MULTIPLY", v.outputs["Distance"], band.outputs["Result"])
-            dm2 = _math(nt, "MULTIPLY", dm.outputs[0], 6.0)
+            dm2 = _math(nt, "MULTIPLY", dm.outputs[0], STIPPLE_AMP)
             h = _math(nt, "ADD", h.outputs[0], dm2.outputs[0])
         _bp = _bump(nt, h.outputs[0], 0.035, 0.0006, None)
         nt.links.new(_bp.outputs["Normal"], b.inputs["Normal"])
@@ -555,7 +574,8 @@ def mat_wood(key="walnut", light="#7B4F31", dark="#5A3620", rough=0.42, coat=0.2
         noise (distortion) -> 6-10 lines across the visible face (ring_spacing ~4.5 mm)
       * latewood: a thin darker line per ring (sharpened sine), narrow colour contrast
       * pores: noise stretched along the axis (scale 400 x 6) -> fine open-pore streaks, as colour
-        and as a 0.02 bump; satin oil finish (coat 0.25, coat roughness 0.3)."""
+        and as a 0.045 bump (also on the coat); satin oil finish (coat 0.25, coat roughness 0.3) whose
+        roughness varies +-0.07 in streaks along the grain."""
     def build():
         m, nt, b, out = _principled(f"wood_{key}")
         co = _tex_coord(nt)
@@ -597,11 +617,11 @@ def mat_wood(key="walnut", light="#7B4F31", dark="#5A3620", rough=0.42, coat=0.2
         ramp.color_ramp.elements[1].color = _lin(light)
         nt.links.new(tone.outputs["Result"], ramp.inputs["Fac"])
         # pores: high frequency across, low along the grain
-        psc = (400.0, 400.0, 6.0) if axis == "Z" else (6.0, 400.0, 400.0)
+        psc = (650.0, 650.0, 7.0) if axis == "Z" else (7.0, 650.0, 650.0)   # ~1.5 mm pores (6 px)
         pore = _noise(nt, _map(nt, obj, scale=psc).outputs["Vector"], 1.0, 3.0, 0.6)
-        pmask = _maprange(nt, pore.outputs["Fac"], 0.56, 0.72, 0.0, 1.0)
+        pmask = _maprange(nt, pore.outputs["Fac"], 0.57, 0.67, 0.0, 1.0)     # crisper pore streaks
         # colour = tone ramp, darkened toward the latewood line colour by lines + pores
-        dk = _math(nt, "MULTIPLY_ADD", pmask.outputs["Result"], 0.30)
+        dk = _math(nt, "MULTIPLY_ADD", pmask.outputs["Result"], 0.48)   # pores carry colour contrast: albedo detail survives the denoiser
         nt.links.new(late.outputs[0], dk.inputs[2])
         dkc = _math(nt, "MINIMUM", dk.outputs[0], 0.85)
         mixc = nt.nodes.new("ShaderNodeMix"); mixc.data_type = "RGBA"; mixc.blend_type = "MIX"
@@ -612,15 +632,22 @@ def mat_wood(key="walnut", light="#7B4F31", dark="#5A3620", rough=0.42, coat=0.2
         # roughness: pores and latewood slightly rougher (oil sits less glossy in the open grain)
         rr = _math(nt, "MULTIPLY_ADD", dkc.outputs[0], 0.12)
         rr.inputs[2].default_value = rough
-        nt.links.new(rr.outputs[0], b.inputs["Roughness"])
+        # low-amplitude roughness streaks along the grain (oil soaks in unevenly): the satin sheen
+        # breaks up along the grain lines at 1:1 instead of sitting on the wood like a smooth print
+        ssc = (260.0, 260.0, 3.0) if axis == "Z" else (3.0, 260.0, 260.0)
+        strk = _noise(nt, _map(nt, wa.outputs["Vector"], scale=ssc).outputs["Vector"], 1.0, 4.0, 0.6)
+        sv = _maprange(nt, strk.outputs["Fac"], 0.35, 0.65, -0.07, 0.07)
+        rr2 = _math(nt, "ADD", rr.outputs[0], sv.outputs["Result"])
+        nt.links.new(rr2.outputs[0], b.inputs["Roughness"])
         b.inputs["Coat Weight"].default_value = coat
         b.inputs["Coat Roughness"].default_value = 0.3
         b.inputs["Sheen Weight"].default_value = 0.05
         hgt = _math(nt, "SUBTRACT", 1.0, pmask.outputs["Result"])
         hl = _math(nt, "MULTIPLY_ADD", late.outputs[0], -0.3)
         nt.links.new(hgt.outputs[0], hl.inputs[2])
-        _bp = _bump(nt, hl.outputs[0], 0.02, 0.0004)
+        _bp = _bump(nt, hl.outputs[0], 0.07, 0.0004)      # open pores read at 1:1 (round 2: 0.02 too faint)
         nt.links.new(_bp.outputs["Normal"], b.inputs["Normal"])
+        nt.links.new(_bp.outputs["Normal"], b.inputs["Coat Normal"])
         return m
     return _cached(("wood", key), build)
 
@@ -715,10 +742,12 @@ def mat_tumbler_body(color_name):
         # ---- powder coat: orange-peel + fine grit, satin
         b.inputs["Base Color"].default_value = _lin(hexc)
         dark = sum(_lin(hexc)[:3]) / 3 < 0.05
-        b.inputs["Roughness"].default_value = 0.62 if dark else 0.55
-        b.inputs["Coat Weight"].default_value = 0.08
+        # true catalog swatch as albedo (Khronos PBR Neutral renders base colours true). A dark
+        # matte coat gets no clear coat / sheen: their white specular lift turned #1D1D1F into grey.
+        b.inputs["Roughness"].default_value = 0.68 if dark else 0.55
+        b.inputs["Coat Weight"].default_value = 0.0 if dark else 0.08
         b.inputs["Coat Roughness"].default_value = 0.35
-        b.inputs["Sheen Weight"].default_value = 0.05 if dark else 0.04
+        b.inputs["Sheen Weight"].default_value = 0.0 if dark else 0.04
         b.inputs["Sheen Roughness"].default_value = 0.4
         peel = _noise(nt, co.outputs["Object"], 520.0, 3.0, 0.55)
         grit = nt.nodes.new("ShaderNodeTexVoronoi")
@@ -839,15 +868,18 @@ def tumbler(color="Matte Black", lid_open=False):
     lid = loft("tumbler_lid", fillet(lid_pts, max_len=0.004), round_section(192), mats=(lid_mat,))
     parts.append(lid)
 
-    # ---- spout (front): raised stadium nub, rolled rim, recessed dark drinking slot
-    stad = rect_section(1.55, 1.0, 160, lambda z: 1.0)
-    sp_pts = [(0.0, ZW - 0.0012), (0.0070, ZW - 0.0012, 0.0), (0.0068, ZW + 0.0021, 0.0011),
-              (0.0050, ZW + 0.0029, 0.0007), (0.0037, ZW + 0.0022, 0.0005), (0.0034, ZW + 0.0006, 0.0004),
+    # ---- spout (front): raised stadium boss (20 x 13 mm) with a rolled rim and a recessed dark
+    #      drinking slot (14 x 9 mm stadium). The boss stays on the lid in BOTH states; the flip
+    #      handle's tab carries the exact negative of the slot (silicone plug) and seats on it.
+    SPOUT_Y = -0.0205
+    stad = rect_section(0.65, 0.65, 160, lambda z: 1.0)     # stadium, long axis across X
+    sp_pts = [(0.0, ZW - 0.0012), (0.0100, ZW - 0.0012, 0.0), (0.0099, ZW + 0.0017, 0.0009),
+              (0.0085, ZW + 0.0024, 0.0006), (0.0073, ZW + 0.0019, 0.0004), (0.0071, ZW + 0.0006, 0.0003),
               (0.0, ZW + 0.0006)]
     sp_prof = fillet(sp_pts, max_len=0.0008)
-    k_hole = next(k for k, (r, z) in enumerate(sp_prof) if r < 0.0040 and z < ZW + 0.0024 and k > 3)
+    k_hole = next(k for k, (r, z) in enumerate(sp_prof) if r < 0.00715 and z < ZW + 0.0021 and k > 3)
     nub = loft("tumbler_spout", sp_prof, stad, mats=(lid_mat, dark), mat_of=lambda k: 0 if k < k_hole else 1)
-    nub.location = (0, -0.0205, 0)
+    nub.location = (0, SPOUT_Y, 0)
     parts += [nub]
     # rear hinge blocks
     for sx in (-1, 1):
@@ -862,8 +894,18 @@ def tumbler(color="Matte Black", lid_open=False):
     loop = sweep("tumbler_handle_loop", stadium_path(0.0310, 0.0560, 0.0, 120, 0.0), sec)
     loop.location = (0, -0.0010, HZ)
     assign(loop, lid_mat)
-    tab = rounded_box("tumbler_handle_tab", (0.0230, 0.0150, 0.0042), 0.0019, 4,
-                      (0, -0.0205, HZ - 0.0021), mat=lid_mat)
+    # tab: stadium cap plate a little larger than the spout boss (22 x 14.5 mm), resting on its rim
+    z_t0, z_t1 = ZW + 0.0025, ZW + 0.0056
+    tab_sec = rect_section(0.66, 0.66, 160, lambda z: 1.0)
+    tab = loft("tumbler_handle_tab", fillet([(0.0, z_t0), (0.0102, z_t0, 0.0008), (0.0110, z_t0 + 0.0012, 0.0008),
+                                             (0.0110, z_t1 - 0.0010, 0.0008), (0.0100, z_t1, 0.0010),
+                                             (0.0, z_t1)], max_len=0.0008), tab_sec, mats=(lid_mat,))
+    tab.location = (0, SPOUT_Y, 0)
+    # plug under the tab: the exact negative of the drinking slot (0.15 mm clearance), soft silicone
+    plug = loft("tumbler_handle_plug", fillet([(0.0, ZW + 0.0009), (0.0060, ZW + 0.0009, 0.0006),
+                                               (0.0069, ZW + 0.0015, 0.0006), (0.0069, z_t0 + 0.0002, 0.0),
+                                               (0.0, z_t0 + 0.0002)], max_len=0.0006), stad, mats=(gasket,))
+    plug.location = (0, SPOUT_Y, 0)
     pin = None
     bpy.ops.mesh.primitive_cylinder_add(vertices=40, radius=0.0026, depth=0.0215,
                                         location=(0, HY, HZ), rotation=(0, math.radians(90), 0))
@@ -872,9 +914,9 @@ def tumbler(color="Matte Black", lid_open=False):
     bevel(pin, 0.0007, 3)
     smooth(pin)
     assign(pin, lid_mat)
-    handle = _root("tumbler_handle", [loop, tab, pin])
+    handle = _root("tumbler_handle", [loop, tab, plug, pin])
     # pivot the handle about the hinge axis
-    for ch in (loop, tab, pin):
+    for ch in (loop, tab, plug, pin):
         ch.location = (ch.location.x, ch.location.y - HY, ch.location.z - HZ)
     handle.location = (0, HY, HZ)
     if lid_open:
@@ -1008,14 +1050,18 @@ def _label_tex(name, style, w, h, paper="#EFEBE3", ink="#0B0B0F", pxm=16000):
     foil = os.path.join(TEX_DIR, f"vessel_label_{name}_foil.png")
     hexrgb = lambda hx: [int(hx.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4)]
     _pil(_LABEL_CODE, {"pxm": pxm, "w": w, "h": h, "style": style, "paper": hexrgb(paper),
-                       "ink": hexrgb(ink), "cobalt": hexrgb("#2433C8"), "mono": FONT_MONO,
+                       "ink": hexrgb(ink), "cobalt": hexrgb(PALETTE["cobalt"]), "mono": FONT_MONO,
                        "text": FONT_TEXT, "disp": FONT_DISPLAY, "out": out, "foil": foil})
     return out, foil
 
 
-def mat_label(name, color_path, foil_path, rough=0.62, print_on_glass=False):
+def mat_label(name, color_path, foil_path, rough=0.62, print_on_glass=False, foil_dome=None):
     """Paper label: printed colour image, hot-foil chrome where the foil mask is
-    white, paper tooth + fibre bump, faint emboss on foil. Alpha cuts the shape."""
+    white, paper tooth + fibre bump, faint emboss on foil. Alpha cuts the shape.
+    foil_dome = dict(u, v, r, w, h): a blind-embossed foil roundel centred at label UV (u, v), radius
+    r (m), on a label w x h (m): the disc is domed (edge normals tilt ~12 deg) with a fine concentric
+    emboss and satin, slightly anisotropic foil, so one side catches the strip/key lights as a bright
+    arc and the other falls dark -- reads as foil, not grey ink."""
     def build():
         m, nt, b, out = _principled(f"label_{name}")
         uv = nt.nodes.new("ShaderNodeUVMap")
@@ -1037,6 +1083,34 @@ def mat_label(name, color_path, foil_path, rough=0.62, print_on_glass=False):
         h = _math(nt, "ADD", tooth.outputs[0], emb.outputs[0])
         bp = _bump(nt, h.outputs[0], 0.12, 0.00015)
         nt.links.new(bp.outputs["Normal"], b.inputs["Normal"])
+        foil_n = bp.outputs["Normal"]
+        dmet = None
+        if foil_dome:
+            fdm = foil_dome
+            sepu = nt.nodes.new("ShaderNodeSeparateXYZ")
+            nt.links.new(uv.outputs["UV"], sepu.inputs["Vector"])
+            du = _math(nt, "MULTIPLY_ADD", sepu.outputs["X"], fdm["w"])
+            du.inputs[2].default_value = -fdm["u"] * fdm["w"]
+            dv = _math(nt, "MULTIPLY_ADD", sepu.outputs["Y"], fdm["h"])
+            dv.inputs[2].default_value = -fdm["v"] * fdm["h"]
+            d2 = _math(nt, "MULTIPLY", du.outputs[0], du.outputs[0])
+            d2b = _math(nt, "MULTIPLY_ADD", dv.outputs[0], dv.outputs[0])
+            nt.links.new(d2.outputs[0], d2b.inputs[2])
+            dmet = _math(nt, "SQRT", d2b.outputs[0]).outputs[0]
+            # dome: 1 - (d/r)^2 inside the roundel, 0 outside
+            q = _math(nt, "DIVIDE", dmet, fdm["r"])
+            q2 = _math(nt, "MULTIPLY", q.outputs[0], q.outputs[0])
+            dome = _math(nt, "SUBTRACT", 1.0, q2.outputs[0], clamp=True)
+            # the inner disc (0.55 r) is domed on its own as well, so its face tilts as much as the ring
+            qi = _math(nt, "DIVIDE", dmet, fdm["r"] * 0.55)
+            qi2 = _math(nt, "MULTIPLY", qi.outputs[0], qi.outputs[0])
+            domei = _math(nt, "SUBTRACT", 1.0, qi2.outputs[0], clamp=True)
+            hd = _math(nt, "MULTIPLY_ADD", domei.outputs[0], 0.8)
+            nt.links.new(dome.outputs[0], hd.inputs[2])
+            # strong enough tilt that under the steep upper-left key the up/left-facing half of each dome
+            # catches the light (bright arc) and the lower-right half falls dark (tuned on 4x crops)
+            bpd = _bump(nt, hd.outputs[0], 1.0, 0.004, bp.outputs["Normal"])
+            foil_n = bpd.outputs["Normal"]
         fo = nt.nodes.new("ShaderNodeBsdfPrincipled")
         fo.inputs["Base Color"].default_value = _lin("#D8DBE2")
         fo.inputs["Metallic"].default_value = 1.0
@@ -1050,27 +1124,42 @@ def mat_label(name, color_path, foil_path, rough=0.62, print_on_glass=False):
         gw.inputs["Scale"].default_value = 60.0
         gw.inputs["Distortion"].default_value = 0.0
         nt.links.new(gx.outputs["Vector"], gw.inputs["Vector"])
-        gr = _maprange(nt, gw.outputs["Fac"], 0.0, 1.0, 0.03, 0.30)
+        # domed roundel: satin 0.25-0.31 (the critic's 0.25-0.3) so the tilted half catches a broad,
+        # graded highlight instead of a mirror that only ever finds black studio
+        # (no guilloche on the domed roundel: its 0.5 mm rings alias into horizontal moire at 4 px/mm)
+        gr = _maprange(nt, gw.outputs["Fac"], 0.0, 1.0, 0.27, 0.27) if foil_dome else \
+            _maprange(nt, gw.outputs["Fac"], 0.0, 1.0, 0.18, 0.42)
         nt.links.new(gr.outputs["Result"], fo.inputs["Roughness"])
         # a near-mirror facing the lens reflects the dark studio behind the camera: darker
         # gunmetal face-on, bright chrome toward grazing -> reads as metal next to cream paper
         lw = nt.nodes.new("ShaderNodeLayerWeight")
         lw.inputs["Blend"].default_value = 0.35
-        nt.links.new(bp.outputs["Normal"], lw.inputs["Normal"])
+        nt.links.new(foil_n, lw.inputs["Normal"])
         fr = nt.nodes.new("ShaderNodeValToRGB")
         fr.color_ramp.elements[0].color = _lin("#5E626B")
         fr.color_ramp.elements[1].position = 0.6
         fr.color_ramp.elements[1].color = _lin("#E2E5EA")
-        g2 = _math(nt, "MULTIPLY_ADD", gw.outputs["Fac"], 0.25)
+        g2 = _math(nt, "MULTIPLY_ADD", gw.outputs["Fac"], 0.0 if foil_dome else 0.25)
         nt.links.new(lw.outputs["Facing"], g2.inputs[2])
         nt.links.new(g2.outputs[0], fr.inputs["Fac"])
         nt.links.new(fr.outputs["Color"], fo.inputs["Base Color"])
         fo.inputs["Anisotropic"].default_value = 0.3
-        nt.links.new(bp.outputs["Normal"], fo.inputs["Normal"])
+        nt.links.new(foil_n, fo.inputs["Normal"])
+        # satin silver foil: in the dark-field spirits set a pure mirror only finds black studio in
+        # its reflection direction (the round-1 roundel read as a black ink dot); a 30 % diffuse
+        # silver layer (the foil's embossed micro-texture) keeps it a light, metallic grey with the
+        # guilloche still flashing in the glossy part
+        fd = nt.nodes.new("ShaderNodeBsdfDiffuse")
+        fd.inputs["Color"].default_value = _lin("#B4B8C0")
+        nt.links.new(foil_n, fd.inputs["Normal"])
+        fmix = nt.nodes.new("ShaderNodeMixShader")
+        fmix.inputs["Fac"].default_value = 0.40 if foil_dome else 0.30
+        nt.links.new(fo.outputs["BSDF"], fmix.inputs[1])
+        nt.links.new(fd.outputs["BSDF"], fmix.inputs[2])
         mix = nt.nodes.new("ShaderNodeMixShader")
         nt.links.new(ft.outputs["Color"], mix.inputs["Fac"])
         nt.links.new(b.outputs["BSDF"], mix.inputs[1])
-        nt.links.new(fo.outputs["BSDF"], mix.inputs[2])
+        nt.links.new(fmix.outputs["Shader"], mix.inputs[2])
         tr = nt.nodes.new("ShaderNodeBsdfTransparent")
         mix2 = nt.nodes.new("ShaderNodeMixShader")
         nt.links.new(tex.outputs["Alpha"], mix2.inputs["Fac"])
@@ -1174,7 +1263,9 @@ BOTTLES = {
         liquid=("vodka", (0.985, 0.985, 0.975), 1.0),
         closure=("cork_cap", dict(z=0.300, bore=0.0094, shank=0.026, cap_r=0.0158, cap_h=0.0175,
                                  cap="ink_poly", band="chrome")),
-        label=("vodka", dict(z0=0.060, z1=0.152, w=0.072, paper="#F1EDE4")),
+        # roundel (label PNG: centre 0.36 H from the top -> UV v 0.64, outer ring r 7.0 mm)
+        label=("vodka", dict(z0=0.060, z1=0.152, w=0.072, paper="#F1EDE4",
+                             foil_dome=dict(u=0.5, v=0.64, r=0.0072))),
         neck=("band_ink", dict(z0=0.262, z1=0.272, paper="#0B0B0F")),
         stipple=0.007,
     ),
@@ -1226,7 +1317,9 @@ BOTTLES = {
         inner=[(0, 0.0120), (0.031, 0.0105, 0.006), (0.0372, 0.018, 0.006), (0.0376, 0.168, 0.0),
                (0.0366, 0.186, 0.017), (0.0132, 0.226, 0.014), (0.0102, 0.240, 0.006),
                (0.0100, 0.2830, 0.0)],
-        liquid=("irish", (0.89, 0.71, 0.24), 30.0),
+        # golden-amber Irish whiskey: through the green glass it must read golden-olive with an
+        # edge-to-core depth gradient, not flat chartreuse (round 2: (0.89, 0.71, 0.24) @ 30)
+        liquid=("irish", (0.84, 0.62, 0.17), 40.0),
         closure=("screw_cap", dict(z0=0.2615, z1=0.2885, r=0.0160, metal="champagne", ridges=64)),
         label=("irish", dict(z0=0.052, z1=0.132, w=0.080, paper="#F0EADB")),
         neck=("band_cream", dict(z0=0.244, z1=0.256, paper="#F0EADB")),
@@ -1385,6 +1478,80 @@ def contact_occluder(root, kind=None, radius=None, scale=1.0, z0=0.0004, z1=0.00
     return o
 
 
+def soft_contact_occluder(root, r_in, r_out, peak=0.9, z=0.0004, power=1.0, name=None):
+    """Render helper (not part of the product): a flat disc at height `z`, parented to `root`, seen
+    ONLY by shadow rays, whose opacity falls smoothly from `peak` at radius <= r_in to 0 at r_out
+    (smoothstep ** power). Unlike contact_occluder's hard slab (a uniform-dark ring with a 1 px cliff
+    wherever it pokes out past the heel), the catcher records a graded contact shadow whose profile
+    is set here directly: darkest under the heel, feathering out over a few mm."""
+    o = loft(name or f"{root.name}_softcontact", [(0.0, z), (r_out, z)], round_section(128))
+    m, nt, b, out = _principled(o.name + "_mat")
+    nt.nodes.remove(b)
+    co = _tex_coord(nt)
+    sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    nt.links.new(co.outputs["Object"], sep.inputs["Vector"])
+    xx = _math(nt, "MULTIPLY", sep.outputs["X"], sep.outputs["X"])
+    rr2 = _math(nt, "MULTIPLY_ADD", sep.outputs["Y"], sep.outputs["Y"])
+    nt.links.new(xx.outputs[0], rr2.inputs[2])
+    rad = _math(nt, "SQRT", rr2.outputs[0])
+    mr = _maprange(nt, rad.outputs[0], r_in, r_out, 1.0, 0.0)
+    mr.interpolation_type = "SMOOTHSTEP"
+    pw = _math(nt, "POWER", mr.outputs["Result"], power)
+    op = _math(nt, "MULTIPLY", pw.outputs[0], peak)
+    tr = nt.nodes.new("ShaderNodeBsdfTransparent")
+    df = nt.nodes.new("ShaderNodeBsdfDiffuse")
+    df.inputs["Color"].default_value = (0, 0, 0, 1)
+    mix = nt.nodes.new("ShaderNodeMixShader")
+    nt.links.new(op.outputs[0], mix.inputs["Fac"])
+    nt.links.new(tr.outputs["BSDF"], mix.inputs[1])
+    nt.links.new(df.outputs["BSDF"], mix.inputs[2])
+    nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
+    o.data.materials.append(m)
+    o.parent = root
+    for attr in ("visible_camera", "visible_diffuse", "visible_glossy", "visible_transmission",
+                 "visible_volume_scatter"):
+        setattr(o, attr, False)
+    o.visible_shadow = True
+    return o
+
+
+_FADE_CODE = r'''
+import sys, json
+import numpy as np
+from PIL import Image
+a = json.loads(sys.argv[1])
+W, H, (mx, my), (ex, ey) = a["w"], a["h"], a["margin"], a["edge"]
+def ramp(n, m, e):
+    t = (np.arange(n) + 0.5) / n
+    d = np.minimum(t, 1.0 - t)                       # distance to the nearest border (fraction)
+    x = np.clip((d - e) / max(1e-6, m - e), 0.0, 1.0)
+    return x * x * (3 - 2 * x)
+mask = np.outer(ramp(H, my, ey), ramp(W, mx, ex))
+Image.fromarray(np.round(mask * 65535).astype(np.uint16)).save(a["out"])
+'''
+
+def fade_alpha_edges(path, margin=0.10, edge=0.012):
+    """Render post-step for cutouts: multiply the PNG's alpha by a smooth border falloff (1 inside
+    `margin` of the frame, 0 at `edge`), so the soft shadow-catcher tail (sky occlusion, long key
+    shadows) is guaranteed to reach exactly 0 alpha well before every frame edge -- on a bone page a
+    2-4 % alpha floor cut by the image box reads as a hard grey line. Products never enter the band
+    (framing keeps >= ~8 % padding), so only the faint shadow tail is touched. 16-bit preserved.
+    margin / edge: a fraction of the frame, or an (x, y) pair for different side/top bands."""
+    margin = tuple(margin) if isinstance(margin, (tuple, list)) else (margin, margin)
+    edge = tuple(edge) if isinstance(edge, (tuple, list)) else (edge, edge)
+    r = subprocess.run(["identify", "-format", "%w %h", path], capture_output=True, text=True)
+    W, H = (int(v) for v in r.stdout.split())
+    mask = path + ".fade.png"
+    _pil(_FADE_CODE, {"w": W, "h": H, "margin": margin, "edge": edge, "out": mask})
+    tmp = path + ".tmp.png"
+    subprocess.run(["convert", path, "(", "+clone", "-alpha", "extract", mask, "-compose", "multiply",
+                    "-composite", ")", "-alpha", "off", "-compose", "copy_opacity", "-composite",
+                    "-depth", "16" if not _c.PREVIEW else "8", tmp], check=True)
+    os.replace(tmp, path)
+    os.remove(mask)
+    return path
+
+
 def _closure(kind, spec, sec):
     ctype, c = spec["closure"]
     parts = []
@@ -1442,7 +1609,7 @@ def _closure(kind, spec, sec):
         elif mk == "champagne":
             mt = mat_metal("champagne_cap", "#C9B48A", rough=0.22, aniso=0.6)
         else:
-            mt = mat_metal("chrome_cap", "#B9BCC2", rough=0.17, aniso=0.5)
+            mt = mat_metal("chrome_cap", "#C3C6CC", rough=0.10, aniso=0.35)   # crisp: facets alternate dark/bright
         ridges = c.get("ridges", 0)
         facets = c.get("facets", 0)
         sec_c = ngon_section(facets, 0.04, 288, lambda z: 1.0) if facets else round_section(432 if ridges else 192)
@@ -1495,7 +1662,7 @@ def bottle(kind):
     spec = BOTTLES[kind]
     sec = _section_for(spec)
     gk, gabs, gden = spec["glass"]
-    glass_m = mat_vessel_glass(gk, gabs, gden, stipple=spec.get("stipple") or None)
+    glass_m = mat_vessel_glass(gk, gabs, gden, stipple=spec.get("stipple") or 0.006)
     outer = fillet(spec["outer"], max_len=0.003)
     inner = fillet(spec["inner"], max_len=0.003)
     glass_prof = outer + list(reversed(inner))
@@ -1513,10 +1680,15 @@ def bottle(kind):
         style, L = spec["label"]
         h = L["z1"] - L["z0"]
         cp, fp = _label_tex(kind, style, L["w"], h, paper=L["paper"])
-        lm = mat_label(kind, cp, fp, print_on_glass=(style == "tequila_print"))
+        fdm = L.get("foil_dome")
+        if fdm:
+            fdm = dict(fdm, w=L["w"], h=h)
+        lm = mat_label(kind, cp, fp, print_on_glass=(style == "tequila_print"), foil_dome=fdm)
         parts.append(label_mesh(f"{kind}_label", outer, sec, L["z0"], L["z1"], L["w"], mat=lm,
-                                thickness=0.0 if style == "tequila_print" else 0.00012,
-                                offset=0.00006 if style == "tequila_print" else 0.00010))
+                                # paper 0.10 mm, outer face 0.08 mm off the glass: the inner face sits
+                                # 0.02 mm into the wall, so no air gap can refract a bright edge band
+                                thickness=0.0 if style == "tequila_print" else 0.00010,
+                                offset=0.00006 if style == "tequila_print" else 0.00008))
     if spec.get("neck"):
         style, L = spec["neck"]
         r_at = profile_interp(outer)

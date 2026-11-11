@@ -42,7 +42,8 @@ $GPU_SSH $GPU 'cd /root/chainmail && for f in blender/scenes/{kit,goods,spirits}
     && echo "ok  $f" || echo "FAIL $f"; done'
 ```
 
-Packing sequence (121 frames, resumable; skips frames already on disk):
+Packing sequence (121 frames, resumable; skips frames already on disk). It renders from a frozen
+snapshot of the libs (git-ignored), so create it first with `bash tools/render_sequence.sh --freeze`:
 
 ```bash
 $GPU_SSH $GPU 'cd /root/chainmail && CHAINMAIL_DEVICE=OPTIX BLENDER=blender bash tools/render_sequence.sh'

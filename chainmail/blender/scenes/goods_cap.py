@@ -28,16 +28,37 @@ fill.data.energy *= float(os.environ.get("FILLK", "0.6"))
 acc.neutral_world(0.3)
 shadow_catcher()
 
-WZ = float(os.environ.get("WZ", "128")); BZ = float(os.environ.get("BZ", "-26"))
+WZ = float(os.environ.get("WZ", "162")); BZ = float(os.environ.get("BZ", "-26"))
 WX, WY = float(os.environ.get("WX", "-0.02")), float(os.environ.get("WY", "0.29"))
 white = acc.cap("White")
 white.rotation_euler.z += math.radians(WZ)
 white.location = (WX, WY, white.location.z)
+# the White cap shows its back: its front embroidery is on the far side, and at this turn only a
+# 2 px sliver of a glyph grazes the crown silhouette (reads as stray text) -> keep it out of camera
+for o in white.children_recursive:
+    if o.name.startswith("CapEmbroidery"):
+        o.visible_camera = False
 black = acc.cap("Black")
 black.rotation_euler.z += math.radians(BZ)
 black.location = (-0.03, -0.03, black.location.z)
 bpy.context.view_layer.update()
 P_ = acc._all_mesh_points(black, 3); print('CAPDIM', P_.max(0) - P_.min(0))
+
+# soft low bounce card front-right, light-linked to the Black cap only: lifts the crushed bill and
+# crown out of the toe (stitch rows + twill read) without touching albedo, the White cap or the shadow
+bfe = float(os.environ.get("BFILL", "1.15"))
+if bfe > 0:
+    bc = Vector(((P_.min(0) + P_.max(0)) / 2).tolist())
+    bf = area_light("BlackFill", bc + Vector(tuple(map(float, os.environ.get("BFLOC", "0.45,-0.60,0.38").split(",")))), bc,
+                    size=0.9, size_y=0.6,
+                    energy=key.data.energy * bfe * 0.30, color=(1.0, 0.99, 0.98))
+    bf.data.use_shadow = False
+    bf.visible_camera = False
+    lc = bpy.data.collections.new("black_cap_receivers")
+    for o in black.children_recursive:
+        if o.type == "MESH" and not o.name.startswith("CapEmbroidery"):   # satin keeps its true cobalt
+            lc.objects.link(o)
+    bf.light_linking.receiver_collection = lc
 
 if "--closeback" in FL:
     cam = acc.frame_camera([white], az_deg=14, el_deg=31, lens=100, pad=0.0)

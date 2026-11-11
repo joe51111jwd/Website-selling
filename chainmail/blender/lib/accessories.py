@@ -5,16 +5,19 @@ Public API (every builder returns ONE root Empty with identity rotation, origin 
 centre of its footprint, resting exactly on Z=0 (modifiers included), front facing -Y;
 no cameras / lights / renders are created):
 
-  cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cobalt", brim=None) -> Empty
+  cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cobalt", brim=None,
+      depth=None) -> Empty
       unstructured low-profile 6-panel dad cap, ~0.165 W x 0.257 D (incl. pre-curved 69 mm brim)
       x 0.105 H, brim to -Y, resting on brim corners + back rim (tilt lives on the inner
       "<name>_tilt" Empty so callers may set the root's rotation freely). A real dad cap is
-      ~0.19 deep at the head + the bill; pass brim=0.055 for a shorter kit footprint.
+      ~0.19 deep at the head + the bill; pass brim=0.055 for a shorter kit footprint, or depth=<m>
+      for a kit pose scaled to an exact footprint (e.g. the brief table's 0.19).
       style="trucker" / "Retro Trucker": structured 5-panel front, polyester mesh rear panels,
       no eyelets.
   tote(color="Natural", seed=None, logo="your logo", ink="cobalt") -> Empty
       bull denim tote 0.38 W x 0.40 H x 0.10 D body (~0.40 x 0.16 x 0.63 incl. slump and
-      standing handles), printed face to -Y.
+      standing handles), printed face to -Y. The screen print is a separate child "ToteInk" (a 60 um
+      film, transparent outside the ink) so scenes can light-link fills to the cloth alone.
   journal(color="Blue", seed=None, logo="your logo", foil="chrome", ribbon_len=None) -> Empty
       5.5 x 8.25 in soft UltraHyde journal lying flat, front cover up: 0.1397 x 0.2096 x 0.016
       (+ elastic 1.3 mm, ribbon tail to -Y); spine on -X, head on +Y.
@@ -732,12 +735,17 @@ def _t_at_height(th, zrel, P):
         out[i] = np.interp(zrel / Hh, z, ts)
     return out
 
-def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cobalt", brim=None):
+def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cobalt", brim=None, depth=None):
     """6-panel cap. Returns root Empty (origin base centre, front -Y).
     style="dad": unstructured low-profile washed-twill dad cap (default).
     style="trucker": retro trucker — structured, taller foam-backed front (no centre seam),
     breathable mesh rear panels, no eyelets.
-    brim: bill projection in metres (default CAP["L"] = 0.069; the kit slot may want ~0.055)."""
+    brim: bill projection in metres (default CAP["L"] = 0.069; the kit slot may want ~0.055).
+    depth: optional kit-pose footprint (m, front of bill -> back of crown). The real-world cap is
+    ~0.257 deep; passing e.g. depth=0.19 shortens the bill to 0.050 (unless brim is given) and scales
+    the whole cap uniformly about its base centre until the measured depth matches."""
+    if depth is not None and brim is None:
+        brim = 0.050
     P = dict(CAP)
     trucker = "trucker" in str(style).lower()           # "trucker" / "Retro Trucker" (catalog name)
     if trucker:
@@ -908,19 +916,32 @@ def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cob
         return -kcurv * x ** 2 * cv - tp * fwd - 0.00015 * np.sin(x * 40) * fwd / L
 
     phi = np.radians(np.linspace(-89.5, 89.5, 320))
-    w = np.linspace(-0.12, 1.0, 44)
+    # inner tuck kept short (w from -0.06) so it ends inside the crown shell; towards the sides the
+    # brim root slides in under the crown hem and thins out (no slab poking out at the brim ends)
+    w = np.linspace(-0.06, 1.0, 44)
     PH, Wg = np.meshgrid(phi, w, indexing="ij")
-    Ex, Ey = b * np.sin(PH), -a * np.cos(PH)
+    side = _ss(math.radians(70), math.radians(89.5), np.abs(PH))
+    # (the last few degrees taper inside the crown's inner wall and thin out, so no brim tip pokes out
+    # below the crown edge at the brim ends)
+    Ex, Ey = b * (1 - 0.068 * side) * np.sin(PH), -a * np.cos(PH)
     cph = np.clip(np.cos(PH), 0, 1)
-    Ox, Oy = b * 1.005 * np.sin(PH), -a * np.cos(PH) - L * cph ** 0.62
+    Ox, Oy = b * (1.005 - 0.040 * side) * np.sin(PH), -a * np.cos(PH) - L * cph ** 0.62
     bx, by = Ex + Wg * (Ox - Ex), Ey + Wg * (Oy - Ey)
-    bz = brim_z(bx, by)
+    # height taken from the un-inset brim, so the tucked-in ends stay at the hem line instead of rising
+    # (with the brim's cross-curvature) through the crown wall
+    Ex0, Ox0 = b * (1 - 0.03 * side) * np.sin(PH), b * (1.005 - 0.026 * side) * np.sin(PH)
+    bz = brim_z(Ex0 + Wg * (Ox0 - Ex0), by)
     Bp = np.stack([bx, by, bz], -1)
     # same cloth as the crown (its own instance so the UV scale / seed differ)
     m_brim = mat_twill(color, name=f"acc_cap_brim_{color}", gain=g_)
     brim = _grid_obj("CapBrim", Bp, uv=np.stack([bx, by], -1), flip=True, mat=m_brim, parent=root)
+    vg = brim.vertex_groups.new(name="thick")
+    wt = (1.0 - 0.75 * side).ravel()
+    for i, wv in enumerate(wt):
+        vg.add([i], float(wv), "REPLACE")
     so = brim.modifiers.new("Solidify", "SOLIDIFY")
-    so.thickness = 0.0042; so.offset = -1.0; so.use_even_offset = True
+    so.thickness = 0.0042; so.offset = -1.0; so.use_even_offset = False   # (even offset spikes at the thin ends)
+    so.vertex_group = "thick"; so.thickness_vertex_group = 0.2
     bv = brim.modifiers.new("Bevel", "BEVEL")
     bv.width = 0.0017; bv.segments = 4; bv.limit_method = "ANGLE"; bv.angle_limit = math.radians(40)
     parts.append(brim)
@@ -967,13 +988,18 @@ def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cob
     parts.append(band)
 
     # ---------------- back strap + metal slider
-    def rim_pt(thv, inset):
-        x = (b - inset) * np.sin(thv); y = -(a - inset) * np.cos(thv)
-        return np.stack([x, y, np.full_like(thv, -P["drop"])], -1)
+    # the strap follows the (virtual) crown wall just inside the shell, leaning in with it, so its
+    # top edge, the tail and the slider never poke out of the crown silhouette at the opening
+    def wall(thv, zrel, inset):
+        thv = np.asarray(thv, float)
+        tt_ = _t_at_height(thv, zrel, P)
+        pw, nw, _, _ = _crown(thv, tt_, P, wr_seed=sd)
+        pw2, _, _, _ = _crown(thv, _t_at_height(thv, zrel + 0.002, P), P, wr_seed=sd)
+        mer = _norm(pw2 - pw)                             # up the meridian
+        return pw - nw * inset, nw, mer
+    zs_ = 0.0112                                         # strap centre height above the rim
     tht = np.linspace(np.pi - W - 0.13, np.pi + W + 0.13, 160)
-    sp = rim_pt(tht, P["thick"] + 0.0011)
-    sp[:, 2] += 0.0112
-    radial = _norm(np.stack([np.sin(tht) / b, -np.cos(tht) / a, np.zeros_like(tht)], -1))
+    sp, radial, mer_s = wall(tht, zs_, P["thick"] + 0.0011)
     def rrect(wd, th_, r, n=4):
         pts_ = []
         for cx, cy, a0 in ((wd / 2 - r, th_ / 2 - r, 0), (-wd / 2 + r, th_ / 2 - r, 90),
@@ -985,25 +1011,21 @@ def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cob
     strap = _sweep("CapStrap", sp, radial, rrect(0.0205, 0.0017, 0.0007), mat=m_tw, parent=root,
                    uv_scale=(1.0, 1.0))
     parts.append(strap)
-    # tail layer over the strap from the slider towards +x side
+    # tail layer lying flat over the strap from the slider towards +x side (tucked, not a flap)
     th_sl = np.pi - 0.06
     tt = np.linspace(th_sl - 0.012, th_sl - 0.012 - 0.25, 50)
-    tp_ = rim_pt(tt, P["thick"] + 0.0011 - 0.0018)
-    tp_[:, 2] += 0.0112
-    rad_t = _norm(np.stack([np.sin(tt) / b, -np.cos(tt) / a, np.zeros_like(tt)], -1))
-    tail = _sweep("CapStrapTail", tp_, rad_t, rrect(0.0195, 0.0016, 0.0007), mat=m_tw, parent=root)
+    tp_, rad_t, mer_t = wall(tt, zs_, P["thick"] + 0.0011 - 0.0017)
+    tail = _sweep("CapStrapTail", tp_, rad_t, rrect(0.0195, 0.0015, 0.0007), mat=m_tw, parent=root)
     parts.append(tail)
     # stitch rows along the strap edges (outer face)
     for zoff in (-0.0082, 0.0082):
-        q_ = sp.copy(); q_[:, 2] += zoff
-        rows.append((q_ + radial * 0.00085, radial))
-        q2 = tp_.copy(); q2[:, 2] += zoff * 0.95
+        rows.append((sp + mer_s * zoff + radial * 0.00085, radial))
+        q2 = tp_ + mer_t * zoff * 0.95
         rows.append((q2[4:] + rad_t[4:] * 0.0008, rad_t[4:]))
     # slider: rounded rectangular frame + centre bar
-    c_sl = rim_pt(np.array([th_sl]), P["thick"] + 0.0011 - 0.0034)[0]
-    c_sl[2] += 0.0112
-    rad_s = _norm(np.array([np.sin(th_sl) / b, -np.cos(th_sl) / a, 0.0]))
-    tan_s = _norm(np.cross(np.array([0, 0, 1.0]), rad_s))
+    c_sl, rs_n, rs_m = wall(np.array([th_sl]), zs_, P["thick"] + 0.0011 - 0.0034)
+    c_sl, rad_s, up_s = c_sl[0], rs_n[0], rs_m[0]
+    tan_s = _norm(np.cross(up_s, rad_s))
     m_met = mat_metal("gunmetal" if color == "Black" else "nickel")
     fw, fh, fr = 0.0105, 0.0262, 0.0022
     loop = []
@@ -1013,13 +1035,13 @@ def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cob
             aq = math.radians(a0 + q)
             loop.append((cx + fr * math.cos(aq), cy + fr * math.sin(aq)))
     loop = np.array(loop)
-    lp3 = c_sl[None, :] + loop[:, 0:1] * tan_s[None, :] + loop[:, 1:2] * np.array([0, 0, 1.0])[None, :]
+    lp3 = c_sl[None, :] + loop[:, 0:1] * tan_s[None, :] + loop[:, 1:2] * up_s[None, :]
     lp3 = np.vstack([lp3, lp3[:1]])
     wire = [(0.0011 * math.cos(q), 0.0008 * math.sin(q)) for q in np.linspace(0, 2 * np.pi, 10, endpoint=False)]
     upv = np.repeat(rad_s[None, :], len(lp3), 0)
     slider = _sweep("CapSlider", lp3, upv, wire, mat=m_met, parent=root, cap_ends=False)
     parts.append(slider)
-    bar = np.stack([c_sl + np.array([0, 0, z]) for z in np.linspace(-fh / 2 + 0.0012, fh / 2 - 0.0012, 12)])
+    bar = np.stack([c_sl + up_s * z for z in np.linspace(-fh / 2 + 0.0012, fh / 2 - 0.0012, 12)])
     _sweep("CapSliderBar", bar + rad_s * 0.0002, np.repeat(rad_s[None, :], 12, 0), wire, mat=m_met, parent=root)
 
     # ---------------- raised satin embroidery on the front panels
@@ -1050,6 +1072,12 @@ def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cob
             lo_ = mid
     root.rotation_euler = ((lo_ + hi_) / 2, 0, 0)
     _rest(top_root)
+    if depth is not None:
+        bpy.context.view_layer.update()
+        Pd = _all_mesh_points(top_root, 2)
+        sc = float(depth) / max(Pd[:, 1].max() - Pd[:, 1].min(), 1e-6)
+        top_root.scale = (sc, sc, sc)
+        _rest(top_root)
     return top_root
 
 def _text_flat_mesh(body, width, max_edge=0.0011, name="txt"):
@@ -1211,6 +1239,88 @@ def neutral_world(saturation=0.3):
     for d in dst:
         nt.links.new(hs.outputs["Color"], d)
 
+def drape_ribbons(books, clearance=0.00015, iters=None, fold_r=0.005):
+    """Scene helper: let each journal's ribbon tail fall under gravity onto whatever lies below it
+    (a lower journal's cover or the floor at Z=0) instead of cantilevering at its own book's base.
+    Stations of the lying tail are lowered to the support found by a downward ray cast, with a
+    smooth (Laplacian) drop from the cover edge so the satin bends over rather than stepping."""
+    from mathutils.bvhtree import BVHTree
+    bpy.context.view_layer.update()
+    dg = bpy.context.evaluated_depsgraph_get()
+    def bvh_for(objs):
+        V, F = [], []
+        for o in objs:
+            oe = o.evaluated_get(dg); me = oe.to_mesh()
+            M = o.matrix_world
+            base = len(V)
+            V.extend([M @ v.co for v in me.vertices])
+            F.extend([[base + i for i in p.vertices] for p in me.polygons])
+            oe.to_mesh_clear()
+        return BVHTree.FromPolygons(V, F) if F else None
+    for bk in books:
+        rib = next((o for o in bk.children if o.name.startswith("JournalRibbon") and "ribbon_stations" in o), None)
+        if rib is None or "ribbon_stations" not in rib:
+            continue
+        others = [o for b2 in books if b2 is not bk for o in b2.children
+                  if o.type == "MESH" and (o.name.startswith("JournalCover") or o.name.startswith("JournalPages")
+                                           or o.name.startswith("JournalElastic")
+                                           or (o.name.startswith("JournalRibbon") and "ribbon_stations" in o))]
+        tree = bvh_for(others)
+        n, m, rt = rib["ribbon_stations"], rib["ribbon_prof"], rib["ribbon_t"]
+        me = rib.data
+        M = np.array(rib.matrix_world); Mi = np.linalg.inv(M)
+        co = np.empty(len(me.vertices) * 3); me.vertices.foreach_get("co", co); co = co.reshape(-1, 3)
+        W = co @ M[:3, :3].T + M[:3, 3]
+        ring = W[:n * m].reshape(n, m, 3)
+        C = ring.mean(1)
+        zbase = bk.matrix_world.translation.z
+        lying = np.where(C[:, 2] < zbase + rt + 0.0006)[0]
+        if len(lying) < 3:
+            continue
+        i0 = lying[0]
+        sup = np.zeros(n)
+        for i in range(i0, n):
+            hit = tree.ray_cast(Vector((C[i, 0], C[i, 1], C[i, 2] - 0.0002)), Vector((0, 0, -1))) if tree else None
+            sup[i] = max(0.0, hit[0].z if hit and hit[0] is not None else 0.0)
+        # satin has a little bending stiffness: it rolls over a cover edge with a few mm radius instead
+        # of creasing on it -> drape over the support dilated by a disc of radius fold_r (convex edges
+        # rounded, flat runs unchanged)
+        sarc = np.concatenate([[0], np.cumsum(np.linalg.norm(np.diff(C, axis=0), axis=1))])
+        sup_r = sup.copy()
+        for i in range(i0, n):
+            dsj = sarc[i0:] - sarc[i]
+            ok = np.abs(dsj) < fold_r
+            sup_r[i] = np.max(sup[i0:][ok] + np.sqrt(fold_r ** 2 - dsj[ok] ** 2) - fold_r)
+        tgt = np.zeros(n)
+        tgt[i0:] = np.minimum(0.0, sup_r[i0:] + rt / 2 + clearance - C[i0:, 2])
+        dz = tgt.copy()
+        ds_ = max(np.median(np.diff(sarc)), 1e-5)
+        n_it = iters if iters is not None else int(160 * (0.0006 / ds_) ** 2)
+        for _ in range(n_it):                       # relax, never below the support, edge pinned
+            d2 = dz.copy()
+            d2[i0 + 1:-1] = 0.5 * dz[i0 + 1:-1] + 0.25 * (dz[i0:-2] + dz[i0 + 2:])
+            d2[-1] = 0.5 * dz[-1] + 0.5 * dz[-2]
+            dz = np.maximum(d2, tgt); dz[:i0 + 1] = 0.0
+        # final fairing: smooth the draped height profile (incl. a few stations before the pinned
+        # landing) so every bend is a round satin roll, then keep it off the true (un-dilated) support
+        tgt_raw = np.full(n, -1.0)
+        tgt_raw[i0:] = np.minimum(0.0, sup[i0:] + rt / 2 + clearance - C[i0:, 2])
+        j0 = max(1, i0 - int(0.004 / ds_))
+        zc = C[:, 2] + dz
+        for _ in range(int(60 * (0.0006 / ds_) ** 2)):
+            z2 = zc.copy()
+            z2[j0:-1] = 0.5 * zc[j0:-1] + 0.25 * (zc[j0 - 1:-2] + zc[j0 + 1:])
+            z2[-1] = 0.5 * zc[-1] + 0.5 * zc[-2]
+            zc = np.maximum(z2, C[:, 2] + tgt_raw)
+        dz = zc - C[:, 2]
+        ring = ring + dz[:, None, None] * np.array([0, 0, 1.0])
+        W[:n * m] = ring.reshape(-1, 3)
+        W[-1] = W[-1] + np.array([0, 0, dz[-1]])        # end-cap centres
+        W[-2] = W[-2] + np.array([0, 0, dz[0]])
+        co = (np.c_[W, np.ones(len(W))] @ Mi.T)[:, :3]
+        me.vertices.foreach_set("co", co.ravel()); me.update()
+        print(f"[acc] drape {bk.name}: tail drop {(-dz.min()) * 1000:.1f} mm")
+
 def border_alpha(path, band=2):
     """Max alpha (0..1) on the outer `band` pixels of a rendered RGBA image (Blender-side check)."""
     im = bpy.data.images.load(path, check_existing=False)
@@ -1221,10 +1331,11 @@ def border_alpha(path, band=2):
     return dict(left=float(a[:, :band].max()), right=float(a[:, -band:].max()),
                 bottom=float(a[:band].max()), top=float(a[-band:].max()))
 
-def fade_border(path, px=64):
+def fade_border(path, px=64, right_px=0):
     """Feather the shadow-catcher alpha to exactly 0 over the outer `px` pixels (ImageMagick,
     16-bit safe), so a cut-out never carries a straight shadow edge. Subjects are framed with
-    >= 8% padding, so only shadow pixels live in this band."""
+    >= 8% padding, so only shadow pixels live in this band. right_px > 0 adds a long smoothstep
+    fade over the right `right_px` pixels (full-res; a long cast shadow trailing off the frame)."""
     import shutil
     if not shutil.which("convert"):
         print("[acc] fade_border: ImageMagick not found, skipped"); return path
@@ -1235,6 +1346,11 @@ def fade_border(path, px=64):
     mask = path + ".fade.png"
     subprocess.run(["convert", "-size", f"{w - 2 * k}x{h - 2 * k}", "xc:white", "-bordercolor", "black",
                     "-border", str(k), "-blur", f"0x{k / 3.2:.1f}", "-level", "3%,100%", "-depth", "16", mask], check=True)
+    if right_px:
+        bnd = max(8, int(right_px * pc))
+        subprocess.run(["convert", mask, "(", "-size", f"{w}x{h}", "xc:", "-fx",
+                        f"qq=min(1,max(0,(w-1-i-{k // 2})/{bnd})); qq*qq*(3-2*qq)", ")",
+                        "-compose", "multiply", "-composite", "-depth", "16", mask], check=True)
     tmp = path + ".tmp.png"
     subprocess.run(["convert", path, "(", "+clone", "-alpha", "extract", mask, "-compose", "multiply",
                     "-composite", ")", "-alpha", "off", "-compose", "copy_opacity", "-composite",
@@ -1284,14 +1400,18 @@ def frame_camera(objs_or_pts, az_deg=30.0, el_deg=32.0, lens=85.0, pad=0.08, tar
     return cam
 
 # =================================================================== TOTE
-TOTE = dict(W=0.38, D=0.10, H=0.40, rc=0.010, hem=0.032, handle_dx=0.066, strap_w=0.028, strap_t=0.0025)
+# rc_top: plan radius the sewn corners relax to at the opening; vfold: inward V of the soft gussets at the
+# top; gusset_dip: how far the gusset hem sags below the front/back hem (one continuous rim curve)
+TOTE = dict(W=0.38, D=0.10, H=0.40, rc=0.010, rc_top=0.040, hem=0.032, handle_dx=0.066, strap_w=0.028, strap_t=0.0025,
+            gusset_dip=0.006, vfold=0.005)
 
 DENIM_BASE = {}   # catalog swatches render true under Khronos PBR Neutral (no per-colour overrides)
 
-def mat_denim(color, name=None, pitch=0.0016, print_mask=None, print_rect=None, ink="cobalt"):
+def mat_denim(color, name=None, pitch=0.0016, print_mask=None, print_rect=None, ink="cobalt", decal=False):
     """Bull denim: steep 3x1 twill wales, vertical warp streaks/slubs, tonal flecks; dead-matte
     cotton (no plastic sheen). UV in metres (u across, v up). Optional plastisol screen print
-    from a mask image: the weave telegraphs through the ink film."""
+    from a mask image: the weave telegraphs through the ink film. decal=True (with print_mask): the
+    material is transparent outside the ink, for a separate print-film object over the plain body."""
     def mk():
         m, nt, b = _c._new_mat(name or f"acc_denim_{color}")
         base = _col(DENIM_BASE.get(color, color))
@@ -1320,15 +1440,17 @@ def mat_denim(color, name=None, pitch=0.0016, print_mask=None, print_rect=None, 
         h = _math(nt, "ADD", _math(nt, "MULTIPLY", tw, 0.75), _math(nt, "MULTIPLY", fine, 0.25))
         h = _math(nt, "ADD", h, _math(nt, "MULTIPLY", slub, 0.25))
         # colour
-        mot = _noise(nt, uv, 1 / 0.05, detail=2.0)
-        cv = _mixf(nt, 0.55, _mixf(nt, 0.5, tw, slub), mot)
-        k_lo = 0.80 if not dark else 0.72
-        k_hi = 1.04 if not dark else 1.3
+        # light colourways: half the mottling amplitude at a finer scale, so the variation follows
+        # the warp streaks instead of forming 2-3 cm cloudy blobs (read as dirt on white / ecru)
+        mot = _noise(nt, uv, 1 / (0.05 if dark else 0.018), detail=2.0)
+        cv = _mixf(nt, 0.55 if dark else 0.3, _mixf(nt, 0.5, tw, slub), mot)
+        k_lo = 0.89 if not dark else 0.72
+        k_hi = 1.03 if not dark else 1.3
         lo = tuple(c * k_lo for c in base[:3]) + (1,)
         hi = tuple(min(1, c * k_hi) for c in base[:3]) + (1,)
         col = _mixc(nt, cv, lo, hi)
         # +-7% value along the warp streaks
-        sk = _math(nt, "ADD", _math(nt, "MULTIPLY", _math(nt, "SUBTRACT", streak, 0.5), 0.24), 1.0)
+        sk = _math(nt, "ADD", _math(nt, "MULTIPLY", _math(nt, "SUBTRACT", streak, 0.5), 0.24 if dark else 0.13), 1.0)
         col = _mixc(nt, 1.0, col, _c_vec(nt, sk), blend="MULTIPLY")
         if color == "Natural":                          # cotton-seed flecks in undyed ecru
             vor = nt.nodes.new("ShaderNodeTexVoronoi")
@@ -1380,8 +1502,16 @@ def mat_denim(color, name=None, pitch=0.0016, print_mask=None, print_rect=None, 
         b.inputs["Sheen Roughness"].default_value = 0.45
         b.inputs["Sheen Tint"].default_value = sheen_tint
         nt.links.new(_bumpn(nt, bump_s, 0.9, 0.0008), b.inputs["Normal"])
+        if print_mask and decal:
+            out = nt.nodes.get("Material Output")
+            tr = nt.nodes.new("ShaderNodeBsdfTransparent")
+            mx = nt.nodes.new("ShaderNodeMixShader")
+            nt.links.new(mask, mx.inputs["Fac"])
+            nt.links.new(tr.outputs["BSDF"], mx.inputs[1])
+            nt.links.new(b.outputs["BSDF"], mx.inputs[2])
+            nt.links.new(mx.outputs["Shader"], out.inputs["Surface"])
         return m
-    return _cached(("denim", color, name, print_mask), mk)
+    return _cached(("denim", color, name, print_mask, decal), mk)
 
 def _c_vec(nt, fac):
     """Grey RGBA from a float socket (for MULTIPLY mixes)."""
@@ -1425,9 +1555,19 @@ def _tote_body(p, z, T, k):
     Every term is continuous around the perimeter (front/back vs gusset weights blend through
     the rounded corners), so the front panel, gusset and back stay one sewn tube with one rim."""
     p = np.asarray(p, float); z = np.asarray(z, float)
-    x, y, nx, ny, pan, _ = _tote_perim(p, T)
+    x, y, nx, ny, pan, Lt = _tote_perim(p, T)
     hx, hy, H = T["W"] / 2, T["D"] / 2, T["H"]
     zn = np.clip(z / H, 0, 1)
+    if T.get("rc_top"):
+        # the sewn corners relax into a soft rounded fold towards the opening (no squared notch
+        # where the front panel meets the gusset): blend to a larger corner radius up the bag
+        T2 = dict(T, rc=T["rc_top"])
+        Lt2 = _tote_perim(np.array([0.0]), T2)[5]
+        x2, y2, nx2, ny2, _, _ = _tote_perim(p * Lt2 / Lt, T2)
+        wr = _ss(0.35, 1.0, zn) ** 1.3
+        x = x + (x2 - x) * wr; y = y + (y2 - y) * wr
+        nn_ = _norm(np.stack([nx + (nx2 - nx) * wr, ny + (ny2 - ny) * wr], -1))
+        nx, ny = nn_[..., 0], nn_[..., 1]
     fbw = np.abs(ny)                                   # 1 on front/back, 0 on the gussets, blends in corners
     sdw = 1 - fbw
     back = _ss(-0.3, 0.3, y / hy)                      # 0 front .. 1 back (continuous)
@@ -1445,42 +1585,65 @@ def _tote_body(p, z, T, k):
     # side gussets fold in towards the top (V fold), the opening narrows at the ends
     pinch = _ss(0.38, 1.0, zn) * k["pinch"]
     ew = _ss(hx - 0.07, hx - 0.005, np.abs(x))
-    vfold = sdw * 0.040 * pinch * np.clip(1 - np.abs(y) / hy, 0, 1) ** 1.2
+    vfold = sdw * T.get("vfold", 0.010) * pinch * np.clip(1 - np.abs(y) / hy, 0, 1) ** 1.5
     X = x + nx * (bul - tuck) - np.sign(x) * vfold + np.sign(x) * cw
     Y = y + ny * (bul - tuck)
-    Y = Y * (1 - 0.62 * pinch * ew)
+    Y = Y * (1 - 0.48 * pinch * ew)
     # upper panel caves in softly between the handles (unfilled bag), lower panel bellies out
     cave = -fbw * k["cave"] * np.exp(-(x / 0.11) ** 2) * _ss(0.45, 0.97, zn) * (1 - 0.5 * _ss(0.97, 1.0, zn))
     X = X + nx * cave; Y = Y + ny * cave
     # rim: dips between the handles, droops past them (same along front, corner and gusset)
     sag = 0.007 * np.exp(-(x / 0.05) ** 2) + 0.014 * _ss(0.09, hx, np.abs(x))
     sag = sag + 0.004 * np.sin(x * 17.0 + k["seed"] + 2.0 * back) * (1 - _ss(hx - 0.04, hx, np.abs(x)))
+    # the unstiffened side gussets sag a little below the front/back hem; the weight follows the
+    # rounded-corner normals, so the hem runs round the corner as one continuous curve (no shoulder)
+    sag = sag + T.get("gusset_dip", 0.0) * sdw ** 1.5
     Z = z - sag * zn ** 3
     # whole-bag slump / lean
     X = X + k["lean_x"] * zn ** 1.6
     Y = Y + k["lean_y"] * zn ** 1.6
-    # long vertical ripples (gravity), growing with height; fade out into the corners
-    ph = k["seed"] * 1.7 + 2.3 * back
-    rip = (np.sin(x * 26.0 + ph) * 0.6 + np.sin(x * 47.0 + 1.3 * ph) * 0.4) * (0.15 + 0.85 * zn ** 1.3)
-    rip = rip * k["ripple"] * _ss(0.0, 0.05, z) * fbw * (1 - _ss(hx - 0.035, hx - 0.004, np.abs(x)))
-    # soft noise folds, stretched vertically
-    P0 = np.stack([x * 1.0, y * 1.0, z * 0.30], -1)
-    w1 = _noise3(P0.reshape(-1, 3), 7.0, k["seed"], 3).reshape(z.shape)
-    w2 = _noise3(np.stack([x, y, z], -1).reshape(-1, 3), 26.0, k["seed"] + 3, 2).reshape(z.shape)
-    amp = (0.0095 * (0.3 + 0.7 * zn) * (0.35 + 0.65 * wx + 0.4 * sdw)) * _ss(0.0, 0.03, z)
-    dd = w1 * amp + w2 * 0.0008 * _ss(0.0, 0.02, z) + rip
-    # diagonal tension folds from the bottom corners and from the handle roots
-    for sgn in (-1, 1):
-        u_ = (x * sgn - (hx - 0.03)) * 0.8 + (z - 0.02)
-        dd += fbw * -0.0026 * np.exp(-(u_ / 0.018) ** 2) * _ss(0.0, 0.03, z) * _ss(0.22, 0.05, z)
-        v_ = (x * sgn - 0.066) * 1.1 + (H - 0.05 - z)
-        dd += fbw * 0.0018 * np.exp(-(v_ / 0.02) ** 2) * _ss(H * 0.55, H * 0.85, z)
-    # sewn corner: the seam allowance inside lifts a soft welt along the vertical corner seam
-    dd += 0.0009 * np.exp(-((np.abs(x) - (hx - 0.0035)) / 0.0025) ** 2) * fbw * _ss(0.004, 0.02, z)
-    # folded 1.25 in hem: a double layer of denim -> a soft step where the turned edge ends,
-    # plus the hem band sitting a hair proud of the panel
-    hz = H - T["hem"] - 0.0015
-    dd += 0.0011 * _ss(hz - 0.0016, hz + 0.0016, z)
+    def _dd(x, y, z, zn, fbw, sdw, back):
+        """Normal displacement of the cloth (ripples, folds, welts, hem step)."""
+        wx = np.clip(1 - (x / hx) ** 2, 0, 1) ** 0.85
+        # long vertical ripples (gravity), growing with height; fade out into the corners
+        ph = k["seed"] * 1.7 + 2.3 * back
+        rip = (np.sin(x * 26.0 + ph) * 0.6 + np.sin(x * 47.0 + 1.3 * ph) * 0.4) * (0.15 + 0.85 * zn ** 1.3)
+        rip = rip * k["ripple"] * _ss(0.0, 0.05, z) * fbw * (1 - _ss(hx - 0.035, hx - 0.004, np.abs(x)))
+        # soft noise folds, stretched vertically
+        P0 = np.stack([x * 1.0, y * 1.0, z * 0.30], -1)
+        w1 = _noise3(P0.reshape(-1, 3), 7.0, k["seed"], 3).reshape(z.shape)
+        w2 = _noise3(np.stack([x, y, z], -1).reshape(-1, 3), 26.0, k["seed"] + 3, 2).reshape(z.shape)
+        amp = (0.0095 * (0.3 + 0.7 * zn) * (0.35 + 0.65 * wx + 0.4 * sdw)) * _ss(0.0, 0.03, z)
+        dd = w1 * amp + w2 * 0.0008 * _ss(0.0, 0.02, z) + rip
+        # diagonal tension folds from the bottom corners and from the handle roots
+        for sgn in (-1, 1):
+            u_ = (x * sgn - (hx - 0.03)) * 0.8 + (z - 0.02)
+            dd += fbw * -0.0026 * np.exp(-(u_ / 0.018) ** 2) * _ss(0.0, 0.03, z) * _ss(0.22, 0.05, z)
+            v_ = (x * sgn - 0.066) * 1.1 + (H - 0.05 - z)
+            dd += fbw * 0.0018 * np.exp(-(v_ / 0.02) ** 2) * _ss(H * 0.55, H * 0.85, z)
+        # sewn corner: the seam allowance inside lifts a soft welt along the vertical corner seam
+        dd += 0.0009 * np.exp(-((np.abs(x) - (hx - 0.0035)) / 0.0025) ** 2) * fbw * _ss(0.004, 0.02, z)
+        # folded 1.25 in hem: a double layer of denim -> a soft step where the turned edge ends,
+        # plus the hem band sitting a hair proud of the panel
+        hz = H - T["hem"] - 0.0015
+        dd += 0.0011 * _ss(hz - 0.0016, hz + 0.0016, z)
+        return dd
+    dd = _dd(x, y, z, zn, fbw, sdw, back)
+    # the sewn-on strap legs stiffen the panel under them: across the strap width the cloth follows a
+    # plane (the linear fit of the displacement over the 28 mm webbing), so no fold bulges through
+    # the strap or its stitching; the panel's own tilt there is kept, so the blend is gentle
+    dxh = T.get("handle_dx", 0.0)
+    if dxh:
+        ws = fbw * (1 - _ss(0.016, 0.056, np.abs(np.abs(x) - dxh))) * _ss(H - 0.085, H - 0.058, z)
+        sel = ws > 1e-4
+        if np.any(sel):
+            xs_, ys_, zs_ = x[sel], y[sel], z[sel]
+            xc = np.sign(xs_) * dxh
+            args = (ys_, zs_, zn[sel], fbw[sel], sdw[sel], back[sel])
+            d0 = _dd(xc, *args)
+            dl, dr = _dd(xc - 0.015, *args), _dd(xc + 0.015, *args)
+            dlin = d0 + (dr - dl) / 0.030 * (xs_ - xc)
+            dd[sel] = dd[sel] + (dlin - dd[sel]) * ws[sel]
     X = X + nx * dd; Y = Y + ny * dd
     return np.stack([X, Y, Z], -1), pan
 
@@ -1503,8 +1666,24 @@ def _catmull(ctrl, n=200):
     out.append(C[-2])
     return np.array(out)
 
-def tote(color="Natural", seed=None, logo="your logo", ink="cobalt"):
-    """Bull denim tote, 0.38 W x 0.40 H x 0.10 D, flat bottom, two handles standing up."""
+# per-colour handle poses (degrees / metres). lean0 -> lean1: the loop's spine tips away from the
+# bag (+ = outward: towards camera for the front handle) as it rises between bend0 and bend1 (m up
+# the loop) - a soft strap leaving its sewn root upright and drooping under gravity.
+TOTE_HANDLE_POSE = {
+    "_default": dict(peak=0.225, p=0.78, bow=0.22, skew=0.0, lean0=4.0, lean1=8.0, bend0=0.02,
+                     bend1=0.16, sway=0.0, twist=7.0, cup=0.0012),
+    "Black":   {"front": dict(peak=0.232, lean0=5.0, lean1=13.0, sway=-3.0, skew=0.04, twist=8.0),
+                "back":  dict(peak=0.222, lean0=6.0, lean1=19.0, sway=4.0, twist=-6.0)},
+    "Natural": {"front": dict(peak=0.228, lean0=-4.0, lean1=-34.0, bend0=0.02, bend1=0.17, sway=4.0,
+                              skew=-0.05, twist=9.0),
+                "back":  dict(peak=0.226, lean0=4.0, lean1=12.0, sway=-3.0, twist=-7.0)},
+    "White":   {"front": dict(peak=0.230, lean0=-3.0, lean1=-11.0, sway=3.0, skew=0.05, twist=7.0),
+                "back":  dict(peak=0.232, lean0=4.0, lean1=12.0, sway=-2.5, skew=-0.02, twist=-8.0)},
+}
+
+def tote(color="Natural", seed=None, logo="your logo", ink="cobalt", handle_pose=None):
+    """Bull denim tote, 0.38 W x 0.40 H x 0.10 D, flat bottom, two soft handles (per-colour poses in
+    TOTE_HANDLE_POSE; handle_pose={"front": {...}, "back": {...}} overrides)."""
     T = dict(TOTE)
     sd = seed if seed is not None else {"Black": 3, "Natural": 11, "White": 23}.get(color, 5)
     rs = np.random.RandomState(sd)
@@ -1518,8 +1697,11 @@ def tote(color="Natural", seed=None, logo="your logo", ink="cobalt"):
     mpath, asp = text_mask(logo, name="acc_logo_mask_print", blur=2)
     pw = 0.205
     rect = (0.0, 0.205, pw, pw / asp)
-    m_den = mat_denim(color, name=f"acc_denim_{color}", print_mask=mpath, print_rect=rect, ink=ink)
+    # the screen print is its own thin film object ("ToteInk", transparent outside the ink) over the
+    # plain denim body, so scenes can light-link fill cards to the cloth without lifting the ink
+    m_ink = mat_denim(color, name=f"acc_denim_ink_{color}", print_mask=mpath, print_rect=rect, ink=ink, decal=True)
     m_den_plain = mat_denim(color, name=f"acc_denim_plain_{color}")
+    m_den = m_den_plain
     # tonal thread a shade off the cloth so the top-stitching reads by colour as well as relief
     thread_col = {"Black": "#2c2c2c", "Natural": "#d8cbb0", "White": "#e4e3de"}.get(color, color)
     m_th = mat_thread_acc(thread_col, name=f"acc_tote_thread_{color}", shine=0.5)
@@ -1541,6 +1723,16 @@ def tote(color="Natural", seed=None, logo="your logo", ink="cobalt"):
     so.thickness = 0.0019; so.offset = -1.0; so.use_even_offset = True
     so.material_offset = 1
     body.data.materials.append(m_den_plain)
+    if logo:
+        # print film: the body grid over the print rect (same UVs), lifted 60 um off the cloth
+        mg = 0.012
+        iu = np.where(np.abs(pu - rect[0]) < rect[2] / 2 + mg)[0]
+        iz = np.where(np.abs(zz - rect[1]) < rect[3] / 2 + mg)[0]
+        PUi, ZZi = np.meshgrid(pu[iu], zz[iz], indexing="ij")
+        Pi = _tote_body(PUi, ZZi, T, k)[0] + _tote_normals(PUi, ZZi, T, k) * 0.00006
+        uvi = np.stack([PUi, ZZi], -1)
+        ink_o = _grid_obj("ToteInk", Pi, uv=uvi, mat=m_ink, parent=root)
+        ink_o.visible_shadow = False
     # bottom panel
     bp = _tote_body(pu, np.zeros_like(pu), T, k)[0]
     bv_ = np.vstack([bp, [[bp[:, 0].mean(), bp[:, 1].mean(), 0.0]]])
@@ -1591,11 +1783,11 @@ def tote(color="Natural", seed=None, logo="your logo", ink="cobalt"):
             nx_, ny_, _ = corners_[ci + 1]
             for f in np.linspace(0, 1, 10)[1:-1]:
                 sprof.append((cx + (nx_ - cx) * f, (st / 2) * (1 if ci == 0 else -1)))
+    poses = handle_pose or TOTE_HANDLE_POSE.get(color, TOTE_HANDLE_POSE["Natural"])
     for face, sgn in (("front", -1), ("back", 1)):
         dx = T["handle_dx"]
-        lean = math.radians(rs.uniform(3, 9)) * sgn
-        sway = math.radians(rs.uniform(-7, 7))
-        peak = rs.uniform(0.215, 0.245)
+        hp = dict(TOTE_HANDLE_POSE["_default"]); hp.update(poses.get(face, {}))
+        peak = hp["peak"]
         # flat attachment parts (conform to the panel), p of x on front/back panel
         def p_of_x(xv):
             return xv if face == "front" else (Lp / 2 - xv) if xv >= 0 else (-Lp / 2 - xv)
@@ -1606,46 +1798,76 @@ def tote(color="Natural", seed=None, logo="your logo", ink="cobalt"):
             pts, _ = _tote_body(ps, zs, T, k)
             nr = _tote_normals(ps, zs, T, k)
             legs.append((pts + nr * (st / 2 + 0.0004), nr))
-        # top of each leg -> arc
         A, An = legs[0][0][-1], legs[0][1][-1]
         B, Bn = legs[1][0][-1], legs[1][1][-1]
         out_n = _norm((An + Bn) / 2)
         xdir = _norm(B - A)
         zdir = np.array([0, 0, 1.0])
-        # arc in a local plane, then lean (about xdir) & sway
+        out_n = _norm(out_n - (out_n @ xdir) * xdir)
+        up0 = _norm(np.cross(xdir, out_n))          # in-plane "up" (vertical-ish)
+        if up0[2] < 0:
+            up0 = -up0
         half = np.linalg.norm(B - A) / 2
-        ctrl2 = [(-half, 0.0), (-half - 0.010, 0.050), (-half - 0.020, 0.115), (-half * 0.72, 0.185),
-                 (0.0, peak), (half * 0.72, 0.185), (half + 0.020, 0.115), (half + 0.010, 0.050), (half, 0.0)]
-        arc2 = _catmull(ctrl2, 240)
         mid = (A + B) / 2
-        upv = zdir * math.cos(lean) + out_n * math.sin(abs(lean)) * 1.0
-        upv = _norm(upv)
-        # sway: tip the arc sideways a little about the out-normal
-        upv2 = _norm(upv * math.cos(sway) + xdir * math.sin(sway))
-        arc = mid[None, :] + arc2[:, 0:1] * xdir[None, :] + arc2[:, 1:2] * upv2[None, :]
+        # soft loop, one smooth curve (no apex kink): a(u) = -half cos u (1 + bow sin^2 u),
+        # b(u) = peak sin^p u -> vertical tangents at the roots, horizontal at the top
+        nl = 400
+        u = np.linspace(0, np.pi, nl)
+        su = np.sin(u)
+        a_ = -half * np.cos(u) * (1 + hp["bow"] * su ** 2) + hp["skew"] * peak * su ** 2
+        b_ = peak * su ** hp["p"]
+        # the loop's spine bends about xdir: lean angle phi grows with height (gravity)
+        bb = np.linspace(0, peak, 300)
+        phi = math.radians(hp["lean0"]) + math.radians(hp["lean1"] - hp["lean0"]) * _ss(hp["bend0"], hp["bend1"], bb)
+        dbb = np.diff(bb, prepend=0.0)
+        cy = np.cumsum(np.sin(phi) * dbb); cz = np.cumsum(np.cos(phi) * dbb)
+        Cy, Cz = np.interp(b_, bb, cy), np.interp(b_, bb, cz)
+        ph_ = np.interp(b_, bb, phi)
+        sway = math.radians(hp["sway"])
+        upv = _norm(up0 * math.cos(sway) + xdir * math.sin(sway))
+        xd2 = _norm(xdir * math.cos(sway) - up0 * math.sin(sway))
+        arc = (mid[None, :] + a_[:, None] * xd2[None, :] + Cz[:, None] * upv[None, :] +
+               Cy[:, None] * out_n[None, :])
+        # strap face normal: the out-normal tipped with the spine. Near the roots it starts from each
+        # leg's own panel normal (the panel turns ~10 deg across the cave / ripples), so the strap's
+        # edges never twist back through the wall where the sewn leg becomes the free loop
+        rootn = np.where((u < np.pi / 2)[:, None], An[None, :], Bn[None, :])
+        rw_ = _ss(0.004, 0.045, b_)[:, None]
+        on_ = _norm(rootn * (1 - rw_) + out_n[None, :] * rw_)
+        arc_n = _norm(np.cos(ph_)[:, None] * on_ - np.sin(ph_)[:, None] * upv[None, :])
         # assemble: leg0 (bottom->top), arc, leg1 (top->bottom)
         path = np.vstack([legs[0][0][:-1], arc, legs[1][0][::-1][1:]])
-        pn0 = np.vstack([legs[0][1][:-1], np.zeros_like(arc), legs[1][1][::-1][1:]])
-        path, _L = _resample(path, 0.0015)
-        # smooth the joints
-        for _ in range(6):
+        pn0 = np.vstack([legs[0][1][:-1], arc_n, legs[1][1][::-1][1:]])
+        flag = np.concatenate([np.zeros(len(legs[0][0]) - 1), np.minimum(b_ / 0.02, 1.0),
+                               np.zeros(len(legs[1][0]) - 1)])
+        path, ex_, _L = _resample(path, 0.0012, np.column_stack([pn0, flag]))
+        pn0, sfree = ex_[:, :3], ex_[:, 3]
+        for _ in range(4):
             path[1:-1] = path[1:-1] * 0.5 + (path[:-2] + path[2:]) * 0.25
-        Tn = _norm(np.gradient(path, axis=0))
-        # width direction: along xdir on the panel, twisting towards the out-normal near the top
-        hgt = np.clip((path - mid) @ upv2, 0, None) / peak
-        alpha = np.radians(78) * _ss(0.05, 0.85, hgt) * (1 + 0.15 * np.sin(np.arange(len(path)) / 40.0))
-        wv = np.cos(alpha)[:, None] * xdir[None, :] + np.sin(alpha)[:, None] * out_n[None, :]
-        wv = _norm(wv - (wv * Tn).sum(-1, keepdims=True) * Tn)
-        Nn = _norm(np.cross(Tn, wv))
-        # make the strap face point away from the bag on the legs
-        if (Nn[0] * out_n).sum() < 0:
-            Nn = -Nn
+            pn0[1:-1] = pn0[1:-1] * 0.5 + (pn0[:-2] + pn0[2:]) * 0.25
+        Tn, Bw, Nn = _frames(path, pn0)
+        # slight twist along the free length (5-10 deg), zero where the strap is sewn flat
+        sl = np.linspace(0, 1, len(path))
+        tw = math.radians(hp["twist"]) * np.sin(np.pi * sl) * (0.6 + 0.4 * np.sin(3 * np.pi * sl + sd)) * sfree
+        ca_, sa_ = np.cos(tw)[:, None], np.sin(tw)[:, None]
+        Bw, Nn = ca_ * Bw + sa_ * Nn, -sa_ * Bw + ca_ * Nn
         strap = _sweep(f"ToteHandle_{face}", path, Nn, sprof, mat=m_den_plain, parent=root,
                        uv_scale=(1.0, 1.0))
-        Bw = np.cross(Tn, Nn)
+        # soft webbing: the band cups a little across its width where it bends edgewise
+        cup = hp["cup"] * sfree * np.sin(np.pi * sl) ** 0.5
+        me = strap.data
+        nprof = len(sprof)
+        co = np.empty(len(me.vertices) * 3); me.vertices.foreach_get("co", co); co = co.reshape(-1, 3)
+        npath = len(path)
+        sx_ = np.array([q[0] for q in sprof]) / (sw / 2)
+        V = co[:npath * nprof].reshape(npath, nprof, 3)
+        V += (cup[:, None, None] * (sx_[None, :, None] ** 2 - 0.35)) * Nn[:, None, :]
+        co[:npath * nprof] = V.reshape(-1, 3)
+        me.vertices.foreach_set("co", co.ravel()); me.update()
         for off in (-sw / 2 + 0.0035, sw / 2 - 0.0035):
+            cq = cup * ((off / (sw / 2)) ** 2 - 0.35)
             for fs in (1, -1):
-                q_ = path + Bw * off + Nn * fs * (st / 2)
+                q_ = path + Bw * off + Nn * (fs * (st / 2) + cq)[:, None]
                 rows.append((q_[3:-3], Nn[3:-3] * fs))
         # box-X stitch at each attachment
         for leg in legs:
@@ -1669,12 +1891,27 @@ def tote(color="Natural", seed=None, logo="your logo", ink="cobalt"):
 JOURNAL = dict(Wc=0.1397, Lc=0.2096, tc=0.0013, Tp=0.0124, sq=0.0022, rc=0.0065, el_w=0.0062, el_t=0.0013,
                el_x=0.0165)
 
-def mat_ultrahyde(color, name=None, logo_rect=None, sharp=None, soft=None, foil="chrome"):
+# per-colourway sRGB value trim for the UltraHyde covers: the satin coat + grain sheen lift the lit
+# cover above the catalog swatch on saturated reds / purples (measured on the flat lit top faces)
+JOURNAL_VALUE = {"Red": 0.88, "Purple": 0.91}
+
+def _col_value(name, k):
+    h = SWATCH.get(name, name)
+    if not str(h).startswith("#"):
+        c = _col(name)
+        return (c[0] * k ** 2.2, c[1] * k ** 2.2, c[2] * k ** 2.2, 1.0)
+    h = h.lstrip("#")
+    return tuple(_c.srgb_to_linear(min(1.0, int(h[i:i + 2], 16) / 255 * k)) for i in (0, 2, 4)) + (1.0,)
+
+def mat_ultrahyde(color, name=None, logo_rect=None, sharp=None, soft=None, foil="chrome", value=None):
     """Italian UltraHyde faux leather: fine pebble grain, satin sheen, gentle tonal variation.
-    Optional foil deboss from masks mapped in UV space (u,v in metres)."""
+    Optional foil deboss from masks mapped in UV space (u,v in metres). value: sRGB value trim
+    (default JOURNAL_VALUE per colourway)."""
+    vk = JOURNAL_VALUE.get(color, 1.0) if value is None else value
     def mk():
         m, nt, b = _c._new_mat(name or f"acc_ultrahyde_{color}")
-        base = _col(color)
+        base = _col_value(color, vk)
+        dark = sum(base[:3]) / 3 < 0.02
         tc = nt.nodes.new("ShaderNodeTexCoord")
         uv = tc.outputs["UV"]
         vor = nt.nodes.new("ShaderNodeTexVoronoi")
@@ -1689,8 +1926,9 @@ def mat_ultrahyde(color, name=None, logo_rect=None, sharp=None, soft=None, foil=
         lo = tuple(c * 0.86 for c in base[:3]) + (1,)
         hi = tuple(min(1, c * 1.10) for c in base[:3]) + (1,)
         col = _mixc(nt, _mixf(nt, 0.4, grain, mot), lo, hi)
-        rough = _mixf(nt, grain, 0.40, 0.58)
-        coat = 0.12
+        # black: a softer, lower satin (the white coat / sheen lobes alone read charcoal on #151515)
+        rough = _mixf(nt, grain, 0.48, 0.66) if dark else _mixf(nt, grain, 0.40, 0.58)
+        coat = 0.05 if dark else 0.12
         bump_h = h
         foil_m = None
         if logo_rect is not None:
@@ -1716,9 +1954,11 @@ def mat_ultrahyde(color, name=None, logo_rect=None, sharp=None, soft=None, foil=
         nt.links.new(col, b.inputs["Base Color"])
         nt.links.new(rough, b.inputs["Roughness"])
         b.inputs["Coat Weight"].default_value = coat
-        b.inputs["Coat Roughness"].default_value = 0.35
-        b.inputs["Sheen Weight"].default_value = 0.15
+        b.inputs["Coat Roughness"].default_value = 0.42 if dark else 0.35
+        b.inputs["Sheen Weight"].default_value = 0.04 if dark else 0.15
         b.inputs["Sheen Roughness"].default_value = 0.4
+        if dark:
+            b.inputs["Specular IOR Level"].default_value = 0.35
         nrm = _bumpn(nt, bump_h, 0.42, 0.00035)
         nt.links.new(nrm, b.inputs["Normal"])
         if foil_m is not None:
@@ -1729,7 +1969,7 @@ def mat_ultrahyde(color, name=None, logo_rect=None, sharp=None, soft=None, foil=
                                                                    _col(foil))
             fb.inputs["Base Color"].default_value = tint
             fb.inputs["Metallic"].default_value = 1.0
-            fb.inputs["Roughness"].default_value = 0.12
+            fb.inputs["Roughness"].default_value = 0.09
             fb.inputs["Anisotropic"].default_value = 0.2
             fn = _noise(nt, uv, 1 / 0.0012, detail=2.0)
             nt.links.new(_bumpn(nt, _math(nt, "SUBTRACT", _math(nt, "MULTIPLY", fn, 0.2),
@@ -1740,7 +1980,7 @@ def mat_ultrahyde(color, name=None, logo_rect=None, sharp=None, soft=None, foil=
             nt.links.new(fb.outputs["BSDF"], mix.inputs[2])
             nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
         return m
-    return _cached(("ultrahyde", color, name, sharp), mk)
+    return _cached(("ultrahyde", color, name, sharp, vk), mk)
 
 def mat_foil_decal(logo_rect, sharp, soft, foil="chrome", name="acc_foil_decal"):
     """Hot-foil film as its own thin decal (alpha = the sharp logo mask) so scenes can light-link a
@@ -1765,7 +2005,7 @@ def mat_foil_decal(logo_rect, sharp, soft, foil="chrome", name="acc_foil_decal")
         tint = (0.92, 0.93, 0.95, 1) if foil == "chrome" else (rgb(foil) if foil in _c.PALETTE else _col(foil))
         fb.inputs["Base Color"].default_value = tint
         fb.inputs["Metallic"].default_value = 1.0
-        fb.inputs["Roughness"].default_value = 0.12
+        fb.inputs["Roughness"].default_value = 0.09
         fb.inputs["Anisotropic"].default_value = 0.2
         fn = _noise(nt, uv, 1 / 0.0012, detail=2.0)
         # pressed-in letter walls: the soft mask darkens / tilts the normal at the stroke edges
@@ -1818,9 +2058,13 @@ def mat_elastic(color, name=None):
         h = _math(nt, "ADD", _math(nt, "MULTIPLY", ribs, 0.7), _math(nt, "MULTIPLY", fib, 0.3))
         col = _mixc(nt, h, tuple(c * 0.6 for c in base[:3]) + (1,), base)
         nt.links.new(col, b.inputs["Base Color"])
-        b.inputs["Roughness"].default_value = 0.55
-        b.inputs["Sheen Weight"].default_value = 0.6
-        b.inputs["Sheen Roughness"].default_value = 0.3
+        b.inputs["Roughness"].default_value = 0.6
+        # dyed-to-match woven elastic: the fuzz sheen carries the dye (a white sheen greyed every
+        # colourway to the same slate)
+        b.inputs["Sheen Weight"].default_value = 0.35
+        b.inputs["Sheen Roughness"].default_value = 0.35
+        b.inputs["Sheen Tint"].default_value = tuple(min(1, c * 1.6) for c in base[:3]) + (1,)
+        b.inputs["Specular IOR Level"].default_value = 0.25
         nt.links.new(_bumpn(nt, h, 0.6, 0.0003), b.inputs["Normal"])
         return m
     return _cached(("elastic", color, name), mk)
@@ -1834,12 +2078,12 @@ def mat_ribbon(color, name=None):
         tc = nt.nodes.new("ShaderNodeTexCoord")
         w = _wave(nt, tc.outputs["UV"], 0.31416 / 0.00016, "Y", distortion=0.2)
         b.inputs["Base Color"].default_value = base
-        b.inputs["Roughness"].default_value = 0.32
-        b.inputs["Anisotropic"].default_value = 0.9
-        b.inputs["Sheen Weight"].default_value = 0.35
-        b.inputs["Sheen Roughness"].default_value = 0.3
-        b.inputs["Sheen Tint"].default_value = tuple(min(1, c * 2.0 + 0.05) for c in base[:3]) + (1,)
-        b.inputs["Specular IOR Level"].default_value = 0.4
+        b.inputs["Roughness"].default_value = 0.4
+        b.inputs["Anisotropic"].default_value = 0.7
+        b.inputs["Sheen Weight"].default_value = 0.3
+        b.inputs["Sheen Roughness"].default_value = 0.35
+        b.inputs["Sheen Tint"].default_value = tuple(min(1, c * 1.8 + 0.03) for c in base[:3]) + (1,)
+        b.inputs["Specular IOR Level"].default_value = 0.2
         b.inputs["Coat Weight"].default_value = 0.0
         tg = nt.nodes.new("ShaderNodeTangent")
         tg.direction_type = "UV_MAP"
@@ -1847,6 +2091,35 @@ def mat_ribbon(color, name=None):
         nt.links.new(_bumpn(nt, w, 0.12, 0.00006), b.inputs["Normal"])
         return m
     return _cached(("ribbon", color, name), mk)
+
+def mat_slit(core_w=0.8, z_peak=0.6, name="acc_ribbon_slit"):
+    """Soft dark crevice where a ribbon leaves the page block: opaque-ish shadow over the ribbon's
+    width (u 0..1 across, v 0..1 up), feathering to clear at both ends and above / below."""
+    def mk():
+        m, nt, b = _c._new_mat(name)
+        b.inputs["Base Color"].default_value = (0.012, 0.010, 0.008, 1)
+        b.inputs["Roughness"].default_value = 1.0
+        b.inputs["Specular IOR Level"].default_value = 0.0
+        sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+        nt.links.new(nt.nodes.new("ShaderNodeTexCoord").outputs["UV"], sep.inputs["Vector"])
+        # across: plateau over the ribbon width, smooth falloff outside it
+        du = _math(nt, "ABSOLUTE", _math(nt, "SUBTRACT", sep.outputs["X"], 0.5))
+        fu = nt.nodes.new("ShaderNodeMapRange"); fu.interpolation_type = "SMOOTHSTEP"
+        fu.inputs["From Min"].default_value = 0.5; fu.inputs["From Max"].default_value = core_w * 0.5 - 0.02
+        nt.links.new(du, fu.inputs["Value"])
+        # up: peak just above the ribbon's top face, fading up and down
+        dv = _math(nt, "ABSOLUTE", _math(nt, "SUBTRACT", sep.outputs["Y"], z_peak))
+        fv = nt.nodes.new("ShaderNodeMapRange"); fv.interpolation_type = "SMOOTHSTEP"
+        fv.inputs["From Min"].default_value = max(z_peak, 1 - z_peak); fv.inputs["From Max"].default_value = 0.05
+        nt.links.new(dv, fv.inputs["Value"])
+        a = _math(nt, "MULTIPLY", _math(nt, "MULTIPLY", fu.outputs["Result"], fv.outputs["Result"]), 0.85)
+        out = nt.nodes.get("Material Output")
+        tr = nt.nodes.new("ShaderNodeBsdfTransparent")
+        mx = nt.nodes.new("ShaderNodeMixShader")
+        nt.links.new(a, mx.inputs["Fac"]); nt.links.new(tr.outputs["BSDF"], mx.inputs[1])
+        nt.links.new(b.outputs["BSDF"], mx.inputs[2]); nt.links.new(mx.outputs["Shader"], out.inputs["Surface"])
+        return m
+    return _cached(("slit", round(core_w, 3), round(z_peak, 3)), mk)
 
 def _cover_section(J, n_spine=24, n_plate=70, n_corner=16):
     """Centre-line of the wraparound cover in XZ: back plate (fore-edge -> spine), round spine,
@@ -2028,21 +2301,26 @@ def journal(color="Blue", seed=None, logo="your logo", foil="chrome", ribbon_len
     y_p = -Lp / 2
     zb = rt / 2 + 0.0001
     y_e = -Lc / 2                                      # back-cover tail edge
-    bez = [np.array(v) for v in ((y_p + 0.012, zr), (y_e - 0.0035, zr + 0.0004),
-                                 (y_e - 0.0050, zb), (y_e - 0.0125, zb))]
-    uu = np.linspace(0, 1, 120)
+    # page-block tail face at the ribbon's height (the face is a hair concave, see the page rings)
+    zn_r = (zr - zp[0]) / (zp[-1] - zp[0])
+    y_face = y_p + 0.4 * 0.0011 * (1 - (2 * zn_r - 1) ** 2)
+    # the ribbon is laid between the leaves 4 mm deep, leaves the tail face and rolls straight down
+    # over the back cover's edge (fold radius ~2.5 mm), then lies out on whatever is below
+    bez = [np.array(v) for v in ((y_face + 0.004, zr), (y_face - 0.0050, zr + 0.0001),
+                                 (y_e - 0.0036, zb + 0.0022), (y_e - 0.0105, zb))]
+    uu = np.linspace(0, 1, 240)
     B2 = ((1 - uu) ** 3)[:, None] * bez[0] + (3 * (1 - uu) ** 2 * uu)[:, None] * bez[1] + \
          (3 * (1 - uu) * uu ** 2)[:, None] * bez[2] + (uu ** 3)[:, None] * bez[3]
     R = np.column_stack([np.full(len(B2), xr), B2[:, 0], B2[:, 1]])
     if out_len > 0.012:
         # lying part: one gentle sideways arc (no kinks), length out_len beyond the landing
         L_lay = out_len - 0.012
-        q = np.linspace(0, 1, 60)[1:]
+        q = np.linspace(0, 1, 120)[1:]
         drift = rs_.choice([-1, 1]) * 0.22 * L_lay
         lay = np.stack([xr + drift * q ** 2, R[-1, 1] - L_lay * q, np.full_like(q, zb)], -1)
         R = np.vstack([R, lay])
-    R, _ = _resample(R, 0.0006)
-    for _ in range(6):
+    R, _ = _resample(R, 0.0003)                        # 0.3 mm stations: folds stay round, not faceted
+    for _ in range(24):
         R[1:-1] = R[1:-1] * 0.5 + (R[:-2] + R[2:]) * 0.25
     TR = _norm(np.gradient(R, axis=0))
     # ribbon width stays (nearly) across X -> no frame flips where it turns vertical
@@ -2058,6 +2336,21 @@ def journal(color="Blue", seed=None, logo="your logo", foil="chrome", ribbon_len
     co = np.empty(len(me.vertices) * 3); me.vertices.foreach_get("co", co); co = co.reshape(-1, 3)
     co[-1] = co[-1] - TR[-1] * 0.0040
     me.vertices.foreach_set("co", co.ravel()); me.update()
+    # a 0.25 mm satin strip: smooth along its length (folds read as round bends), but its faces and
+    # thin side walls are split by sharp edges, so the edges never read as a rounded, glossy rim
+    me.polygons.foreach_set("use_smooth", [True] * len(me.polygons))
+    me.set_sharp_from_angle(angle=math.radians(50))
+    # the slit between the leaves the ribbon comes out of: a soft dark crevice on the tail face,
+    # a little wider than the ribbon, deepest right above it (the leaves resting on the satin)
+    sx0, sx1 = xr - rw / 2 - 0.0016, xr + rw / 2 + 0.0016
+    sz0, sz1 = zr - rt / 2 - 0.00022, zr + rt / 2 + 0.00045
+    nsx, nsz = 24, 6
+    GX, GZ = np.meshgrid(np.linspace(sx0, sx1, nsx), np.linspace(sz0, sz1, nsz), indexing="ij")
+    Ps = np.stack([GX, np.full_like(GX, y_face - 0.00004), GZ], -1)
+    uvs = np.stack([(GX - sx0) / (sx1 - sx0), (GZ - sz0) / (sz1 - sz0)], -1)
+    _grid_obj("JournalRibbonSlit", Ps, uv=uvs, mat=mat_slit(rw / (sx1 - sx0),
+              (zr + rt / 2 - sz0) / (sz1 - sz0)), parent=root).visible_shadow = False
+    rib["ribbon_stations"] = len(R); rib["ribbon_prof"] = len(rprof); rib["ribbon_t"] = rt
 
     bpy.context.view_layer.update()
     _rest(root, np.vstack([_all_mesh_points(cov, 2), _all_mesh_points(pages, 2)]))

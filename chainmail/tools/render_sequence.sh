@@ -2,29 +2,83 @@
 # Render the packing sequence (frames 0..120 -> blender/out/sequence/####.png) in resumable
 # chunks, then publish it (WebP 1280 + 720 + manifest.json) with tools/optimize.py.
 #
-#   tools/render_sequence.sh                 # all 121 frames, chunks of 10, skips frames already on disk
+#   tools/render_sequence.sh                 # all 121 frames, chunks of 15, skips frames already on disk
 #   CHUNK=6 tools/render_sequence.sh         # smaller chunks (each chunk = one Blender process)
 #   FIRST=40 LAST=80 tools/render_sequence.sh
 #   FORCE=1 tools/render_sequence.sh         # re-render everything
 #   EXTRA="--samples 96" tools/render_sequence.sh
+#   tools/render_sequence.sh --freeze        # (re)snapshot blender/lib -> blender/lib_frozen_seq, then exit
 #
-# Safe to Ctrl-C and re-run: a frame is only skipped once its PNG exists (Blender writes the file
-# at the end of the frame, so an interrupted frame is simply rendered again).
+# Geometry lock: kit_sequence.py (and kit_hero_open.py) import the item libs AND blender/assets (fonts,
+# HDRIs, generated label/logo textures) from the frozen snapshot blender/lib_frozen_seq/ (sha256
+# MANIFEST, verified at start), so other agents editing blender/lib
+# cannot change the kit between chunks. The snapshot digest is stamped into $OUT/.libs_digest by the
+# first rendered chunk; a later run with a different snapshot refuses to mix frames (FORCE=1 to re-render
+# everything with the new one). After --freeze, re-run the hero and `kit_sequence.py -- --check`.
+#
+# Safe to Ctrl-C / kill and re-run: kit_sequence.py renders each frame to ####.tmp.png and renames it
+# only once the PNG is complete, and a frame is only skipped if its PNG is whole (signature + IEND
+# chunk; with PIL available also Image.verify()). Truncated/corrupt frames and stale *.tmp.png files
+# are deleted here before every chunk, so they are simply rendered again.
 set -euo pipefail
 cd "$(dirname "$0")/.."                       # -> chainmail/
 BLENDER="${BLENDER:-blender}"
 FIRST="${FIRST:-0}"
 LAST="${LAST:-120}"
-CHUNK="${CHUNK:-10}"
+CHUNK="${CHUNK:-15}"
 OUT="blender/out/sequence"
 EXTRA="${EXTRA:-}"
 mkdir -p "$OUT" blender/out/logs
 
-missing() {  # frames in [$1, $2] without a PNG
-  local f
-  for ((f = $1; f <= $2; f++)); do
-    [[ -n "${FORCE:-}" || ! -s "$(printf '%s/%04d.png' "$OUT" "$f")" ]] && echo "$f"
-  done
+if [[ "${1:-}" == "--freeze" ]]; then
+  python3 blender/lib/seq_freeze.py | head -n 1
+  echo "[render_sequence] snapshot refreshed: re-run kit_hero_open.py and kit_sequence.py -- --check before rendering"
+  exit 0
+fi
+if [[ ! -f blender/lib_frozen_seq/MANIFEST.json ]]; then
+  echo "[render_sequence] no lib snapshot (blender/lib_frozen_seq) - run: tools/render_sequence.sh --freeze"; exit 1
+fi
+DIGEST=$(python3 -c "import sys; sys.path.insert(0, 'blender/lib'); import seq_freeze, json; print(seq_freeze.digest(json.load(open(seq_freeze.FROZEN_DIR + '/MANIFEST.json'))))")
+if [[ -f "$OUT/.libs_digest" && "$(cat "$OUT/.libs_digest")" != "$DIGEST" && -z "${FORCE:-}" ]]; then
+  if ls "$OUT"/[0-9][0-9][0-9][0-9].png >/dev/null 2>&1; then
+    echo "[render_sequence] frames on disk were rendered with lib snapshot $(cat "$OUT/.libs_digest"), the snapshot is now"
+    echo "  $DIGEST - refusing to mix geometry. Use FORCE=1 to re-render all, or restore the old snapshot."; exit 1
+  fi
+fi
+echo "$DIGEST" > "$OUT/.libs_digest"
+echo "[render_sequence] lib snapshot $DIGEST"
+
+missing() {  # frames in [$1, $2] without a complete PNG (corrupt ones are deleted)
+  if [[ -n "${FORCE:-}" ]]; then seq "$1" "$2"; return; fi
+  python3 - "$OUT" "$1" "$2" <<'PY'
+import os, sys
+out, a, b = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
+for f in range(a, b + 1):
+    p = os.path.join(out, f"{f:04d}.png")
+    t = os.path.join(out, f"{f:04d}.tmp.png")
+    if os.path.exists(t):
+        os.remove(t)
+    ok = False
+    if os.path.exists(p) and os.path.getsize(p) > 64:
+        with open(p, "rb") as fh:
+            head = fh.read(8); fh.seek(-12, os.SEEK_END); tail = fh.read(12)
+        ok = head == b"\x89PNG\r\n\x1a\n" and tail[4:8] == b"IEND"
+        if ok and Image is not None:
+            try:
+                with Image.open(p) as im:
+                    im.verify()
+            except Exception:
+                ok = False
+        if not ok:
+            os.remove(p)
+            print(f"[render_sequence] removed corrupt {p}", file=sys.stderr)
+    if not ok:
+        print(f)
+PY
 }
 
 start=$(date +%s)

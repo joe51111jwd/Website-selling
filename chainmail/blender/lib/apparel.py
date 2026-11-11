@@ -367,8 +367,8 @@ class _NB:
 
     def bump(self, height, strength, distance, normal=None):
         b = self.nt.nodes.new("ShaderNodeBump")
-        b.inputs["Strength"].default_value = strength
-        b.inputs["Distance"].default_value = distance
+        self._in(b.inputs["Strength"], strength)
+        self._in(b.inputs["Distance"], distance)
         self.link(height, b.inputs["Height"])
         if normal is not None:
             self.link(normal, b.inputs["Normal"])
@@ -394,14 +394,43 @@ def _rib(nb, across, pitch=0.0019):
     return nb.m("POWER", s, 0.55)
 
 
+def _blotch(nb, vec, w):
+    """Sheen weight w broken up by 1-2 mm nap blotches (mean ~w)."""
+    nap = nb.noise(vec, 520.0, 2.0, 0.5)
+    nap = nb.m("MULTIPLY_ADD", nb.m("SUBTRACT", nap, 0.5), 0.8, 1.0)
+    return nb.m("MULTIPLY", nap, w, clamp=True)
+
+
+def _knit_tri(nb, tc, x, y, z, w, h, sharp=8.0):
+    """Jersey/terry face projected tri-planar from object space: courses run across the garment
+    (X on the top, wrapping into Z over the folds), wales run along it (Y on top, Z on the -Y/+Y
+    fold faces). Fold faces (-Y waist, +-X sides) take their own projection instead of the top's
+    Y coordinate, whose iso-lines on a wavy, near-vertical fold read as wood-grain contours."""
+    sn = nb.new("ShaderNodeSeparateXYZ")
+    nb.link(tc.outputs["Normal"], sn.inputs[0])
+    wx = nb.m("POWER", nb.m("ABSOLUTE", sn.outputs[0]), sharp)
+    wy = nb.m("POWER", nb.m("ABSOLUTE", sn.outputs[1]), sharp)
+    wz = nb.m("POWER", nb.m("ABSOLUTE", sn.outputs[2]), sharp)
+    tot = nb.m("ADD", nb.m("ADD", wx, wy), nb.m("ADD", wz, 1e-6))
+    h_top = _jersey(nb, x, y, w, h)
+    h_fy = _jersey(nb, x, z, w, h)          # waist / neck fold faces: courses X, wales Z
+    h_fx = _jersey(nb, z, y, w, h)          # side fold faces: courses Z, wales Y
+    acc = nb.m("ADD", nb.m("MULTIPLY", h_top, wz), nb.m("MULTIPLY", h_fy, wy))
+    acc = nb.m("ADD", acc, nb.m("MULTIPLY", h_fx, wx))
+    return nb.m("DIVIDE", acc, tot)
+
+
 def mat_knit(color, name=None, kind="jersey", rib_axis="OBJ_Y", rib_pitch=0.0019, ink=None,
-             print_rect=None, bump=0.85):
+             print_rect=None, bump=0.85, hem=None):
     """Cotton knit. kind: 'jersey' (tee face), 'fleece' (heavyweight French terry / brushed
     hoodie face: matte, fuzzy, light-absorbing) or 'rib' (1x1 rib; rib_axis picks which
     coordinate runs ACROSS the wales: OBJ_X / OBJ_Y / UV_X / UV_Y, UVs in metres).
-    Optional screen print: print_rect=(cx, cy, w, h) in object space (top projection), ink=hex."""
+    Optional screen print: print_rect=(cx, cy, w, h) in object space (top projection), ink=hex.
+    Optional hem=(y_seam, z_edge): a 1x1 rib waistband region (wales along the garment) read from
+    the mesh's pre-drape rest position attribute `apparel_rest`: y < y_seam and z > z_edge (the
+    band wrapping the front fold). Meshes without the attribute get no band."""
     hexc = _hex(color)
-    name = name or f"apparel_{kind}_{color}" + ("_print" if print_rect else "") + (f"_{rib_axis}_{rib_pitch}" if kind == "rib" else "")
+    name = name or f"apparel_{kind}_{color}" + ("_print" if print_rect else "") + (f"_{rib_axis}_{rib_pitch}" if kind == "rib" else "") + ("_hem" if hem else "")
     if name in bpy.data.materials:
         return bpy.data.materials[name]
     m, nt, b = _new_mat(name)
@@ -424,9 +453,32 @@ def mat_knit(color, name=None, kind="jersey", rib_axis="OBJ_Y", rib_pitch=0.0019
             across = y
         H = _rib(nb, across, rib_pitch)
     elif kind == "fleece":
-        H = _jersey(nb, x, y, w=0.00135, h=0.00112)        # French-terry face, heavier gauge
+        H = _knit_tri(nb, tc, x, y, z, w=0.00135, h=0.00112)        # French-terry face, heavier gauge
     else:
-        H = _jersey(nb, x, y)
+        H = _knit_tri(nb, tc, x, y, z, w=0.00078, h=0.00062)
+    hem_m = None
+    if hem is not None:
+        y_seam, z_edge = hem
+        at = nb.new("ShaderNodeAttribute", attribute_name="apparel_rest")
+        rs = nb.new("ShaderNodeSeparateXYZ")
+        nb.link(at.outputs["Vector"], rs.inputs[0])
+        ry, rz = rs.outputs[1], rs.outputs[2]
+        # the hem edge on the front face wanders a little (it is the garment's own bottom edge)
+        wob = nb.m("MULTIPLY", nb.m("SUBTRACT", nb.noise(at.outputs["Vector"], 18.0, 2.0), 0.5), 0.004)
+        m_top = nb.m("SUBTRACT", 1.0, nb.m("MINIMUM", nb.m("MAXIMUM", nb.m("MULTIPLY", nb.m("SUBTRACT", ry, y_seam), 2500.0), 0.0), 1.0))
+        m_bot = nb.m("MINIMUM", nb.m("MAXIMUM", nb.m("MULTIPLY", nb.m("SUBTRACT", rz, nb.m("ADD", z_edge, wob)), 2500.0), 0.0), 1.0)
+        has = nb.m("GREATER_THAN", nb.m("ABSOLUTE", ry), 1e-5)            # attribute present
+        hem_m = nb.m("MULTIPLY", nb.m("MULTIPLY", m_top, m_bot), has)
+        # wales run along the garment: across-coordinate X on the top / front fold, Y where the band
+        # wraps round the rounded corners onto the side folds (no stretched, arcing wales there)
+        sn = nb.new("ShaderNodeSeparateXYZ")
+        nb.link(tc.outputs["Normal"], sn.inputs[0])
+        wsx = nb.m("POWER", nb.m("ABSOLUTE", sn.outputs[0]), 4.0)
+        wsy = nb.m("POWER", nb.m("ABSOLUTE", sn.outputs[1]), 4.0)
+        wsz = nb.m("POWER", nb.m("ABSOLUTE", sn.outputs[2]), 4.0)
+        fx = nb.m("DIVIDE", wsx, nb.m("ADD", nb.m("ADD", wsx, wsy), nb.m("ADD", wsz, 1e-6)))
+        H_rib = nb.mix(fx, _rib(nb, x, 0.0024), _rib(nb, y, 0.0024), kind="FLOAT")
+        H = nb.mix(hem_m, H, H_rib, kind="FLOAT")
     yarn = nb.noise(obj, 2600.0, 3.0, 0.6)
     mott = nb.noise(obj, 140.0, 6.0, 0.55)
     # albedo: swatch colour on average; slight heather mottling + micro-occlusion in the knit valleys
@@ -439,6 +491,8 @@ def mat_knit(color, name=None, kind="jersey", rib_axis="OBJ_Y", rib_pitch=0.0019
     k_occ = (0.16 if dark else 0.09) if kind == "rib" else (0.10 if kind == "fleece" else 0.07)
     if dark:
         k_occ *= 1.6
+    if hem_m is not None:
+        k_occ = nb.mix(hem_m, k_occ, 0.26 if dark else 0.16, kind="FLOAT")
     occl = nb.m("MULTIPLY_ADD", nb.m("SUBTRACT", H, 0.6), k_occ, 1.0)
     yv = 0.35 if color == "Cement" else (0.4 if dark else 0.12)
     yarn_c = nb.m("MULTIPLY_ADD", nb.m("SUBTRACT", yarn, 0.5), yv, 1.0)
@@ -451,14 +505,19 @@ def mat_knit(color, name=None, kind="jersey", rib_axis="OBJ_Y", rib_pitch=0.0019
         rough = nb.m("MULTIPLY_ADD", yarn, 0.04, 0.88)
         # dark fleece: the true #151515 albedo alone is crushed by the PBR Neutral toe; the brushed
         # loop-back fuzz (broad, rough sheen) is what makes black fleece read charcoal, not CG black
-        sheen_w, spec_level, sheen_r = (0.20, 0.08, 0.6) if dark else (0.5, 0.2, 0.6)
+        sheen_w, spec_level, sheen_r = (0.20, 0.08, 0.6) if dark else (0.4, 0.2, 0.6)
         height = nb.m("ADD", nb.m("MULTIPLY", H, 0.8), nb.m("MULTIPLY", yarn, 0.3))
         bump_s, bump_d = (0.32 if dark else 0.30), 0.00028
+        if hem_m is not None:
+            bump_d = nb.mix(hem_m, bump_d, 0.0009, kind="FLOAT")
+            sheen_w = nb.mix(hem_m, sheen_w, 0.10 if dark else 0.25, kind="FLOAT")   # rib: not brushed
     else:
         rough = nb.m("MULTIPLY_ADD", yarn, 0.08, 0.86)
-        sheen_w = 0.20 if dark else 0.3
-        spec_level = 0.08 if dark else 0.12
-        sheen_r = 0.6
+        # cotton jersey: low, very rough sheen. Black jersey must not read as satin: its charcoal
+        # comes from the (dark-garment) fill light, not from a glossy sheen lobe on the fold edges
+        sheen_w = 0.09 if dark else 0.26
+        spec_level = 0.06 if dark else 0.12
+        sheen_r = 0.7 if dark else 0.62
         height = nb.m("ADD", nb.m("MULTIPLY", H, 0.75), nb.m("MULTIPLY", yarn, 0.35))
         bump_s = bump if kind != "rib" else bump * (1.3 if dark else 0.85)   # light rib: softer wales, not pinstripes
         bump_d = 0.00028 if kind != "rib" else 0.0006
@@ -487,26 +546,23 @@ def mat_knit(color, name=None, kind="jersey", rib_axis="OBJ_Y", rib_pitch=0.0019
         crack = nb.m("MULTIPLY", crack, sparse)
         im = nb.m("MULTIPLY", mask, nb.m("SUBTRACT", 1.0, nb.m("MULTIPLY", crack, 0.3)), clamp=True)
         ink_c = tuple(ink) if isinstance(ink, (tuple, list)) else (COBALT_INK if ink in (None, "#2B3BFF") else rgb(ink))
-        ink_c = (ink_c[0], ink_c[1], ink_c[2], 1.0)
+        # ink film density: a plastisol layer on cotton never reflects quite as much as the
+        # swatch chip (fibre shadowing through the film) -> 0.9 x albedo
+        ink_c = (ink_c[0] * 0.9, ink_c[1] * 0.9, ink_c[2] * 0.9, 1.0)
         col = nb.mix(im, col, ink_c)
         rough = nb.mix(im, rough, 0.5, kind="FLOAT")
-        sw = nb.mix(im, sheen_w, 0.03, kind="FLOAT")
+        sw = nb.mix(im, _blotch(nb, obj, sheen_w), 0.03, kind="FLOAT")
         nb.link(sw, b.inputs["Sheen Weight"])
-        spec = nb.mix(im, spec_level, 0.08, kind="FLOAT")
+        spec = nb.mix(im, spec_level, 0.04, kind="FLOAT")
         nb.link(spec, b.inputs["Specular IOR Level"])
         # knit telegraphs through the ink as a faint bump only; the ink film itself has a soft edge
         height = nb.m("ADD", nb.m("MULTIPLY", height, nb.m("MULTIPLY_ADD", mask, -0.85, 1.0)),
                       nb.m("MULTIPLY", mask, 0.30))
         height = nb.m("SUBTRACT", height, nb.m("MULTIPLY", nb.m("MULTIPLY", crack, mask), 0.25))
-    elif kind == "fleece":
-        # brushed fleece fuzz is never perfectly even: blotchy sheen (lint / nap direction) at
-        # ~1-2 mm so dark fleece reads as matte cloth, not a smooth rubbery gradient
-        nap = nb.noise(obj, 520.0, 2.0, 0.5)
-        nap = nb.m("MULTIPLY_ADD", nb.m("SUBTRACT", nap, 0.5), 0.7, 1.0)
-        nb.link(nb.m("MULTIPLY", nap, sheen_w, clamp=True), b.inputs["Sheen Weight"])
-        b.inputs["Specular IOR Level"].default_value = spec_level
     else:
-        b.inputs["Sheen Weight"].default_value = sheen_w
+        # cotton fuzz is never perfectly even: blotchy sheen (lint / nap direction) at ~1-2 mm so
+        # dark cloth reads as matte cotton, not a smooth satin gradient along the folds
+        nb.link(_blotch(nb, obj, sheen_w), b.inputs["Sheen Weight"])
         b.inputs["Specular IOR Level"].default_value = spec_level
     nb.link(col, b.inputs["Base Color"])
     nb.link(rough, b.inputs["Roughness"])
@@ -514,6 +570,10 @@ def mat_knit(color, name=None, kind="jersey", rib_axis="OBJ_Y", rib_pitch=0.0019
     b.inputs["Sheen Tint"].default_value = (1, 1, 1, 1)
     b.inputs["Coat Weight"].default_value = 0.0
     nrm = nb.bump(height, bump_s, bump_d)
+    if hem_m is not None:
+        # the waistband is a second ply: its edges (hem edge on the front face, seam on the top)
+        # read as a soft step in the shading
+        nrm = nb.bump(hem_m, 0.8, 0.0010, normal=nrm)
     if kind == "fleece":
         # brushed loop-back fuzz: very fine, very shallow
         fuzz = nb.noise(obj, 4200.0, 3.0, 0.7)
@@ -561,30 +621,46 @@ def mat_satin(dir_rect, color=None, name="apparel_satin_cobalt"):
     # coordinate across the threads (perpendicular to the stitch direction)
     n_ = nb.m("SUBTRACT", nb.m("MULTIPLY", y, ct), nb.m("MULTIPLY", x, st))
     along = nb.m("ADD", nb.m("MULTIPLY", x, ct), nb.m("MULTIPLY", y, st))
-    p = 0.00042
-    jit = nb.m("MULTIPLY", nb.noise(obj, 900.0, 1.0), 0.00018)
+    p = 0.00034                                    # ~0.3 mm thread pitch (40 wt polyester)
+    jit = nb.m("MULTIPLY", nb.noise(obj, 900.0, 1.0), 0.00014)
     ph = nb.m("DIVIDE", nb.m("ADD", n_, jit), p)
-    stripe = nb.m("POWER", nb.m("ABSOLUTE", nb.m("SINE", nb.m("MULTIPLY", ph, math.pi))), 0.5)
+    # each thread is a rounded ridge with a hard, dark groove between neighbours
+    stripe = nb.m("POWER", nb.m("ABSOLUTE", nb.m("SINE", nb.m("MULTIPLY", ph, math.pi))), 0.32)
     # each thread bulges in the middle of its span and dives at the stroke edge
     span = nb.m("MULTIPLY_ADD", nb.m("COSINE", nb.m("MULTIPLY", along, math.pi / 0.0032)), 0.12, 0.88)
     gaps = nb.m("MULTIPLY", nb.m("GREATER_THAN", nb.noise(obj, 1400.0, 1.0), 0.80), 0.5)
     h_ = nb.m("MULTIPLY", stripe, span)
     h_ = nb.m("SUBTRACT", h_, nb.m("MULTIPLY", gaps, nb.m("SUBTRACT", 1.0, stripe)))
+    # edge run: where the satin dives into the fleece the threads are pulled down and shadowed by
+    # the underlay -> a ~0.2 mm darker outline that reads 'stitched', not glued on
+    edge = nb.m("SUBTRACT", 1.0, nb.m("MINIMUM", nb.m("MAXIMUM", nb.m("DIVIDE", nb.m("SUBTRACT", rgbs.outputs[2], 0.50), 0.36), 0.0), 1.0))
+    edge = nb.m("POWER", edge, 1.6)
     base = COBALT_INK if color is None else rgb(color)[:3]
     hi = tuple(base) + (1,)
-    lo = tuple(c * 0.55 for c in base) + (1,)
-    col = nb.mix(nb.m("MULTIPLY", stripe, nb.m("SUBTRACT", 1.0, nb.m("MULTIPLY", gaps, 0.6))), lo, hi)
+    lo = tuple(c * 0.50 for c in base) + (1,)
+    tone = nb.m("MULTIPLY", stripe, nb.m("SUBTRACT", 1.0, nb.m("MULTIPLY", gaps, 0.6)))
+    tone = nb.m("MULTIPLY", tone, nb.m("SUBTRACT", 1.0, nb.m("MULTIPLY", edge, 0.65)))
+    # thread-to-thread sheen variation (each pass of the needle lies a little differently)
+    tvar = nb.m("MULTIPLY_ADD", nb.noise(obj, 260.0, 1.0), 0.12, 0.90)
+    # satin catches the studio key per stroke: threads lying across the key direction glint, those
+    # running along it stay deeper (stands in for the multi-bounce sheen of the thread bundles that
+    # a single anisotropic lobe under-represents)
+    k_ang = math.atan2(-0.67, -0.74) + math.pi / 2
+    glint = nb.m("ABSOLUTE", nb.m("COSINE", nb.m("SUBTRACT", th, k_ang)))
+    tone = nb.m("MULTIPLY", tone, nb.m("MULTIPLY_ADD", glint, 0.30, 0.86))
+    col = nb.mix(nb.m("MULTIPLY", tone, tvar, clamp=True), lo, hi)
     nb.link(col, b.inputs["Base Color"])
-    nb.link(nb.m("MULTIPLY_ADD", stripe, -0.10, 0.40), b.inputs["Roughness"])
-    b.inputs["Specular IOR Level"].default_value = 0.32
-    b.inputs["Anisotropic"].default_value = 0.65
+    nb.link(nb.m("MULTIPLY_ADD", stripe, -0.10, 0.30), b.inputs["Roughness"])
+    b.inputs["Specular IOR Level"].default_value = 0.62
+    b.inputs["Anisotropic"].default_value = 0.95
     tang = nb.new("ShaderNodeCombineXYZ")
     nb.link(ct, tang.inputs[0])
     nb.link(st, tang.inputs[1])
     nb.link(tang.outputs[0], b.inputs["Tangent"])
-    b.inputs["Sheen Weight"].default_value = 0.25
+    b.inputs["Sheen Weight"].default_value = 0.20
     b.inputs["Sheen Roughness"].default_value = 0.3
-    nb.link(nb.bump(h_, 0.6, 0.00018), b.inputs["Normal"])
+    hh = nb.m("SUBTRACT", h_, nb.m("MULTIPLY", edge, 1.2))
+    nb.link(nb.bump(hh, 1.0, 0.00026), b.inputs["Normal"])
     return m
 
 
@@ -905,6 +981,9 @@ def _body(name, W, D, T, mat, seed, opts, extra=None, parent=None, step=0.0021, 
     if extra:
         P = extra(P)
     _set_co(o.data, P)
+    # pre-drape rest position (object space) for shader regions that must not move with stacking
+    at = o.data.attributes.new("apparel_rest", "FLOAT_VECTOR", "POINT")
+    at.data.foreach_set("vector", P.astype(np.float32).ravel())
     mod = o.modifiers.new("Subsurf", "SUBSURF")
     mod.levels = levels
     mod.render_levels = levels
@@ -1077,16 +1156,53 @@ def _stadium(w, t, M, puff=0.0, e=0.0):
     return out
 
 
-def _tube(name, segs, mat, parent, M=48, lip=None, mapper=None, jitter=None):
+def _oval(w, t, M, puff=0.0, e=0.0, up=2.3, flat=3.4):
+    """Relaxed, partly collapsed tube cross-section (same contract as _stadium): a superellipse
+    w wide and t tall whose upper half is near-elliptic (exponent `up`) and whose lower half is
+    flatter (`flat`: it rests on what is below). M points uniformly spaced along the perimeter,
+    bottom-centre first, counter-clockwise (+b first), offset inward by e along the normal."""
+    a, c = w / 2.0, t / 2.0
+    n = 2048
+    th = -math.pi / 2 + TAU * np.arange(n) / n
+    cs, sn = np.cos(th), np.sin(th)
+    ex = np.where(sn < 0, flat, up)
+    bb = a * np.sign(cs) * np.abs(cs) ** (2.0 / ex)
+    hh = c + c * np.sign(sn) * np.abs(sn) ** (2.0 / ex)
+    if puff:
+        hh = hh + np.where(hh > c, puff * np.clip(1.0 - (bb / a) ** 2, 0, None), 0.0)
+    seg = np.hypot(np.diff(np.append(bb, bb[0])), np.diff(np.append(hh, hh[0])))
+    cum = np.concatenate([[0.0], np.cumsum(seg)])
+    per = cum[-1]
+    out = []
+    bbc, hhc = np.append(bb, bb[0]), np.append(hh, hh[0])
+    for k in range(M):
+        d = per * k / M
+        b_ = float(np.interp(d, cum, bbc))
+        h_ = float(np.interp(d, cum, hhc))
+        b1 = float(np.interp((d + per * 0.002) % per, cum, bbc))
+        h1 = float(np.interp((d + per * 0.002) % per, cum, hhc))
+        b0 = float(np.interp((d - per * 0.002) % per, cum, bbc))
+        h0 = float(np.interp((d - per * 0.002) % per, cum, hhc))
+        tb, th_ = b1 - b0, h1 - h0
+        L = math.hypot(tb, th_) + 1e-12
+        nb_, nh = th_ / L, -tb / L                       # outward (CCW traversal)
+        e_ = min(e, c - 0.0003)
+        out.append((b_ - nb_ * e_, h_ - nh * e_, d))
+    return out
+
+
+def _tube(name, segs, mat, parent, M=48, lip=None, mapper=None, jitter=None, section=None):
     """Flattened fabric tube (sleeve / cuff) built in 'flat space' along a straight axis.
     segs: list of (u, w, t, puff) rings, u = position along the axis (m).
     lip=(delta, inner_len): roll the open end inward by a ply thickness `delta` and continue as
     the inner wall for inner_len (the visible cuff opening).
     mapper(u_arr, b_arr, h_arr) -> (N,3) positions (drape/bend into place).
-    jitter(u, b, h) -> dh extra height (wrinkles). UV: u = axis length, v = perimeter (m)."""
+    jitter(u, b, h) -> dh extra height (wrinkles). UV: u = axis length, v = perimeter (m).
+    section: cross-section function (default _stadium = pressed flat; _oval = relaxed tube)."""
+    sec = section or _stadium
     rings = []
     for (u, w, t, puff) in segs:
-        rings.append((u, _stadium(w, t, M, puff)))
+        rings.append((u, sec(w, t, M, puff)))
     if lip:
         delta, inner_len = lip
         u_end, w, t, puff = segs[-1]
@@ -1094,9 +1210,9 @@ def _tube(name, segs, mat, parent, M=48, lip=None, mapper=None, jitter=None):
         for j in range(1, J + 1):
             psi = math.pi * j / J
             e = delta / 2 * (1 - math.cos(psi))
-            rings.append((u_end + delta / 2 * math.sin(psi), [(bb, hh, v) for (bb, hh, v) in _stadium(w, t, M, puff * (1 - j / J), e)]))
+            rings.append((u_end + delta / 2 * math.sin(psi), [(bb, hh, v) for (bb, hh, v) in sec(w, t, M, puff * (1 - j / J), e)]))
         for j in range(1, 4):
-            rings.append((u_end - inner_len * j / 3, _stadium(w, t, M, 0.0, delta)))
+            rings.append((u_end - inner_len * j / 3, sec(w, t, M, 0.0, delta)))
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new("UVMap")
     U, B, Hh, Vv = [], [], [], []
@@ -1136,14 +1252,16 @@ def _tube(name, segs, mat, parent, M=48, lip=None, mapper=None, jitter=None):
     return o
 
 
-def _ring_path(u, w, t, M, mapper, upper_only=True, puff=0.0, lift=0.00025):
+def _ring_path(u, w, t, M, mapper, upper_only=True, puff=0.0, lift=0.00025, section=None, jitter=None):
     """3D points + outward normals around a tube cross-section at axis position u (for seams)."""
-    prof = _stadium(w, t, M, puff)
+    prof = (section or _stadium)(w, t, M, puff)
     if upper_only:
         prof = [p for p in prof if p[1] > t * 0.30]          # contiguous: +b edge, over the top, -b edge
     U = np.full(len(prof), u)
     B = np.array([p[0] for p in prof])
     H = np.array([p[1] for p in prof])
+    if jitter is not None:
+        H = H + jitter(U, B, H)
     hc = t / 2
     P0 = mapper(U, B * 0.999, hc + (H - hc) * 0.999)
     P1 = mapper(U, B * 1.03 + np.sign(B) * 0.0003, hc + (H - hc) * 1.03 + np.sign(H - hc) * 0.0003)
@@ -1172,16 +1290,20 @@ def _sleeve_segs(u0, u_body, u_cuff, w_sl, w_cf, t_sl, t_cf, step=0.0012):
     return body, cuff
 
 
-def _cuff_tube(name, parent, color, x_end, y_c, z0, ang_deg, w_cf=0.05, t_cf=0.0085, L=0.06,
-               sleeve_len=0.05, w_sl=0.062, t_sl=0.010, seed=0, sleeve_mat=None, curv=-2.5, tilt=0.05):
-    """Sleeve end tucked under a side fold with only its rib cuff peeking out at x_end:
-    flattened tube resting at height z0, axis leaving at ang_deg from +X and bending gently
-    (curvature `curv`, 1/m) so it lies like cloth rather than a ruler-straight tab; the cross-section
-    is tilted a touch (`tilt`, rise per metre across) and ends in an open, rolled rib end."""
+def _cuff_tube(name, parent, color, x_end, y_c, z0, ang_deg, w_cf=0.040, t_cf=0.019, L=0.05,
+               sleeve_len=0.06, w_sl=0.060, t_sl=0.021, seed=0, sleeve_mat=None, curv=-3.0, tilt=0.0,
+               twist_deg=5.0, vis_sleeve=0.016, M=56):
+    """Sleeve end tucked under a side fold, peeking out with ~vis_sleeve of the sleeve's own fabric
+    (fleece / jersey, gathering into the cuff seam) before its rib cuff. Relaxed, partly collapsed
+    tube (oval ~2:1, flatter underneath where it rests), axis leaving at ang_deg from +X and bending
+    gently (curvature `curv`, 1/m), a few degrees of twist and an uneven taper along its length,
+    ending in a slightly flared open mouth with the rib rolling inside (visible inner rib wall).
+    x_end, y_c = where the cuff mouth lands; z0 = height of the tube bottom."""
     rnd = random.Random(seed)
     a = math.radians(ang_deg)
     d = Vector((math.cos(a), math.sin(a)))
     p = Vector((-d.y, d.x))
+    u_body = sleeve_len
     Ltot = L + sleeve_len
     k = curv if abs(curv) > 1e-6 else 1e-6
 
@@ -1190,31 +1312,77 @@ def _cuff_tube(name, parent, color, x_end, y_c, z0, ang_deg, w_cf=0.05, t_cf=0.0
     ce, cn = _arc(np.array([Ltot]))
     # arc built backwards from the cuff end so the end lands exactly at (x_end, y_c)
     O = Vector((x_end, y_c)) - d * float(ce[0]) - p * float(cn[0])
-    ph = rnd.uniform(0, 6)
+    ph, ph2, ph3 = rnd.uniform(0, 6), rnd.uniform(0, 6), rnd.uniform(0, 6)
     w_max = max(w_sl, w_cf)
+    hc0 = t_cf / 2
+    tw = math.radians(twist_deg) * rnd.choice((-1, 1))
 
     def mapper(U, B, H):
         cu, cv = _arc(U)
         nd, npp = -np.sin(k * U), np.cos(k * U)          # in-plane normal of the bent axis
-        X = O.x + cu * d.x + cv * p.x + B * (nd * d.x + npp * p.x)
-        Y = O.y + cu * d.y + cv * p.y + B * (nd * d.y + npp * p.y)
-        Z = z0 + H + tilt * (B + w_max / 2)
+        ang = tw * (U / Ltot - 0.35)                     # slight twist along the sleeve
+        ca, sa = np.cos(ang), np.sin(ang)
+        Bt = B * ca - (H - hc0) * sa
+        Ht = hc0 + (H - hc0) * ca + B * sa
+        X = O.x + cu * d.x + cv * p.x + Bt * (nd * d.x + npp * p.x)
+        Y = O.y + cu * d.y + cv * p.y + Bt * (nd * d.y + npp * p.y)
+        Z = z0 + Ht + tilt * (Bt + w_max / 2) + abs(math.sin(math.radians(twist_deg))) * w_max * 0.25
         return np.stack([X, Y, Z], 1)
 
+    pleats = [(rnd.uniform(-0.45, 0.45) * w_sl, rnd.uniform(0.004, 0.007), rnd.uniform(0.6, 1.0)) for _ in range(5)]
+
     def jitter(U, B, H):
-        top = H > t_cf * 0.5
-        wob = 0.00035 * np.sin(U * 260 + ph) * np.cos(B * 90)
-        return np.where(top, wob, 0.0)
-    body, cuff = _sleeve_segs(0.0, sleeve_len, sleeve_len + L, w_sl, w_cf, t_sl, t_cf)
+        top = _ss(0.35, 0.75, H / max(t_sl, t_cf))
+        dh = 0.00030 * np.sin(U * 210 + ph) * np.cos(B * 80 + ph2)
+        # gathers: the wider sleeve is eased into the narrower rib -> soft pleats converging on the seam
+        g_env = _ss(u_body - 0.020, u_body - 0.003, U) * (1.0 - _ss(u_body - 0.0015, u_body + 0.0005, U))
+        for (b0, wd, am) in pleats:
+            dh += 0.0011 * am * np.exp(-((B - b0) / wd) ** 2) * g_env
+        dh -= 0.0005 * g_env * (0.5 + 0.5 * np.cos(B * TAU / 0.009 + ph3))
+        dh -= 0.0009 * np.exp(-((U - u_body) / 0.0016) ** 2)          # the cuff seam pulls in
+        # rib: faint compression ripples across the wales
+        r_env = _ss(u_body + 0.004, u_body + 0.012, U)
+        dh += 0.00018 * r_env * np.sin(U * TAU / 0.013 + B * 12 + ph3)
+        return dh * top
+
+    # rings: sleeve (flattened where it disappears under the fold, relaxing as it emerges, then
+    # easing into the rib), and the rib (uneven taper, springs back past the seam, flared mouth)
+    step = 0.0012
+    body, cuff = [], []
+    n1 = max(6, int(sleeve_len / step))
+    u_vis = u_body - vis_sleeve
+    for i in range(n1 + 1):
+        u = sleeve_len * i / n1
+        g = _ss(u_body - 0.010, u_body, u)
+        emerge = _ss(u_vis - 0.030, u_vis + 0.004, u)                 # pressed flatter under the body
+        wsl = w_sl * (1.06 - 0.06 * emerge)
+        tsl = t_sl * (0.70 + 0.30 * emerge)
+        body.append((u, wsl + (w_cf * 1.06 - wsl) * g, tsl + (t_cf * 1.04 - tsl) * g, 0.0012 * (1 - g)))
+    n2 = max(6, int(L / step))
+    for i in range(n2 + 1):
+        u = u_body + L * i / n2
+        f = (u - u_body) / L
+        kk = math.exp(-((u - u_body) / 0.004) ** 2)
+        uneven = 1.0 + 0.035 * math.sin(f * 4.1 + ph) + 0.02 * math.sin(f * 9.3 + ph2)
+        flare = _ss(0.80, 1.0, f)
+        # the rib relaxes a touch toward the mouth (slight flare in width) while the opening itself
+        # sags a little flatter under its own weight
+        wc = w_cf * uneven * (1.0 + 0.05 * kk + 0.035 * flare)
+        tc_ = t_cf * (1.0 + 0.03 * math.sin(f * 5.0 + ph3)) * (1.0 + 0.04 * kk - 0.08 * flare)
+        cuff.append((u, wc, tc_, 0.0006))
+    sec = _oval
     rib = mat_knit(color, kind="rib", rib_axis="UV_Y", rib_pitch=0.0014)
-    sl = _tube(name + "_sleeve", body, sleeve_mat or mat_knit(color, kind="jersey"), parent, mapper=mapper,
-               jitter=jitter)
-    for mod in (sl,):
-        m = mod.modifiers.new("Subsurf", "SUBSURF")
+    sl = _tube(name + "_sleeve", body, sleeve_mat or mat_knit(color, kind="jersey"), parent, M=M,
+               mapper=mapper, jitter=jitter, section=sec)
+    cf = _tube(name, cuff, rib, parent, M=M, lip=(0.0026, 0.032), mapper=mapper, jitter=jitter, section=sec)
+    for o in (sl, cf):
+        m = o.modifiers.new("Subsurf", "SUBSURF")
         m.levels = m.render_levels = 1
-    cf = _tube(name, cuff, rib, parent, lip=(t_cf / 2 - 0.0011, 0.02), mapper=mapper, jitter=jitter)
-    m = cf.modifiers.new("Subsurf", "SUBSURF")
-    m.levels = m.render_levels = 1
+    # cuff seam: an overlocked join that shows as a shallow groove + a single cover row on top
+    th = mat_thread(color)
+    pts, nrms = _ring_path(u_body + 0.0018, w_cf * 1.06, t_cf * 1.04, 240, mapper, lift=0.0001, section=sec,
+                           jitter=jitter)
+    _stitch_on(name + "_seam", pts, nrms, th, parent, pitch=0.0026, radius=0.0002)
     return cf
 
 
@@ -1311,7 +1479,8 @@ def folded_tee(color="White", long_sleeve=False, seed=None, sleeve="front"):
     """Retail-folded short- or long-sleeve tee, chest + screen print up. Returns Empty root.
     Long sleeve: sleeve="front" brings the left sleeve out of the side fold and diagonally across
     the lower front with its open rib cuff on the chest (the recognisable long-sleeve fold);
-    sleeve="tucked" keeps both sleeves behind with one rib cuff peeking out at the right."""
+    sleeve="tucked" keeps both sleeves behind with one sleeve end + rib cuff peeking out at the right;
+    sleeve="hidden" tucks both sleeves away completely."""
     seed = (_stable_seed(color) if seed is None else seed) + (500 if long_sleeve else 0)
     kind = "longsleeve" if long_sleeve else "tee"
     W, D, T = W_FOLD, D_FOLD, 0.030
@@ -1455,10 +1624,10 @@ def folded_tee(color="White", long_sleeve=False, seed=None, sleeve="front"):
 
     if long_sleeve and sleeve == "front":
         _front_sleeve(kind, color, root, bvh, W, D, T, opts, seed)
-    elif long_sleeve:
-        _cuff_tube(f"{kind}_{color}_cuff", root, color, x_end=W / 2 + 0.014, y_c=-D / 2 + 0.075, z0=0.0008,
-                   ang_deg=-16.0, w_cf=0.046, t_cf=0.0062, L=0.055, sleeve_len=0.05, w_sl=0.056, t_sl=0.0072,
-                   seed=seed, sleeve_mat=mat_knit(color, kind="jersey"))
+    elif long_sleeve and sleeve != "hidden":
+        _cuff_tube(f"{kind}_{color}_cuff", root, color, x_end=W / 2 + 0.052, y_c=-D / 2 + 0.064, z0=0.0005,
+                   ang_deg=-16.0, w_cf=0.034, t_cf=0.0145, L=0.040, sleeve_len=0.065, w_sl=0.050, t_sl=0.016,
+                   vis_sleeve=0.016, seed=seed, sleeve_mat=mat_knit(color, kind="jersey"), twist_deg=4.0)
     return root
 
 
@@ -1532,16 +1701,23 @@ def _grommet(name, loc, nrm, parent, r_in=0.0026, r_out=0.0047, h=0.0011):
     return g
 
 
-def folded_hoodie(color="Black", seed=None):
+def folded_hoodie(color="Black", seed=None, cuff=True):
     """Retail-folded pullover hoodie in heavyweight fleece: flat-topped body with folded double-ply
     edges, the hood laid forward over the top fold as a two-ply panel with its rolled opening edge
     at the lower lip, drawcords coming out of nickel eyelets with metal aglets, embroidered
-    satin-stitch logo, a rib cuff peeking out of the right fold. Returns Empty root."""
+    satin-stitch logo, the rib waistband wrapping the front (waist) fold, a sleeve + rib cuff peeking
+    out of the right fold (cuff=True: compact, the original ~231 mm footprint; cuff="long": the product-
+    shot version with more sleeve and a full rib, ~272 mm wide; cuff=False tucks it away). Returns Empty root."""
     seed = _stable_seed(color) + 7 if seed is None else seed
     W, D, T = W_FOLD, D_FOLD, 0.046
     root = _empty(f"hoodie_{color}")
-    body_mat = mat_knit(color, name=f"apparel_fleece_{color}", kind="fleece")
     rh_b = 0.017
+    # rib waistband: the last fold puts the hem at the front (waist) edge, so the 1x1 rib band
+    # shows ~10 mm on the top behind its seam, wraps the front fold and ends in the hem edge on the
+    # front face (y_hem = seam line on the top, z_hem = hem edge height on the front face)
+    y_hem, z_hem = -D / 2 + rh_b + 0.010, 0.42 * T
+    body_mat = mat_knit(color, name=f"apparel_fleece_{color}_hem", kind="fleece", hem=(y_hem, z_hem))
+    hood_mat = mat_knit(color, name=f"apparel_fleece_{color}", kind="fleece")
     opts = dict(droop=0.05, droop_len=0.015, side_ridge=0.025, waist_puff=0.015, undulate=0.0010, ufreq=7.0,
                 ripple=0.00018, wrinkle=0.0016, corner_n=(0, 0), side_n=(2, 3), side_amp=0.55, waist_n=(0, 0),
                 long_n=(1, 2), parallel_n=3, parallel_amp=0.0007, wavy=0.0014, bow=0.0022, rc=0.007,
@@ -1556,17 +1732,40 @@ def folded_hoodie(color="Black", seed=None):
         r2 = (x / 0.050) ** 2 + ((y - logo_cy) / 0.013) ** 2
         P[:, 2] -= 0.0003 * np.exp(-r2 ** 2) * top
         P[:, 2] -= 0.00012 * np.exp(-r2) * np.cos(np.arctan2(y - logo_cy, x / 3.5) * 9) * top
+        # --- rib waistband (see y_hem / z_hem): a second, slightly fuller ply
+        z = P[:, 2]
+        front = _ss(-D / 2 + rh_b + 0.004, -D / 2 + rh_b * 0.4, y)            # on the front fold
+        band_top = _ss(y_hem + 0.0012, y_hem - 0.0012, y) * top
+        P[:, 2] += 0.0006 * band_top                                          # band ply stands proud
+        P = _groove(P, T, [(-W / 2, y_hem), (W / 2, y_hem)], 0.0007, 0.0011)   # seam pulls in
+        wob = 0.0016 * _fbm(x, z, 40.0, seed + 71, 2)
+        edge = _ss(z_hem - 0.0012, z_hem + 0.0012, z + wob)                   # hem edge (ply step)
+        P[:, 1] -= 0.0013 * edge * front
+        # body ply below the hem edge: compressed by the stack, a soft horizontal crease + puff
+        cz = 0.24 * T + 0.0015 * _fbm(x, z, 25.0, seed + 72, 2)
+        amp = 0.0008 * np.clip(0.55 + _fbm(x, z, 14.0, seed + 73, 2), 0.1, 1.2)
+        P[:, 1] += amp * np.exp(-((z - cz) / 0.0028) ** 2) * front
+        P[:, 1] -= 0.0005 * np.exp(-((z - 0.34 * T) / 0.004) ** 2) * front
+        # compression wrinkles in the band where the weight of the stack bunches it at the corners
+        for sgn in (-1, 1):
+            for kk in range(2):
+                xc = sgn * (W / 2 - 0.022 - 0.022 * kk - 0.008 * ((seed + kk) % 3))
+                P[:, 1] += 0.0007 * np.exp(-((x - xc - 0.25 * (z - 0.6 * T)) / 0.0035) ** 2) * \
+                    _ss(z_hem + 0.002, z_hem + 0.010, z) * front * (1.0 - 0.4 * kk)
         return P
     body = _body(f"hoodie_{color}_body", W, D, T, body_mat, seed, opts, extra, parent=root, step=0.0022)
     bvh = _bvh(body)
     S = _surface_sampler(bvh)
+    # coverstitch on the body side of the waistband seam
+    _stitch_row(f"hoodie_{color}_hemst", bvh, [(xx, y_hem + 0.0026) for xx in np.linspace(-W / 2 + 0.006, W / 2 - 0.006, 60)],
+                mat_thread(color), root, pitch=0.0028, radius=0.00024)
 
     # --- hood: two-ply fleece panel, wraps over the top fold, rolled opening edge at its lower lip
     Wh, Th = W - 0.018, 0.0085
     y_lip = D / 2 - 0.088                                 # lower (front) lip of the hood
     y_back = D / 2 + 0.032                                # flat-space back end (wraps over the top fold)
     Dh = y_back - y_lip
-    hood = _slab(f"hoodie_{color}_hood", Wh, Dh, Th, rc=0.016, step=0.0016, parent=root, mat=body_mat,
+    hood = _slab(f"hoodie_{color}_hood", Wh, Dh, Th, rc=0.016, step=0.0016, parent=root, mat=hood_mat,
                  sq=2.4, rh=0.0035)
     P = _get_co(hood.data)
     P[:, 1] += (y_back + y_lip) / 2
@@ -1606,7 +1805,7 @@ def folded_hoodie(color="Black", seed=None):
         endk = min(1.0, min(i, len(lip_pts) - 1 - i) / 8.0)  # rounded ends
         rr = rl_r * (0.55 + 0.45 * math.sin(endk * math.pi / 2))
         return [(rr * 1.05 * math.cos(TAU * k / 16), rr + 0.0004 + rr * 0.92 * math.sin(TAU * k / 16)) for k in range(16)]
-    roll = _sweep(f"hoodie_{color}_hoodroll", lip_pts, lip_n, roll_prof, mat=body_mat, parent=root)
+    roll = _sweep(f"hoodie_{color}_hoodroll", lip_pts, lip_n, roll_prof, mat=hood_mat, parent=root)
     smooth(roll)
     hbvh = _bvh_multi([hood, roll])
     th_mat = mat_thread(color)
@@ -1661,36 +1860,98 @@ def folded_hoodie(color="Black", seed=None):
     smooth(emb)
 
     # --- rib cuff peeking out from under the right fold (sleeve tucked behind)
-    _cuff_tube(f"hoodie_{color}_cuff", root, color, x_end=W / 2 + 0.013, y_c=-D / 2 + 0.072, z0=0.0008,
-               ang_deg=-20.0, w_cf=0.050, t_cf=0.0090, L=0.06, sleeve_len=0.05, w_sl=0.062, t_sl=0.0115,
-               seed=seed, sleeve_mat=body_mat)
+    if cuff == "long":          # product shot: ~18 mm of fleece sleeve gathering into a 42 mm rib cuff
+        _cuff_tube(f"hoodie_{color}_cuff", root, color, x_end=W / 2 + 0.056, y_c=-D / 2 + 0.056, z0=0.0006,
+                   ang_deg=-18.0, w_cf=0.042, t_cf=0.018, L=0.042, sleeve_len=0.07, w_sl=0.052, t_sl=0.020,
+                   vis_sleeve=0.018, seed=seed, sleeve_mat=hood_mat)
+    elif cuff:                  # default: compact (keeps the ~231 mm kit footprint), rib + a sliver of sleeve
+        _cuff_tube(f"hoodie_{color}_cuff", root, color, x_end=W / 2 + 0.019, y_c=-D / 2 + 0.064, z0=0.0006,
+                   ang_deg=-24.0, w_cf=0.040, t_cf=0.017, L=0.028, sleeve_len=0.07, w_sl=0.050, t_sl=0.019,
+                   vis_sleeve=0.010, seed=seed, sleeve_mat=hood_mat)
     return root
 
 
 # ============================================================== scene rig (shared by the three goods scenes)
 EXPOSURE_TEE = 0.0
-EXPOSURE_HOODIE = 0.0
+EXPOSURE_HOODIE = -0.45     # fleece fronts face the key squarely: Cement front on swatch, White >= 236
 KEY = 0.74                   # studio() energy scale: White ~240, Dust/Cement on swatch, Black charcoal
+DARK_FILL = 22.0             # light-linked bounce card on Black jersey only (see dark_fill)
+DARK_FILL_FLEECE = 10.0      # the brushed fleece already lifts itself via its nap sheen
+PAD = 0.09                   # frame_camera padding on the garments
+SHADOW_GROW = (0.0, 0.030)   # framing allowance for the (short) cast shadow
 
 
-def studio_apparel(target=(0, 0, 0.04), key=1.0, rim=0.6, skip_catcher=("Rim",)):
+def studio_apparel(target=(0, 0, 0.04), key=1.0, rim=0.6, skip_catcher=("Rim",), short_shadow=True):
     """The house studio() rig at product scale (key upper-left, rim back-right, all lights cast
     shadows) + common.shadow_catcher(); only energies are scaled. Lights named in skip_catcher
     are light-linked to exclude the catcher, so the low back-right rim still models the cloth
-    but cannot throw a long smudge toward the camera. Returns the catcher."""
-    from common import studio, shadow_catcher
-    studio("soft", key=key, hdri_strength=0.35, rotation_deg=30, target=target, scale=0.45)
+    but cannot throw a long smudge toward the camera.
+    short_shadow: the key (43 deg up) still models the cloth but no longer prints its long cast
+    shadow on the catcher (nor does the 9-deg front fill); a catcher-only twin of the key, much higher
+    (~78 deg) and a bit smaller, from the
+    same azimuth, throws a shorter, softer shadow toward the back-right that dies out on its own
+    well inside the frame (no reliance on the edge fade). Returns the catcher."""
+    from common import studio, shadow_catcher, area_light
+    s = 0.45
+    studio("soft", key=key, hdri_strength=0.35, rotation_deg=30, target=target, scale=s)
     bpy.data.objects["Rim"].data.energy *= rim
-    # temper the key's warmth a touch so White cotton stays neutral (#F0F0EC-ish), not cream
-    bpy.data.objects["Key"].data.color = (1.0, 0.985, 0.965)
+    # temper the key's warmth so White cotton stays neutral and Cement stays a cool grey
+    bpy.data.objects["Key"].data.color = (1.0, 1.0, 0.995)
+    bpy.data.objects["Fill"].data.color = (1.0, 1.0, 1.0)
     catcher = shadow_catcher()
-    if skip_catcher:
+    skip = list(skip_catcher or ())
+    if short_shadow:
+        t = Vector(target)
+        k = bpy.data.objects["Key"]
+        ks = area_light("KeyShadow", t + Vector((-0.50, -0.45, 3.2)) * s, t, size=2.0 * s,
+                        energy=k.data.energy * 1.25, color=(1.0, 1.0, 1.0))
+        only = bpy.data.collections.new("apparel_catcher_only")
+        only.objects.link(catcher)
+        ks.light_linking.receiver_collection = only
+        for n in ("Key", "Fill"):          # the low front fill would print a long faint smear too
+            if n not in skip:
+                skip.append(n)
+    if skip:
         coll = bpy.data.collections.new("apparel_catcher_exclude")
         coll.objects.link(catcher)
         coll.collection_objects[0].light_linking.link_state = "EXCLUDE"
-        for n in skip_catcher:
+        for n in skip:
             bpy.data.objects[n].light_linking.receiver_collection = coll
     return catcher
+
+
+def alpha_ring_report(path, inner=0.90):
+    """Max alpha (0..255) on and outside the inner `inner` box of a rendered PNG: the cast shadow
+    should have died out on its own (< ~3/255) before the edge_fade safety net starts."""
+    img = bpy.data.images.load(path, check_existing=False)
+    w, h = img.size
+    a = np.empty(w * h * 4, dtype=np.float32)
+    img.pixels.foreach_get(a)
+    al = a.reshape(h, w, 4)[:, :, 3]
+    m = int(round(w * (1 - inner) / 2))
+    ring = max(al[:, :m + 1].max(), al[:, w - m - 1:].max(), al[:m + 1].max(), al[h - m - 1:].max())
+    ys, xs = np.nonzero(al > 0.5)
+    cx, cy = (xs.min() + xs.max()) / 2 - w / 2, (ys.min() + ys.max()) / 2 - h / 2
+    bpy.data.images.remove(img)
+    print(f"[apparel] alpha ring@{inner:.2f} {path}: max {ring * 255:.1f}/255; object bbox x {xs.min()}..{xs.max()} "
+          f"y {ys.min()}..{ys.max()} of {w}x{h}, centre offset ({cx:.0f}, {cy:.0f}) px")
+    return ring
+
+
+def dark_fill(roots, energy=6.0, offset=(0.25, -1.0, 0.75), size=1.4, target=(0, 0, 0.04)):
+    """Photographer's bounce card for dark garments: a big soft front fill (camera side) that is
+    light-linked to the given garments only, so Black cotton (#151515) reads as charcoal cloth with
+    visible fold modelling while the light garments, the catcher and the colour of everything else
+    are untouched. roots: garment Empties (their mesh children receive the light)."""
+    from common import area_light
+    t = Vector(target)
+    lo = area_light("DarkFill", t + Vector(offset), t, size=size, energy=energy, color=(1.0, 1.0, 1.0))
+    coll = bpy.data.collections.new("apparel_darkfill_receivers")
+    for r in roots:
+        for m in _mesh_children(r):
+            coll.objects.link(m)
+    lo.light_linking.receiver_collection = coll
+    return lo
 
 
 # ============================================================== stacking / draping
@@ -1847,7 +2108,7 @@ def frame_camera(objs, az_deg=28.0, el_deg=34.0, lens=85.0, pad=0.08, fstop=None
         # project every sample along the key direction onto the ground (cast-shadow footprint),
         # pushed a little further for the soft penumbra, plus a small ring around the base
         g0, g1 = shadow_grow
-        key = bpy.data.objects.get("Key")
+        key = bpy.data.objects.get("KeyShadow") or bpy.data.objects.get("Key")
         ldir = (key.location - c).normalized() if key else Vector((-0.5, -0.45, 0.74)).normalized()
         hd = Vector((-ldir.x, -ldir.y, 0.0)).normalized()
         extra = []

@@ -28,7 +28,8 @@ c.transmission_bounces = 20
 c.glossy_bounces = 6
 c.transparent_max_bounces = 24
 if not PREVIEW:
-    c.adaptive_threshold = 0.012
+    c.adaptive_threshold = 0.01
+    c.time_limit = 0         # no cap (round 2: a ceiling left the heels short of 512 spp)
 studio("soft", key=1.0, hdri_strength=0.30, scale=1.15, target=(0, 0, 0.16))
 # dark-field edge lines: two tall glossy/transmission-only strips at +-65 deg behind the row
 sb.edge_strips((0.0, 0.0), 0.0, dist=1.05, zc=0.20, strength=5.0)
@@ -36,8 +37,10 @@ for o in bpy.data.objects:
     if o.name.startswith("Edge"):
         o.scale = (0.07, 1.4, 1)
 bpy.data.objects["Rim"].data.use_shadow = False   # house rule: rim lights edges, no smudge
+sb.aim_key((0, 0, 0.16), 0.0, 1.15)               # same steeper, more frontal key as the singles
 sc = shadow_catcher()
 sc.visible_transmission = False
+sc.visible_glossy = False                          # caps/glass mirror the dark studio, not a white floor
 
 n = len(ORDER)
 for i, kind in enumerate(ORDER):
@@ -62,10 +65,17 @@ for o in bpy.data.objects:
     if o.type == "MESH" and o.name != sc.name and not o.name.startswith(("BackCard", "WrapCard", "Edge")):
         o.visible_diffuse = False
 
-el = math.radians(7)
+el = math.radians(13)    # low hero angle for the row (singles: 18 deg, goods: 30 deg)
 if CLOSE:
     tgt, dist, lens = (0.0, 0.0, 0.2), 0.75, 85
 else:
     tgt, dist, lens = (0.0, 0.0, 0.170), 1.92, 70
 camera(loc=(tgt[0], tgt[1] - dist * math.cos(el), tgt[2] + dist * math.sin(el)), target=tgt, lens=lens)
-render_to("spirits/lineup_close.png" if CLOSE else "spirits/lineup.png")
+if sb.CROP:
+    import common
+    common.PREVIEW = True     # QA crop (--crop x0,y0,x1,y1 [--spp N]) -> previews/, never out/
+    out = render_to("spirits/lineup_crop.png")
+else:
+    out = render_to("spirits/lineup_close.png" if CLOSE else "spirits/lineup.png")
+if not (CLOSE or sb.CROP):
+    vessels.fade_alpha_edges(out, margin=(0.07, 0.07), edge=(0.006, 0.006))

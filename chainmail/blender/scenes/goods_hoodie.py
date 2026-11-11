@@ -1,4 +1,6 @@
-"""goods/hoodie.png — three retail-folded hoodies (Cement / White / Black on top), fanned stack.
+"""goods/hoodie.png — three retail-folded hoodies (Cement / White / Black on top), fanned stack. Only the
+bottom (Cement) hoodie shows its sleeve + rib cuff peeking out of the right fold, resting on the floor
+(on the upper ones it would hang over the edge of the hoodie below); waistband rib on every front fold.
 blender -b --factory-startup -P blender/scenes/goods_hoodie.py -- [--preview] [--crop=x0,y0,x1,y1]"""
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "lib"))
@@ -14,11 +16,14 @@ if not PREVIEW:                                  # house 256 spp; 0.01 noise thr
     c.adaptive_threshold = 0.01
 apparel.studio_apparel(target=(0, 0, 0.06), key=apparel.KEY)
 
-roots = [apparel.folded_hoodie(c_, seed=s) for c_, s in (("Cement", 5), ("White", 17), ("Black", 29))]
+roots = [apparel.folded_hoodie(c_, seed=s, cuff=cf) for c_, s, cf in (("Cement", 5, "long"), ("White", 17, False),
+                                                                     ("Black", 29, False))]
 apparel.stack(roots, [(0.040, 0.014, 3.0), (0.020, 0.007, -2.0), (-0.002, -0.002, 0.5)], sag=8.0)
+apparel.dark_fill([roots[2]], energy=apparel.DARK_FILL_FLEECE)
 
 objs = [m for r in roots for m in r.children_recursive if m.type == "MESH"]
-apparel.frame_camera(objs, az_deg=24, el_deg=34, lens=85, pad=0.075, shadow_grow=(0.01, 0.04))
+apparel.frame_camera(objs, az_deg=24, el_deg=34, lens=85, pad=apparel.PAD, shadow_grow=apparel.SHADOW_GROW)
 apparel.edge_fade()
 out = render_to(apparel.crop_flag("goods/hoodie.png"))
 apparel.alpha_edge_report(out)
+apparel.alpha_ring_report(out)
