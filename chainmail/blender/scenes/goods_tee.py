@@ -19,7 +19,8 @@ apparel.stack(roots, [(0.012, 0.010, 2.5), (0.006, 0.004, -2.0), (-0.002, -0.002
 apparel.dark_fill([roots[1]], energy=apparel.DARK_FILL)
 
 objs = [m for r in roots for m in r.children_recursive if m.type == "MESH"]
-apparel.frame_camera(objs, az_deg=24, el_deg=34, lens=85, pad=apparel.PAD, shadow_grow=apparel.SHADOW_GROW)
+apparel.frame_camera(objs, az_deg=24, el_deg=34, lens=85, pad=apparel.PAD, shadow_grow=apparel.SHADOW_GROW,
+                     pad_product=0.106, center="product", nudge=(-0.016, 0.009))
 apparel.edge_fade()
 out = render_to(apparel.crop_flag("goods/tee.png"))
 apparel.alpha_edge_report(out)
