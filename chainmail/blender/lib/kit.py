@@ -22,6 +22,15 @@ Public API
   SLOTS                             dict name -> (x, y, z, rot_z_deg) in box-local coords
   place(obj, name, parent=None)     put any item builder's root into its slot (handles lying items)
   packed_box(open=True, ...)        -> Empty  (everything assembled; lid leaning behind when open)
+
+Scene helpers (scenes only; builders never call them)
+  kit_lighting(scale, target, key, foil, hdri_strength, fill, top, rim, contact)  house rig + FoilCard + ContactSoft
+  foil_glint(cam_loc, lid_point, ...) / glint_strip(...)  camera-invisible gradient emitters for the mirror foil
+  wrap_sheen(cam_loc, point, ...)    soft sheen card for the soft-touch lid tops (wrap shells only)
+  link_kit_lights(...)               light linking: foil-only glints, catcher-only contact light, flags, shadowless fill
+  cutout_edge_fade()                 compositor: shadow alpha fades to 0 before the frame edge, object alpha kept
+The chrome foil is a separate decal mesh per lid (KitFoil*, 0.03 mm above the debossed board),
+rasterised from the website logo geometry (site/src/components/logo.js).
 """
 import bpy, bmesh, math, os, sys, json, random, shutil, subprocess, hashlib
 from mathutils import Vector, Matrix, Euler
@@ -49,6 +58,7 @@ INS_TOP = FLOOR_Z + INS_H
 
 SEAL_D = 0.060
 CARD_W, CARD_D, CARD_T = 0.127, 0.178, 0.0008
+CARD_STOCK = "#EFDCBF"                          # warm cream cotton stock
 CAN_R, CAN_H = 0.0265, 0.134                    # 250 ml slim can (Ø53 x 134 mm)
 SLEEVE_W, SLEEVE_D, SLEEVE_H, SLEEVE_Z = 0.1102, 0.0572, 0.084, 0.017
 PRODUCT_SIZE = (SLEEVE_W, SLEEVE_D, CAN_H)      # footprint of your_product() upright
@@ -56,10 +66,13 @@ PRODUCT_SIZE = (SLEEVE_W, SLEEVE_D, CAN_H)      # footprint of your_product() up
 # ---------------------------------------------------------------- slots (box-local)
 # (x, y, z, rot_z_deg): footprint centre x/y and the height the item rests on.
 # Lying items (tumbler, bottle) are first rotated -90° about X (top -> +Y / back).
-_HOODIE_TOP = FLOOR_Z + 0.001 + 0.055
+# the folded hoodie (0.055 m free) is pressed to 0.047 m by the cap + lid in the kit, so the
+# cap rests ON it (no intersection) and still clears the closed lid (inner ceiling = BOX_H)
+HOODIE_PACKED_H = 0.047
+_HOODIE_TOP = FLOOR_Z + 0.001 + HOODIE_PACKED_H
 SLOTS = {
     "hoodie":  (-0.132, 0.000, FLOOR_Z + 0.001, 0.0),       # flat, portrait, in the tissue-lined bay
-    "cap":     (-0.132, 0.012, _HOODIE_TOP - 0.008, 0.0),    # nested on the hoodie, brim to the front
+    "cap":     (-0.132, 0.012, _HOODIE_TOP, 0.0),            # nested on the (pressed) hoodie, brim to the front
     "product": (0.016, -0.060, FLOOR_Z, 90.0),               # upright in its pocket, front faces +X
     "tumbler": (0.100, 0.030, INS_TOP - 0.004 - 0.0415, 0.0),  # lying along Y in a cradle
     "bottle":  (0.197, 0.000, INS_TOP - 0.004 - 0.040, 0.0),   # lying along Y, neck to the back
@@ -152,7 +165,7 @@ def _hex(name, gain=1.0):
         return 12.92 * c if c <= 0.0031308 else 1.055 * c ** (1 / 2.4) - 0.055
     return "#" + "".join(f"{round(enc(c) * 255):02X}" for c in lin)
 
-COBALT_ALBEDO = 0.62    # printed cobalt reflectance gain used for every cobalt print/paper
+COBALT_ALBEDO = 1.0     # kept for API compatibility; printed cobalt now uses PALETTE cobalt directly
 
 
 # ================================================================= materials
@@ -198,25 +211,27 @@ def _cached(key, fn):
     return m
 
 def mat_wrap(color="ink", foil_logo=False, name=None):
-    """Soft-touch laminated wrap paper over greyboard: velvety broad sheen, faint
-    paper grain, slight glue waviness and roughness variation (fingerprint-ish).
-    foil_logo=True adds the chrome hot-foil wordmark, debossed, centred on the lid."""
+    """Soft-touch laminated wrap paper over greyboard: velvety broad sheen, fine
+    paper grain, a whisper of glue waviness. foil_logo=True adds the wordmark
+    *deboss* (the board pressed down where the foil sits); the chrome foil itself
+    is a separate decal mesh (see _foil_decal) so lights can be linked to it."""
     def build():
         m, nt, b = _c._new_mat(name or f"wrap_{color}{'_foil' if foil_logo else ''}")
         tc = nt.nodes.new("ShaderNodeTexCoord")
         co = tc.outputs["Object"]
         b.inputs["Base Color"].default_value = rgb(color)
-        b.inputs["Sheen Weight"].default_value = 0.06
+        b.inputs["Sheen Weight"].default_value = 0.05
         b.inputs["Sheen Roughness"].default_value = 0.4
         b.inputs["Sheen Tint"].default_value = (0.8, 0.82, 0.88, 1)
         b.inputs["Specular IOR Level"].default_value = 0.30
-        rn = _noise(nt, co, 16.0, 2.0, 0.5)
-        rr = _maprange(nt, rn.outputs["Fac"], 0.3, 0.7, 0.54, 0.60)
+        # very slow, very narrow roughness drift (handling) - no visible mottling
+        rn = _noise(nt, co, 2.5, 1.0, 0.5)
+        rr = _maprange(nt, rn.outputs["Fac"], 0.3, 0.7, 0.58, 0.61)
         nt.links.new(rr.outputs["Result"], b.inputs["Roughness"])
         grain = _noise(nt, co, 1100.0, 6.0, 0.55)
-        wave = _noise(nt, co, 7.0, 2.0, 0.5)
+        wave = _noise(nt, co, 1.5, 1.0, 0.5)
         b1 = _bumpnode(nt, grain.outputs["Fac"], 0.05, 0.0003)
-        b2 = _bumpnode(nt, wave.outputs["Fac"], 0.008, 0.002, b1.outputs["Normal"])
+        b2 = _bumpnode(nt, wave.outputs["Fac"], 0.002, 0.0005, b1.outputs["Normal"])
         normal = b2.outputs["Normal"]
         if not foil_logo:
             nt.links.new(normal, b.inputs["Normal"])
@@ -227,6 +242,46 @@ def mat_wrap(color="ink", foil_logo=False, name=None):
         mp.inputs["Scale"].default_value = (1 / info["w_m"], 1 / info["h_m"], 1)
         mp.inputs["Location"].default_value = (0.5, 0.5 - info["y_off"] / info["h_m"], 0)
         nt.links.new(co, mp.inputs["Vector"])
+        blur = nt.nodes.new("ShaderNodeTexImage")
+        blur.image = _img(info["blur"], True)
+        blur.extension = "CLIP"
+        blur.interpolation = "Cubic"
+        nt.links.new(mp.outputs["Vector"], blur.inputs["Vector"])
+        deb = _bumpnode(nt, blur.outputs["Color"], 0.9, 0.00035, normal, invert=True)
+        nt.links.new(deb.outputs["Normal"], b.inputs["Normal"])
+        return m
+    return _cached(("wrap", color, foil_logo), build)
+
+def mat_wrap_edge(color="ink"):
+    """The wrap where it is folded over a board edge (bevel faces): the soft-touch
+    film is stretched thin there, so the edge reads a touch lighter and silkier -
+    gives every box a fine, believable edge line instead of a CG silhouette."""
+    def build():
+        m, nt, b = _c._new_mat(f"wrap_edge_{color}")
+        mx = nt.nodes.new("ShaderNodeMix"); mx.data_type = "RGBA"
+        mx.inputs["Factor"].default_value = 0.35
+        mx.inputs["A"].default_value = rgb(color)
+        mx.inputs["B"].default_value = rgb("graphite")
+        nt.links.new(mx.outputs["Result"], b.inputs["Base Color"])
+        b.inputs["Roughness"].default_value = 0.42
+        b.inputs["Specular IOR Level"].default_value = 0.5
+        b.inputs["Sheen Weight"].default_value = 0.12
+        b.inputs["Sheen Roughness"].default_value = 0.35
+        tc = nt.nodes.new("ShaderNodeTexCoord")
+        g = _noise(nt, tc.outputs["Object"], 1100.0, 6.0, 0.55)
+        _c._bump(nt, b, g.outputs["Fac"], 0.05, 0.0003)
+        return m
+    return _cached(("wrap_edge", color), build)
+
+def mat_foil_decal():
+    """Chrome hot-foil on its own decal mesh (UV 0..1 = the logo mask image).
+    A crisp stamped mirror foil: constant low roughness, no anisotropy, flat colour;
+    the chrome look comes from what it reflects (FoilCard / glint emitters)."""
+    def build():
+        info = logo_mask()
+        m, nt, b = _c._new_mat("foil_decal")
+        tc = nt.nodes.new("ShaderNodeTexCoord")
+        uvn = tc.outputs["UV"]
         sharp = nt.nodes.new("ShaderNodeTexImage")
         sharp.image = _img(info["mask"], True)
         sharp.extension = "CLIP"
@@ -235,38 +290,41 @@ def mat_wrap(color="ink", foil_logo=False, name=None):
         blur.image = _img(info["blur"], True)
         blur.extension = "CLIP"
         blur.interpolation = "Cubic"
-        nt.links.new(mp.outputs["Vector"], sharp.inputs["Vector"])
-        nt.links.new(mp.outputs["Vector"], blur.inputs["Vector"])
-        # deboss: the board is pressed down where the foil sits
-        deb = _bumpnode(nt, blur.outputs["Color"], 0.9, 0.00035, normal, invert=True)
-        nt.links.new(deb.outputs["Normal"], b.inputs["Normal"])
-        foil = nt.nodes.new("ShaderNodeBsdfPrincipled")
-        foil.inputs["Metallic"].default_value = 1.0
-        # stamped foil is never a perfect mirror: patchy brightness + roughness drift
-        fv = _noise(nt, co, 16.0, 3.0, 0.55, dist=0.4)
-        fvc = _maprange(nt, fv.outputs["Fac"], 0.3, 0.72, 0.42, 1.0)
-        fcol = nt.nodes.new("ShaderNodeMix"); fcol.data_type = "RGBA"; fcol.blend_type = "MULTIPLY"
-        fcol.inputs["Factor"].default_value = 1.0
-        fcol.inputs["A"].default_value = rgb("chrome")
-        nt.links.new(fvc.outputs["Result"], fcol.inputs["B"])
-        nt.links.new(fcol.outputs["Result"], foil.inputs["Base Color"])
-        frr = _maprange(nt, fv.outputs["Fac"], 0.3, 0.72, 0.3, 0.14)
-        nt.links.new(frr.outputs["Result"], foil.inputs["Roughness"])
-        foil.inputs["Anisotropic"].default_value = 0.35
-        fz = _noise(nt, co, 2600.0, 3.0, 0.5)
-        fb0 = _bumpnode(nt, fz.outputs["Fac"], 0.06, 0.0001, deb.outputs["Normal"])
-        # the stamped foil is never dead flat: slow undulation varies the chrome reflection
-        fw = _noise(nt, co, 55.0, 2.0, 0.5)
-        fb = _bumpnode(nt, fw.outputs["Fac"], 0.5, 0.003, fb0.outputs["Normal"])
-        nt.links.new(fb.outputs["Normal"], foil.inputs["Normal"])
+        nt.links.new(uvn, sharp.inputs["Vector"]); nt.links.new(uvn, blur.inputs["Vector"])
+        b.inputs["Base Color"].default_value = rgb("#D4D7DD")
+        b.inputs["Metallic"].default_value = 1.0
+        b.inputs["Anisotropic"].default_value = 0.0
+        rv = _noise(nt, tc.outputs["Object"], 40.0, 2.0, 0.5)
+        rr = _maprange(nt, rv.outputs["Fac"], 0.3, 0.7, 0.09, 0.12)
+        nt.links.new(rr.outputs["Result"], b.inputs["Roughness"])
+        # the foil follows the deboss at the letter edges + a faint foil micro-texture
+        deb = _bumpnode(nt, blur.outputs["Color"], 0.9, 0.00035, invert=True)
+        fz = _noise(nt, tc.outputs["Object"], 2600.0, 3.0, 0.5)
+        fb = _bumpnode(nt, fz.outputs["Fac"], 0.04, 0.0001, deb.outputs["Normal"])
+        nt.links.new(fb.outputs["Normal"], b.inputs["Normal"])
+        tr = nt.nodes.new("ShaderNodeBsdfTransparent")
         mix = nt.nodes.new("ShaderNodeMixShader")
         nt.links.new(sharp.outputs["Color"], mix.inputs["Fac"])
-        nt.links.new(b.outputs["BSDF"], mix.inputs[1])
-        nt.links.new(foil.outputs["BSDF"], mix.inputs[2])
-        out = nt.nodes.get("Material Output")
-        nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
+        nt.links.new(tr.outputs["BSDF"], mix.inputs[1])
+        nt.links.new(b.outputs["BSDF"], mix.inputs[2])
+        nt.links.new(mix.outputs["Shader"], nt.nodes.get("Material Output").inputs["Surface"])
         return m
-    return _cached(("wrap", color, foil_logo), build)
+    return _cached(("foil_decal",), build)
+
+def _foil_decal(z, name="KitFoil"):
+    """Plane covering the wordmark image area, z above the lid top (0.03 mm)."""
+    info = logo_mask()
+    w, h = info["w_m"], info["h_m"]
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new()
+    vs = [bm.verts.new((x, y + info["y_off"], z)) for x, y in ((-w / 2, -h / 2), (w / 2, -h / 2),
+                                                             (w / 2, h / 2), (-w / 2, h / 2))]
+    f = bm.faces.new(vs)
+    for l in f.loops:
+        l[uv].uv = ((l.vert.co.x + w / 2) / w, (l.vert.co.y - info["y_off"] + h / 2) / h)
+    o = _mesh_obj(name, bm, (mat_foil_decal(),))
+    o.visible_shadow = False
+    return o
 
 def mat_liner(color="cobalt"):
     """Uncoated coloured liner paper (inside walls)."""
@@ -366,7 +424,7 @@ def mat_can_paint(color="bone"):
         nt.links.new(lo_.outputs[0], band.inputs[0]); nt.links.new(hi_.outputs[0], band.inputs[1])
         mx = nt.nodes.new("ShaderNodeMix"); mx.data_type = "RGBA"
         mx.inputs["A"].default_value = rgb(color)
-        mx.inputs["B"].default_value = rgb(_hex("cobalt", COBALT_ALBEDO))
+        mx.inputs["B"].default_value = rgb("cobalt")
         nt.links.new(band.outputs[0], mx.inputs["Factor"])
         nt.links.new(mx.outputs["Result"], b.inputs["Base Color"])
         b.inputs["Roughness"].default_value = 0.34
@@ -406,67 +464,107 @@ def _mat_print(image_path, name, rough=0.55, coat=0.0, sheen=0.1, bump_tex=None,
 
 
 # ================================================================= textures (generated, cached)
-_LOGO_MASK_CODE = r'''
-import sys, json
-a = json.loads(sys.argv[-1])
-sys.path.insert(0, a["lib"])
-from common import *
-reset()
-lg = logo(size=1.0)
-xs = [v.co.x for v in lg.data.vertices]; ys = [v.co.y for v in lg.data.vertices]
-x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
-pad = 0.06
-W = x1 - x0 + 2 * pad; H = y1 - y0 + 2 * pad
-s = bpy.context.scene
-s.render.engine = "CYCLES"
-s.cycles.device = "CPU"
-s.cycles.samples = 24
-s.cycles.use_denoising = False
-s.cycles.max_bounces = 0
-s.render.filter_size = 1.0
-s.render.film_transparent = True
-s.view_settings.view_transform = "Standard"
-px = a["px"]
-s.render.resolution_x = px
-s.render.resolution_y = int(round(px * H / W))
-s.render.resolution_percentage = 100
-s.render.image_settings.file_format = "PNG"
-s.render.image_settings.color_mode = "RGBA"
-cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-camera(loc=(cx, cy, 5), target=(cx, cy, 0), ortho_scale=W)
-s.render.filepath = a["out"]
-bpy.ops.render.render(write_still=True)
-json.dump({"W": W, "H": H, "content_w": x1 - x0, "content_h": y1 - y0, "cx": cx, "cy": cy},
-          open(a["json"], "w"))
-'''
+# The foil wordmark is drawn from the SAME geometry as the website logo
+# (site/src/components/logo.js): Archivo glyph outlines as an SVG path + two
+# interlocked oval links each side with an over/under break. Rasterised with
+# Pillow (even-odd fill of the flattened path, exact offset-curve ring strokes).
+LOGO_JS = os.path.abspath(os.path.join(ROOT, "..", "site", "src", "components", "logo.js"))
 
-_MASK_POST_CODE = r'''
-import sys, json
-from PIL import Image, ImageFilter
+_LOGO_WEB_CODE = r"""
+import sys, json, re, math
+import numpy as np
+from PIL import Image, ImageDraw, ImageFilter
 a = json.loads(sys.argv[1])
-im = Image.open(a["src"]).getchannel("A")
+src = open(a["js"]).read()
+d = re.search(r"const WORD = '([^']+)'", src).group(1)
+def const(name, default):
+    m = re.search(r"\b" + name + r"\s*=\s*(-?[\d.]+)", src)
+    return float(m.group(1)) if m else default
+CY, RX, RY, SW, GAP, PITCH = (const("CY", -26.3), const("RX", 22), const("RY", 15), const("SW", 8.5),
+                              const("GAP", 3.2), const("PITCH", 28))
+LEFT_A, RIGHT_A = const("LEFT_A", -68.25), const("RIGHT_A", 616.25)
+# --- path -> polygons (M/L/Q/Z only)
+toks = re.findall(r"[MLQZmlqz]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?", d)
+polys, cur, i, cmd, pos = [], [], 0, None, (0.0, 0.0)
+def num():
+    global i
+    v = float(toks[i]); i += 1; return v
+while i < len(toks):
+    t = toks[i]
+    if t in "MLQZmlqz":
+        cmd = t; i += 1
+        if cmd in "Zz":
+            if cur: polys.append(cur); cur = []
+            continue
+    if cmd == "M":
+        if cur: polys.append(cur)
+        pos = (num(), num()); cur = [pos]; cmd = "L"
+    elif cmd == "L":
+        pos = (num(), num()); cur.append(pos)
+    elif cmd == "Q":
+        c = (num(), num()); e = (num(), num())
+        for k in range(1, 13):
+            u = k / 12
+            cur.append(((1-u)**2*pos[0] + 2*(1-u)*u*c[0] + u*u*e[0], (1-u)**2*pos[1] + 2*(1-u)*u*c[1] + u*u*e[1]))
+        pos = e
+    else:
+        raise SystemExit("unsupported path command " + str(cmd))
+if cur: polys.append(cur)
+# --- ring geometry
+def band(cx, w, n=720):
+    outer, inner = [], []
+    for k in range(n):
+        t = 2 * math.pi * k / n
+        x, y = cx + RX * math.cos(t), CY + RY * math.sin(t)
+        nx, ny = math.cos(t) / RX, math.sin(t) / RY
+        l = math.hypot(nx, ny); nx /= l; ny /= l
+        outer.append((x + nx * w / 2, y + ny * w / 2)); inner.append((x - nx * w / 2, y - ny * w / 2))
+    return outer, inner
+x0 = LEFT_A - RX - SW / 2; x1 = RIGHT_A + PITCH + RX + SW / 2
+ys = [p[1] for pl in polys for p in pl]
+y0 = min(min(ys), CY - RY - SW / 2); y1 = max(max(ys), CY + RY + SW / 2)
+pad = a["pad"]
+W, H = (x1 - x0) + 2 * pad, (y1 - y0) + 2 * pad
+SS = 3
+px = a["px"] * SS
+sc = px / W
+py = int(round(H * sc))
+def P(p): return ((p[0] - x0 + pad) * sc, (p[1] - y0 + pad) * sc)
+def layer(): return Image.new("L", (px, py), 0)
+def fillpoly(pts):
+    im = layer(); ImageDraw.Draw(im).polygon([P(p) for p in pts], fill=255); return np.asarray(im) > 127
+def ring_mask(cx, w):
+    o, n = band(cx, w); return fillpoly(o) & ~fillpoly(n)
+def rect(xa, xb, ya, yb):
+    im = layer(); ImageDraw.Draw(im).rectangle([P((xa, ya)), P((xb, yb))], fill=255); return np.asarray(im) > 127
+acc = np.zeros((py, px), bool)
+for pl in polys:
+    acc ^= fillpoly(pl)
+for A in (LEFT_A, RIGHT_A):
+    B = A + PITCH; mid = A + PITCH / 2
+    ringA = ring_mask(A, SW) & ~(ring_mask(B, SW + 2 * GAP) & rect(mid - 16, mid + 16, CY, CY + 30))
+    ringB = ring_mask(B, SW) & ~(ring_mask(A, SW + 2 * GAP) & rect(mid - 16, mid + 16, CY - 30, CY))
+    acc |= ringA | ringB
+im = Image.fromarray((acc * 255).astype(np.uint8)).resize((a["px"], int(round(py / SS))), Image.LANCZOS)
 im.save(a["mask"])
 im.filter(ImageFilter.GaussianBlur(a["blur"])).save(a["blur_out"])
-'''
+json.dump({"W": W, "H": H, "content_w": x1 - x0, "content_h": y1 - y0, "source": "site/src/components/logo.js"},
+          open(a["json"], "w"))
+"""
 
-LOGO_FOIL_WIDTH = 0.25        # chainmail wordmark width on the lid (m)
+LOGO_FOIL_WIDTH = 0.25        # chainmail wordmark width on the lid incl. the links (m)
 LOGO_FOIL_Y = 0.0             # vertical offset of the wordmark on the lid top
 
 def logo_mask():
-    """Render the common.logo() wordmark top-down to a mask (once, cached in
-    assets/textures/kit_logo_mask*.png) and return its lid-space mapping."""
-    raw = os.path.join(TEX_DIR, "kit_logo_raw.png")
+    """Rasterise the web logo (logo.js geometry) to a 4096 px foil mask + a 1.5 px
+    blurred copy for the deboss (cached in assets/textures/kit_logo_mask*), and
+    return its lid-space mapping (image extents in metres)."""
     mask = os.path.join(TEX_DIR, "kit_logo_mask.png")
     blur = os.path.join(TEX_DIR, "kit_logo_mask_blur.png")
     meta = os.path.join(TEX_DIR, "kit_logo_mask.json")
     if not (os.path.exists(mask) and os.path.exists(blur) and os.path.exists(meta)):
-        args = {"lib": HERE, "px": 4096, "out": raw, "json": meta}
-        r = subprocess.run([bpy.app.binary_path, "-b", "--factory-startup", "--python-expr",
-                            _LOGO_MASK_CODE, "--", json.dumps(args)], capture_output=True, text=True)
-        if not os.path.exists(raw):
-            raise RuntimeError("logo mask render failed\n" + r.stdout[-2000:] + r.stderr[-2000:])
-        _pil(_MASK_POST_CODE, {"src": raw, "mask": mask, "blur_out": blur, "blur": 3.5})
-        os.remove(raw)
+        _pil(_LOGO_WEB_CODE, {"js": LOGO_JS, "px": 4096, "pad": 12.0, "mask": mask, "blur_out": blur,
+                              "blur": 1.5, "json": meta})
     info = json.load(open(meta))
     k = LOGO_FOIL_WIDTH / info["content_w"]
     return {"mask": mask, "blur": blur, "w_m": info["W"] * k, "h_m": info["H"] * k, "y_off": LOGO_FOIL_Y,
@@ -516,7 +614,7 @@ img.resize((S, S), Image.LANCZOS).save(a["out"])
 def seal_texture(number=1, edition=48):
     out = os.path.join(TEX_DIR, f"kit_seal_{number:03d}_{edition:03d}.png")
     if not os.path.exists(out):
-        _pil(_SEAL_CODE, {"px": 1536, "out": out, "bg": _hex("cobalt", COBALT_ALBEDO), "fg": _hex("bone"),
+        _pil(_SEAL_CODE, {"px": 1536, "out": out, "bg": _hex("cobalt"), "fg": _hex("bone"),
                           "mono": FONT_MONO, "text": f"no. {number:02d}/{edition:02d}",
                           "top": "chainmail", "bottom": f"edition of {edition}"})
     return out
@@ -569,7 +667,7 @@ def card_textures(lines=("untitled", "(your logo here)"), number=1, edition=48):
                           "y_mm": 166.0, "tracking": 0.08})
         rules = [(-6.0, 6.0, 70.5, 0.35)] if title else []
         _pil(_CARD_CODE, {"w": int(CARD_W * 1000 * ppmm), "h": int(CARD_D * 1000 * ppmm), "ppmm": ppmm,
-                          "items": items, "rules": rules, "mask": mask, "blur_out": blur, "blur": 5.0})
+                          "items": items, "rules": rules, "mask": mask, "blur_out": blur, "blur": 1.8})
     return mask, blur
 
 _SLEEVE_CODE = r'''
@@ -640,17 +738,198 @@ def kit_render_budget(samples=None, threshold=0.01):
     c.transmission_bounces = 4
     c.transparent_max_bounces = 8
 
-def kit_lighting(scale=1.5, target=(0, 0, 0.08), key=1.0, foil=1.0, hdri_strength=0.3, fill=1.0):
+def kit_lighting(scale=1.5, target=(0, 0, 0.08), key=1.0, foil=1.0, hdri_strength=0.3, fill=1.0, top=1.0,
+                 rim=1.0, contact=1.0):
     """House studio() rig + a big soft 'foil card' high behind-left so the
-    chrome hot-foil catches light from 3/4 front views. Same for every kit shot."""
+    chrome hot-foil catches light from 3/4 front views. Same for every kit shot.
+    Call link_kit_lights() once the scene is built (light linking: the foil card
+    only lights the foil decals; rim/fill/foil never cast onto the shadow catcher)."""
     studio("soft", key=key, hdri_strength=hdri_strength, scale=scale, target=target)
-    if fill != 1.0 and "Fill" in bpy.data.objects:
-        bpy.data.objects["Fill"].data.energy *= fill
+    for nm, mul in (("Fill", fill), ("Top", top), ("Rim", rim)):
+        if mul != 1.0 and nm in bpy.data.objects:
+            bpy.data.objects[nm].data.energy *= mul
     t = Vector(target)
     s = scale
     if foil > 0:
         area_light("FoilCard", t + Vector((-1.3, 1.9, 2.3)) * s, t, size=1.6 * s, size_y=0.9 * s,
                    energy=70 * foil * s * s, color=(1.0, 0.99, 0.98))
+    if contact > 0:
+        # big soft overhead source that ONLY lights the shadow catcher (linked in
+        # link_kit_lights): gives every cutout the same soft, compact contact shadow
+        area_light("ContactSoft", Vector((t.x, t.y, 0.0)) + Vector((-0.30, -0.22, 1.9)) * s,
+                   Vector((t.x, t.y, 0.0)), size=1.3 * s, energy=40 * contact * s * s)
+
+def _collection(name, objs, state="INCLUDE"):
+    c = bpy.data.collections.get(name) or bpy.data.collections.new(name)
+    for o in objs:
+        if o.name not in c.objects:
+            c.objects.link(o)
+    for co in c.collection_objects:
+        co.light_linking.link_state = state
+    return c
+
+def link_kit_lights(no_catcher=("Key", "Top", "Rim", "Fill", "FoilCard"), foil_only=("FoilCard",),
+                    extra_foil_only=(), flag_seals=("Top",), flag_prefixes=("Seal_",), shadowless=("Fill",)):
+    """Light linking for kit shots (call after everything is built):
+      * foil_only emitters (FoilCard, FoilGlint* strips) light ONLY the KitFoil* decals;
+      * WrapSheen* lights only the soft-touch wrap shells (KitLid_shell*/KitBase_shell*);
+      * ContactSoft lights only the shadow catcher;
+      * no_catcher emitters neither light nor shadow the ShadowCatcher, so every
+        cutout carries one compact, soft contact shadow (ContactSoft + HDRI);
+      * shadowless emitters (default the low front Fill) cast no shadows at all - a fill
+        should open up the dark faces, never draw hard wedges across neighbouring boxes;
+      * flag_seals emitters skip objects named flag_prefixes* (default the cobalt
+        seals) - a photographic 'flag' that keeps saturated cobalt print from washing out."""
+    objs = bpy.data.objects
+    foils = [o for o in objs if o.name.startswith("KitFoil")]
+    wraps = [o for o in objs if o.name.startswith(("KitLid_shell", "KitBase_shell"))]
+    seals = [o for o in objs if o.name.startswith(tuple(flag_prefixes))] if flag_prefixes else []
+    catchers = [o for o in objs if o.is_shadow_catcher]
+    fc = _collection("kit_foil_receivers", foils, "INCLUDE") if foils else None
+    wc = _collection("kit_wrap_receivers", wraps, "INCLUDE") if wraps else None
+    cc = _collection("kit_not_catcher", catchers, "EXCLUDE") if catchers else None
+    csc = _collection("kit_not_catcher_seal", catchers + seals, "EXCLUDE") if (catchers or seals) else None
+    for o in objs:
+        if o.name in tuple(foil_only) + tuple(extra_foil_only) or o.name.startswith("FoilGlint"):
+            if fc is not None:
+                o.light_linking.receiver_collection = fc
+                o.light_linking.blocker_collection = fc
+        elif o.name.startswith("WrapSheen") and wc is not None:
+            o.light_linking.receiver_collection = wc
+        elif o.name == "ContactSoft":
+            if catchers:
+                o.light_linking.receiver_collection = _collection("kit_catcher_only", catchers, "INCLUDE")
+            else:
+                o.hide_render = True        # nothing to catch: never let it light the product
+        elif o.name in flag_seals and csc is not None:
+            o.light_linking.receiver_collection = csc
+            if cc is not None:
+                o.light_linking.blocker_collection = cc
+        elif o.name in no_catcher and cc is not None:
+            o.light_linking.receiver_collection = cc
+            o.light_linking.blocker_collection = cc
+        if o.name in shadowless and catchers:
+            # only the (invisible, non-occluding) catcher is a blocker -> no shadows
+            o.light_linking.blocker_collection = _collection("kit_catcher_only", catchers, "INCLUDE")
+
+def wrap_sheen(cam_loc, point, dist=3.0, size=(2.4, 1.2), energy=300.0, name="WrapSheen", up=0.0):
+    """Big soft card on the mirror path camera -> flat lid point: a broad velvety
+    sheen gradient on the soft-touch lid top (linked to the wrap shells only)."""
+    c = Vector(cam_loc); p = Vector(point)
+    i = (p - c).normalized()
+    r = Vector((i.x, i.y, -i.z + up)).normalized()
+    return area_light(name, p + r * dist, p, size=size[0], size_y=size[1], energy=energy,
+                      color=(0.97, 0.98, 1.0))
+
+def glint_strip(name, loc, target, size=(0.6, 0.15), strength=8.0, gradient=False):
+    """Camera-invisible emissive card for foil reflections (link it with
+    link_kit_lights(extra_foil_only=(name,))). gradient=True: black->white ramp
+    along its X so a mirror foil reads as a smooth chrome sweep."""
+    bpy.ops.mesh.primitive_plane_add(size=1, location=loc)
+    o = bpy.context.active_object
+    o.name = name
+    o.scale = (size[0], size[1], 1)
+    look_at(o, target)
+    m, nt, b = _c._new_mat(name + "_emit")
+    em = nt.nodes.new("ShaderNodeEmission")
+    em.inputs["Strength"].default_value = strength
+    if gradient:
+        tc = nt.nodes.new("ShaderNodeTexCoord")
+        gr = nt.nodes.new("ShaderNodeTexGradient")
+        nt.links.new(tc.outputs["Generated"], gr.inputs["Vector"])
+        ramp = nt.nodes.new("ShaderNodeValToRGB")
+        el = ramp.color_ramp.elements
+        el[0].color = (0.10, 0.10, 0.11, 1)
+        el[1].position = 0.32
+        el[1].color = (1, 1, 1, 1)
+        e3 = el.new(1.0)
+        e3.color = (0.20, 0.20, 0.22, 1)
+        ramp.color_ramp.interpolation = "EASE"
+        nt.links.new(gr.outputs["Fac"], ramp.inputs["Fac"])
+        nt.links.new(ramp.outputs["Color"], em.inputs["Color"])
+    nt.links.new(em.outputs["Emission"], nt.nodes.get("Material Output").inputs["Surface"])
+    assign(o, m)
+    o.visible_camera = False
+    o.visible_shadow = False
+    o.visible_diffuse = False
+    return o
+
+def foil_glint(cam_loc, lid_point, dist=1.2, size=(0.9, 0.45), strength=5.0, name="FoilGlint", up_tilt=0.0):
+    """Camera-invisible gradient emitter placed on the mirror path camera -> lid
+    point (flat lid, normal +Z), so the mirror foil reflects a smooth chrome sweep
+    (bright one end, darker the other) instead of a flat grey. Foil-only (linked)."""
+    c = Vector(cam_loc); p = Vector(lid_point)
+    i = (p - c).normalized()
+    r = Vector((i.x, i.y, -i.z))
+    r.z += up_tilt
+    r.normalize()
+    loc = p + r * dist
+    o = glint_strip(name, loc, p, size=size, strength=strength, gradient=True)
+    return o
+
+def _fade_image(w, h, inner=0.80, outer=0.97, p=5.0):
+    """Greyscale vignette: 1 inside a super-ellipse, smooth fade to 0 before the frame edge."""
+    import numpy as np
+    im = bpy.data.images.new("kit_edge_fade", w, h, alpha=False, float_buffer=True)
+    x = (np.arange(w) + 0.5) / w * 2 - 1
+    y = (np.arange(h) + 0.5) / h * 2 - 1
+    X, Y = np.meshgrid(x, y)
+    d = (np.abs(X) ** p + np.abs(Y) ** p) ** (1 / p)
+    t = np.clip((d - inner) / (outer - inner), 0, 1)
+    f = 1 - t * t * (3 - 2 * t)
+    px = np.repeat(f.astype(np.float32)[..., None], 4, axis=2)
+    px[..., 3] = 1
+    im.pixels.foreach_set(px.ravel())
+    # a generated image is re-created blank at render time: save + reload it as a file
+    path = os.path.join(bpy.app.tempdir or "/tmp", f"kit_edge_fade_{w}x{h}.exr")
+    im.filepath_raw = path
+    im.file_format = "OPEN_EXR"
+    im.save()
+    bpy.data.images.remove(im)
+    im = bpy.data.images.load(path, check_existing=False)
+    im.colorspace_settings.name = "Non-Color"
+    return im
+
+def cutout_edge_fade(inner=0.80, outer=0.97, p=5.0, mask_samples=16):
+    """Compositor: fade the shadow-catcher alpha to 0 before the frame edges while
+    the object itself keeps alpha 1. A second view layer ("ObjMask": no catcher,
+    flat emission override, few samples, no denoise) supplies object coverage;
+    alpha_out = alpha * max(fade, object_alpha)."""
+    s = bpy.context.scene
+    catchers = [o for o in bpy.data.objects if o.is_shadow_catcher]
+    cat = bpy.data.collections.get("kit_catcher_layer") or bpy.data.collections.new("kit_catcher_layer")
+    if cat.name not in s.collection.children:
+        s.collection.children.link(cat)
+    for o in catchers:
+        if o.name in s.collection.objects:      # only leave the scene root; light-link sets stay
+            s.collection.objects.unlink(o)
+        if o.name not in cat.objects:
+            cat.objects.link(o)
+    main = s.view_layers[0]
+    ml = s.view_layers.get("ObjMask") or s.view_layers.new("ObjMask")
+    ml.samples = mask_samples
+    ml.cycles.use_denoising = False
+    ml.layer_collection.children[cat.name].exclude = True
+    em = bpy.data.materials.get("kit_mask_override") or mat_emission("bone", 1.0, name="kit_mask_override")
+    ml.material_override = em
+    w = int(s.render.resolution_x * s.render.resolution_percentage / 100)
+    h = int(s.render.resolution_y * s.render.resolution_percentage / 100)
+    s.use_nodes = True
+    nt = s.node_tree
+    nt.nodes.clear()
+    rl = nt.nodes.new("CompositorNodeRLayers"); rl.layer = main.name
+    rm = nt.nodes.new("CompositorNodeRLayers"); rm.layer = ml.name
+    fi = nt.nodes.new("CompositorNodeImage"); fi.image = _fade_image(w, h, inner, outer, p)
+    mx = nt.nodes.new("CompositorNodeMath"); mx.operation = "MAXIMUM"
+    nt.links.new(fi.outputs["Image"], mx.inputs[0])
+    nt.links.new(rm.outputs["Alpha"], mx.inputs[1])
+    sa = nt.nodes.new("CompositorNodeSetAlpha"); sa.mode = "APPLY"
+    nt.links.new(rl.outputs["Image"], sa.inputs["Image"])
+    nt.links.new(mx.outputs["Value"], sa.inputs["Alpha"])
+    comp = nt.nodes.new("CompositorNodeComposite")
+    comp.use_alpha = True
+    nt.links.new(sa.outputs["Image"], comp.inputs["Image"])
+    return nt
 
 
 # ================================================================= box shells
@@ -709,8 +988,9 @@ def _flip_z(bm, h):
 def box_base(color="ink", inner="cobalt"):
     """Rigid base tray 0.50 x 0.36 x 0.15, origin at its underside centre."""
     shell = _mesh_obj("KitBase_shell", _tray_bm(BOX_W, BOX_D, BOX_H, BOARD, CORNER_R),
-                      (mat_wrap(color), mat_liner(inner)))
+                      (mat_wrap(color), mat_liner(inner), mat_wrap_edge(color)))
     bev = bevel(shell, 0.0012, 4)
+    bev.material = 2          # the folded wrap over every bevelled edge
     bev.angle_limit = math.radians(40)
     bev.harden_normals = True
     smooth(shell)
@@ -738,8 +1018,8 @@ def seal(number=1, edition=48):
         for l in f.loops:
             l[uv].uv = (l.vert.co.x / SEAL_D + 0.5, l.vert.co.y / SEAL_D + 0.5)
     tex = seal_texture(number, edition)
-    o = _mesh_obj(f"Seal_{number:02d}", bm, (_mat_print(tex, f"seal_{number:02d}_{edition}", rough=0.5,
-                                                         coat=0.0, sheen=0.0, spec=0.35),))
+    o = _mesh_obj(f"Seal_{number:02d}", bm, (_mat_print(tex, f"seal_{number:02d}_{edition}", rough=0.6,
+                                                         coat=0.0, sheen=0.0, spec=0.3),))
     bv = bevel(o, 0.00004, 1)
     smooth(o)
     o.data.shade_smooth()
@@ -751,8 +1031,9 @@ def lid(number=1, edition=48, color="ink", inner="cobalt", seal_angle=-7.0):
     number=None -> no seal (used for the lid-top tile)."""
     bm = _tray_bm(LID_W, LID_D, LID_H, BOARD, CORNER_R + 0.0003)
     _flip_z(bm, LID_H)
-    shell = _mesh_obj("KitLid_shell", bm, (mat_wrap(color, foil_logo=True), mat_liner(inner)))
+    shell = _mesh_obj("KitLid_shell", bm, (mat_wrap(color, foil_logo=True), mat_liner(inner), mat_wrap_edge(color)))
     bev = bevel(shell, 0.0012, 4)
+    bev.material = 2          # the folded wrap over every bevelled edge
     bev.angle_limit = math.radians(40)
     bev.harden_normals = True
     smooth(shell)
@@ -760,7 +1041,8 @@ def lid(number=1, edition=48, color="ink", inner="cobalt", seal_angle=-7.0):
     lb = _liner_bm(LID_W, LID_D, LID_H, BOARD, CORNER_R + 0.0003, BOARD, LID_H - TURN_IN)
     _flip_z(lb, LID_H)
     liner = _mesh_obj("KitLid_liner", lb, (mat_liner(inner),))
-    kids = [shell, liner]
+    foil = _foil_decal(LID_H + 0.00003, name="KitFoil" + (f"_{number:02d}" if number is not None else ""))
+    kids = [shell, liner, foil]
     if number is not None:
         s = seal(number, edition)
         s.location = (LID_W / 2 - 0.060, -LID_D / 2 + 0.058, LID_H + 0.00003)
@@ -948,9 +1230,9 @@ def tissue_puff(size=(0.07, 0.05, 0.035), seed=1, color="cobalt"):
             f2 = 1 - 2 * abs(math.sin(((folds + 4) * th + ph[1] - tw[1] * rho) / 2))
             f3 = math.sin(3 * th + ph[2] + 1.5 * rho)
             f4 = math.sin((2 * folds + 1) * th + ph[3] + tw[2] * rho)
-            rr = rho * (1 + 0.10 * f1 * rho + 0.06 * f2 * rho + 0.10 * f3 * rho)
+            rr = rho * (1 + 0.06 * f1 * rho + 0.035 * f2 * rho + 0.10 * f3 * rho)
             dome = (1 - min(rho, 1.0) ** 2.0) ** 0.6
-            amp = h * 0.45 * rho ** 1.1
+            amp = h * 0.32 * rho ** 1.1
             z = (h * 0.82 * dome * (1 + 0.12 * f3)
                  + amp * (0.55 * f1 + 0.3 * f2 + 0.15 * f4) * (0.55 + 0.45 * dome) + h * 0.16 * rho ** 3)
             z = max(z, 0.0015 + 0.002 * rho)
@@ -963,7 +1245,10 @@ def tissue_puff(size=(0.07, 0.05, 0.035), seed=1, color="cobalt"):
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-7)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     o = _mesh_obj(f"TissuePuff_{seed}", bm, (mat_tissue_thin(color),))
-    _crumple(o, seed, big=h * 0.10, small=0.0026, scale=0.45)
+    _crumple(o, seed, big=h * 0.06, small=0.0026, scale=0.45)
+    sm = o.modifiers.new("relax", "SMOOTH")       # gathered tissue, not a spiky star
+    sm.factor = 0.5
+    sm.iterations = 3
     sol = o.modifiers.new("thick", "SOLIDIFY")
     sol.thickness = 0.00015
     sub = o.modifiers.new("sub", "SUBSURF"); sub.levels = 0; sub.render_levels = 1
@@ -973,9 +1258,10 @@ def tissue_puff(size=(0.07, 0.05, 0.035), seed=1, color="cobalt"):
 
 
 # ================================================================= note card
-def note_card(text=("untitled", "(your logo here)"), number=1, edition=48, bow=0.0012, edge="cobalt"):
+def note_card(text=("untitled", "(your logo here)"), number=1, edition=48, bow=0.0012, edge="cobalt", curl=0.0):
     """5 x 7 in bone cotton card (0.8 mm), letterpressed ink, painted edges.
-    text = (title, mark, *extra lines). Origin at the underside centre."""
+    text = (title, mark, *extra lines). curl lifts the +X/-Y corner (m) the way a
+    handled cotton card springs up. Origin at the underside centre."""
     mask, blur = card_textures(text, number, edition)
     bm = bmesh.new()
     uv = bm.loops.layers.uv.new()
@@ -988,6 +1274,10 @@ def note_card(text=("untitled", "(your logo here)"), number=1, edition=48, bow=0
             y = -CARD_D / 2 + CARD_D * j / ny
             # cotton stock bows a hair along its length
             z = bow * (1 - (2 * y / CARD_D) ** 2) * 0.6 + bow * 0.4 * (1 - (2 * x / CARD_W) ** 2)
+            if curl:
+                # corner spring: grows smoothly from the card's centre line toward the +X/-Y corner
+                u = max(0.0, (x / (CARD_W / 2) - y / (CARD_D / 2)) / 2 - 0.35) / 0.65
+                z += curl * u ** 2.2
             row.append(bm.verts.new((x, y, z)))
         verts.append(row)
     for j in range(ny):
@@ -995,7 +1285,7 @@ def note_card(text=("untitled", "(your logo here)"), number=1, edition=48, bow=0
             f = bm.faces.new((verts[j][i], verts[j][i + 1], verts[j + 1][i + 1], verts[j + 1][i]))
             for l in f.loops:
                 l[uv].uv = (l.vert.co.x / CARD_W + 0.5, l.vert.co.y / CARD_D + 0.5)
-    o = _mesh_obj("NoteCard", bm, (_mat_card(mask, blur), mat_liner(edge)))
+    o = _mesh_obj("NoteCard", bm, (_mat_card(mask, blur), mat_card_edge(edge)))
     sol = o.modifiers.new("Stock", "SOLIDIFY")
     sol.thickness = CARD_T
     sol.offset = 1.0
@@ -1007,6 +1297,17 @@ def note_card(text=("untitled", "(your logo here)"), number=1, edition=48, bow=0
     zmin = 0.0
     o.location.z = 0.0
     return o
+
+def mat_card_edge(color="cobalt"):
+    """Painted (gilded-style) card edge: flat saturated ink, matte, no sheen veil."""
+    def build():
+        m, nt, b = _c._new_mat(f"card_edge_{color}")
+        b.inputs["Base Color"].default_value = rgb(color)
+        b.inputs["Roughness"].default_value = 0.6
+        b.inputs["Specular IOR Level"].default_value = 0.3
+        b.inputs["Sheen Weight"].default_value = 0.0
+        return m
+    return _cached(("card_edge", color), build)
 
 def _mat_card(mask, blur):
     def build():
@@ -1029,8 +1330,8 @@ def _mat_card(mask, blur):
         # paper colour with soft cotton mottling
         mott = _noise(nt, co, 60.0, 5.0, 0.6)
         pc = nt.nodes.new("ShaderNodeMix"); pc.data_type = "RGBA"
-        pc.inputs["A"].default_value = rgb("#ECE3D2")
-        pc.inputs["B"].default_value = tuple(min(1, c * 0.95) for c in rgb("#ECE3D2")[:3]) + (1,)
+        pc.inputs["A"].default_value = rgb(CARD_STOCK)
+        pc.inputs["B"].default_value = tuple(min(1, c * 0.95) for c in rgb(CARD_STOCK)[:3]) + (1,)
         mr = _maprange(nt, mott.outputs["Fac"], 0.35, 0.7, 0, 1)
         nt.links.new(mr.outputs["Result"], pc.inputs["Factor"])
         col = nt.nodes.new("ShaderNodeMix"); col.data_type = "RGBA"
@@ -1040,7 +1341,7 @@ def _mat_card(mask, blur):
         nt.links.new(col.outputs["Result"], b.inputs["Base Color"])
         rgh = _maprange(nt, mk.outputs["Color"], 0, 1, 0.9, 0.8)
         nt.links.new(rgh.outputs["Result"], b.inputs["Roughness"])
-        shw = _maprange(nt, mk.outputs["Color"], 0, 1, 0.3, 0.0)     # ink kills the fibre sheen
+        shw = _maprange(nt, mk.outputs["Color"], 0, 1, 0.15, 0.0)     # ink kills the fibre sheen
         nt.links.new(shw.outputs["Result"], b.inputs["Sheen Weight"])
         spw = _maprange(nt, mk.outputs["Color"], 0, 1, 0.5, 0.25)
         nt.links.new(spw.outputs["Result"], b.inputs["Specular IOR Level"])
@@ -1051,7 +1352,7 @@ def _mat_card(mask, blur):
         b1 = _bumpnode(nt, fib.outputs["Fac"], 0.12, 0.0003)
         felt = _noise(nt, co, 90.0, 4.0, 0.6)
         b2 = _bumpnode(nt, felt.outputs["Fac"], 0.05, 0.0006, b1.outputs["Normal"])
-        deb = _bumpnode(nt, bl.outputs["Color"], 1.0, 0.0028, b2.outputs["Normal"], invert=True)
+        deb = _bumpnode(nt, bl.outputs["Color"], 0.7, 0.00025, b2.outputs["Normal"], invert=True)
         nt.links.new(deb.outputs["Normal"], b.inputs["Normal"])
         return m
     return _cached(("card", mask), build)
@@ -1209,7 +1510,7 @@ def your_product():
     tex = os.path.join(TEX_DIR, "kit_sleeve.png")
     if not os.path.exists(tex):
         _pil(_SLEEVE_CODE, {"w": int(P * 1000 * ppmm), "h": int(SLEEVE_H * 1000 * ppmm), "ppmm": ppmm,
-                            "panels": panels, "bg": _hex("cobalt", COBALT_ALBEDO), "fg": _hex("bone"),
+                            "panels": panels, "bg": _hex("cobalt"), "fg": _hex("bone"),
                             "display": FONT_DISPLAY, "mono": FONT_MONO, "out": tex})
     bm = bmesh.new()
     uv = bm.loops.layers.uv.new()
@@ -1234,7 +1535,7 @@ def your_product():
         c = f.calc_center_median()
         if f.normal.dot(Vector((c.x, c.y, 0))) < 0:
             f.normal_flip()
-    sl = _mesh_obj("Sleeve", bm, (_mat_print(tex, "sleeve_print", rough=0.5, coat=0.0, sheen=0.12),
+    sl = _mesh_obj("Sleeve", bm, (_mat_print(tex, "sleeve_print", rough=0.6, coat=0.0, sheen=0.0, spec=0.3),
                                   mat_matte("#E6E1D6", 0.85, name="sleeve_board_core")))
     so = sl.modifiers.new("Board", "SOLIDIFY")
     so.thickness = 0.00045
@@ -1346,9 +1647,28 @@ def packed_box(open=True, number=1, edition=48, hoodie="Black", cap="Black", tum
         items["product"] = your_product()
     if card:
         items["card"] = note_card(number=number, edition=edition)
+    if "hoodie" in items:
+        # pressed by the cap + lid: compress the folded hoodie to HOODIE_PACKED_H
+        h = items["hoodie"]
+        lo, hi = world_bbox(h)
+        if hi.z - lo.z > HOODIE_PACKED_H + 1e-4:
+            h.scale.z *= HOODIE_PACKED_H / (hi.z - lo.z)
     for k, o in items.items():
         place(o, k)
         parts.append(o)
+    if "card" in items and "tumbler" in items and "bottle" in items:
+        # the card is laid last across the tumbler and the bottle: rest it on their real
+        # tops (item libs differ in diameter) and tilt it to touch both, never through
+        tops = []
+        for k in ("tumbler", "bottle"):
+            lo, hi = world_bbox(items[k])
+            tops.append(((lo.x + hi.x) / 2, hi.z))
+        (xt, zt), (xb, zb) = tops
+        ang = math.atan2(zb - zt, xb - xt)
+        c = items["card"]
+        cx = SLOTS["card"][0]
+        c.rotation_euler = (0.0, -ang, math.radians(SLOTS["card"][3]))
+        c.location.z = zt + (cx - xt) * math.tan(ang) + 0.0004
     # tissue wads in the gaps
     for i, (pos, size, rz) in enumerate([
         ((0.014, 0.080, INS_TOP - 0.010), (0.07, 0.13, 0.05), 6),       # behind the product

@@ -1,0 +1,55 @@
+"""goods/cap.png — two unstructured dad caps: Black 3/4 front, White behind, turned to show the strap.
+blender -b --factory-startup -P blender/scenes/goods_cap.py -- [--preview] [--close] [--closeback]"""
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "lib"))
+from common import *
+import numpy as np
+import accessories as acc
+
+FL = argv_flags()
+CLOSE = "--close" in FL
+reset()
+setup_render(1600, 1600, samples=160, exposure=1.0)
+c = bpy.context.scene.cycles
+c.max_bounces, c.diffuse_bounces, c.glossy_bounces = 8, 3, 3
+c.transmission_bounces, c.transparent_max_bounces = 2, 4
+if not PREVIEW:
+    c.adaptive_threshold = 0.012
+studio("soft", key=0.75, hdri_strength=0.35, rotation_deg=30, target=(0, 0, 0.05), scale=0.45)
+key = bpy.data.objects["Key"]
+key.data.size = key.data.size_y = 0.55
+key.location = (-0.85, -0.70, 1.25)
+look_at(key, (0, 0, 0.05))
+bpy.data.objects["Rim"].data.use_shadow = False
+bpy.data.objects["Top"].data.energy *= 0.55
+fill = bpy.data.objects["Fill"]
+fill.data.energy *= 1.6                      # soft front fill so White reads white, not cement
+shadow_catcher()
+
+white = acc.cap("White")
+white.rotation_euler.z += math.radians(142)
+white.location = (0.03, 0.215, white.location.z)
+black = acc.cap("Black")
+black.rotation_euler.z += math.radians(-6)
+black.location = (-0.035, -0.04, black.location.z)
+bpy.context.view_layer.update()
+P_ = acc._all_mesh_points(black, 3); print('CAPDIM', P_.max(0) - P_.min(0))
+
+if "--closeback" in FL:
+    cam = acc.frame_camera([white], az_deg=14, el_deg=31, lens=100, pad=0.0)
+    cam.data.lens = 125
+    bpy.context.scene.render.resolution_percentage = 50 if PREVIEW else 100
+    render_to("goods/cap_closeback.png")
+elif CLOSE:
+    cam = acc.frame_camera([black], az_deg=10, el_deg=26, lens=100, pad=0.0)
+    cam.data.lens = 300
+    bpy.context.scene.render.resolution_percentage = 50 if PREVIEW else 100
+    render_to("goods/cap_close.png")
+else:
+    pts = np.vstack([acc._all_mesh_points(o, 3) for o in (black, white)] +
+                    [acc.shadow_footprint([black, white], stride=8)])
+    acc.frame_camera(pts, az_deg=16, el_deg=31, lens=85, pad=0.075)
+    out = render_to("goods/cap.png")
+    print("BORDER_ALPHA raw", acc.border_alpha(out))
+    acc.fade_border(out)
+    print("BORDER_ALPHA", acc.border_alpha(out))

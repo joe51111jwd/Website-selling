@@ -116,7 +116,7 @@ Approximate item sizes (metres) — item builders must hit these so they fit the
 | spirit bottle 750 ml | Ø~0.08 × ~0.30 (varies per bottle) | lying along Y |
 | journal | 0.14 × 0.21 × 0.016 | flat |
 | note card (5×7 in) | 0.127 × 0.178 × 0.0008 | flat on top, last in |
-| "your product" (client product) | ~0.12 × 0.07 × 0.20 — two slim cans in a sleeve, or a small boxed bottle | upright or lying |
+| "your product" (client product) | built: **0.110 × 0.057 × 0.134** (`kit.PRODUCT_SIZE`) — two slim 250 ml cans (Ø53 × 134 mm) in a cobalt/bone sleeve; sized down from ~0.12 × 0.07 × 0.20 so it stands upright under the closed lid (inner height 0.147 m) | upright, own pocket |
 
 ### Lib APIs (needed later by the packing-sequence scene — keep these signatures)
 Every builder returns ONE root object (an Empty parent if it has several parts) with its origin at the base

@@ -15,4 +15,5 @@ tgt, dist, lens = (0.0, 0.03, 0.10), 1.9, 70
 loc = (tgt[0] + dist * math.sin(az) * math.cos(el), tgt[1] - dist * math.cos(az) * math.cos(el),
        tgt[2] + dist * math.sin(el))
 camera(loc=loc, target=tgt, lens=lens)
+kit.link_kit_lights()
 render_to("kit/packed-test.png")

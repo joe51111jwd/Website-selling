@@ -9,7 +9,7 @@ CLOSE = "--close" in argv_flags()
 reset()
 setup_render(1200, 1200, samples=256)
 kit.kit_render_budget(samples=112, threshold=0.015)
-kit.kit_lighting(scale=0.55, target=(0, 0, 0.07), key=1.0, fill=0.6, hdri_strength=0.25, foil=0.6)
+kit.kit_lighting(scale=0.55, target=(0, 0, 0.07), key=0.5, fill=0.4, hdri_strength=0.25, foil=0.0, top=1.3)
 shadow_catcher()
 kit.your_product()
 el, az = math.radians(24), math.radians(28)
@@ -20,4 +20,7 @@ else:
 loc = (tgt[0] + dist * math.sin(az) * math.cos(el), tgt[1] - dist * math.cos(az) * math.cos(el),
        tgt[2] + dist * math.sin(el))
 camera(loc=loc, target=tgt, lens=lens)
+kit.link_kit_lights(flag_seals=("Rim", "Fill", "Top"), flag_prefixes=("Sleeve",))
+if not CLOSE:
+    kit.cutout_edge_fade()
 render_to("kit/product_close.png" if CLOSE else "kit/product.png")
