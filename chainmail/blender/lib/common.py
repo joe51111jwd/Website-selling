@@ -94,8 +94,11 @@ def setup_render(width=1600, height=1600, samples=256, transparent=True, preview
     s.render.image_settings.color_mode = "RGBA" if transparent else "RGB"
     s.render.image_settings.color_depth = "16" if not preview else "8"
     s.render.image_settings.compression = 30
-    s.view_settings.view_transform = "AgX"
-    s.view_settings.look = "AgX - Medium High Contrast"
+    # Khronos PBR Neutral: built for product/e-commerce renders — base colours (cobalt
+    # #2B3BFF, catalog swatches, bone whites) reproduce faithfully, highlights still roll
+    # off gently. AgX desaturated cobalt to periwinkle (#6B8BED) and greyed the whites.
+    s.view_settings.view_transform = "Khronos PBR Neutral"
+    s.view_settings.look = "None"
     s.view_settings.exposure = exposure
     s.display_settings.display_device = "sRGB"
     s.render.threads_mode = "AUTO"

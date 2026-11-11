@@ -90,7 +90,7 @@ shared with other agents, so iterate on `--preview` and only render finals once 
 - Lighting: `studio()` rig + HDRI (`soft` default). Tune `key`/`scale`, but keep the key upper-left, rim back-right.
 - Cutouts: `film_transparent=True` + `shadow_catcher()` so each PNG carries its own soft contact shadow.
 - "Product" camera: 3/4 view, ~30–38° elevation, 70–100 mm lens, slight DOF optional (f/8+). Frame with ~8% padding.
-- Final quality: `setup_render(samples=256)` default (OIDN denoise, AgX Medium High Contrast). Go to 512 for glass.
+- Final quality: `setup_render(samples=256)` default (OIDN denoise, Khronos PBR Neutral view transform — base colours render true; do NOT pre-compensate swatch colours). Go to 512 for glass.
 - Materials from `common.py` (fabric with knit bump + sheen, soft-touch box wrap, foil, tissue, leather, powdercoat,
   glass, liquid absorption). Add micro-detail: bevels on every hard edge, seams/stitch lines on textiles, ribbing on
   cuffs/hems, threads on bottle necks. Perfectly sharp CG edges and untextured flat colour are failures.
