@@ -8,18 +8,20 @@ import accessories as acc
 
 CLOSE = "--close" in argv_flags()
 reset()
-setup_render(1600, 1600, samples=96, exposure=-0.45)
+setup_render(1600, 1600, samples=256, exposure=0.0)   # Khronos PBR Neutral: true swatches, no exposure hack
 c = bpy.context.scene.cycles
 c.max_bounces, c.diffuse_bounces, c.glossy_bounces = 6, 2, 2
 c.transmission_bounces, c.transparent_max_bounces = 2, 4
 if not PREVIEW:
-    c.adaptive_threshold = 0.02
+    c.adaptive_threshold = 0.01
 studio("soft", key=0.75, hdri_strength=0.4, rotation_deg=30, target=(0, 0, 0.03), scale=0.5)
 key = bpy.data.objects["Key"]
 key.data.size = key.data.size_y = 0.7
 key.location = (-1.0, -0.45, 1.25)
 look_at(key, (0, 0, 0.03))
+key.data.energy *= float(os.environ.get("KEYK", "0.85"))
 bpy.data.objects["Rim"].data.use_shadow = False
+acc.neutral_world(0.3)
 shadow_catcher()
 
 J = acc.JOURNAL
@@ -40,9 +42,9 @@ bpy.context.view_layer.update()
 
 AZ, EL = 20.0, 42.0
 
-def foil_card(cam, book, energy=9.0):
+def foil_card(cam, book, energy=float(os.environ.get("CARDE", "0.05"))):
     """Hidden reflection card for the chrome foil: a small strip at the mirror reflection of the
-    camera ray through the top cover's logo, seen only in reflections and linked to the covers.
+    camera ray through the top cover's logo, seen only in reflections and linked to the foil decals.
     Small solid angle -> the near-mirror foil catches a bright streak while the satin leather
     (rough lobe) only picks up a faint sheen."""
     J = acc.JOURNAL
@@ -52,12 +54,12 @@ def foil_card(cam, book, energy=9.0):
     r = Vector((v.x, v.y, -v.z))
     card = area_light("FoilCard", logo + r * 0.9, logo, size=0.20, size_y=0.07, energy=energy)
     card.visible_camera = False
-    covers = [o for o in bpy.data.objects if o.name.startswith("JournalCover")]
+    # linked to the foil decals ONLY: the satin leather never sees the card (no greyed covers)
+    foils = [o for o in bpy.data.objects if o.name.startswith("JournalFoil")]
     lc = bpy.data.collections.new("foil_receivers")
-    for o in covers:
+    for o in foils:
         lc.objects.link(o)
     card.light_linking.receiver_collection = lc
-    card.light_linking.blocker_collection = lc
     return card
 
 if CLOSE:
@@ -80,6 +82,14 @@ else:
     pts = np.vstack([acc._all_mesh_points(o, 3) for o in books] + [acc.shadow_footprint(books, stride=8)])
     cam = acc.frame_camera(pts, az_deg=AZ, el_deg=EL, lens=85, pad=0.07)
     foil_card(cam, books[-1])
+    if os.environ.get("CROP"):                     # detail check: full-res border render of a region
+        x0, x1, y0, y1 = map(float, os.environ["CROP"].split(","))
+        r = bpy.context.scene.render
+        r.resolution_percentage = 100
+        r.use_border = True; r.use_crop_to_border = True
+        r.border_min_x, r.border_max_x, r.border_min_y, r.border_max_y = x0, x1, y0, y1
+        render_to("goods/journal_crop.png")
+        raise SystemExit
     out = render_to("goods/journal.png")
     print("BORDER_ALPHA raw", acc.border_alpha(out))
     acc.fade_border(out)

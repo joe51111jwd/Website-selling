@@ -6,13 +6,13 @@ from common import *
 import apparel
 
 reset()
-setup_render(1600, 1600, samples=144, exposure=apparel.EXPOSURE_HOODIE)
+setup_render(1600, 1600, samples=256, exposure=apparel.EXPOSURE_HOODIE)
 c = bpy.context.scene.cycles
 c.max_bounces, c.diffuse_bounces, c.glossy_bounces = 8, 4, 3
 c.transmission_bounces, c.transparent_max_bounces = 2, 4
-if not PREVIEW:                                  # 144 spp + 0.012: the CPU is shared with other renders
-    c.adaptive_threshold = 0.012
-apparel.studio_apparel(target=(0, 0, 0.06))
+if not PREVIEW:                                  # house 256 spp; 0.01 noise threshold (OIDN cleans the rest)
+    c.adaptive_threshold = 0.01
+apparel.studio_apparel(target=(0, 0, 0.06), key=apparel.KEY)
 
 roots = [apparel.folded_hoodie(c_, seed=s) for c_, s in (("Cement", 5), ("White", 17), ("Black", 29))]
 apparel.stack(roots, [(0.040, 0.014, 3.0), (0.020, 0.007, -2.0), (-0.002, -0.002, 0.5)], sag=8.0)

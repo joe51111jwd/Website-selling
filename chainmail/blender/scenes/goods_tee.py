@@ -6,13 +6,13 @@ from common import *
 import apparel
 
 reset()
-setup_render(1600, 1600, samples=192, exposure=apparel.EXPOSURE_TEE)
+setup_render(1600, 1600, samples=256, exposure=apparel.EXPOSURE_TEE)
 c = bpy.context.scene.cycles
 c.max_bounces, c.diffuse_bounces, c.glossy_bounces = 8, 4, 3
 c.transmission_bounces, c.transparent_max_bounces = 2, 4
-if not PREVIEW:                                  # 192 spp + 0.01 keeps a final ~6-8 min on a shared CPU
+if not PREVIEW:                                  # house 256 spp; 0.01 noise threshold (OIDN cleans the rest)
     c.adaptive_threshold = 0.01
-apparel.studio_apparel(target=(0, 0, 0.04))
+apparel.studio_apparel(target=(0, 0, 0.04), key=apparel.KEY)
 
 roots = [apparel.folded_tee(c_, seed=s) for c_, s in (("Dust", 11), ("Black", 23), ("White", 37))]
 apparel.stack(roots, [(0.012, 0.010, 2.5), (0.006, 0.004, -2.0), (-0.002, -0.002, 0.6)], sag=15.0)

@@ -31,10 +31,9 @@ from common import rgb, ASSETS, FONT_DISPLAY, FONT_MONO, FONT_TEXT, lathe, smoot
 SWATCH = {"Black": "#151515", "Cement": "#CFCBC3", "White": "#F7F7F4", "Dust": "#E6E0D2",
           "Natural": "#E9E1CF"}
 INK = {"Black": "#2B3BFF", "Cement": "#2B3BFF", "White": "#2B3BFF", "Dust": "#2B3BFF"}
-# Linear albedo that DISPLAYS as cobalt #2B3BFF under the house AgX (Medium High Contrast) at the
-# exposure that puts White cotton at ~240 sRGB. A full-strength (0.024, 0.044, 1.0) ink is lit as
-# brightly as the shirt and AgX rolls it off to periwinkle (#8DA2F3), so the pigment is deepened.
-COBALT_INK = (0.0085, 0.0012, 0.16)
+# Brand cobalt #2B3BFF as plain linear albedo. The house view transform is Khronos PBR Neutral,
+# which reproduces base colours faithfully, so no pre-compensation (round 1 deepened it for AgX).
+COBALT_INK = tuple(rgb("#2B3BFF")[:3])
 TEX_DIR = os.path.join(ASSETS, "textures")
 TEX_PRINT = os.path.join(TEX_DIR, "apparel_logo_mask.png")
 TEX_LABEL = os.path.join(TEX_DIR, "apparel_label_mask.png")
@@ -44,16 +43,13 @@ W_FOLD, D_FOLD = 0.20, 0.27
 
 
 # ============================================================== small utils
-# Render albedo per catalog colour, solved through the house view transform (AgX, Medium High
-# Contrast) so that a key-lit top face DISPLAYS as the catalog swatch when White cotton sits at
-# ~240 sRGB (EXPOSURE_*). AgX rolls bright warm tones off toward neutral, so Dust/Cement need a
-# deeper, more chromatic albedo than their swatch hex to read as Dust/Cement on screen.
-RENDER_ALBEDO = {"Black": "#151515", "White": "#F7F7F4", "Dust": "#C4B892", "Cement": "#958E80",
-                 "Natural": "#CDBF9C"}
+# Kept for backward compatibility: render albedo == catalog swatch (Khronos PBR Neutral shows
+# base colours true, so the round-1 AgX compensation is gone).
+RENDER_ALBEDO = dict(SWATCH)
 
 
 def _hex(color):
-    return RENDER_ALBEDO.get(color, SWATCH.get(color, color))
+    return SWATCH.get(color, color)
 
 
 def _stable_seed(s):
@@ -440,7 +436,7 @@ def mat_knit(color, name=None, kind="jersey", rib_axis="OBJ_Y", rib_pitch=0.0019
     hi = tuple(min(1.0, c * (1.0 + var)) for c in base[:3]) + (1,)
     f_mott = nb.m("MULTIPLY_ADD", nb.m("SUBTRACT", mott, 0.5), heather * 2.0, 0.5, clamp=True)
     col = nb.mix(f_mott, lo, hi)
-    k_occ = 0.16 if kind == "rib" else (0.10 if kind == "fleece" else 0.07)
+    k_occ = (0.16 if dark else 0.09) if kind == "rib" else (0.10 if kind == "fleece" else 0.07)
     if dark:
         k_occ *= 1.6
     occl = nb.m("MULTIPLY_ADD", nb.m("SUBTRACT", H, 0.6), k_occ, 1.0)
@@ -453,17 +449,18 @@ def mat_knit(color, name=None, kind="jersey", rib_axis="OBJ_Y", rib_pitch=0.0019
     col = nb.mix(1.0, col, gray.outputs[0], blend="MULTIPLY")
     if kind == "fleece":
         rough = nb.m("MULTIPLY_ADD", yarn, 0.04, 0.88)
-        # dark fleece: sheen kept low and greyed so lit faces stay charcoal (25-50 sRGB), not satin
-        sheen_w, spec_level, sheen_r = (0.07, 0.07, 0.6) if dark else (0.5, 0.2, 0.6)
+        # dark fleece: the true #151515 albedo alone is crushed by the PBR Neutral toe; the brushed
+        # loop-back fuzz (broad, rough sheen) is what makes black fleece read charcoal, not CG black
+        sheen_w, spec_level, sheen_r = (0.20, 0.08, 0.6) if dark else (0.5, 0.2, 0.6)
         height = nb.m("ADD", nb.m("MULTIPLY", H, 0.8), nb.m("MULTIPLY", yarn, 0.3))
-        bump_s, bump_d = (0.22 if dark else 0.28), 0.00028
+        bump_s, bump_d = (0.32 if dark else 0.30), 0.00028
     else:
         rough = nb.m("MULTIPLY_ADD", yarn, 0.08, 0.86)
-        sheen_w = 0.08 if dark else 0.3
-        spec_level = 0.04 if dark else 0.12
+        sheen_w = 0.20 if dark else 0.3
+        spec_level = 0.08 if dark else 0.12
         sheen_r = 0.6
         height = nb.m("ADD", nb.m("MULTIPLY", H, 0.75), nb.m("MULTIPLY", yarn, 0.35))
-        bump_s = bump if kind != "rib" else bump * 1.6
+        bump_s = bump if kind != "rib" else bump * (1.3 if dark else 0.85)   # light rib: softer wales, not pinstripes
         bump_d = 0.00028 if kind != "rib" else 0.0006
     if print_rect is not None:
         _ensure_textures()
@@ -495,19 +492,26 @@ def mat_knit(color, name=None, kind="jersey", rib_axis="OBJ_Y", rib_pitch=0.0019
         rough = nb.mix(im, rough, 0.5, kind="FLOAT")
         sw = nb.mix(im, sheen_w, 0.03, kind="FLOAT")
         nb.link(sw, b.inputs["Sheen Weight"])
-        spec = nb.mix(im, spec_level, 0.16, kind="FLOAT")
+        spec = nb.mix(im, spec_level, 0.08, kind="FLOAT")
         nb.link(spec, b.inputs["Specular IOR Level"])
         # knit telegraphs through the ink as a faint bump only; the ink film itself has a soft edge
         height = nb.m("ADD", nb.m("MULTIPLY", height, nb.m("MULTIPLY_ADD", mask, -0.85, 1.0)),
                       nb.m("MULTIPLY", mask, 0.30))
         height = nb.m("SUBTRACT", height, nb.m("MULTIPLY", nb.m("MULTIPLY", crack, mask), 0.25))
+    elif kind == "fleece":
+        # brushed fleece fuzz is never perfectly even: blotchy sheen (lint / nap direction) at
+        # ~1-2 mm so dark fleece reads as matte cloth, not a smooth rubbery gradient
+        nap = nb.noise(obj, 520.0, 2.0, 0.5)
+        nap = nb.m("MULTIPLY_ADD", nb.m("SUBTRACT", nap, 0.5), 0.7, 1.0)
+        nb.link(nb.m("MULTIPLY", nap, sheen_w, clamp=True), b.inputs["Sheen Weight"])
+        b.inputs["Specular IOR Level"].default_value = spec_level
     else:
         b.inputs["Sheen Weight"].default_value = sheen_w
         b.inputs["Specular IOR Level"].default_value = spec_level
     nb.link(col, b.inputs["Base Color"])
     nb.link(rough, b.inputs["Roughness"])
     b.inputs["Sheen Roughness"].default_value = sheen_r
-    b.inputs["Sheen Tint"].default_value = (0.45, 0.45, 0.45, 1) if (dark and kind == "fleece") else (1, 1, 1, 1)
+    b.inputs["Sheen Tint"].default_value = (1, 1, 1, 1)
     b.inputs["Coat Weight"].default_value = 0.0
     nrm = nb.bump(height, bump_s, bump_d)
     if kind == "fleece":
@@ -566,7 +570,7 @@ def mat_satin(dir_rect, color=None, name="apparel_satin_cobalt"):
     gaps = nb.m("MULTIPLY", nb.m("GREATER_THAN", nb.noise(obj, 1400.0, 1.0), 0.80), 0.5)
     h_ = nb.m("MULTIPLY", stripe, span)
     h_ = nb.m("SUBTRACT", h_, nb.m("MULTIPLY", gaps, nb.m("SUBTRACT", 1.0, stripe)))
-    base = (0.009, 0.0022, 0.15) if color is None else rgb(color)[:3]
+    base = COBALT_INK if color is None else rgb(color)[:3]
     hi = tuple(base) + (1,)
     lo = tuple(c * 0.55 for c in base) + (1,)
     col = nb.mix(nb.m("MULTIPLY", stripe, nb.m("SUBTRACT", 1.0, nb.m("MULTIPLY", gaps, 0.6))), lo, hi)
@@ -1169,20 +1173,32 @@ def _sleeve_segs(u0, u_body, u_cuff, w_sl, w_cf, t_sl, t_cf, step=0.0012):
 
 
 def _cuff_tube(name, parent, color, x_end, y_c, z0, ang_deg, w_cf=0.05, t_cf=0.0085, L=0.06,
-               sleeve_len=0.05, w_sl=0.062, t_sl=0.010, seed=0, sleeve_mat=None):
+               sleeve_len=0.05, w_sl=0.062, t_sl=0.010, seed=0, sleeve_mat=None, curv=-2.5, tilt=0.05):
     """Sleeve end tucked under a side fold with only its rib cuff peeking out at x_end:
-    straight flattened tube resting at height z0, axis rotated ang_deg from +X, open rib end."""
+    flattened tube resting at height z0, axis leaving at ang_deg from +X and bending gently
+    (curvature `curv`, 1/m) so it lies like cloth rather than a ruler-straight tab; the cross-section
+    is tilted a touch (`tilt`, rise per metre across) and ends in an open, rolled rib end."""
     rnd = random.Random(seed)
     a = math.radians(ang_deg)
     d = Vector((math.cos(a), math.sin(a)))
     p = Vector((-d.y, d.x))
-    O = Vector((x_end, y_c)) - d * (L + sleeve_len)
+    Ltot = L + sleeve_len
+    k = curv if abs(curv) > 1e-6 else 1e-6
+
+    def _arc(U):
+        return np.sin(k * U) / k, (1.0 - np.cos(k * U)) / k
+    ce, cn = _arc(np.array([Ltot]))
+    # arc built backwards from the cuff end so the end lands exactly at (x_end, y_c)
+    O = Vector((x_end, y_c)) - d * float(ce[0]) - p * float(cn[0])
     ph = rnd.uniform(0, 6)
+    w_max = max(w_sl, w_cf)
 
     def mapper(U, B, H):
-        X = O.x + U * d.x + B * p.x
-        Y = O.y + U * d.y + B * p.y
-        Z = z0 + H
+        cu, cv = _arc(U)
+        nd, npp = -np.sin(k * U), np.cos(k * U)          # in-plane normal of the bent axis
+        X = O.x + cu * d.x + cv * p.x + B * (nd * d.x + npp * p.x)
+        Y = O.y + cu * d.y + cv * p.y + B * (nd * d.y + npp * p.y)
+        Z = z0 + H + tilt * (B + w_max / 2)
         return np.stack([X, Y, Z], 1)
 
     def jitter(U, B, H):
@@ -1440,8 +1456,8 @@ def folded_tee(color="White", long_sleeve=False, seed=None, sleeve="front"):
     if long_sleeve and sleeve == "front":
         _front_sleeve(kind, color, root, bvh, W, D, T, opts, seed)
     elif long_sleeve:
-        _cuff_tube(f"{kind}_{color}_cuff", root, color, x_end=W / 2 + 0.014, y_c=-D / 2 + 0.075, z0=0.0035,
-                   ang_deg=-24.0, w_cf=0.052, t_cf=0.0085, L=0.055, sleeve_len=0.05, w_sl=0.06, t_sl=0.0095,
+        _cuff_tube(f"{kind}_{color}_cuff", root, color, x_end=W / 2 + 0.014, y_c=-D / 2 + 0.075, z0=0.0008,
+                   ang_deg=-16.0, w_cf=0.046, t_cf=0.0062, L=0.055, sleeve_len=0.05, w_sl=0.056, t_sl=0.0072,
                    seed=seed, sleeve_mat=mat_knit(color, kind="jersey"))
     return root
 
@@ -1645,15 +1661,16 @@ def folded_hoodie(color="Black", seed=None):
     smooth(emb)
 
     # --- rib cuff peeking out from under the right fold (sleeve tucked behind)
-    _cuff_tube(f"hoodie_{color}_cuff", root, color, x_end=W / 2 + 0.013, y_c=-D / 2 + 0.072, z0=0.0035,
-               ang_deg=-28.0, w_cf=0.058, t_cf=0.0125, L=0.06, sleeve_len=0.05, w_sl=0.07, t_sl=0.016,
+    _cuff_tube(f"hoodie_{color}_cuff", root, color, x_end=W / 2 + 0.013, y_c=-D / 2 + 0.072, z0=0.0008,
+               ang_deg=-20.0, w_cf=0.050, t_cf=0.0090, L=0.06, sleeve_len=0.05, w_sl=0.062, t_sl=0.0115,
                seed=seed, sleeve_mat=body_mat)
     return root
 
 
 # ============================================================== scene rig (shared by the three goods scenes)
-EXPOSURE_TEE = 1.3
-EXPOSURE_HOODIE = 1.3
+EXPOSURE_TEE = 0.0
+EXPOSURE_HOODIE = 0.0
+KEY = 0.74                   # studio() energy scale: White ~240, Dust/Cement on swatch, Black charcoal
 
 
 def studio_apparel(target=(0, 0, 0.04), key=1.0, rim=0.6, skip_catcher=("Rim",)):
@@ -1664,6 +1681,8 @@ def studio_apparel(target=(0, 0, 0.04), key=1.0, rim=0.6, skip_catcher=("Rim",))
     from common import studio, shadow_catcher
     studio("soft", key=key, hdri_strength=0.35, rotation_deg=30, target=target, scale=0.45)
     bpy.data.objects["Rim"].data.energy *= rim
+    # temper the key's warmth a touch so White cotton stays neutral (#F0F0EC-ish), not cream
+    bpy.data.objects["Key"].data.color = (1.0, 0.985, 0.965)
     catcher = shadow_catcher()
     if skip_catcher:
         coll = bpy.data.collections.new("apparel_catcher_exclude")

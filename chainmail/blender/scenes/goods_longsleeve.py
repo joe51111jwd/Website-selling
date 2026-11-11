@@ -8,13 +8,13 @@ from common import *
 import apparel
 
 reset()
-setup_render(1600, 1600, samples=144, exposure=apparel.EXPOSURE_TEE)
+setup_render(1600, 1600, samples=256, exposure=apparel.EXPOSURE_TEE)
 c = bpy.context.scene.cycles
 c.max_bounces, c.diffuse_bounces, c.glossy_bounces = 8, 4, 3
 c.transmission_bounces, c.transparent_max_bounces = 2, 4
-if not PREVIEW:                                  # 144 spp + 0.012: the CPU is shared with other renders
-    c.adaptive_threshold = 0.012
-apparel.studio_apparel(target=(0, 0, 0.04))
+if not PREVIEW:                                  # house 256 spp; 0.01 noise threshold (OIDN cleans the rest)
+    c.adaptive_threshold = 0.01
+apparel.studio_apparel(target=(0, 0, 0.04), key=apparel.KEY)
 
 roots = [apparel.folded_tee(c_, long_sleeve=True, seed=s, sleeve=sl)
          for c_, s, sl in (("White", 41, "tucked"), ("Black", 53, "tucked"), ("Dust", 67, "front"))]

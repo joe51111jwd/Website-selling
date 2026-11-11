@@ -5,11 +5,13 @@ Public API (every builder returns ONE root Empty with identity rotation, origin 
 centre of its footprint, resting exactly on Z=0 (modifiers included), front facing -Y;
 no cameras / lights / renders are created):
 
-  cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cobalt") -> Empty
-      unstructured 6-panel dad cap, ~0.165 W x 0.26 D (incl. pre-curved brim) x 0.115 H,
-      brim to -Y, resting on brim corners + back rim (tilt lives on the inner "<name>_tilt"
-      Empty so callers may set the root's rotation freely). style accepted for API
-      compatibility; only the dad cap is modelled.
+  cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cobalt", brim=None) -> Empty
+      unstructured low-profile 6-panel dad cap, ~0.165 W x 0.257 D (incl. pre-curved 69 mm brim)
+      x 0.105 H, brim to -Y, resting on brim corners + back rim (tilt lives on the inner
+      "<name>_tilt" Empty so callers may set the root's rotation freely). A real dad cap is
+      ~0.19 deep at the head + the bill; pass brim=0.055 for a shorter kit footprint.
+      style="trucker" / "Retro Trucker": structured 5-panel front, polyester mesh rear panels,
+      no eyelets.
   tote(color="Natural", seed=None, logo="your logo", ink="cobalt") -> Empty
       bull denim tote 0.38 W x 0.40 H x 0.10 D body (~0.40 x 0.16 x 0.63 incl. slump and
       standing handles), printed face to -Y.
@@ -341,8 +343,6 @@ def mat_twill(color, name=None, pitch=0.00068, uv_scale=1.0, sheen=0.55, gain=1.
         m, nt, b = _c._new_mat(name or f"acc_twill_{color}")
         base = _col(color, gain)
         lum = sum(base[:3]) / 3
-        if lum > 0.6:                                  # undyed / bleached cotton albedo
-            base = tuple(c * 0.93 for c in base[:3]) + (1,)
         dark = lum < 0.3
         vec = _uvcoord(nt, uv_scale)
         tw = _wave(nt, vec, 0.4443 / pitch, "DIAGONAL", distortion=2.2, detail=2.0)
@@ -360,9 +360,11 @@ def mat_twill(color, name=None, pitch=0.00068, uv_scale=1.0, sheen=0.55, gain=1.
         col = _mixc(nt, cv, lo, hi)
         nt.links.new(col, b.inputs["Base Color"])
         b.inputs["Roughness"].default_value = 1.0 if dark else 0.95
-        b.inputs["Sheen Weight"].default_value = 0.2 if dark else sheen * 0.6
-        b.inputs["Sheen Roughness"].default_value = 0.5
-        b.inputs["Sheen Tint"].default_value = (tuple(min(1, c * 3.0 + 0.05) for c in base[:3]) + (1,)
+        # dark twill: the true #151515 albedo alone sits in the PBR Neutral toe; the brushed-cotton
+        # fuzz (broad, rough, dye-tinted grey sheen) is what makes black cotton read charcoal
+        b.inputs["Sheen Weight"].default_value = 0.65 if dark else sheen * 0.6
+        b.inputs["Sheen Roughness"].default_value = 0.6 if dark else 0.5
+        b.inputs["Sheen Tint"].default_value = (tuple(min(1, c * 3.0 + 0.10) for c in base[:3]) + (1,)
                                                 if dark else tuple(base[:3]) + (1,))
         b.inputs["Specular IOR Level"].default_value = 0.08 if dark else 0.2
         nt.links.new(_bumpn(nt, _math(nt, "ADD", h, slub2), 0.4 if dark else 0.6, 0.0004), b.inputs["Normal"])
@@ -389,20 +391,18 @@ def mat_thread_acc(color, name=None, shine=0.45, gain=1.0):
         return m
     return _cached(("thread", color, name, shine, gain), mk)
 
-# Brand cobalt #2B3BFF (Lab 39/62/-96) lies outside what AgX Medium High Contrast can display
-# for any scene-linear input (its chroma tops out ~80; best reachable dE76 ~35, e.g. #2640C1).
-# A full-strength blue albedo gets lit as brightly as the cloth and AgX rolls it off to
-# periwinkle (#4570DF), so the pigment is deepened and green is zeroed: lit satin / ink then
-# displays as a deep electric cobalt (~#2E3FC6), the closest the house transform can show and
-# consistent with apparel.COBALT_INK.
-COBALT_RENDER = (0.010, 0.0, 0.22, 1.0)
+# Brand cobalt #2B3BFF. The house view transform is Khronos PBR Neutral (common.setup_render),
+# which reproduces base colours faithfully, so the true palette value is used for satin / ink.
+# (The round-1 AgX pre-compensation — a deepened, green-free pigment — is gone.) The name is kept
+# for backward compatibility.
+COBALT_RENDER = rgb("cobalt")
 
 def _ink(color):
     if color in ("cobalt", "#2B3BFF", "#2b3bff"):
         return COBALT_RENDER
     return rgb(SWATCH.get(color, color))
 
-def mat_satin(color="cobalt", name="acc_satin", pitch=0.0009, rot=0.0, tangent=True):
+def mat_satin(color="cobalt", name="acc_satin", pitch=0.0007, rot=0.0, tangent=True):
     """Rayon satin-stitch embroidery: parallel floss lines, glossy anisotropic sheen.
     Floss direction per face from the CORNER attribute `satin_ang` (radians, in UV space) + rot;
     optional `satin_t` attribute (object-space floss tangent) steers the anisotropic highlight."""
@@ -423,7 +423,7 @@ def mat_satin(color="cobalt", name="acc_satin", pitch=0.0009, rot=0.0, tangent=T
         sn = _math(nt, "POWER", _math(nt, "ABSOLUTE", _math(nt, "SINE", xx)), 0.5)
         # per-thread tension / sheen variation
         var = _noise(nt, tc.outputs["UV"], 260.0, 2.0)
-        col = _mixc(nt, sn, tuple(c_ * 0.42 for c_ in base[:3]) + (1,), base)
+        col = _mixc(nt, sn, tuple(c_ * 0.62 for c_ in base[:3]) + (1,), base)
         col = _mixc(nt, _math(nt, "MULTIPLY", var, 0.25), col, tuple(c_ * 0.8 for c_ in base[:3]) + (1,))
         nt.links.new(col, b.inputs["Base Color"])
         b.inputs["Roughness"].default_value = 0.4
@@ -438,7 +438,7 @@ def mat_satin(color="cobalt", name="acc_satin", pitch=0.0009, rot=0.0, tangent=T
             vt.vector_type = "VECTOR"; vt.convert_from = "OBJECT"; vt.convert_to = "WORLD"
             nt.links.new(tt.outputs["Vector"], vt.inputs["Vector"])
             nt.links.new(vt.outputs["Vector"], b.inputs["Tangent"])
-        nt.links.new(_bumpn(nt, sn, 0.8, 0.00035), b.inputs["Normal"])
+        nt.links.new(_bumpn(nt, sn, 0.4, 0.0002), b.inputs["Normal"])
         return m
     return _cached(("satin", color, name), mk)
 
@@ -462,11 +462,39 @@ def mat_hole(color, name=None):
         m, nt, b = _c._new_mat(name or f"acc_hole_{color}")
         base = _col(color)
         lum = sum(base[:3]) / 3
-        k = 0.04 if lum > 0.3 else 0.3
+        k = 0.18 if lum > 0.3 else 0.3              # light caps: the lit white lining shows through
         b.inputs["Base Color"].default_value = tuple(c * k for c in base[:3]) + (1,)
         b.inputs["Roughness"].default_value = 1.0
         return m
     return _cached(("hole", color, name), mk)
+
+def mat_trucker_mesh(color, name=None):
+    """Polyester trucker mesh: staggered open cells (dark: the shaded lining shows through), round
+    filament bars with a little sheen."""
+    def mk():
+        m, nt, b = _c._new_mat(name or f"acc_trucker_mesh_{color}")
+        base = _col(color)
+        lum = sum(base[:3]) / 3
+        vec = _uvcoord(nt, 1.0)
+        sep = nt.nodes.new("ShaderNodeSeparateXYZ"); nt.links.new(vec, sep.inputs["Vector"])
+        p = 0.0016                                       # cell pitch
+        u = _math(nt, "DIVIDE", sep.outputs["X"], p / math.pi)
+        v = _math(nt, "DIVIDE", sep.outputs["Y"], p * 0.87 / math.pi)
+        # staggered rows: offset alternate rows by half a cell
+        u2 = _math(nt, "ADD", u, _math(nt, "MULTIPLY", _math(nt, "GREATER_THAN", _math(nt, "SINE", v), 0.0),
+                                       math.pi / 2))
+        cell = _math(nt, "MULTIPLY", _math(nt, "ABSOLUTE", _math(nt, "SINE", u2)),
+                     _math(nt, "ABSOLUTE", _math(nt, "SINE", v)))
+        hole = _math(nt, "GREATER_THAN", cell, 0.42)
+        k_in = 0.25 if lum > 0.3 else 0.5
+        col = _mixc(nt, hole, tuple(base[:3]) + (1,), tuple(c * k_in for c in base[:3]) + (1,))
+        nt.links.new(col, b.inputs["Base Color"])
+        b.inputs["Roughness"].default_value = 0.6
+        b.inputs["Sheen Weight"].default_value = 0.3
+        b.inputs["Specular IOR Level"].default_value = 0.3
+        nt.links.new(_bumpn(nt, _math(nt, "SUBTRACT", 1.0, cell), 0.6, 0.0004), b.inputs["Normal"])
+        return m
+    return _cached(("trucker_mesh", color, name), mk)
 
 # =================================================================== text masks (PIL, cached on disk)
 def _python3():
@@ -550,7 +578,7 @@ def _rest(root, pts_local=None):
 CAP = dict(a=0.094, b=0.082, H=0.057, dy=0.010, drop=0.034, L=0.069, pitch=10.0,
            arch_w=math.radians(20.5), arch_t=0.355, t_top=0.982, thick=0.0018,
            beta_back=24.0, beta_front=36.0, k1_back=0.52, k1_front=0.70, k2=0.66,
-           cave=0.011, puff=0.0007, groove=0.0006, curv=1.6)
+           cave=0.011, puff=0.0007, groove=0.0006, curv=1.35)
 
 def _cap_rim_z(th, P):
     return np.where(np.cos(th) > 0, -P["drop"] * np.sin(th) ** 2, -P["drop"])
@@ -583,7 +611,9 @@ def _crown_base(th, t, P):
 
 def _crown(th, t, P, groove=True, wr_seed=0, front_soft=1.0):
     """Displaced crown surface -> (points, normals, d/dθ length, d/dt length)."""
-    th = np.asarray(th, float); t = np.asarray(t, float)
+    # wrap to (-π, π]: the cave / fold terms are not 2π-periodic, so parts sampled at θ > π
+    # (eyelets, seam rows on the right-hand panels) would otherwise float off the crown
+    th = np.angle(np.exp(1j * np.asarray(th, float))); t = np.asarray(t, float)
     e = 1e-4
     B = _crown_base(th, t, P)
     Bth = (_crown_base(th + e, t, P) - _crown_base(th - e, t, P)) / (2 * e)
@@ -709,7 +739,7 @@ def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cob
     breathable mesh rear panels, no eyelets.
     brim: bill projection in metres (default CAP["L"] = 0.069; the kit slot may want ~0.055)."""
     P = dict(CAP)
-    trucker = style == "trucker"
+    trucker = "trucker" in str(style).lower()           # "trucker" / "Retro Trucker" (catalog name)
     if trucker:
         P.update(H=0.068, beta_front=13.0, beta_back=20.0, k1_front=0.55, k1_back=0.52, k2=0.70,
                  cave=0.0, puff=0.0004, drop=0.030)
@@ -721,8 +751,7 @@ def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cob
     top_root = _empty(f"Cap_{color}")
     root = _empty(f"Cap_{color}_tilt")              # resting tilt lives here; top_root stays free
     root.parent = top_root
-    # black twill is ~3% reflectance, not #151515 (0.7%): match the apparel blacks on the goods page
-    g_ = 1.8 if color == "Black" else 1.0
+    g_ = 1.0                                         # true catalog swatch (Khronos PBR Neutral)
     m_tw = mat_twill(color, name=f"acc_cap_twill_{color}", gain=g_)
     m_band = mat_twill(color, name=f"acc_cap_band_{color}", pitch=0.0006, sheen=0.35, gain=g_ * 0.8)
     # tonal thread (dyed to match), so seams read by relief, not as grey dashes
@@ -762,6 +791,12 @@ def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cob
     faces = F.tolist() + [list(f) for f in fan]
     luv = np.vstack([luv, np.zeros((len(fan) * 3, 2))])
     crown = _mesh("CapCrown", verts, faces, mat=m_tw, parent=root, loop_uv=luv)
+    if trucker:
+        # retro trucker: the four side/back panels are breathable polyester mesh
+        crown.data.materials.append(mat_trucker_mesh(color))
+        fi = np.zeros(len(faces), dtype=np.int32)
+        fi[:len(F)] = np.isin(pan, (1, 2, 3, 4)).astype(np.int32)
+        crown.data.polygons.foreach_set("material_index", fi)
     so = crown.modifiers.new("Solidify", "SOLIDIFY")
     so.thickness = P["thick"]; so.offset = -1.0; so.use_even_offset = True
     so.use_rim = True
@@ -777,16 +812,15 @@ def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cob
     _uv_planar(btn, (0, 1))
     sub = btn.modifiers.new("Sub", "SUBSURF"); sub.levels = sub.render_levels = 1
     parts.append(btn)
-    # six radial seams converge under the button: thread ring round its skirt
-    ang = np.linspace(0, 2 * np.pi, 97)
-    ring = np.stack([apex[0] + 0.0087 * np.cos(ang), apex[1] + 0.0087 * np.sin(ang),
-                     np.full_like(ang, apex[2] - 0.0006)], -1)
+    # six radial seams converge under the button (no stitch ring: the button skirt hides the join)
 
     # ---------------- seam top-stitching (two rows per seam)
     rows = []
     apex_v = apex
     for kk in range(6):
         ths = kk * seg
+        if trucker and kk == 0:
+            continue                                    # one-piece structured front: no centre seam
         for side in (-1, 1):
             if abs(ths - np.pi) < 1e-6:
                 ts = np.linspace(P["arch_t"] + 0.035, 0.985, 400)
@@ -833,7 +867,7 @@ def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cob
     m_eye = mat_satin(color if color != "Black" else "#1d1d1d", name=f"acc_eyelet_{color}", pitch=0.00045,
                       rot=90.0, tangent=False)
     m_hole = mat_hole(color)
-    for kk in range(6):
+    for kk in (range(6) if not trucker else ()):     # trucker mesh breathes: no eyelets
         thc_ = kk * seg + seg / 2
         tc_ = 0.64
         _, _, rh0, rt0 = _crown(np.array([thc_]), np.array([tc_]), P, wr_seed=sd)
@@ -882,8 +916,8 @@ def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cob
     bx, by = Ex + Wg * (Ox - Ex), Ey + Wg * (Oy - Ey)
     bz = brim_z(bx, by)
     Bp = np.stack([bx, by, bz], -1)
-    # the bill's top faces the key light square-on: one notch less albedo so it reads as the same cloth
-    m_brim = mat_twill(color, name=f"acc_cap_brim_{color}", gain=0.9 * g_)
+    # same cloth as the crown (its own instance so the UV scale / seed differ)
+    m_brim = mat_twill(color, name=f"acc_cap_brim_{color}", gain=g_)
     brim = _grid_obj("CapBrim", Bp, uv=np.stack([bx, by], -1), flip=True, mat=m_brim, parent=root)
     so = brim.modifiers.new("Solidify", "SOLIDIFY")
     so.thickness = 0.0042; so.offset = -1.0; so.use_even_offset = True
@@ -998,8 +1032,6 @@ def cap(color="Black", style="dad", seed=None, logo="your logo", logo_color="cob
                  lift=-0.0001)
     stitches = _stitch_mesh("CapStitchesBrim", rows[n_crown_rows:], m_th, parent=root, pitch=0.0031,
                             radius=0.00028, lift=-0.00003)
-    stitches_ring = _stitch_mesh("CapButtonStitch", [(ring, np.repeat([[0, 0, 1.0]], len(ring), 0))], m_th,
-                                 parent=root, pitch=0.0026, radius=0.0003)
 
     # ---------------- rest pose: tilt about X so brim tips and back rim both touch the table
     bpy.context.view_layer.update()
@@ -1138,11 +1170,14 @@ def _cap_logo(P, body, color, root, sd):
 
 
 # =================================================================== scene helpers (no side effects on import)
-def shadow_footprint(objs, lights=("Key",), stride=6, soft=0.6):
+def shadow_footprint(objs, lights=("Key",), stride=6, soft=0.6, zmax=None):
     """Points on Z=0 covering the cast shadows (umbra + area-light penumbra) of `objs`, so
-    frame_camera can keep the shadow-catcher alpha inside the frame (no hard cut at the border)."""
+    frame_camera can keep the shadow-catcher alpha inside the frame (no hard cut at the border).
+    zmax: ignore parts above this height (e.g. thin tote handles whose shadow is fully diffused)."""
     pts = np.vstack([_all_mesh_points(o, stride) for o in objs])
     pts = pts[pts[:, 2] > 0.002]
+    if zmax is not None:
+        pts = pts[pts[:, 2] < zmax]
     out = [pts * np.array([1, 1, 0])]
     for ln in lights:
         lo = bpy.data.objects.get(ln)
@@ -1158,6 +1193,23 @@ def shadow_footprint(objs, lights=("Key",), stride=6, soft=0.6):
             Q = S.copy(); Q[:, 0] += dx * r; Q[:, 1] += dy * r; Q[:, 2] = 0
             out.append(Q)
     return np.vstack(out)
+
+def neutral_world(saturation=0.3):
+    """Scene helper: desaturate the studio HDRI (warm studio_small_09) so white goods read
+    neutral white rather than cream; the rig's lights still carry the house warmth."""
+    w = bpy.context.scene.world
+    if w is None or not w.use_nodes:
+        return
+    nt = w.node_tree
+    env = next((n for n in nt.nodes if n.type == "TEX_ENVIRONMENT"), None)
+    if env is None or not env.outputs["Color"].links:
+        return
+    dst = [l.to_socket for l in env.outputs["Color"].links]
+    hs = nt.nodes.new("ShaderNodeHueSaturation")
+    hs.inputs["Saturation"].default_value = saturation
+    nt.links.new(env.outputs["Color"], hs.inputs["Color"])
+    for d in dst:
+        nt.links.new(hs.outputs["Color"], d)
 
 def border_alpha(path, band=2):
     """Max alpha (0..1) on the outer `band` pixels of a rendered RGBA image (Blender-side check)."""
@@ -1234,9 +1286,9 @@ def frame_camera(objs_or_pts, az_deg=30.0, el_deg=32.0, lens=85.0, pad=0.08, tar
 # =================================================================== TOTE
 TOTE = dict(W=0.38, D=0.10, H=0.40, rc=0.010, hem=0.032, handle_dx=0.066, strap_w=0.028, strap_t=0.0025)
 
-DENIM_BASE = {"Natural": "#DDC48F"}   # undyed ecru: warmer/yellower than the UI swatch so it separates from White
+DENIM_BASE = {}   # catalog swatches render true under Khronos PBR Neutral (no per-colour overrides)
 
-def mat_denim(color, name=None, pitch=0.00135, print_mask=None, print_rect=None, ink="cobalt"):
+def mat_denim(color, name=None, pitch=0.0016, print_mask=None, print_rect=None, ink="cobalt"):
     """Bull denim: steep 3x1 twill wales, vertical warp streaks/slubs, tonal flecks; dead-matte
     cotton (no plastic sheen). UV in metres (u across, v up). Optional plastisol screen print
     from a mask image: the weave telegraphs through the ink film."""
@@ -1244,8 +1296,6 @@ def mat_denim(color, name=None, pitch=0.00135, print_mask=None, print_rect=None,
         m, nt, b = _c._new_mat(name or f"acc_denim_{color}")
         base = _col(DENIM_BASE.get(color, color))
         lum = sum(base[:3]) / 3
-        if lum > 0.6:
-            base = tuple(c * 0.93 for c in base[:3]) + (1,)
         dark = lum < 0.3
         tc = nt.nodes.new("ShaderNodeTexCoord")
         uv = tc.outputs["UV"]
@@ -1272,13 +1322,13 @@ def mat_denim(color, name=None, pitch=0.00135, print_mask=None, print_rect=None,
         # colour
         mot = _noise(nt, uv, 1 / 0.05, detail=2.0)
         cv = _mixf(nt, 0.55, _mixf(nt, 0.5, tw, slub), mot)
-        k_lo = 0.84 if not dark else 0.78
-        k_hi = 1.03 if not dark else 1.2
+        k_lo = 0.80 if not dark else 0.72
+        k_hi = 1.04 if not dark else 1.3
         lo = tuple(c * k_lo for c in base[:3]) + (1,)
         hi = tuple(min(1, c * k_hi) for c in base[:3]) + (1,)
         col = _mixc(nt, cv, lo, hi)
         # +-7% value along the warp streaks
-        sk = _math(nt, "ADD", _math(nt, "MULTIPLY", _math(nt, "SUBTRACT", streak, 0.5), 0.17), 1.0)
+        sk = _math(nt, "ADD", _math(nt, "MULTIPLY", _math(nt, "SUBTRACT", streak, 0.5), 0.24), 1.0)
         col = _mixc(nt, 1.0, col, _c_vec(nt, sk), blend="MULTIPLY")
         if color == "Natural":                          # cotton-seed flecks in undyed ecru
             vor = nt.nodes.new("ShaderNodeTexVoronoi")
@@ -1288,7 +1338,9 @@ def mat_denim(color, name=None, pitch=0.00135, print_mask=None, print_rect=None,
             fn = _noise(nt, uv, 40.0, 1.0)
             fl = _math(nt, "MULTIPLY", fl, _math(nt, "GREATER_THAN", fn, 0.5))
             col = _mixc(nt, _math(nt, "MULTIPLY", fl, 0.9), col, (0.06, 0.045, 0.025, 1))
-        sheen_tint = tuple(min(1, c * (1.0 if not dark else 4.0) + (0 if not dark else 0.03)) for c in base[:3]) + (1,)
+        # dark denim: brushed-cotton fuzz sheen (dye-tinted grey) is what reads charcoal, not CG black
+        sheen_tint = tuple(min(1, c * (1.0 if not dark else 3.0) + (0 if not dark else 0.10)) for c in base[:3]) + (1,)
+        sheen_w = 0.6 if dark else 0.3
         bump_s = _math(nt, "MULTIPLY", h, 1.0)
         if print_mask:
             path, rect = print_mask, print_rect             # rect = (u0, v0, w, h)
@@ -1309,8 +1361,6 @@ def mat_denim(color, name=None, pitch=0.00135, print_mask=None, print_rect=None,
             nt.links.new(rough_e, mk_.inputs["Value"])
             mask = mk_.outputs["Result"]
             ink_c = _ink(ink)
-            if ink == "cobalt":                           # plastisol on sunlit cotton: deeper pigment load
-                ink_c = tuple(c_ * 0.66 for c_ in ink_c[:3]) + (1,)
             # the weave telegraphs through the film: ink x (1 - 0.25 * twill height)
             tfac = _math(nt, "SUBTRACT", 1.0, _math(nt, "MULTIPLY", _math(nt, "MINIMUM", tw, 1.0), 0.25))
             ink_col = _mixc(nt, 1.0, ink_c, _c_vec(nt, tfac), blend="MULTIPLY")
@@ -1319,16 +1369,17 @@ def mat_denim(color, name=None, pitch=0.00135, print_mask=None, print_rect=None,
             flat = _mixf(nt, mask, h, _math(nt, "MULTIPLY", h, 0.55))
             bump_s = _math(nt, "ADD", flat, _math(nt, "MULTIPLY", mask, 0.5))
             nt.links.new(_mixf(nt, mask, 0.97, 0.6), b.inputs["Roughness"])
-            nt.links.new(_mixf(nt, mask, 0.3, 0.06), b.inputs["Sheen Weight"])
-            nt.links.new(_mixf(nt, mask, 0.15, 0.25), b.inputs["Specular IOR Level"])
+            nt.links.new(_mixf(nt, mask, sheen_w, 0.0), b.inputs["Sheen Weight"])
+            # plastisol: a soft satin film, but a low specular level so the cobalt is not veiled
+            nt.links.new(_mixf(nt, mask, 0.15, 0.10), b.inputs["Specular IOR Level"])
         else:
             b.inputs["Roughness"].default_value = 0.97
-            b.inputs["Sheen Weight"].default_value = 0.3
+            b.inputs["Sheen Weight"].default_value = sheen_w
             b.inputs["Specular IOR Level"].default_value = 0.15
         nt.links.new(col, b.inputs["Base Color"])
         b.inputs["Sheen Roughness"].default_value = 0.45
         b.inputs["Sheen Tint"].default_value = sheen_tint
-        nt.links.new(_bumpn(nt, bump_s, 0.68, 0.0006), b.inputs["Normal"])
+        nt.links.new(_bumpn(nt, bump_s, 0.9, 0.0008), b.inputs["Normal"])
         return m
     return _cached(("denim", color, name, print_mask), mk)
 
@@ -1390,7 +1441,7 @@ def _tote_body(p, z, T, k):
     prof = np.sin(np.pi * np.clip(zn * 0.92 + 0.04, 0, 1)) ** 0.6 * (1 - 0.25 * zn)
     bul = fbw * k["bulge"] * wx * prof + sdw * 0.55 * k["bulge"] * wy * prof * (1 - _ss(0.4, 0.9, zn))
     # corners wander a little (no ruler-straight edges)
-    cw = _ss(hx - 0.03, hx, np.abs(x)) * np.sin(np.pi * zn) * 0.004 * np.sin(z * 11.0 + k["seed"] + np.sign(x) * 1.7)
+    cw = _ss(hx - 0.03, hx, np.abs(x)) * np.sin(np.pi * zn) * 0.0065 * np.sin(z * 11.0 + k["seed"] + np.sign(x) * 1.7)
     # side gussets fold in towards the top (V fold), the opening narrows at the ends
     pinch = _ss(0.38, 1.0, zn) * k["pinch"]
     ew = _ss(hx - 0.07, hx - 0.005, np.abs(x))
@@ -1402,7 +1453,7 @@ def _tote_body(p, z, T, k):
     cave = -fbw * k["cave"] * np.exp(-(x / 0.11) ** 2) * _ss(0.45, 0.97, zn) * (1 - 0.5 * _ss(0.97, 1.0, zn))
     X = X + nx * cave; Y = Y + ny * cave
     # rim: dips between the handles, droops past them (same along front, corner and gusset)
-    sag = 0.005 * np.exp(-(x / 0.05) ** 2) + 0.010 * _ss(0.09, hx, np.abs(x))
+    sag = 0.007 * np.exp(-(x / 0.05) ** 2) + 0.014 * _ss(0.09, hx, np.abs(x))
     sag = sag + 0.004 * np.sin(x * 17.0 + k["seed"] + 2.0 * back) * (1 - _ss(hx - 0.04, hx, np.abs(x)))
     Z = z - sag * zn ** 3
     # whole-bag slump / lean
@@ -1416,7 +1467,7 @@ def _tote_body(p, z, T, k):
     P0 = np.stack([x * 1.0, y * 1.0, z * 0.30], -1)
     w1 = _noise3(P0.reshape(-1, 3), 7.0, k["seed"], 3).reshape(z.shape)
     w2 = _noise3(np.stack([x, y, z], -1).reshape(-1, 3), 26.0, k["seed"] + 3, 2).reshape(z.shape)
-    amp = (0.0068 * (0.3 + 0.7 * zn) * (0.35 + 0.65 * wx + 0.4 * sdw)) * _ss(0.0, 0.03, z)
+    amp = (0.0095 * (0.3 + 0.7 * zn) * (0.35 + 0.65 * wx + 0.4 * sdw)) * _ss(0.0, 0.03, z)
     dd = w1 * amp + w2 * 0.0008 * _ss(0.0, 0.02, z) + rip
     # diagonal tension folds from the bottom corners and from the handle roots
     for sgn in (-1, 1):
@@ -1426,6 +1477,10 @@ def _tote_body(p, z, T, k):
         dd += fbw * 0.0018 * np.exp(-(v_ / 0.02) ** 2) * _ss(H * 0.55, H * 0.85, z)
     # sewn corner: the seam allowance inside lifts a soft welt along the vertical corner seam
     dd += 0.0009 * np.exp(-((np.abs(x) - (hx - 0.0035)) / 0.0025) ** 2) * fbw * _ss(0.004, 0.02, z)
+    # folded 1.25 in hem: a double layer of denim -> a soft step where the turned edge ends,
+    # plus the hem band sitting a hair proud of the panel
+    hz = H - T["hem"] - 0.0015
+    dd += 0.0011 * _ss(hz - 0.0016, hz + 0.0016, z)
     X = X + nx * dd; Y = Y + ny * dd
     return np.stack([X, Y, Z], -1), pan
 
@@ -1465,7 +1520,8 @@ def tote(color="Natural", seed=None, logo="your logo", ink="cobalt"):
     rect = (0.0, 0.205, pw, pw / asp)
     m_den = mat_denim(color, name=f"acc_denim_{color}", print_mask=mpath, print_rect=rect, ink=ink)
     m_den_plain = mat_denim(color, name=f"acc_denim_plain_{color}")
-    thread_col = {"Black": "#3a3a3a", "Natural": "#efe7d4", "White": "#f2f2ee"}.get(color, color)
+    # tonal thread a shade off the cloth so the top-stitching reads by colour as well as relief
+    thread_col = {"Black": "#2c2c2c", "Natural": "#d8cbb0", "White": "#e4e3de"}.get(color, color)
     m_th = mat_thread_acc(thread_col, name=f"acc_tote_thread_{color}", shine=0.5)
 
     # ---------------- body
@@ -1605,7 +1661,7 @@ def tote(color="Natural", seed=None, logo="your logo", ink="cobalt"):
             for a_, b_ in ((0, 2), (1, 3)):
                 ln = np.linspace(corners[a_], corners[b_], 40)
                 rows.append((ln, np.repeat(nn[None, :], 40, 0)))
-    _stitch_mesh("ToteStitches", rows, m_th, parent=root, pitch=0.0036, radius=0.00042, duty=0.84)
+    _stitch_mesh("ToteStitches", rows, m_th, parent=root, pitch=0.0040, radius=0.00055, duty=0.82)
     _rest(root)
     return root
 
@@ -1685,6 +1741,45 @@ def mat_ultrahyde(color, name=None, logo_rect=None, sharp=None, soft=None, foil=
             nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
         return m
     return _cached(("ultrahyde", color, name, sharp), mk)
+
+def mat_foil_decal(logo_rect, sharp, soft, foil="chrome", name="acc_foil_decal"):
+    """Hot-foil film as its own thin decal (alpha = the sharp logo mask) so scenes can light-link a
+    reflection card to the foil alone, without greying the satin leather around it."""
+    def mk():
+        m, nt, fb = _c._new_mat(name)
+        uv = nt.nodes.new("ShaderNodeTexCoord").outputs["UV"]
+        def mapped(path):
+            mpp = nt.nodes.new("ShaderNodeMapping")
+            mpp.inputs["Scale"].default_value = (1 / logo_rect[2], 1 / logo_rect[3], 1)
+            mpp.inputs["Location"].default_value = (0.5 - logo_rect[0] / logo_rect[2],
+                                                    0.5 - logo_rect[1] / logo_rect[3], 0)
+            nt.links.new(uv, mpp.inputs["Vector"])
+            it = nt.nodes.new("ShaderNodeTexImage")
+            it.image = _img(path); it.extension = "CLIP"; it.interpolation = "Cubic"
+            nt.links.new(mpp.outputs["Vector"], it.inputs["Vector"])
+            return it.outputs["Color"]
+        sh, sf = mapped(sharp), mapped(soft)
+        mr = nt.nodes.new("ShaderNodeMapRange")
+        mr.inputs["From Min"].default_value = 0.35; mr.inputs["From Max"].default_value = 0.65
+        nt.links.new(sh, mr.inputs["Value"])
+        tint = (0.92, 0.93, 0.95, 1) if foil == "chrome" else (rgb(foil) if foil in _c.PALETTE else _col(foil))
+        fb.inputs["Base Color"].default_value = tint
+        fb.inputs["Metallic"].default_value = 1.0
+        fb.inputs["Roughness"].default_value = 0.12
+        fb.inputs["Anisotropic"].default_value = 0.2
+        fn = _noise(nt, uv, 1 / 0.0012, detail=2.0)
+        # pressed-in letter walls: the soft mask darkens / tilts the normal at the stroke edges
+        nt.links.new(_bumpn(nt, _math(nt, "SUBTRACT", _math(nt, "MULTIPLY", fn, 0.2),
+                                      _math(nt, "MULTIPLY", sf, 3.0)), 0.35, 0.00035), fb.inputs["Normal"])
+        tr = nt.nodes.new("ShaderNodeBsdfTransparent")
+        mix = nt.nodes.new("ShaderNodeMixShader")
+        nt.links.new(mr.outputs["Result"], mix.inputs["Fac"])
+        nt.links.new(tr.outputs["BSDF"], mix.inputs[1])
+        nt.links.new(fb.outputs["BSDF"], mix.inputs[2])
+        out = nt.nodes.get("Material Output")
+        nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
+        return m
+    return _cached(("foil_decal", foil, sharp, tuple(logo_rect)), mk)
 
 def mat_page_edges(name="acc_page_edges"):
     """Cream FSC paper seen edge-on: fine sheet lines, signature gaps, faint dust."""
@@ -1825,6 +1920,17 @@ def journal(color="Blue", seed=None, logo="your logo", foil="chrome", ribbon_len
     so.thickness = tc; so.offset = 0.0; so.use_even_offset = True
     bv = cov.modifiers.new("Bevel", "BEVEL")
     bv.width = 0.00045; bv.segments = 2; bv.limit_method = "ANGLE"; bv.angle_limit = math.radians(50)
+    # foil film as a separate decal over the debossed logo (same grid verts as the front plate,
+    # lifted onto the solidified top surface + 30 µm) -> scenes may light-link a card to it alone
+    Pg = P.copy()
+    e_u = np.gradient(Pg, axis=0); e_v = np.gradient(Pg, axis=1)
+    Ng = _norm(np.cross(e_u, e_v)); Ng = np.where(Ng[..., 2:3] < 0, -Ng, Ng)
+    ix = np.where((plate == 2) & (x > rect[0] - rect[2] / 2 - 0.006) & (x < rect[0] + rect[2] / 2 + 0.006))[0]
+    iy = np.where(np.abs(Y[ix[0]] - rect[1]) < rect[3] / 2 + 0.008)[0]
+    if len(ix) > 1 and len(iy) > 1:
+        sub = (Pg + Ng * (tc / 2 + 0.00003))[ix[0]:ix[-1] + 1, iy[0]:iy[-1] + 1]
+        _grid_obj("JournalFoil", sub, uv=uv[ix[0]:ix[-1] + 1, iy[0]:iy[-1] + 1],
+                  mat=mat_foil_decal(rect, sharp, soft, foil), parent=root)
 
     # ---------------- page block
     Wp, Lp = Wc - sq - 0.0035, Lc - 2 * sq

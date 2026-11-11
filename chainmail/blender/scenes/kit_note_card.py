@@ -7,14 +7,14 @@ import kit
 
 CLOSE = "--close" in argv_flags()
 reset()
-setup_render(1200, 1200, samples=256, exposure=-0.05)
-kit.kit_render_budget(samples=112, threshold=0.015)
-kit.kit_lighting(scale=0.6, target=(0, 0, 0.0), key=1.0, fill=0.5, hdri_strength=0.25, foil=0.0)
+setup_render(1200, 1200, samples=256)
+kit.kit_render_budget(samples=256, threshold=0.01)
+kit.kit_lighting(scale=0.6, target=(0, 0, 0.0), key=0.42, fill=0.4, hdri_strength=0.15, foil=0.0)
 # raking light from the upper left (~25 deg): reveals the letterpress impression and the
 # cotton tooth, and lays a soft 2-4 mm shadow along the card's right and bottom edges
 el_r, az_r, d_r = math.radians(25), math.radians(150), 0.62
 area_light("Rake", (d_r * math.cos(el_r) * math.cos(az_r), d_r * math.cos(el_r) * math.sin(az_r), d_r * math.sin(el_r)),
-           (0, 0, 0), size=0.15, energy=7, color=(1.0, 0.97, 0.92))
+           (0, 0, 0), size=0.15, energy=3.8, color=(1.0, 0.97, 0.92))
 bpy.data.objects["Rim"].data.color = (1.0, 0.99, 0.97)   # neutral rim: keep the cream stock warm
 shadow_catcher()
 c = kit.note_card(text=("untitled", "(your logo here)"), number=1, edition=48, curl=0.0016)

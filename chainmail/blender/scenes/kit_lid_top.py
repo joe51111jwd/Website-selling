@@ -7,7 +7,7 @@ import kit
 
 reset()
 setup_render(1200, 1200, samples=256)
-kit.kit_render_budget(samples=112, threshold=0.015)
+kit.kit_render_budget(samples=256, threshold=0.01)
 kit.kit_lighting(scale=1.5, target=(0, 0, 0.08), key=0.8, fill=0.5, hdri_strength=0.2, top=0.8, foil=0.0,
                  contact=0.0)
 # Top light nudged toward -X/+Y so the 1.2 mm bevel on two lid edges catches a fine highlight

@@ -9,29 +9,33 @@ import accessories as acc
 FL = argv_flags()
 CLOSE = "--close" in FL
 reset()
-setup_render(1600, 1600, samples=160, exposure=1.0)
+setup_render(1600, 1600, samples=256, exposure=0.0)   # Khronos PBR Neutral: true swatches, no exposure hack
 c = bpy.context.scene.cycles
 c.max_bounces, c.diffuse_bounces, c.glossy_bounces = 8, 3, 3
 c.transmission_bounces, c.transparent_max_bounces = 2, 4
 if not PREVIEW:
     c.adaptive_threshold = 0.012
-studio("soft", key=0.75, hdri_strength=0.35, rotation_deg=30, target=(0, 0, 0.05), scale=0.45)
+studio("soft", key=0.75, hdri_strength=float(os.environ.get("HDRI", "0.25")), rotation_deg=30, target=(0, 0, 0.05), scale=0.45)
 key = bpy.data.objects["Key"]
 key.data.size = key.data.size_y = 0.55
 key.location = (-0.85, -0.70, 1.25)
 look_at(key, (0, 0, 0.05))
+key.data.energy *= float(os.environ.get("KEYK", "1.1"))
 bpy.data.objects["Rim"].data.use_shadow = False
-bpy.data.objects["Top"].data.energy *= 0.55
+bpy.data.objects["Top"].data.energy *= float(os.environ.get("TOPK", "0.4"))
 fill = bpy.data.objects["Fill"]
-fill.data.energy *= 1.6                      # soft front fill so White reads white, not cement
+fill.data.energy *= float(os.environ.get("FILLK", "0.6"))
+acc.neutral_world(0.3)
 shadow_catcher()
 
+WZ = float(os.environ.get("WZ", "128")); BZ = float(os.environ.get("BZ", "-26"))
+WX, WY = float(os.environ.get("WX", "-0.02")), float(os.environ.get("WY", "0.29"))
 white = acc.cap("White")
-white.rotation_euler.z += math.radians(142)
-white.location = (0.03, 0.215, white.location.z)
+white.rotation_euler.z += math.radians(WZ)
+white.location = (WX, WY, white.location.z)
 black = acc.cap("Black")
-black.rotation_euler.z += math.radians(-6)
-black.location = (-0.035, -0.04, black.location.z)
+black.rotation_euler.z += math.radians(BZ)
+black.location = (-0.03, -0.03, black.location.z)
 bpy.context.view_layer.update()
 P_ = acc._all_mesh_points(black, 3); print('CAPDIM', P_.max(0) - P_.min(0))
 
@@ -49,6 +53,14 @@ else:
     pts = np.vstack([acc._all_mesh_points(o, 3) for o in (black, white)] +
                     [acc.shadow_footprint([black, white], stride=8)])
     acc.frame_camera(pts, az_deg=16, el_deg=31, lens=85, pad=0.075)
+    if os.environ.get("CROP"):                     # detail check: full-res border render of a region
+        x0, x1, y0, y1 = map(float, os.environ["CROP"].split(","))
+        r = bpy.context.scene.render
+        r.resolution_percentage = 100
+        r.use_border = True; r.use_crop_to_border = True
+        r.border_min_x, r.border_max_x, r.border_min_y, r.border_max_y = x0, x1, y0, y1
+        render_to("goods/cap_crop.png")
+        raise SystemExit
     out = render_to("goods/cap.png")
     print("BORDER_ALPHA raw", acc.border_alpha(out))
     acc.fade_border(out)

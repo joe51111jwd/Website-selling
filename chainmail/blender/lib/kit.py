@@ -58,7 +58,7 @@ INS_TOP = FLOOR_Z + INS_H
 
 SEAL_D = 0.060
 CARD_W, CARD_D, CARD_T = 0.127, 0.178, 0.0008
-CARD_STOCK = "#EFDCBF"                          # warm cream cotton stock
+CARD_STOCK = PALETTE["bone"]                    # bone cotton stock (true palette value)
 CAN_R, CAN_H = 0.0265, 0.134                    # 250 ml slim can (Ø53 x 134 mm)
 SLEEVE_W, SLEEVE_D, SLEEVE_H, SLEEVE_Z = 0.1102, 0.0572, 0.084, 0.017
 PRODUCT_SIZE = (SLEEVE_W, SLEEVE_D, CAN_H)      # footprint of your_product() upright
@@ -154,8 +154,8 @@ def _img(path, non_color=False):
     return im
 
 def _hex(name, gain=1.0):
-    """sRGB hex of a palette colour; gain scales it in linear light (albedo
-    compensation so saturated brand colours survive bright studio light + AgX)."""
+    """sRGB hex of a palette colour (gain != 1 scales it in linear light; the kit
+    no longer uses a gain: Khronos PBR Neutral renders the palette true)."""
     h = PALETTE.get(name, name)
     if gain == 1.0:
         return h
@@ -769,7 +769,7 @@ def _collection(name, objs, state="INCLUDE"):
     return c
 
 def link_kit_lights(no_catcher=("Key", "Top", "Rim", "Fill", "FoilCard"), foil_only=("FoilCard",),
-                    extra_foil_only=(), flag_seals=("Top",), flag_prefixes=("Seal_",), shadowless=("Fill",)):
+                    extra_foil_only=(), flag_seals=(), flag_prefixes=("Seal_",), shadowless=("Fill",)):
     """Light linking for kit shots (call after everything is built):
       * foil_only emitters (FoilCard, FoilGlint* strips) light ONLY the KitFoil* decals;
       * WrapSheen* lights only the soft-touch wrap shells (KitLid_shell*/KitBase_shell*);
@@ -778,8 +778,9 @@ def link_kit_lights(no_catcher=("Key", "Top", "Rim", "Fill", "FoilCard"), foil_o
         cutout carries one compact, soft contact shadow (ContactSoft + HDRI);
       * shadowless emitters (default the low front Fill) cast no shadows at all - a fill
         should open up the dark faces, never draw hard wedges across neighbouring boxes;
-      * flag_seals emitters skip objects named flag_prefixes* (default the cobalt
-        seals) - a photographic 'flag' that keeps saturated cobalt print from washing out."""
+      * flag_seals emitters (default none) skip objects named flag_prefixes* - an optional
+        photographic 'flag'. Under Khronos PBR Neutral the cobalt print renders true, so
+        the kit scenes no longer flag the seals/sleeve (that was AgX compensation)."""
     objs = bpy.data.objects
     foils = [o for o in objs if o.name.startswith("KitFoil")]
     wraps = [o for o in objs if o.name.startswith(("KitLid_shell", "KitBase_shell"))]
