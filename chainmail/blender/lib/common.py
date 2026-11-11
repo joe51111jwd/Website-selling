@@ -60,14 +60,55 @@ def reset():
     s.unit_settings.system = "METRIC"
     return s
 
+_GPU_STATE = None
+
+def enable_gpu():
+    """Enable every GPU of the best available Cycles backend. Returns True if one is on.
+    No-op (returns False) on machines without a supported GPU, so scenes stay portable."""
+    global _GPU_STATE
+    if _GPU_STATE is not None:
+        return _GPU_STATE
+    want = os.environ.get("CHAINMAIL_DEVICE", "").upper()
+    argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    if "--cycles-device" in argv and argv.index("--cycles-device") + 1 < len(argv):
+        want = argv[argv.index("--cycles-device") + 1].upper()
+    if want == "CPU":
+        _GPU_STATE = False
+        return False
+    order = [want] if want else ["OPTIX", "CUDA", "HIP", "METAL", "ONEAPI"]
+    _GPU_STATE = False
+    try:
+        prefs = bpy.context.preferences.addons["cycles"].preferences
+    except Exception:
+        return False
+    for backend in order:
+        try:
+            prefs.compute_device_type = backend
+            prefs.refresh_devices()
+        except Exception:
+            continue
+        gpus = [d for d in prefs.devices if d.type == backend]
+        if not gpus:
+            continue
+        for d in prefs.devices:
+            d.use = d.type == backend
+        print(f"[chainmail] Cycles GPU: {backend} -> " + ", ".join(d.name for d in gpus))
+        _GPU_STATE = True
+        break
+    if not _GPU_STATE:
+        print("[chainmail] Cycles: no GPU found, rendering on CPU")
+    return _GPU_STATE
+
 def setup_render(width=1600, height=1600, samples=256, transparent=True, preview=None,
                  motion_blur=False, exposure=0.0):
-    """Cycles, CPU, OIDN denoise, AgX. --preview drops to 40% res / 32 spp."""
+    """Cycles (GPU if available, else CPU), OIDN denoise, Khronos PBR Neutral.
+    --preview drops to 40% res / 32 spp. Device: auto (OPTIX > CUDA > HIP > METAL > ONEAPI),
+    override with env CHAINMAIL_DEVICE=CPU|OPTIX|CUDA|... or `-- --cycles-device X`."""
     preview = PREVIEW if preview is None else preview
     s = bpy.context.scene
     s.render.engine = "CYCLES"
     c = s.cycles
-    c.device = "CPU"
+    c.device = "GPU" if enable_gpu() else "CPU"
     c.samples = 32 if preview else samples
     c.use_adaptive_sampling = True
     c.adaptive_threshold = 0.02 if preview else 0.008
