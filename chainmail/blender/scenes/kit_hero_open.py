@@ -72,12 +72,12 @@ cam = su.sph_camera((0.0, 0.0, 0.1), AZ, EL, 2.0, LENS)
 cam.data.sensor_fit = "HORIZONTAL"
 
 def frame_points():
+    """real silhouette samples (AABB corners of the leaning lid would over-pad the frame)"""
     pts = []
-    for r in (K["base"], LID, K["cap"]):
-        lo_, hi_ = kit.world_bbox(r)
-        pts += su.bbox_corners(lo_, hi_)
+    for r in (K["base"], LID, K["cap"], K["product"]):
+        pts += [tuple(p) for p in su.world_points(r, max_pts=5000)]
     # + a hair of floor for the contact shadow (cutout_edge_fade fades the rest before the border)
-    for x, y in ((-0.255, -0.188), (0.262, -0.188)):
+    for x, y in ((-0.256, -0.186), (0.258, -0.186)):
         pts.append((x, y, 0.0))
     return pts
 
@@ -100,7 +100,11 @@ def fit(cam, pts, pad=0.08, iters=12):
         d *= span
     return t, d
 
-T, D = fit(cam, frame_points())
+FP = frame_points()
+T, D = fit(cam, FP)
+_P = su.project(cam, FP)
+print("[hero] silhouette padding L%.3f R%.3f B%.3f T%.3f" % (min(p.x for p in _P), 1 - max(p.x for p in _P),
+                                                         min(p.y for p in _P), 1 - max(p.y for p in _P)))
 print(f"[hero] camera target {tuple(round(v, 3) for v in T)} dist {D:.3f}")
 cam_loc = Vector(cam.location)
 
