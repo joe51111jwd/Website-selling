@@ -11,7 +11,11 @@ export function loadFX() {
   let fx = null;
   try {
     fx = initFX();
-    html.classList.add('has-fx');
+    // initFX never throws without WebGL2: each GL canvas falls back on its own (.fx-fallback). If none of them
+    // got a context, the page is effectively fx-less: turn on the .no-fx CSS (made fallback, no grain).
+    const gl = [...document.querySelectorAll('canvas[data-fx="chrome"], canvas[data-fx="caustics"]')];
+    const noGL = gl.length > 0 && gl.every((el) => el.classList.contains('fx-fallback') || fx.instances.get(el)?.failed);
+    html.classList.add(noGL ? 'no-fx' : 'has-fx');
     // every fx element tints to the section it sits in (hero, made, spirits are ink; anything else follows its section)
     document.querySelectorAll('canvas[data-fx], div[data-fx="grain"]').forEach((el) => {
       const theme = el.closest('[data-theme]')?.dataset.theme;

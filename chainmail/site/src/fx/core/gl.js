@@ -17,7 +17,8 @@ export function getGL(canvas, opts = {}) {
       stencil: false,
       premultipliedAlpha: true,
       preserveDrawingBuffer: false,
-      powerPreference: opts.powerPreference || 'high-performance',
+      // decorative effects: let the browser pick (integrated GPU on dual-GPU laptops; no fan, no GPU switch)
+      powerPreference: opts.powerPreference || 'default',
       desynchronized: false,
     });
   } catch (e) {

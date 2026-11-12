@@ -17,7 +17,7 @@ const STILLS = [
   ],
   [{ r: 'spirits/manojo', w: 800, h: 1600, cls: 'still__bottle' }],
   [{ r: 'kit/note-card', w: 1200, h: 1200, cls: 'still__a' }],
-  [{ r: 'kit/closed', w: 1600, h: 1600, cls: 'still__a' }],
+  [{ r: 'kit/closed', w: 1600, h: 1600, cls: 'still__closed' }],
 ];
 
 export function initMade(fxReady) {
@@ -40,7 +40,7 @@ export function initMade(fxReady) {
     (i % 2 === 0 ? sides.l : sides.r).appendChild(el);
     return el;
   });
-  ticks.innerHTML = MADE_STEPS.map((s, i) => `<li><button type="button" data-tick="${i}" aria-label="step ${i + 1}: ${s.caption}"><span class="mono">${String(i + 1).padStart(2, '0')}</span><i></i></button></li>`).join('');
+  ticks.innerHTML = MADE_STEPS.map((s, i) => `<li><button type="button" data-tick="${i}" aria-label="${String(i + 1).padStart(2, '0')}, ${s.caption}"><span class="mono" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span><i></i></button></li>`).join('');
   list.innerHTML = MADE_STEPS.map((s, i) => `<li><span class="mono made__list-n">${String(i + 1).padStart(2, '0')}</span><span class="made__list-t">${s.caption}</span><span class="mono made__list-p">${money(s.price)} <small>${s.note}</small></span></li>`).join('');
 
   // stills layer (used when there is no frame sequence, or no fx at all)
@@ -54,6 +54,8 @@ export function initMade(fxReady) {
   watchMedia(stillsEl);
   const stills = [...stillsEl.children];
   const useStills = () => sec.classList.add('made--stills');
+  // stills are the default until the frame sequence proves itself (frames load lazily, after window load)
+  useStills();
 
   let seq = null;
   let current = -1;
@@ -67,7 +69,7 @@ export function initMade(fxReady) {
       if (!seq) { useStills(); return; }
       seq.ready?.then(() => {
         sec.classList.add('seq-ready');
-        if (seq.mode !== 'sequence') useStills();
+        sec.classList.toggle('made--stills', seq.mode !== 'sequence');
       }).catch(useStills);
       seq.setProgress?.(proxy.p);
     } catch (e) { console.warn('[made] sequence unavailable', e); useStills(); }
@@ -77,6 +79,7 @@ export function initMade(fxReady) {
     if (i === current) return;
     const prev = current;
     current = i;
+    sec.classList.toggle('made--last', i === n - 1); // hides the "keep scrolling" hint on the last step
     caps.forEach((c, k) => c.classList.toggle('is-active', k === i));
     stills.forEach((el, k) => { el.classList.toggle('is-on', k === i); el.classList.toggle('is-past', k < i); });
     ticks.querySelectorAll('button').forEach((b, k) => {
@@ -117,7 +120,6 @@ export function initMade(fxReady) {
     onUpdate: () => {
       const p = proxy.p;
       seq?.setProgress?.(p);
-      sec.style.setProperty('--made-p', p.toFixed(4));
       setStep(Math.min(n - 1, Math.floor(p * n * 0.9999 + 0.0001)));
     },
   });

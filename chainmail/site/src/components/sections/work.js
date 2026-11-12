@@ -43,9 +43,8 @@ export function initWork() {
     const max = vp.scrollWidth - vp.clientWidth;
     const p = max > 0 ? vp.scrollLeft / max : 0;
     bar.style.transform = `scaleX(${Math.max(0.06, p)})`;
-    const w = cards[0].getBoundingClientRect().width;
-    const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
-    const i = Math.min(cards.length - 1, Math.round(vp.scrollLeft / (w + gap)));
+    // index from progress, so it runs 01 … 09 with the bar (the last cards can never scroll to the left edge)
+    const i = Math.round(p * (cards.length - 1));
     idx.textContent = String(i + 1).padStart(2, '0');
   };
   vp.addEventListener('scroll', update, { passive: true });

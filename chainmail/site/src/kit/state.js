@@ -1,6 +1,7 @@
 // Kit state, shared by index (tray + "+ add") and builder. Persisted in localStorage `chainmail.kit.v1`:
 // { qty, goods: { id: { color, weight?, style?, position? } }, spirit, sendIn, note }
 import { CATALOG } from '../data/catalog.js';
+import { GOODS_META } from '../data/content.js';
 
 const KEY = 'chainmail.kit.v1';
 const listeners = new Set();
@@ -90,20 +91,22 @@ export const kit = {
 /** Items in the kit for the pill: goods + spirit. */
 export const itemCount = (s = state) => Object.keys(s.goods).length + (s.spirit ? 1 : 0);
 
+/** Line items. `name` is sentence case for the email/summary to Luis; `label` is the lowercase display name
+ *  used in the tray and the builder review (the brand voice keeps item names lowercase on screen). */
 export function lineItems(s = state) {
   const lines = [];
-  if (s.sendIn) lines.push({ key: 'send-in', name: 'Your product, packed in', detail: 'you ship one per kit', price: CATALOG.sendIn.price });
+  if (s.sendIn) lines.push({ key: 'send-in', name: 'Your product, packed in', label: 'your product, packed in', detail: 'you ship one per kit', price: CATALOG.sendIn.price });
   for (const g of CATALOG.goods) {
     const o = s.goods[g.id];
     if (!o) continue;
     const detail = [o.style, o.color, o.weight, o.position].filter(Boolean).join(' · ');
-    lines.push({ key: g.id, name: g.name, detail, price: g.price });
+    lines.push({ key: g.id, name: g.name, label: GOODS_META[g.id]?.label ?? g.name.toLowerCase(), detail, price: g.price });
   }
   if (s.spirit) {
     const sp = CATALOG.spirits.find((x) => x.id === s.spirit);
-    lines.push({ key: 'spirit', name: sp.name, detail: `${sp.type}, 750 ml · 21+`, price: sp.price });
+    lines.push({ key: 'spirit', name: sp.name, label: sp.name.toLowerCase(), detail: `${sp.type}, 750 ml · 21+`, price: sp.price });
   }
-  lines.push({ key: 'note', name: 'Printed note card', detail: s.note ? `“${s.note.slice(0, 48)}${s.note.length > 48 ? '…' : ''}”` : 'add your words in the builder', price: 0 });
+  lines.push({ key: 'note', name: 'Printed note card', label: 'printed note card', detail: s.note ? `“${s.note.slice(0, 48)}${s.note.length > 48 ? '…' : ''}”` : 'blank card, no message yet', price: 0 });
   return lines;
 }
 
@@ -112,6 +115,8 @@ export const total = (s = state) => perKit(s) * s.qty;
 
 export const money = (n) => `$${Math.round(n).toLocaleString('en-US')}`;
 export const qtyLabel = (q) => (q >= 120 ? '120+' : String(q));
+/** A kit total; 120+ runs are open-ended (Luis quotes them), so the total reads "$23,400+" everywhere. */
+export const moneyTotal = (n, q = state.qty) => money(n) + (q >= 120 ? '+' : '');
 
 export function summaryText(s = state) {
   const L = lineItems(s);
@@ -119,13 +124,13 @@ export function summaryText(s = state) {
   return [
     'Hi Luis,',
     '',
-    `I'd like to build a kit. Here's what I put together on chainmail.store:`,
+    `I'd like to build a kit. Here's what I put together in the chainmail kit builder:`,
     '',
     ...rows,
     '',
     `Per kit: ${money(perKit(s))}`,
     `Quantity: ${qtyLabel(s.qty)} kits`,
-    `Estimated total: ${money(total(s))}`,
+    `Estimated total: ${moneyTotal(total(s), s.qty)}${s.qty >= 120 ? ' (120 or more, to confirm)' : ''}`,
     s.note ? `\nNote card text:\n"${s.note}"` : '',
     '',
     'Recipient list to follow (shipping template with the size column).',

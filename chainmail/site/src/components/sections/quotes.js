@@ -1,6 +1,7 @@
 // Reasons to blush: one huge centred quote at a time, auto-advance with a progress dot, pause on hover/focus.
 import { QUOTES } from '../../data/content.js';
 import { gsap, ScrollTrigger, SplitText, reduced } from '../motion.js';
+import { icons } from '../icons.js';
 
 const DUR = 7000;
 
@@ -40,15 +41,26 @@ export function initQuotes() {
   }
   const manual = () => stage.setAttribute('aria-live', 'polite');
   sec.querySelector('.quotes__ui').addEventListener('click', manual);
+  // pause / play for the auto-advance (WCAG 2.2.2); taking control with prev / next / a dot also stops it
+  let userPaused = false;
+  const pb = sec.querySelector('[data-q-pause]');
+  const setUserPaused = (v) => {
+    userPaused = v;
+    if (!pb) return;
+    pb.setAttribute('aria-pressed', String(v));
+    pb.setAttribute('aria-label', v ? 'play quotes' : 'pause quotes');
+    pb.innerHTML = v ? icons.play : icons.pause;
+  };
+  pb?.addEventListener('click', () => setUserPaused(!userPaused));
   const nextQ = () => go((cur + 1) % figs.length, 1);
   const prevQ = () => go((cur - 1 + figs.length) % figs.length, -1);
-  sec.querySelector('[data-q-next]').addEventListener('click', nextQ);
-  sec.querySelector('[data-q-prev]').addEventListener('click', prevQ);
-  dots.addEventListener('click', (e) => { const b = e.target.closest('[data-q]'); if (b) go(Number(b.dataset.q), Number(b.dataset.q) > cur ? 1 : -1); });
+  sec.querySelector('[data-q-next]').addEventListener('click', () => { setUserPaused(true); nextQ(); });
+  sec.querySelector('[data-q-prev]').addEventListener('click', () => { setUserPaused(true); prevQ(); });
+  dots.addEventListener('click', (e) => { const b = e.target.closest('[data-q]'); if (b) { setUserPaused(true); go(Number(b.dataset.q), Number(b.dataset.q) > cur ? 1 : -1); } });
 
-  if (reduced) return; // no auto-advance
+  if (reduced) { if (pb) pb.hidden = true; return; } // no auto-advance, nothing to pause
   const loop = (now) => {
-    if (!paused && inView) {
+    if (!paused && !userPaused && inView) {
       const p = Math.min(1, (now - start) / DUR);
       dotEls[cur].style.setProperty('--p', p.toFixed(3));
       if (p >= 1) nextQ();

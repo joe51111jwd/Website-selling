@@ -11,7 +11,7 @@ export function initQty() {
   const seg = sec.querySelector('[data-qty-seg]');
   const math = sec.querySelector('[data-qty-math]');
   const cta = sec.querySelector('[data-qty-cta]');
-  const totalEl = odometer(sec.querySelector('[data-qty-total]'), { value: 0, format: money, duration: 1000 });
+  const totalEl = odometer(sec.querySelector('[data-qty-total]'), { value: 0, format: (n) => money(n) + (kit.get().qty >= 120 ? '+' : ''), duration: 1000 });
   let shown = false;
 
   const render = () => {

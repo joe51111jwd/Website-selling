@@ -10,7 +10,7 @@ export class GLEffect {
   /**
    * @param {HTMLCanvasElement} canvas
    * @param {object} ctx  shared context from initFX ({ reducedMotion, pointer, wake })
-   * @param {object} o    { kind, frag, resScale, minScale, adaptive }
+   * @param {object} o    { kind, frag, resScale, minScale, adaptive, dprCap, maxPixels, powerPreference }
    */
   constructor(canvas, ctx, o) {
     this.canvas = canvas;
@@ -20,6 +20,8 @@ export class GLEffect {
     this.baseScale = o.resScale ?? 1; // fraction of (capped) DPR resolution
     this.minScale = o.minScale ?? 0.5;
     this.adaptive = o.adaptive ?? true;
+    this.dprCap = o.dprCap ?? DPR_CAP; // per-effect DPR cap (heavy shaders render below DPR and upscale)
+    this.maxPixels = o.maxPixels ?? Infinity; // hard budget for the drawing buffer, in device pixels
     this.quality = 1; // adaptive multiplier
     this.visible = false;
     this.failed = false;
@@ -38,7 +40,7 @@ export class GLEffect {
     if (t === 'bone') this.theme = this.themeTarget = 1;
     canvas.dataset.fxTheme = t === 'bone' ? 'bone' : 'ink';
 
-    this.gl = getGL(canvas, { alpha: !!o.alpha });
+    this.gl = getGL(canvas, { alpha: !!o.alpha, powerPreference: o.powerPreference });
     if (!this.gl) {
       this.fail();
       return;
@@ -95,8 +97,10 @@ export class GLEffect {
   resize() {
     if (this.failed) return;
     const rect = this.canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
-    const s = dpr * this.baseScale * this.quality;
+    const dpr = Math.min(window.devicePixelRatio || 1, this.dprCap);
+    let s = dpr * this.baseScale * this.quality;
+    const px = rect.width * rect.height * s * s;
+    if (px > this.maxPixels) s *= Math.sqrt(this.maxPixels / px);
     const w = Math.max(1, Math.round(rect.width * s));
     const h = Math.max(1, Math.round(rect.height * s));
     this.cssW = rect.width;
@@ -113,8 +117,8 @@ export class GLEffect {
     if (!this.adaptive) return;
     this._dtAvg += (dt - this._dtAvg) * 0.08;
     if (this._dtAvg > 1 / 45) {
-      if (++this._slow > 45 && this.quality > this.minScale) {
-        this.quality = Math.max(this.minScale, this.quality * 0.85);
+      if (++this._slow > 20 && this.quality > this.minScale) {
+        this.quality = Math.max(this.minScale, this.quality * 0.8);
         this._slow = 0;
         this.resize();
       }
@@ -135,10 +139,12 @@ export class GLEffect {
     return this.visible || this.dirty;
   }
 
-  tick(now, dt) {
+  /* dt = time to advance the animation; frameDt = the last RAF interval (what adaptive quality measures).
+     They differ when an effect skips draws (see ChromeFX idle throttle). */
+  tick(now, dt, frameDt = dt) {
     if (!this.ctx.reducedMotion) {
       this.time += dt;
-      this.adapt(dt);
+      this.adapt(frameDt);
     }
     // tween theme
     this.theme += (this.themeTarget - this.theme) * Math.min(1, dt * 4);

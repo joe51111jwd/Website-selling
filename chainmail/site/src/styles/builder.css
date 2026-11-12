@@ -32,14 +32,21 @@
 }
 .b__steps button .mono { font-size: 11.5px; }
 .b__steps .is-active button, .b__steps button:hover { color: var(--fg); }
-.b__steps .is-done button .mono::after { content: " ✓"; color: var(--c-cobalt); }
+.b__steps .is-done button .mono::after {
+  content: ""; display: inline-block; width: 1em; height: 1em; margin-left: .4em; vertical-align: -0.15em; background: var(--c-cobalt);
+  -webkit-mask: var(--i-check) center / contain no-repeat; mask: var(--i-check) center / contain no-repeat;
+}
 
 /* panels */
-.b__panels { margin-top: clamp(56px, 7vw, 96px); max-width: 1120px; }
+/* clip (not hidden): the entering panel's 28px slide must not widen the mobile layout viewport, and sticky still works */
+.b__panels { margin-top: clamp(56px, 7vw, 96px); max-width: 1120px; overflow-x: clip; }
 .b__panel { display: grid; justify-items: center; gap: clamp(32px, 4vw, 52px); }
 .b__ph { text-align: center; display: grid; justify-items: center; gap: 16px; }
 .b__pn { font-size: 12px; color: var(--c-cobalt); }
 .b__pt { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: .9; max-width: 16ch; text-wrap: balance; outline: none; }
+/* the step heading takes focus programmatically on every step change (so screen readers announce it); it is not
+   an interactive control, so no focus ring */
+.b__pt:focus-visible { box-shadow: none; }
 .b__ps { max-width: 50ch; color: var(--muted); font-size: 16.5px; line-height: 1.5; }
 .b__fine { font-size: 13.5px; color: var(--muted); line-height: 1.55; }
 .b__fine--c { text-align: center; max-width: 66ch; margin-inline: auto; }
@@ -71,6 +78,9 @@
   scroll-margin-top: 140px;
 }
 .bg.is-focus { background: linear-gradient(90deg, transparent, rgba(43, 59, 255, .07), transparent); }
+/* arrived from "customise →" on the index: say plainly that the item went in, and how to take it out */
+.bg__added { display: none; font-size: 12px; color: var(--c-cobalt); }
+.bg.is-added .bg__added { display: block; }
 .bg__thumb { aspect-ratio: 1; border-radius: 14px; background: var(--skel-a); overflow: hidden; transition: background-color .4s; }
 .bg.is-in .bg__thumb { background: rgba(43, 59, 255, .07); }
 .bg__thumb .media, .bg__thumb picture { height: 100%; }
@@ -102,7 +112,8 @@
 .bs__type { overflow-wrap: anywhere; }
 .bs__img { width: 100%; aspect-ratio: 3 / 4; display: grid; place-items: center; margin-bottom: 10px; }
 .bs__img .media, .bs__img picture { height: 100%; width: 100%; }
-.bs__none { font-family: var(--f-display); font-stretch: 125%; font-size: 4rem; color: var(--line-strong); }
+.bs__none { display: grid; place-items: center; color: var(--line-strong); }
+.bs__none .icon { width: 4rem; height: 4rem; stroke-width: 1; }
 .bs__name { font-family: var(--f-display); font-stretch: 115%; font-weight: 700; letter-spacing: -0.03em; font-size: clamp(1rem, .9rem + .4vw, 1.25rem); line-height: 1.1; }
 .bs__type { font-size: 13px; color: var(--muted); }
 .bs__price { margin-top: 6px; font-size: 15px; }
@@ -156,12 +167,13 @@
 .b__receipt .r { text-align: right; white-space: nowrap; padding-left: 16px; }
 .b__ln { display: block; font-weight: 500; }
 .b__ld { display: block; font-size: 13.5px; color: var(--muted); margin-top: 2px; }
-.b__edit { font-size: 13px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; --focus-r: 4px; }
+.b__edit { font-size: 13px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; --focus-r: 4px; padding: 12px 8px; margin: -12px -8px; }
 .b__edit:hover { color: var(--fg); }
 .b__sub th, .b__sub td { color: var(--muted); font-size: 15px; }
 .b__tot th, .b__tot td { border-bottom: 0; padding-top: 24px; }
 .b__tot th { font-weight: 500; }
-.b__tot td { font-size: clamp(2rem, 1rem + 3vw, 3.5rem); letter-spacing: -0.05em; line-height: 1; }
+/* one hero number per screen: the ink card next to "send it to Luis" carries the display total */
+.b__tot td { font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; line-height: 1.2; }
 .b__send { display: grid; gap: 22px; justify-items: center; text-align: center; padding: clamp(28px, 3vw, 40px); border-radius: 20px; background: var(--c-ink); color: var(--c-bone); position: sticky; top: 120px; --line-strong: rgba(239, 235, 227, .26); }
 .b__sendalt { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
 .b__sendalt .link-arrow { color: var(--c-bone-muted); font-size: 14px; }
@@ -178,6 +190,17 @@
 .b__barx { color: var(--c-bone-muted); font-size: 18px; padding-bottom: 2px; }
 .b__bartot .b__barnum { color: #fff; font-size: clamp(1.5rem, 1rem + 1.4vw, 2.25rem); }
 .b__barbtns { display: flex; align-items: center; gap: 10px; }
+/* review step: the total is already the hero of the ink card, so the bar drops its numbers and its ink band too.
+   What is left is the back control, floating as a small ink chip over the bone page (no empty 80px strip); its
+   faint bone ring keeps it visible where it floats over the ink send card on phones. */
+.b__bar { transition: background-color .4s var(--ease-out), border-color .4s, -webkit-backdrop-filter .4s, backdrop-filter .4s; }
+.b__barnums { transition: opacity .3s; }
+.is-review .b__barnums { opacity: 0; visibility: hidden; pointer-events: none; }
+.is-review .b__bar { background-color: transparent; border-top-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; pointer-events: none; }
+.is-review .b__barbtns { pointer-events: auto; }
+.is-review .b__barbtns .round { background: var(--c-ink); border-color: rgba(239, 235, 227, .22); box-shadow: 0 14px 30px -14px rgba(11, 11, 15, .55); }
+.is-review .b__barbtns .round:hover { background: var(--c-cobalt); border-color: var(--c-cobalt); color: #fff; }
+.btn__short { display: none; }
 
 @media (max-width: 860px) {
   .b__split, .b__note, .b__review { grid-template-columns: 1fr; }
@@ -194,8 +217,9 @@
   .b__barx, .b__barcell:nth-of-type(3) { display: none; }
   .b__barbtns .btn { --h: 46px; padding: 0 18px; font-size: 14px; }
   .b__barin { gap: 12px; }
-  .b__barbtns [data-b-next] .btn__label { display: none; }
-  .b__barbtns [data-b-next]::before { content: "next"; }
+  /* the full label stays the accessible name ("next: the goods"); "next" is what fits on screen */
+  .b__barbtns [data-b-next] .btn__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+  .b__barbtns [data-b-next] .btn__short { display: inline; }
   .b__barbtns .round { width: 44px; height: 44px; }
   .seg--two [role="radio"] { padding: 0 14px; font-size: 14px; }
   .seg--xl [role="radio"] { min-width: 0; padding: 0 12px; }

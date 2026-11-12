@@ -6,12 +6,25 @@
   <title>build a kit — chainmail</title>
   <meta name="description" content="Build a chainmail kit in six steps: quantity, your product, the goods, a spirit, the note, and a review that goes straight to Luis.">
   <meta name="theme-color" content="#EFEBE3">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="chainmail">
+  <meta property="og:url" content="https://chainmail-kits.vercel.app/builder.html">
+  <meta property="og:title" content="build a kit — chainmail">
+  <meta property="og:description" content="Build a chainmail kit in six steps, and the review goes straight to Luis.">
+  <meta property="og:image" content="https://chainmail-kits.vercel.app/og/og-builder.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="A stack of closed, numbered chainmail kit boxes.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://chainmail-kits.vercel.app/builder.html">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <script>document.documentElement.classList.replace('no-js','js');</script>
   <script type="module" src="/src/builder.js"></script>
 </head>
 <body class="page-builder" data-theme="bone">
   <a class="skip" href="#main">skip to the builder</a>
+  <p class="sr-only" data-kit-status role="status" aria-live="polite"></p>
 
   <header class="nav nav--builder is-scrolled" data-nav data-theme="bone">
     <div class="nav__inner">
@@ -19,7 +32,7 @@
       <p class="nav__title mono" aria-hidden="true">kit builder</p>
       <div class="nav__actions">
         <a class="nav__help" href="mailto:luis@chainmail.store?subject=Help%20with%20a%20kit">stuck? email luis</a>
-        <a class="btn btn--ghost btn--sm" href="/"><span class="btn__arrow" aria-hidden="true">←</span><span class="btn__label">back to site</span></a>
+        <a class="btn btn--ghost btn--sm" href="/"><span class="btn__arrow" aria-hidden="true"><svg class="icon icon--arrow-left" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 8h-11M7 3.5 2.5 8 7 12.5"/></svg></span><span class="btn__label">back to site</span></a>
       </div>
     </div>
   </header>
@@ -59,6 +72,10 @@
           <button type="button" role="radio" aria-checked="false" data-value="96">96</button>
           <button type="button" role="radio" aria-checked="false" data-value="120">120+</button>
         </div>
+        <div class="b__notice" data-b-120 hidden>
+          <p><b>120 or more?</b> Luis handles big runs directly, with volume pricing and a call to plan it.</p>
+          <a class="btn btn--primary" href="mailto:luis@chainmail.store?subject=120%2B%20kits" data-b-120-link><span class="btn__label">email luis about 120+ kits</span><span class="btn__arrow" aria-hidden="true"><svg class="icon icon--arrow-right" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg></span></a>
+        </div>
         <div class="b__qtyvis">
           <div class="b__qtyimg">
             <picture class="media media--contain" data-media>
@@ -67,10 +84,6 @@
             </picture>
           </div>
           <p class="b__qtycap mono" data-b-qtycap>numbered 01 to 48</p>
-        </div>
-        <div class="b__notice" data-b-120 hidden>
-          <p><b>120 or more?</b> Luis handles big runs directly, with volume pricing and a call to plan it.</p>
-          <a class="btn btn--primary" href="mailto:luis@chainmail.store?subject=120%2B%20kits" data-b-120-link><span class="btn__label">email luis about 120+ kits</span><span class="btn__arrow" aria-hidden="true">→</span></a>
         </div>
       </section>
 
@@ -173,7 +186,7 @@
             <p class="b__sendlbl mono">estimated total</p>
             <p class="b__sendtot mono" data-b-stot></p>
             <p class="b__sendmath mono" data-b-smath></p>
-            <a class="btn btn--primary btn--lg" href="#" data-b-mailto data-magnetic><span class="btn__label">send it to Luis</span><span class="btn__arrow" aria-hidden="true">→</span></a>
+            <a class="btn btn--primary btn--lg" href="#" data-b-mailto data-magnetic><span class="btn__label">send it to Luis</span><span class="btn__arrow" aria-hidden="true"><svg class="icon icon--arrow-right" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg></span></a>
             <div class="b__sendalt">
               <button type="button" class="link-arrow" data-b-copy>copy the summary</button>
               <button type="button" class="link-arrow b__reset" data-b-reset>start over</button>
@@ -196,8 +209,8 @@
         <p class="b__barcell b__bartot"><span class="mono b__barlbl">total</span><span class="mono b__barnum" data-b-total>$48</span></p>
       </div>
       <div class="b__barbtns">
-        <button type="button" class="round" data-b-prev aria-label="previous step">←</button>
-        <button type="button" class="btn btn--primary" data-b-next><span class="btn__label">next: your product</span><span class="btn__arrow" aria-hidden="true">→</span></button>
+        <button type="button" class="round" data-b-prev aria-label="previous step"><svg class="icon icon--arrow-left" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M13.5 8h-11M7 3.5 2.5 8 7 12.5"/></svg></button>
+        <button type="button" class="btn btn--primary" data-b-next><span class="btn__short" aria-hidden="true">next</span><span class="btn__label">next: your product</span><span class="btn__arrow" aria-hidden="true"><svg class="icon icon--arrow-right" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg></span></button>
       </div>
     </div>
   </div>

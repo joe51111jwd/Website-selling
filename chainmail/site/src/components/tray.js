@@ -1,7 +1,7 @@
 // Kit tray drawer (index page): role="dialog", focus trap, Esc to close, live contents from kit state.
 import { CATALOG } from '../data/catalog.js';
 import { GOODS_META } from '../data/content.js';
-import { kit, lineItems, perKit, total, money, qtyLabel, itemCount } from '../kit/state.js';
+import { kit, lineItems, perKit, total, money, moneyTotal, qtyLabel, itemCount } from '../kit/state.js';
 import { odometer } from './odometer.js';
 import { esc, watchMedia } from './media.js';
 
@@ -12,7 +12,7 @@ export function initTray({ lenis } = {}) {
   const list = tray.querySelector('[data-tray-list]');
   const qtyWrap = tray.querySelector('[data-tray-qty]');
   const perEl = odometer(tray.querySelector('[data-tray-per]'), { format: money });
-  const totEl = odometer(tray.querySelector('[data-tray-total]'), { format: money });
+  const totEl = odometer(tray.querySelector('[data-tray-total]'), { format: (n) => moneyTotal(n, kit.get().qty) });
   const qtyNote = tray.querySelector('[data-tray-qtynote]');
   let lastFocus = null;
 
@@ -34,15 +34,15 @@ export function initTray({ lenis } = {}) {
         : l.key === 'send-in' ? '/renders/kit/product@half.webp' : '/renders/kit/note-card@half.webp';
       return `<li class="tray__item">
         <span class="tray__thumb media" data-media><img src="${thumb}" alt="" width="64" height="64" decoding="async"></span>
-        <span class="tray__meta"><span class="tray__name">${esc(l.name)}</span><span class="tray__detail">${esc(l.detail || '')}</span></span>
+        <span class="tray__meta"><span class="tray__name">${esc(l.label || l.name)}</span><span class="tray__detail">${esc(l.detail || '')}</span></span>
         <span class="tray__price mono">${l.price ? money(l.price) : 'incl.'}</span>
-        ${removable ? `<button type="button" class="tray__rm" data-rm="${l.key}" aria-label="remove ${esc(l.name)}">×</button>` : '<span></span>'}
+        ${removable ? `<button type="button" class="tray__rm" data-rm="${l.key}" aria-label="remove ${esc(l.label || l.name)}">×</button>` : '<span></span>'}
       </li>`;
     }).join('') + (goodsCount === 0 ? `<li class="tray__empty">Nothing picked yet. Tap <b>+ add</b> on anything in the goods, or start from the builder.</li>` : '');
     watchMedia(list);
     perEl.set(perKit(s));
     totEl.set(total(s));
-    qtyNote.textContent = `× ${qtyLabel(s.qty)} kits`;
+    qtyNote.textContent = s.qty >= 120 ? '× 120+ kits (Luis quotes these)' : `× ${qtyLabel(s.qty)} kits`;
     qtyWrap.querySelectorAll('[data-q]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.q) === s.qty)));
   }
   kit.subscribe(render);

@@ -5,7 +5,8 @@ const WORD = 'M39.30 1.20L39.30 1.20Q28.70 1.20 20.85-1.85Q13-4.90 8.75-11Q4.50-
 // geometry (logo units; baseline y=0, x-height centre y=-26.3)
 const CY = -26.3, RX = 22, RY = 15, SW = 8.5, GAP = 3.2, PITCH = 28;
 const LEFT_A = -68.25, RIGHT_A = 616.25;
-const VB = { x: -84, y: -75, w: 756, h: 79 };
+// spans the geometry (-94.5 … 670.5 incl. stroke) with 1.5 units of air each side, so the mark is centred
+const VB = { x: -96, y: -75, w: 768, h: 79 };
 let uid = 0;
 
 function pair(a, id, paint) {

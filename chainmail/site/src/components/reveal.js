@@ -6,13 +6,14 @@
 //  [data-parallax="0.12"] scrubbed y drift (renders)
 import { gsap, ScrollTrigger, SplitText, reduced } from './motion.js';
 
-export function splitLines(el, { delay = 0, stagger = 0.08, duration = 1.1, trigger = true, start = 'top 88%' } = {}) {
+export function splitLines(el, { delay = 0, stagger = 0.08, duration = 1.1, trigger = true, start = 'top 88%', aria = 'auto' } = {}) {
   let tween;
   SplitText.create(el, {
     type: 'lines',
     mask: 'lines',
     linesClass: 'split-line',
     autoSplit: true,
+    aria,
     onSplit(self) {
       tween = gsap.from(self.lines, {
         yPercent: 110,

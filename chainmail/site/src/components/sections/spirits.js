@@ -13,14 +13,14 @@ export function initSpirits(fxReady) {
   const readout = sec.querySelector('[data-spirit-readout]');
   const lower = (s) => s.toLowerCase();
 
-  const items = [...CATALOG.spirits, { id: '', name: "(or don't)", type: 'no bottle, no problem.', proof: null, price: 0 }];
+  const items = [...CATALOG.spirits, { id: '', name: '(or don’t)', type: 'no bottle, no problem.', proof: null, price: 0 }];
   list.innerHTML = items.map((s, i) => `<li>
     <button type="button" class="sp" data-spirit="${s.id}" aria-pressed="false">
       <span class="sp__n mono" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span>
       <span class="sp__name">${lower(s.name)}</span>
       <span class="sp__type">${s.proof ? `${lower(s.type)}, ${s.proof} proof` : s.type}</span>
       <span class="sp__price mono">$${s.price}</span>
-      <span class="sp__check mono" aria-hidden="true">in kit</span>
+      <span class="sp__check mono" aria-hidden="true">${s.id ? 'in kit' : 'no bottle'}</span>
     </button>
   </li>`).join('');
 
@@ -52,7 +52,7 @@ export function initSpirits(fxReady) {
 
   kit.subscribe((s) => {
     list.querySelectorAll('.sp').forEach((b) => {
-      const on = b.dataset.spirit !== '' && b.dataset.spirit === s.spirit;
+      const on = (b.dataset.spirit || null) === s.spirit; // "(or don't)" reads as chosen when there is no bottle
       b.setAttribute('aria-pressed', String(on));
     });
   });

@@ -36,7 +36,9 @@ Other members: `fx.refresh()` (mount `[data-fx]` elements added after init; `fx.
 
 fx never positions or sizes canvases. Give them a CSS box (e.g. `position:absolute; inset:0; width:100%;
 height:100%`); fx sizes the drawing buffer from that box × devicePixelRatio (capped at **1.75**) and follows
-it with a ResizeObserver. Effects are decorative: add `aria-hidden="true"`.
+it with a ResizeObserver. Chrome overrides the cap: DPR ≤ **1.25** with a **2.6 Mpx** drawing-buffer budget (it sits
+under a veil and a vignette, so CSS upscaling is invisible). Contexts are created with
+`powerPreference: 'default'` (no discrete-GPU wake-up on dual-GPU laptops for a decorative layer). Effects are decorative: add `aria-hidden="true"`.
 
 ### `chrome` — hero
 ```html
@@ -92,16 +94,34 @@ Pass `initFX({ grain: false })` to disable.
 | `data-fallback` | `/renders/kit/hero-open.webp` | used when the manifest 404s / is invalid / no frame loads (`@half.webp` tried first on narrow canvases) |
 | `data-fit` | `contain` | `contain` or `cover` (object-fit semantics, centred) |
 
-Behaviour: frames preload **first, last, then bisection order** (middle, quarters, eighths…), 6 at a time, so
+Behaviour: nothing is fetched until **window load and the canvas is within ~1.5 viewports** (or `setProgress(p > 0)`
+is called), so frames never compete with the hero. The manifest is fetched with `cache: 'no-cache'` (always
+revalidated: a 404 cached before publishing, or a stale manifest after a re-render, never sticks). Frames then
+preload **first, last, then bisection order** (middle, quarters, eighths…), 3 at a time until the first and last
+frames are in, then 6 at a time (non-target frames at `fetchPriority = 'low'`), so
 any scrub position always has a near frame; the frame being scrubbed to jumps the queue. Draws the nearest
 loaded frame (prefers the earlier one). Picks the smallest set whose key ≥ canvas width × DPR (≤2) × 0.85 —
-i.e. the `720` set on phones, `1280` on laptops; Data Saver forces the smallest. Frames may have alpha; the
-canvas is cleared each draw.
+i.e. the `720` set on phones, `1280` on laptops; Data Saver forces the smallest, and Data Saver or a stage under
+600 px takes every 2nd frame. Only frames within 8 of the playhead plus the first bisection keyframes are
+`decode()`d eagerly (decoding all 121 frames at 1280 would pin ~600 MB); the rest decode when drawn. Frames may
+have alpha; the canvas is cleared each draw.
 
 Instance API: `setProgress(p)`, `ready` (Promise → instance), `progress`, `frameCount`, `loadedCount`,
 `mode` (`'loading' | 'sequence' | 'fallback' | 'empty'`).
 
-**Manifest schema** (`renders/sequence/manifest.json`), paths relative to the manifest URL:
+**Manifest schema** (`renders/sequence/manifest.json`), paths relative to the manifest URL. Two shapes are read.
+
+What `tools/optimize.py` writes (frames numbered **from 0**, `0000` … `count-1`; `pad`, `width`, `height` per size):
+```json
+{
+  "count": 121,
+  "sizes": {
+    "1280": { "width": 1280, "height": 960, "pattern": "/renders/sequence/1280/{i}.webp", "pad": 4 },
+    "720":  { "width": 720,  "height": 540, "pattern": "/renders/sequence/720/{i}.webp",  "pad": 4 }
+  }
+}
+```
+A top-level `start` overrides the 0 default. The hand-written shape (`start` defaults to **1** here):
 ```json
 {
   "count": 120, "start": 1, "pad": 4,
@@ -132,8 +152,12 @@ A set may also be an explicit array of URLs; a single set can be given as `"fram
 
 - **One shared RAF loop** for all effects; it stops completely when nothing needs a frame.
 - **IntersectionObserver**: GL effects only render while (nearly) on screen. **`document.hidden`** pauses the loop.
-- **DPR cap 1.75**, ResizeObserver-driven buffer sizing, plus **adaptive resolution**: if the average frame
-  exceeds ~22 ms for ~45 frames the chrome buffer scale steps down (to ≥ 0.55), and recovers when frames are fast.
+- **DPR cap 1.75** (chrome: 1.25 + 2.6 Mpx budget), ResizeObserver-driven buffer sizing, plus **adaptive
+  resolution**: if the average frame exceeds ~22 ms for ~20 frames the chrome buffer scale steps down ×0.8 (to
+  ≥ 0.55), and recovers when frames are fast.
+- **Chrome idle throttle**: 2 s after the last pointer input, with no live ripples and no scroll, chrome draws
+  every other frame (~30 fps; the cloth moves at 0.2–0.6 rad/s). Pixels the vignette fades below 1% skip the
+  weave entirely (~20% of the hero canvas).
 - **prefers-reduced-motion**: each shader renders **one still frame** (re-rendered only on resize/theme),
   pointer/scroll interaction is off, grain stops. The sequence still obeys `setProgress` — site-core decides
   whether to scrub or show a static before/after.

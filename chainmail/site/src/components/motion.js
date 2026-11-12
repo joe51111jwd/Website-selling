@@ -1,12 +1,11 @@
 // Shared motion setup: GSAP + ScrollTrigger + Lenis smooth scroll (skipped for reduced motion).
-import { gsap } from 'gsap';
+import { gsap, reduced } from './gsap-core.js';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import Lenis from 'lenis';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
-export const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 export let lenis = null;
 
 export function initMotion() {
@@ -31,13 +30,20 @@ export function bindAnchors(root = document) {
     const target = document.querySelector(id);
     if (!target) return;
     e.preventDefault();
-    const offset = id === '#top' || id === '#main' ? 0 : -8;
-    if (lenis) lenis.scrollTo(target, { offset, duration: 1.4 });
-    else target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    // the pinned process section: go to where the pin starts (its top at 0), not 72px short of it
+    const pin = id === '#made' ? ScrollTrigger.getAll().find((t) => t.pin && t.trigger === target) : null;
+    if (pin) {
+      if (lenis) lenis.scrollTo(pin.start + 1, { duration: 1.4 });
+      else window.scrollTo({ top: pin.start + 1, behavior: reduced ? 'auto' : 'smooth' });
+    } else if (lenis) {
+      lenis.scrollTo(target, { offset: 0, duration: 1.4 }); // Lenis already honours html scroll-padding-top (--nav-h)
+    } else {
+      target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    }
     history.replaceState(null, '', id);
     if (target.tabIndex < 0 && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) target.setAttribute('tabindex', '-1');
     target.focus({ preventScroll: true });
   });
 }
 
-export { gsap, ScrollTrigger, SplitText };
+export { gsap, reduced, ScrollTrigger, SplitText };

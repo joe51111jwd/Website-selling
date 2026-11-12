@@ -5,7 +5,13 @@ const MAX_RIPPLES = 6;
 
 export class ChromeFX extends GLEffect {
   constructor(canvas, ctx) {
-    super(canvas, ctx, { kind: 'chrome', frag: CHROME_FRAG, resScale: 1, minScale: 0.55 });
+    // the weave is ALU-heavy (9 links + env lookups per pixel) and sits under a veil + vignette: render it at
+    // DPR ≤ 1.25 with a 2.6 Mpx budget (1920×1080@2x: 8.6 → 2.6 Mpx) and let CSS upscale it
+    super(canvas, ctx, { kind: 'chrome', frag: CHROME_FRAG, resScale: 1, minScale: 0.55, dprCap: 1.25, maxPixels: 2.6e6 });
+    this._carry = 0;
+    this._skip = false;
+    this._lastInput = -1e3;
+    this._lastScroll = -1;
     const ds = canvas.dataset;
     this.density = parseFloat(ds.fxDensity || '1'); // >1 = smaller links
     this.vignette = parseFloat(ds.fxVignette || '0.55'); // radius where the fade to the edge colour starts
@@ -57,9 +63,43 @@ export class ChromeFX extends GLEffect {
     return [(ro[0] + rd[0] * t) * s, (ro[1] + rd[1] * t) * s];
   }
 
+  /* cache the canvas's document box on resize; per-frame rect = cached box minus scroll (no layout read) */
+  resize() {
+    super.resize();
+    if (this.failed) return;
+    const r = this.canvas.getBoundingClientRect();
+    this._doc = { left: r.left + window.scrollX, top: r.top + window.scrollY, width: r.width, height: r.height };
+  }
+
+  liveRect() {
+    const d = this._doc;
+    if (!d) return this.canvas.getBoundingClientRect();
+    return { left: d.left - window.scrollX, top: d.top - window.scrollY, width: d.width, height: d.height };
+  }
+
+  liveRipples() {
+    for (let i = 0; i < MAX_RIPPLES; i++) if (this.ripples[i * 4 + 3] > 0) return true;
+    return false;
+  }
+
+  /* Idle throttle: 2 s after the last pointer input, with no ripples and no scroll, draw every other frame
+     (~30 fps). The cloth phases move at 0.2-0.6 rad/s, so that is visually lossless and halves GPU work. */
+  tick(now, dt, frameDt = dt) {
+    const scrolled = this.scroll !== this._lastScroll;
+    this._lastScroll = this.scroll;
+    const idle = !this.ctx.reducedMotion && !this.dirty && !scrolled && this.time - this._lastInput > 2 && !this.liveRipples();
+    if (idle && (this._skip = !this._skip)) {
+      this._carry += dt;
+      this.scroll = Math.min(1, Math.max(0, -this.liveRect().top / Math.max(1, this._doc?.height || 1)));
+      return;
+    }
+    super.tick(now, dt + this._carry, frameDt);
+    this._carry = 0;
+  }
+
   onPointer(e) {
     if (this.ctx.reducedMotion || this.failed) return;
-    const r = this.rect || this.canvas.getBoundingClientRect();
+    const r = this.liveRect();
     const x = e.x - r.left;
     const y = e.y - r.top;
     const inside = x >= 0 && y >= 0 && x <= r.width && y <= r.height;
@@ -68,6 +108,7 @@ export class ChromeFX extends GLEffect {
       this.ampTarget = 0;
       return;
     }
+    this._lastInput = this.time;
     const [lx, ly] = this.toLink(x, y);
     if (!this.hasPointer) {
       this.px = this.tx = lx;
@@ -98,7 +139,7 @@ export class ChromeFX extends GLEffect {
   }
 
   update(now, dt) {
-    const r = (this.rect = this.canvas.getBoundingClientRect());
+    const r = this.liveRect();
     // scroll-linked light tilt: 0 when hero top is at viewport top, 1 when scrolled one hero height
     this.scroll = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height)));
     if (this.ctx.reducedMotion) return;
