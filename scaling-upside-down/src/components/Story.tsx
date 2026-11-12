@@ -18,6 +18,8 @@ const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-red
 // below this opacity a control is treated as gone: no clicks, no Tab stop
 const shown = (o: number) => (o > 0.05 ? "visible" : "hidden");
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+/** the story's progress past which the visitor has scrolled (home: a few pixels; it ends the opening) */
+const MOVED = FOCUS ? OPEN_P * 0.62 : 0.0005;
 const smooth01 = (t: number) => {
   const c = clamp(t, 0, 1);
   return c * c * (3 - 2 * c);
@@ -115,7 +117,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
   const [phase, setPhase] = useState<"loading" | "ready">("loading");
   const [load, setLoad] = useState(0);
   const { scrollYProgress } = useScroll({ target: section, offset: ["start start", "end end"] });
-  // the film's own 0-1, after the opening (the beats, the chapters and the margin panel run on it)
+  // the film's own 0-1, after the opening (the beats and the chapters run on it)
   const film = useTransform(scrollYProgress, filmP);
   // the page opens on the blocks alone; the title arrives as they finish stacking, and leaves as the rush starts
   // (focus: the page opens on the book alone, and it leaves before the blocks stand up)
@@ -131,7 +133,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
   // gone once faded, so its looping animation stops too
   const cueDisplay = useTransform(cueOpacity, (o) => (o > 0 ? "" : "none"));
   useMotionValueEvent(scrollYProgress, "change", (v) => {
-    if (v > OPEN_P * 0.62 && !heroIn) setHeroIn(true); // (home: any scroll, even during the opening)
+    if (v > MOVED && !heroIn) setHeroIn(true); // (home: a scroll during the opening ends it, in the loop, at the same point)
   });
 
   useEffect(() => {
@@ -232,7 +234,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       const inn = frame >= HERO_FRAME ? 1 : smooth01((frame - (HERO_FRAME - 32)) / 31);
       return Math.min(inn, 1 - smooth01((frame - heroGone) / 16));
     };
-    const panAt = (frame: number) => (pan ? pan * panWeight(frame) : 0);
     /** the home page: where frame's picture sits on a cw × ch screen (any unit), as draw() paints it */
     const homeRect = (frame: number, cw: number, ch: number, aspect: number) => {
       let dw: number;
@@ -256,9 +257,16 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       // narrower than the screen: slide the tower right, away from the words on the left
       // (a cropped frame on a landscape screen keeps the stack right of the words too; phones centre it)
       const anchor = cw >= ch ? 0.6 : 0.5;
-      const fx = focusAt(frame) - panAt(frame);
-      const past = over && pan > 0 ? over * cw * panWeight(frame) : 0;
-      const ox = dw > cw ? Math.min(past, Math.max(cw - dw, cw * anchor - fx * dw)) : Math.min(cw - dw + past, Math.max(0, cw * 0.6 - fx * dw));
+      const fx = focusAt(frame);
+      let ox = dw > cw ? Math.min(0, Math.max(cw - dw, cw * anchor - fx * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - fx * dw));
+      // the hero's slide, from where the picture would sit (as placeHero measures it), within what still covers the
+      // screen (plus the backdrop it may run past on a landscape screen)
+      const w = pan ? panWeight(frame) : 0;
+      if (w) {
+        const lo = dw > cw ? cw - dw : 0;
+        const hi = (dw > cw ? 0 : cw - dw) + (pan > 0 ? over * cw * w : 0);
+        ox = Math.min(hi, Math.max(lo, ox + pan * w * dw));
+      }
       return { ox, oy, dw, dh };
     };
     const draw = (bmp: ImageBitmap, frame: number) => {
@@ -561,7 +569,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       const row = anchors.frames[Math.max(0, Math.min(anchors.frames.length - 1, Math.round(frame)))];
       const vw = cv.clientWidth;
       const vh = cv.clientHeight;
-      // a tag never sits under the words, the HUD or the nav. Read everything first, then write.
+      // a tag never sits under the words or the nav. Read everything first, then write.
       let rects: DOMRect[] | null = null;
       const blockers = () =>
         (rects ??= [document.querySelector<HTMLElement>(".nav .brand"), document.querySelector<HTMLElement>(".nav-cta"), ...(cv.parentElement?.querySelectorAll<HTMLElement>(".beat") ?? [])]
@@ -678,7 +686,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
           introHero = true;
           setHeroIn(true); // the book and its title arrive as the blocks settle into the stack
         }
-        if (t >= 1 || v > 0.0005) introDone = true;
+        if (t >= 1 || v > MOVED) introDone = true;
         target = introDone ? frameAt(v) : introFrame(t);
       }
       // off screen: jump to the true frame, draw it once, then sleep, so the canvas is right when it scrolls back in
@@ -766,7 +774,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         const slow = !!conn && (!!conn.saveData || (conn.effectiveType ?? "4g") !== "4g");
         // the opening plays at the top of the page; anywhere else (a reload, a link, a scroll while it loaded),
         // or on a slow connection, the story starts where the visitor is
-        const playIntro = !introDone && !slow && scrollYProgress.get() <= 0.0005;
+        const playIntro = !introDone && !slow && scrollYProgress.get() <= MOVED;
         if (!playIntro) introDone = true;
         const at = playIntro ? 0 : Math.round(frameAt(scrollYProgress.get()));
         lo = smallSet;
@@ -798,7 +806,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
           if (disposed) return;
         }
         void loadAnchors();
-        if (introDone || scrollYProgress.get() > 0.0005) {
+        if (introDone || scrollYProgress.get() > MOVED) {
           introDone = true;
           cur = frameAt(scrollYProgress.get());
           setHeroIn(true); // no opening to wait for: the hero (or wherever the visitor is) at once
@@ -851,7 +859,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         </div>
 
         {/* the blocks finish stacking beside the book they come from: the hardcover, the cover's own blocks on it */}
-        <m.div className="hero" ref={heroEl} style={{ opacity: heroOpacity, y: heroY, pointerEvents: heroEvents }}>
+        <m.div className="hero" ref={heroEl} style={{ opacity: heroOpacity, y: heroY, pointerEvents: shownHero ? heroEvents : "none" }}>
           <m.figure className="hero-book" style={{ "--bx": BOOK.box[0], "--bf": BOOK.box[2] } as CSSProperties} initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 28 }} transition={{ duration: 1.1, ease: [0.2, 0.75, 0.15, 1], delay: 0.1 }}>
             <img src={BOOK.src} srcSet={BOOK.srcSet} sizes="(orientation: portrait) 48vw, 54vh" width={BOOK.w} height={BOOK.h} alt={hero.cover} decoding="async" fetchPriority="high" draggable={false} />
           </m.figure>
@@ -876,7 +884,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
             <m.p className="hero-d" initial={false} animate={{ opacity: shownHero ? 1 : 0 }} transition={{ duration: 0.8, delay: 0.45 }}>
               {hero.detail}
             </m.p>
-            <m.div className="hero-cta" style={{ visibility: heroVis }} initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 14 }} transition={{ duration: 0.8, delay: 0.55 }}>
+            <m.div className="hero-cta" style={{ visibility: shownHero ? heroVis : "hidden" }} initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 14 }} transition={{ duration: 0.8, delay: 0.55 }}>
               <JoinLink label={hero.join} />
               <p className="hero-free">{hero.free}</p>
             </m.div>

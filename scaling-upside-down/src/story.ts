@@ -116,17 +116,6 @@ export function frameAt(p: number): number {
   return k[k.length - 1][1];
 }
 
-/** inverse: the scroll progress where a frame is first shown */
-export function progressAt(frame: number): number {
-  const k = FRAME_KEYS;
-  for (let i = 0; i < k.length - 1; i++) {
-    const [p0, f0] = k[i];
-    const [p1, f1] = k[i + 1];
-    if (frame <= f1 && f1 !== f0) return p0 + ((frame - f0) / (f1 - f0)) * (p1 - p0);
-  }
-  return 1;
-}
-
 // labels pinned to blocks in the render (names match anchors.json).
 // `wide`: desktop only. Phones show one tag at a time, and only the ones that carry the story.
 export type Callout = { anchor: string; from: number; to: number; text: string; tone?: "red" | "green" | "ink"; side?: "left" | "right"; wide?: boolean };
