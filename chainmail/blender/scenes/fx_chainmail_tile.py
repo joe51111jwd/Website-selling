@@ -3,8 +3,9 @@ fx_chainmail_tile — bakes the hero's chainmail as a seamless tile for the WebG
 
 The site's hero field (site/src/fx/shaders/chrome.js) is real European 4-in-1 mail: rows of leaning
 torus links, alternate rows leaning the other way and offset half a pitch, so each link threads two
-links above and two below. Here that weave is built as actual tori (the same RR/RW/TH/PSI/SX/SY the
-shader used), then three orthographic top-down passes are rendered over exactly one period of it:
+links above and two below. Here that weave is built as actual tori (parameters from tools/solve_weave.py; site/src/fx/effects/
+chrome.js TILE.size must match the tile extent printed below), then three orthographic top-down passes
+are rendered over exactly one period of it:
 
   normal    world-space shading normal, encoded n*0.5+0.5      -> R, G (z is rebuilt in the shader)
   ao        ambient occlusion of links + the floor under them  -> B
