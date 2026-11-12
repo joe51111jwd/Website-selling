@@ -5,7 +5,7 @@ const MAX_RIPPLES = 6;
 
 /* Baked weave tile (blender/scenes/fx_chainmail_tile.py -> tools/pack_chainmail_tile.py).
    size = tile extent in link units (whole periods of the weave, so it repeats seamlessly). */
-export const TILE = { url: `${import.meta.env.BASE_URL}fx/chainmail-tile.webp`, size: [4.4, 4.8] };
+export const TILE = { url: `${import.meta.env.BASE_URL}fx/chainmail-tile.webp`, size: [3.819, 2.698] };
 let tileBitmap = null; // decoded once per page, shared by every chrome canvas / context restore
 function loadTileBitmap() {
   tileBitmap ??= fetch(TILE.url)

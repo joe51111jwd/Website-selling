@@ -23,7 +23,7 @@ from common import *
 
 # weave (link units): defaults solved by tools/solve_weave.py; override with -- --weave TH PSI SX SY
 RR, RW = 1.0, 0.18
-TH, PSI, SX, SY = 0.80, 0.20, 1.10, 1.20
+TH, PSI, SX, SY = 0.457, 0.0, 1.273, 1.349
 flags = argv_flags()
 if "--weave" in flags:
     i = flags.index("--weave")
