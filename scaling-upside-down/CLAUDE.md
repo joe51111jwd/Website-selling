@@ -4,7 +4,8 @@ This is the site for Michael Wentz's book *Scaling Up-Side-Down* (SUSD), built b
 (GitHub `joe51111jwd`).
 - Live: https://scaling-up-side-down.vercel.app
 - Vercel project: "scaling-up-side-down"
-- Code: this folder, on branch `claude/beautiful-cori-a7cq5v`
+- Code: this folder. Newest on branch `claude/great-lamport-os1jry` (12 Nov, Michael's feedback on the home
+  page), which starts from `claude/beautiful-cori-a7cq5v` (everything to 7 Nov)
 
 ## Read before you work
 
@@ -52,6 +53,9 @@ Every piece of client context goes into this repo so the next chat has it:
 - The story: a business grows too fast and topples; strong foundations let it scale; growth is a
   cycle of Up, Side, Down.
 - Less text and clean on phones. Desktop comes first, but check every section at phone sizes.
+- Land on the book (Michael, 30 Oct; since 12 Nov): the first screen is the hardcover beside its blocks,
+  who it is for, why, and the one button. The opening plays by itself on load; never make the visitor
+  scroll to learn it is a book.
 
 **The Bootloader**
 - It is a **file/spec**, not a prompt, and a companion to the book, not the product.

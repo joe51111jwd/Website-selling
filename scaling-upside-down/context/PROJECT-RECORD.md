@@ -14,7 +14,14 @@ release went out on Sat 31 Oct 2026. Next to it, at /focus, is the focus
 version James asked for (one thing on screen at a time). Since Wed 4 Nov it
 plays its own wordless Blender film, an architect's white model that falls
 and is rebuilt in separate Up, Side and Down moves, and words appear only on
-their own, after the picture. Nobody has picked between the two yet.
+their own, after the picture. Nobody has picked between the two yet; on Fri 6 Nov James turned
+that film down ("rework from the ground up"), and two concept rounds for a new one wait on his pick.
+
+Thu 12 Nov (James: implement all of Michael's feedback): the home page went through his two emails again,
+point by point. It now lands on the book (the opening plays by itself and the first screen is the hardcover
+standing beside its blocks, with who it is for and why), the margin panel and the extra tags are gone, and
+the end card fits every phone. Built on branch `claude/great-lamport-os1jry` (from
+`claude/beautiful-cori-a7cq5v`), as a Vercel preview; production is still the 4 Nov build until James says go.
 
 | What                                        | Where                                                                                               |
 |---------------------------------------------|-----------------------------------------------------------------------------------------------------|
@@ -23,7 +30,7 @@ their own, after the picture. Nobody has picked between the two yet.
 | The Appendix (the Bootloader as a web page) | https://scaling-up-side-down.vercel.app/appendix                                                    |
 | The Bootloader file                         | V16, 35,445 words, 284 KB: by email only, with the first-edition list (not served since 31 Oct)     |
 | Hosting                                     | Vercel project “scaling-up-side-down”                                                               |
-| Code                                        | GitHub joe51111jwd/Website-selling, branch claude/beautiful-cori-a7cq5v, folder scaling-upside-down |
+| Code                                        | GitHub joe51111jwd/Website-selling, folder scaling-upside-down: branch claude/great-lamport-os1jry (12 Nov, newest), from claude/beautiful-cori-a7cq5v |
 
 Waiting on Michael: his email platform (Kit, Mailchimp or other; until
 then the sign-up says the list opens soon), the final cover file, what
@@ -327,7 +334,15 @@ are the only exception.
   plain floor below). Following the pile sideways on phones, tablets and 4:3 screens is kept: easing
   it or centring on the pile's whole extent were tested and cut more of it off.
 
-**Tried and dropped:** the first focus film (the toy blocks carrying the words, with lines beside
+- **Land on the book (since 12 Nov).** The first screen is the hardcover beside its blocks, the title, who
+  it is for, why, and the one button: the opening plays by itself on load instead of waiting for a scroll
+  (Michael, 30 Oct: "immediately understand that Scaling Up-Side-Down is a book"). The story's scroll
+  starts at the hero (the story section is 1392vh, was 1513vh).
+- **One thing in focus in the story.** Words beside the picture only where they carry the beat: the
+  margin-inversion panel and the tags that repeat a block's own stamp are out (12 Nov).
+
+**Tried and dropped:** the margin-inversion panel beside the problem beats (Michael's Chapter 17 numbers;
+dropped 12 Nov: a third thing on screen, and a concept the site need not teach); the first focus film (the toy blocks carrying the words, with lines beside
 the held picture; 2-3 Nov), retired as too playful and still splitting the eye; the first reflection,
 pyramid and flip ideas; an
 Apple-style homepage; ten design directions (Index, Ink, Curve,
@@ -384,6 +399,7 @@ issues; all were fixed before it shipped. Newest first, US Eastern.
 
 | When                     | What it added                                                          |
 |--------------------------|------------------------------------------------------------------------|
+| Thu 12 Nov (preview)     | Michael's feedback, all of it, on the home page (James: "implement all of that. Make it perfect"). Land on the book: the opening (the blocks lying face up stand up and stack) plays by itself as the page loads, about 2.5 s, and the first screen is the hero; reduced motion, a slow connection and a reload part-way down skip it, and a scroll during it hands over at once. The hardcover stands on the table beside the blocks that stacked into its cover, at their scale, placed from the picture (the picture slides sideways to make room where it can; on screens with no room the old column returns); on phones the words are above and the book and the blocks stand side by side under them. "A book by Michael Wentz" and "For bootstrapped founders" on their own lines, and the why line (L415) on phones too. The margin-inversion panel and the tags that repeated the blocks' stamps (Hire #6, Slack, Hire #9, CRM, The Graveyard, Twelve holds) are gone. The book's card at the end shows the back cover's line on phones and fits a phone held sideways (the open item from 4 Nov). Checked at 16 screen sizes, with reduced motion, a scroll during the opening, a reload mid-page, the keyboard, and an independent code review |
 | Wed 4 Nov                | A more professional /focus (James, 3 Nov: less playful; no words unless they are the focus). A new wordless film, "Load Path" (`render/loadpath.py`, 386 frames at 1600×1000): an architect's white massing model is grown by doing everything at once and falls; it is rebuilt on a raft and core one move at a time, three rounds, far taller. The page shows the book alone, then the film alone, then the words alone, then the book and its sign-up. Picked from three rendered concepts by two judges; the page went through an independent review on devices and in code, and every confirmed finding was fixed. A second review (11 confirmed findings) was fixed before it went out: on tablets and phones the picture's place on the screen is eased like its zoom, so it never hops for a frame; on 4:3 screens the zoom holds through the build-up and the blocks drop in from the screen's edge; on wide screens the board stays crisp out to the edges; the annex no longer flashes as a black plate (six frames re-rendered); the menu turns solid before the words can slide under it; the hero fits short phones; the title uses the display face's own hyphens; and a line never starts with an em dash. A third review (10 confirmed findings) was fixed too: the climbing core no longer fades into a painted band on phones and tablets (the film's data marks it cut only where it is), the held breath and the wreckage hold still, the tower no longer sinks and rises before the tipping point on 4:3 screens, the picture no longer sways sideways on wide screens, the floor band has no ghosts, a shadow no longer streaks a side band, the third annex grows in like the others, the menu bar goes solid at once, the hero fits every phone height and shows its note on a phone held sideways, and copied text has no hidden character. A fourth review (12 confirmed findings, all small) was fixed as well: the picture glides into each still beat instead of stepping, a smaller picture on a landscape screen always sits flush with the top (no one-frame jumps or dips), the core's cap comes back into view crisp, the floor's line glides in the side bands, the menu sits on paper once the words are still, and the hero balances on wider phones and fits the shortest screens on their side. A fifth check (9 small findings) was fixed last: the picture no longer swells and shrinks back just before the held breath on some phones and the iPad mini, near-square windows no longer sink for three frames as a block lands, and the menu's paper is set in the same frame as the scroll. The home page is unchanged, except that on a phone held sideways its sign-up keeps its headline |
 | Tue 3 Nov                | The rethought focus version at /focus (James, Sun 1 Nov: no full-screen text, rethink the blocks): its own film (`render/focus_film.py`, 1600×1000) where the first three blocks are planks stamped ALWAYS LAUNCHING / HIRING / ADDING, the cover's stack turns upside down and is set right, the systems slide in from the sides, the planks leave with the dead weight and the building rises. The film holds while each short line sits beside the blocks it is about (under the picture on an upright phone); the closed loop and the book end the same way. Fixes from two independent reviews of the film and the page, including a collision check over every frame. On desktop windows wider than the picture it fills the width wherever the blocks allow (eased, never a jump), and the wall and floor round the picture are painted in its own colours. One fix also reaches the home page: on a phone on its side (844×390) the sign-up keeps its headline and offer |
 | Mon 2 Nov                | The focus version at /focus (one thing on screen at a time), next to the live home page; fixes from the round-3 review (the footer's styles back, the hero on wide, square and short screens, the sign-up's wording and states, an unconfirmed address asked to confirm again, llms.txt book-first) |
@@ -515,10 +531,10 @@ issues; all were fixed before it shipped. Newest first, US Eastern.
 **James**
 
 - Compare the live home page with the focus version (/focus) and pick one.
-- Home page only (left as it is, since the home page was not to change): on the smallest phones held
-  sideways (about 750×342, an iPhone on its side) the book's card at the very end runs under the menu
-  and its button is cut at the foot. The focus version is fixed. Say if the home page should get the
-  same fix.
+- Look at the 12 Nov preview of the home page and say whether it goes live (it is not in production yet).
+- Pick the new /focus film's direction (the chart drawn in ink, or the cover's blocks becoming the chart),
+  or drop /focus: the live /focus still plays the film turned down on 6 Nov.
+- (Done 12 Nov: the home page's end card on a phone held sideways now fits.)
 - Make the GitHub repo private: it is public, so the Bootloader file and this client record can be
   read there by anyone.
 
@@ -528,7 +544,7 @@ issues; all were fixed before it shipped. Newest first, US Eastern.
 
 ## All of James’s messages, word for word
 
-Every message James sent in this project’s chat, in order, US Eastern
+Every message James sent in this project’s chats, in order, US Eastern
 time. Screenshots and files he attached are noted in brackets.
 
 **1. Sat 24 Oct, 12:37 PM ET**
@@ -969,3 +985,19 @@ Asked what came after “you need to”, he answered “Nothing more, just go”
 **60. Tue 3 Nov, about 11:15 PM ET**
 
 > Idk, I want a less playful more professional look. Come up with a new thing for the blocks or something else entirely and render and create. Rn there is still text popping up. It shouldn't be there if it's not the focus. And if it's not the focus then it shouldn't be vital for people to understand
+
+**61. Fri 6 Nov** [with a screenshot of the /focus film's first act at its peak]
+
+> wtf is this
+
+**62. Fri 6 Nov**
+
+> it mainly just makes no sense
+
+**63. Fri 6 Nov**
+
+> rework from the ground up
+
+**64. Thu 12 Nov, about 1:40 PM ET**
+
+> Look at Michael's website. It's an upside-down book. Look at his go-to Gmail. Look at his feedback. We need to implement all of that. Make it perfect. I don't know. Figure that shit out.

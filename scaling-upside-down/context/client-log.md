@@ -6,10 +6,34 @@ what it means for the work and its status (Open, Done or Waiting).
 
 **Every chat adds to this file.** Michael's emails and texts, call notes, Looms, and James's
 messages and screenshots all get logged here, in the same commit as the work they cause.
-James's full chat history (60 messages to Nov 3, word for word) is in `PROJECT-RECORD.md`,
+James's full chat history (64 messages to Nov 12, word for word) is in `PROJECT-RECORD.md`,
 under "All of James's messages, word for word".
 
 ---
+
+## Thu 12 Nov 2026, about 1:40 PM ET: James: implement all of Michael's feedback, and make it perfect
+
+> Look at Michael's website. It's an upside-down book. Look at his go-to Gmail. Look at his feedback. We need to implement all of that. Make it perfect. I don't know. Figure that shit out.
+
+(Dictated. "Upside-down book" is *Scaling Up-Side-Down*. The connected Gmail was searched again: Michael's
+emails are not in it, so his feedback is the two emails filed below, 27 Oct and 30 Oct, plus the call.)
+
+What it means: back to the client. The home page `/` is what Michael sees, so every point of his two emails
+was checked against it again, on desktop and phones, with fresh eyes, and what still fell short was fixed.
+What fell short, and what changed (release on branch `claude/great-lamport-os1jry`, preview first):
+
+| His point | What was still wrong | What changed |
+|---|---|---|
+| 30 Oct #1: "When someone lands on the site, I want them to immediately understand that Scaling Up-Side-Down is a book" | The first screen was the three blocks and "Scroll". The book only came after scrolling | The opening plays by itself as the page loads (about 2.5 s: the blocks lying face up stand up and stack) and lands on the hero. No scroll needed to see the book. Reduced motion, a slow connection or a reload part-way down skip it |
+| 30 Oct #1: "the actual book cover featured more prominently, especially near the beginning", "connecting those visuals to the physical book" | The hardcover was a thumbnail at the screen's edge, a third the size of the blocks | The hardcover stands on the table beside the blocks that stacked into its cover, at their scale (desktop), and beside them under the title (phones). Placed from the picture itself, so it holds on every screen shape |
+| 30 Oct #1: "who it's written for, and why they might want to read it" | "For bootstrapped founders" was the tail of a tiny label; phones hid the why line | "A book by Michael Wentz" and "For bootstrapped founders" on their own lines; the why line (L415) on phones too; the book's card at the end shows the back cover's line on phones |
+| 30 Oct #2 and #5: the problem in few words; "We also don't need to communicate every concept" | Beside "Always launching..." and the revenue line sat the margin-inversion panel (team, revenue, margin, owner take, communication pathways), plus tags repeating the blocks' own stamps | The panel and those tags are gone: one thing in focus at a time |
+| (record, open item) the end card on a phone held sideways ran under the menu, its button cut | | Fits from 667x320 up: the line about the appendix steps aside there, the back cover's line stays whole |
+
+Unchanged on purpose: the copy (still word for word), the blocks film Michael said he wants to keep, the one
+sign-up, `/appendix`, and `/focus`. **Waiting** on James to look at the preview and say whether it goes live;
+still **Waiting** on Michael for his email platform, the final cover, the list's promise and the pre-order link.
+
 
 ## Fri 6 Nov 2026: James on the live /focus film: "wtf is this", "it mainly just makes no sense", "rework from the ground up"
 

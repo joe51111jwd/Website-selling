@@ -1,8 +1,9 @@
 # Scaling Up-Side-Down
 
 The site for Michael Wentz's book. It opens on the cover's three blocks lying face
-up; scrolling stacks them beside the book's hardcover, and one scroll tells the book's
-story with a real Blender render: a block tower grows past twelve and falls over, and it
+up; as the page loads they stand up and stack, and the first screen is the book's
+hardcover standing beside them (Story's `placeHero` puts it there from the picture). Then
+one scroll tells the book's story with a real Blender render: a block tower grows past twelve and falls over, and it
 is rebuilt on twelve systems through Side, Down and Up. Then one sign-up (the book's
 first-edition list, with the SUSD Bootloader free by email), and the book.
 
@@ -35,8 +36,9 @@ npm run build      # typecheck + production build into dist/
 
 ## The frames
 
-`public/frames/hi` and `public/frames/lo` hold the 402 frames the page scrolls through (an 89-frame
-opening, where the three blocks lie face up and then stack, followed by the story) as WebP packed
+`public/frames/hi` and `public/frames/lo` hold the 402 frames of the story (an 89-frame
+opening, where the three blocks lie face up and then stack, which plays by itself on load, followed by the
+story the page scrolls through) as WebP packed
 into a few chunk files with a `manifest.json`. The page loads the small set first so the story
 starts at once, then streams the full-quality set. They come from the Blender scenes in `render/`;
 see `render/README.md` to re-render, then:
