@@ -6,7 +6,7 @@
    - cloth undulation, cursor bulge and ripples bend the plane (macro normal) and warp the tile lookup
    - the baked micro-normal is rotated into the macro frame, so folds swing whole regions through the lights
    - polished chrome BRDF (Schlick fresnel on chrome F0) over a procedural studio environment:
-     ink cyclorama, bone overhead softbox, bone strip, cobalt kicker, horizon line
+     ink cyclorama, bone overhead softbox, bone strip (+ halo), front bounce, cobalt kicker, horizon line
      (bone theme: white sweep with black flags, same cobalt kicker)
    - mipmapped tile = free distance LOD and anti-aliasing; every ring is drawn closed, with true over/under
    Cost: 1 texture fetch + 1 environment lookup (1 atan) per pixel. */
@@ -42,6 +42,7 @@ const vec3 INK_SRGB  = vec3(0.0431, 0.0431, 0.0588);
 const vec3 BONE_SRGB = vec3(0.937, 0.922, 0.890);
 
 const float PI  = 3.14159265;
+const float FOLD = 0.6;     // cloth fold amplitude: calm drape, not a stormy sea
 
 // ---------------------------------------------------------------- macro surface (cloth)
 // returns height (link units) and gradient
@@ -58,7 +59,7 @@ vec3 cloth(vec2 p, float t) {
   float s = dot(p, normalize(vec2(0.6, 0.8))) * 0.085 - t * 0.22;
   float c = sin(s);
   h += vec3(2.0 * c * c * c, 2.0 * 3.0 * c * c * cos(s) * 0.085 * normalize(vec2(0.6, 0.8)));
-  return h;
+  return h * FOLD;
 }
 
 vec3 pointerField(vec2 p, float t) {
@@ -112,7 +113,7 @@ vec3 envInk(vec3 R) {
   col = mix(col, vec3(0.085, 0.085, 0.095), smoothstep(0.25, 0.98, up));
   // broad overhead wash from upper-left: as the cloth folds, whole regions swing in and out of it
   float wash = smoothstep(0.35, 1.0, dot(R, L(vec3(-0.55, 0.35, 0.76))));
-  col += BONE * 0.30 * wash * wash;
+  col += BONE * 0.24 * wash * wash;
   // horizon seam: thin bright line — the signature edge of polished chrome
   col += BONE * 0.55 * exp(-pow((up - 0.06) * 18.0, 2.0));
   // key: big bone softbox overhead, upper-left
@@ -125,6 +126,9 @@ vec3 envInk(vec3 R) {
   // strip light, right side, tall and thin
   vec3 L2 = L(vec3(0.88, 0.18, 0.40));
   col += vec3(0.92, 0.94, 1.0) * (3.2 * box(R, L2, Tz(L2), vec2(0.07, 0.9), 0.03));
+  // its diffusion halo: the right flank of every leaning ring looks straight at this, so the ring closes
+  // instead of fading out as a left-lit crescent
+  col += vec3(0.92, 0.94, 1.0) * (0.30 * box(R, L2, Tz(L2), vec2(0.50, 1.0), 0.45));
   // cobalt kicker from behind / low — the accent glints along link rims
   vec3 L3 = L(vec3(0.10, 0.94, 0.30));
   col += COBALT * (2.6 * box(R, L3, Tz(L3), vec2(0.95, 0.25), 0.30));
@@ -138,6 +142,10 @@ vec3 envInk(vec3 R) {
   // fill card front-left (keeps the shadow side from going dead)
   vec3 L4 = L(vec3(-0.75, -0.55, 0.36));
   col += BONE * 0.9 * box(R, L4, Tz(L4), vec2(0.34, 0.20), 0.20);
+  // front bounce: a broad, dim card above and behind the camera. The camera-facing (lower) arc of every
+  // ring reflects this part of the studio; without it that arc falls dark and the rings read as crescents
+  vec3 L6 = L(vec3(-0.10, -0.80, 0.60));
+  col += BONE * 0.35 * box(R, L6, Tz(L6), vec2(1.2, 0.55), 0.6);
   return col;
 }
 
@@ -218,7 +226,7 @@ void main() {
   float cov = tile.a;
   // baked AO, remapped: crossings and the wire passing under its neighbours sit darker for depth,
   // but the under-arc of every ring stays readable
-  float ao = mix(0.30, 1.0, tile.b);
+  float ao = mix(0.36, 1.0, tile.b);
 
   // ---- shade: macro frame from the cloth field, micro normal from the tile
   vec3 Nm = normalize(vec3(-M.yz, 1.0));

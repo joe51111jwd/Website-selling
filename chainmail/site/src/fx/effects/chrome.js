@@ -32,8 +32,8 @@ export class ChromeFX extends GLEffect {
     this.density = parseFloat(ds.fxDensity || '1'); // >1 = smaller links
     this.vignette = parseFloat(ds.fxVignette || '0.55'); // radius where the fade to the edge colour starts
     this.dim = Math.min(1, Math.max(0, parseFloat(ds.fxDim || '0'))); // extra global fade (0..1)
-    this.pitch = 0.5; // camera pitch from straight-down (rad)
-    this.focal = 2.3;
+    this.pitch = 0.38; // camera pitch from straight-down (rad)
+    this.focal = 2.5;
     this.dist = 10;
     this.scroll = 0;
     // pointer (link space) with spring inertia
