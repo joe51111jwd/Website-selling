@@ -222,11 +222,17 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     // the hero: the picture slides sideways (a share of its width) so the hardcover can stand on the table
     // beside the blocks it comes from. It slides in as they finish stacking and back out as the rush starts
     let pan = 0;
-    const panAt = (frame: number) => {
-      if (!pan) return 0;
+    // how far (a share of the screen's width) the hero's picture may slide past its own edge: its left edge is
+    // plain backdrop, which draw() continues, so the book, the blocks and the words can sit centred on a 16:10 screen
+    let over = 0;
+    // in as the blocks finish stacking; out only once the hero (the book above all) has faded, so the blocks
+    // never slide through it
+    const heroGone = frameAt(sp(0.046));
+    const panWeight = (frame: number) => {
       const inn = frame >= HERO_FRAME ? 1 : smooth01((frame - (HERO_FRAME - 32)) / 31);
-      return pan * Math.min(inn, 1 - smooth01((frame - (HERO_FRAME + 1)) / 14));
+      return Math.min(inn, 1 - smooth01((frame - heroGone) / 16));
     };
+    const panAt = (frame: number) => (pan ? pan * panWeight(frame) : 0);
     /** the home page: where frame's picture sits on a cw × ch screen (any unit), as draw() paints it */
     const homeRect = (frame: number, cw: number, ch: number, aspect: number) => {
       let dw: number;
@@ -251,7 +257,8 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       // (a cropped frame on a landscape screen keeps the stack right of the words too; phones centre it)
       const anchor = cw >= ch ? 0.6 : 0.5;
       const fx = focusAt(frame) - panAt(frame);
-      const ox = dw > cw ? Math.min(0, Math.max(cw - dw, cw * anchor - fx * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - fx * dw));
+      const past = over && pan > 0 ? over * cw * panWeight(frame) : 0;
+      const ox = dw > cw ? Math.min(past, Math.max(cw - dw, cw * anchor - fx * dw)) : Math.min(cw - dw + past, Math.max(0, cw * 0.6 - fx * dw));
       return { ox, oy, dw, dh };
     };
     const draw = (bmp: ImageBitmap, frame: number) => {
@@ -448,6 +455,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       } else css("--tx-w", clamp(vw * 0.28, 300, 500));
       capHero();
       pan = 0;
+      over = 0;
       const r = homeRect(HERO_FRAME, vw, vh, A);
       const sh = (S.b - S.t) * r.dh;
       const sw = (S.r - S.l) * r.dw;
@@ -455,7 +463,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       /** slide the picture so the stack's left edge goes to want, as far as the picture still covers the screen */
       const moveTo = (want: number) => {
         const lo = r.dw > vw ? vw - r.dw : 0;
-        const hi = r.dw > vw ? 0 : vw - r.dw;
+        const hi = (r.dw > vw ? 0 : vw - r.dw) + over * vw;
         const ox = clamp(r.ox + want - have, lo, hi);
         pan = (ox - r.ox) / r.dw;
         return have + ox - r.ox;
@@ -463,6 +471,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       const compact = () => {
         el.classList.remove("is-pair");
         pan = 0;
+        over = 0;
         capHero();
         lastKey = "";
       };
@@ -481,6 +490,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         const tgap = clamp(vw * 0.03, 24, 64); // the words and the book
         let tw = clamp(vw * 0.28, 300, 500);
         H = sh * 0.9;
+        over = 0.14; // (landscape only: an upright screen's picture has the blocks' shadows near its edge)
         const group = tw + tgap + H * BOOK_AR + gap;
         // the three together, centred where the screen is wide enough
         const sL = moveTo(Math.max(gut + group, (vw - group - sw) / 2 + group));
