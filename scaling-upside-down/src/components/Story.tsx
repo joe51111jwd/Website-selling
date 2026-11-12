@@ -789,9 +789,10 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
           const firstChunks = [...new Set(Array.from({ length: FIRST }, (_, n) => hiStore.chunkOf(Math.min(hiStore.m.count - 1, at + n))))];
           rest = hiStore.loadAll(firstChunks, 2);
           // the opening picture is the first impression: give the sharp one a moment to arrive (never long).
-          // The opening plays in one go, so all of it gets that moment
-          const need = playIntro ? [...new Set(Array.from({ length: HERO_FRAME + 1 }, (_, n) => hiStore.chunkOf(n)))] : [hiStore.chunkOf(at)];
-          await Promise.race([Promise.all(need.map((c) => hiStore.loadChunk(c).catch(() => undefined))), new Promise((r) => setTimeout(r, playIntro ? 2500 : slow ? 0 : 600))]);
+          // The opening plays in one go: its first half gets that moment, and the rest streams in (in order,
+          // below) while the blocks still lie face up
+          const need = playIntro ? [...new Set(Array.from({ length: 50 }, (_, n) => hiStore.chunkOf(n)))] : [hiStore.chunkOf(at)];
+          await Promise.race([Promise.all(need.map((c) => hiStore.loadChunk(c).catch(() => undefined))), new Promise((r) => setTimeout(r, playIntro ? 1500 : slow ? 0 : 600))]);
           if (disposed) return;
           await Promise.all(Array.from({ length: playIntro ? 6 : 1 }, (_, n) => hiStore.decode(at + n).catch(() => undefined)));
           if (disposed) return;
