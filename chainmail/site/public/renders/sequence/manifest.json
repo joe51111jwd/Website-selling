@@ -1,0 +1,17 @@
+{
+  "count": 121,
+  "sizes": {
+    "1280": {
+      "width": 1280,
+      "height": 960,
+      "pattern": "/renders/sequence/1280/{i}.webp",
+      "pad": 4
+    },
+    "720": {
+      "width": 720,
+      "height": 540,
+      "pattern": "/renders/sequence/720/{i}.webp",
+      "pad": 4
+    }
+  }
+}
