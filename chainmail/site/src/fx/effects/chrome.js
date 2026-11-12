@@ -3,11 +3,27 @@ import { CHROME_FRAG } from '../shaders/chrome.js';
 
 const MAX_RIPPLES = 6;
 
+/* Baked weave tile (blender/scenes/fx_chainmail_tile.py -> tools/pack_chainmail_tile.py).
+   size = tile extent in link units (whole periods of the weave, so it repeats seamlessly). */
+export const TILE = { url: `${import.meta.env.BASE_URL}fx/chainmail-tile.webp`, size: [4.4, 4.8] };
+let tileBitmap = null; // decoded once per page, shared by every chrome canvas / context restore
+function loadTileBitmap() {
+  tileBitmap ??= fetch(TILE.url)
+    .then((r) => {
+      if (!r.ok) throw new Error(`chainmail tile ${r.status}`);
+      return r.blob();
+    })
+    // straight (not premultiplied) alpha and no colour conversion: the tile is data, not a picture
+    .then((b) => createImageBitmap(b, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }));
+  return tileBitmap;
+}
+
 export class ChromeFX extends GLEffect {
   constructor(canvas, ctx) {
-    // the weave is ALU-heavy (9 links + env lookups per pixel) and sits under a veil + vignette: render it at
-    // DPR ≤ 1.25 with a 2.6 Mpx budget (1920×1080@2x: 8.6 → 2.6 Mpx) and let CSS upscale it
-    super(canvas, ctx, { kind: 'chrome', frag: CHROME_FRAG, resScale: 1, minScale: 0.55, dprCap: 1.25, maxPixels: 2.6e6 });
+    // one texture fetch + one env lookup per pixel: cheap enough for DPR 1.5 under a 4 Mpx budget
+    // (1920×1080@2x: 8.3 → 4 Mpx), which keeps the fine wire crisp on retina screens
+    super(canvas, ctx, { kind: 'chrome', frag: CHROME_FRAG, resScale: 1, minScale: 0.55, dprCap: 1.5, maxPixels: 4e6 });
+    this.reveal = 0;
     this._carry = 0;
     this._skip = false;
     this._lastInput = -1e3;
@@ -34,6 +50,38 @@ export class ChromeFX extends GLEffect {
     this.rippleHead = 0;
     this.lastSpawn = { x: 0, y: 0, t: 0 };
     this.unsubPointer = ctx.pointer.on((e) => this.onPointer(e));
+  }
+
+  onSetup() {
+    const gl = this.gl;
+    this.tex = gl.createTexture();
+    this.texReady = false;
+    const tex = this.tex;
+    loadTileBitmap()
+      .then((bmp) => {
+        if (this.failed || this.tex !== tex || gl.isContextLost()) return;
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE, bmp);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        // the sheet is seen at a grazing pitch: anisotropic filtering keeps the far rows from smearing
+        const an = gl.getExtension('EXT_texture_filter_anisotropic');
+        if (an) gl.texParameterf(gl.TEXTURE_2D, an.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(an.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
+        this.texReady = true;
+        if (this.ctx.reducedMotion) this.reveal = 1;
+        this.dirty = true;
+        this.ctx.wake();
+      })
+      .catch((e) => {
+        console.warn(e);
+        this.fail();
+      });
   }
 
   /* Link units per plane unit: ~17 links across a 1440 px hero, never fewer than 10 (phones), at most 24. */
@@ -139,6 +187,11 @@ export class ChromeFX extends GLEffect {
   }
 
   update(now, dt) {
+    // fade the mail in once the tile is on the GPU (keeps drawing until fully revealed)
+    if (this.texReady && this.reveal < 1) {
+      this.reveal = Math.min(1, this.reveal + dt / 0.9);
+      this.dirty = true;
+    }
     const r = this.liveRect();
     // scroll-linked light tilt: 0 when hero top is at viewport top, 1 when scrolled one hero height
     this.scroll = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height)));
@@ -177,10 +230,17 @@ export class ChromeFX extends GLEffect {
     gl.uniform1f(u('uTheme'), this.theme);
     gl.uniform2f(u('uVignette'), this.vignette, this.vignette + 0.75);
     gl.uniform1f(u('uDim'), this.dim);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.tex);
+    gl.uniform1i(u('uTile'), 0);
+    gl.uniform2f(u('uTileSize'), TILE.size[0], TILE.size[1]);
+    const e = this.reveal;
+    gl.uniform1f(u('uReveal'), e * e * (3 - 2 * e));
   }
 
   destroy() {
     this.unsubPointer?.();
+    if (this.tex && this.gl && !this.failed) this.gl.deleteTexture(this.tex);
     super.destroy();
   }
 }

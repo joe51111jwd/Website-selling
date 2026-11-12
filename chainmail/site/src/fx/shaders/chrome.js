@@ -1,19 +1,15 @@
 /* chrome — liquid-chrome chainmail.
-   European 4-in-1 weave evaluated analytically per pixel (no raymarch):
+   European 4-in-1 weave, rendered in Blender as real tori (blender/scenes/fx_chainmail_tile.py) and baked
+   into one seamless RGBA tile: shading normal (rg), ambient occlusion of links + floor (b), wire coverage (a).
+   The shader does the rest per pixel:
    - the sheet is a plane seen through a pitched perspective camera (1 ray/plane hit)
-   - rows of tilted torus links; alternate rows lean the opposite way and sit half a pitch over,
-     so every link threads through two links in the row above and two below
-   - each link's height/normal comes from the nearest point on its tilted centreline; the visible
-     surface is the top-most of the 3x3 neighbouring links (2-layer composite for AA)
-   - contact shadows from links lying over the visible one, cavity AO by depth (kept gentle: the back
-     arc of every ring must stay readable, or the weave reads as crescents / scales instead of closed rings)
-   - a polished crest line runs round every wire, plus a ring of soft surround cards in the studio, so
-     the sideways-facing flanks and the back arc of each leaning link catch light too
+   - cloth undulation, cursor bulge and ripples bend the plane (macro normal) and warp the tile lookup
+   - the baked micro-normal is rotated into the macro frame, so folds swing whole regions through the lights
    - polished chrome BRDF (Schlick fresnel on chrome F0) over a procedural studio environment:
      ink cyclorama, bone overhead softbox, bone strip, cobalt kicker, horizon line
      (bone theme: white sweep with black flags, same cobalt kicker)
-   - cloth undulation, cursor bulge and ripples perturb the macro surface normal
-   Cost: 9 link evaluations (atan + 2 Newton steps each) + 1-2 environment lookups (1 atan each) per pixel. */
+   - mipmapped tile = free distance LOD and anti-aliasing; every ring is drawn closed, with true over/under
+   Cost: 1 texture fetch + 1 environment lookup (1 atan) per pixel. */
 
 export const CHROME_FRAG = /* glsl */ `#version 300 es
 precision highp float;
@@ -32,6 +28,9 @@ uniform float uScroll;       // 0..1 hero scroll progress -> light tilt
 uniform float uTheme;        // 0 ink .. 1 bone
 uniform vec2  uVignette;     // inner, outer (in normalised radius)
 uniform float uDim;          // 0..1 extra fade toward the section colour (legibility under type)
+uniform sampler2D uTile;     // baked weave: normal.xy*0.5+0.5, ao, coverage
+uniform vec2  uTileSize;     // tile size in link units
+uniform float uReveal;       // 0..1 fade-in once the tile has loaded
 
 // ---------------------------------------------------------------- palette (linear)
 const vec3 INK    = vec3(0.0033, 0.0033, 0.0048);
@@ -42,16 +41,6 @@ const vec3 CHROME = vec3(0.584, 0.604, 0.651);
 const vec3 INK_SRGB  = vec3(0.0431, 0.0431, 0.0588);
 const vec3 BONE_SRGB = vec3(0.937, 0.922, 0.890);
 
-// ---------------------------------------------------------------- weave geometry (link units)
-const float RR  = 1.0;     // centreline radius
-const float RW  = 0.18;    // wire radius (aspect ratio ~4.6, like real 4-in-1)
-const float TH  = 0.80;    // lean angle (rad)
-const float PSI = 0.20;    // lean-axis yaw, alternating per row -> herringbone
-const float SX  = 1.10;    // pitch along a row
-const float SY  = 1.20;    // row pitch
-// (TH, PSI, SX, SY) were solved offline so every link threads exactly its two upper and two lower
-// neighbours with 0.41 centreline clearance (> 2 * RW): the top-most-surface max() never sees
-// interpenetrating wires, so there are no intersection seams.
 const float PI  = 3.14159265;
 
 // ---------------------------------------------------------------- macro surface (cloth)
@@ -181,40 +170,6 @@ vec3 env(vec3 R) {
   return c;
 }
 
-// ---------------------------------------------------------------- weave
-// evaluate one leaning torus link centred at c (lean sign s) at point p
-void link(vec2 p, vec2 c, float s, out float d, out float hc, out vec3 nrm, out float hs) {
-  vec2 q0 = p - c;
-  float cy = cos(PSI * s), sy = sin(PSI * s);
-  vec2 q = vec2(cy * q0.x + sy * q0.y, -sy * q0.x + cy * q0.y);
-  float ct = cos(TH), st = sin(TH);
-  // nearest point on the projected (elliptical) centreline: atan seed + 2 safeguarded Newton steps
-  float phi = atan(q.y, q.x / ct);
-  for (int i = 0; i < 2; i++) {
-    vec2 e = vec2(RR * ct * cos(phi), RR * sin(phi));
-    vec2 de = vec2(-RR * ct * sin(phi), RR * cos(phi));
-    vec2 r = e - q;
-    float g = dot(de, de);
-    phi -= clamp(dot(r, de) / max(g - dot(r, e), 0.25 * g), -0.5, 0.5);
-  }
-  vec2 C = vec2(RR * ct * cos(phi), RR * sin(phi));
-  hc = s * RR * st * cos(phi);
-  vec2 dq = q - C;
-  d = length(dq);
-  float z = sqrt(max(RW * RW - d * d, 0.0));
-  hs = hc + z;
-  // tube normal: from centreline point to surface point. tilt the cross-section with the
-  // centreline slope so the rim highlight rolls correctly over the lean.
-  vec3 tang = normalize(vec3(-RR * ct * sin(phi), RR * cos(phi), -s * RR * st * sin(phi)));
-  // floor the normal's z: at the silhouette z -> 0 and the normal would go horizontal, catching the horizon seam
-  // and the strip light as thin detached rim lines / dashes in the gaps
-  float zn = max(z, 0.45 * RW);
-  vec3 rad = vec3(dq, zn);
-  rad -= tang * dot(rad, tang);
-  nrm = normalize(rad + vec3(0.0, 0.0, 1e-4));
-  nrm.xy = vec2(cy * nrm.x - sy * nrm.y, sy * nrm.x + cy * nrm.y);
-}
-
 vec3 dither(vec2 fc) {
   return vec3(fract(sin(dot(fc, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
 }
@@ -237,13 +192,8 @@ void main() {
 
   float time = uTime;
 
-  // ---- pixel footprint in link units (for AA + distance LOD); before any branch (derivatives need
-  //      uniform control flow)
-  float fwp = length(fwidth(p));
-  float aa = max(fwp * 0.9, 0.012);
-
   // ---- vignette to section colour so the rendered kit sits on top. Computed first: pixels it fades to
-  //      (almost) nothing skip the weave entirely (~20% of a hero canvas, more with data-fx-dim)
+  //      (almost) nothing skip the shading (~20% of a hero canvas, more with data-fx-dim)
   float aspect = uRes.x / uRes.y;
   vec2 vn = (vUv - 0.5) * 2.0;
   float rv = length(vn * vec2(1.0, 1.0 + 0.15 * aspect) * vec2(0.92, 1.0));
@@ -251,8 +201,7 @@ void main() {
   // fade the far (top) distance and the bottom edge harder
   vig *= smoothstep(1.0, 0.62, vUv.y) * smoothstep(0.0, 0.22, vUv.y);
   vec3 edge = mix(INK_SRGB, BONE_SRGB, uTheme);
-  float wgt = vig * (1.0 - uDim);
-  if (wgt < 0.01) { fragColor = vec4(edge + dither(fc), 1.0); return; }
+  float wgt = vig * (1.0 - uDim) * uReveal;
 
   // ---- macro surface
   vec3 Mc = cloth(p, time);
@@ -261,104 +210,29 @@ void main() {
   // folds compress / stretch the mail a touch (domain warp along the slope); ripples mostly bend light
   vec2 pw = p + Mc.yz * 0.4 + Mp.yz * 0.12;
 
-  // ---- weave: 3 rows x 3 links around the pixel (no local arrays: everything is folded into
-  //      running maxima so the loop stays register-only on every driver)
-  float row = floor(pw.y / SY + 0.5);
-  float h1 = -1e3, h2 = -1e3, c1 = 0.0, c2 = 0.0;
-  vec3 n1 = vec3(0, 0, 1), n2 = vec3(0, 0, 1);
-  float id1 = -1.0, id2 = -1.0;          // ids of the top two surfaces
-  float d1 = 1.0, d2 = 1.0;              // and their distance to the wire centreline (crest line)
-  float sp1 = -1e3, sp2 = -1e3;          // top two shadow potentials
-  float spId1 = -2.0;
-  float occF = 0.0;
-  float base = -RR * sin(TH) - RW - 0.35;     // floor under the mail (gap)
-  float id = 0.0;
-  for (int j = -1; j <= 1; j++) {
-    float r = row + float(j);
-    float odd = mod(r, 2.0);
-    float s = odd > 0.5 ? -1.0 : 1.0;
-    float ox = odd * 0.5 * SX;
-    float col = floor((pw.x - ox) / SX + 0.5);
-    for (int i = -1; i <= 1; i++) {
-      vec2 c = vec2((col + float(i)) * SX + ox, r * SY);
-      vec2 dc = pw - c;
-      // too far to cover, shadow or darken this pixel (RR + 4.5 RW): skip the link entirely
-      if (dot(dc, dc) > 3.4) { id += 1.0; continue; }
-      float d, hc, hs; vec3 nn;
-      link(pw, c, s, d, hc, nn, hs);
-      float cov = clamp(0.5 - (d - RW) / aa, 0.0, 1.0);
-      if (cov > 0.0) {
-        if (hs > h1) {
-          h2 = h1; n2 = n1; c2 = c1; id2 = id1; d2 = d1;
-          h1 = hs; n1 = nn; c1 = cov; id1 = id; d1 = d;
-        } else if (hs > h2) {
-          h2 = hs; n2 = nn; c2 = cov; id2 = id; d2 = d;
-        }
-      }
-      // shadow potential: how high this link's wire rises near the pixel, minus its distance
-      float sp = hc + RW - (1.0 - smoothstep(RW * 3.2, RW * 0.9, d)) * 2.0;
-      if (sp > sp1) { sp2 = sp1; sp1 = sp; spId1 = id; }
-      else if (sp > sp2) { sp2 = sp; }
-      occF += smoothstep(RW * 4.5, RW * 0.6, d) * clamp((hc + RW - base) / 1.6, 0.0, 1.0);
-      id += 1.0;
-    }
-  }
+  // ---- baked weave (texture fetch before any branch: implicit-LOD derivatives need uniform control flow)
+  vec4 tile = texture(uTile, pw / uTileSize);
+  if (wgt < 0.01) { fragColor = vec4(edge + dither(fc), 1.0); return; }
+  vec2 nxy = tile.rg * 2.0 - 1.0;
+  vec3 n = normalize(vec3(nxy, sqrt(max(1.0 - dot(nxy, nxy), 0.0)) + 1e-3));
+  float cov = tile.a;
+  // baked AO, remapped: crossings and the wire passing under its neighbours sit darker for depth,
+  // but the under-arc of every ring stays readable
+  float ao = mix(0.30, 1.0, tile.b);
 
-  // ---- occlusion: links lying above the visible surface cast soft contact shadows
-  float spFor1 = spId1 == id1 ? sp2 : sp1;     // exclude the visible link itself
-  float spFor2 = spId1 == id2 ? sp2 : sp1;
-  float occ1 = clamp((spFor1 - h1) / (RW * 2.2), 0.0, 1.0);
-  float occ2 = clamp((spFor2 - h2) / (RW * 2.2), 0.0, 1.0);
-  float lo = -RR * sin(TH) - RW, hi = RR * sin(TH) + RW;
-  float cav1 = mix(0.82, 1.0, smoothstep(lo, hi, h1));
-  float cav2 = mix(0.82, 1.0, smoothstep(lo, hi, h2));
-  float ao1 = cav1 * (1.0 - 0.50 * clamp(occ1, 0.0, 1.0));
-  // links lying low and under others sink a little toward the gap colour, but never to black (back arcs stay legible)
-  float ao2 = cav2 * (1.0 - 0.40 * clamp(occ2, 0.0, 1.0)) * mix(0.80, 1.0, smoothstep(lo, hi, h2));
-
-  // ---- shade
-  // macro normal from the cloth field; micro normal from the link
+  // ---- shade: macro frame from the cloth field, micro normal from the tile
   vec3 Nm = normalize(vec3(-M.yz, 1.0));
   vec3 Tm = normalize(vec3(1.0, 0.0, M.y));
   vec3 Bm = normalize(cross(Nm, Tm));
   Tm = cross(Bm, Nm);
-
+  vec3 N = normalize(Tm * n.x + Bm * n.y + Nm * n.z);
   vec3 F0 = CHROME * 0.96;
-  vec3 colTop = vec3(0.0), colSec = vec3(0.0);
-  if (c1 > 0.0) {
-    vec3 N = normalize(Tm * n1.x + Bm * n1.y + Nm * n1.z);
-    float ndv = clamp(dot(N, V), 0.0, 1.0);
-    vec3 F = F0 + (1.0 - F0) * pow(1.0 - ndv, 5.0);
-    colTop = env(reflect(-V, N)) * F * ao1;
-    // crest: a fine polished line along every wire's top, all the way round the ring (closes the ring
-    // where the env alone would leave the back arc black)
-    float cr = max(1.0 - d1 / RW, 0.0);
-    colTop += CHROME * (0.55 * cr * cr * cr * ao1);
-  }
-  if (c1 < 0.999 && c2 > 0.0) {   // only edge pixels / holes need the lower layer
-    vec3 N = normalize(Tm * n2.x + Bm * n2.y + Nm * n2.z);
-    float ndv = clamp(dot(N, V), 0.0, 1.0);
-    vec3 F = F0 + (1.0 - F0) * pow(1.0 - ndv, 5.0);
-    colSec = env(reflect(-V, N)) * F * ao2;
-    float cr = max(1.0 - d2 / RW, 0.0);
-    colSec += CHROME * (0.55 * cr * cr * cr * ao2);
-  }
-  // gap: dark floor with a faint cobalt bounce, shadowed by surrounding links
-  vec3 gap = mix(INK * 0.5 + COBALT * 0.010, BONE * 0.22, uTheme);
-  gap *= (1.0 - 0.9 * clamp(occF, 0.0, 1.0));
-
-  vec3 under = mix(gap, colSec, c2);
-  vec3 col = mix(under, colTop, smoothstep(0.0, 1.0, c1));
-
-  // distance LOD: when links shrink below a few pixels, resolve to their average sheen
-  float lod = smoothstep(0.16, 0.42, fwp);
-  if (lod > 0.0) {
-    vec3 N = Nm;
-    float ndv = clamp(dot(N, V), 0.0, 1.0);
-    vec3 F = F0 + (1.0 - F0) * pow(1.0 - ndv, 5.0);
-    vec3 avg = env(reflect(-V, N)) * F * 0.42 + gap * 0.3;
-    col = mix(col, avg, lod);
-  }
+  float ndv = clamp(dot(N, V), 0.0, 1.0);
+  vec3 F = F0 + (1.0 - F0) * pow(1.0 - ndv, 5.0);
+  vec3 wire = env(reflect(-V, N)) * F * ao;
+  // gap: dark floor with a faint cobalt bounce, shadowed by the links around it (baked AO)
+  vec3 gap = mix(INK * 0.5 + COBALT * 0.010, BONE * 0.22, uTheme) * tile.b;
+  vec3 col = mix(gap, wire, cov);
 
   // ---- tone map (filmic-ish, keeps chrome highlights from clipping flat)
   col *= 1.05;
