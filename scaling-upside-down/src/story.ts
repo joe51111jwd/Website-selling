@@ -2,8 +2,10 @@
 // through these keys; between keys it is linear, so held frames give text time to read.
 //
 // It opens on the cover's three blocks lying face up, seen from above (render/prologue.py: its 45
-// frames and the half-frames between them, 89 pictures): scrolling stands them up and stacks them
-// into the cover. Then the film (render/story.py):
+// frames and the half-frames between them, 89 pictures): they stand up and stack into the cover. On
+// the home page that opening plays by itself as the page loads (Story: INTRO_MS), so the first screen
+// is the book beside its blocks and the scroll starts there (Michael, 30 Oct: land on the book). Then
+// the film (render/story.py):
 // hires and tools are thrown on faster and faster, crooked past twelve; it falls over; the book's
 // twelve systems are laid as a foundation around the cover (Side); the dead weight leaves (Down);
 // the same team goes back on, on the systems, and the building keeps rising past where the rush fell (Up).
@@ -19,9 +21,19 @@ const f = (filmFrame: number) => filmFrame - 27 + OPENING;
 /** the opening's own frame numbers (1-45, in half steps) */
 const o = (openingFrame: number) => (openingFrame - 1) * 2;
 export const HERO_FRAME = f(27);
-export const STORY_VH = 1513;
-/** the share of the story's scroll the opening takes; the film keeps its own 0-1 timing in the rest */
-export const OPEN_P = 0.08;
+/** the home page's opening, played by itself on load: how long it takes, and its picture at t (0-1) */
+export const INTRO_MS = 2400;
+export const introFrame = (t: number) => {
+  const c = Math.max(0, Math.min(1, t));
+  // a breath on the blocks lying face up (the render holds them there itself), then they stand up and settle
+  return ((1 - Math.cos(Math.PI * c)) / 2) * (OPENING - 1);
+};
+/** where the stacked blocks stand in the hero's picture (0-1 across and down; HERO_FRAME, measured from the render) */
+export const HERO_STACK = { l: 0.54, r: 0.73, t: 0.15, b: 0.808 };
+/** (the old focus film still scrolls through its opening: its section is taller by the opening's share) */
+export const STORY_VH = FOCUS ? 1513 : 1392;
+/** the share of the story's scroll the opening takes (none on the home page: it plays on load) */
+export const OPEN_P = FOCUS ? 0.08 : 0;
 /** a progress in the film's own 0-1 → progress through the whole story */
 export const sp = (p: number) => OPEN_P + p * (1 - OPEN_P);
 /** progress through the whole story → the film's own 0-1 (0 during the opening) */
@@ -84,12 +96,14 @@ export const focusHold = (k: string) => f((film.lines as Record<string, { frame:
 /** the focus version's landing: the book holds the screen until here (story progress), then the blocks */
 export const FOCUS_HERO: [number, number, number] = [0, OPEN_P * 0.22, OPEN_P * 0.36];
 const FILM_KEYS = FOCUS ? FOCUS_FILM_KEYS : STORY_KEYS;
-export const FRAME_KEYS: [progress: number, frame: number][] = [
-  [0, 0], // face up on the table
-  ...(FOCUS ? ([[OPEN_P * 0.36, 0]] as [number, number][]) : []), // (focus: the row waits under the book)
-  [OPEN_P * (FOCUS ? 0.95 : 0.82), OPENING - 1], // stood up and stacked; the hero holds while its title comes in
-  ...FILM_KEYS.map(([p, n]) => [sp(p), f(n)] as [number, number]),
-];
+export const FRAME_KEYS: [progress: number, frame: number][] = FOCUS
+  ? [
+      [0, 0], // face up on the table
+      [OPEN_P * 0.36, 0], // (focus: the row waits under the book)
+      [OPEN_P * 0.95, OPENING - 1], // stood up and stacked
+      ...FILM_KEYS.map(([p, n]) => [sp(p), f(n)] as [number, number]),
+    ]
+  : STORY_KEYS.map(([p, n]) => [p, f(n)] as [number, number]); // the home page: the scroll starts on the hero
 
 export function frameAt(p: number): number {
   const k = FRAME_KEYS;
@@ -113,39 +127,18 @@ export function progressAt(frame: number): number {
   return 1;
 }
 
-// The margin inversion, Chapter 17: Michael's illustration of what each round of hiring does.
-// The desktop panel steps through his four years as the rush piles on, and only ever shows his values.
-export type Year = { from: number; year: string; team: number; revenue: string; margin: string; take: string; lines: number };
-export const YEARS: Year[] = [
-  { from: f(71), year: "Year 0", team: 12, revenue: "$3M", margin: "20%", take: "$900K", lines: 66 }, // Hire #12 lands
-  { from: f(84), year: "Year 1", team: 15, revenue: "$3.5M", margin: "14%", take: "$400K", lines: 105 }, // Hire #15 lands
-  { from: f(94), year: "Year 2", team: 20, revenue: "$4M", margin: "10%", take: "$250K", lines: 190 },
-  { from: f(100), year: "Year 3", team: 25, revenue: "$4.2M", margin: "5%", take: "$150K", lines: 300 },
-];
-
-export function yearAt(frame: number): Year | null {
-  let y: Year | null = null;
-  for (const row of YEARS) if (frame >= row.from) y = row;
-  return y;
-}
-
 // labels pinned to blocks in the render (names match anchors.json).
 // `wide`: desktop only. Phones show one tag at a time, and only the ones that carry the story.
 export type Callout = { anchor: string; from: number; to: number; text: string; tone?: "red" | "green" | "ink"; side?: "left" | "right"; wide?: boolean };
 export const CALLOUTS: Callout[] = [
-  // the first few get named as they land; after that they come too fast to label, which is the point
-  { anchor: "hire6", from: f(35), to: f(41), text: "Hire #6", wide: true },
-  { anchor: "slack", from: f(42), to: f(48), text: "Slack", wide: true },
-  { anchor: "hire9", from: f(48), to: f(54), text: "Hire #9", wide: true },
-  { anchor: "crm", from: f(54), to: f(60), text: "CRM", wide: true },
+  // only where a tag says what the picture cannot: the hires and tools already carry their names on the
+  // blocks, so the rush runs untagged and the first line has the screen (one thing in focus at a time)
   { anchor: "sops", from: f(84), to: f(106), text: "Past twelve", tone: "red" },
-  { anchor: "sops", from: f(141), to: f(150), text: "The Graveyard", tone: "red" }, // the block that was past twelve
   // short enough to fit a phone crop; it hands the one phone slot to "Agency: cut" without overlapping
   { anchor: "retention", from: f(194), to: f(201), text: "Foundation", tone: "ink" },
   { anchor: "agency", from: f(201), to: f(207), text: "Agency: cut", tone: "red" },
   { anchor: "apps", from: f(205), to: f(212), text: "43 apps: cut", tone: "red", wide: true },
   { anchor: "retention", from: f(316), to: f(339), text: "Foundation · 12 systems", tone: "ink" },
-  { anchor: "hire12", from: f(316), to: f(339), text: "Twelve holds", tone: "ink" },
 ];
 
 // where to keep the subject when a narrow screen crops the 16:10 frame (0-1 across)

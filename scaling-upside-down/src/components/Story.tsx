@@ -1,8 +1,8 @@
-import { Fragment, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { FrameStore, fetchOk } from "../frames";
-import { CALLOUTS, FOCUS_HERO, FOCUS_LINES, LAST_SHOT, OPEN_P, STORY_VH, YEARS, filmP, FOCUS_SPANS, focusAt, focusBox, focusHold, focusIndex, focusSpan, frameAt, portraitFit, progressAt, setHeroCap, sp, yearAt, type FocusSide } from "../story";
+import { CALLOUTS, FOCUS_HERO, FOCUS_LINES, HERO_FRAME, HERO_STACK, INTRO_MS, LAST_SHOT, OPEN_P, STORY_VH, filmP, FOCUS_SPANS, focusAt, focusBox, focusHold, focusIndex, focusSpan, frameAt, introFrame, portraitFit, setHeroCap, sp, type FocusSide } from "../story";
 import { FOCUS } from "../focus";
 import { FOCUS_COPY, type Beat, type SiteCopy } from "../copy";
 import { JoinLink } from "./JoinLink";
@@ -17,6 +17,19 @@ const FRAMES = FOCUS ? "frames-focus" : "frames";
 const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 // below this opacity a control is treated as gone: no clicks, no Tab stop
 const shown = (o: number) => (o > 0.05 ? "visible" : "hidden");
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+const smooth01 = (t: number) => {
+  const c = clamp(t, 0, 1);
+  return c * c * (3 - 2 * c);
+};
+/** the hardcover's own width over its height (the picture round it holds its shadow on the table) */
+const BOOK_AR = (BOOK.box[2] * BOOK.w) / (BOOK.box[3] * BOOK.h);
+/** e's top inside root, by layout (no transforms: the hero's scroll-time shift is left out) */
+const layoutTop = (e: HTMLElement, root: Element | null) => {
+  let y = 0;
+  for (let n: HTMLElement | null = e; n && n !== root; n = n.offsetParent as HTMLElement | null) y += n.offsetTop;
+  return y;
+};
 
 /** focus: the book has the landing to itself; the picture comes in from behind the paper as it leaves */
 const veilAt = (v: number) => (v <= FOCUS_HERO[1] ? 1 : Math.max(0, 1 - (v - FOCUS_HERO[1]) / (FOCUS_HERO[2] - FOCUS_HERO[1])));
@@ -98,7 +111,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
   const callouts = useRef<(HTMLDivElement | null)[]>([]);
   const lines = useRef<(HTMLDivElement | null)[]>([]);
   const linesBox = useRef<HTMLDivElement>(null);
-  const hud = useRef<HTMLDivElement>(null);
+  const heroEl = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<"loading" | "ready">("loading");
   const [load, setLoad] = useState(0);
   const { scrollYProgress } = useScroll({ target: section, offset: ["start start", "end end"] });
@@ -106,20 +119,19 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
   const film = useTransform(scrollYProgress, filmP);
   // the page opens on the blocks alone; the title arrives as they finish stacking, and leaves as the rush starts
   // (focus: the page opens on the book alone, and it leaves before the blocks stand up)
-  const heroOpacity = useTransform(scrollYProgress, FOCUS ? FOCUS_HERO : [OPEN_P * 0.6, OPEN_P * 0.86, sp(0.02), sp(0.045)], FOCUS ? [1, 1, 0] : [0, 1, 1, 0]);
-  const heroY = useTransform(scrollYProgress, FOCUS ? FOCUS_HERO : [OPEN_P * 0.6, OPEN_P * 0.86, sp(0), sp(0.04)], reduced ? (FOCUS ? [0, 0, 0] : [0, 0, 0, 0]) : FOCUS ? [0, 0, -30] : [18, 0, 0, -40]);
+  // (home: the opening plays by itself on load and lands on the hero, which leaves as the rush starts)
+  const heroOpacity = useTransform(scrollYProgress, FOCUS ? FOCUS_HERO : [0, sp(0.02), sp(0.045)], [1, 1, 0]);
+  const heroY = useTransform(scrollYProgress, FOCUS ? FOCUS_HERO : [0, sp(0), sp(0.04)], reduced ? [0, 0, 0] : FOCUS ? [0, 0, -30] : [0, 0, -40]);
   // focus: the paper that the picture steps back behind whenever words have the screen
   const veil = useTransform(scrollYProgress, (v) => (FOCUS ? veilAt(v) : 0));
   const [heroIn, setHeroIn] = useState(FOCUS);
   const heroVis = useTransform(heroOpacity, shown);
   const heroEvents = useTransform(heroOpacity, (o) => (o > 0.05 ? "auto" : "none"));
-  const hudIn = progressAt(YEARS[0].from);
-  const hudOpacity = useTransform(scrollYProgress, [hudIn - 0.01, hudIn + 0.004, sp(0.295), sp(0.305)], [0, 1, 1, 0]);
   const cueOpacity = useTransform(scrollYProgress, [0, 0.012], [1, 0]);
   // gone once faded, so its looping animation stops too
   const cueDisplay = useTransform(cueOpacity, (o) => (o > 0 ? "" : "none"));
   useMotionValueEvent(scrollYProgress, "change", (v) => {
-    if (v > OPEN_P * 0.62 && !heroIn) setHeroIn(true);
+    if (v > OPEN_P * 0.62 && !heroIn) setHeroIn(true); // (home: any scroll, even during the opening)
   });
 
   useEffect(() => {
@@ -135,13 +147,17 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     let cur = 0;
     let lastKey = "";
     let lastPlaced = Number.NaN;
+    // the home page's opening plays by itself once the first pictures are in (0: not yet); it is over when it
+    // reaches the hero or the visitor scrolls, and from then on the scroll drives the picture
+    let introStart = 0;
+    let introDone = FOCUS || reduced;
+    let introHero = false;
     let fit = { w: 1, h: 1, ox: 0, oy: 0, dpr: 1 };
     let lastBmp: ImageBitmap | null = null;
     let lastFrame = 0;
     let scale = 1; // the device pixel ratio the canvas was sized with
     let widths: number[] = [];
     let placed: string[] = []; // focus: where each line was last set, by the picture's position
-    let lastHud = -1;
 
     const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
     // callout tags are static text: measure them once, not every frame
@@ -203,19 +219,20 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       const ox = dw >= cw ? Math.min(0, Math.max(cw - dw, want)) : Math.min(cw - dw, Math.max(0, want));
       return { ox, oy, dw, dh };
     };
-    const draw = (bmp: ImageBitmap, frame: number) => {
-      const cw = cv.width;
-      const ch = cv.height;
-      const aspect = bmp.width / bmp.height;
+    // the hero: the picture slides sideways (a share of its width) so the hardcover can stand on the table
+    // beside the blocks it comes from. It slides in as they finish stacking and back out as the rush starts
+    let pan = 0;
+    const panAt = (frame: number) => {
+      if (!pan) return 0;
+      const inn = frame >= HERO_FRAME ? 1 : smooth01((frame - (HERO_FRAME - 32)) / 31);
+      return pan * Math.min(inn, 1 - smooth01((frame - (HERO_FRAME + 1)) / 14));
+    };
+    /** the home page: where frame's picture sits on a cw × ch screen (any unit), as draw() paints it */
+    const homeRect = (frame: number, cw: number, ch: number, aspect: number) => {
       let dw: number;
       let dh: number;
       let oy: number;
-      if (FOCUS) {
-        const r = focusRect(frame, cw, ch, aspect);
-        paintFocus(bmp, r.ox, r.oy, r.dw, r.dh, cw, ch);
-        fit = { w: r.dw, h: r.dh, ox: r.ox, oy: r.oy, dpr: scale };
-        return;
-      } else if (cw / ch < 1) {
+      if (cw / ch < 1) {
         // phones: the hero fills the screen; after it the picture sits above the words, and the
         // studio backdrop continues above and below it
         const { scale, bottom } = portraitFit(frame);
@@ -223,21 +240,31 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         dw = Math.max(cw, dh * aspect);
         dh = dw / aspect;
         oy = ch * bottom - dh;
-      } else if (cw / ch > aspect) {
-        // wider than the render (16:9 and up): never crop the tower, continue the backdrop at the sides
+      } else {
+        // the render's shape or narrower: it covers the screen's height and is cropped at the sides; wider
+        // (16:9 and up): never crop the tower, continue the backdrop at the sides
         dh = ch;
         dw = dh * aspect;
         oy = 0;
-      } else {
-        const s = Math.max(cw / bmp.width, ch / bmp.height);
-        dw = bmp.width * s;
-        dh = bmp.height * s;
-        oy = (ch - dh) / 2;
       }
       // narrower than the screen: slide the tower right, away from the words on the left
       // (a cropped frame on a landscape screen keeps the stack right of the words too; phones centre it)
       const anchor = cw >= ch ? 0.6 : 0.5;
-      const ox = dw > cw ? Math.min(0, Math.max(cw - dw, cw * anchor - focusAt(frame) * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - focusAt(frame) * dw));
+      const fx = focusAt(frame) - panAt(frame);
+      const ox = dw > cw ? Math.min(0, Math.max(cw - dw, cw * anchor - fx * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - fx * dw));
+      return { ox, oy, dw, dh };
+    };
+    const draw = (bmp: ImageBitmap, frame: number) => {
+      const cw = cv.width;
+      const ch = cv.height;
+      const aspect = bmp.width / bmp.height;
+      if (FOCUS) {
+        const r = focusRect(frame, cw, ch, aspect);
+        paintFocus(bmp, r.ox, r.oy, r.dw, r.dh, cw, ch);
+        fit = { w: r.dw, h: r.dh, ox: r.ox, oy: r.oy, dpr: scale };
+        return;
+      }
+      const { ox, oy, dw, dh } = homeRect(frame, cw, ch, aspect);
       ctx.drawImage(bmp, ox, oy, dw, dh);
       if (oy > 0) ctx.drawImage(bmp, 0, 0, bmp.width, 2, ox, 0, dw, oy + 1);
       if (oy + dh < ch) ctx.drawImage(bmp, 0, bmp.height - 2, bmp.width, 2, ox, oy + dh - 1, dw, ch - oy - dh + 1);
@@ -387,16 +414,103 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
 
     // an upright phone: the stack's top (about 15% down the picture) stays 12px under the hero's button
     const capHero = () => {
-      const hero = cv.parentElement?.querySelector<HTMLElement>(".hero");
+      const hero = heroEl.current;
       const cta = hero?.querySelector<HTMLElement>(".hero-cta");
       const vh = cv.clientHeight;
       if (FOCUS || !hero || !cta || cv.clientWidth >= vh) return setHeroCap(0.58);
-      const below = hero.offsetTop + cta.offsetTop + cta.offsetHeight; // layout, not the scroll-time shift
+      const below = layoutTop(cta, cv.parentElement) + cta.offsetHeight; // layout, not the scroll-time shift
       setHeroCap((vh - below - 12) / (0.85 * vh));
     };
+
+    // The hero: the hardcover stands on the table beside the three blocks that stacked into its cover, at
+    // their scale, with the words to their left (an upright screen: the words above, the book and the
+    // blocks side by side under them). Measured from the picture, so it holds on any screen: the picture
+    // slides sideways to make room where it can (pan), the words and then the book give way where it can't,
+    // and where the book would be too small to read the old column comes back (the book above the title).
+    const placeHero = () => {
+      const el = heroEl.current;
+      if (FOCUS || !el) return;
+      const vw = cv.clientWidth;
+      const vh = cv.clientHeight;
+      if (!vw || !vh) return;
+      const text = el.querySelector<HTMLElement>(".hero-text");
+      const S = HERO_STACK;
+      const A = 1.6; // the render's shape (1600 × 1000)
+      const gut = document.querySelector<HTMLElement>(".nav .brand")?.getBoundingClientRect().left || 24;
+      const css = (k: string, v: number) => el.style.setProperty(k, `${Math.round(v * 10) / 10}px`);
+      const portrait = vw < vh;
+      el.classList.add("is-pair");
+      if (portrait) {
+        // the words first, across the screen under the menu: where they end sets how big the picture is
+        css("--tx-l", gut);
+        css("--tx-w", vw - 2 * gut);
+        css("--tx-t", vh < 700 ? 66 : 84);
+      } else css("--tx-w", clamp(vw * 0.28, 300, 500));
+      capHero();
+      pan = 0;
+      const r = homeRect(HERO_FRAME, vw, vh, A);
+      const sh = (S.b - S.t) * r.dh;
+      const sw = (S.r - S.l) * r.dw;
+      const have = r.ox + S.l * r.dw; // the stack's left edge
+      /** slide the picture so the stack's left edge goes to want, as far as the picture still covers the screen */
+      const moveTo = (want: number) => {
+        const lo = r.dw > vw ? vw - r.dw : 0;
+        const hi = r.dw > vw ? 0 : vw - r.dw;
+        const ox = clamp(r.ox + want - have, lo, hi);
+        pan = (ox - r.ox) / r.dw;
+        return have + ox - r.ox;
+      };
+      const compact = () => {
+        el.classList.remove("is-pair");
+        pan = 0;
+        capHero();
+        lastKey = "";
+      };
+      let H: number; // the book's height (its own, without the shadow)
+      let bookR: number;
+      if (portrait) {
+        const gap = clamp(vw * 0.035, 12, 28);
+        H = Math.min(sh * 0.86, (vw - 2 * gut - gap - sw) / BOOK_AR);
+        if (H < sh * 0.45) return compact();
+        const pairL = Math.max(gut, (vw - H * BOOK_AR - gap - sw) / 2);
+        bookR = moveTo(pairL + H * BOOK_AR + gap) - gap;
+        H = Math.min(H, (bookR - gut) / BOOK_AR);
+        if (H < sh * 0.45) return compact();
+      } else {
+        const gap = clamp(vw * 0.02, 18, 36); // the book and the blocks
+        const tgap = clamp(vw * 0.03, 24, 64); // the words and the book
+        let tw = clamp(vw * 0.28, 300, 500);
+        H = sh * 0.9;
+        const group = tw + tgap + H * BOOK_AR + gap;
+        // the three together, centred where the screen is wide enough
+        const sL = moveTo(Math.max(gut + group, (vw - group - sw) / 2 + group));
+        const room = sL - gap - tgap - gut;
+        if (tw + H * BOOK_AR > room) {
+          tw = Math.max(vw <= 900 ? 220 : 290, room - H * BOOK_AR);
+          H = Math.min(H, (room - tw) / BOOK_AR);
+        }
+        if (H < sh * 0.5) return compact();
+        bookR = sL - gap;
+        const tx = Math.max(gut, bookR - H * BOOK_AR - tgap - tw);
+        css("--tx-l", tx);
+        css("--tx-w", tw);
+        // the words' middle level with the book's, clear of the menu and the screen's foot
+        const mid = r.oy + S.b * r.dh - H / 2;
+        const th = text?.offsetHeight ?? 0;
+        css("--tx-t", clamp(mid - th / 2, Math.min(84, vh * 0.14), Math.max(16, vh - th - 16)));
+      }
+      const imgH = H / BOOK.box[3];
+      const imgW = (imgH * BOOK.w) / BOOK.h;
+      const bottom = r.oy + (S.b + 0.018) * r.dh; // a step in front of the stack, so its foot sits a little lower
+      css("--bk-w", imgW);
+      css("--bk-l", bookR - H * BOOK_AR - BOOK.box[0] * imgW);
+      css("--bk-t", bottom - (BOOK.box[1] + BOOK.box[3]) * imgH);
+      lastKey = ""; // the picture slid: paint it again
+    };
+
     const resize = () => {
       const r = cv.getBoundingClientRect();
-      capHero();
+      placeHero();
       scale = dpr();
       const w = Math.round(r.width * scale);
       const h = Math.round(r.height * scale);
@@ -418,7 +532,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     resize();
     void document.fonts?.ready.then(() => {
       if (disposed) return;
-      capHero(); // the type changes the hero's height
+      placeHero(); // the type changes the hero's height
       lastKey = "";
       measure();
     });
@@ -440,7 +554,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       // a tag never sits under the words, the HUD or the nav. Read everything first, then write.
       let rects: DOMRect[] | null = null;
       const blockers = () =>
-        (rects ??= [hud.current, document.querySelector<HTMLElement>(".nav .brand"), document.querySelector<HTMLElement>(".nav-cta"), ...(cv.parentElement?.querySelectorAll<HTMLElement>(".beat") ?? [])]
+        (rects ??= [document.querySelector<HTMLElement>(".nav .brand"), document.querySelector<HTMLElement>(".nav-cta"), ...(cv.parentElement?.querySelectorAll<HTMLElement>(".beat") ?? [])]
           .filter((e): e is HTMLElement => !!e && parseFloat(getComputedStyle(e).opacity) > 0.3)
           .map((e) => e.getBoundingClientRect()));
       const taken: { l: number; r: number; t: number; b: number }[] = [];
@@ -542,40 +656,26 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       });
     };
 
-    const updateHud = (frame: number) => {
-      if (FOCUS) return; // (no HUD in the focus version)
-      const f = Math.round(frame);
-      if (f === lastHud || !hud.current) return;
-      lastHud = f;
-      const y = yearAt(f) ?? YEARS[0];
-      const set = (k: string, v: string) => {
-        const el = hud.current!.querySelector<HTMLElement>(`[data-k="${k}"]`);
-        if (el && el.textContent !== v) {
-          el.textContent = v;
-          const row = el.closest<HTMLElement>(".hud > div, .hud > header");
-          row?.classList.remove("bump");
-          void row?.offsetWidth;
-          row?.classList.add("bump");
-        }
-      };
-      set("year", y.year);
-      set("team", String(y.team));
-      set("revenue", y.revenue);
-      set("margin", y.margin);
-      set("take", y.take);
-      set("lines", String(y.lines));
-      hud.current.classList.toggle("first", y === YEARS[0]);
-    };
-
     const loop = () => {
       raf = 0;
       if (disposed || !lo) return;
-      const target = frameAt(scrollYProgress.get());
+      const v = scrollYProgress.get();
+      let target: number;
+      if (introDone) target = frameAt(v);
+      else {
+        const t = introStart ? (performance.now() - introStart) / INTRO_MS : 0;
+        if (t >= 0.6 && !introHero) {
+          introHero = true;
+          setHeroIn(true); // the book and its title arrive as the blocks settle into the stack
+        }
+        if (t >= 1 || v > 0.0005) introDone = true;
+        target = introDone ? frameAt(v) : introFrame(t);
+      }
       // off screen: jump to the true frame, draw it once, then sleep, so the canvas is right when it scrolls back in
       if (!onScreen && cur === target && lastKey) return;
       raf = requestAnimationFrame(loop);
       const diff = target - cur;
-      cur = reduced || !onScreen ? target : Math.abs(diff) < 0.02 ? target : cur + diff * 0.2;
+      cur = reduced || !onScreen || !introDone ? target : Math.abs(diff) < 0.02 ? target : cur + diff * 0.2;
       const i = Math.max(0, Math.min(lo.m.count - 1, Math.round(cur)));
       const dir = Math.sign(diff) || 1;
       // full quality when it is decoded (or one a frame or two away); the small set only fills gaps
@@ -596,7 +696,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       // nothing moves while the visitor is not scrolling: skip the layout work
       if (cur !== lastPlaced) {
         placeCallouts(cur);
-        updateHud(cur);
         lastPlaced = cur;
       }
       placeLines();
@@ -653,7 +752,13 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         if (disposed) return smallSet.dispose();
         // let a restored scroll position (reload, deep link) land before deciding where the story starts
         await new Promise((r) => requestAnimationFrame(r));
-        const at = Math.round(frameAt(scrollYProgress.get()));
+        const conn = (navigator as Navigator & { connection?: { effectiveType?: string; saveData?: boolean } }).connection;
+        const slow = !!conn && (!!conn.saveData || (conn.effectiveType ?? "4g") !== "4g");
+        // the opening plays at the top of the page; anywhere else (a reload, a link, a scroll while it loaded),
+        // or on a slow connection, the story starts where the visitor is
+        const playIntro = !introDone && !slow && scrollYProgress.get() <= 0.0005;
+        if (!playIntro) introDone = true;
+        const at = playIntro ? 0 : Math.round(frameAt(scrollYProgress.get()));
         lo = smallSet;
         // only the chunk on screen holds the story up; the rest streams behind it (and retries what failed)
         await lo.loadChunk(lo.chunkOf(at)).catch(() => undefined);
@@ -673,22 +778,27 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
           hiStore.aim(at);
           const firstChunks = [...new Set(Array.from({ length: FIRST }, (_, n) => hiStore.chunkOf(Math.min(hiStore.m.count - 1, at + n))))];
           rest = hiStore.loadAll(firstChunks, 2);
-          // the opening picture is the first impression: give the sharp one a moment to arrive (never long)
-          const conn = (navigator as Navigator & { connection?: { effectiveType?: string; saveData?: boolean } }).connection;
-          const slow = !!conn && (!!conn.saveData || (conn.effectiveType ?? "4g") !== "4g");
-          await Promise.race([hiStore.loadChunk(hiStore.chunkOf(at)).catch(() => undefined), new Promise((r) => setTimeout(r, slow ? 0 : 600))]);
+          // the opening picture is the first impression: give the sharp one a moment to arrive (never long).
+          // The opening plays in one go, so all of it gets that moment
+          const need = playIntro ? [...new Set(Array.from({ length: HERO_FRAME + 1 }, (_, n) => hiStore.chunkOf(n)))] : [hiStore.chunkOf(at)];
+          await Promise.race([Promise.all(need.map((c) => hiStore.loadChunk(c).catch(() => undefined))), new Promise((r) => setTimeout(r, playIntro ? 2500 : slow ? 0 : 600))]);
           if (disposed) return;
-          await hiStore.decode(at).catch(() => undefined);
+          await Promise.all(Array.from({ length: playIntro ? 6 : 1 }, (_, n) => hiStore.decode(at + n).catch(() => undefined)));
           if (disposed) return;
         }
         void loadAnchors();
-        cur = frameAt(scrollYProgress.get());
-        if (scrollYProgress.get() > OPEN_P * 0.62) setHeroIn(true); // a reload or a link that lands past the opening
+        if (introDone || scrollYProgress.get() > 0.0005) {
+          introDone = true;
+          cur = frameAt(scrollYProgress.get());
+          setHeroIn(true); // no opening to wait for: the hero (or wherever the visitor is) at once
+        } else introStart = performance.now() + 250; // once the loader has faded
         setPhase("ready");
         await rest;
       } catch {
         // nothing here may leave the story dark or unlabelled
         if (!disposed) {
+          introDone = true;
+          setHeroIn(true);
           setPhase("ready");
           start();
           void loadAnchors();
@@ -730,13 +840,15 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         </div>
 
         {/* the blocks finish stacking beside the book they come from: the hardcover, the cover's own blocks on it */}
-        <m.div className="hero" style={{ opacity: heroOpacity, y: heroY, pointerEvents: heroEvents }}>
+        <m.div className="hero" ref={heroEl} style={{ opacity: heroOpacity, y: heroY, pointerEvents: heroEvents }}>
           <m.figure className="hero-book" style={{ "--bx": BOOK.box[0], "--bf": BOOK.box[2] } as CSSProperties} initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 28 }} transition={{ duration: 1.1, ease: [0.2, 0.75, 0.15, 1], delay: 0.1 }}>
-            <img src={BOOK.src} srcSet={BOOK.srcSet} sizes="(max-width: 900px) and (orientation: landscape) 140px, (max-width: 900px) min(38vw, 204px), (max-width: 1100px) 220px, min(24vw, 438px)" width={BOOK.w} height={BOOK.h} alt={hero.cover} decoding="async" fetchPriority="high" draggable={false} />
+            <img src={BOOK.src} srcSet={BOOK.srcSet} sizes="(orientation: portrait) 48vw, 54vh" width={BOOK.w} height={BOOK.h} alt={hero.cover} decoding="async" fetchPriority="high" draggable={false} />
           </m.figure>
           <div className="hero-text">
             <m.p className="hero-k" initial={false} animate={{ opacity: shownHero ? 1 : 0, y: shownHero ? 0 : 12 }} transition={{ duration: 0.7, delay: 0.05 }}>
-              {hero.kicker}
+              {hero.kicker.split(" · ").map((part) => (
+                <span key={part}>{part}</span>
+              ))}
             </m.p>
             <h1 className="hero-t">
               {hero.title.split("\n").map((line, n) => (
@@ -761,54 +873,20 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         </m.div>
 
         <m.div className="cue" style={{ opacity: cueOpacity, display: cueDisplay }} aria-hidden="true">
-          <span>Scroll</span>
-          <i />
+          {/* (it waits for the hero: the opening plays by itself) */}
+          <m.div className="cue-in" initial={false} animate={{ opacity: shownHero ? 1 : 0 }} transition={{ duration: 0.8, delay: 0.9 }}>
+            <span>Scroll</span>
+            <i />
+          </m.div>
         </m.div>
 
-        <m.aside className="hud" ref={hud} style={{ opacity: hudOpacity }} aria-hidden="true">
-          <header>
-            <span>The margin inversion</span>
-            <em data-k="year">Year 0</em>
-          </header>
-          <div>
-            <span>Team</span>
-            <b data-k="team">12</b>
-            <i className="up">↑</i>
-          </div>
-          <div>
-            <span>Revenue</span>
-            <b data-k="revenue">$3M</b>
-            <i className="up">↑</i>
-          </div>
-          <div>
-            <span>Margin</span>
-            <b data-k="margin">20%</b>
-            <i className="down">↓</i>
-          </div>
-          <div>
-            <span>Owner take</span>
-            <b data-k="take">$900K</b>
-            <i className="down">↓</i>
-          </div>
-          <div className="lines">
-            <span>Communication pathways</span>
-            <b data-k="lines">66</b>
-            <i className="down">↑</i>
-          </div>
-          <footer>Illustration from Chapter 17</footer>
-        </m.aside>
 
         {FOCUS && <m.div className="veil" style={{ opacity: veil }} aria-hidden="true" />}
 
         <div className="beats" ref={linesBox}>
           {FOCUS
             ? FOCUS_LINES.map((ln, k) => <FocusLineView key={ln.id} id={ln.id} at={ln.at} progress={film} refEl={(el) => void (lines.current[k] = el)} />)
-            : beats.map((b) => (
-                <Fragment key={b.id}>
-                  <BeatView beat={b} progress={film} />
-                  {b.id === "collapse" && <MarginTable />}
-                </Fragment>
-              ))}
+            : beats.map((b) => <BeatView key={b.id} beat={b} progress={film} />)}
         </div>
 
         <Chapters progress={film} />
@@ -823,39 +901,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         </div>
       </div>
     </section>
-  );
-}
-
-/** the HUD's numbers for screen readers, read where the story reaches them */
-function MarginTable() {
-  return (
-    <div className="sr-only">
-      <table>
-        <caption>The margin inversion, an illustration from Chapter 17</caption>
-        <thead>
-          <tr>
-            <th scope="col">Year</th>
-            <th scope="col">Team</th>
-            <th scope="col">Revenue</th>
-            <th scope="col">Profit margin</th>
-            <th scope="col">Owner take</th>
-            <th scope="col">Communication pathways</th>
-          </tr>
-        </thead>
-        <tbody>
-          {YEARS.map((y) => (
-            <tr key={y.year}>
-              <th scope="row">{y.year}</th>
-              <td>{y.team}</td>
-              <td>{y.revenue}</td>
-              <td>{y.margin}</td>
-              <td>{y.take}</td>
-              <td>{y.lines}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
   );
 }
 
