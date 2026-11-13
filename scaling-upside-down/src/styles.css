@@ -168,6 +168,13 @@ img { display: block; max-width: 100%; }
 .hero-join { position: absolute; left: 0; top: 0; z-index: 4; border-radius: 6px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .hero-join:focus-visible { outline: 2px solid var(--ink); outline-offset: 6px; }
 .stage[data-cue-off] .cue { display: none; }
+/* if the planks' pictures have not come: the same words as text, centred under the blocks (never a left column) */
+.hero.hero-words.is-fallback { position: absolute; left: 50%; right: auto; top: auto; bottom: max(6vh, 28px); width: min(560px, calc(100vw - 32px)); height: auto; max-width: none; padding: 0; overflow: visible; clip-path: none; white-space: normal; translate: -50% 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0; z-index: 4; }
+.hw-k { font: 500 12px / 1.5 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: #3e372e; }
+.hw-t { font: 400 clamp(34px, 4vw, 56px) / 1 var(--display); letter-spacing: -0.02em; margin-top: 8px; }
+.hw-s { font: italic 400 clamp(16px, 1.3vw, 19px) / 1.4 var(--serif); color: #3b342b; margin-top: 10px; }
+.hw-d { display: none; }
+.hw-cta { margin-top: 18px; }
 
 .cue { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; font: 500 11px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--soft); z-index: 3; }
 .cue-in { display: flex; flex-direction: column; align-items: center; gap: 10px; }

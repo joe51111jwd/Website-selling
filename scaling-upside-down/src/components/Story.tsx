@@ -24,8 +24,6 @@ const smooth01 = (t: number) => {
   const c = clamp(t, 0, 1);
   return c * c * (3 - 2 * c);
 };
-/** the hero's planks fade as the rush starts: their opacity at story progress v */
-const heroShown = (v: number) => (v <= sp(0.02) ? 1 : v >= sp(0.045) ? 0 : 1 - (v - sp(0.02)) / (sp(0.045) - sp(0.02)));
 
 /** focus: the book has the landing to itself; the picture comes in from behind the paper as it leaves */
 const veilAt = (v: number) => (v <= FOCUS_HERO[1] ? 1 : Math.max(0, 1 - (v - FOCUS_HERO[1]) / (FOCUS_HERO[2] - FOCUS_HERO[1])));
@@ -120,6 +118,9 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
   // focus: the paper that the picture steps back behind whenever words have the screen
   const veil = useTransform(scrollYProgress, (v) => (FOCUS ? veilAt(v) : 0));
   const [heroIn, setHeroIn] = useState(FOCUS);
+  // the hero's planks: their pictures in, failed (the words show as text until a retry lands), or not yet
+  const [planksState, setPlanksState] = useState<"wait" | "ready" | "failed">("wait");
+  const [joinLive, setJoinLive] = useState(false);
   const heroVis = useTransform(heroOpacity, shown);
   const scrimOpacity = useTransform(heroOpacity, (o) => (FOCUS ? 1 : 1 - o));
   const heroEvents = useTransform(heroOpacity, (o) => (o > 0.05 ? "auto" : "none"));
@@ -281,10 +282,11 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       if (oy + dh < ch) ctx.drawImage(bmp, 0, bh - 2, bw, 2, ox, oy + dh - 1, dw, ch - oy - dh + 1);
       if (ox > 0) ctx.drawImage(bmp, 0, 0, 2, bh, 0, oy, ox + 1, dh);
       if (ox + dw < cw) ctx.drawImage(bmp, bw - 2, 0, 2, bh, ox + dw - 1, oy, cw - ox - dw + 1, dh);
-      if (ox > 0 && oy > 0) ctx.drawImage(bmp, 0, 0, 2, 2, 0, 0, L + 1, oy + 1);
-      if (ox + dw < cw && oy > 0) ctx.drawImage(bmp, bw - 2, 0, 2, 2, R - 1, 0, cw - R + 1, oy + 1);
-      if (ox > 0 && oy + dh < ch) ctx.drawImage(bmp, 0, bh - 2, 2, 2, 0, oy + dh - 1, L + 1, ch - oy - dh + 1);
-      if (ox + dw < cw && oy + dh < ch) ctx.drawImage(bmp, bw - 2, bh - 2, 2, 2, R - 1, oy + dh - 1, cw - R + 1, ch - oy - dh + 1);
+      // (a corner is its one corner pixel, flat: a 2 × 2 stretched with smoothing comes out as a gradient block)
+      if (ox > 0 && oy > 0) ctx.drawImage(bmp, 0, 0, 1, 1, 0, 0, L + 1, oy + 1);
+      if (ox + dw < cw && oy > 0) ctx.drawImage(bmp, bw - 1, 0, 1, 1, R - 1, 0, cw - R + 1, oy + 1);
+      if (ox > 0 && oy + dh < ch) ctx.drawImage(bmp, 0, bh - 1, 1, 1, 0, oy + dh - 1, L + 1, ch - oy - dh + 1);
+      if (ox + dw < cw && oy + dh < ch) ctx.drawImage(bmp, bw - 1, bh - 1, 1, 1, R - 1, oy + dh - 1, cw - R + 1, ch - oy - dh + 1);
       fit = { w: dw, h: dh, ox, oy, dpr: scale };
       drawPlanks(ox, oy, dw, dh);
     };
@@ -297,6 +299,17 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     let lift = 0; // 0-1: the red plank lifted (pointer or keyboard)
     let liftTo = 0;
     let planksAt = Infinity; // when the planks start to arrive (0: already there)
+    let drawnAt = 0; // the (eased) frame being drawn, for the planks' opacity
+    let joinLiveSet = false;
+    // the planks stand only on the stacked blocks: in as the opening's last frames settle, out as the hero's
+    // frames give way to the rush (by the frame on screen, which eases behind the scroll)
+    const fadeFrom = frameAt(sp(0.02));
+    const fadeTo = frameAt(sp(0.045));
+    const planksAlpha = (frame: number) => {
+      const inn = smooth01((frame - (HERO_FRAME - 18)) / 14);
+      const out = frame <= fadeFrom ? 1 : frame >= fadeTo ? 0 : 1 - (frame - fadeFrom) / (fadeTo - fadeFrom);
+      return Math.min(inn, out);
+    };
     /** the planks' state now; true while it is still changing (the canvas is painted again) */
     const stepPlanks = (now: number) => {
       const w = Math.max(0, Math.min(1, (now - planksAt) / 650));
@@ -310,7 +323,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       return moving;
     };
     const drawPlanks = (ox: number, oy: number, dw: number, dh: number) => {
-      const a = heroShown(scrollYProgress.get());
+      const a = planksAlpha(drawnAt);
       if (!a || !heroAt || !planks.words) return;
       const H = dh * (1 + HERO.over);
       const cw = cv.width;
@@ -508,28 +521,44 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       cv.parentElement?.toggleAttribute("data-cue-off", oy + HERO.box.b * dh > vh - 70);
       lastKey = "";
     };
-    // the planks' pictures: the size the hero draws them at
+    // the planks' pictures, at the size the hero draws them (a larger set replaces a smaller one when the window
+    // grows or moves to a sharper screen); a failed load is tried again, and until they are in the page shows
+    // the same words as text (planksState)
+    let planksWant = "";
+    let planksLoad: Promise<void> = Promise.resolve();
+    let retried = false;
     const loadPlanks = () => {
-      if (FOCUS || planks.words) return;
+      if (FOCUS) return;
       const want = (heroAt?.w ?? 1) * cv.clientWidth * dpr() > 1250 ? "2000" : "1100";
+      if (planksWant === "2000" || planksWant === want) return;
+      planksWant = want;
       const get = (k: keyof typeof HERO.files) =>
         new Promise<HTMLImageElement>((res, rej) => {
           const im = new Image();
           im.decoding = "async";
           im.onload = () => res(im);
           im.onerror = rej;
-          im.src = `${import.meta.env.BASE_URL}hero/${HERO.files[k][want]}`;
+          im.src = `${import.meta.env.BASE_URL}hero/${HERO.files[k][want as "2000" | "1100"]}`;
         });
-      void Promise.all([get("words"), get("join"), get("join_shadow")])
+      planksLoad = Promise.all([get("words"), get("join"), get("join_shadow")])
         .then(([w, j, sh]) => Promise.all([w.decode(), j.decode(), sh.decode()]).then(() => [w, j, sh]))
         .then(([w, j, sh]) => {
-          if (disposed) return;
+          if (disposed || (planks.words && want === "1100" && planksWant === "2000")) return; // (a larger set won)
           planks.words = w;
           planks.join = j;
           planks.shadow = sh;
           lastKey = "";
+          setPlanksState("ready");
         })
-        .catch(() => undefined);
+        .catch(() => {
+          if (disposed || planks.words) return; // (a smaller set is already on screen: keep it)
+          planksWant = "";
+          setPlanksState("failed");
+          if (!retried) {
+            retried = true;
+            window.setTimeout(() => !disposed && loadPlanks(), 3000);
+          }
+        });
     };
 
     const resize = () => {
@@ -703,7 +732,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         // the planks are set down as the blocks settle into the stack
         if (t >= 0.74 && planksAt === Infinity) planksAt = performance.now();
         if (t >= 1 || v > MOVED) introDone = true;
-        if (v > MOVED) planksAt = Math.min(planksAt, 0); // a scroll during the opening: they are simply there
+        if (v > MOVED && planksAt === Infinity) planksAt = performance.now(); // a scroll during the opening: they come in now
         target = introDone ? frameAt(v) : introFrame(t);
       }
       // off screen: jump to the true frame, draw it once, then sleep, so the canvas is right when it scrolls back in
@@ -720,8 +749,14 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       const bmp = hi ?? (hiHas ? store!.nearest(i, dir, 2) : null) ?? lo.peek(i) ?? lo.get(i) ?? lo.nearest(i, dir) ?? store?.nearest(i, dir) ?? null;
       if (!hiHas) lo.prefetch(i, dir, 6);
       const exact = !!(hi || lo.peek(i));
-      const key = `${i}:${cv.width}x${cv.height}:${Math.round(heroShown(v) * 40)}`;
+      drawnAt = cur;
+      const key = `${i}:${cv.width}x${cv.height}:${Math.round(planksAlpha(cur) * 40)}`;
       if (stepPlanks(performance.now())) lastKey = "";
+      // the red plank's link goes live once the plank is down
+      if (!joinLiveSet && planks.words && joinIn >= 0.7) {
+        joinLiveSet = true;
+        setJoinLive(true);
+      }
       if (bmp && (key !== lastKey || bmp !== lastBmp)) {
         draw(bmp, i);
         lastBmp = bmp;
@@ -824,6 +859,9 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
           if (disposed) return;
         }
         void loadAnchors();
+        // the planks carry the hero's words: give them the same moment (they load alongside the frames)
+        await Promise.race([planksLoad, new Promise((r) => setTimeout(r, 1200))]);
+        if (disposed) return;
         if (introDone || scrollYProgress.get() > MOVED) {
           introDone = true;
           planksAt = 0;
@@ -862,6 +900,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
   }, [scrollYProgress]);
 
   const shownHero = FOCUS || (phase !== "loading" && heroIn);
+  const fallback = !FOCUS && phase !== "loading" && planksState !== "ready";
   return (
     <section ref={section} className={`story is-${phase}`} style={{ height: `${STORY_VH}vh` }} id="story">
       <div className="stage">
@@ -886,13 +925,19 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         {/* The hero's words are on the blocks themselves (the planks drawn on the canvas with the frame: SCALING
             beside UP / SIDE / DOWN, then A BOOK BY MICHAEL WENTZ, FOR BOOTSTRAPPED FOUNDERS and the red JOIN THE
             FIRST-EDITION LIST). The same words are here for screen readers and search, and the red plank is a link */}
-        <div className="hero hero-words">
-          <p>{hero.kicker}</p>
-          <h1>{hero.title.replace("\n", " ")}</h1>
-          <p>{hero.sub}</p>
-          <p>{hero.detail}</p>
-        </div>
-        <m.a ref={joinEl} className="hero-join" href="#join" style={{ visibility: shownHero ? heroVis : "hidden", pointerEvents: shownHero ? heroEvents : "none" }}>
+        {/* (if the planks' pictures have not come, these words show instead, centred under the blocks, with the button) */}
+        <m.div className={`hero hero-words${fallback ? " is-fallback" : ""}`} style={fallback ? { opacity: heroOpacity, pointerEvents: heroEvents } : undefined}>
+          <p className="hw-k">{hero.kicker}</p>
+          <h1 className="hw-t">{hero.title.replace("\n", " ")}</h1>
+          <p className="hw-s">{hero.sub}</p>
+          <p className="hw-d">{hero.detail}</p>
+          {fallback && (
+            <m.div className="hw-cta" style={{ visibility: heroVis }}>
+              <JoinLink label={hero.join} />
+            </m.div>
+          )}
+        </m.div>
+        <m.a ref={joinEl} className="hero-join" href="#join" style={{ visibility: joinLive ? heroVis : "hidden", pointerEvents: joinLive ? heroEvents : "none" }}>
           <span className="sr-only">
             {hero.join}. {hero.free}.
           </span>
