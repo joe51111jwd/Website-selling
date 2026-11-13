@@ -11,6 +11,44 @@ under "All of James's messages, word for word".
 
 ---
 
+## Fri 13 Nov 2026, 5:15 PM ET: James: implement Michael's newest feedback
+
+> I saw that he gave a bunch of feedback. Can you give me a huge favor and send a claw chat on that implementing all that feedback into his website? The book is called scaling upside down
+
+> Just the most recent one pls
+
+What it means: the newest email (below, 13 Nov, 12:03 PM). Its one change to the site is the fast scroll. **Done**
+(preview, branch `claude/hero-hold`): see the entry below.
+
+## Fri 13 Nov 2026, 12:03 PM ET: Michael: a normal trackpad scroll skips the book's opening (email, Alpha inbox, with a 5 s screen recording)
+
+> One small thing I noticed with the opening animation: I did a fairly normal two-finger scroll on my laptop, and the entire book introduction and signup offer went by almost instantly. I've attached a quick recording so you can see what I mean. I really like the animation, but I wonder if there's a way to keep that opening book section in view longer, even when someone scrolls quickly? It's probably the most important part of the website, and I wouldn't want visitors to miss it. I'll leave the best way to handle that to your judgment.
+
+> The $2,000 sounds reasonable for the completed website as you've outlined it.
+
+> My main concern is keeping things simple and minimizing ongoing costs. [...] Ideally, I'd own the domain, hosting accounts, source code, and site assets, and be able to make basic updates myself.
+
+> As for the graphics, I'd love to see what you come up with. Let's treat that as a separate project. [...] Maybe start by identifying one or two illustrations you think have the most potential for a fresh approach. We can agree on the scope and cost of that initial exploration before you invest significant time.
+
+> On timeline, my hope is to have the book go to layout on December 1st and publish on January 1st. Let me know if that timeline is doable or if it's aggressive.
+
+The recording (`media/2026-11-13-michael-fast-scroll.mp4`) is of the live site (the 31 Oct home page with the "Scroll"
+cue): one flick, and the hero (title, who it is for, the sign-up button) is on screen for about a quarter of a second
+before the rush and the margin panel.
+
+What it means:
+- The opening must hold even on a fast scroll. **Done** (preview, branch `claude/hero-hold`): one scroll that starts on
+  the hero now stops on the hero (`src/herohold.ts`, `HERO_HOLD` in `src/story.ts`). It moves a little, so the page
+  answers (the "Scroll" cue goes), and the title page of blocks and the red JOIN plank stay whole; the next scroll goes on
+  into the story as before. It covers a trackpad fling, a mouse wheel, Space and Page Down, and a flick on a phone.
+  Scrolling up, links and the menu are never held; a visitor who keeps scrolling without a pause is let go after about
+  2 seconds, and a fresh swipe made during the first one's glide goes on. The wheel rules are checked against simulated
+  trackpad and wheel gestures by `scripts/check-herohold.mjs`.
+- He owns everything at the handoff (domain, hosting, code, assets) and keeps costs low: James plans to set it up on
+  Vercel and transfer it to him. **Open** (not a site change).
+- Graphics are a separate project, scope and cost agreed first. **Open** (not this site).
+- Book to layout 1 Dec, published 1 Jan. **Waiting** on James's answer to him.
+
 ## Thu 12 Nov 2026, about 7:40 PM ET: James: put all the hero's words on the blocks, no left-aligned text
 
 > Okay, I don't know if I still see that it's immediately a book. What I want you to do is actually try and do this. I want you to try and use the blocks to show all the text needed without having any left-aligned text.

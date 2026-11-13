@@ -28,6 +28,9 @@ export const introFrame = (t: number) => {
   // a breath on the blocks lying face up (the render holds them there itself), then they stand up and settle
   return ((1 - Math.cos(Math.PI * c)) / 2) * (OPENING - 1);
 };
+/** home: where one scroll that starts on the hero stops (story progress): the "Scroll" cue has gone, and the
+ *  hero is still whole (it starts to leave at 0.02). The next scroll goes on (src/herohold.ts; Michael, 13 Nov) */
+export const HERO_HOLD = 0.015;
 /** where the stacked blocks stand in the hero's picture (0-1 across and down; HERO_FRAME, measured from the render) */
 export const HERO_STACK = { l: 0.54, r: 0.73, t: 0.15, b: 0.808 };
 /** (the old focus film still scrolls through its opening: its section is taller by the opening's share) */

@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { FrameStore, fetchOk } from "../frames";
-import { CALLOUTS, FOCUS_HERO, FOCUS_LINES, HERO_FRAME, INTRO_MS, LAST_SHOT, OPEN_P, STORY_VH, filmP, FOCUS_SPANS, focusAt, focusBox, focusHold, focusIndex, focusSpan, frameAt, introFrame, portraitFit, setHeroCap, sp, type FocusSide } from "../story";
+import { CALLOUTS, FOCUS_HERO, HERO_HOLD, FOCUS_LINES, HERO_FRAME, INTRO_MS, LAST_SHOT, OPEN_P, STORY_VH, filmP, FOCUS_SPANS, focusAt, focusBox, focusHold, focusIndex, focusSpan, frameAt, introFrame, portraitFit, setHeroCap, sp, type FocusSide } from "../story";
 import { FOCUS } from "../focus";
 import { FOCUS_COPY, type Beat, type SiteCopy } from "../copy";
 import { JoinLink } from "./JoinLink";
 import HERO from "../hero.json";
+import { holdHero } from "../herohold";
+import { lenis } from "../lenis";
 
 type Anchors = { names: string[]; frames: Record<string, [number, number]>[] };
 
@@ -130,6 +132,20 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
   useMotionValueEvent(scrollYProgress, "change", (v) => {
     if (v > MOVED && !heroIn) setHeroIn(true); // (home: a scroll during the opening ends it, in the loop, at the same point)
   });
+
+  // home: one fast scroll that starts on the hero stops on the hero, so its words and the red plank are never
+  // skipped (Michael, 13 Nov); the next scroll goes on. (Registered before the page's smooth scroller, which
+  // App sets up after this, so a held wheel event never reaches it.)
+  useEffect(() => {
+    if (FOCUS) return;
+    const stop = () => {
+      const el = section.current;
+      if (!el) return 0;
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      return Math.round(top + HERO_HOLD * Math.max(0, el.offsetHeight - window.innerHeight));
+    };
+    return holdHero(stop, () => lenis);
+  }, []);
 
   useEffect(() => {
     const cv = canvas.current!;
