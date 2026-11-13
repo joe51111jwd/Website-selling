@@ -6,10 +6,30 @@ what it means for the work and its status (Open, Done or Waiting).
 
 **Every chat adds to this file.** Michael's emails and texts, call notes, Looms, and James's
 messages and screenshots all get logged here, in the same commit as the work they cause.
-James's full chat history (64 messages to Nov 12, word for word) is in `PROJECT-RECORD.md`,
+James's full chat history (65 messages to Nov 12, word for word) is in `PROJECT-RECORD.md`,
 under "All of James's messages, word for word".
 
 ---
+
+## Thu 12 Nov 2026, about 7:40 PM ET: James: put all the hero's words on the blocks, no left-aligned text
+
+> Okay, I don't know if I still see that it's immediately a book. What I want you to do is actually try and do this. I want you to try and use the blocks to show all the text needed without having any left-aligned text.
+
+What it means: the first screen still did not say "book" at a glance: the eye goes to the blocks, and the
+words sat in a column on the left. The words the hero needs go on the blocks themselves, and the text column
+goes. **Done** (preview, branch `claude/great-lamport-os1jry`): the first screen is a title page made of
+blocks, rendered into the hero frame's own scene in Blender (`render/hero_words.py`), so it stands on the same
+table in the same light:
+- SCALING, stamped up a tall plank beside UP / SIDE / DOWN, as on the cover (the title in blocks);
+- A BOOK BY MICHAEL WENTZ and FOR BOOTSTRAPPED FOUNDERS on two planks laid one on the other under them;
+- JOIN THE FIRST-EDITION LIST on the red plank in front: the page's one button (a link to the sign-up; it lifts
+  under the pointer and has a focus ring for the keyboard).
+The opening still plays by itself; the planks are set down as the blocks settle, the red one last. The picture
+steps back for the hero so the whole title page fits any screen, centred, and steps in again as the rush starts.
+The words are also in the page for screen readers and search (and the red plank's link reads "Join the
+first-edition list. Comes with the SUSD Bootloader, free."). The hardcover is no longer on the first screen (the
+blocks rebuild its cover; the book itself is still at the end of the page and in the link preview).
+
 
 ## Thu 12 Nov 2026, about 1:40 PM ET: James: implement all of Michael's feedback, and make it perfect
 

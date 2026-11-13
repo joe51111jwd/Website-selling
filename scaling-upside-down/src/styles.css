@@ -162,19 +162,12 @@ img { display: block; max-width: 100%; }
   .hero-cta { margin-top: 18px; }
 }
 
-/* the book beside its blocks (Story's placeHero sets where, from the picture): the hardcover stands on the
-   table next to the stack it comes from, at its scale, and the words stand left of them (an upright screen:
-   above them). Where there is no room for that, the column above comes back (no .is-pair) */
-.hero-k span { display: block; }
-.hero.is-pair { left: 0; right: 0; max-width: none; padding: 0; display: block; }
-.hero.is-pair .hero-book { position: absolute; margin: 0; left: var(--bk-l); top: var(--bk-t); width: var(--bk-w); }
-.hero.is-pair .hero-text { position: absolute; left: var(--tx-l); top: var(--tx-t); width: var(--tx-w); display: flex; flex-direction: column; flex-shrink: 1; }
-.hero.is-pair .hero-t { font-size: clamp(34px, min(calc(var(--tx-w) / 5.5), 10vh), 84px); }
-@media (orientation: portrait) {
-  .hero.is-pair .hero-t { font-size: clamp(32px, 11vw, 56px); }
-  .hero.is-pair .hero-s { max-width: 30ch; }
-  .hero.is-pair .hero-d { display: block; font-size: 14.5px; line-height: 1.45; margin-top: 10px; max-width: 36ch; }
-}
+/* the hero's words are on the blocks (Story draws the planks with the picture): the same words, for screen readers
+   and search, stay in the page but out of sight; the red plank is a link, ringed when the keyboard is on it */
+.hero.hero-words { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.hero-join { position: absolute; left: 0; top: 0; z-index: 4; border-radius: 6px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hero-join:focus-visible { outline: 2px solid var(--ink); outline-offset: 6px; }
+.stage[data-cue-off] .cue { display: none; }
 
 .cue { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; font: 500 11px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--soft); z-index: 3; }
 .cue-in { display: flex; flex-direction: column; align-items: center; gap: 10px; }

@@ -1,9 +1,11 @@
 # Scaling Up-Side-Down
 
 The site for Michael Wentz's book. It opens on the cover's three blocks lying face
-up; as the page loads they stand up and stack, and the first screen is the book's
-hardcover standing beside them (Story's `placeHero` puts it there from the picture). Then
-one scroll tells the book's story with a real Blender render: a block tower grows past twelve and falls over, and it
+up; as the page loads they stand up and stack, and the first screen is the book's title
+page made of blocks: SCALING stands beside UP / SIDE / DOWN as on the cover, two planks
+under them read A BOOK BY MICHAEL WENTZ and FOR BOOTSTRAPPED FOUNDERS, and the red plank
+in front, JOIN THE FIRST-EDITION LIST, is the button (rendered into the hero frame's own
+scene: `render/hero_words.py`). Then one scroll tells the book's story with a real Blender render: a block tower grows past twelve and falls over, and it
 is rebuilt on twelve systems through Side, Down and Up. Then one sign-up (the book's
 first-edition list, with the SUSD Bootloader free by email), and the book.
 
@@ -17,6 +19,7 @@ sequence drawn to a canvas.
 | The Bootloader | `content/bootloader.md` (not served: the file only goes out by email, with the first-edition list). `/appendix`, its word count and version are built from it, so replacing it updates the site. Put the same file in the email service's welcome email. |
 | The email service | Vercel env: `KIT_API_KEY` + `KIT_FORM_ID`, or `MAILCHIMP_API_KEY` + `MAILCHIMP_LIST_ID`, or `OPTIN_WEBHOOK_URL` (see `api/optin.js`). With none, the sign-up says the list opens soon. |
 | The hero's hardcover and the link preview | `render/book.py` (`--solo 1` for the hero), then `python3 scripts/make_book_assets.py render/out/hero_book.png` |
+| The hero's planks (their words) | `render/make_hero_labels.py`, then `render/hero_words.py` and `scripts/make_hero_assets.py` (see `render/README.md`). The same words are in the page for screen readers, from `COPY.hero` in `src/copy.ts` |
 | Pre-order link | `src/links.ts`. Put the store URL in `preorder`; until then the book section says "Pre-orders open soon". |
 | Any words on the page | `src/copy.ts`. Every line is quoted from the manuscript (line numbers in the comments). |
 | Labels that point at blocks | `CALLOUTS` in `src/story.ts`, in the story render's frame numbers. |

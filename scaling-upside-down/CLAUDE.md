@@ -53,9 +53,11 @@ Every piece of client context goes into this repo so the next chat has it:
 - The story: a business grows too fast and topples; strong foundations let it scale; growth is a
   cycle of Up, Side, Down.
 - Less text and clean on phones. Desktop comes first, but check every section at phone sizes.
-- Land on the book (Michael, 30 Oct; since 12 Nov): the first screen is the hardcover beside its blocks,
-  who it is for, why, and the one button. The opening plays by itself on load; never make the visitor
-  scroll to learn it is a book.
+- Land on the book (Michael, 30 Oct; since 12 Nov): the opening plays by itself on load and the first
+  screen says it is a book, who wrote it, who it is for, and has the one button; never make the visitor
+  scroll to learn it is a book. Since 13 Nov (James) the blocks carry those words, with no text column:
+  SCALING beside UP / SIDE / DOWN, A BOOK BY MICHAEL WENTZ, FOR BOOTSTRAPPED FOUNDERS, and the red
+  JOIN THE FIRST-EDITION LIST plank as the button (`render/hero_words.py`).
 
 **The Bootloader**
 - It is a **file/spec**, not a prompt, and a companion to the book, not the product.

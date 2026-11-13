@@ -29,7 +29,7 @@ team back on, on the systems, and the building keeps rising past where the rush 
 
 1. Blender 4.5 LTS. Poly Haven (CC0) assets into `tex/`, 2K JPGs:
    `fine_grained_wood` (diff, rough, nor_gl), `ash_veneer` (diff, rough, nor_gl), and the `studio_small_09` HDRI saved as `tex/studio.hdr`.
-   Fonts into `fonts/`: Libre Caslon Text Bold (`caslon_bold.ttf`) and Playfair Display Black (`playfair_black.ttf`).
+   Fonts into `fonts/`: Libre Caslon Text Bold (`caslon_bold.ttf`), Playfair Display Black (`playfair_black.ttf`) and, for the hero's planks, Anton (`anton.ttf`).
 2. `python3 make_textures.py <cover blocks photo> tex fonts` and `python3 make_systems.py tex fonts`
 3. Story: `blender -b -P story.py -- --w 1600 --h 1000 --samples 18` saves `foundation.blend`, then `BLENDER=blender ./render.sh`.
    Opening: `blender -b foundation.blend -P prologue.py -- --out out/proseq/p --samples 18` (add `--proxy 1 --w 400 --h 250 --samples 6` for a quick look)
@@ -53,6 +53,31 @@ team back on, on the systems, and the building keeps rising past where the rush 
 
 The physics is deterministic, so the same scripts give the same fall every time. On a 4-core
 CPU the story takes about 30 seconds a frame at these settings.
+
+## The hero's planks (13 Nov): the words on the blocks
+
+The first screen has no text column: the book's words are stamped on planks set down on the hero frame's
+own table (the story's frame 28, the picture the opening lands on). SCALING stands beside UP / SIDE / DOWN as
+on the cover; under them two planks read A BOOK BY MICHAEL WENTZ and FOR BOOTSTRAPPED FOUNDERS; in front, the
+red JOIN THE FIRST-EDITION LIST is the page's one button. They are rendered as transparent layers with their
+shadows (the table and the stack only catch shadows, and the stack casts none), from the same camera and
+lights as the frame, so the page draws them over it. The render runs 30% below the frame (the lens shifted
+down, the frame's own rows unchanged), so the planks can stand in front of the stack.
+
+| File | What it does |
+| --- | --- |
+| `make_hero_labels.py` | Draws the planks' stamps into `tex/` (Anton, the cover's condensed face; `fonts/anton.ttf` from Google Fonts) |
+| `hero_words.py` | The hero shot with the planks: `--mode calib` (the stack alone, to check it lands on frame 89's), `--mode look` (everything, opaque), `--mode layers` (`words.png`, `join_obj.png`, `join_shadow.png` and `layout.json`) |
+
+1. `python3 make_hero_labels.py`
+2. Check the camera still matches: `blender -b -P hero_words.py -- --mode calib --w 800 --h 500 --samples 8 --out out/hero/calib.png`
+   and lay it over frame 89 (the blocks must sit exactly on the frame's)
+3. `blender -b -P hero_words.py -- --mode layers --w 2000 --h 1250 --over 0.3 --samples 64 --out out/hero/final` (about 25 minutes on 4 cores)
+4. From the project root: `python3 scripts/make_hero_assets.py render/out/hero/final` (`public/hero/`, two widths of each layer, and `src/hero.json`:
+   where the arrangement and the button's face sit, in the frame's units)
+
+To change a plank's words, change its stamp in `make_hero_labels.py` (and its size in `hero_words.py` if the words need more room), then run all four steps.
+The stack's own textures are not needed here (it is only a shadow catcher): `tex/face_*.png` can be any flat colour.
 
 ## The focus version's film (`/focus`): "Load Path"
 
