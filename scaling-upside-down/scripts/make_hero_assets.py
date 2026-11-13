@@ -30,6 +30,12 @@ alpha_box = None
 for key, name in LAYERS.items():
     im = Image.open(os.path.join(src, name)).convert("RGBA")
     assert im.size == (W, H), (name, im.size)
+    # the render's outermost pixels can carry a stray opaque one (the denoiser at the frame's corner), and the page
+    # stretches the edge columns past the picture: each edge takes its inner neighbour's pixels
+    im.paste(im.crop((1, 0, 2, H)), (0, 0))
+    im.paste(im.crop((W - 2, 0, W - 1, H)), (W - 1, 0))
+    im.paste(im.crop((0, 1, W, 2)), (0, 0))
+    im.paste(im.crop((0, H - 2, W, H - 1)), (0, H - 1))
     # the arrangement's extent: anything clearly drawn (a shadow's faint tail does not count)
     a = im.getchannel("A").point(lambda v: 255 if v > 40 else 0)
     b = a.getbbox()

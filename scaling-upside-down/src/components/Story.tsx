@@ -282,11 +282,16 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       if (oy + dh < ch) ctx.drawImage(bmp, 0, bh - 2, bw, 2, ox, oy + dh - 1, dw, ch - oy - dh + 1);
       if (ox > 0) ctx.drawImage(bmp, 0, 0, 2, bh, 0, oy, ox + 1, dh);
       if (ox + dw < cw) ctx.drawImage(bmp, bw - 2, 0, 2, bh, ox + dw - 1, oy, cw - ox - dw + 1, dh);
-      // (a corner is its one corner pixel, flat: a 2 × 2 stretched with smoothing comes out as a gradient block)
-      if (ox > 0 && oy > 0) ctx.drawImage(bmp, 0, 0, 1, 1, 0, 0, L + 1, oy + 1);
-      if (ox + dw < cw && oy > 0) ctx.drawImage(bmp, bw - 1, 0, 1, 1, R - 1, 0, cw - R + 1, oy + 1);
-      if (ox > 0 && oy + dh < ch) ctx.drawImage(bmp, 0, bh - 1, 1, 1, 0, oy + dh - 1, L + 1, ch - oy - dh + 1);
-      if (ox + dw < cw && oy + dh < ch) ctx.drawImage(bmp, bw - 1, bh - 1, 1, 1, R - 1, oy + dh - 1, cw - R + 1, ch - oy - dh + 1);
+      // the corners carry on the wall above or the table below sideways: the band's own outermost column, copied from
+      // the canvas (a corner pixel stretched shows as a block where the band beside it shades off)
+      const top = Math.ceil(oy);
+      const bot = Math.floor(oy + dh);
+      const li = Math.ceil(L) + 1;
+      const ri = Math.floor(R) - 2;
+      if (top > 0 && ox > 0) ctx.drawImage(cv, li, 0, 1, top, 0, 0, li, top);
+      if (top > 0 && ox + dw < cw) ctx.drawImage(cv, ri, 0, 1, top, ri + 1, 0, cw - ri - 1, top);
+      if (bot < ch && ox > 0) ctx.drawImage(cv, li, bot, 1, ch - bot, 0, bot, li, ch - bot);
+      if (bot < ch && ox + dw < cw) ctx.drawImage(cv, ri, bot, 1, ch - bot, ri + 1, bot, cw - ri - 1, ch - bot);
       fit = { w: dw, h: dh, ox, oy, dpr: scale };
       drawPlanks(ox, oy, dw, dh);
     };
