@@ -58,6 +58,10 @@ Every piece of client context goes into this repo so the next chat has it:
   scroll to learn it is a book. Since 13 Nov (James) the blocks carry those words, with no text column:
   SCALING beside UP / SIDE / DOWN, A BOOK BY MICHAEL WENTZ, FOR BOOTSTRAPPED FOUNDERS, and the red
   JOIN THE FIRST-EDITION LIST plank as the button (`render/hero_words.py`).
+- One focus (James, 14 Nov: "there's still like text along the bottom. We have two focuses"): the story puts no
+  words over the picture (no captions, tags or chapter rail). Every word in it is stamped on a block, and each
+  moment has one thing moving (`render/words_film.py`: the ALWAYS planks, the title turned upside down, and the
+  SIDEWAYS / DOWN / UP slabs, each read in a push-in).
 
 **The Bootloader**
 - It is a **file/spec**, not a prompt, and a companion to the book, not the product.

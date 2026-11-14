@@ -6,10 +6,39 @@ what it means for the work and its status (Open, Done or Waiting).
 
 **Every chat adds to this file.** Michael's emails and texts, call notes, Looms, and James's
 messages and screenshots all get logged here, in the same commit as the work they cause.
-James's full chat history (65 messages to Nov 12, word for word) is in `PROJECT-RECORD.md`,
+James's full chat history (67 messages to Nov 14, word for word) is in `PROJECT-RECORD.md`,
 under "All of James's messages, word for word".
 
 ---
+
+## Sat 14 Nov 2026: James: the story still has text along the bottom: "We have two focuses"
+
+> The problem with both of these is that there's still like text along the bottom. We have two focuses and that's the problem.
+
+(Before it, in the same chat, time not recorded: "Find the chat, where I asked you to try and make the whole
+thing without any like text besides blocks or anything like that didn't just have to be stacking or fade in. It
+could be other cool movements. Just find the link or whatever the output was that I don't need the exact chat".
+That chat was not found; the nearest were the home preview, where only the hero's words are on blocks, and the
+retired focus film of 3 Nov, where the planks carried the first line but a line of text still came up at each
+hold. "Both of these" is those two.)
+
+What it means: the hero was fixed, but the story under it still put words on the screen apart from the picture:
+the beats (on the left on desktop, along the bottom on phones), the chapter rail along the bottom and the tags
+pinned to blocks. The eye has two places to be. The story is now told by the blocks alone, in a new Blender film
+(`render/words_film.py`), and the page puts no words over it. **Done** (preview, branch `claude/great-lamport-os1jry`):
+- The hero's planks are in the film's scene, so the first scroll carries straight on from the title page.
+- Three raw-wood planks are thrown on first, read top down: ALWAYS LAUNCHING / ALWAYS HIRING / ALWAYS ADDING
+  (L1993). Then the hires and tools, faster and crooked, and it falls over.
+- SCALING and UP / SIDE / DOWN turn upside down together (the title, upside down), hold, and are set right.
+- Three slabs in the cover's paints, each read in a push-in before what it starts, each moving its own way:
+  SIDEWAYS FOR STABILIZATION slides in from the side and the twelve systems slide in (L3316); DOWN FOR PRUNING
+  is lowered from above and the dead weight leaves, the ALWAYS planks with it (L3317); UP FOR GROWTH rises out
+  of the table and the team goes back on, the building rising past where the rush fell (L3315).
+- The page: the beats, the chapter rail, the tags and the wash behind them are gone from the story. On a phone
+  the picture steps back until the thing it is about (a slab being read, the whole building) fits the screen.
+  The words are still in the page for screen readers, in the story's description.
+Unchanged: the opening, the hero, the closed loop and the sign-up after the story, `/appendix` and `/focus`.
+
 
 ## Thu 12 Nov 2026, about 7:40 PM ET: James: put all the hero's words on the blocks, no left-aligned text
 

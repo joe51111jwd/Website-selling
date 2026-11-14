@@ -105,7 +105,7 @@ export default function App() {
       <MotionConfig reducedMotion="user">
         <Nav />
         <main>
-          <Story beats={COPY.beats} hero={COPY.hero} />
+          <Story hero={COPY.hero} />
           <ClosedLoop copy={COPY.closed} />
         </main>
         <Footer copy={COPY.footer} />

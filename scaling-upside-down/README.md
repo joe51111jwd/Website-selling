@@ -22,7 +22,7 @@ sequence drawn to a canvas.
 | The hero's planks (their words) | `render/make_hero_labels.py`, then `render/hero_words.py` and `scripts/make_hero_assets.py` (see `render/README.md`). The same words are in the page for screen readers, from `COPY.hero` in `src/copy.ts` |
 | Pre-order link | `src/links.ts`. Put the store URL in `preorder`; until then the book section says "Pre-orders open soon". |
 | Any words on the page | `src/copy.ts`. Every line is quoted from the manuscript (line numbers in the comments). |
-| Labels that point at blocks | `CALLOUTS` in `src/story.ts`, in the story render's frame numbers. |
+| The story's words | On the blocks, in the render (`render/make_words_labels.py`, `render/words_film.py`): the story puts no words over the picture. They are also in the story's description for screen readers (`STORY_ALT` in `src/components/Story.tsx`). |
 
 On Vercel, editing `content/bootloader.md` on GitHub and committing is enough: the
 site redeploys by itself.
@@ -39,19 +39,13 @@ npm run build      # typecheck + production build into dist/
 
 ## The frames
 
-`public/frames/hi` and `public/frames/lo` hold the 402 frames of the story (an 89-frame
-opening, where the three blocks lie face up and then stack, which plays by itself on load, followed by the
-story the page scrolls through) as WebP packed
+`public/frames/hi` and `public/frames/lo` hold the 480 frames of the story (an 89-frame
+opening, where the three blocks lie face up and then stack, which plays by itself on load; the hero, frame 89;
+then the film the page scrolls through, `render/words_film.py`'s frames 29 on) as WebP packed
 into a few chunk files with a `manifest.json`. The page loads the small set first so the story
 starts at once, then streams the full-quality set. They come from the Blender scenes in `render/`;
-see `render/README.md` to re-render, then:
-
-```
-blender -b render/foundation.blend -P render/anchors.py -- render/out/anchors.json
-python3 scripts/sequence.py render/out/proseq render/out/seq render/out/site render/out/anchors.json public/anchors.json
-python3 scripts/pack_frames.py render/out/site public/frames/hi --width 1600 --quality 78 --per 25
-python3 scripts/pack_frames.py render/out/site public/frames/lo --width 480 --quality 60 --per 50
-```
+see `render/README.md` to re-render (the opening and the hero are kept byte for byte, the film is packed after
+them), and re-export `src/wordsfilm.json` (the film's timeline and each frame's subject) whenever the film changes.
 
 ## The closed loop
 

@@ -5,7 +5,7 @@ import { openNotice } from "./NoticeDialog";
 import type { SiteCopy } from "../copy";
 import { geo } from "../closedloop";
 import { lenis } from "../lenis";
-import { sp } from "../story";
+import { HERO_GONE, sp } from "../story";
 
 const BASE = import.meta.env.BASE_URL;
 const reduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -19,7 +19,7 @@ export function Nav() {
       const story = document.getElementById("story");
       // the copy button joins the menu once the title (with its own) has gone: the opening is the blocks alone
       const v = story ? (window.scrollY - story.offsetTop) / Math.max(1, story.offsetHeight - window.innerHeight) : 1;
-      setPastHero(v > sp(0.045));
+      setPastHero(v > sp(HERO_GONE)); // (as the hero's own button goes)
       // the story and the closed loop are one picture: the menu stays out of the way until both are done
       const closed = document.getElementById("closed");
       const end = closed ? closed.offsetTop + closed.offsetHeight - window.innerHeight : 0;

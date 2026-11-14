@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
-import { FrameStore, fetchOk } from "../frames";
-import { CALLOUTS, FOCUS_HERO, FOCUS_LINES, HERO_FRAME, INTRO_MS, LAST_SHOT, OPEN_P, STORY_VH, filmP, FOCUS_SPANS, focusAt, focusBox, focusHold, focusIndex, focusSpan, frameAt, introFrame, portraitFit, setHeroCap, sp, type FocusSide } from "../story";
+import { FrameStore } from "../frames";
+import { FOCUS_HERO, FOCUS_LINES, HERO_FRAME, INTRO_MS, OPEN_P, STORY_VH, filmP, FOCUS_SPANS, focusAt, focusBox, focusHold, focusIndex, focusSpan, frameAt, HERO_GONE, introFrame, portraitFit, setHeroCap, sp, subjectAt, SUBJECT_FRAMES, type FocusSide } from "../story";
 import { FOCUS } from "../focus";
-import { FOCUS_COPY, type Beat, type SiteCopy } from "../copy";
+import { FOCUS_COPY, type SiteCopy } from "../copy";
 import { JoinLink } from "./JoinLink";
 import HERO from "../hero.json";
 
-type Anchors = { names: string[]; frames: Record<string, [number, number]>[] };
-
-const STORY_ALT = "The Up, Side and Down blocks lie face up on a table, then stand up and stack. Blocks labelled with hires and tools are stacked on the Up, Side and Down blocks faster and faster until the tower falls over. Twelve painted system blocks widen the base into a three-colour foundation, the dead weight is cleared, and the same team is stacked back on it into a taller building that holds.";
+// The story is told by the blocks alone (render/words_film.py): every word in it is stamped on a block, so
+// this description carries those words for screen readers (Always launching. Always hiring. Always adding.,
+// L1993; Sideways for stabilization. Down for pruning. Up for growth., L3316, L3317, L3315)
+const STORY_ALT = "The Up, Side and Down blocks lie face up on a table, then stand up and stack beside a plank that reads Scaling. Three planks go on top, reading from the top: Always launching. Always hiring. Always adding. More and more blocks labelled with hires and tools are thrown on, faster and crookeder, until the tower falls over. Scaling and the Up, Side and Down blocks turn upside down together, and are set right. A yellow slab slides in: Sideways for stabilization. Twelve painted system blocks slide in from both sides into a three-colour foundation. A red slab is lowered: Down for pruning. The three planks and the dead weight are cleared away. A green slab rises out of the table: Up for growth. The blocks that stayed go back on the foundation, and new blocks rise from them into a taller building that holds.";
 const FOCUS_ALT = "The Up, Side and Down blocks lie face up on a table, then stand up and stack. Three planks go on top, reading from the top Always launching, Always hiring, Always adding; then more and more blocks, faster and crookeder, until the tower falls over. The Up, Side and Down stack turns upside down and is set right again. Twelve painted system blocks are set in from both sides into a three-colour foundation, the planks and the dead weight are cleared away, the six blocks that stayed go back on it, and new plain blocks rise from them into a taller building that holds.";
 /** the focus version plays its own film (render/focus_film.py), opening with the same 89 pictures */
 const FRAMES = FOCUS ? "frames-focus" : "frames";
@@ -20,6 +21,10 @@ const shown = (o: number) => (o > 0.05 ? "visible" : "hidden");
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 /** the story's progress past which the visitor has scrolled (home: a few pixels; it ends the opening) */
 const MOVED = FOCUS ? OPEN_P * 0.62 : 0.0005;
+/** an upright screen: a subject this close to the picture's top or foot runs off it there */
+const EDGE = 0.012;
+/** home: the scroll over which the hero's picture steps in to the film's (the hero frame holds meanwhile) */
+const HERO_STEP_IN = [sp(0.004), sp(0.03)];
 const smooth01 = (t: number) => {
   const c = clamp(t, 0, 1);
   return c * c * (3 - 2 * c);
@@ -59,62 +64,23 @@ function FocusLineView({ id, at, progress, refEl }: { id: string; at: [number, n
   );
 }
 
-function BeatView({ beat, progress }: { beat: Beat; progress: MotionValue<number> }) {
-  const [a, b] = beat.at;
-  // fade in and out inside the window so neighbouring beats never overlap
-  const f = Math.min(0.014, (b - a) / 4);
-  const range = [a, a + f, b - f, b];
-  const opacity = useTransform(progress, range, [0, 1, 1, 0]);
-  const y = useTransform(progress, range, reduced ? [0, 0, 0, 0] : [28, 0, 0, -22]);
-  const events = useTransform(opacity, (o) => (o > 0.6 ? "auto" : "none"));
-  const ctaVis = useTransform(opacity, shown);
-  return (
-    <m.article className={`beat beat-${beat.id} tone-${beat.tone ?? "ink"}${beat.headline.split(" ").length > 10 ? " is-long" : ""}`} style={{ opacity, y, pointerEvents: events }}>
-      {beat.kicker && (
-        <p className="beat-k">
-          <i />
-          {beat.kicker}
-        </p>
-      )}
-      <h2 className="beat-h">{beat.headline}</h2>
-      {beat.body && <p className="beat-b">{beat.body}</p>}
-      {beat.stats && (
-        <dl className="beat-stats">
-          {beat.stats.map((st) => (
-            <div key={st.label}>
-              <dt>{st.value}</dt>
-              <dd>{st.label}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-      {beat.note && <p className="beat-n">{beat.note}</p>}
-      {beat.detail && <p className="beat-d">{beat.detail}</p>}
-      {beat.cta && (
-        <m.div className="beat-cta" style={{ visibility: ctaVis }}>
-          <JoinLink />
-        </m.div>
-      )}
-    </m.article>
-  );
-}
-
-export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }) {
+export function Story({ hero }: { hero: SiteCopy["hero"] }) {
   const section = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
-  const callouts = useRef<(HTMLDivElement | null)[]>([]);
   const lines = useRef<(HTMLDivElement | null)[]>([]);
   const linesBox = useRef<HTMLDivElement>(null);
   const joinEl = useRef<HTMLAnchorElement>(null);
   const [phase, setPhase] = useState<"loading" | "ready">("loading");
   const [load, setLoad] = useState(0);
   const { scrollYProgress } = useScroll({ target: section, offset: ["start start", "end end"] });
-  // the film's own 0-1, after the opening (the beats and the chapters run on it)
+  // the film's own 0-1, after the opening (focus: its lines run on it)
   const film = useTransform(scrollYProgress, filmP);
   // the page opens on the blocks alone; the title arrives as they finish stacking, and leaves as the rush starts
   // (focus: the page opens on the book alone, and it leaves before the blocks stand up)
   // (home: the opening plays by itself on load and lands on the hero, which leaves as the rush starts)
-  const heroOpacity = useTransform(scrollYProgress, FOCUS ? FOCUS_HERO : [0, sp(0.02), sp(0.045)], [1, 1, 0]);
+  // (home: the hero's words and its button go as the film takes over; from its first frames the planks are the
+  // film's own, and the camera starts to rise with the first plank thrown on: STORY_KEYS hold it until 0.03)
+  const heroOpacity = useTransform(scrollYProgress, FOCUS ? FOCUS_HERO : [0, sp(0.014), sp(HERO_GONE)], [1, 1, 0]);
   // focus: the paper that the picture steps back behind whenever words have the screen
   const veil = useTransform(scrollYProgress, (v) => (FOCUS ? veilAt(v) : 0));
   const [heroIn, setHeroIn] = useState(FOCUS);
@@ -122,7 +88,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
   const [planksState, setPlanksState] = useState<"wait" | "ready" | "failed">("wait");
   const [joinLive, setJoinLive] = useState(false);
   const heroVis = useTransform(heroOpacity, shown);
-  const scrimOpacity = useTransform(heroOpacity, (o) => (FOCUS ? 1 : 1 - o));
   const heroEvents = useTransform(heroOpacity, (o) => (o > 0.05 ? "auto" : "none"));
   const cueOpacity = useTransform(scrollYProgress, [0, 0.012], [1, 0]);
   // gone once faded, so its looping animation stops too
@@ -137,30 +102,24 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     const small = Math.min(window.innerWidth, window.innerHeight) < 700;
     let store: FrameStore | null = null; // full-quality frames
     let lo: FrameStore | null = null; // tiny frames that load first, so the story starts at once
-    let anchors: Anchors | null = null;
     let raf = 0;
     let disposed = false;
     let onScreen = true;
     let cur = 0;
     let lastKey = "";
-    let lastPlaced = Number.NaN;
     // the home page's opening plays by itself once the first pictures are in (0: not yet); it is over when it
     // reaches the hero or the visitor scrolls, and from then on the scroll drives the picture
     let introStart = 0;
     let introDone = FOCUS || reduced;
     let introHero = false;
-    let fit = { w: 1, h: 1, ox: 0, oy: 0, dpr: 1 };
     let lastBmp: ImageBitmap | null = null;
     let lastFrame = 0;
     let scale = 1; // the device pixel ratio the canvas was sized with
-    let widths: number[] = [];
     let placed: string[] = []; // focus: where each line was last set, by the picture's position
 
     const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
-    // callout tags are static text: measure them once, not every frame
+    // focus: the lines are set again for a new window size
     const measure = () => {
-      widths = callouts.current.map((el) => (el?.lastElementChild as HTMLElement | null)?.offsetWidth ?? 0);
-      lastPlaced = Number.NaN;
       placed = [];
     };
     /** focus: where frame's picture sits (device px). Its subject towards the screen's centre line, but a
@@ -218,21 +177,83 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     };
     // The hero: the picture steps back, so the stack and the planks that carry the book's words (HERO.box) fit the
     // screen whole, centred under the menu (placeHero sets heroAt, as shares of the screen). It steps back as the
-    // blocks finish stacking, and in again once the planks have gone, as the rush starts
+    // blocks finish stacking. The first scroll steps it in again to the film's own picture while the hero still
+    // holds (HERO_STEP_IN, by the scroll: STORY_KEYS hold the hero frame meanwhile), so the planks below the frame
+    // (the red one is only in the layers) are off the screen before the film's frames, which end at the frame,
+    // take over
     let heroAt: { x: number; y: number; w: number } | null = null;
-    const heroGone = frameAt(sp(0.046));
-    const heroWeight = (frame: number) => {
-      const inn = frame >= HERO_FRAME ? 1 : smooth01((frame - (HERO_FRAME - 32)) / 31);
-      return Math.min(inn, 1 - smooth01((frame - heroGone) / 16));
+    /** how far the hero's picture has stepped in to the film's (0 stepped back: the hero; 1 the film's) */
+    const heroTarget = () => {
+      if (Math.round(cur) > HERO_FRAME) return 0;
+      const [a, z] = HERO_STEP_IN;
+      return 1 - smooth01((scrollYProgress.get() - a) / (z - a));
+    };
+    // (eased with the picture, so a jump back to the top steps the picture back as the frames come down to the
+    // hero, never in one paint)
+    let heroW = 1;
+    const heroWeight = (frame: number) => (frame >= HERO_FRAME ? heroW : Math.min(heroW, smooth01((frame - (HERO_FRAME - 32)) / 31)));
+    // An upright screen, through the film: the picture as large as it can be with the subject (render/
+    // words_anchors.py: the stack and what lands on it, the fall, each slab while it is read, the building)
+    // whole on the screen, under the menu; never narrower than the screen, never taller than it. Its middle in the
+    // middle of the screen under the menu; a subject that runs off the picture's top or foot runs off the screen's
+    // there too, as through a camera, never into the wall or table that continue the picture (where it runs off
+    // both and the picture is shorter than the screen, the foot holds: the wall running on above looks right, the
+    // table below a cut block does not). Worked out per film frame for this screen, then eased: the size by at most
+    // 1.5% a frame, the place by at most 1% of the screen's height, so it never lurches
+    let fitKey = "";
+    let fitDh: number[] = [];
+    let fitOy: number[] = [];
+    const uprightFit = (frame: number, cw: number, ch: number, aspect: number) => {
+      const key = `${cw}x${ch}x${aspect.toFixed(4)}`;
+      if (key !== fitKey) {
+        fitKey = key;
+        const top = ch * 0.1; // the menu
+        const foot = ch * 0.03;
+        const side = cw * 0.035;
+        const subs = [];
+        for (let f = SUBJECT_FRAMES[0]; f <= SUBJECT_FRAMES[1]; f++) subs.push(subjectAt(f)!);
+        fitDh = subs.map((sub) => {
+          // (a subject running off the picture at its top and its foot, as the rush's column or the finished
+          // building, takes the screen's full height. The fall's spread need not fit whole: it is about the stump
+          // and the pile)
+          if (sub.t <= EDGE && sub.b >= 1 - EDGE) return ch;
+          const byW = (cw - 2 * side) / (Math.min(0.62, Math.max(0.05, sub.w)) * aspect);
+          const byH = (ch - top - foot) / Math.max(0.05, sub.b - sub.t);
+          return Math.max(cw / aspect, Math.min(ch, byW, byH));
+        });
+        for (let i = 1; i < fitDh.length; i++) fitDh[i] = Math.min(fitDh[i], fitDh[i - 1] * 1.015);
+        for (let i = fitDh.length - 2; i >= 0; i--) fitDh[i] = Math.min(fitDh[i], fitDh[i + 1] * 1.015);
+        fitOy = subs.map((sub, k) => {
+          const dh = fitDh[k];
+          let oy = (top + ch - foot) / 2 - ((sub.t + sub.b) / 2) * dh;
+          oy = Math.min(ch - foot - sub.b * dh, Math.max(top - sub.t * dh, oy));
+          oy += (Math.min(oy, 0) - oy) * smooth01((0.05 - sub.t) / 0.04);
+          oy += (Math.max(oy, ch - dh) - oy) * smooth01((sub.b - 0.95) / 0.04);
+          return dh >= ch ? clamp(oy, ch - dh, 0) : oy;
+        });
+        const r = ch * 0.01;
+        for (let i = 1; i < fitOy.length; i++) fitOy[i] = clamp(fitOy[i], fitOy[i - 1] - r, fitOy[i - 1] + r);
+        for (let i = fitOy.length - 2; i >= 0; i--) fitOy[i] = clamp(fitOy[i], fitOy[i + 1] - r, fitOy[i + 1] + r);
+      }
+      const i = clamp(frame - SUBJECT_FRAMES[0], 0, fitDh.length - 1);
+      const i0 = Math.floor(i);
+      const i1 = Math.min(fitDh.length - 1, i0 + 1);
+      const k = i - i0;
+      return { dh: fitDh[i0] + (fitDh[i1] - fitDh[i0]) * k, oy: fitOy[i0] + (fitOy[i1] - fitOy[i0]) * k };
     };
     /** the home page: where frame's picture sits on a cw × ch screen (any unit), as draw() paints it */
     const homeRect = (frame: number, cw: number, ch: number, aspect: number) => {
       let dw: number;
       let dh: number;
       let oy: number;
-      if (cw / ch < 1) {
-        // phones: after the hero the picture sits above the words, and the studio backdrop continues
-        // above and below it
+      // (from the hero on: the hero frame takes the film's first picture's place, which it steps in to)
+      const uprightFilm = cw / ch < 1 && frame >= HERO_FRAME;
+      if (uprightFilm) {
+        // an upright screen, through the film: the subject whole (uprightFit)
+        ({ dh, oy } = uprightFit(Math.max(frame, SUBJECT_FRAMES[0]), cw, ch, aspect));
+        dw = dh * aspect;
+      } else if (cw / ch < 1) {
+        // the opening on an upright screen: the row whole, then the hero fills it
         const { scale, bottom } = portraitFit(frame);
         dh = ch * scale;
         dw = Math.max(cw, dh * aspect);
@@ -245,11 +266,9 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         dw = dh * aspect;
         oy = 0;
       }
-      // narrower than the screen: slide the tower right, away from the words on the left
-      // (a cropped frame on a landscape screen keeps the stack right of the words too; phones centre it)
-      const anchor = cw >= ch ? 0.6 : 0.5;
-      const fx = focusAt(frame);
-      let ox = dw > cw ? Math.min(0, Math.max(cw - dw, cw * anchor - fx * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.6 - fx * dw));
+      // the subject on the screen's centre line (a picture wider than the screen still covers it)
+      const fx = focusAt(frame >= HERO_FRAME ? Math.max(frame, SUBJECT_FRAMES[0]) : frame);
+      let ox = dw > cw ? Math.min(0, Math.max(cw - dw, cw * 0.5 - fx * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.5 - fx * dw));
       const w = heroAt ? heroWeight(frame) : 0;
       if (heroAt && w) {
         const hw = heroAt.w * cw;
@@ -267,11 +286,17 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       if (FOCUS) {
         const r = focusRect(frame, cw, ch, aspect);
         paintFocus(bmp, r.ox, r.oy, r.dw, r.dh, cw, ch);
-        fit = { w: r.dw, h: r.dh, ox: r.ox, oy: r.oy, dpr: scale };
         return;
       }
       const { ox, oy, dw, dh } = homeRect(frame, cw, ch, aspect);
+      if (frame > HERO_FRAME) {
+        // the film: where the picture stops short of the screen, its wall and table run on in their own colours with
+        // the blocks left out, and the picture fades into them, so a block cut by its edge never smears into stripes
+        paintFocus(bmp, ox, oy, dw, dh, cw, ch);
+        return;
+      }
       ctx.drawImage(bmp, ox, oy, dw, dh);
+      placeJoin(ox / scale, oy / scale, dw / scale, dh / scale);
       // where the picture does not reach the screen's edges, its own edges run on (the wall above, the table
       // below, the backdrop at the sides, and its corner pixels into the corners)
       const bw = bmp.width;
@@ -292,7 +317,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       if (top > 0 && ox + dw < cw) ctx.drawImage(cv, ri, 0, 1, top, ri + 1, 0, cw - ri - 1, top);
       if (bot < ch && ox > 0) ctx.drawImage(cv, li, bot, 1, ch - bot, 0, bot, li, ch - bot);
       if (bot < ch && ox + dw < cw) ctx.drawImage(cv, ri, bot, 1, ch - bot, ri + 1, bot, cw - ri - 1, ch - bot);
-      fit = { w: dw, h: dh, ox, oy, dpr: scale };
       drawPlanks(ox, oy, dw, dh);
     };
     // The planks that carry the hero's words (render/hero_words.py), drawn with the frame where the frame is, so
@@ -306,15 +330,10 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     let planksAt = Infinity; // when the planks start to arrive (0: already there)
     let drawnAt = 0; // the (eased) frame being drawn, for the planks' opacity
     let joinLiveSet = false;
-    // the planks stand only on the stacked blocks: in as the opening's last frames settle, out as the hero's
-    // frames give way to the rush (by the frame on screen, which eases behind the scroll)
-    const fadeFrom = frameAt(sp(0.02));
-    const fadeTo = frameAt(sp(0.045));
-    const planksAlpha = (frame: number) => {
-      const inn = smooth01((frame - (HERO_FRAME - 18)) / 14);
-      const out = frame <= fadeFrom ? 1 : frame >= fadeTo ? 0 : 1 - (frame - fadeFrom) / (fadeTo - fadeFrom);
-      return Math.min(inn, out);
-    };
+    // the planks stand only on the stacked blocks: in as the opening's last frames settle. The film's own frames
+    // carry the same planks, rendered in its scene (render/words_film.py), so from its first picture on they are
+    // the film's and these layers go (by the picture on screen)
+    const planksAlpha = (frame: number) => (Math.round(frame) > HERO_FRAME ? 0 : smooth01((frame - (HERO_FRAME - 18)) / 14));
     /** the planks' state now; true while it is still changing (the canvas is painted again) */
     const stepPlanks = (now: number) => {
       const w = Math.max(0, Math.min(1, (now - planksAt) / 650));
@@ -492,6 +511,24 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       }
     };
 
+    /** the red plank's link over its stamped face, in the picture at (ox, oy, dw × dh), CSS px (it follows the
+     *  picture as the first scroll steps it in) */
+    let joinAt = "";
+    const placeJoin = (ox: number, oy: number, dw: number, dh: number) => {
+      const link = joinEl.current;
+      if (!link) return;
+      const xs = HERO.join.map(([x]) => ox + x * dw);
+      const ys = HERO.join.map(([, y]) => oy + y * dh);
+      const pad = 4;
+      const at = [Math.min(...xs) - pad, Math.min(...ys) - pad, Math.max(...xs) - Math.min(...xs) + 2 * pad, Math.max(...ys) - Math.min(...ys) + 2 * pad].map(Math.round);
+      const id = at.join(",");
+      if (id === joinAt) return;
+      joinAt = id;
+      link.style.left = `${at[0]}px`;
+      link.style.top = `${at[1]}px`;
+      link.style.width = `${at[2]}px`;
+      link.style.height = `${at[3]}px`;
+    };
     // The hero: the picture steps back until the stack and its planks (HERO.fit) fit the screen under the menu,
     // centred, never closer than the story's own hero shot; the red plank's link sits over its stamped face
     const placeHero = () => {
@@ -506,22 +543,14 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       const top = vh < 520 ? 58 : vw <= 900 ? 74 : 86; // the menu
       const foot = vh < 520 ? 8 : vw <= 900 ? 18 : 28;
       const side = vw <= 600 ? 8 : 32;
-      const normal = homeRect(HERO_FRAME, vw, vh, A);
-      const dh = Math.min((vw - 2 * side) / ((r - l) * A), (vh - top - foot) / (b - t), normal.dh * 1.1);
+      // never closer than the story's own hero shot (on an upright screen, as the opening lands on it)
+      const normalDh = vw < vh ? Math.max(vw / A, vh * portraitFit(HERO_FRAME).scale) : homeRect(HERO_FRAME, vw, vh, A).dh;
+      const dh = Math.min((vw - 2 * side) / ((r - l) * A), (vh - top - foot) / (b - t), normalDh * 1.1);
       const dw = dh * A;
       const ox = vw / 2 - ((l + r) / 2) * dw;
       const oy = top + (vh - top - foot) / 2 - ((t + b) / 2) * dh;
       heroAt = { x: ox / vw, y: oy / vh, w: dw / vw };
-      const link = joinEl.current;
-      if (link) {
-        const xs = HERO.join.map(([x]) => ox + x * dw);
-        const ys = HERO.join.map(([, y]) => oy + y * dh);
-        const pad = 4;
-        link.style.left = `${Math.round(Math.min(...xs) - pad)}px`;
-        link.style.top = `${Math.round(Math.min(...ys) - pad)}px`;
-        link.style.width = `${Math.round(Math.max(...xs) - Math.min(...xs) + 2 * pad)}px`;
-        link.style.height = `${Math.round(Math.max(...ys) - Math.min(...ys) + 2 * pad)}px`;
-      }
+      placeJoin(ox, oy, dw, dh);
       // the scroll cue only where it clears the planks' shadows
       cv.parentElement?.toggleAttribute("data-cue-off", oy + HERO.box.b * dh > vh - 70);
       lastKey = "";
@@ -612,55 +641,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     };
     mq.addEventListener("change", onDpr);
 
-    const placeCallouts = (frame: number) => {
-      if (!anchors || FOCUS) return; // focus: no words on the picture
-      const row = anchors.frames[Math.max(0, Math.min(anchors.frames.length - 1, Math.round(frame)))];
-      const vw = cv.clientWidth;
-      const vh = cv.clientHeight;
-      // a tag never sits under the words or the nav. Read everything first, then write.
-      let rects: DOMRect[] | null = null;
-      const blockers = () =>
-        (rects ??= [document.querySelector<HTMLElement>(".nav .brand"), document.querySelector<HTMLElement>(".nav-cta"), ...(cv.parentElement?.querySelectorAll<HTMLElement>(".beat") ?? [])]
-          .filter((e): e is HTMLElement => !!e && parseFloat(getComputedStyle(e).opacity) > 0.3)
-          .map((e) => e.getBoundingClientRect()));
-      const taken: { l: number; r: number; t: number; b: number }[] = [];
-      const narrow = vw <= 900;
-      let shownTags = 0;
-      const plan = CALLOUTS.map((c, k) => {
-        if (narrow && (c.wide || (shownTags >= 1 && frame < LAST_SHOT))) return null;
-        const fade = 2.5;
-        const o = Math.max(0, Math.min(1, (frame - c.from) / fade, (c.to - frame) / fade));
-        const a = row[c.anchor];
-        if (!a || o <= 0.01 || a[0] < -0.1 || a[0] > 1.1 || a[1] < -0.1 || a[1] > 1.1) return null;
-        const x = (fit.ox + a[0] * fit.w) / fit.dpr;
-        const y = (fit.oy + a[1] * fit.h) / fit.dpr;
-        const tw = widths[k] ?? 0;
-        let side = c.side ?? "right";
-        if (side === "right" && x + 80 + tw > vw - 12) side = "left";
-        else if (side === "left" && x - 80 - tw < 12) side = "right";
-        const left = side === "right" ? x + 80 : x - 80 - tw;
-        if (y < 92 || y > vh - 70 || left < 12 || left + tw > vw - 12) return null;
-        if (blockers().some((r) => y + 14 > r.top && y - 14 < r.bottom && left + tw > r.left && left < r.right)) return null;
-        const box = { l: left, r: left + tw, t: y - 15, b: y + 15 };
-        if (taken.some((q) => box.l < q.r && box.r > q.l && box.t < q.b && box.b > q.t)) return null;
-        taken.push(box);
-        shownTags++;
-        return { o, x, y, side };
-      });
-      plan.forEach((p, k) => {
-        const el = callouts.current[k];
-        if (!el) return;
-        if (!p) {
-          if (el.style.opacity !== "0") el.style.opacity = "0";
-          return;
-        }
-        el.classList.toggle("side-left", p.side === "left");
-        el.classList.toggle("side-right", p.side === "right");
-        el.style.opacity = String(p.o);
-        el.style.transform = `translate3d(${p.x.toFixed(1)}px, ${p.y.toFixed(1)}px, 0)`;
-      });
-    };
-
     // focus: the line that is up sits beside its blocks, on the paper round them (an upright screen: in the band under the picture)
     const placeLines = () => {
       if (!FOCUS) return;
@@ -744,18 +724,26 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
       if (!onScreen && cur === target && lastKey) return;
       raf = requestAnimationFrame(loop);
       const diff = target - cur;
-      cur = reduced || !onScreen || !introDone ? target : Math.abs(diff) < 0.02 ? target : cur + diff * 0.2;
+      const jump = reduced || !onScreen || !introDone;
+      cur = jump ? target : Math.abs(diff) < 0.02 ? target : cur + diff * 0.2;
+      const hw = heroTarget();
+      heroW = jump || Math.abs(hw - heroW) < 0.003 ? hw : heroW + (hw - heroW) * 0.2;
       const i = Math.max(0, Math.min(lo.m.count - 1, Math.round(cur)));
       const dir = Math.sign(diff) || 1;
       // full quality when it is decoded (or one a frame or two away); the small set only fills gaps
       const hiHas = !!store?.blobs[i];
       const hi = store?.get(i) ?? null;
       store?.prefetch(i, dir, small ? 6 : 10);
-      const bmp = hi ?? (hiHas ? store!.nearest(i, dir, 2) : null) ?? lo.peek(i) ?? lo.get(i) ?? lo.nearest(i, dir) ?? store?.nearest(i, dir) ?? null;
+      // (at the hand-off from the hero to the film only the exact picture will do: the hero frame is drawn with its
+      // planks' layers and the film's are not, so a neighbour would show them twice, or not at all)
+      const handoff = Math.abs(i - HERO_FRAME - 0.5) < 2;
+      const bmp = handoff
+        ? (hi ?? lo.peek(i) ?? lo.get(i) ?? null)
+        : (hi ?? (hiHas ? store!.nearest(i, dir, 2) : null) ?? lo.peek(i) ?? lo.get(i) ?? lo.nearest(i, dir) ?? store?.nearest(i, dir) ?? null);
       if (!hiHas) lo.prefetch(i, dir, 6);
       const exact = !!(hi || lo.peek(i));
       drawnAt = cur;
-      const key = `${i}:${cv.width}x${cv.height}:${Math.round(planksAlpha(cur) * 40)}`;
+      const key = `${i}:${cv.width}x${cv.height}:${Math.round(planksAlpha(cur) * 40)}:${heroAt ? Math.round(heroWeight(cur) * 300) : 0}`;
       if (stepPlanks(performance.now())) lastKey = "";
       // the red plank's link goes live once the plank is down
       if (!joinLiveSet && planks.words && joinIn >= 0.7) {
@@ -767,12 +755,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         lastBmp = bmp;
         lastFrame = i;
         lastKey = exact ? key : "";
-        lastPlaced = Number.NaN;
-      }
-      // nothing moves while the visitor is not scrolling: skip the layout work
-      if (cur !== lastPlaced) {
-        placeCallouts(cur);
-        lastPlaced = cur;
       }
       placeLines();
       // focus: words only on a still picture; while the picture is still catching up with a fast scroll, they wait
@@ -805,17 +787,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
     );
     io.observe(cv);
 
-    const loadAnchors = () =>
-      anchors || FOCUS // (focus: no labels on the picture)
-        ? Promise.resolve()
-        : fetchOk(`${import.meta.env.BASE_URL}anchors.json`)
-        .then((r) => r.json())
-        .then((a: Anchors) => {
-          anchors = a;
-          lastPlaced = Number.NaN;
-        })
-        .catch(() => undefined);
-
     (async () => {
       try {
         const decodeW = Math.min(1600, Math.round(Math.max(window.innerWidth, window.innerHeight * 1.6) * dpr()));
@@ -841,6 +812,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         if (disposed) return;
         void lo.loadAll([lo.chunkOf(at)], 2);
         cur = at;
+        heroW = heroTarget();
         lo.aim(at);
         const first = Math.max(0, Math.min(lo.m.count - (loLimit - 4), at - 4));
         await Promise.all(Array.from({ length: Math.min(FIRST, loLimit - 4) }, (_, n) => lo!.decode(first + n)));
@@ -863,7 +835,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
           await Promise.all(Array.from({ length: playIntro ? 6 : 1 }, (_, n) => hiStore.decode(at + n).catch(() => undefined)));
           if (disposed) return;
         }
-        void loadAnchors();
         // the planks carry the hero's words: give them the same moment (they load alongside the frames)
         await Promise.race([planksLoad, new Promise((r) => setTimeout(r, 1200))]);
         if (disposed) return;
@@ -871,6 +842,7 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
           introDone = true;
           planksAt = 0;
           cur = frameAt(scrollYProgress.get());
+          heroW = heroTarget();
           setHeroIn(true); // no opening to wait for: the hero (or wherever the visitor is) at once
         } else introStart = performance.now() + 250; // once the loader has faded
         setPhase("ready");
@@ -883,7 +855,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
           setHeroIn(true);
           setPhase("ready");
           start();
-          void loadAnchors();
         }
       }
     })();
@@ -915,18 +886,6 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
           role="img"
           aria-label={FOCUS ? FOCUS_ALT : STORY_ALT}
         />
-        {/* the wash that keeps the story's words readable over the picture: not over the hero's planks */}
-        <m.div className="scrim" style={{ opacity: scrimOpacity }} aria-hidden="true" />
-
-        <div className="callouts" aria-hidden="true">
-          {CALLOUTS.map((c, k) => (
-            <div key={`${c.anchor}-${c.from}`} className={`callout side-${c.side ?? "right"} tone-${c.tone ?? "ink"}`} ref={(el) => void (callouts.current[k] = el)}>
-              <span className="callout-line" />
-              <span className="callout-tag">{c.text}</span>
-            </div>
-          ))}
-        </div>
-
         {/* The hero's words are on the blocks themselves (the planks drawn on the canvas with the frame: SCALING
             beside UP / SIDE / DOWN, then A BOOK BY MICHAEL WENTZ, FOR BOOTSTRAPPED FOUNDERS and the red JOIN THE
             FIRST-EDITION LIST). The same words are here for screen readers and search, and the red plank is a link */}
@@ -959,13 +918,14 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
 
         {FOCUS && <m.div className="veil" style={{ opacity: veil }} aria-hidden="true" />}
 
-        <div className="beats" ref={linesBox}>
-          {FOCUS
-            ? FOCUS_LINES.map((ln, k) => <FocusLineView key={ln.id} id={ln.id} at={ln.at} progress={film} refEl={(el) => void (lines.current[k] = el)} />)
-            : beats.map((b) => <BeatView key={b.id} beat={b} progress={film} />)}
-        </div>
-
-        <Chapters progress={film} />
+        {/* (the home page's story has no words over it: they are on the blocks; focus keeps its lines) */}
+        {FOCUS && (
+          <div className="beats" ref={linesBox}>
+            {FOCUS_LINES.map((ln, k) => (
+              <FocusLineView key={ln.id} id={ln.id} at={ln.at} progress={film} refEl={(el) => void (lines.current[k] = el)} />
+            ))}
+          </div>
+        )}
 
         <div className={`loader ${phase === "loading" ? "on" : ""}`} aria-hidden={phase !== "loading"}>
           <div className="loader-bars">
@@ -977,35 +937,5 @@ export function Story({ beats, hero }: { beats: Beat[]; hero: SiteCopy["hero"] }
         </div>
       </div>
     </section>
-  );
-}
-
-const CHAPTERS: [string, number, number][] = [
-  ["Too fast", 0.035, 0.24],
-  ["Falls over", 0.24, 0.385],
-  ["Up · Side · Down", 0.385, 1],
-];
-
-function Chapters({ progress }: { progress: MotionValue<number> }) {
-  const show = useTransform(progress, [0.03, 0.05, 0.97, 1], [0, 1, 1, 0]);
-  return (
-    <m.ol className="chapters" style={{ opacity: show }} aria-hidden="true">
-      {CHAPTERS.map(([name, a, b]) => (
-        <Chapter key={name} name={name} a={a} b={b} progress={progress} />
-      ))}
-    </m.ol>
-  );
-}
-
-function Chapter({ name, a, b, progress }: { name: string; a: number; b: number; progress: MotionValue<number> }) {
-  const fill = useTransform(progress, [a, b], [0, 1], { clamp: true });
-  const on = useTransform(progress, (p) => (p >= a && p < b ? 1 : 0.82));
-  return (
-    <m.li style={{ opacity: on }}>
-      <span>{name}</span>
-      <i>
-        <m.b style={{ scaleX: fill }} />
-      </i>
-    </m.li>
   );
 }
