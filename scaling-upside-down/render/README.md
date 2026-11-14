@@ -79,6 +79,46 @@ down, the frame's own rows unchanged), so the planks can stand in front of the s
 To change a plank's words, change its stamp in `make_hero_labels.py` (and its size in `hero_words.py` if the words need more room), then run all four steps.
 The stack's own textures are not needed here (it is only a shadow catcher): `tex/face_*.png` can be any flat colour.
 
+## The home page's film since 14 Nov: the words on the blocks
+
+The story has no words over it: no captions, labels or chapter rail (James, 14 Nov: "there's still like text
+along the bottom. We have two focuses"). Every word is stamped on a block, and each moment has one thing moving.
+`words_film.py` replaces `story.py`'s film from frame 29 (the page keeps the opening and the hero, frame 89):
+- SCALING, the hero's lines and the red plank are in the scene, where the page's layers draw them, so the
+  film carries straight on from the hero. The lines leave the shot as the camera rises.
+- Three raw-wood planks are thrown on: ALWAYS ADDING, ALWAYS HIRING, ALWAYS LAUNCHING (L1993, read top down),
+  then the hires and tools, faster and crooked. It falls over; SCALING stands.
+- SCALING and the cover's stack turn upside down together (the title, upside down), hold, and are set right.
+  SCALING steps aside.
+- Three slabs in the cover's paints come in a row in front of the building, left to right, each in its own
+  direction, and the camera pushes in to read each one before the action it starts:
+  - SIDEWAYS FOR / STABILIZATION (yellow, L3316) slides in from the side; the twelve systems slide in.
+  - DOWN FOR / PRUNING (red, L3317) is lowered from above; the dead weight, the ALWAYS planks with it, leaves.
+  - UP FOR / GROWTH (green, L3315) rises out of the table; the team goes back on and the building rises.
+- The last picture: SCALING beside the finished building, the three slabs in front.
+
+| File | What it does |
+| --- | --- |
+| `make_words_labels.py` | The planks' and slabs' stamps (Anton) into `tex/` |
+| `cover_faces.py`, `recover_faces.py` | The cover blocks' faces, recovered from the hero frame (the cover photo is not in the repo): where each face sits in frame 89, then rectified and evened out with the gains in `face_gains.json` |
+| `words_film.py` | The film, camera and render settings; saves `words.blend` and `out/words_timeline.json` (its timeline, which the page's scroll keys follow) |
+| `render_words.sh` | Renders `words.blend` into `out/wseq` (motion blur on the rush and the fall); a stopped run picks up where it left off |
+| `words_anchors.py` | Each frame's subject (`src/wordsfilm.json`): where it sits and how big it is, so a phone keeps it whole on the screen; and the timeline |
+
+1. Textures: `python3 make_systems.py tex fonts`; the rush blocks' labels are the `labels` part of `make_textures.py`
+   (the rest of it needs the cover photo); `python3 make_hero_labels.py`; `python3 make_words_labels.py`.
+   The cover faces: `blender -b -P cover_faces.py -- --w 1600 --h 1000 --out out/faces/corners.json`, then
+   `python3 recover_faces.py out/faces/corners.json face_gains.json`
+2. `blender -b -P words_film.py -- --blend words.blend` (add `--frames 54,165,199,277,325 --w 800 --h 500 --samples 8 --out out/wb/b` for stills)
+3. `W=1600 H=1000 S=12 BLENDER=blender ./render_words.sh` (about 390 frames; `W=480 H=300 S=4 OUT=out/wprev` for a quick look)
+4. `blender -b words.blend -P words_anchors.py -- ../src/wordsfilm.json`
+5. From the project root, the opening and the hero copied byte for byte in front of the film:
+   `python3 scripts/pack_frames.py render/out/wseq public/frames/hi --width 1600 --quality 78 --per 25 --lead <a copy of public/frames/hi>:90`
+   `python3 scripts/pack_frames.py render/out/wseq public/frames/lo --width 480 --quality 60 --per 50 --lead <a copy of public/frames/lo>:90`
+   (pack from a copy: the packer clears its output folder)
+
+If the film's timing changes, re-run step 4: `STORY_KEYS` in `src/story.ts` read the timeline from it.
+
 ## The focus version's film (`/focus`): "Load Path"
 
 Since 4 Nov the focus version plays `loadpath.py`, which has no words and no labels. It is an architect's

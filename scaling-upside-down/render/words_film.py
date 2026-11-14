@@ -596,7 +596,8 @@ def on_slab(k, t_cam=0.5, t_aim=1.0):
     neighbours whole beside it"""
     s = slab_at[k]
     return (lerp3(P[0], s, t_cam), lerp3(P[1], (s[0], s[1], s[2] + 0.12), t_aim), 40)
-W_END = ((14.4, -30.8, 9.0), (-2.2, 0, 7.4), 35)
+# (the slabs above the bottom fifth: the page fades the story's foot into the next section)
+W_END = ((14.4, -30.8, 9.0), (-2.2, 0, 5.9), 30)
 SHOTS = [  # frame, (camera, aim, lens), focus, fstop
     (28, HERO, (0, 0, 1.5), 4.0),
     (30, HERO, (0, 0, 1.5), 4.0),  # the page's layers fade over these first frames: the picture holds still
@@ -630,8 +631,8 @@ SHOTS = [  # frame, (camera, aim, lens), focus, fstop
     (T["team"] + 18, ((11.8, -22.2, 9.4), (-1.5, 0.2, 2.6), 39), (0, 0, 2.4), 6.0),
     (T["grow"] + 10, ((12.6, -25.0, 9.2), (-1.8, 0.1, 4.0), 37), (0, 0, 4.0), 6.0),
     (T["grow"] + 24, ((13.6, -28.4, 9.1), (-2.1, 0, 6.0), 36), (0, 0, 6.0), 6.0),
-    (T["end"] - 8, W_END, (0.2, 0, 6.5), 6.5),
-    (T["end"], W_END, (0.2, 0, 6.5), 6.5),
+    (T["end"] - 8, W_END, (0.2, 0, 5.5), 6.5),
+    (T["end"], W_END, (0.2, 0, 5.5), 6.5),
 ]
 for f, (c, a, lens), fo, fs in SHOTS:
     cam.location = c
