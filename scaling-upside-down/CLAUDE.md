@@ -4,8 +4,9 @@ This is the site for Michael Wentz's book *Scaling Up-Side-Down* (SUSD), built b
 (GitHub `joe51111jwd`).
 - Live: https://scaling-up-side-down.vercel.app
 - Vercel project: "scaling-up-side-down"
-- Code: this folder. Newest on branch `claude/great-lamport-os1jry` (12 Nov, Michael's feedback on the home
-  page), which starts from `claude/beautiful-cori-a7cq5v` (everything to 7 Nov)
+- Code: this folder. Two lines of work since 19 Nov, for James to compare:
+  - `claude/relaxed-ptolemy-r93t8h` and its follow-ups: the blocks home page (live).
+  - `claude/susd-aura`: the "aura" home page, a different direction (preview only; production waits on James).
 
 ## Read before you work
 
@@ -48,20 +49,20 @@ Every piece of client context goes into this repo so the next chat has it:
 **Look**
 - Its own style: no Apple look, no flat text pages, nothing that looks AI-generated. The bar is
   Awwwards-level craft.
-- Real 3D: the blocks are Blender renders made in the cloud (`render/`) and played back as you
-  scroll. No AI images.
-- The story: a business grows too fast and topples; strong foundations let it scale; growth is a
-  cycle of Up, Side, Down.
+- Real pictures only: Blender renders (`render/`), real photography or type. No AI images.
+- The look since 19 Nov (James: "more aura", "less symbolism", "no weird left-aligned", "clean"): the book in a dark
+  room, lit. Warm dark ground with grain, the real hardcover glowing, Michael's words set large and centred or
+  composed around it, one idea per screen. The blocks are the book's identity (the cover, the three colours, two
+  renders used as pictures), not a story the visitor has to decode. The references are in `context/inspo/`.
+- What the page has to say (Michael, 30 Oct): it is a book, by Michael Wentz, for bootstrapped founders, and why
+  (the cover's subtitle), all on the first screen with the hardcover and the one button; the founder recognises
+  the problem; scaling is a cycle (Up, Side, Down) you can't run all at once, told to make people curious, not the
+  whole framework.
+- The opening holds on a fast scroll (Michael, 13 Nov): `src/herohold.ts`, checked by `scripts/check-herohold.mjs`
+  and in a browser by `scripts/check-hero-browser.mjs`.
 - Less text and clean on phones. Desktop comes first, but check every section at phone sizes.
-- Land on the book (Michael, 30 Oct; since 12 Nov): the opening plays by itself on load and the first
-  screen says it is a book, who wrote it, who it is for, and has the one button; never make the visitor
-  scroll to learn it is a book. Since 13 Nov (James) the blocks carry those words, with no text column:
-  SCALING beside UP / SIDE / DOWN, A BOOK BY MICHAEL WENTZ, FOR BOOTSTRAPPED FOUNDERS, and the red
-  JOIN THE FIRST-EDITION LIST plank as the button (`render/hero_words.py`).
-- One focus (James, 14 Nov: "there's still like text along the bottom. We have two focuses"): the story puts no
-  words over the picture (no captions, tags or chapter rail). Every word in it is stamped on a block, and each
-  moment has one thing moving (`render/words_film.py`: the ALWAYS planks, the title turned upside down, and the
-  SIDEWAYS / DOWN / UP slabs, each read in a push-in).
+- `/focus` (the 4 Nov film James turned down on 6 Nov) is still served, unchanged, with its own words in
+  `src/copy-focus.ts`; delete it only when James says so.
 
 **The Bootloader**
 - It is a **file/spec**, not a prompt, and a companion to the book, not the product.

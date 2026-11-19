@@ -11,6 +11,44 @@ under "All of James's messages, word for word".
 
 ---
 
+## Thu 19 Nov 2026: James: more aura, less symbolism, "make a cool-ass website", from Awwwards references
+
+(Dictated; passed on with the brief for this chat.)
+
+> Look through his website and pick the book by Michael Wentz. I understand it's all blocks right now, and I don't fully understand it. I think we could have more aura to it. I know this sounds dumb, but I want to try having less symbolism. I want to try doing less symbolism. Just make a cool-ass website for this. [...] Update the live version with the newest version, but modify it a lot better, and then make it more clean.
+>
+> Also, I don't understand what's going on [...] It needs to add everything, and then I want to make it more clean and more interesting. Right now, it's kind of boring because the blocks are just sitting around, whereas I feel like if I could actually have more of an understanding, that'd be better.
+>
+> I think you can add some text, but put the text in certain ways that make it good. For the website, we just want to make a cool one. Use my taste skill. [...] Check awwwards.com and have it look for inspiration, and then basically use that as inspiration. It needs to search for inspiration and not just try and think of stuff from its head.
+>
+> I don't want weird left-aligned. I want something interesting. I want something outside the box, something that most websites' AI vibe websites don't see. Before it starts, it needs to look up inspo and not just try and go from its head, because otherwise it'll end up creating something bad.
+
+The brief added: bring the hardcover back to the first screen (Michael asked twice, James promised it); the problem
+founders recognise; the cycle told to make people curious; the Bootloader second; keep the fast-scroll hold;
+Michael's words only; delete `/focus`; put it live when finished.
+
+What it means: the block story (a picture language the visitor has to decode) gives way to a page a visitor
+understands at once, with atmosphere. **Done** (preview, branch `claude/susd-aura`):
+- Research first: 12 Awwwards references, screenshot and noted in `context/inspo/` (awwwards.com refuses the
+  cloud session's connections, so its lists were read through a fetch tool and the sites opened directly). James's
+  taste repo could not be attached to the session (permission denied), so it was not used.
+- The page: the book in a dark room, lit. The real hardcover glows in the middle of the first screen with the
+  cover's subtitle set around it ("Revenue Up." high on one side, "Margins Down." low on the other), the title,
+  "A book by Michael Wentz", "For bootstrapped founders" and the one button. Then one idea per screen: the ALWAYS
+  lines around the real tower film as it grows and falls; the revenue and margins lines; the pile; "That's scaling
+  upside down." turning over; UP. SIDE. DOWN. REPEAT. and three bands in the cover's colours that stack like its
+  blocks; "You're already doing all three."; the book with the back cover's copy; the one sign-up.
+- The hold: one fast fling, Page Down or a phone flick from the top stops on the opening; checked in a browser by
+  `scripts/check-hero-browser.mjs`.
+- The old block film, the closed loop and the hero planks are off this page; `/focus` is kept as it was.
+- Change of plan, relayed mid-build by the parent session (James: "I know he likes blocks [...] but I just want
+  to make another one that has just a completely different direction, or it's just cool"): this page is an
+  **alternative** to the blocks home page, which another chat is fixing on the live site. So: a Vercel preview
+  only, no production deployment, `/focus` not deleted, the live branch not touched. The blocks no longer have to
+  be the identity; this page keeps the cover's colours and two renders as pictures, which can go if James wants
+  none.
+**Waiting** on James to compare the two and pick.
+
 ## Thu 19 Nov 2026: James: "lock down" his site: get the design exact so the message lands (and the $2,000)
 
 > No, I meant lockdown. I need to build his site. We need to get it looking good, sorry, not security-wise. I need you to understand all of the context so we can get our 2K, because he said he'd pay us 2K. Fully understand everything so that we can actually get a good site. I need all the links. I need to go through. I need to make changes. I need to get the exact design down because right now we're not getting across the message.

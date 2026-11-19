@@ -8,6 +8,8 @@ import { Book, Footer, Join, Nav } from "./components/Closing";
 import { NoticeDialog } from "./components/NoticeDialog";
 import { setLenis } from "./lenis";
 import { requestMeasure } from "./scroll";
+import { FOCUS } from "./focus";
+import { FocusPage } from "./components/FocusPage";
 
 type Entry = { y?: number } | null;
 
@@ -95,6 +97,13 @@ export default function App() {
     };
   }, []);
 
+  if (FOCUS)
+    return (
+      <>
+        <FocusPage />
+        <NoticeDialog copy={COPY.notice} />
+      </>
+    );
   return (
     <>
       <Nav />

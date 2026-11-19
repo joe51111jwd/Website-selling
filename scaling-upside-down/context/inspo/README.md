@@ -39,5 +39,6 @@ each: the opening (the book and its subtitle); the problem (the tower of ALWAYS 
 pile, "That's scaling upside down." turning over); the idea (Up, Side and Down as three coloured bands that stack
 into the cover); the book; the one sign-up.
 
-What it drops: the block story a visitor had to decode. The blocks stay as the book's identity (the cover, the
+What it drops: the block story a visitor had to decode. (Mid-build James said this one need not keep the blocks at
+all; it is an alternative to the blocks home page, not its replacement.) The blocks stay as the book's identity (the cover, the
 colours, two real renders used as pictures that illustrate a sentence), not as the language of the page.
