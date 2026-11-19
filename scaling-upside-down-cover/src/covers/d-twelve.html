@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>D: The Twelve (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Direction D: the book as an operating system. The twelve systems of Chapter 10, four to each move, set as a
+     grid of painted tiles in the cover's three paints: UP (grow), SIDE (stabilize), DOWN (prune). Names and colour
+     bands are the site's own (scaling-upside-down/render/make_systems.py), so the cover, the site and the book's
+     diagrams agree. Twelve is also where the book says most teams should stop. */
+  #scaling { font-family: "Anton", sans-serif; line-height: 1; color: var(--ink); }
+  .tile { position: absolute; display: flex; align-items: flex-end; }
+  .tile .nm { font-family: "Inter Tight", sans-serif; font-weight: 800; font-size: 38px; line-height: 1.06;
+    letter-spacing: 0.035em; white-space: pre; }
+  .tile .no { position: absolute; left: 26px; top: 22px; font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 34px; opacity: 0.8; }
+  .tile.phase { align-items: center; justify-content: center; }
+  .tile.phase .w { font-family: "Anton", sans-serif; line-height: 1; white-space: nowrap; }
+  .up { background: var(--up); color: var(--stamp); }
+  .side { background: var(--side); color: var(--ink); }
+  .down { background: var(--down); color: var(--stamp); }
+  /* the phase tile is the row's key: ink, with the word in the row's paint */
+  .tile.phase { background: var(--ink); }
+  .tile.phase.up .w { color: #5f9e6f; } .tile.phase.side .w { color: var(--side); } .tile.phase.down .w { color: #e0574b; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div id="scaling" class="abs nowrap">SCALING</div>
+  <div id="grid"></div>
+  <div id="sub" class="abs subtitle">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div id="author" class="abs author nowrap">Michael Wentz</div>
+</div>
+<script src="fit.js"></script>
+<script>
+const L = {
+  margin: 150, scalingTop: 165,
+  gridTop: 735, cols: 5, gutter: 18, tileH: 392, pad: 26,
+  wordCap: 92,          // cap height of UP / SIDE / DOWN in the key tiles
+  subTop: 2150, authorBaseline: 2610,
+};
+// the site's twelve systems, with its own line breaks (make_systems.py)
+const ROWS = [
+  ["up", ["CONTENT\n& PRODUCT", "LEAD\nGEN", "CONVER-\nSION", "RETEN-\nTION"]],
+  ["side", ["TEAM &\nROLES", "SYSTEM-\nATIZE", "TECH\n& AI", "FULFILL-\nMENT"]],
+  ["down", ["PROFIT", "RISK", "EFFICI-\nENCY", "QUALITY"]],
+];
+const capTop = (el, family, weight = 400) => {
+  const fs = parseFloat(getComputedStyle(el).fontSize);
+  const c = document.createElement("canvas").getContext("2d");
+  c.font = `${weight} ${fs}px ${family}`;
+  const m = c.measureText("H");
+  return (fs - m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2 + m.fontBoundingBoxAscent - m.actualBoundingBoxAscent;
+};
+ready(() => {
+  const s = document.getElementById("scaling");
+  const f = fitWidth(s, 1875 - 2 * L.margin);
+  s.style.left = L.margin - f.left + "px";
+  s.style.top = L.scalingTop - capTop(s, "Anton") + "px";
+
+  const W = 1875 - 2 * L.margin;
+  const tw = (W - (L.cols - 1) * L.gutter) / L.cols;
+  const grid = document.getElementById("grid");
+  const size = L.wordCap / capEm("Anton");
+  ROWS.forEach(([k, names], r) => {
+    const y = L.gridTop + r * (L.tileH + L.gutter);
+    const cells = [null, ...names];
+    cells.forEach((nm, c) => {
+      const t = document.createElement("div");
+      t.className = "tile " + k + (nm === null ? " phase" : "");
+      Object.assign(t.style, { left: L.margin + c * (tw + L.gutter) + "px", top: y + "px", width: tw + "px", height: L.tileH + "px" });
+      if (nm === null) {
+        t.innerHTML = `<span class="w" style="font-size:${size}px">${k.toUpperCase()}</span>`;
+      } else {
+        t.style.padding = L.pad + "px";
+        const no = String(r * 4 + c).padStart(2, "0");   // 01 ... 12
+        t.innerHTML = `<span class="no">${no}</span><span class="nm">${nm}</span>`;
+      }
+      grid.appendChild(t);
+    });
+  });
+  const sub = document.getElementById("sub");
+  sub.style.left = L.margin + "px";
+  sub.style.top = L.subTop + "px";
+  const a = document.getElementById("author");
+  a.style.left = L.margin + "px";
+  a.style.lineHeight = "1";
+  a.style.top = L.authorBaseline - (capTop(a, '"Inter Tight"', 600) + capEm('"Inter Tight"', 600) * parseFloat(getComputedStyle(a).fontSize)) + "px";
+  // every name must fit its tile
+  document.querySelectorAll(".nm").forEach((n) => { if (n.scrollWidth > tw - 2 * L.pad) console.log("too wide:", n.textContent, n.scrollWidth); });
+});
+</script>
+</body>
+</html>

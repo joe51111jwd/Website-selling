@@ -7,27 +7,30 @@ layout on **1 Dec** and publishes on **1 Jan**.
 Everything is real type, vector work and real 3D (Blender Cycles). There are no AI-generated images. Every file can
 be edited and rebuilt from source (`build.sh`).
 
-## The three directions
+## The five directions
 
-| | Flat front (with bleed) | Mockup | Idea |
-| - | - | - | - |
-| **A. The Stack** (recommended) | `out/flat/a-stack.png` / `.pdf` | `out/mockups/mockup-a.png` | Michael's mockup, made exact. The same layout, so the identity the site uses is kept. The blocks are a real render with real wood, satin paint and stamped words, not an AI picture. SCALING is exactly the stack's height, the three stamps share one size, and everything hangs on one centred grid. |
-| **B. Upside-Down** (bold) | `out/flat/b-upside-down.png` / `.pdf` | `out/mockups/mockup-b.png` | Type only, a poster. The title does what it says: down the three paint bands, UP stands, SIDE lies on its side and DOWN hangs upside down, each a quarter turn further, stepping across the page. |
-| **C. The Cycle** (conceptual) | `out/flat/c-cycle.png` / `.pdf` | `out/mockups/mockup-c.png` | The book's model as an analyst's chart (Michael was a Morningstar equity analyst): up, sideways, a short step down, repeat. The line climbs past the dashed "all at once" curve, which spikes and crashes. UP-SIDE-DOWN, in the three paints, is the chart's legend. |
+James asked for five (19 Nov, relayed mid-task), so he can pick the top two for Michael. Numbered as in
+`out/contact-sheet.jpg`. Each has a flat front (`out/flat/<name>.png` / `.pdf` with bleed, `<name>-trim.png` at
+1800 x 2700), a Blender mockup (`out/mockups/mockup-<letter>.png`) and thumbnails (`out/thumbs/`).
 
-`out/flat/*-trim.png` are the same fronts cut to the 6 x 9 in trim (what a reader sees, and what to upload as an
-ebook or Amazon cover image).
+| # | Name (files) | Idea |
+| - | - | - |
+| 1 | **The Stack** (`a-stack`) | Michael's mockup, made exact. The same layout, so the identity the site uses is kept. The blocks are a real render with real wood, satin paint and stamped words, not an AI picture. SCALING is exactly the stack's height, the stamps share one size, and everything hangs on one centred grid. |
+| 2 | **Upside-Down** (`b-upside-down`) | Type only, a poster. The title does what it says: down the three paint bands, UP stands, SIDE lies on its side and DOWN hangs upside down, a quarter turn further each time, stepping across the page. |
+| 3 | **The Cycle** (`c-cycle`) | The model as an analyst's chart (Michael was a Morningstar equity analyst). Up, sideways, a short step down, repeat: the line climbs past the dashed "all at once" curve, which spikes and crashes. UP-SIDE-DOWN in the three paints is the chart's legend. |
+| 4 | **The Twelve** (`d-twelve`) | The book as an operating system. The twelve systems of Chapter 10, four per move, as a numbered grid of tiles in the three paints. The names and colour bands are the site's own (`render/make_systems.py`). Twelve is also where the book says most teams should stop. |
+| 5 | **The Trap** (`e-trap`) | The problem as one object: raw-wood blocks (the site's hires and tools) stacked as an upside-down pyramid, everything resting on a single block. A dark, quiet Cycles render (`src/blender/inverted.py`) with the title in the space above it. |
 
-**Why A.** It holds up best at Amazon size (`out/thumbs/row-150.png`, `row-100.png`): SCALING, the three
-blocks and their words all read at 100 px wide. B's sideways SIDE gets hard to read at 100 px, and C's chart becomes
-a thin line. A also keeps the blocks Michael chose and the site is built on, so the book, the site and its renders
-are one identity, which is the third thing Michael asked for (13 Nov). C's chart is not wasted: it is on A's back
-cover, where a reader has the time to read it, which serves his first ask, that the visuals "make the concepts
-easier to understand".
+The thumbnail check at 150 and 100 px (`out/thumbs/row-150.png`, `row-100.png`):
+- 1 and 5 read best as pictures.
+- 2 and 4 read as strong colour.
+- 3's title reads, but its chart gets thin.
+- 2's sideways SIDE gets hard to read at 100 px.
 
-## The full wrap (direction A)
+## The full wrap (direction 1, built before the switch to five)
 
-`out/wrap/wrap.png` / `.pdf` (the art) and `out/wrap/wrap-guides.png` (with the trim, the spine folds and the
+This was built for direction 1 before James asked for five and for no wrap until he picks; it is kept as the
+template for whichever two he picks (the back, the spine and the parameters carry over). `out/wrap/wrap.png` / `.pdf` (the art) and `out/wrap/wrap-guides.png` (with the trim, the spine folds and the
 measurements). Source: `src/covers/wrap.html`.
 
 - **Back**: the back-cover copy, word for word from `scaling-upside-down/src/copy.ts` (the lines marked "the back cover"):
@@ -68,11 +71,14 @@ src/covers/common.css, fit.js shared kit: paints, fonts, print size, guides (?gu
 src/covers/a-stack.html       direction A front
 src/covers/b-upside-down.html direction B front
 src/covers/c-cycle.html       direction C front
+src/covers/d-twelve.html      direction D front
+src/covers/e-trap.html        direction E front
 src/covers/spine.html         the spine, any direction and width (?dir=a&in=0.9)
 src/covers/wrap.html          the full wrap (?spine=&wrap=&hinge=&guides=1)
 src/blender/make_faces.py     paints the blocks' faces and stamps (PIL)
 src/blender/blocks.py         renders the stack for A (Cycles, transparent, with its shadow)
 src/blender/mockup.py         the 3D hardcover mockup of any front + spine
+src/blender/inverted.py       renders the upside-down tower for E (Cycles, full frame)
 src/measure_render.py         finds the stack in the render so A's type can align to it
 src/render.cjs                HTML -> print PNG + vector PDF (Playwright Chromium)
 build.sh                      rebuilds everything
@@ -86,7 +92,7 @@ Change those, not the CSS. Open any file in Chrome with `--allow-file-access-fro
 
 ```
 BLENDER=/path/to/blender-4.5/blender ./build.sh          # everything (about 40 min on 4 cores, mostly Blender)
-./build.sh fronts | thumbs | mockups | wrap              # one part
+./build.sh fronts | thumbs | mockups | sheet | wrap      # one part (MOCKS="d e" for some mockups)
 ```
 Needs Node with Playwright (Chromium), ImageMagick, Python 3 with Pillow, and Blender 4.5 LTS. `build.sh` fetches the Poly Haven CC0
 wood texture and studio HDRI into `assets/` (not committed). The stack render is skipped if

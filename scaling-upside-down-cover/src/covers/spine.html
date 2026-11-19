@@ -15,6 +15,7 @@
   .chips { position: absolute; left: 50%; display: flex; flex-direction: column; gap: 0; }
   .chips i { display: block; }
   body.b .page { background: var(--ink); color: var(--stamp); }
+  body.e .page { background: #12100d; color: var(--stamp); }
   .u { color: var(--up); } .s { color: var(--side); } .d { color: var(--down); }
   body.b .s { color: var(--side); }
 </style>
@@ -39,7 +40,7 @@ ready(() => {
   const size = cap / capEm("Anton");
   const title = document.getElementById("title");
   title.innerHTML = dir === "a" ? 'SCALING <span class="u">UP</span>-<span class="s">SIDE</span>-<span class="d">DOWN</span>'
-    : dir === "b" ? 'SCALING <span class="u" style="color:#6fae7d">UP</span>-<span class="s">SIDE</span>-<span class="d" style="color:#e2584c">DOWN</span>'
+    : dir === "b" || dir === "e" ? 'SCALING <span class="u" style="color:#6fae7d">UP</span>-<span class="s">SIDE</span>-<span class="d" style="color:#e2584c">DOWN</span>'
     : 'SCALING <span class="u">UP</span>-<span class="s">SIDE</span>-<span class="d">DOWN</span>';
   title.style.fontSize = size + "px";
   const name = document.getElementById("name");

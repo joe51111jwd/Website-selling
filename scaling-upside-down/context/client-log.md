@@ -25,12 +25,19 @@ word for word:
 What it means: the cover is part of the graphics project Michael opened on 13 Nov (scope and cost were to be agreed
 first: James should confirm that with him). **Done** (branch `claude/susd-cover`, folder `scaling-upside-down-cover/`,
 see its README):
-- A, The Stack (recommended): his mockup made exact, with a real Blender render of the blocks.
-- B, Upside-Down: a type-only poster.
-- C, The Cycle: the model as a chart.
-- The full wrap for A, with C's chart on the back.
+- 1, The Stack: his mockup made exact, with a real Blender render of the blocks.
+- 2, Upside-Down: a type-only poster.
+- 3, The Cycle: the model as a chart.
+- The full wrap for 1, with 3's chart on the back.
+Mid-task, James changed the brief (relayed by the session that started this one): **five** distinct directions, not
+three, so he can pick the top two to send Michael; for each a flat front, a mockup, a thumbnail check and a short
+rationale; no wrap until he picks. Two directions were added:
+- 4, The Twelve: the twelve systems as a numbered grid in the three paints.
+- 5, The Trap: a Blender render of raw-wood blocks stacked as an upside-down pyramid.
+`out/contact-sheet.jpg` shows all five. The wrap built for direction 1 before the change stays as the template for
+the picks.
 James's taste repo (`james-taste`) could not be read from that session (access refused).
-**Waiting** on James's pick, then on Michael for the page count and paper, trim and binding, the printer's template,
+**Waiting** on James's pick of two, then on Michael for the page count and paper, trim and binding, the printer's template,
 the ISBN and price, the final subtitle and the full back-cover text.
 
 

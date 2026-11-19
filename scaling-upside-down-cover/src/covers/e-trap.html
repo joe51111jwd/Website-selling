@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>E: The Trap (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Direction E: the problem, as one object. Raw-wood blocks (the hires and tools of the site's rush) stacked as an
+     upside-down pyramid, everything resting on one block: scaling upside down. A real render
+     (src/blender/inverted.py), dark and quiet, with the title in the space above it. */
+  .page { background: #12100d; color: var(--stamp); }
+  #bg { position: absolute; left: 0; top: 0; width: 1875px; height: 2775px; }
+  /* deepen the set behind the type: darker at the top and the foot, the tower left as rendered */
+  #shade { position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(14,12,10,.86) 0, rgba(14,12,10,.55) 26%, rgba(14,12,10,0) 44%, rgba(14,12,10,0) 72%, rgba(14,12,10,.7) 88%, rgba(14,12,10,.9) 100%); }
+  #scaling, #usd { font-family: "Anton", sans-serif; line-height: 1; }
+  #usd .u { color: #6fae7d; } #usd .s { color: var(--side); } #usd .d { color: #e2584c; }
+  #usd { color: var(--stamp); }
+  .subtitle, .author { color: var(--stamp); text-align: center; width: 1875px; left: 0; }
+</style>
+</head>
+<body>
+<div class="page">
+  <img id="bg" src="../../out/render/tower.png" alt="">
+  <div id="shade"></div>
+  <div id="scaling" class="abs nowrap">SCALING</div>
+  <div id="usd" class="abs nowrap"><span class="u">UP</span>-<span class="s">SIDE</span>-<span class="d">DOWN</span></div>
+  <div id="sub" class="abs subtitle">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div id="author" class="abs author nowrap">Michael Wentz</div>
+</div>
+<script src="fit.js"></script>
+<script>
+const L = { margin: 230, scalingTop: 205, gap: 56, subTop: 2250, authorBaseline: 2610 };
+const capTop = (el, family, weight = 400) => {
+  const fs = parseFloat(getComputedStyle(el).fontSize);
+  const c = document.createElement("canvas").getContext("2d");
+  c.font = `${weight} ${fs}px ${family}`;
+  const m = c.measureText("H");
+  return (fs - m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2 + m.fontBoundingBoxAscent - m.actualBoundingBoxAscent;
+};
+ready(() => {
+  const s = document.getElementById("scaling");
+  const f = fitWidth(s, 1875 - 2 * L.margin);
+  s.style.left = L.margin - f.left + "px";
+  s.style.top = L.scalingTop - capTop(s, "Anton") + "px";
+  const u = document.getElementById("usd");
+  const fu = fitWidth(u, 1875 - 2 * L.margin);
+  u.style.left = L.margin - fu.left + "px";
+  u.style.top = L.scalingTop + f.capHeight + L.gap - capTop(u, "Anton") + "px";
+  document.getElementById("sub").style.top = L.subTop + "px";
+  const a = document.getElementById("author");
+  a.style.lineHeight = "1";
+  a.style.top = L.authorBaseline - (capTop(a, '"Inter Tight"', 600) + capEm('"Inter Tight"', 600) * parseFloat(getComputedStyle(a).fontSize)) + "px";
+});
+</script>
+</body>
+</html>
