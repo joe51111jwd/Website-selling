@@ -1,14 +1,13 @@
 import { useEffect } from "react";
-import { LazyMotion, MotionConfig, domAnimation } from "motion/react";
 import Lenis from "lenis";
 import { COPY } from "./copy";
-import { Story } from "./components/Story";
-import { Footer, Nav } from "./components/Sections";
-import { ClosedLoop } from "./components/ClosedLoop";
+import { Hero } from "./components/Hero";
+import { Problem } from "./components/Problem";
+import { Cycle } from "./components/Cycle";
+import { Book, Footer, Join, Nav } from "./components/Closing";
 import { NoticeDialog } from "./components/NoticeDialog";
 import { setLenis } from "./lenis";
-import { FOCUS } from "./focus";
-import { FocusPage } from "./components/FocusPage";
+import { requestMeasure } from "./scroll";
 
 type Entry = { y?: number } | null;
 
@@ -74,7 +73,10 @@ export default function App() {
     };
     document.addEventListener("click", onClick);
     window.addEventListener("popstate", onPop);
-    const remeasure = () => lenis?.resize();
+    const remeasure = () => {
+      lenis?.resize();
+      requestMeasure();
+    };
     void document.fonts?.ready.then(remeasure);
     window.addEventListener("load", remeasure, { once: true });
     requestAnimationFrame(() => {
@@ -93,24 +95,18 @@ export default function App() {
     };
   }, []);
 
-  if (FOCUS)
-    return (
-      <>
-        <FocusPage />
-        <NoticeDialog copy={COPY.notice} />
-      </>
-    );
   return (
-    <LazyMotion features={domAnimation} strict>
-      <MotionConfig reducedMotion="user">
-        <Nav />
-        <main>
-          <Story hero={COPY.hero} />
-          <ClosedLoop copy={COPY.closed} />
-        </main>
-        <Footer copy={COPY.footer} />
-        <NoticeDialog copy={COPY.notice} />
-      </MotionConfig>
-    </LazyMotion>
+    <>
+      <Nav />
+      <main>
+        <Hero />
+        <Problem />
+        <Cycle />
+        <Book />
+        <Join />
+      </main>
+      <Footer />
+      <NoticeDialog copy={COPY.notice} />
+    </>
   );
 }

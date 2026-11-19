@@ -2,7 +2,7 @@
   "cleanUrls": true,
   "headers": [
     {
-      "source": "/hero/(.*).webp",
+      "source": "/fall/(.*).bin",
       "headers": [
         {
           "key": "Cache-Control",
@@ -11,83 +11,11 @@
       ]
     },
     {
-      "source": "/frames/(.*).bin",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/frames-lp/(.*).bin",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/frames-lp/(.*)/manifest.json",
+      "source": "/fall/(.*)/manifest.json",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/frames/(.*)/manifest.json",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/closed/(.*).bin",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/closed/(.*).webp",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/closed/(.*)/manifest.json",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/cb/(.*).webp",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/cb/(.*).woff2",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
         }
       ]
     },
@@ -143,16 +71,16 @@
       "source": "/llms-full.txt",
       "destination": "/llms.txt",
       "permanent": true
-    }
-  ],
-  "rewrites": [
+    },
     {
       "source": "/focus",
-      "destination": "/"
+      "destination": "/",
+      "permanent": false
     },
     {
       "source": "/focus/",
-      "destination": "/"
+      "destination": "/",
+      "permanent": false
     }
   ]
 }

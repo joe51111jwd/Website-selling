@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Scaling Up-Side-Down · Michael Wentz</title>
     <meta name="description" content="Revenue Up. Margins Down. How to Avoid the Scaling Trap. A book by Michael Wentz for bootstrapped founders. Join the first-edition list and get the SUSD Bootloader free." />
-    <meta name="theme-color" content="#f1eadf" />
+    <meta name="theme-color" content="#12100d" />
     <meta property="og:title" content="Scaling Up-Side-Down" />
     <meta property="og:description" content="Revenue Up. Margins Down. How to Avoid the Scaling Trap." />
     <meta property="og:type" content="website" />
@@ -45,27 +45,15 @@
     </script>
     <style>
       /* what the page says, for readers and crawlers that don't run JavaScript; the app replaces it */
-      .prerender { max-width: 40rem; margin: 6rem auto; padding: 0 1.5rem; font: 17px/1.55 Georgia, serif; color: #17140f; }
+      html { background: #12100d; }
+      .prerender { max-width: 40rem; margin: 6rem auto; padding: 0 1.5rem; font: 17px/1.55 Georgia, serif; color: #efe6d6; text-align: center; }
+      .prerender a { color: inherit; }
       .js .prerender { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
     </style>
     <script>document.documentElement.classList.add("js");</script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400..800&family=IBM+Plex+Mono:wght@400;500&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;1,400&display=swap" />
-    <script>
-      // the film's frame lists, early: the home page's, or the focus version's (/focus)
-      (function () {
-        var focus = /^\/focus\/?$/.test(location.pathname) || /[?&]focus(=|&|$)/.test(location.search);
-        ["lo", "hi"].forEach(function (k) {
-          var l = document.createElement("link");
-          l.rel = "preload";
-          l.as = "fetch";
-          l.crossOrigin = "anonymous";
-          l.href = "/" + (focus ? "frames-lp/" : "frames/") + k + "/manifest.json";
-          document.head.appendChild(l);
-        });
-      })();
-    </script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;1,400&family=Playfair+Display:wght@900&display=swap" />
   </head>
   <body>
     <div id="root">
@@ -78,6 +66,13 @@
         <p>This book is for the ones who felt the map was wrong but couldn't say why.</p>
         <!-- the back cover -->
         <p>In Scaling Up-Side-Down, entrepreneur Michael Wentz reveals the hidden physics that trap most bootstrapped companies.</p>
+        <!-- L1993, L1995, L1070 -->
+        <p>Always launching. Always hiring. Always adding. But inside, nothing ever settled.</p>
+        <p>Revenue was growing—sometimes faster than ever—but the bank account didn't feel it. Margins were shrinking. And the founder had become the bottleneck on everything.</p>
+        <!-- the back cover -->
+        <p>That isn't scaling. That's scaling upside down.</p>
+        <!-- L1713, L3315-L3317, L1728 -->
+        <p>Up. Side. Down. Repeat. Up for growth. Sideways for stabilization. Down for pruning. You're already doing all three. The problem is you're doing them at once—every day, no rhythm, no separation.</p>
         <p><a href="/appendix#get">Join the first-edition list</a> · <a href="/appendix">The appendix: the SUSD Bootloader</a></p>
       </main>
     </div>
