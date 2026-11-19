@@ -1,0 +1,76 @@
+/* Shared kit for every cover file: fonts, the page at print size, and the print guides.
+   1 CSS px = 1 print pixel at 300 dpi. A front cover is 6 x 9 in trim (1800 x 2700) plus 0.125 in bleed
+   (37.5 px) all round = 1875 x 2775. Open any cover with ?guides=1 to see bleed, trim and safe lines. */
+@font-face { font-family: "Anton"; src: url("../../fonts/Anton-Regular.ttf"); }
+@font-face { font-family: "Playfair Display"; font-weight: 900; src: url("../../fonts/PlayfairDisplay-Black.ttf"); }
+@font-face { font-family: "Libre Caslon Text"; font-weight: 400; src: url("../../fonts/LibreCaslonText-Regular.ttf"); }
+@font-face { font-family: "Libre Caslon Text"; font-weight: 700; src: url("../../fonts/LibreCaslonText-Bold.ttf"); }
+@font-face { font-family: "Libre Caslon Display"; src: url("../../fonts/LibreCaslonDisplay-Regular.ttf"); }
+@font-face { font-family: "Inter Tight"; font-weight: 400; src: url("../../fonts/InterTight-Regular.ttf"); }
+@font-face { font-family: "Inter Tight"; font-weight: 600; src: url("../../fonts/InterTight-SemiBold.ttf"); }
+@font-face { font-family: "Inter Tight"; font-weight: 800; src: url("../../fonts/InterTight-ExtraBold.ttf"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 400; src: url("../../fonts/IBMPlexMono-Regular.ttf"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 600; src: url("../../fonts/IBMPlexMono-SemiBold.ttf"); }
+
+:root {
+  /* the book's kit: the same paints as the site's blocks (scaling-upside-down/render/scene_setup.py) */
+  --up: #1f4a2b;
+  --side: #e09a24;
+  --down: #97201a;
+  --paper: #f1ebdf;
+  --ink: #1c1a17;
+  --stamp: #f1e6cf;
+  --bleed: 37.5px;
+  --safe: 112.5px; /* bleed + 0.25 in: keep words inside this */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #777; }
+
+.page {
+  position: relative;
+  width: 1875px;
+  height: 2775px;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+}
+.abs { position: absolute; }
+.nowrap { white-space: nowrap; }
+
+/* the subtitle and author: the same on every direction */
+.subtitle {
+  font-family: "Libre Caslon Text", serif;
+  font-weight: 400;
+  font-size: 74px;
+  line-height: 1.22;
+  letter-spacing: -0.003em;
+}
+.author {
+  font-family: "Inter Tight", sans-serif;
+  font-weight: 600;
+  font-size: 56px;
+  letter-spacing: 0.30em;
+  text-transform: uppercase;
+}
+
+/* print guides: magenta bleed edge, cyan trim, dashed safe area */
+.guides .page::after {
+  content: "";
+  position: absolute;
+  inset: var(--bleed);
+  outline: 2px solid #00b7ff;
+  box-shadow: 0 0 0 var(--bleed) rgba(255, 0, 170, 0.18);
+  pointer-events: none;
+  z-index: 99;
+}
+.guides .page::before {
+  content: "";
+  position: absolute;
+  inset: var(--safe);
+  outline: 2px dashed rgba(0, 183, 255, 0.8);
+  pointer-events: none;
+  z-index: 99;
+}

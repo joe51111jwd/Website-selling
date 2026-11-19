@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Spine</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* The spine for each direction, at any width: spine.html?dir=a|b|c&in=0.9 (inches; the real width comes from
+     the page count and paper, see README). 9.25 in tall: 9 in trim + 0.125 in bleed at head and tail.
+     US convention: the title reads top to bottom, so the book lying face up shows it the right way. */
+  .page { width: 270px; }
+  .run { position: absolute; left: 50%; top: 50%; white-space: nowrap; transform-origin: 0 0; display: flex; align-items: center; }
+  .t { font-family: "Anton", sans-serif; line-height: 1; }
+  .n { font-family: "Inter Tight", sans-serif; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; }
+  .chips { position: absolute; left: 50%; display: flex; flex-direction: column; gap: 0; }
+  .chips i { display: block; }
+  body.b .page { background: var(--ink); color: var(--stamp); }
+  .u { color: var(--up); } .s { color: var(--side); } .d { color: var(--down); }
+  body.b .s { color: var(--side); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="chips" id="chips"><i style="background:var(--up)"></i><i style="background:var(--side)"></i><i style="background:var(--down)"></i></div>
+  <div class="run" id="run"><span class="t" id="title"></span><span class="n" id="name">Wentz</span></div>
+</div>
+<script src="fit.js"></script>
+<script>
+const q = new URLSearchParams(location.search);
+const dir = q.get("dir") || "c";
+const inch = parseFloat(q.get("in") || "0.9");
+document.body.classList.add(dir);
+const W = Math.round(inch * 300), H = 2775;
+const page = document.querySelector(".page");
+page.style.width = W + "px";
+ready(() => {
+  // type size follows the spine width: cap height 40% of the width, capped for very wide spines
+  const cap = Math.min(W * 0.40, 130);
+  const size = cap / capEm("Anton");
+  const title = document.getElementById("title");
+  title.innerHTML = dir === "a" ? 'SCALING <span class="u">UP</span>-<span class="s">SIDE</span>-<span class="d">DOWN</span>'
+    : dir === "b" ? 'SCALING <span class="u" style="color:#6fae7d">UP</span>-<span class="s">SIDE</span>-<span class="d" style="color:#e2584c">DOWN</span>'
+    : 'SCALING <span class="u">UP</span>-<span class="s">SIDE</span>-<span class="d">DOWN</span>';
+  title.style.fontSize = size + "px";
+  const name = document.getElementById("name");
+  name.style.fontSize = Math.max(cap * 0.62, 30) + "px";
+  name.style.marginLeft = cap * 1.6 + "px";
+  // the three paints as a stack of chips at the head (the blocks, end on), one cap high each
+  const chips = document.getElementById("chips");
+  [...chips.children].forEach((c) => { c.style.width = cap * 1.0 + "px"; c.style.height = cap * 0.62 + "px"; });
+  chips.style.top = 37.5 + 150 + "px";
+  chips.style.marginLeft = -cap / 2 + "px";
+  // the run of type turned 90deg clockwise (reads top to bottom), centred across the spine, starting under the chips
+  const run = document.getElementById("run");
+  const len = run.offsetWidth, thick = run.offsetHeight;
+  const startY = 37.5 + 150 + cap * 0.62 * 3 + cap * 1.0;
+  const endY = H - 37.5 - 150;
+  const y = startY + Math.max(0, (endY - startY - len) / 2);
+  run.style.left = W / 2 + thick / 2 + "px";
+  run.style.top = y + "px";
+  run.style.transform = "rotate(90deg)";
+  if (len > endY - startY) console.log("spine type too long for this spine:", len, endY - startY);
+});
+</script>
+</body>
+</html>

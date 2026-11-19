@@ -11,6 +11,29 @@ under "All of James's messages, word for word".
 
 ---
 
+## Thu 19 Nov 2026: James: design the book cover (a real design, not the AI mockup)
+
+James's brief (a task, not a chat message): design the hardcover for *Scaling Up-Side-Down*, because Michael's cover
+is an AI-generated mockup and the book goes to layout on 1 Dec. Research real covers first. Make three front
+directions (one close to the mockup, one bolder) in real type, vector or real 3D, each flat and as a 3D book, checked
+at Amazon's 150 px. Develop the strongest into a full wrap with the back-cover copy and a placeholder spine. Save it
+in `scaling-upside-down-cover/` on branch `claude/susd-cover`. Michael's guidance for the graphics (email, 13 Nov),
+word for word:
+
+> One thing I particularly appreciated about the website was that you took the material and developed your own creative interpretation without much direction from me. I'd like to give you that same freedom with the book graphics. My only real guidance is that the visuals should make the concepts easier to understand, preserve the underlying information accurately, and feel like part of a consistent visual identity for the book.
+
+What it means: the cover is part of the graphics project Michael opened on 13 Nov (scope and cost were to be agreed
+first: James should confirm that with him). **Done** (branch `claude/susd-cover`, folder `scaling-upside-down-cover/`,
+see its README):
+- A, The Stack (recommended): his mockup made exact, with a real Blender render of the blocks.
+- B, Upside-Down: a type-only poster.
+- C, The Cycle: the model as a chart.
+- The full wrap for A, with C's chart on the back.
+James's taste repo (`james-taste`) could not be read from that session (access refused).
+**Waiting** on James's pick, then on Michael for the page count and paper, trim and binding, the printer's template,
+the ISBN and price, the final subtitle and the full back-cover text.
+
+
 ## Thu 19 Nov 2026: James: "lock down" his site: get the design exact so the message lands (and the $2,000)
 
 > No, I meant lockdown. I need to build his site. We need to get it looking good, sorry, not security-wise. I need you to understand all of the context so we can get our 2K, because he said he'd pay us 2K. Fully understand everything so that we can actually get a good site. I need all the links. I need to go through. I need to make changes. I need to get the exact design down because right now we're not getting across the message.

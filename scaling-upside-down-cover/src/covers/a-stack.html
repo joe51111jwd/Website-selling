@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>A: The Stack (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Direction A: Michael's mockup, made exact. The same layout (SCALING up a tall plank, the three blocks beside
+     it, the subtitle and the name beneath), but the blocks are a real render (src/blender/blocks.py), SCALING is
+     exactly the stack's height, the three stamps share one size, and everything hangs on one centred grid. */
+  #scaling { font-family: "Anton", sans-serif; line-height: 1; color: var(--ink); transform-origin: 0 0; }
+  /* the render's frame must never show: its edges fade out, so the shadow dissolves into the paper */
+  #blocks { position: absolute; -webkit-mask-composite: source-in; mask-composite: intersect; }
+  .subtitle, .author { text-align: center; width: 1875px; left: 0; }
+  .rule { position: absolute; height: 3px; background: var(--ink); }
+</style>
+</head>
+<body>
+<div class="page">
+  <img id="blocks" src="../../out/render/blocks_front.png" alt="">
+  <div id="scaling" class="abs nowrap">SCALING</div>
+  <div id="sub" class="abs subtitle">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div id="author" class="abs author nowrap">Michael Wentz</div>
+</div>
+<script src="../../out/render/blocks_front.js"></script>
+<script src="fit.js"></script>
+<script>
+// Layout in print px (300 dpi). Change these, not the CSS.
+const L = {
+  stackTop: 200,      // top of the blocks (their solid pixels)
+  stackH: 1830,       // the blocks' height on the page; SCALING is set to exactly this length
+  gap: 96,            // between SCALING and the blocks
+  subTop: 2214,
+  authorBaseline: 2596,
+};
+const capTop = (el, family, weight = 400) => {
+  const fs = parseFloat(getComputedStyle(el).fontSize);
+  const c = document.createElement("canvas").getContext("2d");
+  c.font = `${weight} ${fs}px ${family}`;
+  const m = c.measureText("H");
+  return (fs - m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2 + m.fontBoundingBoxAscent - m.actualBoundingBoxAscent;
+};
+ready(() => {
+  const B = window.BLOCKS;
+  const k = L.stackH / (B.y1 - B.y0);        // render px -> page px
+  const stackW = (B.x1 - B.x0) * k;
+
+  // SCALING: its ink length is the stack's height; turned to read bottom to top
+  const s = document.getElementById("scaling");
+  const f = fitWidth(s, L.stackH);
+  const cap = f.capHeight;
+  const groupW = cap + L.gap + stackW;
+  const left = (1875 - groupW) / 2;           // the word and the stack, centred as one group
+
+  // place the unrotated word with its ink's left edge at the origin and cap top at 0, then turn it -90deg about
+  // that point: the ink then runs from y=0 up to y=-stackH, and from x=0 to x=cap
+  const ct = capTop(s, "Anton");
+  s.style.left = -f.left + "px";
+  s.style.top = -ct + "px";
+  s.style.transformOrigin = `${f.left}px ${ct}px`;
+  s.style.transform = `translate(${left}px, ${L.stackTop + L.stackH}px) rotate(-90deg)`;
+  // after the turn the cap top faces left: the ink spans x = 0..cap measured from `left`
+
+  const img = document.getElementById("blocks");
+  img.style.width = B.w * k + "px";
+  img.style.left = left + cap + L.gap - B.x0 * k + "px";
+  img.style.top = L.stackTop - B.y0 * k + "px";
+  // fade only past the blocks (measured in the image's own px): the shadow dissolves, the blocks stay whole
+  const iw = B.w * k, ih = B.h * k;
+  const by = B.y1 * k + 40, bx = B.x1 * k + 60, lx = B.x0 * k - 60;
+  const m = `linear-gradient(to bottom, #000 ${by}px, transparent ${ih}px), linear-gradient(to right, transparent 0, #000 ${lx}px, #000 ${bx}px, transparent ${iw}px)`;
+  img.style.webkitMaskImage = m;
+  img.style.maskImage = m;
+
+  const sub = document.getElementById("sub");
+  sub.style.top = L.subTop + "px";
+  const a = document.getElementById("author");
+  a.style.lineHeight = "1";
+  a.style.top = L.authorBaseline - (capTop(a, '"Inter Tight"', 600) + capEm('"Inter Tight"', 600) * parseFloat(getComputedStyle(a).fontSize)) + "px";
+});
+</script>
+</body>
+</html>

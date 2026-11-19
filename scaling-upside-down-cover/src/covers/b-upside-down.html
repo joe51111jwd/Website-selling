@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>B: Upside-Down (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Direction B: type only. The title does what it says: read down the bands and the words turn over a quarter
+     turn at a time: UP stands, SIDE lies on its side, DOWN hangs upside down. The three paints are the blocks'. */
+  .page { background: var(--ink); color: var(--stamp); }
+  .band { position: absolute; left: 0; width: 1875px; overflow: hidden; }
+  .band .w { position: absolute; font-family: "Anton", sans-serif; line-height: 1; white-space: nowrap; }
+  .up { background: var(--up); }
+  .side { background: var(--side); }
+  .side .w { color: var(--ink); }
+  .down { background: var(--down); }
+  #scaling { font-family: "Anton", sans-serif; line-height: 1; color: var(--stamp); }
+  .subtitle { color: var(--stamp); text-align: left; font-size: 66px; }
+  .author { color: var(--stamp); opacity: 0.92; font-size: 52px; }
+  .rule { position: absolute; height: 3px; background: var(--stamp); opacity: 0.35; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div id="scaling" class="abs nowrap">SCALING</div>
+  <div class="band up"><div class="w" id="w-up">UP</div></div>
+  <div class="band side"><div class="w" id="w-side">SIDE</div></div>
+  <div class="band down"><div class="w" id="w-down">DOWN</div></div>
+  <div id="sub" class="abs subtitle">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div id="author" class="abs author nowrap">Michael Wentz</div>
+</div>
+<script src="fit.js"></script>
+<script>
+// Layout, in print px (300 dpi). Edit these numbers, not the CSS.
+const L = {
+  margin: 150,          // left/right margin from the page edge (bleed included): 0.375 in inside trim
+  scalingTop: 165,      // top of SCALING's capitals
+  bandsTop: 700,        // first band
+  bandH: 540,           // each band
+  cap: 272,             // cap height of UP / SIDE / DOWN (one size for all three; SIDE, on its side, must fit its band)
+  subTop: 2392,         // top of the subtitle's first line box
+  authorBaseline: 2632, // the author's baseline (safe area ends at 2662)
+};
+ready(() => {
+  const W = 1875;
+  // SCALING spans the margins
+  const s = document.getElementById("scaling");
+  const f = fitWidth(s, W - 2 * L.margin);
+  const asc = (el) => {  // distance from the element's top to the cap top, for line-height 1
+    const c = document.createElement("canvas").getContext("2d");
+    c.font = `${getComputedStyle(el).fontSize} Anton`;
+    const m = c.measureText("H");
+    return (m.fontBoundingBoxAscent + m.fontBoundingBoxDescent - parseFloat(getComputedStyle(el).fontSize)) / 2 * -1 + m.fontBoundingBoxAscent - m.actualBoundingBoxAscent;
+  };
+  s.style.left = L.margin - f.left + "px";
+  s.style.top = L.scalingTop - asc(s) + "px";
+
+  const em = capEm("Anton");
+  const size = L.cap / em;
+  const bands = ["up", "side", "down"];
+  bands.forEach((k, i) => {
+    const b = document.querySelector("." + k);
+    b.style.top = L.bandsTop + i * L.bandH + "px";
+    b.style.height = L.bandH + "px";
+    const w = document.getElementById("w-" + k);
+    w.style.fontSize = size + "px";
+    // the ink box of the word, in its own unrotated frame
+    const c = document.createElement("canvas").getContext("2d");
+    c.font = `${size}px Anton`;
+    const m = c.measureText(w.textContent);
+    const inkW = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+    const top = asc(w);
+    // place the word's ink box (unrotated: inkW x cap) with its centre at (cx, cy), then turn it about that centre
+    let cx, cy, rot;
+    // the words step across the page as they turn: UP at the left margin, SIDE in the middle, DOWN at the right
+    if (k === "up") { rot = 0; cx = L.margin + inkW / 2; cy = L.bandH / 2; }
+    if (k === "side") { rot = 90; cx = W / 2; cy = L.bandH / 2; }                  // lying on its side
+    if (k === "down") { rot = 180; cx = W - L.margin - inkW / 2; cy = L.bandH / 2; } // upside down
+    w.style.left = cx - inkW / 2 - m.actualBoundingBoxLeft + "px";
+    w.style.top = cy - L.cap / 2 - top + "px";
+    w.style.transformOrigin = `${inkW / 2 + m.actualBoundingBoxLeft}px ${top + L.cap / 2}px`;
+    w.style.transform = `rotate(${rot}deg)`;
+    if (k === "side" && inkW > L.bandH - 40) console.log("SIDE is taller than its band:", inkW);
+  });
+
+  // subtitle and author under the bands, on the left margin
+  const below = L.bandsTop + 3 * L.bandH;
+  const sub = document.getElementById("sub");
+  sub.style.left = L.margin + "px";
+  sub.style.top = L.subTop + "px";
+  const a = document.getElementById("author");
+  a.style.left = L.margin + "px";
+  const c2 = document.createElement("canvas").getContext("2d");
+  c2.font = `600 52px "Inter Tight"`;
+  const mm = c2.measureText("M");
+  // line-height normal: the baseline sits fontBoundingBoxAscent below the top
+  a.style.lineHeight = "1";
+  a.style.top = L.authorBaseline - ((52 - mm.fontBoundingBoxAscent - mm.fontBoundingBoxDescent) / 2 + mm.fontBoundingBoxAscent) + "px";
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>C: The Cycle (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Direction C: the book's model as a chart, drawn like an analyst's exhibit (Michael was a Morningstar equity
+     analyst). Up (grow), Side (stabilize), Down (prune), repeated: the line climbs past where the "all at once"
+     curve (dashed) spiked and crashed. The title is the chart's legend: UP-SIDE-DOWN in the three paints. */
+  #scaling { font-family: "Anton", sans-serif; line-height: 1; color: var(--ink); }
+  svg { position: absolute; left: 0; top: 0; }
+  #usd { font-family: "Anton", sans-serif; line-height: 1; color: var(--ink); }
+  #usd .u { color: var(--up); } #usd .s { color: var(--side); } #usd .d { color: var(--down); }
+  .subtitle { text-align: left; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div id="scaling" class="abs nowrap">SCALING</div>
+  <div id="usd" class="abs nowrap"><span class="u">UP</span>-<span class="s">SIDE</span>-<span class="d">DOWN</span></div>
+  <svg id="chart" width="1875" height="2775" viewBox="0 0 1875 2775"></svg>
+  <div id="sub" class="abs subtitle">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div id="author" class="abs author nowrap">Michael Wentz</div>
+</div>
+<script src="fit.js"></script>
+<script>
+// Everything is in print px (300 dpi). The chart's geometry is the book's model; change it here.
+const L = {
+  margin: 150,
+  scalingTop: 165,
+  titleGap: 70,                   // between SCALING and UP-SIDE-DOWN
+  // the plot area
+  x0: 150, x1: 1725, base: 2040, top: 1130,
+  // one cycle, as fractions of a cycle's width / of the plot's height
+  cycles: 3,
+  up: { dx: 0.40, dy: 0.36 },    // grow: a long climb
+  side: { dx: 0.40 },             // stabilize: flat
+  down: { dx: 0.20, dy: 0.10 },   // prune: a short step down, never back to where the climb began
+  trapPeak: 0.55,                 // the "all at once" spike: higher than the first cycle, lower than the second
+  stroke: 34,
+  subTop: 2250,
+  authorBaseline: 2632,
+};
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs, parent) => {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  (parent || document.getElementById("chart")).appendChild(e);
+  return e;
+};
+const capTop = (el, family, weight = 400) => {
+  const fs = parseFloat(getComputedStyle(el).fontSize);
+  const c = document.createElement("canvas").getContext("2d");
+  c.font = `${weight} ${fs}px ${family}`;
+  const m = c.measureText("H");
+  return (fs - m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2 + m.fontBoundingBoxAscent - m.actualBoundingBoxAscent;
+};
+
+ready(() => {
+  // SCALING across the margins
+  const s = document.getElementById("scaling");
+  const f = fitWidth(s, 1875 - 2 * L.margin);
+  s.style.left = L.margin - f.left + "px";
+  s.style.top = L.scalingTop - capTop(s, "Anton") + "px";
+  const u = document.getElementById("usd");
+  const fu = fitWidth(u, 1875 - 2 * L.margin);
+  u.style.left = L.margin - fu.left + "px";
+  u.style.top = L.scalingTop + f.capHeight + L.titleGap - capTop(u, "Anton") + "px";
+
+  const H = L.base - L.top;
+  const cw = (L.x1 - L.x0) / L.cycles;
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+  // the grid: a baseline and four faint rules, like an exhibit
+  for (let i = 1; i <= 4; i++) {
+    const y = L.base - (H * i) / 4;
+    el("line", { x1: L.x0, x2: L.x1, y1: y, y2: y, stroke: css("--ink"), "stroke-opacity": 0.14, "stroke-width": 2 });
+  }
+  el("line", { x1: L.x0, x2: L.x1, y1: L.base, y2: L.base, stroke: css("--ink"), "stroke-width": 4 });
+
+  // the cycle: up, side, down, repeated
+  const segs = [];
+  let x = L.x0, y = L.base;
+  for (let c = 0; c < L.cycles; c++) {
+    const parts = [
+      ["up", cw * L.up.dx, -H * L.up.dy],
+      ["side", cw * L.side.dx, 0],
+      ["down", cw * L.down.dx, H * L.down.dy],
+    ];
+    for (const [k, dx, dy] of parts) {
+      if (c === L.cycles - 1 && k === "down") continue; // end on the plateau, highest yet
+      segs.push({ k, x1: x, y1: y, x2: x + dx, y2: y + dy, c });
+      x += dx; y += dy;
+    }
+  }
+  const peak = Math.min(...segs.map((s) => s.y2));
+
+  // the scaling trap: everything at once. It shoots up past the first cycles, peaks below where the cycle ends,
+  // and crashes back to the baseline. Dashed and grey: the road not to take.
+  const trapPeakX = L.x0 + cw * 0.62, trapPeakY = L.base - H * L.trapPeak;
+  const trap = `M ${L.x0} ${L.base} C ${L.x0 + cw * 0.38} ${L.base - 12}, ${L.x0 + cw * 0.56} ${L.base - H * 0.18}, ${trapPeakX} ${trapPeakY}`
+    + ` C ${L.x0 + cw * 0.68} ${trapPeakY + H * 0.02}, ${L.x0 + cw * 0.78} ${L.base - H * 0.12}, ${L.x0 + cw * 0.96} ${L.base}`;
+  el("path", { d: trap, fill: "none", stroke: css("--ink"), "stroke-opacity": 0.62, "stroke-width": 11, "stroke-dasharray": "30 20", "stroke-linecap": "butt" });
+
+  // draw the cycle as one line of three paints, joins mitred so it reads as one stroke
+  for (const sg of segs) {
+    el("line", { x1: sg.x1, y1: sg.y1, x2: sg.x2, y2: sg.y2, stroke: css("--" + sg.k), "stroke-width": L.stroke, "stroke-linecap": "square" });
+  }
+  // the end: a solid dot where the line is now, higher than the trap ever got
+  const last = segs[segs.length - 1];
+  el("circle", { cx: last.x2, cy: last.y2, r: L.stroke * 0.95, fill: css("--side") });
+
+  // subtitle and author
+  const sub = document.getElementById("sub");
+  sub.style.left = L.margin + "px";
+  sub.style.top = L.subTop + "px";
+  const a = document.getElementById("author");
+  a.style.left = L.margin + "px";
+  a.style.lineHeight = "1";
+  a.style.top = L.authorBaseline - (capTop(a, '"Inter Tight"', 600) + capEm('"Inter Tight"', 600) * parseFloat(getComputedStyle(a).fontSize)) + "px";
+});
+</script>
+</body>
+</html>
