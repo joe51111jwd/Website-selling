@@ -4,6 +4,8 @@
 
 import { TRACKS, type Track } from "./data";
 
+export const EQ_BANDS = [60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000];
+
 type Listener = () => void;
 
 class Radio {
@@ -20,6 +22,14 @@ class Radio {
   private el: HTMLAudioElement | null = null;
   private listeners = new Set<Listener>();
   private beatListeners = new Set<(t: number, strong: boolean) => void>();
+  private eq: BiquadFilterNode[] = [];
+  private eqGain = EQ_BANDS.map(() => 0);
+  volume = 0.8;
+  repeat = true;
+  /** Playback position for the placeholder loop, seconds. */
+  private scrub = 0;
+  private anchor = 0;
+  readonly length = 201;
 
   get track(): Track {
     return TRACKS[this.index];
@@ -42,21 +52,33 @@ class Radio {
     const ctx = new AudioContext();
     this.ctx = ctx;
     this.out = ctx.createGain();
-    this.out.gain.value = 0.8;
+    this.out.gain.value = this.volume;
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -14;
     comp.ratio.value = 4;
     this.analyser = ctx.createAnalyser();
     this.analyser.fftSize = 256;
     this.analyser.smoothingTimeConstant = 0.72;
-    this.out.connect(comp).connect(this.analyser).connect(ctx.destination);
+    let node: AudioNode = this.out;
+    this.eq = EQ_BANDS.map((freq, i) => {
+      const f = ctx.createBiquadFilter();
+      f.type = "peaking";
+      f.frequency.value = freq;
+      f.Q.value = 1.15;
+      f.gain.value = this.eqGain[i];
+      node.connect(f);
+      node = f;
+      return f;
+    });
+    node.connect(comp).connect(this.analyser).connect(ctx.destination);
     return ctx;
   }
 
   get time() {
-    if (!this.ctx || !this.playing) return 0;
     if (this.el) return this.el.currentTime;
-    return this.ctx.currentTime - this.started;
+    if (!this.ctx || !this.playing) return this.scrub;
+    const t = this.scrub + (this.ctx.currentTime - this.anchor);
+    return ((t % this.length) + this.length) % this.length;
   }
 
   toggle() {
@@ -68,27 +90,53 @@ class Radio {
     void ctx.resume();
     if (this.playing) return;
     this.playing = true;
-    this.static(0.35);
-    this.startTrack(ctx.currentTime + 0.3);
+    this.anchor = ctx.currentTime;
+    this.startTrack(ctx.currentTime + 0.02);
     this.emit();
   }
 
   pause() {
+    if (this.playing) this.scrub = this.time;
     this.playing = false;
     clearInterval(this.timer);
     this.el?.pause();
     this.emit();
   }
 
+  seek(frac: number) {
+    this.scrub = Math.max(0, Math.min(1, frac)) * this.length;
+    if (this.ctx) this.anchor = this.ctx.currentTime;
+    if (this.el && this.el.duration) this.el.currentTime = frac * this.el.duration;
+    this.emit();
+  }
+
+  setVolume(v: number) {
+    this.volume = Math.max(0, Math.min(1, v));
+    if (this.out) this.out.gain.value = this.volume;
+    this.emit();
+  }
+
+  setEq(i: number, db: number) {
+    const g = Math.max(-12, Math.min(12, db));
+    this.eqGain[i] = g;
+    this.ensure();
+    if (this.eq[i]) this.eq[i].gain.value = g;
+  }
+
+  eqAt(i: number) {
+    return this.eqGain[i] ?? 0;
+  }
+
   skip(d: number) {
+    this.scrub = 0;
     this.index = (this.index + d + TRACKS.length) % TRACKS.length;
+    if (this.ctx) this.anchor = this.ctx.currentTime;
     if (!this.playing) return this.emit();
     clearInterval(this.timer);
     this.el?.pause();
     this.el = null;
     const ctx = this.ensure();
-    this.static(0.6);
-    this.startTrack(ctx.currentTime + 0.55);
+    this.startTrack(ctx.currentTime + 0.05);
     this.emit();
   }
 
@@ -101,7 +149,8 @@ class Radio {
       el.crossOrigin = "anonymous";
       ctx.createMediaElementSource(el).connect(this.out);
       this.el = el;
-      el.onended = () => this.skip(1);
+      el.loop = this.repeat;
+      el.onended = () => { if (!this.repeat) this.skip(1); };
       setTimeout(() => void el.play(), Math.max(0, (at - ctx.currentTime) * 1000));
       return;
     }

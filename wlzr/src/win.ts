@@ -3,6 +3,18 @@
 import { raise } from "./z";
 
 const open = new Map<string, HTMLElement>();
+const hooks = new Set<(id: string, open: boolean) => void>();
+
+export function onWindow(fn: (id: string, open: boolean) => void) {
+  hooks.add(fn);
+  return () => hooks.delete(fn);
+}
+export function isWindowOpen(id: string) {
+  return open.has(id);
+}
+function tell(id: string, openState: boolean) {
+  hooks.forEach((f) => f(id, openState));
+}
 
 export type WinOpts = {
   id: string;
@@ -29,7 +41,7 @@ export function openWindow(o: WinOpts) {
     return had;
   }
   const w = document.createElement("section");
-  w.className = `win win--${o.theme ?? "classic"} win--in`;
+  w.className = `win win--${o.theme ?? "classic"} win--${o.id} win--in`;
   w.setAttribute("role", "dialog");
   w.setAttribute("aria-label", o.title);
   w.innerHTML = `<header class="win__bar"><span class="win__title">${o.title}</span><span class="win__btns">
@@ -48,10 +60,13 @@ export function openWindow(o: WinOpts) {
   document.getElementById("layer")!.append(w);
   raise(w);
   open.set(o.id, w);
+  tell(o.id, true);
 
   const close = () => {
+    if (!open.has(o.id)) return;
     w.classList.add("win--out");
     open.delete(o.id);
+    tell(o.id, false);
     o.onClose?.();
     setTimeout(() => w.remove(), 180);
   };
