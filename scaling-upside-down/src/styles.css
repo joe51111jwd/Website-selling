@@ -761,7 +761,7 @@ html.is-focus[data-clbook] .nav-cta .copy { opacity: 0; visibility: hidden; poin
 .hl-d { font: italic 400 clamp(17px, 1.3vw, 21px) / 1.42 var(--serif); color: #3b342b; margin: 18px auto 0; max-width: 34ch; text-wrap: pretty; }
 .hl-lead { font: italic 400 clamp(19px, 1.7vw, 27px) / 1.2 var(--serif); color: #4a4136; margin-bottom: 8px; }
 .hl-in.is-big .hl-h { font-size: clamp(38px, 4.6vw, 76px); line-height: 1; letter-spacing: -0.025em; color: #2a1411; }
-.hl[data-wash] .hl-in { padding: 18px 22px 22px; border-radius: 18px; background: radial-gradient(closest-side, rgba(243, 237, 226, 0.94), rgba(243, 237, 226, 0.78) 70%, rgba(243, 237, 226, 0)); }
+.hl[data-wash] .hl-in { padding: 18px 22px 22px; border-radius: 20px; background: rgba(246, 241, 232, 0.9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 10px 40px rgba(40, 30, 15, 0.12); }
 @media (max-width: 600px) {
   .hl-k { font-size: 10.5px; margin-bottom: 12px; }
   .hl-h { font-size: 25px; }

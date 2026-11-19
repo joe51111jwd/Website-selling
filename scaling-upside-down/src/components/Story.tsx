@@ -36,7 +36,7 @@ const HERO_BOOK = { foot: 0.808, h: 0.658, right: 0.452, hUpright: 0.52, rightUp
 /** the hardcover's own width over its height (the picture round it holds its shadow on the table) */
 const BOOK_AR = (BOOK.box[2] * BOOK.w) / (BOOK.box[3] * BOOK.h);
 /** where the hero's picture must reach on the left so the book stands whole beside the title page (with its shadow) */
-const bookLeft = (upright: boolean) => (upright ? HERO_BOOK.rightUpright - (HERO_BOOK.hUpright * BOOK_AR) / 1.6 : HERO_BOOK.right - (HERO_BOOK.h * BOOK_AR) / 1.6) - 0.012;
+const bookLeft = (upright: boolean) => (upright ? HERO_BOOK.rightUpright - (HERO_BOOK.hUpright * BOOK_AR) / 1.6 : HERO_BOOK.right - (HERO_BOOK.h * BOOK_AR) / 1.6) - 0.03;
 const smooth01 = (t: number) => {
   const c = clamp(t, 0, 1);
   return c * c * (3 - 2 * c);
@@ -294,7 +294,7 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
       return { dh: fitDh[i0] + (fitDh[i1] - fitDh[i0]) * k, oy: fitOy[i0] + (fitOy[i1] - fitOy[i0]) * k };
     };
     /** the home page: where frame's picture sits on a cw × ch screen (any unit), as draw() paints it */
-    const homeRect = (frame: number, cw: number, ch: number, aspect: number) => {
+    const homeRect = (frame: number, cw: number, ch: number, aspect: number, blend = true) => {
       let dw: number;
       let dh: number;
       let oy: number;
@@ -321,7 +321,7 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
       // the subject on the screen's centre line (a picture wider than the screen still covers it)
       const fx = focusAt(frame >= HERO_FRAME ? Math.max(frame, SUBJECT_FRAMES[0]) : frame);
       let ox = dw > cw ? Math.min(0, Math.max(cw - dw, cw * 0.5 - fx * dw)) : Math.min(cw - dw, Math.max(0, cw * 0.5 - fx * dw));
-      const w = heroAt ? heroWeight(frame) : 0;
+      const w = heroAt && blend ? heroWeight(frame) : 0; // (the lines are set from the film's own framing)
       if (heroAt && w) {
         const hw = heroAt.w * cw;
         ox += (heroAt.x * cw - ox) * w;
@@ -808,17 +808,33 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
         const key = `${vw}x${vh}`;
         if (homePlaced[k] === key) return;
         homePlaced[k] = key;
+        // the blocks' outline over the whole time the line is up (a slab lying in front is outside the subject at the
+        // hold itself), from the film's own framing (never the hero's, which a jump from the top may still be easing out of)
         const frame = Math.round(frameAt(ln.hold));
-        const sub = subjectAt(frame);
-        const r = homeRect(frame, cv.width, cv.height, 1.6);
+        const r = homeRect(frame, cv.width, cv.height, 1.6, false);
         const S = scale || 1;
-        const L = sub ? (r.ox + (sub.x - sub.w / 2) * r.dw) / S : vw * 0.35;
-        const R = sub ? (r.ox + (sub.x + sub.w / 2) * r.dw) / S : vw * 0.65;
-        const T = sub ? Math.max(0, (r.oy + sub.t * r.dh) / S) : vh * 0.2;
-        const B = sub ? Math.min(vh, (r.oy + sub.b * r.dh) / S) : vh * 0.9;
-        const menu = vh < 520 ? 60 : vw <= 900 ? 76 : 92;
+        let sl = 1;
+        let sr = 0;
+        let st = 1;
+        let sb = 0;
+        const f0 = Math.round(frameAt(ln.at[0]));
+        const f1 = Math.round(frameAt(Math.min(1, ln.at[1])));
+        for (let f = Math.min(f0, f1); f <= Math.max(f0, f1); f++) {
+          const u = subjectAt(f);
+          if (!u) continue;
+          sl = Math.min(sl, u.x - u.w / 2);
+          sr = Math.max(sr, u.x + u.w / 2);
+          st = Math.min(st, u.t);
+          sb = Math.max(sb, u.b);
+        }
+        const has = sr > sl;
+        const L = has ? (r.ox + sl * r.dw) / S : vw * 0.35;
+        const R = has ? (r.ox + sr * r.dw) / S : vw * 0.65;
+        const T = has ? Math.max(0, (r.oy + st * r.dh) / S) : vh * 0.2;
+        const B = has ? Math.min(vh, (r.oy + sb * r.dh) / S) : vh * 0.9;
+        const menu = vh < 520 ? 60 : 76; // (the menu's pill and its margin)
         const gut = vw <= 600 ? 20 : 40;
-        const gap = vw <= 900 ? 24 : 44;
+        const gap = vw <= 900 ? 24 : 40;
         const set = (maxW: number, wash = false) => {
           el.style.maxWidth = `${Math.max(0, Math.round(maxW))}px`;
           el.toggleAttribute("data-wash", wash);
@@ -829,24 +845,27 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
         const roomB = vh - B - gap - 24;
         const wide = vw / vh >= 1;
         const pl = ln.place;
-        // a landscape screen: where it was set for its picture, kept clear of the blocks however the screen crops it
-        const placed = () => {
-          const ax = (r.ox + pl.x * r.dw) / S;
-          const ay = (r.oy + pl.y * r.dh) / S;
-          const pw = (pl.w * r.dw) / S;
-          if (pl.at === "top") {
-            const { w, h } = set(Math.min(pw, vw - 2 * gut));
-            const lo = menu;
-            const hi = T - gap - h;
-            if (hi < lo) return false;
-            put(clamp(ax - w / 2, gut, vw - gut - w), clamp(ay - h / 2, lo, hi));
-            return true;
-          }
-          const x0 = pl.at === "right" ? R + gap : gut;
-          const x1 = pl.at === "right" ? vw - gut : L - gap;
-          if (x1 - x0 < (vw <= 900 ? 220 : 280)) return false;
-          const { w, h } = set(Math.min(pw, x1 - x0));
-          put(clamp(ax - w / 2, x0, x1 - w), clamp(ay - h / 2, menu, vh - h - 24));
+        const ax = (r.ox + pl.x * r.dw) / S;
+        const ay = (r.oy + pl.y * r.dh) / S;
+        const pw = (pl.w * r.dw) / S;
+        // above the blocks, where it was set for its picture
+        const above = () => {
+          const { w, h } = set(Math.min(Math.max(pw, 320), vw - 2 * gut));
+          const hi = T - gap - h;
+          if (hi < menu) return false;
+          put(clamp(ax - w / 2, gut, vw - gut - w), clamp(ay - h / 2, menu, hi));
+          return true;
+        };
+        // beside the blocks (a landscape screen): where it was set for its picture, kept clear of them however the
+        // screen crops it; never so narrow, or so tall, that it runs under the menu
+        const beside = (right: boolean, min: number) => {
+          const x0 = right ? R + gap : gut;
+          const x1 = right ? vw - gut : L - gap;
+          if (x1 - x0 < min) return false;
+          const { w, h } = set(Math.min(Math.max(pw, 260), x1 - x0));
+          if (h > vh - menu - 24) return false;
+          const x = right === (pl.at === "right") ? ax - w / 2 : (x0 + x1 - w) / 2; // (on the other side: centred in it)
+          put(clamp(x, x0, x1 - w), clamp(ay - h / 2, menu, vh - h - 24));
           return true;
         };
         // above or under the blocks, across the screen, centred in that band
@@ -859,8 +878,16 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
           return true;
         };
         const first = pl.upright === "top";
-        if (wide ? placed() || band(roomT >= roomB) || band(roomT < roomB) : band(first) || band(!first)) return;
-        // no clear room: at the top, on a soft wash of paper
+        const side = pl.at === "right";
+        const ok = wide
+          ? (pl.at === "top" ? above() : beside(side, vw <= 900 ? 220 : 260)) ||
+            beside(!side, 220) ||
+            (pl.at !== "top" && above()) ||
+            band(roomT >= roomB) ||
+            band(roomT < roomB)
+          : band(first) || band(!first);
+        if (ok) return;
+        // no clear room anywhere (a building that fills an upright screen): at the top, on a card of paper
         const { w } = set(Math.min(560, vw - 2 * gut), true);
         put((vw - w) / 2, menu);
       });

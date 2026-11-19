@@ -53,15 +53,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400..800&family=IBM+Plex+Mono:wght@400;500&family=Libre+Caslon+Display&family=Libre+Caslon+Text:ital,wght@0,400;1,400&display=swap" />
     <script>
-      // the film's frame lists, early: the home page's, or the focus version's (/focus)
+      // the film's frame lists, early (the focus version's were retired with /focus on 19 Nov)
       (function () {
-        var focus = /^\/focus\/?$/.test(location.pathname) || /[?&]focus(=|&|$)/.test(location.search);
         ["lo", "hi"].forEach(function (k) {
           var l = document.createElement("link");
           l.rel = "preload";
           l.as = "fetch";
           l.crossOrigin = "anonymous";
-          l.href = "/" + (focus ? "frames-lp/" : "frames/") + k + "/manifest.json";
+          l.href = "/frames/" + k + "/manifest.json";
           document.head.appendChild(l);
         });
       })();
