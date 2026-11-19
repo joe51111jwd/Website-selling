@@ -2,7 +2,7 @@
 // node --experimental-strip-types scripts/check-herohold.mjs
 import { wheelStep, wheelState, GESTURE_GAP_MS, HOLD_MAX_MS } from "../src/herohold.ts";
 
-const STOP = 120; // px: about where the hold ends on a laptop (0.01 of the story's scroll)
+const STOP = 103; // px: about where the hold ends on a laptop (0.01 of the story's scroll)
 let failed = 0;
 const check = (name, ok, extra = "") => {
   console.log(`${ok ? "ok  " : "FAIL"} ${name}${extra ? `  (${extra})` : ""}`);

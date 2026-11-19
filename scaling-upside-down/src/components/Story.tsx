@@ -2,18 +2,19 @@ import { useEffect, useRef, useState } from "react";
 import { useMotionValueEvent, useScroll, useTransform, type MotionValue } from "motion/react";
 import * as m from "motion/react-m";
 import { FrameStore } from "../frames";
-import { FOCUS_HERO, HERO_HOLD, FOCUS_LINES, HERO_FRAME, INTRO_MS, OPEN_P, STORY_VH, filmP, FOCUS_SPANS, focusAt, focusBox, focusHold, focusIndex, focusSpan, frameAt, HERO_GONE, introFrame, portraitFit, setHeroCap, sp, subjectAt, SUBJECT_FRAMES, type FocusSide } from "../story";
+import { FOCUS_HERO, HERO_HOLD, HOME_LINES, FOCUS_LINES, HERO_FRAME, INTRO_MS, OPEN_P, STORY_VH, filmP, FOCUS_SPANS, focusAt, focusBox, focusHold, focusIndex, focusSpan, frameAt, HERO_GONE, introFrame, portraitFit, setHeroCap, sp, subjectAt, SUBJECT_FRAMES, type FocusSide } from "../story";
 import { FOCUS } from "../focus";
-import { FOCUS_COPY, type SiteCopy } from "../copy";
+import { FOCUS_COPY, HOME_COPY, type SiteCopy } from "../copy";
 import { JoinLink } from "./JoinLink";
 import HERO from "../hero.json";
+import { BOOK } from "../book";
 import { holdHero } from "../herohold";
 import { lenis } from "../lenis";
 
 // The story is told by the blocks alone (render/words_film.py): every word in it is stamped on a block, so
 // this description carries those words for screen readers (Always launching. Always hiring. Always adding.,
 // L1993; Sideways for stabilization. Down for pruning. Up for growth., L3316, L3317, L3315)
-const STORY_ALT = "The Up, Side and Down blocks lie face up on a table, then stand up and stack beside a plank that reads Scaling. Three planks go on top, reading from the top: Always launching. Always hiring. Always adding. More and more blocks labelled with hires and tools are thrown on, faster and crookeder, until the tower falls over. Scaling and the Up, Side and Down blocks turn upside down together, and are set right. A yellow slab slides in: Sideways for stabilization. Twelve painted system blocks slide in from both sides into a three-colour foundation. A red slab is lowered: Down for pruning. The three planks and the dead weight are cleared away. A green slab rises out of the table: Up for growth. The blocks that stayed go back on the foundation, and new blocks rise from them into a taller building that holds.";
+const STORY_ALT = "The Up, Side and Down blocks lie face up on a table, then stand up and stack beside a plank that reads Scaling, next to the hardcover of the book, whose cover carries the same blocks. Three planks go on top, reading from the top: Always launching. Always hiring. Always adding. More and more blocks labelled with hires and tools are thrown on, faster and crookeder, until the tower falls over. Scaling and the Up, Side and Down blocks turn upside down together, and are set right. A yellow slab slides in: Sideways for stabilization. Twelve painted system blocks slide in from both sides into a three-colour foundation. A red slab is lowered: Down for pruning. The three planks and the dead weight are cleared away. A green slab rises out of the table: Up for growth. The blocks that stayed go back on the foundation, and new blocks rise from them into a taller building that holds.";
 const FOCUS_ALT = "The Up, Side and Down blocks lie face up on a table, then stand up and stack. Three planks go on top, reading from the top Always launching, Always hiring, Always adding; then more and more blocks, faster and crookeder, until the tower falls over. The Up, Side and Down stack turns upside down and is set right again. Twelve painted system blocks are set in from both sides into a three-colour foundation, the planks and the dead weight are cleared away, the six blocks that stayed go back on it, and new plain blocks rise from them into a taller building that holds.";
 /** the focus version plays its own film (render/focus_film.py), opening with the same 89 pictures */
 const FRAMES = FOCUS ? "frames-focus" : "frames";
@@ -27,6 +28,15 @@ const MOVED = FOCUS ? OPEN_P * 0.62 : 0.0005;
 const EDGE = 0.012;
 /** home: the scroll over which the hero's picture steps in to the film's (the hero frame holds meanwhile) */
 const HERO_STEP_IN = [sp(0.004), sp(0.03)];
+// The hero: the hardcover stands on the table beside the title page of blocks it is made of (Michael, 30 Oct:
+// "the actual book cover featured more prominently, especially near the beginning"). In the hero picture's own
+// shares: its foot on the table where the stack stands, its height the stack's, its right edge just short of the
+// SCALING plank. Upright screens take a smaller book, so the title page keeps its size
+const HERO_BOOK = { foot: 0.808, h: 0.658, right: 0.452, hUpright: 0.52, rightUpright: 0.462 };
+/** the hardcover's own width over its height (the picture round it holds its shadow on the table) */
+const BOOK_AR = (BOOK.box[2] * BOOK.w) / (BOOK.box[3] * BOOK.h);
+/** where the hero's picture must reach on the left so the book stands whole beside the title page (with its shadow) */
+const bookLeft = (upright: boolean) => (upright ? HERO_BOOK.rightUpright - (HERO_BOOK.hUpright * BOOK_AR) / 1.6 : HERO_BOOK.right - (HERO_BOOK.h * BOOK_AR) / 1.6) - 0.012;
 const smooth01 = (t: number) => {
   const c = clamp(t, 0, 1);
   return c * c * (3 - 2 * c);
@@ -66,10 +76,34 @@ function FocusLineView({ id, at, progress, refEl }: { id: string; at: [number, n
   );
 }
 
+/** home: one of Michael's lines, in the open paper beside the blocks while the film holds on what it says. The loop
+ *  sets where it sits (the outer box, from the held picture); it fades and rises inside it */
+function HomeLineView({ id, at, progress, refEl }: { id: string; at: [number, number]; progress: MotionValue<number>; refEl: (el: HTMLDivElement | null) => void }) {
+  const line = HOME_COPY[id];
+  const [a, b] = at;
+  const f = Math.min(0.012, (b - a) / 4);
+  // (the last line stays up to the story's end, and leaves with it)
+  const last = b >= 1;
+  const range = last ? [a, a + f] : [a, a + f, b - f, b];
+  const opacity = useTransform(progress, range, last ? [0, 1] : [0, 1, 1, 0]);
+  const y = useTransform(progress, range, reduced ? range.map(() => 0) : last ? [18, 0] : [18, 0, 0, -12]);
+  return (
+    <div className="hl" ref={refEl}>
+      <m.article className={`hl-in${line.big ? " is-big" : ""}`} style={{ opacity, y }}>
+        {line.kicker && <p className="hl-k">{line.kicker}</p>}
+        {line.lead && <p className="hl-lead">{line.lead}</p>}
+        <h2 className="hl-h">{line.headline.replace(/—/g, "\u2060—")}</h2>
+        {line.detail && <p className="hl-d">{line.detail.replace(/—/g, "\u2060—")}</p>}
+      </m.article>
+    </div>
+  );
+}
+
 export function Story({ hero }: { hero: SiteCopy["hero"] }) {
   const section = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const lines = useRef<(HTMLDivElement | null)[]>([]);
+  const homeLines = useRef<(HTMLDivElement | null)[]>([]);
   const linesBox = useRef<HTMLDivElement>(null);
   const joinEl = useRef<HTMLAnchorElement>(null);
   const [phase, setPhase] = useState<"loading" | "ready">("loading");
@@ -132,11 +166,13 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
     let lastFrame = 0;
     let scale = 1; // the device pixel ratio the canvas was sized with
     let placed: string[] = []; // focus: where each line was last set, by the picture's position
+    let homePlaced: string[] = []; // home: the window size each line was last set for
 
     const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
     // focus: the lines are set again for a new window size
     const measure = () => {
       placed = [];
+      homePlaced = [];
     };
     /** focus: where frame's picture sits (device px). Its subject towards the screen's centre line, but a
      *  picture wider than the screen always covers it (no gap at a side); on an upright screen it sits above
@@ -333,6 +369,7 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
       if (top > 0 && ox + dw < cw) ctx.drawImage(cv, ri, 0, 1, top, ri + 1, 0, cw - ri - 1, top);
       if (bot < ch && ox > 0) ctx.drawImage(cv, li, bot, 1, ch - bot, 0, bot, li, ch - bot);
       if (bot < ch && ox + dw < cw) ctx.drawImage(cv, ri, bot, 1, ch - bot, ri + 1, bot, cw - ri - 1, ch - bot);
+      drawBook(ox, oy, dw, dh);
       drawPlanks(ox, oy, dw, dh);
     };
     // The planks that carry the hero's words (render/hero_words.py), drawn with the frame where the frame is, so
@@ -361,6 +398,27 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
       joinIn = j;
       lift = l;
       return moving;
+    };
+    // the hardcover: set down with the title page, and gone as the first scroll steps the picture in to the film's
+    // (the film's frames do not have it). Drawn behind the planks, which lie in front of it on the table
+    let book: HTMLImageElement | null = null;
+    const bookAlpha = () => planksAlpha(drawnAt) * Math.min(1, wordsIn * 1.25) * smooth01((heroW - 0.35) / 0.5);
+    const drawBook = (ox: number, oy: number, dw: number, dh: number) => {
+      if (!book || !heroAt) return;
+      const a = bookAlpha();
+      if (a <= 0) return;
+      const upright = cv.width < cv.height;
+      const H = (upright ? HERO_BOOK.hUpright : HERO_BOOK.h) * dh; // the book itself, without its shadow
+      const imgH = H / BOOK.box[3];
+      const imgW = (imgH * BOOK.w) / BOOK.h;
+      const right = ox + (upright ? HERO_BOOK.rightUpright : HERO_BOOK.right) * dw;
+      const foot = oy + HERO_BOOK.foot * dh;
+      const x = right - (BOOK.box[0] + BOOK.box[2]) * imgW;
+      const y = foot - (BOOK.box[1] + BOOK.box[3]) * imgH + (1 - Math.min(1, wordsIn * 1.25)) * 0.02 * dh; // settles as it lands
+      ctx.save();
+      ctx.globalAlpha = a;
+      ctx.drawImage(book, x, y, imgW, imgH);
+      ctx.restore();
     };
     const drawPlanks = (ox: number, oy: number, dw: number, dh: number) => {
       const a = planksAlpha(drawnAt);
@@ -555,7 +613,8 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
       setHeroCap(0.58);
       heroAt = null;
       const A = 1.6; // the render's shape (1600 × 1000)
-      const { l, t, r, b } = HERO.fit;
+      const { t, r, b } = HERO.fit;
+      const l = Math.min(HERO.fit.l, bookLeft(vw < vh)); // the hardcover stands to the title page's left
       const top = vh < 520 ? 58 : vw <= 900 ? 74 : 86; // the menu
       const foot = vh < 520 ? 8 : vw <= 900 ? 18 : 28;
       const side = vw <= 600 ? 8 : 32;
@@ -611,10 +670,26 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
         });
     };
 
+    const loadBook = () => {
+      if (FOCUS || book) return;
+      const im = new Image();
+      im.decoding = "async";
+      im.src = BOOK.src;
+      void im
+        .decode()
+        .then(() => {
+          if (disposed) return;
+          book = im;
+          lastKey = "";
+          start();
+        })
+        .catch(() => undefined);
+    };
     const resize = () => {
       const r = cv.getBoundingClientRect();
       placeHero();
       loadPlanks();
+      loadBook();
       scale = dpr();
       const w = Math.round(r.width * scale);
       const h = Math.round(r.height * scale);
@@ -718,6 +793,79 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
       });
     };
 
+    // home: each line is set once per window size, from the picture of the moment it belongs to (HOME_LINES
+    // place): beside or above the blocks on a landscape screen, in the band above or under them on an upright one,
+    // centred there. Where the blocks leave no room, it sits at the top on a soft wash of paper
+    const placeHomeLines = () => {
+      if (FOCUS) return;
+      const vw = cv.clientWidth;
+      const vh = cv.clientHeight;
+      if (!vw || !vh) return;
+      const v = scrollYProgress.get();
+      HOME_LINES.forEach((ln, k) => {
+        const el = homeLines.current[k];
+        if (!el || v < ln.at[0] - 0.03 || v > ln.at[1] + 0.03) return; // only the one that is up (or about to be)
+        const key = `${vw}x${vh}`;
+        if (homePlaced[k] === key) return;
+        homePlaced[k] = key;
+        const frame = Math.round(frameAt(ln.hold));
+        const sub = subjectAt(frame);
+        const r = homeRect(frame, cv.width, cv.height, 1.6);
+        const S = scale || 1;
+        const L = sub ? (r.ox + (sub.x - sub.w / 2) * r.dw) / S : vw * 0.35;
+        const R = sub ? (r.ox + (sub.x + sub.w / 2) * r.dw) / S : vw * 0.65;
+        const T = sub ? Math.max(0, (r.oy + sub.t * r.dh) / S) : vh * 0.2;
+        const B = sub ? Math.min(vh, (r.oy + sub.b * r.dh) / S) : vh * 0.9;
+        const menu = vh < 520 ? 60 : vw <= 900 ? 76 : 92;
+        const gut = vw <= 600 ? 20 : 40;
+        const gap = vw <= 900 ? 24 : 44;
+        const set = (maxW: number, wash = false) => {
+          el.style.maxWidth = `${Math.max(0, Math.round(maxW))}px`;
+          el.toggleAttribute("data-wash", wash);
+          return { w: el.offsetWidth, h: el.offsetHeight };
+        };
+        const put = (x: number, y: number) => void (el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`);
+        const roomT = T - gap - menu;
+        const roomB = vh - B - gap - 24;
+        const wide = vw / vh >= 1;
+        const pl = ln.place;
+        // a landscape screen: where it was set for its picture, kept clear of the blocks however the screen crops it
+        const placed = () => {
+          const ax = (r.ox + pl.x * r.dw) / S;
+          const ay = (r.oy + pl.y * r.dh) / S;
+          const pw = (pl.w * r.dw) / S;
+          if (pl.at === "top") {
+            const { w, h } = set(Math.min(pw, vw - 2 * gut));
+            const lo = menu;
+            const hi = T - gap - h;
+            if (hi < lo) return false;
+            put(clamp(ax - w / 2, gut, vw - gut - w), clamp(ay - h / 2, lo, hi));
+            return true;
+          }
+          const x0 = pl.at === "right" ? R + gap : gut;
+          const x1 = pl.at === "right" ? vw - gut : L - gap;
+          if (x1 - x0 < (vw <= 900 ? 220 : 280)) return false;
+          const { w, h } = set(Math.min(pw, x1 - x0));
+          put(clamp(ax - w / 2, x0, x1 - w), clamp(ay - h / 2, menu, vh - h - 24));
+          return true;
+        };
+        // above or under the blocks, across the screen, centred in that band
+        const band = (top: boolean) => {
+          const { w, h } = set(Math.min(wide ? 760 : 520, vw - 2 * gut));
+          const room = top ? roomT : roomB;
+          if (h > room) return false;
+          const y = top ? menu + (T - gap - menu - h) / 2 : B + gap + (vh - 24 - B - gap - h) / 2;
+          put((vw - w) / 2, y);
+          return true;
+        };
+        const first = pl.upright === "top";
+        if (wide ? placed() || band(roomT >= roomB) || band(roomT < roomB) : band(first) || band(!first)) return;
+        // no clear room: at the top, on a soft wash of paper
+        const { w } = set(Math.min(560, vw - 2 * gut), true);
+        put((vw - w) / 2, menu);
+      });
+    };
+
     const loop = () => {
       raf = 0;
       if (disposed || !lo) return;
@@ -759,7 +907,7 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
       if (!hiHas) lo.prefetch(i, dir, 6);
       const exact = !!(hi || lo.peek(i));
       drawnAt = cur;
-      const key = `${i}:${cv.width}x${cv.height}:${Math.round(planksAlpha(cur) * 40)}:${heroAt ? Math.round(heroWeight(cur) * 300) : 0}`;
+      const key = `${i}:${cv.width}x${cv.height}:${Math.round(planksAlpha(cur) * 40)}:${heroAt ? Math.round(heroWeight(cur) * 300) : 0}:${book ? Math.round(bookAlpha() * 60) : 0}`;
       if (stepPlanks(performance.now())) lastKey = "";
       // the red plank's link goes live once the plank is down
       if (!joinLiveSet && planks.words && joinIn >= 0.7) {
@@ -773,6 +921,7 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
         lastKey = exact ? key : "";
       }
       placeLines();
+      placeHomeLines();
       // focus: words only on a still picture; while the picture is still catching up with a fast scroll, they wait
       const box = linesBox.current;
       if (FOCUS && box) {
@@ -934,7 +1083,17 @@ export function Story({ hero }: { hero: SiteCopy["hero"] }) {
 
         {FOCUS && <m.div className="veil" style={{ opacity: veil }} aria-hidden="true" />}
 
-        {/* (the home page's story has no words over it: they are on the blocks; focus keeps its lines) */}
+        {/* home: four of Michael's lines, one at a time, each while the film holds on what it says, in the open
+            paper round the blocks (never over them) */}
+        {!FOCUS && (
+          <div className="hlines" aria-live="off">
+            {HOME_LINES.map((ln, k) => (
+              <HomeLineView key={ln.id} id={ln.id} at={ln.at} progress={scrollYProgress} refEl={(el) => void (homeLines.current[k] = el)} />
+            ))}
+          </div>
+        )}
+
+        {/* focus keeps its own lines */}
         {FOCUS && (
           <div className="beats" ref={linesBox}>
             {FOCUS_LINES.map((ln, k) => (

@@ -4,8 +4,9 @@ This is the site for Michael Wentz's book *Scaling Up-Side-Down* (SUSD), built b
 (GitHub `joe51111jwd`).
 - Live: https://scaling-up-side-down.vercel.app
 - Vercel project: "scaling-up-side-down"
-- Code: this folder. Newest on branch `claude/great-lamport-os1jry` (12 Nov, Michael's feedback on the home
-  page), which starts from `claude/beautiful-cori-a7cq5v` (everything to 7 Nov)
+- Code: this folder. Newest on branch `claude/relaxed-ptolemy-r93t8h` (19 Nov: the live site), which joins
+  `claude/great-lamport-os1jry` (14 Nov) and `claude/hero-hold` (13 Nov). A second site in a new direction is on
+  `claude/susd-aura` (preview only) and the cover ideas on `claude/susd-cover`
 
 ## Read before you work
 
@@ -57,11 +58,16 @@ Every piece of client context goes into this repo so the next chat has it:
   screen says it is a book, who wrote it, who it is for, and has the one button; never make the visitor
   scroll to learn it is a book. Since 13 Nov (James) the blocks carry those words, with no text column:
   SCALING beside UP / SIDE / DOWN, A BOOK BY MICHAEL WENTZ, FOR BOOTSTRAPPED FOUNDERS, and the red
-  JOIN THE FIRST-EDITION LIST plank as the button (`render/hero_words.py`).
-- One focus (James, 14 Nov: "there's still like text along the bottom. We have two focuses"): the story puts no
-  words over the picture (no captions, tags or chapter rail). Every word in it is stamped on a block, and each
-  moment has one thing moving (`render/words_film.py`: the ALWAYS planks, the title turned upside down, and the
-  SIDEWAYS / DOWN / UP slabs, each read in a push-in).
+  JOIN THE FIRST-EDITION LIST plank as the button (`render/hero_words.py`). Since 19 Nov the real hardcover
+  stands on the table beside them (drawn with the hero frame, `HERO_BOOK` in `src/components/Story.tsx`), and
+  one fast scroll never carries the visitor past this screen (`src/herohold.ts`, Michael 13 Nov).
+- One focus (James, 14 Nov: "there's still like text along the bottom. We have two focuses"): no captions, tags
+  or chapter rail over the picture, and each moment has one thing moving (`render/words_film.py`). Since 19 Nov
+  (James: "add some text, but put the text in certain ways that make it good"; "I don't want weird left-aligned")
+  four of Michael's lines come up, one at a time, while the film holds on what each says, centred in the open
+  paper beside or above the blocks and never over them (`HOME_LINES` in `src/story.ts`, `HOME_COPY` in
+  `src/copy.ts`). Never a text column, never along the bottom.
+- `/focus` was retired on 19 Nov: it redirects home and its films are not shipped (`src/focus.ts`).
 
 **The Bootloader**
 - It is a **file/spec**, not a prompt, and a companion to the book, not the product.

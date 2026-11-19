@@ -748,3 +748,23 @@ html.is-focus[data-clbook] .nav-cta .copy { opacity: 0; visibility: hidden; poin
   .is-focus .cl-stage[data-mode="focus"] .cl-book .beat-h { font-size: 28px; }
   .is-focus .cl-stage[data-mode="focus"] .cl-book .beat-b { font-size: 15.5px; }
 }
+
+/* The home page's lines (since 19 Nov): Michael's words in the open paper round the blocks, centred where they sit,
+   one at a time while the film holds. Set like a book's display pages: a small label, the line in the display
+   face, the follow-on in italic */
+.hlines { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.hl { position: absolute; left: 0; top: 0; width: max-content; text-align: center; will-change: transform; }
+.hl-in { text-shadow: 0 0 28px rgba(243, 237, 226, 0.95), 0 0 4px rgba(243, 237, 226, 0.9); }
+.hl-k { display: inline-flex; align-items: center; gap: 12px; font: 500 11.5px / 1.4 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: #5a5145; margin-bottom: 18px; }
+.hl-k::before, .hl-k::after { content: ""; width: 22px; height: 1px; background: currentColor; opacity: 0.55; }
+.hl-h { font: 400 clamp(27px, 2.55vw, 42px) / 1.1 var(--display); letter-spacing: -0.015em; color: var(--ink); text-wrap: balance; }
+.hl-d { font: italic 400 clamp(17px, 1.3vw, 21px) / 1.42 var(--serif); color: #3b342b; margin: 18px auto 0; max-width: 34ch; text-wrap: pretty; }
+.hl-lead { font: italic 400 clamp(19px, 1.7vw, 27px) / 1.2 var(--serif); color: #4a4136; margin-bottom: 8px; }
+.hl-in.is-big .hl-h { font-size: clamp(38px, 4.6vw, 76px); line-height: 1; letter-spacing: -0.025em; color: #2a1411; }
+.hl[data-wash] .hl-in { padding: 18px 22px 22px; border-radius: 18px; background: radial-gradient(closest-side, rgba(243, 237, 226, 0.94), rgba(243, 237, 226, 0.78) 70%, rgba(243, 237, 226, 0)); }
+@media (max-width: 600px) {
+  .hl-k { font-size: 10.5px; margin-bottom: 12px; }
+  .hl-h { font-size: 25px; }
+  .hl-in.is-big .hl-h { font-size: 36px; }
+  .hl-d { font-size: 16px; margin-top: 12px; }
+}

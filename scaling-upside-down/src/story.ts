@@ -43,7 +43,7 @@ export const HERO_HOLD = 0.01;
 /** where the stacked blocks stand in the hero's picture (0-1 across and down; HERO_FRAME, measured from the render) */
 export const HERO_STACK = { l: 0.54, r: 0.73, t: 0.15, b: 0.808 };
 /** (the old focus film still scrolls through its opening: its section is taller by the opening's share) */
-export const STORY_VH = FOCUS ? 1513 : 1460;
+export const STORY_VH = FOCUS ? 1513 : 1240; // (home: 1460 until 19 Nov; shortened so the blocks never sit still for long)
 /** the share of the story's scroll the opening takes (none on the home page: it plays on load) */
 export const OPEN_P = FOCUS ? 0.08 : 0;
 /** a progress in the film's own 0-1 → progress through the whole story */
@@ -78,6 +78,24 @@ const STORY_KEYS: [progress: number, blenderFrame: number][] = [
   [0.795, t.up_read + 2], // ...and is read
   [0.95, t.end - 2], // the team goes back on, then the building
   [1.0, t.end],
+];
+/** the home page's lines (src/copy.ts HOME_COPY): when each is up (story progress) and the moment whose picture
+ *  it is set beside (in the open paper round the blocks, never over them). Each sits inside a stretch where the
+ *  film holds or barely moves: the tower straining before it falls, the title upside down, the dead weight
+ *  leaving, and the finished building */
+/** where each sits, chosen from its picture. On a landscape screen: beside the blocks (left or right) or above
+ *  them, its middle at x, y (shares of the picture) and at most w of the picture's width, kept clear of the
+ *  blocks however the screen crops the picture. On an upright one: the band above or under them */
+export type HomeLinePlace = { at: "left" | "right" | "top"; x: number; y: number; w: number; upright: "top" | "bottom" };
+export const HOME_LINES: { id: string; at: [number, number]; hold: number; place: HomeLinePlace }[] = [
+  // the tower straining past twelve: the open wall to its left
+  { id: "redline", at: [0.166, 0.21], hold: 0.19, place: { at: "left", x: 0.25, y: 0.42, w: 0.34, upright: "top" } },
+  // the title upside down: the open wall to its right (the old CRM and agency blocks are on its left)
+  { id: "upside", at: [0.338, 0.382], hold: 0.36, place: { at: "right", x: 0.79, y: 0.42, w: 0.34, upright: "bottom" } },
+  // the dead weight leaving (off both sides) from the new foundation: the wall above it
+  { id: "keep", at: [0.688, 0.738], hold: 0.705, place: { at: "top", x: 0.5, y: 0.17, w: 0.52, upright: "top" } },
+  // the finished building: the open wall to its left
+  { id: "repeat", at: [0.948, 1], hold: 0.995, place: { at: "left", x: 0.26, y: 0.42, w: 0.36, upright: "top" } },
 ];
 // The focus version runs its own film (render/focus_film.py, frames from 28 like the story's): the
 // blocks carry the words. Three planks stamped ALWAYS LAUNCHING, ALWAYS HIRING, ALWAYS ADDING go on

@@ -97,7 +97,6 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const { scrollYProgress: p } = useScroll({ target: section, offset: ["start start", "end end"] });
   // Quality is lowered over its gap as the ring is finished (.45-.462)
   const lower = useTransform(p, [0.45, 0.462], [0, 1]);
-  const railShow = useTransform(p, [0, 0.02, 0.44, 0.47], [0, 1, 1, 0]);
   // the layers over the picture (Quality, the line, the tag) belong to the finished ring
   // (focus: they go to paper with the rest of the ring, on the same curve, as the camera reaches the book)
   const plateIn = useTransform(p, (v) => {
@@ -105,7 +104,6 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
     return FOCUS && modeNow() === "focus" ? Math.min(fadeIn, 1 - bookAlone(v, reduced)) : fadeIn;
   });
   const plateVis = useTransform(plateIn, (o) => (o > (FOCUS ? 0.02 : 0.5) ? "visible" : "hidden"));
-  const railFill = useTransform(p, [0, 0.47], [0, 1]);
   const [narrow] = useState(() => win && window.innerWidth > 900 && window.innerWidth <= 1200);
   const scrim = useTransform(p, narrow ? [0, 0.44, 0.47] : [0, 0.42, 0.46], narrow ? [1, 1, 0] : [1, 1, 0]);
 
@@ -829,13 +827,8 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
   const earlyBeats = useMemo(
     () => (
       <>
-        <Win p={p} at={BEATS.open} className="tone-down cl-open">
-          <p className="beat-k">
-            <i />
-            {copy.open.kicker}
-          </p>
-          <h2 className="beat-h">{copy.open.headline}</h2>
-        </Win>
+        {/* (no line over the close-up of the pile since 19 Nov: the story's last line has just been read, and words
+            over the big blocks there were a second focus) */}
         <Win p={p} at={BEATS.closing} className="tone-ink cl-closing">
           <p className="beat-k">
             <TriDot />
@@ -892,25 +885,9 @@ export function ClosedLoop({ copy }: { copy: SiteCopy["closed"] }) {
           </div>
         </Win>
 
-        <m.ol className="chapters cl-rail" style={{ opacity: railShow }} aria-hidden="true">
-          {["Too fast", "Falls over", "Up · Side · Down"].map((n) => (
-            <li key={n}>
-              <span>{n}</span>
-              <i>
-                <b />
-              </i>
-            </li>
-          ))}
-          <li>
-            <span>The book</span>
-            <i>
-              <m.b style={{ scaleX: railFill }} />
-            </i>
-          </li>
-        </m.ol>
       </>
     ),
-    [p, copy, railShow, railFill],
+    [p, copy],
   );
 
   return (

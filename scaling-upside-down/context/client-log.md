@@ -11,6 +11,34 @@ under "All of James's messages, word for word".
 
 ---
 
+## Thu 19 Nov 2026, later: James: a cover in five ideas, a second site in a new direction, and fix the blocks site
+
+> He also wants a cover design, so spin up a chat, like a subchat. You can put it on Opus and just make a design. Then I want you to look through his website [...] I think we could have more aura to it. [...] I want to try doing less symbolism. Just make a cool-ass website for this. [...] Update the live version with the newest version, but modify it a lot better, and then make it more clean. [...] Right now, it's kind of boring because the blocks are just sitting around, whereas I feel like if I could actually have more of an understanding, that'd be better. I think you can add some text, but put the text in certain ways that make it good. [...] I don't want weird left-aligned.
+
+> I know, I understand that he likes blocks, right, and whatever, but I just want to make another one that has just a completely different direction, or it's just cool. Then you focus right now on the blocks one and making it good, while the other one makes the book cover. I want five different book cover ideas from the other ones. Let me know so I can pick the top two to send to him. You need to fix the shit out of the site, so get to work.
+
+What it means, and what was done:
+- **The live site went to the newest version** (14 Nov blocks story plus the 13 Nov hero hold). **Done**.
+- **A second site in a completely different direction**, not built on the blocks, researched on awwwards.com and
+  James's taste repo (`joe51111jwd/james-taste`) first, as a preview only (branch `claude/susd-aura`, its own chat).
+  **Open**: James compares the two.
+- **Five cover ideas** for James to pick two to send Michael (branch `claude/susd-cover`, folder
+  `scaling-upside-down-cover/`, its own chat). Michael asked to agree the graphics' scope and cost first, so this is
+  a pitch. **Open**.
+- **The blocks site, fixed** (this branch, then live):
+  - **The real hardcover is back on the first screen.** It stands on the table beside the title page of blocks it
+    is made of, so the first screen shows the book itself, its subtitle (the "why") and who wrote it (Michael,
+    30 Oct, asked twice; James promised "the cover at the top" on 3 Nov).
+  - **Four of Michael's lines**, each while the film holds on what it says, centred in the open paper beside or above
+    the blocks, never over them, never in a column or along the bottom:
+    - the tower straining: L1070 (revenue up, the bank account didn't feel it; margins, the founder the bottleneck)
+    - the title upside down: "That isn't scaling. That's scaling upside down." (the back cover)
+    - the dead weight leaving: L2564 (what to keep)
+    - the finished building: L1728 ("You're already doing all three...")
+  - **The ending:** the chapter rail and the line over the close-up of the pile are gone.
+  - **The story is about 15% shorter** (1460vh to 1240vh), so the blocks never sit still for long.
+  - **`/focus` is retired:** it redirects home, and its two films are no longer shipped.
+
 ## Thu 19 Nov 2026: James: "lock down" his site: get the design exact so the message lands (and the $2,000)
 
 > No, I meant lockdown. I need to build his site. We need to get it looking good, sorry, not security-wise. I need you to understand all of the context so we can get our 2K, because he said he'd pay us 2K. Fully understand everything so that we can actually get a good site. I need all the links. I need to go through. I need to make changes. I need to get the exact design down because right now we're not getting across the message.

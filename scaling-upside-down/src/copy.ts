@@ -194,6 +194,18 @@ export const COPY: SiteCopy = {
   },
 };
 
+// The home page's lines (James, 19 Nov: "you can add some text, but put the text in certain ways that make it
+// good"; "if I could actually have more of an understanding, that'd be better"). Four, one at a time, each while
+// the film holds on what it says, set in the open paper round the blocks (src/story.ts HOME_LINES). The blocks
+// still carry ALWAYS LAUNCHING / HIRING / ADDING and the three slabs, so the lines say what the blocks can't
+export type HomeLine = { kicker?: string; lead?: string; headline: string; detail?: string; big?: boolean };
+export const HOME_COPY: Record<string, HomeLine> = {
+  redline: { kicker: "Twelve to forty people", headline: "Revenue was growing—sometimes faster than ever—but the bank account didn't feel it.", detail: "Margins were shrinking. And the founder had become the bottleneck on everything." }, // L3562 (kicker), L1070
+  upside: { lead: "That isn't scaling.", headline: "That's scaling upside down.", big: true }, // the back cover
+  keep: { kicker: "Scaling Down", headline: "The business stops asking for more and starts asking what to keep." }, // L1717 (kicker), L2564
+  repeat: { kicker: "Up. Side. Down. Repeat.", headline: "You're already doing all three.", detail: "The problem is you're doing them at once—every day, no rhythm, no separation." }, // L1713, L1728
+};
+
 // The focus version's lines (/focus): one beside the still picture at a time. The film's planks carry
 // L1993 ("Always launching. Always hiring. Always adding."), so the words start where the blocks stop.
 export type FocusLine = { kicker?: string; tone: "up" | "side" | "down" | "ink"; headline: string; detail?: string; big?: boolean };

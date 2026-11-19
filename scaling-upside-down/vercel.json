@@ -20,24 +20,6 @@
       ]
     },
     {
-      "source": "/frames-lp/(.*).bin",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/frames-lp/(.*)/manifest.json",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
       "source": "/frames/(.*)/manifest.json",
       "headers": [
         {
@@ -143,16 +125,16 @@
       "source": "/llms-full.txt",
       "destination": "/llms.txt",
       "permanent": true
-    }
-  ],
-  "rewrites": [
+    },
     {
       "source": "/focus",
-      "destination": "/"
+      "destination": "/",
+      "permanent": false
     },
     {
       "source": "/focus/",
-      "destination": "/"
+      "destination": "/",
+      "permanent": false
     }
   ]
 }

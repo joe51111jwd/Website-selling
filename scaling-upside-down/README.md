@@ -22,7 +22,8 @@ sequence drawn to a canvas.
 | The hero's planks (their words) | `render/make_hero_labels.py`, then `render/hero_words.py` and `scripts/make_hero_assets.py` (see `render/README.md`). The same words are in the page for screen readers, from `COPY.hero` in `src/copy.ts` |
 | Pre-order link | `src/links.ts`. Put the store URL in `preorder`; until then the book section says "Pre-orders open soon". |
 | Any words on the page | `src/copy.ts`. Every line is quoted from the manuscript (line numbers in the comments). |
-| The story's words | On the blocks, in the render (`render/make_words_labels.py`, `render/words_film.py`): the story puts no words over the picture. They are also in the story's description for screen readers (`STORY_ALT` in `src/components/Story.tsx`). |
+| The story's words | On the blocks, in the render (`render/make_words_labels.py`, `render/words_film.py`), plus four of Michael's lines at the story's holds: their words in `HOME_COPY` (`src/copy.ts`), when and where each comes up in `HOME_LINES` (`src/story.ts`). |
+| The hero's hardcover | `public/book/` (`scripts/make_book_assets.py`); where it stands beside the blocks is `HERO_BOOK` in `src/components/Story.tsx`. |
 
 On Vercel, editing `content/bootloader.md` on GitHub and committing is enough: the
 site redeploys by itself.
