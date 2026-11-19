@@ -1,3 +1,5 @@
+# the repo root ignores every out/ (build output); here out/ holds the deliverables, so keep it
+!out/
 assets/
 src/tex/
 out/render/front-*.png
