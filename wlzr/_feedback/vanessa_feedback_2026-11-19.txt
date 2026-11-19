@@ -1,0 +1,75 @@
+Hey James and Daniel,
+
+Sorry for the delay! I wanted to gather all the feedback before sending it
+over. Thanks for already getting started on the corrections. Here are our
+notes for WLZR:
+
+*Branding*
+
+   - USE previously provided assets for main logos (“MAJOR LAZER”, “WLZR.TV”,
+   GLOBE)
+   - Please use the new Major Lazer lockup and include the Shock The System
+   logo from the logo files
+   <https://drive.google.com/drive/folders/1UnQhdLKkFxVYFxeSQnbeh2lVSvWLm1nd>,
+   with the branding placements shown in the original deck
+   <https://drive.google.com/file/d/1kLBnsKiPnzF2FejGiXK_8HBJZZmcn_h8/view>.
+
+*Head designs*
+
+   - The WinAmp-style heads should match the mockups provided. Each one is
+   a band member. We may need to adapt the shape of the “media” area to
+   accommodate certain specific buttons, information, and display size for
+   each section. If you can do this while keeping the overall aesthetic,
+   great. (If not, we can figure out exactly what we need to display and
+   figure out who is gonna customize them.)
+   - We understand the current heads may be placeholders for the demo. The
+   crew photo-based player designs
+   <https://drive.google.com/drive/folders/1lSx3JqyT5Kv4JL1LcG5r9WUM_FuVLMwu>
+   are linked in that drive shared earlier. The head players need to be
+   scalable and interactive, with the controls working on both mobile and
+   desktop.
+
+*Player functionality*
+
+   - *The WinAmp heads should function as more than just a button to open a
+   separate content window.* Especially on desktop, the “Player” and
+   “window” should work in tandem to create a cool user experience. Think of
+   the WinAmp player as being the control center for each section.
+      - *Audio:* The WinAmp player could include the track list to choose
+      from, and maybe even the play/stop music controls themselves.
+      - *Video:* Video List; the video itself opens in the separate media
+      window. (there could be an archive of older videos as well at some point)
+      - *Merch:* Maybe the WinAmp player has the categories listed and
+      smaller product thumbnails cycling through. The media window can
+show full
+      pics/details or go into a Pleasure portal. etc
+      - *Tour:* WinAmp player has the list of dates. Directs to a place to
+      buy tickets and/or add-on merch. etc
+
+*Desktop and mobile*
+
+   - On mobile, this concept can adapt so when a section is selected, the
+   “control” section of the WinAmp player stays on screen, but the face can be
+   cropped to maximize fullscreen space for photos, videos, content, etc.
+   - Use pages 1–7 of the deck for desktop and 8–11 for mobile as the
+   visual references.
+   - The main thing is taking these parts and having them work well on both
+   desktop and mobile so that it is both unique but allows for all of the
+   content to be displayed seamlessly.
+
+*Creative details*
+
+   - Experimenting in areas like the desktop icons you used looks cool.
+   Anything like that that adds interesting details and a fun user experience
+   is encouraged.
+
+Sharing here
+<https://drive.google.com/drive/folders/1M7iNFCeaZCug_eJgZPjc9sgcO5tmyrd2>
+all references and assets for WLZR for a quicker grab.
+
+Please let us know if anything needs clarification or isn’t feasible before
+moving further. Could you also confirm timing for the next round against
+our end-of-November target?
+Thanks!
+
+V
