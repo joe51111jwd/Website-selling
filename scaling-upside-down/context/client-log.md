@@ -11,6 +11,21 @@ under "All of James's messages, word for word".
 
 ---
 
+## Thu 19 Nov 2026: James: "lock down" his site: get the design exact so the message lands (and the $2,000)
+
+> No, I meant lockdown. I need to build his site. We need to get it looking good, sorry, not security-wise. I need you to understand all of the context so we can get our 2K, because he said he'd pay us 2K. Fully understand everything so that we can actually get a good site. I need all the links. I need to go through. I need to make changes. I need to get the exact design down because right now we're not getting across the message.
+
+What it means: finish the design so it carries the book's message, and get the site to the "completed website"
+Michael agreed to pay $2,000 for (13 Nov). This time the Alpha inbox (james.camarota@alpha.school) was read, so the
+emails earlier chats could not find are filed below: Michael's 3 Nov and 9 Nov emails and James's replies of 3 Nov
+and 12 Nov. The 13 Nov hero hold (branch `claude/hero-hold`) and the 14 Nov blocks-only story (branch
+`claude/great-lamport-os1jry`) had split; branch `claude/relaxed-ptolemy-r93t8h` joins them. The hold's stop moved
+from 0.015 to 0.01 of the story, because the 14 Nov hero starts to leave at 0.014. Checked with a trackpad-shaped
+flick in a browser: one flick stops on the title page and the next goes on. On production the same flick goes
+3,533 px down, past the whole hero. **Open**: James's review of the design, then the reply to Michael's 13 Nov email
+(it is not answered yet, and James's 12 Nov reply promised him the updated link "this week").
+
+
 ## Sat 14 Nov 2026: James: the story still has text along the bottom: "We have two focuses"
 
 > The problem with both of these is that there's still like text along the bottom. We have two focuses and that's the problem.
@@ -38,6 +53,60 @@ pinned to blocks. The eye has two places to be. The story is now told by the blo
   the picture steps back until the thing it is about (a slab being read, the whole building) fits the screen.
   The words are still in the page for screen readers, in the story's description.
 Unchanged: the opening, the hero, the closed loop and the sign-up after the story, `/appendix` and `/focus`.
+
+## Fri 13 Nov 2026, 5:15 PM ET: James: implement Michael's newest feedback
+
+> I saw that he gave a bunch of feedback. Can you give me a huge favor and send a claw chat on that implementing all that feedback into his website? The book is called scaling upside down
+
+> Just the most recent one pls
+
+What it means: the newest email (below, 13 Nov, 12:03 PM). Its one change to the site is the fast scroll. **Done**
+(preview, branch `claude/hero-hold`): see the entry below.
+
+## Fri 13 Nov 2026, 12:03 PM ET: Michael: a normal trackpad scroll skips the book's opening (email, Alpha inbox, with a 5 s screen recording)
+
+> One small thing I noticed with the opening animation: I did a fairly normal two-finger scroll on my laptop, and the entire book introduction and signup offer went by almost instantly. I've attached a quick recording so you can see what I mean. I really like the animation, but I wonder if there's a way to keep that opening book section in view longer, even when someone scrolls quickly? It's probably the most important part of the website, and I wouldn't want visitors to miss it. I'll leave the best way to handle that to your judgment.
+
+> The $2,000 sounds reasonable for the completed website as you've outlined it.
+
+> My main concern is keeping things simple and minimizing ongoing costs. [...] Ideally, I'd own the domain, hosting accounts, source code, and site assets, and be able to make basic updates myself.
+
+> As for the graphics, I'd love to see what you come up with. Let's treat that as a separate project. [...] Maybe start by identifying one or two illustrations you think have the most potential for a fresh approach. We can agree on the scope and cost of that initial exploration before you invest significant time.
+
+> On timeline, my hope is to have the book go to layout on December 1st and publish on January 1st. Let me know if that timeline is doable or if it's aggressive.
+
+The recording (`media/2026-11-13-michael-fast-scroll.mp4`) is of the live site (the 31 Oct home page with the "Scroll"
+cue): one flick, and the hero (title, who it is for, the sign-up button) is on screen for about a quarter of a second
+before the rush and the margin panel.
+
+What it means:
+- The opening must hold even on a fast scroll. **Done** (preview, branch `claude/hero-hold`): one scroll that starts on
+  the hero now stops on the hero (`src/herohold.ts`, `HERO_HOLD` in `src/story.ts`). It moves a little, so the page
+  answers (the "Scroll" cue goes), and the title page of blocks and the red JOIN plank stay whole; the next scroll goes on
+  into the story as before. It covers a trackpad fling, a mouse wheel, Space and Page Down, and a flick on a phone.
+  Scrolling up, links and the menu are never held; a visitor who keeps scrolling without a pause is let go after about
+  2 seconds, and a fresh swipe made during the first one's glide goes on. The wheel rules are checked against simulated
+  trackpad and wheel gestures by `scripts/check-herohold.mjs`.
+- He owns everything at the handoff (domain, hosting, code, assets) and keeps costs low: James plans to set it up on
+  Vercel and transfer it to him. **Open** (not a site change).
+- Graphics are a separate project, scope and cost agreed first. **Open** (not this site).
+- Book to layout 1 Dec, published 1 Jan. **Waiting** on James's answer to him.
+
+## Thu 12 Nov 2026, 10:50 PM ET: James's reply to Michael's 9 Nov check-in (email, Alpha inbox)
+
+> Hi Michael,
+>
+> Thank you, that means a lot. It's coming along well: the book and cover now lead the page, the copy speaks to bootstrapped founders, and the Bootloader sits behind one email signup with the appendix page still public. I'll send you the updated link this week.
+>
+> The initial build is $2,000. That covers the site as you described it, the signup that delivers the Bootloader, and the public appendix page with a path back to the book.
+>
+> And yes, I'd love to take on the graphics too. I can do a first pass alongside the build so you can see whether it fits before we decide anything more.
+>
+> James
+
+What it means: the price ($2,000), and what it pays for: the site as Michael described it, a sign-up that **delivers**
+the Bootloader (so an email service has to be connected), and the public `/appendix` with a path back to the book.
+Michael accepted on 13 Nov. **Open**: the updated link is not sent yet.
 
 
 ## Thu 12 Nov 2026, about 7:40 PM ET: James: put all the hero's words on the blocks, no left-aligned text
@@ -82,6 +151,22 @@ What fell short, and what changed (release on branch `claude/great-lamport-os1jr
 Unchanged on purpose: the copy (still word for word), the blocks film Michael said he wants to keep, the one
 sign-up, `/appendix`, and `/focus`. **Waiting** on James to look at the preview and say whether it goes live;
 still **Waiting** on Michael for his email platform, the final cover, the list's promise and the pre-order link.
+
+
+## Mon 9 Nov 2026, 2:37 PM ET: Michael checks in: the cost, and the graphics (email, Alpha inbox)
+
+> Just thought I'd check in James. I'm so impressed with what you've accomplished thus far. How is everything coming along?
+>
+> A couple of follow-up questions.
+>
+> Can you let me know the initial cost for the website build?
+>
+> Are you interested in working on the graphics as well? In our conversation, you mentioned your mother but also that you might interested in giving the graphics a try?
+>
+> Let me know!
+
+What it means: he asked for a price and offered the book's graphics. **Done**: James answered on 12 Nov ($2,000; yes to
+the graphics).
 
 
 ## Fri 6 Nov 2026: James on the live /focus film: "wtf is this", "it mainly just makes no sense", "rework from the ground up"
@@ -130,6 +215,14 @@ page for `/focus`, with the home page unchanged.
   painted band, and the hero fits every phone size, upright and on its side.
 **Waiting** on James (and Michael) to compare `/` and `/focus`.
 
+## Tue 3 Nov 2026, 12:57 PM ET: Michael: "I'm looking forward to seeing what you came up with" (email, Alpha inbox)
+
+> Thank you for letting me know James. I'm looking forward to seeing what you came up with :)
+>
+> Cheers,
+>
+> Michael
+
 ## Tue 3 Nov 2026, 12:17 PM and 12:23 PM ET: James asks for the link to the new focus version
 
 > can i see the vercel link
@@ -139,6 +232,24 @@ page for `/focus`, with the home page unchanged.
 What it means: none of the links had the rethought version yet (the live `/focus` was still the first
 take, with the full-screen lines). James wants the new one, and it has to look finished, not pieced
 together. **Done** in the release that followed: the new focus film (see the entry below) at `/focus`.
+
+## Tue 3 Nov 2026, 12:16 PM ET: James's reply to Michael's 30 Oct email (email, Alpha inbox)
+
+> Hi Michael,
+>
+> Thank you again for the detailed feedback. I'm still working through it, but I have some updates I'd love to share with you.
+>
+> I'm putting the book front and center with the cover at the top, tightening the copy so bootstrapped founders recognize themselves right away, and keeping the Bootloader secondary behind a single email signup. The appendix page will stay public, with a clear path back to the book.
+>
+> I'll send you the updated link as soon as it's ready for a look.
+>
+> Best,
+> James Camarota
+> jamescamarota.com
+
+What it means: this, not the draft in `PROJECT-RECORD.md`, is what Michael got. It promises "the cover at the top"
+and founders who "recognize themselves right away". **Open**: the link.
+
 
 ## Sun 1 Nov 2026, 10:19 PM ET: James turns down the first focus version
 
