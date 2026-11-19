@@ -36,6 +36,7 @@ function Tower() {
     let lo: FrameStore | null = null;
     let p = 0;
     let drawn = -1;
+    let dir = 1;
     let alive = true;
     // the film runs from p 0.06 to 0.8 of the section
     const frameAt = (q: number, n: number) => Math.max(0, Math.min(n - 1, Math.round(((q - 0.06) / 0.74) * (n - 1))));
@@ -52,24 +53,30 @@ function Tower() {
       }
       ctx.drawImage(bmp, 0, 0, cv.width, cv.height);
       if (store?.peek(i) || !store) drawn = i;
-      store?.prefetch(i, 1, 6);
+      store?.prefetch(i, dir, 6);
     };
     const redraw = () => alive && draw(true);
-    const wide = window.innerWidth > 760 || window.devicePixelRatio > 1.5;
+    // decode no wider than the plate is drawn on this screen
+    const plateW = () => (cv.getBoundingClientRect().width || window.innerWidth) * Math.min(2, window.devicePixelRatio || 1);
+    const hiW = Math.min(1600, Math.round(plateW() / 100) * 100);
     void (async () => {
       try {
-        lo = await FrameStore.open(`${BASE}fall/lo/`, 46, 600, redraw);
-        await lo.loadAll([0]);
-        if (!alive) return;
-        if (wide) {
-          store = await FrameStore.open(`${BASE}fall/hi/`, 24, window.innerWidth > 1400 ? 1600 : 1200, redraw);
-          await store.loadAll([0]);
-        }
+        const l = await FrameStore.open(`${BASE}fall/lo/`, 46, 600, redraw);
+        if (!alive) return l.dispose();
+        lo = l;
+        await l.loadAll([0]);
+        if (!alive || hiW <= 600) return;
+        const h = await FrameStore.open(`${BASE}fall/hi/`, 16, hiW, redraw);
+        if (!alive) return h.dispose();
+        store = h;
+        await h.loadAll([0]);
+        if (alive) l.release(); // the small set stays compressed, as a fallback
       } catch {
         /* the still poster stays */
       }
     })();
     const off = track(el, "pin", (q) => {
+      dir = q >= p ? 1 : -1;
       p = q;
       draw();
     });
@@ -95,6 +102,7 @@ function Tower() {
           {P.always.map((l, i) => (
             <span key={l} className={`always-l always-${i + 1}`}>
               {l}
+              {i < P.always.length - 1 ? " " : ""}
             </span>
           ))}
         </h2>

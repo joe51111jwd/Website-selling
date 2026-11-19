@@ -27,13 +27,13 @@ export type OptinResult = { emailed: boolean; already?: boolean };
 
 /** rejects with Error("email") for an address the server won't take, Error("send") for anything else.
  *  12 s: the server gives its email service 9 s in all, so it always answers first. */
-export async function sendOptin(email: string, source: "home" | "appendix"): Promise<OptinResult> {
+export async function sendOptin(email: string, source: "home" | "appendix", company = ""): Promise<OptinResult> {
   let r: Response;
   try {
     r = await fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ email: email.trim(), source, company: "" }),
+      body: JSON.stringify({ email: email.trim(), source, company }),
       signal: AbortSignal.timeout(12000),
     });
   } catch {

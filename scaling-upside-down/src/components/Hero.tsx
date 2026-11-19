@@ -53,9 +53,7 @@ export function Hero() {
             {h.title}
           </h1>
           <p className="hero-by">
-            <span>{h.byline}</span>
-            <i aria-hidden="true" />
-            <span>{h.reader}</span>
+            <span>{h.byline}</span> <i aria-hidden="true" /> <span>{h.reader}</span>
           </p>
         </header>
         <p className="hero-sub">

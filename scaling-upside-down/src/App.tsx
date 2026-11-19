@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import Lenis from "lenis";
 import { COPY } from "./copy";
 import { Hero } from "./components/Hero";
@@ -9,7 +9,9 @@ import { NoticeDialog } from "./components/NoticeDialog";
 import { setLenis } from "./lenis";
 import { requestMeasure } from "./scroll";
 import { FOCUS } from "./focus";
-import { FocusPage } from "./components/FocusPage";
+
+// /focus (the 4 Nov film) is its own page, loaded only there
+const FocusPage = lazy(() => import("./components/FocusPage").then((m) => ({ default: m.FocusPage })));
 
 type Entry = { y?: number } | null;
 
@@ -100,7 +102,9 @@ export default function App() {
   if (FOCUS)
     return (
       <>
-        <FocusPage />
+        <Suspense fallback={null}>
+          <FocusPage />
+        </Suspense>
         <NoticeDialog copy={COPY.notice} />
       </>
     );

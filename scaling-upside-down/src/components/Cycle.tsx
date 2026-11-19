@@ -36,8 +36,11 @@ export function Cycle() {
   return (
     <section className="cycle" id="idea" aria-labelledby="cycle-title">
       <h2 className="cycle-title" id="cycle-title">
-        {C.kicker.split(" ").map((w) => (
-          <span key={w}>{w}</span>
+        {C.kicker.split(" ").map((w, i, all) => (
+          <span key={w}>
+            {w}
+            {i < all.length - 1 ? " " : ""}
+          </span>
         ))}
       </h2>
       <div className="bands">

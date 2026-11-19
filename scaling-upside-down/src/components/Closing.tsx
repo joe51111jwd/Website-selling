@@ -17,8 +17,7 @@ export function Book() {
     <section className="book" id="book" ref={ref} aria-labelledby="book-title">
       <p className="kicker">{B.kicker}</p>
       <h2 className="never" id="book-title">
-        <span>{B.never[0]}</span>
-        <span>{B.never[1]}</span>
+        <span>{B.never[0]}</span> <span>{B.never[1]}</span>
       </h2>
       <div className="book-row">
         <p className="book-deck">{B.deck}</p>
@@ -63,8 +62,10 @@ export function Join() {
     }
     setSt({ k: "busy" });
     try {
-      const r = await sendOptin(email, "home");
+      const hp = (e.currentTarget as HTMLFormElement | null)?.elements.namedItem("company") as HTMLInputElement | null;
+      const r = await sendOptin(email, "home", hp?.value ?? "");
       setSt(r.emailed ? { k: "sent", email: email.trim() } : r.already ? { k: "already" } : { k: "soon" });
+      if (r.emailed || r.already) requestAnimationFrame(() => document.getElementById("join-msg")?.focus());
     } catch (err) {
       setSt({ k: (err as Error).message === "email" ? "bad" : "failed" });
     }
@@ -118,7 +119,7 @@ export function Join() {
           {st.k === "busy" ? J.sending : J.button}
         </button>
       </form>
-      <p className={`join-msg is-${st.k}`} id="join-msg" role="status" aria-live="polite">
+      <p className={`join-msg is-${st.k}`} id="join-msg" role="status" aria-live="polite" tabIndex={-1}>
         {msg}
       </p>
       <figure className="join-quote">
@@ -168,7 +169,8 @@ export function Footer() {
   };
   return (
     <footer className="foot">
-      <p className="foot-line" aria-label={F.line}>
+      <p className="foot-line">
+        <span className="sr-only">{F.line}</span>
         {F.line.split(" ").map((w) => (
           <span key={w} aria-hidden="true">
             {w}
