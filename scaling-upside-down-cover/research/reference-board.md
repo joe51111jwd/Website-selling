@@ -88,3 +88,33 @@ From his `SKILL.md`, `check.md` and `taste-findings.md` (relayed, since the repo
 - **Imagery**: real or photo-real (Cycles renders).
 
 The scores are in the README.
+
+---
+
+# Round 3 (19 Nov): lettering that is the art, images that raise a question
+
+James: "change the font… it should be like drawn… more of an image… a bit of symbolism… the cover should be
+inviting. It should get people to want to come into the book, get them intrigued, and none of these does that."
+Two lessons from 1-10: the title was typed, and the covers explained instead of inviting. These references are about
+**why each one makes you want to open the book**.
+
+| # | Cover | Who | Source | Why it makes you want to open the book | Taken into 11-15 |
+| - | ----- | --- | ------ | -------------------------------------- | ---------------- |
+| 1 | Jonathan Safran Foer, ***Everything Is Illuminated*** | Jon Gray (gray318) | [Creative Bloq](https://creativebloq.com/typography/10-great-uses-typography-book-covers-10134890), [Eye](https://eyemagazine.com/feature/article/jacket-required) | Exuberant hand-drawn lettering that fills the whole jacket: the voice of the book before you read a word. It set off a decade of hand-lettered covers. | The title is drawn, never set. Every cover builds its letters from the same custom skeletons (`src/lettering.py`). |
+| 2 | Penguin **Drop Caps** | Jessica Hische | [Print](https://www.printmag.com/design-inspiration/best-book-covers-penguin-drop-caps/), [The Marginalian](https://www.themarginalian.org/2012/12/20/jessica-hische-penguin-drop-caps/) | One custom letter per book, ornamented and foiled: the letter is an object you want to hold. | **15, Stitched**: letters as handwork you want to touch. |
+| 3 | Puffin **Chalk** series | Dana Tanamachi | [Trend Hunter](https://www.trendhunter.com/trends/puffin-book-cover) | Lettering made by hand in a material (chalk): you feel the hand and the time it took. | **12** (wood) and **15** (thread): lettering *in* a material, with its texture. |
+| 4 | Penguin **Galaxy** series, *Dune* | Alex Trochut | [Creative Bloq](https://creativebloq.com/news/dune-book-cover), [The Inspiration Grid](https://theinspirationgrid.com/penguin-books-galaxy-series-by-alex-trochut) | The *Dune* lettering reads DUNE whichever way up you turn it: a puzzle in the hand. | **13, Light**: the words read right on the wall and upside down on the floor. The book's title made literal. |
+| 5 | J. D. Salinger reissue (*The Catcher in the Rye*) | Seb Lester | [Salon](https://www.salon.com/2013/01/21/seb_lester_the_man_behind_your_favorite_fonts) | A type-only cover drawn by a calligrapher: the craft itself is the invitation. | Letters drawn with care beat a picture with a font on it. |
+| 6 | ***Freakonomics*** (US) | Chika Azuma | [Freakonomics](https://freakonomics.com/?p=112776) | An apple cut open with an orange inside: a paradox you look at twice, and the subtitle ("the hidden side of everything") in one image. | **13**: the light on the floor is the same words upside down, a second look. **11**: is it falling? |
+| 7 | Margaret Atwood (Vintage), ***The Handmaid's Tale*** | Noma Bar | [Dutch Uncle](https://www.dutchuncle.co.uk/blog/noma-bar-illustrates-early-fiction-by-margaret-atwood-for-vintage-classics), [Fast Company](https://www.fastcompany.com/1358374/negative-space-inside-out-illustrations-noma-bar) | Negative space hides a second figure ("a hidden truth surfaces after a brief pause"). The cover reveals itself in layers. | **14, Window**: the world is only seen through the letters, so you lean in to see more. |
+| 8 | Haruki Murakami, ***1Q84*** | Chip Kidd | [Hyperallergic](https://hyperallergic.com/alternate-realities-book-cover.md) | A vellum jacket: one image half-hides another. Half-revealed means you want the rest. | **14**: half-revealed through the letters, a porthole on the sun. |
+| 9 | Michael Crichton, ***Jurassic Park*** | Chip Kidd | [NPR](https://www.npr.org/transcripts/157886049) | One object that implies a whole story (a skeleton: something was alive here). | **11**: blocks mid-fall imply the whole story of the rush and the collapse. |
+| 10 | ***Limitarianism*** (US) | Pablo Delcan | [Lit Hub](https://lithub.com/two-designers-two-countries-two-covers-how-limitarianism-got-its-look) | Let one simple move carry it, and step back. | Each of 11-15 has one hook, named in its rationale. |
+
+## The check for 11-15
+
+Each was put next to its two closest references above and asked two things:
+1. Does the title look drawn, not typed?
+2. Would I pick this up?
+
+The answers, and what was redone, are in the README.

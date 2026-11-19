@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>11: Built (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Cover 11, "Built": the title built block by block (the book's own letterforms, laid up in wood by
+     src/blender/built.py) in low evening sun. The G is going over: caught the moment before it falls. UP-SIDE-DOWN
+     is drawn on the wall behind, in the same letters, in the book's three paints. */
+  .page { background: #e8dccb; }
+  img.abs { position: absolute; }
+  #sub { position: absolute; left: 0; width: 1875px; text-align: center; font-family: "Inter Tight", sans-serif; font-weight: 500;
+    font-size: 58px; letter-spacing: -0.012em; line-height: 1.22; color: #2b2017; }
+  #author { position: absolute; left: 0; width: 1875px; text-align: center; color: #2b2017; }
+</style>
+</head>
+<body>
+<div class="page">
+  <img class="abs" src="../../out/render/built.png" alt="" style="left:0;top:0;width:1875px;height:2775px">
+  <img class="abs" id="usd" src="../../out/render/usd-paint.svg" alt="">
+  <div id="sub">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div class="mono" id="author">Michael Wentz</div>
+</div>
+<script src="fit.js"></script>
+<script>
+ready(() => {
+  const u = document.getElementById("usd");
+  const w = 1300, h = w * 207 / 1432;
+  Object.assign(u.style, { width: w + "px", height: h + "px", left: (1875 - w) / 2 + "px", top: "380px" });
+  document.getElementById("sub").style.top = "2310px";
+  document.getElementById("author").style.top = "2560px";
+});
+</script>
+</body>
+</html>

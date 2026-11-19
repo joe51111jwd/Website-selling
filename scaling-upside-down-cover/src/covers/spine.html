@@ -36,6 +36,9 @@ const dir = q.get("dir") || "c";
 const inch = parseFloat(q.get("in") || "0.9");
 document.body.classList.add(dir);
 if ("fghij".includes(dir)) document.body.classList.add("k");
+// 11-15: the title on the spine is drawn too, in the book's own letterforms (out/render/spine-word.svg)
+const DRAWN = "klmno".includes(dir);
+if (DRAWN) document.body.classList.add("k");
 const W = Math.round(inch * 300), H = 2775;
 const page = document.querySelector(".page");
 page.style.width = W + "px";
@@ -49,6 +52,10 @@ ready(() => {
     : "fghij".includes(dir) ? 'Scaling Up-Side-Down'
     : 'SCALING <span class="u">UP</span>-<span class="s">SIDE</span>-<span class="d">DOWN</span>';
   title.style.fontSize = size + "px";
+  if (DRAWN) {
+    const hh = cap * 1.22, ww = hh * 2325 / 207;  // the drawn title (spine-word.svg is 2325 x 207)
+    title.innerHTML = `<img src="../../out/render/spine-word.svg" style="display:block;height:${hh}px;width:${ww}px">`;
+  }
   const name = document.getElementById("name");
   name.style.fontSize = Math.max(cap * 0.62, 30) + "px";
   name.style.marginLeft = cap * 1.6 + "px";

@@ -73,6 +73,46 @@ hatched G on 10.
   ask the printer for a quote.
 - **6, Tête-bêche:** a blind deboss along the fold, on the same terms.
 
+## Round 3: drawn lettering, and a reason to pick it up (11-15)
+
+James: "I want you to change the font. I don't want it to look like you just typed 'Scaling Up-Side-Down'. The font
+should be like drawn… more of an image… a bit of symbolism… the cover should be inviting." Two things missed on all
+ten: the title was typed, and none of them pulled you in.
+
+**The lettering.** Every title in 11-15 is drawn from one set of letterforms made for this book (`src/lettering.py`).
+Each capital is a skeleton of strokes and arcs, with no font behind it, and each cover builds the letters its own way.
+The subtitle and author stay quiet and typeset. The research is in `research/reference-board.md`, "Round 3".
+
+| # | Name (files) | How the letters are made | The hook (one sentence) |
+| - | - | - | - |
+| 11 | **Built** (`k-built`, `src/blender/built.py`) | SCALING laid up from about 280 wooden blocks (the letterforms rasterised to a grid, one block per cell) in low evening sun. UP-SIDE-DOWN is drawn on the wall in the three paints. | The G is going over: a moment before the fall. |
+| 12 | **Grown** (`l-grown`, `src/make_tree.py`) | A tree whose crown is SCALING: every letter a living branch, tapered, in leaf. UP-SIDE-DOWN grows above as twigs. | You look twice: it's a tree, and someone has pruned it (a sawn stub on the G, the cut shoot on the ground, red leaves falling). |
+| 13 | **Light** (`m-light`, `src/blender/light.py`) | Cut through a wall, stencil-fashion (bridges hold the counters), lit from behind by a low sun. | The sunlight lays the same words across the floor upside down: the trap, made by the room. |
+| 14 | **Window** (`n-window`, `src/blender/paper.py`) | Heavy stencil letters cut through cream paper, with a round window above them. | You see a sunset world only through the letters, hills that climb, level and dip, so you lean in. |
+| 15 | **Stitched** (`o-stitched`, `src/make_stitch.py`) | About 1,000 satin stitches along the skeletons, on linen, in a beech hoop. SCALING is in dark thread, UP / SIDE / DOWN in the three paints. | The G is coming undone, and its thread runs out of the hoop to a hanging needle. Pull it and it unravels. |
+
+**The symbolism, felt rather than explained:**
+- 11: built too fast, it topples.
+- 12: growth, then pruning.
+- 13: the upside-down world.
+- 14: the cycle as a horizon.
+- 15: the overstretched thread.
+
+**Warmth:** low sun (11, 13, 14), wood, paper and linen (all five), and a warm palette with no chart in sight.
+
+**The check** (each next to its two closest references; is the title drawn, not typed? would I pick it up?):
+- **11**: drawn, yes (built from blocks). Pick up: maybe. The first framing failed the 150 px test (the oblique view
+  made SCALING unreadable), so it was re-shot at a gentler angle. It is still the quietest of the five.
+- **12**: drawn, yes. Pick up: yes. It's warm, and you look at it twice. UP-SIDE-DOWN was redrawn as twigs: as plain
+  strokes it looked typed.
+- **13**: drawn, yes (a cut and a light). Pick up: yes. The strongest second look of the set.
+- **14**: drawn, yes. Pick up: yes. First version: the sky behind the letters was too pale to read and the sheet was
+  empty. The sky was deepened and a round sun window added.
+- **15**: drawn, yes, unmistakably handmade. Pick up: yes. First version: the unravelling was too subtle, so the G's bowl
+  now visibly comes apart where the thread leaves it.
+
+**Spines for 11-15:** the title on the spine is drawn too (`out/render/spine-word.svg`), not set in a font.
+
 ## The full wrap (direction 1, built before the switch to five)
 
 This was built for direction 1 before James asked for five and for no wrap until he picks; it is kept as the
@@ -123,6 +163,10 @@ src/covers/f-tete-beche.html  6  ·  g-rings.html 7  ·  h-boot.html 8  ·  i-le
 src/blender/make_rings.py     paints the log slice's end grain for 7 (rings in Up/Side/Down cycles)
 src/blender/rings.py          photographs it from above (Cycles, orthographic flat lay)
 src/make_ascii.py             draws the block stack in characters for 8
+src/lettering.py              the book's own letterforms (11-15): skeletons of strokes and arcs, no font
+src/make_word.py              draws a word in them (UP-SIDE-DOWN, the spine title)
+src/blender/built.py · light.py · paper.py   11, 13, 14 (Cycles)
+src/make_tree.py · make_stitch.py            12, 15 (SVG)
 src/covers/spine.html         the spine, any direction and width (?dir=a&in=0.9)
 src/covers/wrap.html          the full wrap (?spine=&wrap=&hinge=&guides=1)
 src/blender/make_faces.py     paints the blocks' faces and stamps (PIL)

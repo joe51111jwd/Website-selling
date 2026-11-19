@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>13: Light (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Cover 13, "Light": the title cut through a wall, stencil-fashion, in the book's own letterforms; low afternoon
+     sun pours through and lays the same words across the floor, upside down (src/blender/light.py). The room shows
+     the trap. Nothing is typed in the title: it is a hole in a wall and a patch of light. */
+  .page { background: #3a2a1d; }
+  img.abs { position: absolute; left: 0; top: 0; width: 1875px; height: 2775px; }
+  #sub { position: absolute; left: 0; width: 1875px; text-align: center; font-family: "Inter Tight", sans-serif; font-weight: 500;
+    font-size: 58px; letter-spacing: -0.012em; line-height: 1.22; color: #f3e6d0; }
+  #author { position: absolute; left: 0; width: 1875px; text-align: center; color: #f3e6d0; opacity: 0.9; }
+</style>
+</head>
+<body>
+<div class="page">
+  <img class="abs" src="../../out/render/light.png" alt="">
+  <div class="mono" id="author">Michael Wentz</div>
+  <div id="sub">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+</div>
+<script src="fit.js"></script>
+<script>
+ready(() => {
+  document.getElementById("author").style.top = "230px";
+  document.getElementById("sub").style.top = "1120px";
+});
+</script>
+</body>
+</html>

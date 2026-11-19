@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 BLENDER=${BLENDER:-blender}
 ASSETS=${ASSETS:-assets}           # fine_grained_wood_{col,nor_gl,rough}_2k.jpg and studio.hdr
 SPINE_IN=${SPINE_IN:-0.9}          # placeholder spine width, inches (see README: depends on page count)
-ALL="a-stack b-upside-down c-cycle d-twelve e-trap f-tete-beche g-rings h-boot i-ledger j-scaling"   # the ten, in order 1-10
+ALL="a-stack b-upside-down c-cycle d-twelve e-trap f-tete-beche g-rings h-boot i-ledger j-scaling k-built l-grown m-light n-window o-stitched"   # the fifteen, in order 1-15
 what=${1:-all}
 
 assets() {
@@ -44,7 +44,8 @@ fronts() {
     node src/render.cjs src/covers/$d.html out/flat/$d                      # 1875 x 2775 with bleed, + vector PDF
     convert out/flat/$d.png -crop 1800x2700+37+37 +repage out/flat/$d-trim.png  # what the reader sees
   done
-  for d in a b c d e f g h i j; do node src/render.cjs src/covers/spine.html out/spine/spine-$d --dir $d --in $SPINE_IN; rm -f out/spine/spine-$d.pdf; done
+  python3 src/make_word.py "SCALING UP-SIDE-DOWN" out/render/spine-word.svg --height 150
+  for d in a b c d e f g h i j k l m n o; do node src/render.cjs src/covers/spine.html out/spine/spine-$d --dir $d --in $SPINE_IN; rm -f out/spine/spine-$d.pdf; done
   thumbs
 }
 
@@ -61,16 +62,16 @@ thumbs() {
     n=1; nargs=""
     for d in $ALL; do
       convert out/thumbs/$d-$w.png -background white -gravity south -splice 0x34 -font fonts/InterTight-Medium.ttf -pointsize 22 \
-        -fill "#1c1a17" -annotate +0+4 "$n" out/thumbs/n-$d-$w.png
-      nargs="$nargs out/thumbs/n-$d-$w.png"; n=$((n+1))
+        -fill "#1c1a17" -annotate +0+4 "$n" out/thumbs/tmpnum-$d-$w.png
+      nargs="$nargs out/thumbs/tmpnum-$d-$w.png"; n=$((n+1))
     done
     convert -background white $nargs -splice 24x0 +append -bordercolor white -border 20 out/thumbs/row-$w-numbered.png
-    rm out/thumbs/n-*.png
+    rm out/thumbs/tmpnum-*.png
   done
 }
 
 sheet() {
-  # the contact sheet: all ten, numbered; fronts 1-5 over their mockups, then 6-10 over theirs
+  # contact sheets, numbered: all fifteen (fronts over mockups, five to a row), round 3 alone, and fronts only
   n=1
   for d in $ALL; do
     convert out/flat/$d-trim.png -resize 720x -background "#d9d4ca" -gravity north -splice 0x110 \
@@ -78,22 +79,24 @@ sheet() {
     convert out/mockups/mockup-${d:0:1}.png -resize 720x out/render/sheet-m$n.png
     n=$((n+1))
   done
-  convert -background "#d9d4ca" out/render/sheet-f{1,2,3,4,5}.png -splice 40x0 +append -gravity east -splice 40x0 out/render/sheet-r1.png
-  convert -background "#e9e3d8" out/render/sheet-m{1,2,3,4,5}.png -splice 40x0 +append -gravity east -splice 40x0 out/render/sheet-r2.png
-  convert -background "#d9d4ca" out/render/sheet-f{6,7,8,9,10}.png -splice 40x0 +append -gravity east -splice 40x0 out/render/sheet-r3.png
-  convert -background "#e9e3d8" out/render/sheet-m{6,7,8,9,10}.png -splice 40x0 +append -gravity east -splice 40x0 out/render/sheet-r4.png
-  convert -background "#d9d4ca" out/render/sheet-r1.png out/render/sheet-r2.png out/render/sheet-r3.png out/render/sheet-r4.png -append \
-    -gravity south -splice 0x40 -quality 88 out/contact-sheet.jpg
-  # and the fronts alone, ten across: the quickest way to compare them
-  convert -background "#d9d4ca" out/render/sheet-f{1,2,3,4,5,6,7,8,9,10}.png -splice 30x0 +append -gravity east -splice 30x0 \
-    -gravity south -splice 0x30 -quality 88 out/contact-sheet-fronts.jpg
+  rows=""
+  for r in 0 1 2; do
+    f=""; m=""; for k in 1 2 3 4 5; do i=$((r * 5 + k)); f="$f out/render/sheet-f$i.png"; m="$m out/render/sheet-m$i.png"; done
+    convert -background "#d9d4ca" $f -splice 40x0 +append -gravity east -splice 40x0 out/render/sheet-rf$r.png
+    convert -background "#e9e3d8" $m -splice 40x0 +append -gravity east -splice 40x0 out/render/sheet-rm$r.png
+    rows="$rows out/render/sheet-rf$r.png out/render/sheet-rm$r.png"
+  done
+  convert -background "#d9d4ca" $rows -append -gravity south -splice 0x40 -quality 86 out/contact-sheet.jpg
+  convert -background "#d9d4ca" out/render/sheet-rf2.png out/render/sheet-rm2.png -append -gravity south -splice 0x40 -quality 88 out/contact-sheet-11-15.jpg
+  convert -background "#d9d4ca" out/render/sheet-f{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}.png -splice 30x0 +append -gravity east -splice 30x0 \
+    -gravity south -splice 0x30 -resize 9000x -quality 86 out/contact-sheet-fronts.jpg
   rm out/render/sheet-*.png
 }
 
 mockups() {
-  for d in ${MOCKS:-a b c d e f g h i j}; do   # MOCKS="d e" ./build.sh mockups renders only those
+  for d in ${MOCKS:-a b c d e f g h i j k l m n o}; do   # MOCKS="d e" ./build.sh mockups renders only those
     edge="#f1ebdf"; [ $d = b ] && edge="#1c1a17"; [ $d = e ] && edge="#12100d"
-    case $d in f|g|h|j) edge="#f6f3ee" ;; i) edge="#f7f7f7" ;; esac
+    case $d in f|g|h|j) edge="#f6f3ee" ;; i) edge="#f7f7f7" ;; k) edge="#e8dccb" ;; l) edge="#f3ead9" ;; m) edge="#3a2a1d" ;; n) edge="#f1e8d8" ;; o) edge="#e7dece" ;; esac
     f=$(ls out/flat/ | grep "^$d-.*[a-z].png$" | grep -v trim | head -1)
     # the front board carries the trim plus the 0.125 in that wraps the head, tail and fore-edge: drop the spine-side bleed
     convert out/flat/$f -crop 1838x2775+37+0 +repage out/render/front-$d.png

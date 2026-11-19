@@ -46,6 +46,17 @@ local texture only, real or photo-real imagery, and a six-point check. Five more
 - 9, The Ledger: Michael's own Chapter 17 "margin inversion" numbers, each drawn at a size proportional to its value.
 - 10, Scaling: the letters of SCALING compound in size until the G breaks off the page.
 `out/contact-sheet.jpg` shows all ten, and the README has each one's scores.
+Third round (19 Nov), relayed: James, dictated: "I want you to change the font. I don't want it to look like you just
+typed 'Scaling Up-Side-Down'. The font should be like drawn. It should be like more of an image. You can kind of work
+in a bit of symbolism, and I also don't want it to look like AI or bland or boring. The cover should be inviting. It
+should get people to want to come into the book, get them intrigued, and none of these does that right now."
+Five more, 11-15, all lettered from one set of letterforms drawn for the book (`src/lettering.py`, no font):
+- 11, Built: from wooden blocks, the G toppling.
+- 12, Grown: a tree, pruned.
+- 13, Light: cut through a wall, the sunlight laying the words upside down on the floor.
+- 14, Window: cut through paper onto a sunset landscape.
+- 15, Stitched: on linen, the G unravelling to a hanging needle.
+`out/contact-sheet.jpg` now shows all fifteen, and `out/contact-sheet-11-15.jpg` the new five.
 James's taste repo (`james-taste`) could not be read from that session (access refused); its rules came relayed.
 **Waiting** on James's pick of two, then on Michael for the page count and paper, trim and binding, the printer's template,
 the ISBN and price, the final subtitle and the full back-cover text.
