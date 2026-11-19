@@ -89,7 +89,8 @@ export function Join() {
     <section className="join" id="join" aria-labelledby="join-title">
       <div className="aura aura-join" aria-hidden="true" />
       <h2 className="join-title" id="join-title">
-        {J.title}
+        {/* keep "first-edition" whole: never break the title at its hyphen */}
+        {J.title.split(/(\S*-\S*)/).map((part, i) => (part.includes("-") ? <span key={i} className="nowrap">{part}</span> : part))}
       </h2>
       <p className="join-offer">{J.offer}</p>
       <form className={`join-form is-${st.k}`} action="/api/optin" method="post" onSubmit={submit} noValidate>
