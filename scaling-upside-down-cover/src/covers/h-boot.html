@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>8: Boot screen (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Direction 8: software as a book. The cover is a spec sheet: the book's own block stack (the Blender render)
+     printed as characters, as a terminal would draw it; the three moves annotated in mono, with the manuscript's
+     own words for them (L3315-3317); the title set like a product name at the foot. Chalk ground, one grotesk at
+     500, mono furniture. The picture comes first and the title last: the reverse of every other cover here. */
+  .page { background: var(--chalk); color: var(--ink); }
+  #ascii { position: absolute; font-family: "JetBrains Mono", monospace; font-weight: 500; white-space: pre; line-height: 1; letter-spacing: 0; }
+  .rule { position: absolute; height: 2px; background: var(--ink); opacity: 0.85; }
+  .hair { position: absolute; height: 1.5px; background: var(--ink); opacity: 0.22; }
+  .mono { color: var(--ink); }
+  .mono.dim { opacity: 0.55; }
+  .ann { position: absolute; }
+  .ann .k { display: block; font-size: 30px; opacity: 0.55; }
+  .ann .v { display: block; font-size: 36px; }
+  .lead { position: absolute; height: 1.5px; background: var(--ink); opacity: 0.5; transform-origin: 0 50%; }
+  .dot { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--ink); margin: -7px 0 0 -7px; }
+  #title { position: absolute; font-size: 236px; white-space: nowrap; }
+  #sub { position: absolute; font-family: "Inter Tight", sans-serif; font-weight: 500; font-size: 60px; letter-spacing: -0.012em; line-height: 1.2; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="mono abs" id="h-l">Scaling Up-Side-Down</div>
+  <div class="mono abs dim" id="h-r">Hardcover · v1.0</div>
+  <div class="rule" id="r1"></div>
+  <div id="ascii"></div>
+  <div id="anns"></div>
+  <div class="hair" id="r2"></div>
+  <div id="title" class="g500">Scaling<br>Up-Side-Down</div>
+  <div id="sub">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div class="rule" id="r3"></div>
+  <div class="mono abs" id="f-l">Michael Wentz</div>
+  <div class="mono abs dim" id="f-r">01 Up · 02 Side · 03 Down</div>
+</div>
+<script src="../../out/render/ascii.js"></script>
+<script src="../../out/render/blocks_front.js"></script>
+<script src="fit.js"></script>
+<script>
+const L = {
+  m: 150,                  // margins
+  headY: 170, footY: 2618, // mono header and footer baselines-ish (top of their line boxes)
+  asciiTop: 300, asciiW: 905,
+  titleTop: 1880,
+};
+ready(() => {
+  const W = 1875, cw = W - 2 * L.m;
+  const put = (id, s) => Object.assign(document.getElementById(id).style, s);
+  put("h-l", { left: L.m + "px", top: L.headY + "px" });
+  const hr = document.getElementById("h-r");
+  put("h-r", { left: W - L.m - hr.offsetWidth + "px", top: L.headY + "px" });
+  put("r1", { left: L.m + "px", width: cw + "px", top: L.headY + 66 + "px" });
+
+  // the stack in characters: size the mono so `cols` cells span asciiW
+  const A = window.ASCII;
+  const box = document.getElementById("ascii");
+  const fs = L.asciiW / (A.cols * 0.6);
+  box.style.fontSize = fs + "px";
+  box.innerHTML = A.lines.map((runs) => runs.map(([t, c]) => (c ? `<span style="color:${c}">${t.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</span>` : t)).join("")).join("\n");
+  put("ascii", { left: L.m - 30 + "px", top: L.asciiTop + "px" });
+
+  // annotations: one per block, a leader from the block's own right edge (found in the characters) to its label
+  const drawnH = A.rows * fs;
+  const rowText = (r) => A.lines[r].map((x) => x[0]).join("");
+  const solid = [];   // rows that are paint, not shadow: their first run has a colour other than graphite
+  A.lines.forEach((runs, r) => { if (runs.some(([t, c]) => c && c !== "#9b958c" && t.trim().length > 20)) solid.push(r); });
+  const r0 = solid[0], r1 = solid[solid.length - 1];
+  const ax = L.m + L.asciiW + 120;
+  const anns = document.getElementById("anns");
+  [["01", "Up for growth"], ["02", "Sideways for stabilization"], ["03", "Down for pruning"]].forEach(([k, v], i) => {
+    const r = Math.round(r0 + (r1 - r0) * (i + 0.5) / 3);
+    const y = L.asciiTop + (r + 0.5) * fs;
+    // the block's right edge on this row: the last character that is paint (graphite shadow excluded)
+    let col = 0, x = 0;
+    for (const [t, c] of A.lines[r]) { if (c && c !== "#9b958c") col = x + t.trimEnd().length; x += t.length; }
+    const ex = L.m - 30 + col * fs * 0.6 + 24;
+    const d = document.createElement("div");
+    d.className = "ann mono";
+    d.innerHTML = `<span class="k">${k}</span><span class="v">${v.replace(" for ", "<br>for ")}</span>`;
+    Object.assign(d.style, { left: ax + 24 + "px", top: y - 52 + "px", width: W - L.m - ax - 24 + "px" });
+    anns.appendChild(d);
+    const ln = document.createElement("div");
+    ln.className = "lead";
+    Object.assign(ln.style, { left: ex + "px", top: y + "px", width: ax - ex + "px" });
+    anns.appendChild(ln);
+    const dot = document.createElement("div");
+    dot.className = "dot";
+    Object.assign(dot.style, { left: ex + "px", top: y + "px" });
+    anns.appendChild(dot);
+  });
+
+  put("r2", { left: L.m + "px", width: cw + "px", top: L.titleTop - 70 + "px" });
+  put("title", { left: L.m - 8 + "px", top: L.titleTop + "px" });
+  const t = document.getElementById("title");
+  put("sub", { left: L.m + "px", top: L.titleTop + t.offsetHeight + 40 + "px" });
+  put("r3", { left: L.m + "px", width: cw + "px", top: L.footY - 30 + "px" });
+  put("f-l", { left: L.m + "px", top: L.footY + "px" });
+  const fr = document.getElementById("f-r");
+  put("f-r", { left: W - L.m - fr.offsetWidth + "px", top: L.footY + "px" });
+});
+</script>
+</body>
+</html>

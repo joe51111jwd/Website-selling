@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>9: The Ledger (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Direction 9: the subtitle is the data. Michael's own illustration from Chapter 17, "the margin inversion"
+     (the site's former panel: scaling-upside-down/src/story.ts at c492fab^), set as an analyst's exhibit. Every
+     number is drawn at a size proportional to its value, on one baseline per row, so the type is the chart:
+     revenue grows, the team grows, and margin and the owner's take collapse. One accent: red, for what falls. */
+  .page { background: var(--chalk2); color: var(--ink); }
+  .rule { position: absolute; height: 2px; background: var(--ink); opacity: 0.85; }
+  .hair { position: absolute; height: 1.5px; background: var(--ink); opacity: 0.18; }
+  #title { position: absolute; font-size: 214px; white-space: nowrap; }
+  #sub { position: absolute; font-family: "Inter Tight", sans-serif; font-weight: 500; font-size: 60px; letter-spacing: -0.012em; line-height: 1.2; }
+  .lab { position: absolute; }
+  .num { position: absolute; font-family: "Inter Tight", sans-serif; font-weight: 500; letter-spacing: -0.035em; line-height: 1; white-space: nowrap;
+    font-variant-numeric: tabular-nums lining-nums; }
+  .num.red { color: var(--down); }
+  .yr { position: absolute; }
+  .arrow { font-family: "Inter Tight", sans-serif; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="mono abs" id="h-l">Exhibit · Chapter 17</div>
+  <div class="mono abs" id="h-r" style="opacity:.55">The margin inversion</div>
+  <div class="rule" id="r1"></div>
+  <div id="title" class="g500">Scaling<br>Up-Side-Down</div>
+  <div id="sub">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div id="table"></div>
+  <div class="rule" id="r3"></div>
+  <div class="mono abs" id="f-l">Michael Wentz</div>
+  <div class="mono abs" id="f-r" style="opacity:.55">Year 0 → Year 3</div>
+</div>
+<script src="fit.js"></script>
+<script>
+// Michael's numbers, Chapter 17 (exactly as the site showed them)
+const YEARS = ["Year 0", "Year 1", "Year 2", "Year 3"];
+const ROWS = [
+  { key: "Revenue ↑", vals: [3, 3.5, 4, 4.2], fmt: (v) => "$" + v + "M", red: false, max: 136 },
+  { key: "Team ↑", vals: [12, 15, 20, 25], fmt: (v) => String(v), red: false, max: 132 },
+  { key: "Margin ↓", vals: [20, 14, 10, 5], fmt: (v) => v + "%", red: true, max: 186 },
+  { key: "Owner take ↓", vals: [900, 400, 250, 150], fmt: (v) => "$" + v + "K", red: true, max: 124 },
+];
+const L = { m: 150, headY: 170, titleTop: 300, tableTop: 1010, rowH: 362, footY: 2618, minSize: 34 };
+ready(() => {
+  const W = 1875, cw = W - 2 * L.m;
+  const put = (id, s) => Object.assign(document.getElementById(id).style, s);
+  put("h-l", { left: L.m + "px", top: L.headY + "px" });
+  const hr = document.getElementById("h-r");
+  put("h-r", { left: W - L.m - hr.offsetWidth + "px", top: L.headY + "px" });
+  put("r1", { left: L.m + "px", width: cw + "px", top: L.headY + 66 + "px" });
+  put("title", { left: L.m - 8 + "px", top: L.titleTop + "px" });
+  const t = document.getElementById("title");
+  put("sub", { left: L.m + "px", top: L.titleTop + t.offsetHeight + 36 + "px" });
+
+  const tab = document.getElementById("table");
+  const colW = cw / 4;
+  const capEmT = capEm('"Inter Tight"', 500);
+  const add = (cls, html, s) => { const d = document.createElement("div"); d.className = cls; d.innerHTML = html; Object.assign(d.style, s); tab.appendChild(d); return d; };
+  // column heads
+  YEARS.forEach((y, c) => add("mono yr", y, { left: L.m + c * colW + "px", top: L.tableTop - 64 + "px", opacity: 0.55 }));
+  add("hair", "", { left: L.m + "px", width: cw + "px", top: L.tableTop + "px" });
+  ROWS.forEach((row, r) => {
+    const top = L.tableTop + r * L.rowH;
+    const base = top + L.rowH - 52;              // the row's shared baseline
+    add("mono lab", row.key, { left: L.m + "px", top: top + 26 + "px", color: row.red ? "var(--down)" : "var(--ink)" });
+    const vmax = Math.max(...row.vals);
+    if (row.key.startsWith("Margin")) {
+      // behind the margin row, the fall itself as a hatched area: each year's height is its margin (local texture)
+      const svgNS = "http://www.w3.org/2000/svg";
+      const sv = document.createElementNS(svgNS, "svg");
+      Object.assign(sv.style, { position: "absolute", left: L.m + "px", top: top + "px", overflow: "visible" });
+      sv.setAttribute("width", cw); sv.setAttribute("height", L.rowH);
+      const hmax = L.rowH - 90;
+      const pts = row.vals.map((v, c) => [c * colW + colW * 0.42, (L.rowH - 52) - hmax * (v / vmax)]);
+      const d = `M 0 ${L.rowH - 52} L 0 ${pts[0][1]} ` + pts.map((p) => `L ${p[0]} ${p[1]}`).join(" ") + ` L ${cw} ${pts[3][1] + 10} L ${cw} ${L.rowH - 52} Z`;
+      sv.innerHTML = `<defs><pattern id="h" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2.2" height="12" fill="#97201a"/></pattern></defs>
+        <path d="${d}" fill="url(#h)" opacity="0.32"/>`;
+      tab.appendChild(sv);
+    }
+    row.vals.forEach((v, c) => {
+      // cap height proportional to the value: the number is its own bar
+      const cap = Math.max(L.minSize * capEmT, (row.max * capEmT) * (v / vmax));
+      const fs = cap / capEmT;
+      const n = add("num" + (row.red ? " red" : ""), row.fmt(v), { left: L.m + c * colW + "px", fontSize: fs + "px" });
+      // put its baseline on the row's baseline
+      const cv = document.createElement("canvas").getContext("2d");
+      cv.font = `500 ${fs}px "Inter Tight"`;
+      const m = cv.measureText("0");
+      const asc = (fs - m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2 + m.fontBoundingBoxAscent;
+      n.style.top = base - asc + "px";
+      if (n.offsetWidth > colW - 16) console.log("too wide:", row.fmt(v), n.offsetWidth, colW);
+    });
+    add("hair", "", { left: L.m + "px", width: cw + "px", top: top + L.rowH + "px" });
+  });
+  put("r3", { left: L.m + "px", width: cw + "px", top: L.footY - 30 + "px" });
+  put("f-l", { left: L.m + "px", top: L.footY + "px" });
+  const fr = document.getElementById("f-r");
+  put("f-r", { left: W - L.m - fr.offsetWidth + "px", top: L.footY + "px" });
+});
+</script>
+</body>
+</html>

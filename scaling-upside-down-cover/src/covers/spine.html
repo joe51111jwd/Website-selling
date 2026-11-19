@@ -16,6 +16,10 @@
   .chips i { display: block; }
   body.b .page { background: var(--ink); color: var(--stamp); }
   body.e .page { background: #12100d; color: var(--stamp); }
+  /* directions 6-10: chalk, the medium grotesk, mono author */
+  body.k .page { background: var(--chalk); color: var(--ink); }
+  body.k .t { font-family: "Inter Tight", sans-serif; font-weight: 500; letter-spacing: -0.03em; }
+  body.k .n { font-family: "JetBrains Mono", monospace; font-weight: 500; letter-spacing: 0.14em; }
   .u { color: var(--up); } .s { color: var(--side); } .d { color: var(--down); }
   body.b .s { color: var(--side); }
 </style>
@@ -31,16 +35,18 @@ const q = new URLSearchParams(location.search);
 const dir = q.get("dir") || "c";
 const inch = parseFloat(q.get("in") || "0.9");
 document.body.classList.add(dir);
+if ("fghij".includes(dir)) document.body.classList.add("k");
 const W = Math.round(inch * 300), H = 2775;
 const page = document.querySelector(".page");
 page.style.width = W + "px";
 ready(() => {
   // type size follows the spine width: cap height 40% of the width, capped for very wide spines
   const cap = Math.min(W * 0.40, 130);
-  const size = cap / capEm("Anton");
+  const size = cap / capEm(document.body.classList.contains("k") ? '"Inter Tight"' : "Anton", document.body.classList.contains("k") ? 500 : 400);
   const title = document.getElementById("title");
   title.innerHTML = dir === "a" ? 'SCALING <span class="u">UP</span>-<span class="s">SIDE</span>-<span class="d">DOWN</span>'
     : dir === "b" || dir === "e" ? 'SCALING <span class="u" style="color:#6fae7d">UP</span>-<span class="s">SIDE</span>-<span class="d" style="color:#e2584c">DOWN</span>'
+    : "fghij".includes(dir) ? 'Scaling Up-Side-Down'
     : 'SCALING <span class="u">UP</span>-<span class="s">SIDE</span>-<span class="d">DOWN</span>';
   title.style.fontSize = size + "px";
   const name = document.getElementById("name");

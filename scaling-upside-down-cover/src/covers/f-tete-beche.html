@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>6: Tête-bêche (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Direction 6: the book does what its title says. Like a tête-bêche (two books bound head to tail, each the
+     other turned over), the cover reads both ways up. The right way up: the title in ink and "Revenue Up." Turn the
+     book over and the other half is the same title, in red: the company scaling upside down, where "Margins Down."
+     is the right way up. The full subtitle and the author sit on the fold, readable either way round. */
+  .page { background: var(--chalk); color: var(--ink); }
+  .half { position: absolute; left: 0; width: 1875px; height: 1387.5px; }
+  .half.lo { top: 1387.5px; transform: rotate(180deg); }
+  .half.lo { color: var(--down); }
+  .t { position: absolute; font-size: 300px; white-space: nowrap; }
+  .tag { position: absolute; font-family: "Inter Tight", sans-serif; font-weight: 500; letter-spacing: -0.02em; font-size: 104px; line-height: 1; }
+  .mono.k { position: absolute; opacity: 0.6; }
+  .fold { position: absolute; left: 0; width: 1875px; top: 1387.5px; height: 0; border-top: 2px solid var(--ink); }
+  .fold.d { border-top: 2px dashed rgba(28, 26, 23, 0.35); }
+  /* the fold, where the book turns over: a fine hatched band (local texture, and it marks the turn) */
+  .hatch { position: absolute; left: 0; width: 1875px; height: 34px; top: 1370.5px;
+    background: repeating-linear-gradient(-45deg, rgba(28,26,23,.55) 0 2px, transparent 2px 11px); }
+  .band { position: absolute; left: 0; width: 1875px; display: flex; justify-content: space-between; align-items: center; }
+  .arrow { display: inline-block; width: 0; height: 0; border-left: 22px solid transparent; border-right: 22px solid transparent; }
+  .arrow.u { border-bottom: 34px solid var(--up); }
+  .arrow.d { border-top: 34px solid var(--down); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="half hi">
+    <div class="mono k" id="k-hi">↑ This way up</div>
+    <div class="t g500" id="t-hi">Scaling<br>Up-Side-<br>Down</div>
+    <div class="tag" id="g-hi"><i class="arrow u"></i>&ensp;Revenue Up.</div>
+  </div>
+  <div class="half lo">
+    <div class="mono k" id="k-lo">↑ Upside down</div>
+    <div class="t g500" id="t-lo">Scaling<br>Up-Side-<br>Down</div>
+    <div class="tag" id="g-lo"><i class="arrow d"></i>&ensp;Margins Down.</div>
+  </div>
+  <div class="hatch"></div>
+  <div class="band" id="fold-top"><span class="mono">Revenue Up. Margins Down. How to Avoid the Scaling Trap.</span></div>
+  <div class="band" id="fold-bot"><span class="mono" style="transform:rotate(180deg);display:inline-block">Michael Wentz</span><span class="mono">Michael Wentz</span></div>
+</div>
+<script src="fit.js"></script>
+<script>
+const L = { m: 150, top: 160, titleTop: 300, tagGap: 70 };
+ready(() => {
+  for (const h of ["hi", "lo"]) {
+    const put = (id, s) => Object.assign(document.getElementById(id + "-" + h).style, s);
+    put("k", { left: L.m + "px", top: L.top + "px" });
+    put("t", { left: L.m - 14 + "px", top: L.titleTop - 40 + "px" });
+    const t = document.getElementById("t-" + h);
+    // the tag sits at the right margin, at the foot of the half, as a reading of that half
+    const g = document.getElementById("g-" + h);
+    put("g", { left: 1875 - L.m - g.offsetWidth + "px", top: 1387.5 - 108 - 104 + "px" });
+  }
+  // the fold carries the whole subtitle (upright, above the fold) and the author both ways round (below it)
+  const ft = document.getElementById("fold-top");
+  Object.assign(ft.style, { top: 1387.5 - 92 + "px", padding: `0 ${L.m}px`, justifyContent: "center" });
+  const fb = document.getElementById("fold-bot");
+  Object.assign(fb.style, { top: 1387.5 + 44 + "px", padding: `0 ${L.m}px` });
+});
+</script>
+</body>
+</html>

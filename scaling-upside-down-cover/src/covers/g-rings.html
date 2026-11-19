@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>7: Tree rings (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Direction 7: Up, Side, Down is how real things grow. A log slice, photographed from above (rendered: src/blender
+     make_rings.py + rings.py), its rings laid down in cycles: wide growth years, even steady years, tight lean
+     years, then growth again. Not a business picture at all, and the book's model in one object. Mono annotations
+     point at one real cycle in the wood, read from the centre out, as rings are. */
+  .page { background: var(--chalk); color: var(--ink); }
+  #bg { position: absolute; left: 0; top: 0; width: 1875px; height: 2775px; }
+  #title { position: absolute; font-size: 196px; white-space: nowrap; }
+  #sub { position: absolute; font-family: "Inter Tight", sans-serif; font-weight: 500; font-size: 58px; letter-spacing: -0.012em; line-height: 1.2; }
+  .rule { position: absolute; height: 2px; background: var(--ink); opacity: 0.85; }
+  .ann { position: absolute; }
+  .ann .k { display: block; font-size: 28px; opacity: 0.55; }
+  .ann .v { display: block; font-size: 34px; }
+  .lead { position: absolute; height: 2px; background: var(--ink); transform-origin: 0 50%; }
+  .dot { position: absolute; width: 16px; height: 16px; border-radius: 50%; border: 3px solid var(--ink); background: var(--chalk); margin: -8px 0 0 -8px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <img id="bg" src="../../out/render/rings.png" alt="">
+  <div class="mono abs" id="a">Michael Wentz</div>
+  <div class="rule" id="r1"></div>
+  <div id="title" class="g500">Scaling<br>Up-Side-Down</div>
+  <div id="sub">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div id="anns"></div>
+</div>
+<script src="../../out/render/rings_bands.js"></script>
+<script src="../../out/render/rings_place.js"></script>
+<script src="fit.js"></script>
+<script>
+const L = { m: 150, top: 165, titleTop: 300, ray: -125, cycle: 10, labY: [1250, 1120, 990] };
+ready(() => {
+  const put = (id, s) => Object.assign(document.getElementById(id).style, s);
+  put("a", { left: L.m + "px", top: L.top + "px" });
+  put("r1", { left: L.m + "px", width: 1875 - 2 * L.m + "px", top: L.top + 66 + "px" });
+  put("title", { left: L.m - 8 + "px", top: L.titleTop + "px" });
+  const t = document.getElementById("title");
+  put("sub", { left: L.m + "px", top: L.titleTop + t.offsetHeight + 34 + "px" });
+
+  // where the rings are on the picture: the pith, and px per unit of radius
+  const P = window.PLACE, R = window.RINGS;
+  const px = P.centre[0] + (R.pith[0] - 0.5) * 2 * P.px_per_unit;
+  const py = P.centre[1] + (R.pith[1] - 0.5) * 2 * P.px_per_unit;
+  const th = (L.ray * Math.PI) / 180;
+  const anns = document.getElementById("anns");
+  const names = { up: "Up for growth", side: "Sideways for stabilization", down: "Down for pruning" };
+  R.bands.slice(L.cycle, L.cycle + 3).forEach((b, i) => {
+    const r = ((b.r0 + b.r1) / 2) * P.px_per_unit;
+    const x = px + r * Math.cos(th), y = py + r * Math.sin(th);
+    const ly = L.labY[i];
+    const d = document.createElement("div");
+    d.className = "ann mono";
+    d.innerHTML = `<span class="k">0${i + 1}</span><span class="v">${names[b.phase].replace(" for ", "<br>for ")}</span>`;
+    Object.assign(d.style, { left: L.m + "px", top: ly - 40 + "px" });
+    anns.appendChild(d);
+    // an elbow leader: level from the label, then a short diagonal into the wood (they stay in order, never cross)
+    const x0 = L.m + d.offsetWidth + 28, y0 = ly + 6;
+    const xe = x - (y - y0) * 0.55;
+    const seg = (ax, ay, bx, by) => {
+      const ln = document.createElement("div");
+      ln.className = "lead";
+      Object.assign(ln.style, { left: ax + "px", top: ay + "px", width: Math.hypot(bx - ax, by - ay) + "px", transform: `rotate(${Math.atan2(by - ay, bx - ax)}rad)` });
+      anns.appendChild(ln);
+    };
+    seg(x0, y0, xe, y0);
+    seg(xe, y0, x, y);
+    const dot = document.createElement("div");
+    dot.className = "dot";
+    Object.assign(dot.style, { left: x + "px", top: y + "px" });
+    anns.appendChild(dot);
+  });
+});
+</script>
+</body>
+</html>

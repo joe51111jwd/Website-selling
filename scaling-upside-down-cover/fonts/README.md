@@ -12,3 +12,5 @@ embedding allowed). Downloaded 19 Nov 2026.
 | InterTight-*.ttf | Author name, small labels |
 | IBMPlexMono-*.ttf | Chart labels (direction C) |
 | InstrumentSerif-Regular.ttf | Spare, not in the final picks |
+| InterTight-Medium.ttf | Directions 6-10: the display grotesk at weight 500, tight tracking (James's type rule) |
+| JetBrainsMono-Regular/Medium.ttf | Directions 6-10: mono labels, uppercase, tracked (OFL; from the system's fonts) |

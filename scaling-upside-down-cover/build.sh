@@ -6,8 +6,8 @@ set -e
 cd "$(dirname "$0")"
 BLENDER=${BLENDER:-blender}
 ASSETS=${ASSETS:-assets}           # fine_grained_wood_{col,nor_gl,rough}_2k.jpg and studio.hdr
-SPINE_IN=${SPINE_IN:-0.9}
-ALL="a-stack b-upside-down c-cycle d-twelve e-trap"          # placeholder spine width, inches (see README: depends on page count)
+SPINE_IN=${SPINE_IN:-0.9}          # placeholder spine width, inches (see README: depends on page count)
+ALL="a-stack b-upside-down c-cycle d-twelve e-trap f-tete-beche g-rings h-boot i-ledger j-scaling"   # the ten, in order 1-10
 what=${1:-all}
 
 assets() {
@@ -32,11 +32,19 @@ fronts() {
   # the inverted tower for E (about 10 minutes)
   [ -f out/render/tower.png ] || (cd src/blender && $BLENDER -b -P inverted.py -- --wood ../../$ASSETS --hdr ../../$ASSETS/studio.hdr \
       --w 1875 --h 2775 --samples 96 --out ../../out/render/tower.png)
+  # 7's log slice (about 6 minutes) and 8's characters
+  if [ ! -f out/render/rings.png ]; then
+    python3 src/blender/make_rings.py src/tex
+    (cd src/blender && $BLENDER -b -P rings.py -- --tex ../tex --hdr ../../$ASSETS/studio.hdr --w 1875 --h 2775 --samples 64 --out ../../out/render/rings.png)
+  fi
+  python3 -c "import json;d=json.load(open('src/tex/rings.json'));open('out/render/rings_bands.js','w').write('window.RINGS='+json.dumps(d)+';\\n')" 2>/dev/null || true
+  python3 -c "import json;d=json.load(open('out/render/rings.json'));open('out/render/rings_place.js','w').write('window.PLACE='+json.dumps(d)+';\\n')"
+  python3 src/make_ascii.py out/render/blocks_front.png out/render/ascii.js --cols 92
   for d in $ALL; do
     node src/render.cjs src/covers/$d.html out/flat/$d                      # 1875 x 2775 with bleed, + vector PDF
     convert out/flat/$d.png -crop 1800x2700+37+37 +repage out/flat/$d-trim.png  # what the reader sees
   done
-  for d in a b c d e; do node src/render.cjs src/covers/spine.html out/spine/spine-$d --dir $d --in $SPINE_IN; rm -f out/spine/spine-$d.pdf; done
+  for d in a b c d e f g h i j; do node src/render.cjs src/covers/spine.html out/spine/spine-$d --dir $d --in $SPINE_IN; rm -f out/spine/spine-$d.pdf; done
   thumbs
 }
 
@@ -49,27 +57,43 @@ thumbs() {
   for w in 150 100; do
     args=""; for d in $ALL; do args="$args out/thumbs/$d-$w.png"; done
     convert -background white $args -splice 24x0 +append -bordercolor white -border 20 out/thumbs/row-$w.png
+    # the same row numbered under each cover, so James can name his two
+    n=1; nargs=""
+    for d in $ALL; do
+      convert out/thumbs/$d-$w.png -background white -gravity south -splice 0x34 -font fonts/InterTight-Medium.ttf -pointsize 22 \
+        -fill "#1c1a17" -annotate +0+4 "$n" out/thumbs/n-$d-$w.png
+      nargs="$nargs out/thumbs/n-$d-$w.png"; n=$((n+1))
+    done
+    convert -background white $nargs -splice 24x0 +append -bordercolor white -border 20 out/thumbs/row-$w-numbered.png
+    rm out/thumbs/n-*.png
   done
 }
 
 sheet() {
-  # the contact sheet: all five fronts side by side, numbered, with their mockups under them
-  n=1; fa=""; ma=""
+  # the contact sheet: all ten, numbered; fronts 1-5 over their mockups, then 6-10 over theirs
+  n=1
   for d in $ALL; do
     convert out/flat/$d-trim.png -resize 720x -background "#d9d4ca" -gravity north -splice 0x110 \
       -font fonts/Anton-Regular.ttf -pointsize 80 -fill "#1c1a17" -annotate +0+12 "$n" out/render/sheet-f$n.png
     convert out/mockups/mockup-${d:0:1}.png -resize 720x out/render/sheet-m$n.png
-    fa="$fa out/render/sheet-f$n.png"; ma="$ma out/render/sheet-m$n.png"; n=$((n+1))
+    n=$((n+1))
   done
-  convert -background "#d9d4ca" $fa -splice 40x0 +append -gravity east -splice 40x0 out/render/sheet-row1.png
-  convert -background "#e9e3d8" $ma +append -resize "$(identify -format %w out/render/sheet-row1.png)x" out/render/sheet-row2.png
-  convert -background "#d9d4ca" out/render/sheet-row1.png out/render/sheet-row2.png -append -gravity south -splice 0x40 out/contact-sheet.jpg
+  convert -background "#d9d4ca" out/render/sheet-f{1,2,3,4,5}.png -splice 40x0 +append -gravity east -splice 40x0 out/render/sheet-r1.png
+  convert -background "#e9e3d8" out/render/sheet-m{1,2,3,4,5}.png -splice 40x0 +append -gravity east -splice 40x0 out/render/sheet-r2.png
+  convert -background "#d9d4ca" out/render/sheet-f{6,7,8,9,10}.png -splice 40x0 +append -gravity east -splice 40x0 out/render/sheet-r3.png
+  convert -background "#e9e3d8" out/render/sheet-m{6,7,8,9,10}.png -splice 40x0 +append -gravity east -splice 40x0 out/render/sheet-r4.png
+  convert -background "#d9d4ca" out/render/sheet-r1.png out/render/sheet-r2.png out/render/sheet-r3.png out/render/sheet-r4.png -append \
+    -gravity south -splice 0x40 -quality 88 out/contact-sheet.jpg
+  # and the fronts alone, ten across: the quickest way to compare them
+  convert -background "#d9d4ca" out/render/sheet-f{1,2,3,4,5,6,7,8,9,10}.png -splice 30x0 +append -gravity east -splice 30x0 \
+    -gravity south -splice 0x30 -quality 88 out/contact-sheet-fronts.jpg
   rm out/render/sheet-*.png
 }
 
 mockups() {
-  for d in ${MOCKS:-a b c d e}; do   # MOCKS="d e" ./build.sh mockups renders only those
+  for d in ${MOCKS:-a b c d e f g h i j}; do   # MOCKS="d e" ./build.sh mockups renders only those
     edge="#f1ebdf"; [ $d = b ] && edge="#1c1a17"; [ $d = e ] && edge="#12100d"
+    case $d in f|g|h|j) edge="#f6f3ee" ;; i) edge="#f7f7f7" ;; esac
     f=$(ls out/flat/ | grep "^$d-.*[a-z].png$" | grep -v trim | head -1)
     # the front board carries the trim plus the 0.125 in that wraps the head, tail and fore-edge: drop the spine-side bleed
     convert out/flat/$f -crop 1838x2775+37+0 +repage out/render/front-$d.png

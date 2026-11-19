@@ -7,7 +7,7 @@ layout on **1 Dec** and publishes on **1 Jan**.
 Everything is real type, vector work and real 3D (Blender Cycles). There are no AI-generated images. Every file can
 be edited and rebuilt from source (`build.sh`).
 
-## The five directions
+## The first five directions (1-5)
 
 James asked for five (19 Nov, relayed mid-task), so he can pick the top two for Michael. Numbered as in
 `out/contact-sheet.jpg`. Each has a flat front (`out/flat/<name>.png` / `.pdf` with bleed, `<name>-trim.png` at
@@ -26,6 +26,52 @@ The thumbnail check at 150 and 100 px (`out/thumbs/row-150.png`, `row-100.png`):
 - 2 and 4 read as strong colour.
 - 3's title reads, but its chart gets thin.
 - 2's sideways SIDE gets hard to read at 100 px.
+
+## Round 2: five that break the template (6-10)
+
+James: "Think outside the box more on these cover ideas." 1-5 all share one layout (big title on top, a picture,
+subtitle and author at the foot). 6-10 are each built on one idea, and the layout is part of it. They share one kit,
+from James's taste rules:
+- chalk ground;
+- Inter Tight at 500, tracked -0.03em;
+- JetBrains Mono labels;
+- the book's paints only where they mean something;
+- texture only as a local layer;
+- imagery real or photo-real.
+
+The research behind them is in `research/reference-board.md`, under "Round 2".
+
+| # | Name (files) | The one idea |
+| - | - | - |
+| 6 | **Tête-bêche** (`f-tete-beche`) | The book does what its title says. Like a tête-bêche (two books bound head to tail), the cover reads both ways up. The right way up is the title in ink with "Revenue Up." Turned over, it is the same title in red, the company scaling upside down, where "Margins Down." is the right way up. The full subtitle and the author sit on the hatched fold. |
+| 7 | **Tree rings** (`g-rings`) | Up, Side and Down is how real things grow. A photo-real log slice (Cycles, `src/blender/make_rings.py` + `rings.py`) whose rings are laid down in cycles: wide growth years, even steady years, tight lean years, then growth again. Mono annotations point at one real cycle, read from the centre out. It looks nothing like a business book, and it carries the whole model. |
+| 8 | **Boot screen** (`h-boot`) | Software as a book. The cover is a spec sheet: the book's own block stack (the Blender render) drawn in characters (`src/make_ascii.py`), the three moves annotated in mono with the manuscript's words (L3315-3317), and the title set at the foot like a product name. The picture comes first and the title last. |
+| 9 | **The Ledger** (`i-ledger`) | The subtitle is the data. It uses Michael's own exhibit from Chapter 17, "the margin inversion" (the site's former panel, `src/story.ts` at c492fab^): team 12 to 25, revenue $3M to $4.2M, margin 20% to 5%, owner take $900K to $150K. Every number is drawn at a size proportional to its value, on one baseline per row, so the type is the chart. Red is used only for what falls, with a hatched wedge tracing the margin's drop. |
+| 10 | **Scaling** (`j-scaling`) | The word scales. Each letter of SCALING is 1.37 times the last and stands a little higher, compounding like a growth curve, until the G is too big for the cover and runs off it. That G is hatched red: the breaking point. Small mono readouts give each letter's size. |
+
+**Thumbnails** (`out/thumbs/row-150-numbered.png`): all ten read at 150 px. In a row of covers, 6 and 7 catch the eye
+most of 6-10, and 6-10 are quieter than 1-5 by design (space and type, not big colour). 9's and 10's subtitles are too
+small to read at 150 px; their titles read.
+
+### James's six checks (1-5 each; a 3 means "fine, not his")
+
+Scored against the references, after the first fixes. Texture was the lowest score on 6, 9 and 10 (about 2: no
+texture at all), so each got a local, functional one: a hatched fold on 6, a hatched falling wedge on 9 and a
+hatched G on 10.
+
+| # | Type | Colour discipline | Grain / texture | Gradient | Density / craft | Never-do list | Lowest, and what would lift it |
+| - | - | - | - | - | - | - | - |
+| 6 | 5 | 4 | 3 | n/a | 4 | 5 | Texture: it is a type cover by design. A blind deboss along the fold would be the real-world version (optional finish). |
+| 7 | 4 | 5 | 5 | 4 | 4 | 5 | Type: the title is set well but quiet against the wood. Could go one size up. |
+| 8 | 5 | 4 | 5 | n/a | 5 | 4 | Never-do: ASCII sits near "tech cliché". It earns its place because it draws the book's real object, not decoration. |
+| 9 | 5 | 5 | 4 | n/a | 5 | 5 | Texture: the wedge is the only one. That is right for an exhibit. |
+| 10 | 5 | 5 | 4 | n/a | 3 | 4 | Density: the top right is sparse. The climb needs the air, but it is the weakest score here. |
+
+### Optional finishes (none needed: all ten print in ordinary 4-colour)
+- **7, Tree rings:** a spot gloss or a light emboss on the rings, so they can be felt. This needs offset or specialist
+  printing: print-on-demand (IngramSpark, KDP) can't do spot finishes. There is a setup charge plus a per-copy cost;
+  ask the printer for a quote.
+- **6, Tête-bêche:** a blind deboss along the fold, on the same terms.
 
 ## The full wrap (direction 1, built before the switch to five)
 
@@ -73,6 +119,10 @@ src/covers/b-upside-down.html direction B front
 src/covers/c-cycle.html       direction C front
 src/covers/d-twelve.html      direction D front
 src/covers/e-trap.html        direction E front
+src/covers/f-tete-beche.html  6  ·  g-rings.html 7  ·  h-boot.html 8  ·  i-ledger.html 9  ·  j-scaling.html 10
+src/blender/make_rings.py     paints the log slice's end grain for 7 (rings in Up/Side/Down cycles)
+src/blender/rings.py          photographs it from above (Cycles, orthographic flat lay)
+src/make_ascii.py             draws the block stack in characters for 8
 src/covers/spine.html         the spine, any direction and width (?dir=a&in=0.9)
 src/covers/wrap.html          the full wrap (?spine=&wrap=&hinge=&guides=1)
 src/blender/make_faces.py     paints the blocks' faces and stamps (PIL)

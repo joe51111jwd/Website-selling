@@ -53,3 +53,38 @@ James's taste notes (`joe51111jwd/james-taste`, `SKILL.md`) could not be read fr
 refused and the plain clone needs credentials. James's judgements here come from his messages in
 `scaling-upside-down/context/` instead: "less playful, more professional", "nothing that looks AI-generated", one
 focus, and words only where they are the focus.
+
+---
+
+# Round 2 (19 Nov): covers that won on concept, not polish
+
+James: "Think outside the box more on these cover ideas." Directions 1-5 all share one template (big title at the
+top, a picture in the middle, subtitle and author at the foot). These references are about the **idea** each cover
+is built on: the trick, not the style.
+
+| # | Cover | Designer | Source | The trick | What 6-10 take from it |
+| - | ----- | -------- | ------ | --------- | ---------------------- |
+| 1 | Michael Crichton, ***Jurassic Park*** | Chip Kidd | [Artnet](https://news.artnet.com/art-world/chip-kidd-book-designer-veracity-trap-marvel-2678924), [NPR](https://www.npr.org/transcripts/157886049) | A diagram borrowed from a science textbook (a T. rex skeleton) becomes the whole cover. The image is evidence, not illustration. | **9, The Ledger**: Michael's own exhibit from Chapter 17 is the cover. The evidence is the image. |
+| 2 | Haruki Murakami, ***1Q84*** | Chip Kidd | [Hyperallergic](https://hyperallergic.com/alternate-realities-book-cover.md), [People's Graphic Design Archive](https://peoplesgdarchive.org/item/17666/1q84) | A transparent vellum jacket over a printed board: two images overlap into one, as the novel's two worlds do. The object's construction carries the idea. | **6, Tête-bêche**: the cover's orientation carries the idea. It is two covers in one, depending on which way up you hold it. |
+| 3 | Ben Marcus, ***Notes from the Fog*** | Jamie Keenan | [Fonts In Use](https://fontsinuse.com/uses/24492/notes-from-the-fog-ben-marcus) | Mirrored, reversed type: the reader has to work the title out, as the stories ask them to. | **6**: the red half is the title turned over, and you must turn the book (or your head) to read it. |
+| 4 | Jude Stewart, ***Patternalia*** | Oliver Munday | [Print](https://www.printmag.com/post/design-inspiration-inside-10-brilliant-book-covers-by-oliver-munday) | A giant P for Pattern, filled with stripes, dots and plaid: the letter is a specimen of the subject. | **10, Scaling**: the word is a specimen of its meaning. SCALING scales. |
+| 5 | Ingrid Robeyns, ***Limitarianism*** (US) | Pablo Delcan | [Lit Hub](https://lithub.com/two-designers-two-countries-two-covers-how-limitarianism-got-its-look) | "The subtitle did so much of the heavy lifting": type-only sketches where a dot grows, letting the words do the work and stepping back. | **9**: our subtitle (Revenue Up. Margins Down.) is literally the data. **10**: growth shown by size alone. |
+| 6 | ***Limitarianism*** (UK) | Jamie Keenan | Lit Hub (as above) | The same book, a second answer: two designers, two ideas. A strong concept can come from type alone. | Keep 6-10 type-led where they can be; use an object (7) only when the object is the argument. |
+| 7 | Ace Doubles (1952-1970s) | Ace Books | [Wikipedia: Ace double titles](https://en.wikipedia.org/wiki/List_of_Ace_double_titles), [Dos-à-dos / tête-bêche](https://en.wikipedia.org/wiki/Dos-%C3%A0-dos_binding) | Tête-bêche: two books bound head to tail, so there is no back cover, only two fronts, each upside down to the other. | **6**: the literal source. A book called *Up-Side-Down* that you can read upside down. |
+| 8 | Penguin **Great Ideas** | David Pearson | [Design Week](https://www.designweek.co.uk/issues/10-16-august-2020/david-pearson-penguin-great-ideas/) | "Managing variables": every cover in the same frame, each changed by one idea. | 6-10 share one kit (chalk, one grotesk at 500, mono furniture, a header rule), so the idea is the only variable. |
+| 9 | Peter Mendelsund on covers | Peter Mendelsund | [NPR](https://www.npr.org/2014/10/16/345548582/the-jacket-designers-challenge-to-capture-a-book-by-its-cover), [Designers & Books](https://www.designersandbooks.com/blog/covering-reading-a-conversation-with-book-cover-designer-peter-mendelsund) | Read like an editor; aim at the book's affect, not a scene from it; "a cover that looks very different from those around it will draw the eye." | **7, Tree rings**: not a business picture at all, so it stands apart on a shelf of charts and arrows, and it carries the book's whole model. |
+| 10 | Jon Gray and Jamie Keenan, "20 Immutable Theories of Cover Design" | Gray and Keenan | [Print](https://www.printmag.com/print-design-articles/four-of-jon-gray-and-jamie-keenans-20-immutable-theories-of-cover-design/) | Covers as tested rules of thumb. | A check list beside James's own (below). |
+| 11 | Joan Wong's family-history cover | Joan Wong | [AIGA Eye on Design](https://eyeondesign.aiga.org/when-your-book-design-career-starts-at-age-10-and-peeks-at-crazy-rich-asians/) | A book within a book and repeated heads draw a family line: structure as story. | **7**: the rings are a record of years, the slice is the history. |
+| 12 | Mariam Rahmani, ***Liquid*** (round 1, #5) | Sharanya Durvasala | Lit Hub 2025 | A spreadsheet as the cover's medium. | **9**: the analyst's table, done with care, as a cover. |
+| 13 | Vauhini Vara, ***Searches*** (round 1, #6) | LeClair and Huang | Lit Hub 2025 | A block of text as the image. | **8, Boot screen**: characters as the image. The block stack is drawn in text. |
+
+## James's taste rules, as applied to 6-10
+
+From his `SKILL.md`, `check.md` and `taste-findings.md` (relayed, since the repo could not be attached):
+- **Ground**: chalk `#F6F3EE` (and `#F7F7F7` for the ledger).
+- **Type**: Inter Tight at 500, tracking -0.03em; no display serif; JetBrains Mono labels in uppercase, tracked 0.14em.
+- **Colour**: the book's red, ochre and green, used only where they mean something.
+- **Texture**: local only (the wood grain, the ASCII).
+- **Imagery**: real or photo-real (Cycles renders).
+
+The scores are in the README.

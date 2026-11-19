@@ -36,7 +36,17 @@ rationale; no wrap until he picks. Two directions were added:
 - 5, The Trap: a Blender render of raw-wood blocks stacked as an upside-down pyramid.
 `out/contact-sheet.jpg` shows all five. The wrap built for direction 1 before the change stays as the template for
 the picks.
-James's taste repo (`james-taste`) could not be read from that session (access refused).
+Second round (19 Nov), from James, relayed the same way: "Think outside the box more on these cover ideas." The first
+five were "good but safe", all on one template, and his eye is "something most AI-made design doesn't do". He sent the
+core of his taste rules: chalk ground, a grotesk at 500 with tight tracking, mono labels, one accent used as a decision,
+local texture only, real or photo-real imagery, and a six-point check. Five more were made, each built on one idea:
+- 6, Tête-bêche: the cover reads both ways up; turned over, the title is red and "Margins Down." is the right way up.
+- 7, Tree rings: a rendered log slice whose rings grow in Up/Side/Down cycles.
+- 8, Boot screen: a spec sheet with the block stack drawn in characters.
+- 9, The Ledger: Michael's own Chapter 17 "margin inversion" numbers, each drawn at a size proportional to its value.
+- 10, Scaling: the letters of SCALING compound in size until the G breaks off the page.
+`out/contact-sheet.jpg` shows all ten, and the README has each one's scores.
+James's taste repo (`james-taste`) could not be read from that session (access refused); its rules came relayed.
 **Waiting** on James's pick of two, then on Michael for the page count and paper, trim and binding, the printer's template,
 the ISBN and price, the final subtitle and the full back-cover text.
 

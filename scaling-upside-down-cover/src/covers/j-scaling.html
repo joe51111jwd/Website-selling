@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>10: Scaling (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Direction 10: the word scales. Each letter of SCALING is 1.37 times the one before,
+     each standing a little higher, compounding like a growth curve, until the last letter is too big for the
+     cover: the G runs off the page, in red, past the breaking point. Growth without the Side and the Down. The rest of the title, the subtitle and the author
+     sit small and steady in the space the runaway word leaves. */
+  .page { background: var(--chalk); color: var(--ink); }
+  .L { position: absolute; font-family: "Inter Tight", sans-serif; font-weight: 500; line-height: 1; letter-spacing: 0; white-space: nowrap; }
+  .L.red { color: transparent; -webkit-text-stroke: 4px var(--down);
+    background: repeating-linear-gradient(-45deg, var(--down) 0 5px, transparent 5px 13px); -webkit-background-clip: text; background-clip: text; }
+  #usd { position: absolute; font-size: 178px; white-space: nowrap; }
+  #sub { position: absolute; font-family: "Inter Tight", sans-serif; font-weight: 500; font-size: 60px; letter-spacing: -0.012em; line-height: 1.2; }
+  .rule { position: absolute; height: 2px; background: var(--ink); opacity: 0.85; }
+  .tick { position: absolute; font-family: "JetBrains Mono", monospace; font-weight: 500; font-size: 30px; letter-spacing: 0.1em; color: var(--ink); opacity: 0.5; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="mono abs" id="a">Michael Wentz</div>
+  <div class="rule" id="r1"></div>
+  <div id="usd" class="g500">Up-Side-Down</div>
+  <div id="sub">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div id="word"></div>
+</div>
+<script src="fit.js"></script>
+<script>
+const L = { m: 150, top: 165, usdTop: 300, baseline: 2600, s0: 168, k: 1.37, gap: 10, rise: 0.40, gStart: 1300 };
+ready(() => {
+  const put = (id, s) => Object.assign(document.getElementById(id).style, s);
+  put("a", { left: L.m + "px", top: L.top + "px" });
+  put("r1", { left: L.m + "px", width: 1875 - 2 * L.m + "px", top: L.top + 66 + "px" });
+  put("usd", { left: L.m - 8 + "px", top: L.usdTop + "px" });
+  const u = document.getElementById("usd");
+  put("sub", { left: L.m + "px", top: L.usdTop + u.offsetHeight + 34 + "px" });
+
+  // SCALING, compounding: letter i is s0 * k^i. Solve s0 so the G starts at gStart: enough of it on the page to
+  // read as a G (its bar shows), the rest off the edge
+  const word = document.getElementById("word");
+  const c = document.createElement("canvas").getContext("2d");
+  const gx = (s0) => { let x = L.m; "SCALIN".split("").forEach((ch, i) => { const fs = s0 * Math.pow(L.k, i); c.font = `500 ${fs}px "Inter Tight"`;
+    const m = c.measureText(ch); x += m.actualBoundingBoxLeft + m.actualBoundingBoxRight + L.gap * Math.pow(L.k, i); }); return x; };
+  let lo = 40, hi = 400;
+  for (let n = 0; n < 40; n++) { const mid = (lo + hi) / 2; if (gx(mid) < L.gStart) lo = mid; else hi = mid; }
+  L.s0 = lo;
+  let x = L.m, base = L.baseline;
+  "SCALING".split("").forEach((ch, i) => {
+    const fs = L.s0 * Math.pow(L.k, i);
+    c.font = `500 ${fs}px "Inter Tight"`;
+    const m = c.measureText(ch);
+    const d = document.createElement("div");
+    d.className = "L" + (i >= 6 ? " red" : "");
+    d.textContent = ch;
+    const asc = (fs - m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2 + m.fontBoundingBoxAscent;
+    Object.assign(d.style, { fontSize: fs + "px", left: x - m.actualBoundingBoxLeft + "px", top: base - asc + "px" });
+    word.appendChild(d);
+    // a mono tick under each letter: its size, so the growth reads as numbers too
+    const t = document.createElement("div");
+    t.className = "tick";
+    t.textContent = "×" + Math.pow(L.k, i).toFixed(1);
+    Object.assign(t.style, { left: x + "px", top: base + 30 + "px" });
+    if (i < 6) word.appendChild(t);
+
+    x += m.actualBoundingBoxLeft + m.actualBoundingBoxRight + L.gap * Math.pow(L.k, i);
+    base -= L.rise * m.actualBoundingBoxAscent;   // each letter stands on the last one's shoulder: the word climbs
+  });
+});
+</script>
+</body>
+</html>
