@@ -2,67 +2,61 @@
   "video": {
     "src": "video.webp",
     "srcSm": "video-sm.webp",
-    "aspect": 1.0941,
+    "aspect": 0.8894,
+    "crop": { "y": 0.0, "h": 0.4 },
     "screens": {
-      "video": {
-        "quad": [[0.334, 0.108], [0.656, 0.108], [0.656, 0.318], [0.334, 0.318]],
-        "radius": "3%"
-      }
+      "video": { "x": 0.318, "y": 0.108, "w": 0.372, "h": 0.242, "radius": "5px" }
     },
     "hot": [
-      { "id": "files", "x": 0.21, "y": 0.142, "w": 0.11, "h": 0.055, "label": "Files" },
-      { "id": "view", "x": 0.21, "y": 0.196, "w": 0.11, "h": 0.055, "label": "View" },
-      { "id": "opt", "x": 0.21, "y": 0.248, "w": 0.11, "h": 0.058, "label": "Options" },
-      { "id": "up", "x": 0.732, "y": 0.15, "w": 0.075, "h": 0.048, "label": "Up" },
-      { "id": "left", "x": 0.692, "y": 0.198, "w": 0.048, "h": 0.062, "label": "Back" },
-      { "id": "play", "x": 0.742, "y": 0.198, "w": 0.058, "h": 0.068, "label": "Play" },
-      { "id": "right", "x": 0.798, "y": 0.198, "w": 0.048, "h": 0.062, "label": "Forward" },
-      { "id": "down", "x": 0.732, "y": 0.262, "w": 0.075, "h": 0.05, "label": "Down" }
+      { "id": "files", "x": 0.145, "y": 0.128, "w": 0.13, "h": 0.055, "label": "Files" },
+      { "id": "view", "x": 0.145, "y": 0.188, "w": 0.13, "h": 0.05, "label": "View" },
+      { "id": "opt", "x": 0.145, "y": 0.242, "w": 0.13, "h": 0.055, "label": "Options" },
+      { "id": "up", "x": 0.755, "y": 0.125, "w": 0.09, "h": 0.045, "label": "Previous video" },
+      { "id": "left", "x": 0.715, "y": 0.168, "w": 0.055, "h": 0.07, "label": "Back" },
+      { "id": "play", "x": 0.768, "y": 0.165, "w": 0.065, "h": 0.075, "label": "Play" },
+      { "id": "right", "x": 0.83, "y": 0.168, "w": 0.055, "h": 0.07, "label": "Forward" },
+      { "id": "down", "x": 0.755, "y": 0.235, "w": 0.09, "h": 0.05, "label": "Next video" }
     ]
   },
   "music": {
     "src": "music.webp",
     "srcSm": "music-sm.webp",
-    "aspect": 1.0941,
+    "aspect": 1.0944,
+    "crop": { "y": 0.0, "h": 0.46 },
     "screens": {
-      "lcd": {
-        "quad": [[0.338, 0.088], [0.664, 0.088], [0.664, 0.418], [0.338, 0.418]],
-        "radius": "50%"
-      }
+      "lcd": { "x": 0.328, "y": 0.062, "w": 0.344, "h": 0.305, "radius": "50%" }
     },
     "hot": [
-      { "id": "playlist", "x": 0.07, "y": 0.545, "w": 0.26, "h": 0.05, "label": "Playlist" },
-      { "id": "equalizer", "x": 0.07, "y": 0.598, "w": 0.26, "h": 0.048, "label": "Equalizer" },
-      { "id": "visuals", "x": 0.07, "y": 0.646, "w": 0.26, "h": 0.046, "label": "Visuals" },
-      { "id": "options", "x": 0.07, "y": 0.692, "w": 0.26, "h": 0.05, "label": "Options" }
+      { "id": "playlist", "x": 0.055, "y": 0.545, "w": 0.2, "h": 0.05, "label": "Playlist" },
+      { "id": "equalizer", "x": 0.055, "y": 0.598, "w": 0.2, "h": 0.048, "label": "Equalizer" },
+      { "id": "visuals", "x": 0.055, "y": 0.648, "w": 0.2, "h": 0.046, "label": "Visuals" },
+      { "id": "options", "x": 0.055, "y": 0.695, "w": 0.2, "h": 0.05, "label": "Options" }
     ]
   },
   "merch": {
     "src": "merch.webp",
     "srcSm": "merch-sm.webp",
-    "aspect": 0.6269,
+    "aspect": 0.6185,
+    "crop": { "y": 0.3, "h": 0.28 },
     "screens": {
-      "lensL": {
-        "quad": [[0.078, 0.366], [0.422, 0.366], [0.422, 0.53], [0.078, 0.53]],
-        "radius": "16%"
-      },
-      "lensR": {
-        "quad": [[0.562, 0.362], [0.905, 0.362], [0.905, 0.534], [0.562, 0.534]],
-        "radius": "16%"
-      }
+      "lensL": { "x": 0.155, "y": 0.35, "w": 0.325, "h": 0.175, "radius": "18px" },
+      "lensR": { "x": 0.55, "y": 0.348, "w": 0.32, "h": 0.18, "radius": "20px" }
     },
-    "hot": []
+    "hot": [
+      { "id": "cart", "x": 0.02, "y": 0.4, "w": 0.09, "h": 0.07, "label": "Open merch" }
+    ]
   },
   "tour": {
     "src": "tour.webp",
     "srcSm": "tour-sm.webp",
-    "aspect": 0.8643,
+    "aspect": 0.7477,
+    "crop": { "y": 0.0, "h": 0.4 },
     "screens": {
-      "tour": {
-        "quad": [[0.225, 0.058], [0.792, 0.058], [0.792, 0.408], [0.225, 0.408]],
-        "radius": "6%"
-      }
+      "tour": { "x": 0.12, "y": 0.028, "w": 0.76, "h": 0.365, "radius": "16px" }
     },
-    "hot": []
+    "hot": [
+      { "id": "merch", "x": 0.085, "y": 0.145, "w": 0.07, "h": 0.055, "label": "Add-on merch" },
+      { "id": "list", "x": 0.085, "y": 0.21, "w": 0.07, "h": 0.055, "label": "Open tour" }
+    ]
   }
 }

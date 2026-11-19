@@ -3,6 +3,7 @@
 import { raise } from "./z";
 
 const open = new Map<string, HTMLElement>();
+const closers = new Map<string, (() => void) | undefined>();
 const hooks = new Set<(id: string, open: boolean) => void>();
 
 export function onWindow(fn: (id: string, open: boolean) => void) {
@@ -30,10 +31,10 @@ export type WinOpts = {
 export function openWindow(o: WinOpts) {
   const had = open.get(o.id);
   if (had) {
-    // reopen with the new content (stop whatever the old content was playing)
     had.querySelectorAll("video").forEach((v) => v.pause());
     had.querySelector(".win__body")!.replaceChildren(o.body);
     had.querySelector(".win__title")!.textContent = o.title;
+    closers.set(o.id, o.onClose);
     raise(had);
     had.classList.remove("win--in");
     void had.offsetWidth;
@@ -60,6 +61,7 @@ export function openWindow(o: WinOpts) {
   document.getElementById("layer")!.append(w);
   raise(w);
   open.set(o.id, w);
+  closers.set(o.id, o.onClose);
   tell(o.id, true);
 
   const close = () => {
@@ -67,7 +69,8 @@ export function openWindow(o: WinOpts) {
     w.classList.add("win--out");
     open.delete(o.id);
     tell(o.id, false);
-    o.onClose?.();
+    closers.get(o.id)?.();
+    closers.delete(o.id);
     setTimeout(() => w.remove(), 180);
   };
   w.addEventListener("pointerdown", () => raise(w));
@@ -95,4 +98,8 @@ export function openWindow(o: WinOpts) {
 
 export function closeWindow(id: string) {
   open.get(id)?.querySelector<HTMLElement>('[data-a="close"]')?.click();
+}
+
+export function closeEveryWindow() {
+  [...open.keys()].forEach(closeWindow);
 }
