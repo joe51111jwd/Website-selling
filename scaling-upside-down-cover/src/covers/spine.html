@@ -39,6 +39,10 @@ if ("fghij".includes(dir)) document.body.classList.add("k");
 // 11-15: the title on the spine is drawn too, in the book's own letterforms (out/render/spine-word.svg)
 const DRAWN = "klmno".includes(dir);
 if (DRAWN) document.body.classList.add("k");
+// bold versions: ?bg=&fg=&word= override the spine's ground, its ink, and the drawn title file
+const BG = q.get("bg"), FG = q.get("fg"), WORD = q.get("word") || "spine-word.svg";
+if (BG) document.documentElement.style.setProperty("--chalk", BG);
+if (FG) document.documentElement.style.setProperty("--ink", FG);
 const W = Math.round(inch * 300), H = 2775;
 const page = document.querySelector(".page");
 page.style.width = W + "px";
@@ -54,7 +58,7 @@ ready(() => {
   title.style.fontSize = size + "px";
   if (DRAWN) {
     const hh = cap * 1.22, ww = hh * 2325 / 207;  // the drawn title (spine-word.svg is 2325 x 207)
-    title.innerHTML = `<img src="../../out/render/spine-word.svg" style="display:block;height:${hh}px;width:${ww}px">`;
+    title.innerHTML = `<img src="../../out/render/${WORD}" style="display:block;height:${hh}px;width:${ww}px">`;
   }
   const name = document.getElementById("name");
   name.style.fontSize = Math.max(cap * 0.62, 30) + "px";

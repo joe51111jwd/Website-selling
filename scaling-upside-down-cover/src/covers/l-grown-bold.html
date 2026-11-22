@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>12: Grown, bold (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Cover 12, "Grown": a botanical plate. The title grows: one trunk branches into the letters of SCALING (the
+     book's own letterforms, drawn as living wood by src/make_tree.py). Green where it grows, ochre where it holds,
+     red leaves falling. A wild shoot that grew out past the G has been sawn off and lies on the ground: pruning,
+     felt rather than explained. UP-SIDE-DOWN grows above it as twigs, in leaf: green, ochre, and a red leaf falling. */
+  .page { background: radial-gradient(ellipse 75% 60% at 50% 36%, #f0b03c 0%, #e09a24 55%, #c9821a 100%); color: var(--ink); }
+  img.abs { position: absolute; }
+  #sub { position: absolute; left: 0; width: 1875px; text-align: center; font-family: "Inter Tight", sans-serif; font-weight: 500; font-size: 58px; letter-spacing: -0.012em; line-height: 1.22; }
+  #author { position: absolute; left: 0; width: 1875px; text-align: center; }
+  .plate { position: absolute; }
+</style>
+</head>
+<body>
+<div class="page">
+  <img class="abs" id="tree" src="../../out/render/tree-bold.svg" alt="" style="left:0;top:0;width:1875px;height:2775px">
+  <div id="sub">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div class="mono" id="author">Michael Wentz</div>
+</div>
+<script src="fit.js"></script>
+<script>
+ready(() => {
+  document.getElementById("sub").style.top = "2330px";
+  document.getElementById("author").style.top = "2560px";
+});
+</script>
+</body>
+</html>

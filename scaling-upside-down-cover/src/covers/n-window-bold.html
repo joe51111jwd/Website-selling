@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>14: Window, bold (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Cover 14, "Window": a sheet of cream paper with the title cut through it (the book's own letterforms, heavier,
+     stencil-bridged), and behind it a paper landscape at sunset whose hills climb, level and dip, in the book's
+     paints (src/blender/paper.py). Above the title, a round window with the low sun in it. You see the world only
+     through the letters: half-revealed, a place you want to look into. */
+  .page { background: #1d4529; }
+  img.abs { position: absolute; left: 0; top: 0; width: 1875px; height: 2775px; }
+  #sub { position: absolute; left: 0; width: 1875px; text-align: center; font-family: "Inter Tight", sans-serif; font-weight: 500;
+    font-size: 58px; letter-spacing: -0.012em; line-height: 1.22; color: #f1e6cf; }
+  #author { position: absolute; left: 0; width: 1875px; text-align: center; color: #f1e6cf; }
+</style>
+</head>
+<body>
+<div class="page">
+  <img class="abs" src="../../out/render/paper-bold.png" alt="">
+  <div id="sub">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div class="mono" id="author">Michael Wentz</div>
+</div>
+<script src="fit.js"></script>
+<script>
+ready(() => {
+  document.getElementById("sub").style.top = "2180px";
+  document.getElementById("author").style.top = "2470px";
+});
+</script>
+</body>
+</html>

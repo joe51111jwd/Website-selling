@@ -11,6 +11,17 @@ under "All of James's messages, word for word".
 
 ---
 
+## Sun 22 Nov 2026: James on covers 11-15: "It doesn't stand out enough"
+
+> It doesn't stand out enough
+
+What it means: at Amazon size, in a row, 11-15 blend together and into a page of results. They are all beige and cream,
+and the titles are small for the cover. **Done** (branch `claude/susd-cover`, README "Round 3, bold"): bold versions of
+the four strongest, 12b, 13b, 14b and 15b, with saturated full-bleed grounds, titles that fill the cover, glowing
+letters and hard contrast. 11 was dropped as the weakest. The originals are kept. **Waiting** on James's pick of two
+to send Michael.
+
+
 ## Thu 19 Nov 2026: James: design the book cover (a real design, not the AI mockup)
 
 James's brief (a task, not a chat message): design the hardcover for *Scaling Up-Side-Down*, because Michael's cover

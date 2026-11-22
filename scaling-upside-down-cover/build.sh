@@ -110,7 +110,20 @@ wrap() {
   node src/render.cjs src/covers/wrap.html out/wrap/wrap-guides --spine $SPINE_IN --guides 1
 }
 
+bold() {
+  # round 3, bold: the stand-out versions of 12-15 (renders: light.py/paper.py --bold 1, about 10 min each)
+  [ -f out/render/light-bold.png ] || (cd src/blender && $BLENDER -b -P light.py -- --wood ../../$ASSETS --w 1875 --h 2775 --samples 96 --bold 1 --out ../../out/render/light-bold.png)
+  [ -f out/render/paper-bold.png ] || (cd src/blender && $BLENDER -b -P paper.py -- --w 1875 --h 2775 --samples 80 --bold 1 --out ../../out/render/paper-bold.png)
+  python3 src/make_tree.py out/render/tree-bold.svg bold
+  python3 src/make_stitch.py out/render bold
+  for d in l-grown-bold m-light-bold n-window-bold o-stitched-bold; do
+    node src/render.cjs src/covers/$d.html out/flat/$d
+    convert out/flat/$d.png -crop 1800x2700+37+37 +repage out/flat/$d-trim.png
+  done
+}
+
 case $what in
+  bold) bold ;;
   fronts) fronts ;; thumbs) thumbs ;; mockups) mockups ;; sheet) sheet ;; wrap) wrap ;;
   all) fronts; mockups; sheet; wrap ;;
 esac

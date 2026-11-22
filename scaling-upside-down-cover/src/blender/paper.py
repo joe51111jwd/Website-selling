@@ -22,6 +22,7 @@ ap.add_argument("--w", type=int, default=375)
 ap.add_argument("--h", type=int, default=555)
 ap.add_argument("--samples", type=int, default=24)
 ap.add_argument("--out", required=True)
+ap.add_argument("--bold", type=int, default=0, help="1: the stand-out version (the sheet in the book's deep green)")
 a = ap.parse_args(argv)
 A = lambda p: os.path.abspath(p)  # noqa: E731
 
@@ -136,7 +137,7 @@ mod.object = port
 bpy.context.view_layer.objects.active = sheet
 bpy.ops.object.modifier_apply(modifier=mod.name)
 bpy.data.objects.remove(port)
-sheet.data.materials.append(paper_mat("cream", "#f1e8d8"))
+sheet.data.materials.append(paper_mat("cream", "#1d4529" if a.bold else "#f1e8d8"))
 
 
 def hills(name, y, base_z, amp, phase, colour, period=3.2):
@@ -175,10 +176,12 @@ def hills(name, y, base_z, amp, phase, colour, period=3.2):
 
 
 # layers, back to front: the far ridges catch the sunset, the near ones are deeper in colour
-hills("far", 2.6, 3.9, 0.95, 0.9, "#f0a868")
-hills("ochre", 2.0, 3.4, 1.0, 2.1, "#e09a24")
-hills("red", 1.4, 2.85, 1.0, 0.2, "#a8321f")
-hills("green", 0.8, 2.2, 1.05, 1.6, "#2c5a37")
+# bold: every layer glows (a sunset seen through dark paper); the default keeps the book's own paints
+HC = ["#ffd9a0", "#f6b54a", "#ee7a40", "#d9473a"] if a.bold else ["#f0a868", "#e09a24", "#a8321f", "#2c5a37"]
+hills("far", 2.6, 3.9, 0.95, 0.9, HC[0])
+hills("ochre", 2.0, 3.4, 1.0, 2.1, HC[1])
+hills("red", 1.4, 2.85, 1.0, 0.2, HC[2])
+hills("green", 0.8, 2.2, 1.05, 1.6, HC[3])
 
 # the sky: a warm glow behind everything, with a low sun
 bpy.ops.mesh.primitive_plane_add(size=30, location=(0, 3.4, 4), rotation=(math.radians(90), 0, 0))

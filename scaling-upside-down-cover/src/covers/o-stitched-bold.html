@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>15: Stitched, bold (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Cover 15, "Stitched": the title embroidered on linen in a beech hoop, in satin stitch along the book's own
+     letterforms (src/make_stitch.py). Something made slowly, by hand. The G is coming undone: its last stitches
+     are loose, and one thread runs out of the hoop to a needle hanging below. Pull it, and it unravels. */
+  .page { background: #2c2925; }
+  img.abs { position: absolute; left: 0; top: 0; width: 1875px; height: 2775px; }
+  #sub { position: absolute; left: 0; width: 1875px; text-align: center; font-family: "Inter Tight", sans-serif; font-weight: 500;
+    font-size: 58px; letter-spacing: -0.012em; line-height: 1.22; color: #efe3c8; }
+  #author { position: absolute; left: 0; width: 1875px; text-align: center; color: #efe3c8; }
+</style>
+</head>
+<body>
+<div class="page">
+  <img class="abs" src="../../out/render/linen-bold.png" alt="">
+  <img class="abs" src="../../out/render/stitch-bold.svg" alt="">
+  <div id="sub">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+  <div class="mono" id="author">Michael Wentz</div>
+</div>
+<script src="fit.js"></script>
+<script>
+ready(() => {
+  document.getElementById("sub").style.top = "2330px";
+  document.getElementById("author").style.top = "2560px";
+});
+</script>
+</body>
+</html>

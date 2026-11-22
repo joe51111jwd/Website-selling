@@ -113,6 +113,22 @@ The subtitle and author stay quiet and typeset. The research is in `research/ref
 
 **Spines for 11-15:** the title on the spine is drawn too (`out/render/spine-word.svg`), not set in a font.
 
+## Round 3, bold (22 Nov): "It doesn't stand out enough"
+
+James's note on 11-15. Seen at 150 px in a row, all five sat in the same beige and cream range, with titles that took
+up too little of the cover, so they blended into each other and into a page of results. The ideas stay; the volume
+goes up. The four strongest got a bold version, and 11 (Built), the weakest, was dropped:
+
+| # | Bold version (files) | What changed |
+| - | - | - |
+| 12b | **Grown, bold** (`l-grown-bold`, `make_tree.py … bold`) | A full ochre ground (the book's SIDE paint). Deep green leaves, with cream in place of the ochre ones so they still read, and dark bark. It reads as a poster from across a room. |
+| 13b | **Light, bold** (`m-light-bold`, `light.py --bold 1`) | The wall goes near-black and the sun is twice as strong and gold, so the letters glow. The title fills the width (SCALING is 24% bigger), and the upside-down light on the floor is brighter. |
+| 14b | **Window, bold** (`n-window-bold`, `paper.py --bold 1`) | The sheet is cut from the book's deep green paper. The landscape behind the letters becomes a bright sunset (gold, orange, red), so every letter glows. |
+| 15b | **Stitched, bold** (`o-stitched-bold`, `make_stitch.py … bold`) | Charcoal linen, cream thread, brighter paints and a bigger title. The hoop is so big it runs off both edges of the cover. |
+
+Each has a matching coloured spine (`out/spine/spine-{lb,mb,nb,ob}.png`, from `spine.html?bg=&fg=&word=`). The
+side-by-side at Amazon size is `out/thumbs/bold-before-after-150.png`. All the originals are kept.
+
 ## The full wrap (direction 1, built before the switch to five)
 
 This was built for direction 1 before James asked for five and for no wrap until he picks; it is kept as the

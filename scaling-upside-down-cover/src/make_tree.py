@@ -16,6 +16,12 @@ BARK, BARK2 = "#3a2a1d", "#5a4330"
 LEAF = ["#4d7a3a", "#5f8f45", "#7aa356", "#3f6a33"]
 OCHRE = ["#d9952a", "#c98a1c", "#e2ac4a"]
 RED = ["#97201a", "#b23a2a"]
+# "bold": drawn on a saturated ochre ground, so the steady (ochre) leaves turn cream and the greens deepen
+BOLD = len(sys.argv) > 2 and sys.argv[2] == "bold"
+if BOLD:
+    OCHRE = ["#f6ead0", "#efdcb4", "#fff3dc"]
+    LEAF = ["#1f4a2b", "#2c5e36", "#3b7040", "#183d22"]
+    RED = ["#8f1d18", "#6e1410"]
 out = []
 
 # the crown: SCALING across the top, letters 360 px tall
@@ -168,7 +174,7 @@ out.append(f'<ellipse cx="{fe[0]:.1f}" cy="{fe[1]:.1f}" rx="{T * CAP * 0.2:.1f}"
 # 4. leaves: green on the growing letters, ochre where it steadies, a few red ones falling; the fallen G's leaves wilt
 for i, pp in tips:
     rnd = random.Random(500 + i)
-    n = 9 + rnd.randint(0, 4)
+    n = (4 + rnd.randint(0, 2)) if BOLD else (9 + rnd.randint(0, 4))   # bold: lighter foliage, so the word reads small
     for k in range(n):
         x, y = pp[int(rnd.uniform(0.25, 1.0) * (len(pp) - 1))]
         palette = LEAF if rnd.random() < 0.72 else OCHRE

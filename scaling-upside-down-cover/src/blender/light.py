@@ -22,6 +22,7 @@ ap.add_argument("--w", type=int, default=375)
 ap.add_argument("--h", type=int, default=555)
 ap.add_argument("--samples", type=int, default=24)
 ap.add_argument("--out", required=True)
+ap.add_argument("--bold", type=int, default=0, help="1: the stand-out version (dark wall, blazing light, title filling the width)")
 a = ap.parse_args(argv)
 A = lambda p: os.path.abspath(p)  # noqa: E731
 
@@ -105,8 +106,12 @@ bpy.ops.mesh.primitive_cube_add(size=1, location=(0, WALL_T / 2, 4.5))
 wall = bpy.context.active_object
 wall.scale = (24, WALL_T, 9)
 bpy.ops.object.transform_apply(scale=True)
-c1 = cutters("SCALING", 1.0, 4.05, 0.22)
-c2 = cutters("UP-SIDE-DOWN", 0.5, 3.2, 0.2)
+if a.bold:
+    c1 = cutters("SCALING", 1.24, 3.8, 0.2)
+    c2 = cutters("UP-SIDE-DOWN", 0.62, 2.85, 0.18)
+else:
+    c1 = cutters("SCALING", 1.0, 4.05, 0.22)
+    c2 = cutters("UP-SIDE-DOWN", 0.5, 3.2, 0.2)
 for c in (c1, c2):
     mod = wall.modifiers.new("cut", "BOOLEAN")
     mod.operation = "DIFFERENCE"
@@ -121,7 +126,7 @@ plaster = bpy.data.materials.new("plaster")
 plaster.use_nodes = True
 nt = plaster.node_tree
 b = nt.nodes["Principled BSDF"]
-b.inputs["Base Color"].default_value = srgb("#e9dfd0")
+b.inputs["Base Color"].default_value = srgb("#2a1f18" if a.bold else "#e9dfd0")
 b.inputs["Roughness"].default_value = 0.92
 noise = nt.nodes.new("ShaderNodeTexNoise")
 noise.inputs["Scale"].default_value = 60
@@ -163,11 +168,11 @@ for loc, rot in [((-6.5, -10, 4.5), (0, math.radians(90), 0)), ((6.5, -10, 4.5),
 w = bpy.data.worlds.new("w")
 sc.world = w
 w.use_nodes = True
-w.node_tree.nodes["Background"].inputs["Color"].default_value = srgb("#ffd9a0")
-w.node_tree.nodes["Background"].inputs["Strength"].default_value = 1.4
+w.node_tree.nodes["Background"].inputs["Color"].default_value = srgb("#ff9640" if a.bold else "#ffd9a0")
+w.node_tree.nodes["Background"].inputs["Strength"].default_value = 3.2 if a.bold else 1.4
 sun_d = bpy.data.lights.new("sun", "SUN")
-sun_d.energy = 14.0
-sun_d.color = (1.0, 0.80, 0.55)
+sun_d.energy = 26.0 if a.bold else 14.0
+sun_d.color = (1.0, 0.66, 0.34) if a.bold else (1.0, 0.80, 0.55)
 sun_d.angle = math.radians(0.6)
 sun = bpy.data.objects.new("sun", sun_d)
 sc.collection.objects.link(sun)
@@ -184,7 +189,7 @@ cam.location = (0.0, -11.4, 5.9)
 look_at(cam, (0.0, -2.6, 2.05))
 # a soft warm fill from the room side, so the plaster reads as plaster, not as a hole
 fl = bpy.data.lights.new("fill", "AREA")
-fl.size, fl.energy, fl.color = 10, 420, (1.0, 0.84, 0.66)
+fl.size, fl.energy, fl.color = 10, (60 if a.bold else 420), (1.0, 0.84, 0.66)
 flo = bpy.data.objects.new("fill", fl)
 sc.collection.objects.link(flo)
 flo.location = (2.5, -11, 6.5)
