@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>13, refined (front)</title>
+<link rel="stylesheet" href="common.css">
+<style>
+  /* Cover 13, refined (round 4): the photoreal render (src/blender/light2.py, 2600 x 3848, downsampled) is the whole
+     cover; the title is the cut in the wall and the light on the floor. Only the author and the subtitle are set, as
+     quiet type: the name small and widely tracked at the head, the subtitle at the foot under a short hairline.
+     m2-light.html?v=a|b|c */
+  img.abs { position: absolute; left: 0; top: 0; width: 1875px; height: 2775px; }
+  #author { position: absolute; left: 0; width: 1875px; text-align: center; font-family: "Inter Tight", sans-serif; font-weight: 500;
+    font-size: 40px; letter-spacing: 0.42em; text-indent: 0.42em; text-transform: uppercase; }
+  #rule { position: absolute; left: 50%; width: 64px; margin-left: -32px; height: 2px; }
+  #sub { position: absolute; left: 0; width: 1875px; text-align: center; font-family: "Inter Tight", sans-serif; font-weight: 500;
+    font-size: 54px; line-height: 1.28; letter-spacing: -0.005em; }
+</style>
+</head>
+<body>
+<div class="page">
+  <img class="abs" id="bg" alt="">
+  <div id="author">Michael Wentz</div>
+  <div id="rule"></div>
+  <div id="sub">Revenue Up. Margins Down.<br>How to Avoid the Scaling Trap.</div>
+</div>
+<script src="fit.js"></script>
+<script>
+const v = new URLSearchParams(location.search).get("v") || "a";
+// per variant: the ink for the type (it sits on the wall at the head and on the floor in shade at the foot),
+// and where the subtitle sits (below the light on the floor)
+const S = {
+  a: { head: "#4a3524", foot: "#f3e3c8", rule: "#e9b46a", sub: 2330 },
+  b: { head: "#2f2d2a", foot: "#2f2d2a", rule: "#97201a", sub: 375 },   // on the quiet concrete, under the name: the terrazzo is too busy for type
+  c: { head: "#d9c3a0", foot: "#e8d4b2", rule: "#e2a24a", sub: 2330 },
+}[v];
+document.getElementById("bg").src = `../../out/render/light2-${v}-1875.png`;
+ready(() => {
+  const a = document.getElementById("author");
+  Object.assign(a.style, { top: "205px", color: S.head });
+  const r = document.getElementById("rule");
+  Object.assign(r.style, { top: S.sub - 56 + "px", background: S.rule });
+  const s = document.getElementById("sub");
+  Object.assign(s.style, { top: S.sub + "px", color: S.foot });
+});
+</script>
+</body>
+</html>

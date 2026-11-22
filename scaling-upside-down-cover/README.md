@@ -129,6 +129,46 @@ goes up. The four strongest got a bold version, and 11 (Built), the weakest, was
 Each has a matching coloured spine (`out/spine/spine-{lb,mb,nb,ob}.png`, from `spine.html?bg=&fg=&word=`). The
 side-by-side at Amazon size is `out/thumbs/bold-before-after-150.png`. All the originals are kept.
 
+## Round 4 (22 Nov): #13 made high-quality (13a, 13b, 13c)
+
+James: "I'm liking some of the stuff — the mirror one is good, but I need it to be more high-quality." The mirror one
+is #13: the title cut through a wall, with the sun laying the same words upside down across the floor. The idea
+stays; everything under it was rebuilt.
+
+**Letterforms, redrawn for cutting** (`src/make_cutouts.py` → `out/render/cutouts.json`, proof `out/render/cut-*.png`):
+- **Spacing:** optical kerning for every pair in both lines.
+- **Weight and edges:** one even stroke weight; straight letters clipped flat at the cap line and baseline, and round
+  ones overshooting by 2.5% so they look the same height.
+- **Redrawn letters:** a wider A with a split apex, an N in three strokes, and a G whose spur meets its bowl.
+- **Stencil bridges:** designed in, all one width and placed where a stencil cutter would put them. On D and P they
+  sit flush with the stem, and O has them top and bottom. They are physically needed: without them the counters of A,
+  D, O and P would fall out of the wall.
+- **Clean outlines:** the drawing is rendered large in Chromium, traced into outlines and simplified, so the cuts
+  have crisp edges instead of the old jagged ones.
+
+**The scene** (`src/blender/light2.py --variant a|b|c`, Cycles):
+- **The wall:** 14-16 cm thick, so the depth of every cut shows on its inner faces, with a 5 mm arris on each edge
+  that catches the light.
+- **The room:** a closed interior. The only light inside is the low sun through the letters, plus, in a and b, one
+  soft window off to the left that rakes across the wall.
+- **Through the letters:** a glowing golden backdrop, never a dull view.
+- **The light:** a Nishita sky, a sun lamp with a real penumbra (crisp near the wall, softer with distance, stretched
+  in perspective), and volumetric haze where it helps.
+- **Grade and size:** AgX, rendered at 2600 x 3848 and downsampled to the cover with Lanczos.
+
+| | Material and light |
+| - | - |
+| **13a** (`m2-light-a`) | Warm limewash (clouded, brushed, a sandy tooth) and oiled oak boards, golden hour, a warm window raking from the left |
+| **13b** (`m2-light-b`) | Board-formed concrete (long boards, pressed grain, pits) and polished terrazzo whose chips include the book's three paints; cool morning light |
+| **13c** (`m2-light-c`) | A dark gallery: charcoal plaster, polished dark concrete, shafts of gold through haze |
+
+**Type:** the author is set small and widely tracked at the head. The subtitle sits at the foot under a short
+hairline in the variant's accent colour. Both are quiet, so the cut and the light carry the cover.
+
+Files: `out/flat/m2-light-{a,b,c}.png` / `.pdf` / `-trim.png`, `out/mockups/mockup-m2{a,b,c}.png`,
+`out/thumbs/row-13-150.png`, `out/contact-sheet-13.jpg` (the old 13 | 13a | 13b | 13c). Rebuild with
+`src/finish13.sh` once the renders exist.
+
 ## The full wrap (direction 1, built before the switch to five)
 
 This was built for direction 1 before James asked for five and for no wrap until he picks; it is kept as the

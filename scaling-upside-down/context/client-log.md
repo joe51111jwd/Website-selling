@@ -11,6 +11,24 @@ under "All of James's messages, word for word".
 
 ---
 
+## Sun 22 Nov 2026: James on #13: "the mirror one is good, but I need it to be more high-quality"
+
+> I'm liking some of the stuff — the mirror one is good, but I need it to be more high-quality.
+
+(Relayed by the parent session. "The mirror one" is #13, the title cut through a wall, with the sun laying it upside
+down across the floor.)
+
+What it means: keep the concept; rebuild the craft. The wall was flat, the letters rough, the floor generic and the
+small type careless. **Done** (branch `claude/susd-cover`, README "Round 4"): the letters are redrawn and traced
+into clean stencil outlines. A photoreal Cycles interior (thick wall, Nishita sun, haze, textured floors) comes in
+three variants:
+- 13a: limewash and oak.
+- 13b: concrete and terrazzo.
+- 13c: a dark gallery.
+The type is set, and `out/contact-sheet-13.jpg` compares the old 13 with all three. **Waiting** on James's pick; no
+wrap until then.
+
+
 ## Sun 22 Nov 2026: James on covers 11-15: "It doesn't stand out enough"
 
 > It doesn't stand out enough
