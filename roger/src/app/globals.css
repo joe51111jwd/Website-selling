@@ -1,0 +1,89 @@
+@import "tailwindcss";
+@import "./v3.css";
+
+/* Tokens copied from the live meetroger.ai stylesheet (November 22, 2026).
+   In Peter's repo these already exist in src/app/globals.css. Do not port this block. */
+@theme {
+  --font-sans: "Mona Sans Variable", "Mona Sans", system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --color-ground: #fbfbfd;
+  --color-ground-2: #f3f3f5;
+  --color-surface: #fff;
+  --color-ink: #1d1d1f;
+  --color-ink-2: #5d5d63;
+  --color-rule: #e2e2e6;
+  --color-rule-strong: #c7c7cd;
+  --color-accent: #9a5226;
+  --color-accent-hover: #83431c;
+  --color-accent-ink: #fff;
+  --color-accent-wash: #f6ece4;
+  --color-night: #0c0c0e;
+  --color-night-2: #19191c;
+  --color-night-ink: #f5f5f7;
+  --color-night-ink-2: #a3a3aa;
+  --color-night-rule: #2c2c31;
+  --color-accent-night: #e8a97f;
+  --color-error: #b3261e;
+
+  --text-display: clamp(2.125rem, min(11.2vw, 2.2rem + 3.2vw, 9.4svh), 5.75rem);
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.042em;
+  --text-display--font-weight: 650;
+  --text-h2: clamp(2.25rem, min(3.6vw, 7svh), 3.5rem);
+  --text-h2--line-height: 1.06;
+  --text-h2--letter-spacing: -0.034em;
+  --text-h2--font-weight: 640;
+  --text-h3: 2rem;
+  --text-h3--line-height: 1.12;
+  --text-h3--letter-spacing: -0.03em;
+  --text-h3--font-weight: 640;
+  --text-poster: clamp(2.25rem, 1rem + 5.2vw, 5.75rem);
+  --text-poster--line-height: 0.88;
+  --text-poster--letter-spacing: -0.055em;
+  --text-poster--font-weight: 700;
+  --text-title: clamp(1.1875rem, 1.05rem + 0.45vw, 1.3125rem);
+  --text-title--line-height: 1.25;
+  --text-title--letter-spacing: -0.018em;
+  --text-title--font-weight: 620;
+  --text-lead: clamp(1.1875rem, 1.05rem + 0.45vw, 1.3125rem);
+  --text-lead--line-height: 1.45;
+  --text-lead--letter-spacing: -0.012em;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.55;
+  --text-small: 1rem;
+  --text-small--line-height: 1.5;
+  --text-meta: 0.8125rem;
+  --text-meta--line-height: 1.4;
+
+  --radius-object: 8px;
+  --radius-inner: 8px;
+  --radius-control: 8px;
+  --radius-note: 8px;
+
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-spring: linear(0, 0.38 8%, 0.8 18%, 1.03 30%, 1.06 38%, 1.02 52%, 0.995 68%, 1);
+  --ease-needle: linear(0, 0.22 6%, 0.66 14%, 1.06 24%, 1.12 30%, 1.05 40%, 0.98 52%, 1.01 66%, 1);
+}
+
+html {
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 100%;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  scroll-padding-top: 5rem;
+}
+body {
+  font-size: var(--text-body);
+  line-height: 1.55;
+}
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.night :focus-visible { outline-color: var(--color-accent-night); }
+::selection { background: var(--color-accent-wash); color: var(--color-ink); }
