@@ -11,6 +11,74 @@ under "All of James's messages, word for word".
 
 ---
 
+## Tue 24 Nov 2026: James: make the site out of the book, like the AirPods page; he does not like the blocks
+
+> Basically I want you to do is go and look at Michael look at the email they sent update all that [...] I want you basically take like the Apple AirPods website that won awards and basically make it out of a book like show the book render it now you can open it up. You can show the pages you can do cool stuff you can show charts and diagrams to explain the point of the book the purpose why you should care because I think I don't know about this block system right now and I don't like it
+
+(Dictated.) What it means: a new direction for the home page, and it overrides two standing rules in `CLAUDE.md`
+("no Apple look", "real 3D: the blocks are Blender renders"). **Done** (preview, branch
+`claude/interactive-book-website-0iua5w`): the home page is the hardcover itself, in a dark room, drawn live in the
+browser from the cover's flat art (`public/cover/`, cut from direction 1's wrap on `claude/susd-cover`). The scroll
+opens it and turns its pages; each spread sets Michael's words on the left page and one diagram on the right:
+- who it is for (L415);
+- Revenue Up. Margins Down.: Chapter 17's exhibit as three charts (revenue $3M to $4.2M, margin 20% to 5%, owner
+  take $900K to $150K);
+- the team from 12 to 25 people, drawn with a line between every pair (66 to 300 coordination pathways);
+- "That isn't scaling." / "That's scaling upside down.": the second is printed upside down and the book is turned
+  over to read it;
+- the cycle as a staircase against the scaling trap's one spike, with Up, Sideways, Down in Michael's order;
+- the twelve systems.
+Then the book closes and stands beside the one sign-up. Both of Michael's 23 Nov points are answered in it (below).
+The block story is kept at `/?v=blocks`. **Waiting** on James's review. **Open**: the cover used is direction 1
+(nearest Michael's mockup), since no cover is picked yet; and whether the dark room is right for this book.
+
+
+## Mon 23 Nov 2026, 5:28 PM ET: Michael: Up first, then Side, then Down (email, Alpha inbox, with a screenshot)
+
+> And one more thing James. I don't know if this was intended or not ... but Up for Growth should go first? then Sidways for stabilzation? the Down for Pruning? Up-Side-Down?
+
+The screenshot (`media/2026-11-23-michael-slab-order.png`) is the story's three slabs standing in a row: SIDEWAYS FOR
+STABILIZATION, DOWN FOR PRUNING, UP FOR GROWTH.
+
+What it means: wherever the three are shown together, the order is the title's: Up, Side, Down. **Done** on the book
+page (the cycle's diagram and its three lines, the twelve systems' rows). **Open** on the block story (`/?v=blocks`):
+its film is rendered in the old order (`render/words_film.py`) and was not re-rendered.
+
+
+## Mon 23 Nov 2026, 11:02 AM ET: Michael: drop the two middle planks, keep the JOIN plank under the title (email, Alpha inbox, with a screenshot)
+
+> Thank you update James. For the initial appearance I think you can remove the two middle blocks "A book by Michael Wentz" and "ffor bootstrapped founders". And keep the "Join the First-Edition List" Right below it but separated with a space. That is if it's possible.
+>
+> Looking forward to the graphics :)
+
+The screenshot (`media/2026-11-23-michael-hero-planks.png`) is the live hero: the hardcover, the SCALING / UP / SIDE /
+DOWN blocks, the two planks and the red JOIN plank.
+
+What it means: the first screen is the book and the one button, nothing between them. **Done** on the book page: the
+hero is the hardcover (its cover carries his name) with JOIN THE FIRST-EDITION LIST under it, set apart. **Open** on
+the block story: the planks are in the render (`render/hero_words.py`).
+
+
+## Sun 22 Nov 2026, 9:23 AM ET: James's update to Michael (email, Alpha inbox)
+
+> Hi Michael,
+>
+> Quick update so you know where things are. I'm still working on the site, and here's what's in progress.
+>
+> The opening book section: I saw your recording, and I'm making that part hold on screen even when someone scrolls fast, so the book intro and signup can't fly by.
+>
+> The handoff: I'm setting it up so you own the domain, hosting, code and assets, with nothing that adds ongoing cost, and so you can make basic updates yourself.
+>
+> Graphics: I'm also drafting cover ideas now. I'll send you a few directions to react to before going further.
+>
+> December 1 for layout works on my end. I'll send you the updated link to look at as soon as this pass is ready.
+>
+> James
+
+What it means: Michael has been told the hold is coming (it is on the book page: one fast scroll stops on the closed
+book), that he will own everything, that cover directions are coming, and that 1 Dec works. **Open**: the updated link.
+
+
 ## Thu 19 Nov 2026, later: James: a cover in five ideas, a second site in a new direction, and fix the blocks site
 
 > He also wants a cover design, so spin up a chat, like a subchat. You can put it on Opus and just make a design. Then I want you to look through his website [...] I think we could have more aura to it. [...] I want to try doing less symbolism. Just make a cool-ass website for this. [...] Update the live version with the newest version, but modify it a lot better, and then make it more clean. [...] Right now, it's kind of boring because the blocks are just sitting around, whereas I feel like if I could actually have more of an understanding, that'd be better. I think you can add some text, but put the text in certain ways that make it good. [...] I don't want weird left-aligned.

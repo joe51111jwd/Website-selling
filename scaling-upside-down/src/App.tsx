@@ -9,6 +9,8 @@ import { NoticeDialog } from "./components/NoticeDialog";
 import { setLenis } from "./lenis";
 import { FOCUS } from "./focus";
 import { FocusPage } from "./components/FocusPage";
+import { BookPage } from "./components/BookPage";
+import { BLOCKS } from "./edition";
 
 type Entry = { y?: number } | null;
 
@@ -97,6 +99,14 @@ export default function App() {
     return (
       <>
         <FocusPage />
+        <NoticeDialog copy={COPY.notice} />
+      </>
+    );
+  // the home page is the book itself (24 Nov); the block story it replaced stays at /?v=blocks
+  if (!BLOCKS)
+    return (
+      <>
+        <BookPage />
         <NoticeDialog copy={COPY.notice} />
       </>
     );

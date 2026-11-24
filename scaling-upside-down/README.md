@@ -1,5 +1,20 @@
 # Scaling Up-Side-Down
 
+**Since 24 Nov the home page is the book itself** (branch `claude/interactive-book-website-0iua5w`). One pinned
+stage holds a hardcover built in the browser with CSS 3D from the cover's flat art (`public/cover/front.webp`,
+`spine.webp`, `back.webp`). The scroll opens it, turns five leaves, turns the book upside down and back, closes it
+and stands it beside the sign-up.
+
+| What | Where |
+| --- | --- |
+| The scroll's moments and their lengths | `SEGMENTS` in `src/bookfilm.ts` |
+| The words and the diagrams' numbers | `src/bookcopy.ts` (every sentence Michael's, with its line) |
+| The book, its pages and the diagrams | `src/components/BookPage.tsx`, `src/book-page.css` |
+| The cover | replace the three files in `public/cover/` (2:3 front and back, the spine 40 x 1080 in proportion) |
+
+On a phone held upright one page fills the screen, and the picture pans from the left page to the right inside each
+spread. The block story below is still in the code, at `/?v=blocks`.
+
 The site for Michael Wentz's book. It opens on the cover's three blocks lying face
 up; as the page loads they stand up and stack, and the first screen is the book's title
 page made of blocks: SCALING stands beside UP / SIDE / DOWN as on the cover, two planks

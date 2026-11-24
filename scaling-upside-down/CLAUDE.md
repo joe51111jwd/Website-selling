@@ -8,6 +8,15 @@ This is the site for Michael Wentz's book *Scaling Up-Side-Down* (SUSD), built b
   `claude/great-lamport-os1jry` (14 Nov) and `claude/hero-hold` (13 Nov). A second site in a new direction is on
   `claude/susd-aura` (preview only) and the cover ideas on `claude/susd-cover`
 
+## The book page (since 24 Nov)
+
+James, 24 Nov: "take like the Apple AirPods website that won awards and basically make it out of a book ... I don't
+know about this block system right now and I don't like it". On branch `claude/interactive-book-website-0iua5w` the
+home page is the hardcover itself, opened by the scroll (`src/components/BookPage.tsx`, `src/bookfilm.ts`,
+`src/bookcopy.ts`, `src/book-page.css`, cover art in `public/cover/`). Where it disagrees with the Look rules below
+(the Apple look, the Blender blocks, no text beside the picture), the 24 Nov direction wins. The copy rule, the
+Bootloader rules and the hero hold all still apply. The block story is kept at `/?v=blocks`.
+
 ## Read before you work
 
 1. `context/client-log.md`: Michael's messages and James's calls, newest first, word for word,

@@ -6,6 +6,13 @@ James go in `context/client-log.md`; when state changes, update this file too.
 
 ## Where things stand
 
+**24 Nov: the book page (preview, branch `claude/interactive-book-website-0iua5w`).** James asked for the site to be
+made out of the book, in the manner of Apple's AirPods page, and said he does not like the blocks. The home page is
+now a hardcover drawn live in the browser, opened by the scroll, with one diagram per spread; it closes beside the one
+sign-up. Michael's two 23 Nov points (Up, Side, Down in that order; no planks between the title and the JOIN button)
+are answered in it. The block story is kept at `/?v=blocks`, unchanged. Waiting on James's review; not on production.
+See the top of `client-log.md`.
+
 The site for Michael Wentz’s book *Scaling Up-Side-Down* is live at
 https://scaling-up-side-down.vercel.app. It includes both rounds of his
 feedback: the 27 Oct round (sign-up, /appendix) and the 30 Oct round (the
