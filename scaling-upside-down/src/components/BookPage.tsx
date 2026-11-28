@@ -314,8 +314,8 @@ export function BookPage() {
       const a = f.approach;
       const c = f.close;
       const idle = reduced ? 0 : 1 - a;
-      const sway = Math.sin((now - t0) / 1900) * 5 * idle;
-      const bob = Math.sin((now - t0) / 1300) * 0.006 * vh * idle;
+      const sway = Math.sin((now - t0) / 2300) * 4 * idle;
+      const bob = 0;
       const s = lerp(lerp(sHero, sRead, a), sEnd, c);
       const rx = lerp(lerp(4, narrow ? 12 : 20, a), 4, c);
       const ry = lerp(lerp(27, 0, a), 27, c) + sway;
@@ -333,11 +333,36 @@ export function BookPage() {
         const el = leaves.current[i];
         if (!el) continue;
         const p = f.leaf[i];
-        const z = lerp(D + GAP * (LEAVES - i), GAP * (i + 2), p);
+        const z = lerp(D + GAP * (LEAVES - i), 9 + GAP * (i + 2), p); // turned, it lies on the opened cover's board (7 thick)
         el.style.transform = `translateZ(${z.toFixed(2)}px) rotateY(${(-180 * p).toFixed(2)}deg)`;
         el.style.setProperty("--turn", Math.sin(Math.PI * p).toFixed(3));
       }
       const css = st.style;
+      // the light: one key lamp above and a little to the right of the camera. Each face of the book is as
+      // bright as it is turned towards it (the page turn's own shading is --turn, above)
+      const cx = Math.cos((rx * Math.PI) / 180);
+      const sx = Math.sin((rx * Math.PI) / 180);
+      const cy = Math.cos((ry * Math.PI) / 180);
+      const sy = Math.sin((ry * Math.PI) / 180);
+      const lit = (x: number, y: number, z: number) => {
+        const X = x * cy + z * sy;
+        const Z0 = -x * sy + z * cy;
+        const Y = y * cx - Z0 * sx;
+        const Z = y * sx + Z0 * cx;
+        return (1 - (0.5 + 0.5 * Math.max(0, X * 0.15 - Y * 0.5 + Z * 0.85))) * 0.92;
+      };
+      css.setProperty("--d-front", lit(0, 0, 1).toFixed(3));
+      css.setProperty("--d-back", lit(0, 0, -1).toFixed(3));
+      css.setProperty("--d-spine", lit(-1, 0, 0).toFixed(3));
+      css.setProperty("--d-fore", lit(1, 0, 0).toFixed(3));
+      css.setProperty("--d-head", lit(0, -1, 0).toFixed(3));
+      css.setProperty("--d-tail", lit(0, 1, 0).toFixed(3));
+      css.setProperty("--sheen", ((ry - 6) * 3.2).toFixed(1));
+      css.setProperty("--stand", Math.max(1 - a, c).toFixed(3));
+      // a leaf standing up throws its shadow on the page under it
+      const shadow = (p: number) => (p < 0.5 ? Math.sin(Math.PI * p) : Math.sin(Math.PI * p) * (1 - (p - 0.5) * 2));
+      for (let i = 0; i < LEAVES; i++) leaves.current[i]?.style.setProperty("--cast", shadow(i ? f.leaf[i - 1] : f.cover).toFixed(3));
+      css.setProperty("--cast-last", shadow(f.leaf[LEAVES - 1]).toFixed(3));
       css.setProperty("--hero", f.hero.toFixed(3));
       css.setProperty("--end", f.end.toFixed(3));
       css.setProperty("--c1", f.c1.toFixed(4));
@@ -364,6 +389,7 @@ export function BookPage() {
       <div className="face front">
         {front}
         <i className="shade" />
+        <i className="cast" />
       </div>
       <div className="face back">
         {back}
@@ -398,19 +424,33 @@ export function BookPage() {
             <div className="bk-scene">
               <div className="bk-enter">
                 <div className="bk-rig" ref={rig}>
+                  <div className="bk-floor" aria-hidden="true" />
                   <div className="bk-book" ref={book}>
+                    <div className="bk-table" aria-hidden="true">
+                      <i className="tl" />
+                      <i className="tr" />
+                    </div>
                     <div className="board back-board">
                       <img src={art("back.webp")} alt="" width={1000} height={1500} />
+                      <i className="stock" />
+                      <i className="groove" />
+                      <i className="lit" />
                     </div>
+                    <div className="rim rim-fore" />
+                    <div className="rim rim-head" />
+                    <div className="rim rim-tail" />
+                    <div className="pastedown" />
                     <div className="edge edge-fore" />
                     <div className="edge edge-head" />
                     <div className="edge edge-tail" />
                     <div className="spine" ref={spine}>
                       <img src={art("spine.webp")} alt="" />
+                      <i className="stock" />
                     </div>
                     <div className="last">
                       <Systems />
                       <i className="shade" />
+                      <i className="cast" />
                     </div>
                     {leaf(
                       4,
@@ -443,8 +483,14 @@ export function BookPage() {
                     <div className="leaf cover" ref={cover}>
                       <div className="face front">
                         <img src={art("front.webp")} alt={h.cover} width={1000} height={1500} fetchPriority="high" />
+                        <i className="stock" />
+                        <i className="groove" />
                         <i className="sheen" />
+                        <i className="lit" />
                       </div>
+                      <div className="rim rim-fore" />
+                      <div className="rim rim-head" />
+                      <div className="rim rim-tail" />
                       <div className="face back endpaper">
                         <i className="shade" />
                       </div>
@@ -454,6 +500,7 @@ export function BookPage() {
               </div>
             </div>
 
+            <div className="bk-grain" aria-hidden="true" />
             <div className="bk-hero" inert={phase !== "hero"}>
               <h1 className="sr-only">
                 {h.title.replace("\n", " ")}. {h.sub}

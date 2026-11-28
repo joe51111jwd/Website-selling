@@ -11,6 +11,25 @@ under "All of James's messages, word for word".
 
 ---
 
+## Sat 28 Nov 2026: James on the book page: "Make the book look more photo realistic"
+
+> Make the book look more photo realistic
+
+What it means: the hardcover read as a diagram of a book: flat planes, no thickness, no light, floating in a void.
+**Done** (preview, branch `claude/interactive-book-website-0iua5w`), still drawn live in the browser:
+- The object: boards 7 thick with cut edges, a hinge groove down each cover, a rounded spine, the board's margin
+  showing round the pages, and a block whose edges are a texture of uneven sheets, shaded where the boards meet it.
+- The materials: a matte cover stock and a paper tooth (generated textures in `public/cover/`), a page that dips into
+  the gutter, swells and falls away to its edge.
+- The light: one lamp above the camera. Every face is as bright as it is turned towards it, a highlight crosses the
+  cover as the book turns, a page darkens and catches the light as it stands up, and throws its shadow on the page
+  under it.
+- The room: the book stands on a floor in its own shadow instead of floating, lies on a lit table when open, and the
+  picture has a little grain and darker corners.
+**Waiting** on James's review. **Open**: a turning page is still a flat sheet (it does not curl), and the cover is
+still direction 1.
+
+
 ## Tue 24 Nov 2026: James: make the site out of the book, like the AirPods page; he does not like the blocks
 
 > Basically I want you to do is go and look at Michael look at the email they sent update all that [...] I want you basically take like the Apple AirPods website that won awards and basically make it out of a book like show the book render it now you can open it up. You can show the pages you can do cool stuff you can show charts and diagrams to explain the point of the book the purpose why you should care because I think I don't know about this block system right now and I don't like it
